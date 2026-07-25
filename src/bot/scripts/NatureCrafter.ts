@@ -19,7 +19,7 @@ import { Traversal } from '../api/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { type SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
-import { planStoreStep, LOW_COINS, STORE_PASSES } from './NatureRunnerLogic.js';
+import { planStoreStep, offerCount, LOW_COINS, STORE_PASSES, TRADE_CAP } from './NatureRunnerLogic.js';
 
 const ESSENCE = 'Rune essence';
 const ESSENCE_ID = 1436; // blankrune (unnoted essence); the bank-note variant has a different id
@@ -333,15 +333,28 @@ async function openUnnoteShop(): Promise<boolean> {
 // owns the loop while a trade modal is open — never moves (movement/combat closes it)
 class DriveTrade implements Task {
     private pending = 0;
+    private beforeUnnoted = 0;
     constructor(private bot: NatureCrafter) {}
     validate(): boolean { return Trade.active(); }
     async execute(): Promise<void> {
         if (Trade.onOfferScreen()) {
             if (Trade.myOffer().length === 0) {
-                this.pending = unnotedEssence();
+                const held = unnotedEssence();
+                const n = offerCount(held);
+                if (n <= 0) {
+                    await Execution.delayTicks(1);
+                    return;
+                }
+                this.pending = n;
+                this.beforeUnnoted = held;
                 this.bot.setStatus('offering essence');
-                this.bot.log(`trade open — offering ${this.pending} essence`);
-                await Trade.offerAll(ESSENCE, i => i.id === ESSENCE_ID);
+                if (held <= TRADE_CAP) {
+                    this.bot.log(`trade open — offering ${n} essence`);
+                    await Trade.offerAll(ESSENCE, i => i.id === ESSENCE_ID);
+                } else {
+                    this.bot.log(`holding ${held} unnoted — offering the ${n} cap`);
+                    await Trade.offer(ESSENCE, n, i => i.id === ESSENCE_ID);
+                }
             } else {
                 this.bot.setStatus('accepting the offer');
                 await Trade.accept();
@@ -351,9 +364,12 @@ class DriveTrade implements Task {
         if (Trade.onConfirmScreen()) {
             this.bot.setStatus('confirming the trade');
             await Trade.accept();
-            if (await Execution.delayUntil(() => !Trade.active(), 2500) && this.pending > 0 && unnotedEssence() === 0) {
-                this.bot.countDelivery(this.pending);
-                this.bot.log(`delivered ${this.pending} essence to the master`);
+            if (await Execution.delayUntil(() => !Trade.active(), 2500) && this.pending > 0) {
+                const delivered = this.beforeUnnoted - unnotedEssence();
+                if (delivered > 0) {
+                    this.bot.countDelivery(delivered);
+                    this.bot.log(`delivered ${delivered} essence to the master`);
+                }
                 this.pending = 0;
             }
         }
