@@ -410,8 +410,10 @@ function groundNotedEss(): GroundItem | null {
 }
 
 class PickupNotedEssence implements Task {
+    private fails = 0;
+    private blockedUntil = 0;
     constructor(private bot: NatureCrafter) {}
-    validate(): boolean { return !Trade.active() && groundNotedEss() !== null; }
+    validate(): boolean { return !Trade.active() && Date.now() >= this.blockedUntil && groundNotedEss() !== null; }
     async execute(): Promise<void> {
         const drop = groundNotedEss();
         if (!drop) {
@@ -420,14 +422,22 @@ class PickupNotedEssence implements Task {
         this.bot.setStatus('picking up dropped noted essence');
         this.bot.log(`noted essence on the ground (${drop.count}) — another runner died? picking it up`);
         const before = notedEssence();
-        if (!(await drop.interact('Take'))) {
-            await Execution.delayTicks(2);
-            return;
+        const clicked = await drop.interact('Take');
+        if (clicked) {
+            await Execution.delayUntil(() => notedEssence() > before, 8000);
         }
-        await Execution.delayUntil(() => notedEssence() > before, 8000);
         if (notedEssence() > before) {
             this.bot.log(`picked up ${notedEssence() - before} noted essence`);
+            this.fails = 0;
+            return;
         }
+        // an unreachable/unpickable stack must not starve deliveries forever
+        if (++this.fails >= 3) {
+            this.bot.log('could not pick the noted stack up (full pack? out of reach) — ignoring it for a while');
+            this.fails = 0;
+            this.blockedUntil = Date.now() + 120_000;
+        }
+        await Execution.delayTicks(2);
     }
 }
 
