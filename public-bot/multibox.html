@@ -40,9 +40,11 @@
         .mbx-addtile { display: flex; align-items: center; justify-content: center; height: 52px; flex: 0 0 auto; font-size: 14px; color: #666; border: 1px dashed #444; border-radius: 4px; cursor: pointer; }
         .mbx-addtile:hover { color: #04A800; border-color: #04A800; }
 
-        #mbx-drawer { position: fixed; top: 50%; right: 264px; transform: translateY(-50%); z-index: 50; width: 16px; height: 56px; display: flex; align-items: center; justify-content: center; background: #111; border: 1px solid #333; border-right: 0; border-radius: 4px 0 0 4px; color: #666; cursor: pointer; }
+        #mbx-drawer { position: fixed; top: 12px; right: 264px; z-index: 50; width: 16px; height: 56px; display: flex; align-items: center; justify-content: center; background: #111; border: 1px solid #333; border-right: 0; border-radius: 4px 0 0 4px; color: #666; cursor: pointer; }
         #mbx-drawer:hover { color: #04A800; border-color: #04A800; }
-        #mbx-app.mbx-rail-hidden #mbx-rail { display: none; }
+        /* collapse by width, NOT display:none — the focused slot's position:fixed clip
+           is a rail descendant and display:none on the rail would blank it */
+        #mbx-app.mbx-rail-hidden #mbx-rail { flex: 0 0 0px; width: 0; padding: 0; border-left: 0; overflow: hidden; }
         #mbx-app.mbx-rail-hidden #mbx-drawer { right: 0; }
         #mbx-app.mbx-rail-hidden .mbx-slot.is-focused .mbx-clip { right: 0; }
 

@@ -150,7 +150,7 @@ class DomSlotHandle implements SlotHandle {
     }
 
     private paintMirror = (): void => {
-        if (this.mode !== 'focused' || this.el.offsetParent === null) {
+        if (this.mode !== 'focused' || railWidth() === 0) {
             return;
         }
         const src = this.iframe.contentDocument?.getElementById('canvas') as HTMLCanvasElement | null;

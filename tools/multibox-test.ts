@@ -81,8 +81,15 @@ try {
     if (!boxed) fail('profile bot iframe missing its ?box= namespace');
     console.log('PASS: create-new persisted a profile; slots namespaced by username');
 
+    const railHidden = () => page.evaluate(() => document.getElementById('mbx-app')!.classList.contains('mbx-rail-hidden'));
+    if (await railHidden()) await page.click('#mbx-drawer');
     await page.click('#mbx-drawer');
     if (!(await page.evaluate(() => document.getElementById('mbx-rail')!.offsetWidth === 0))) fail('drawer did not hide the rail');
+    const focusedVisible = await page.evaluate(() => {
+        const f = document.querySelector('.mbx-slot.is-focused .mbx-frame');
+        return f !== null && f.getBoundingClientRect().width > 100;
+    });
+    if (!focusedVisible) fail('hiding the rail blanked the focused bot');
     await page.click('#mbx-drawer');
     if (!(await page.evaluate(() => document.getElementById('mbx-rail')!.offsetWidth > 0))) fail('drawer did not restore the rail');
     console.log('PASS: rail drawer toggles');
