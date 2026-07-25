@@ -1,7 +1,8 @@
 import { DomSlotOps } from './DomSlotOps.js';
 import { MultiBoxController } from './MultiBoxController.js';
 import { ProfileChooser } from './ProfileChooser.js';
-import { upsertProfile, type Profile } from '../runtime/Profiles.js';
+import { vault, type Profile } from './ProfileVault.js';
+import { VaultPrompt } from './VaultPrompt.js';
 import type { Account } from './types.js';
 
 function boot(): void {
@@ -32,7 +33,27 @@ function boot(): void {
         renderRail();
     });
     document.body.appendChild(chooser.el);
-    addTile.addEventListener('click', () => chooser.open());
+
+    const prompt = new VaultPrompt(vault);
+    document.body.appendChild(prompt.el);
+    addTile.addEventListener('click', () => {
+        void prompt.ensureUnlocked().then(ok => {
+            if (ok) {
+                chooser.open();
+            }
+        });
+    });
+
+    window.addEventListener('message', ev => {
+        if (ev.origin !== location.origin) return;
+        const d = ev.data as { type?: string; username?: string; password?: string };
+        if (d?.type !== 'rs2b0t:profile-save' || typeof d.username !== 'string' || d.username.length === 0 || typeof d.password !== 'string') return;
+        void prompt.ensureUnlocked().then(ok => {
+            if (ok) {
+                void vault.upsert({ username: d.username!, password: d.password! });
+            }
+        });
+    });
 
     const app = document.getElementById('mbx-app')!;
     const drawer = document.getElementById('mbx-drawer')!;
@@ -72,17 +93,21 @@ function boot(): void {
         add: (a?: Account) => controller.add(a),
         focus: (id: number) => { controller.focus(id); renderRail(); },
         slots: () => controller.snapshot(),
-        importProfiles: (json: string | Profile[]): number => {
+        importProfiles: async (json: string | Profile[]): Promise<number> => {
+            if (!(await prompt.ensureUnlocked())) {
+                return 0;
+            }
             const arr = typeof json === 'string' ? (JSON.parse(json) as Profile[]) : json;
             let n = 0;
             for (const p of Array.isArray(arr) ? arr : []) {
                 if (p && typeof p.username === 'string' && p.username.length > 0 && typeof p.password === 'string') {
-                    upsertProfile({ username: p.username, password: p.password });
+                    await vault.upsert({ username: p.username, password: p.password });
                     n++;
                 }
             }
             return n;
-        }
+        },
+        profiles: (): string[] => vault.list().map(p => p.username)
     };
 }
 

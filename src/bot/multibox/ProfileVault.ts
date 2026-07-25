@@ -28,7 +28,7 @@ function b64(bytes: Uint8Array): string {
     return btoa(s);
 }
 
-function unb64(s: string): Uint8Array {
+function unb64(s: string): Uint8Array<ArrayBuffer> {
     const bin = atob(s);
     const out = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) {
@@ -69,7 +69,7 @@ function parseLegacy(raw: string | null): Profile[] | null {
     }
 }
 
-async function deriveKey(pass: string, salt: Uint8Array, iter: number): Promise<CryptoKey> {
+async function deriveKey(pass: string, salt: Uint8Array<ArrayBuffer>, iter: number): Promise<CryptoKey> {
     const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
     return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, material, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
 }
@@ -77,7 +77,7 @@ async function deriveKey(pass: string, salt: Uint8Array, iter: number): Promise<
 export class ProfileVault {
     private cache: Profile[] | null = null;
     private key: CryptoKey | null = null;
-    private salt: Uint8Array | null = null;
+    private salt: Uint8Array<ArrayBuffer> | null = null;
 
     status(): VaultStatus {
         if (this.cache) {

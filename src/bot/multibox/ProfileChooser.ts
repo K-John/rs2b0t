@@ -1,4 +1,4 @@
-import { listProfiles, removeProfile, upsertProfile, type Profile } from '../runtime/Profiles.js';
+import { vault, type Profile } from './ProfileVault.js';
 
 export class ProfileChooser {
     readonly el: HTMLDivElement;
@@ -48,7 +48,7 @@ export class ProfileChooser {
                 return;
             }
             const p = { username, password: this.pass.value };
-            upsertProfile(p);
+            void vault.upsert(p);
             this.user.value = '';
             this.pass.value = '';
             this.close();
@@ -71,7 +71,7 @@ export class ProfileChooser {
 
     private render(): void {
         this.list.textContent = '';
-        const profiles = listProfiles();
+        const profiles = vault.list();
         if (profiles.length === 0) {
             const none = document.createElement('div');
             none.className = 'mbx-chooser-empty';
@@ -91,7 +91,7 @@ export class ProfileChooser {
             del.textContent = '✕';
             del.addEventListener('click', ev => {
                 ev.stopPropagation();
-                removeProfile(p.username);
+                void vault.remove(p.username);
                 this.render();
             });
             row.append(name, del);
@@ -107,7 +107,7 @@ export class ProfileChooser {
         all.textContent = 'load all profiles';
         all.addEventListener('click', () => {
             this.close();
-            for (const p of listProfiles()) {
+            for (const p of vault.list()) {
                 this.onLoad(p);
             }
         });

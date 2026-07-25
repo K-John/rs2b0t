@@ -1,14 +1,21 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { ProfileChooser } from '#/bot/multibox/ProfileChooser.js';
-import { listProfiles, upsertProfile, type Profile } from '#/bot/runtime/Profiles.js';
+import { vault, type Profile } from '#/bot/multibox/ProfileVault.js';
 
 const clearAll = () => {
     sessionStorage.clear();
     localStorage.clear();
     document.body.innerHTML = '';
 };
-beforeEach(clearAll);
-afterEach(clearAll);
+beforeEach(async () => {
+    clearAll();
+    vault.reset();
+    await vault.setup('pw');
+});
+afterEach(() => {
+    vault.reset();
+    clearAll();
+});
 
 function make(): { chooser: ProfileChooser; loaded: Profile[] } {
     const loaded: Profile[] = [];
@@ -18,9 +25,9 @@ function make(): { chooser: ProfileChooser; loaded: Profile[] } {
 }
 
 describe('ProfileChooser', () => {
-    test('starts hidden; open lists saved profiles', () => {
-        upsertProfile({ username: 'alice', password: 'a' });
-        upsertProfile({ username: 'bob', password: 'b' });
+    test('starts hidden; open lists saved profiles', async () => {
+        await vault.upsert({ username: 'alice', password: 'a' });
+        await vault.upsert({ username: 'bob', password: 'b' });
         const { chooser } = make();
         expect(chooser.el.hidden).toBe(true);
         chooser.open();
@@ -29,8 +36,8 @@ describe('ProfileChooser', () => {
         expect(names).toEqual(['alice', 'bob']);
     });
 
-    test('clicking a row loads that profile and closes', () => {
-        upsertProfile({ username: 'alice', password: 'a' });
+    test('clicking a row loads that profile and closes', async () => {
+        await vault.upsert({ username: 'alice', password: 'a' });
         const { chooser, loaded } = make();
         chooser.open();
         (chooser.el.querySelector('.mbx-profile-row') as HTMLElement).click();
@@ -38,31 +45,31 @@ describe('ProfileChooser', () => {
         expect(chooser.el.hidden).toBe(true);
     });
 
-    test('the delete button removes the profile without loading it', () => {
-        upsertProfile({ username: 'alice', password: 'a' });
+    test('the delete button removes the profile without loading it', async () => {
+        await vault.upsert({ username: 'alice', password: 'a' });
         const { chooser, loaded } = make();
         chooser.open();
         (chooser.el.querySelector('.mbx-profile-del') as HTMLElement).click();
-        expect(listProfiles()).toEqual([]);
+        expect(vault.list()).toEqual([]);
         expect(loaded).toEqual([]);
         expect(chooser.el.hidden).toBe(false);
         expect(chooser.el.querySelector('.mbx-chooser-empty')).not.toBeNull();
     });
 
-    test('create-new trims, saves and loads the profile', () => {
+    test('create-new trims, saves and loads the profile', async () => {
         const { chooser, loaded } = make();
         chooser.open();
         (chooser.el.querySelector('#mbx-new-user') as HTMLInputElement).value = ' carol ';
         (chooser.el.querySelector('#mbx-new-pass') as HTMLInputElement).value = 'pw';
         (chooser.el.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit', { cancelable: true }));
-        expect(listProfiles()).toEqual([{ username: 'carol', password: 'pw' }]);
+        expect(vault.list()).toEqual([{ username: 'carol', password: 'pw' }]);
         expect(loaded).toEqual([{ username: 'carol', password: 'pw' }]);
         expect(chooser.el.hidden).toBe(true);
     });
 
-    test('load all loads every profile and closes', () => {
-        upsertProfile({ username: 'alice', password: 'a' });
-        upsertProfile({ username: 'bob', password: 'b' });
+    test('load all loads every profile and closes', async () => {
+        await vault.upsert({ username: 'alice', password: 'a' });
+        await vault.upsert({ username: 'bob', password: 'b' });
         const { chooser, loaded } = make();
         chooser.open();
         (chooser.el.querySelector('#mbx-load-all') as HTMLElement).click();
@@ -73,13 +80,13 @@ describe('ProfileChooser', () => {
         expect(chooser.el.hidden).toBe(true);
     });
 
-    test('load all is absent when no profiles are saved', () => {
+    test('load all is absent when no profiles are saved', async () => {
         const { chooser } = make();
         chooser.open();
         expect(chooser.el.querySelector('#mbx-load-all')).toBeNull();
     });
 
-    test('create-new with an empty username does nothing', () => {
+    test('create-new with an empty username does nothing', async () => {
         const { chooser, loaded } = make();
         chooser.open();
         (chooser.el.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit', { cancelable: true }));

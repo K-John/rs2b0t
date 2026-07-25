@@ -2,9 +2,8 @@ import { reader } from '../adapter/ClientAdapter.js';
 import type { BotHostImpl } from '../BotHost.js';
 import { ActionRouter } from '../input/ActionRouter.js';
 import { AutoRelogin } from '../runtime/AutoRelogin.js';
-import { boxKey } from '../runtime/box.js';
+import { boxId, boxKey } from '../runtime/box.js';
 import { Credentials } from '../runtime/Credentials.js';
-import { saveProfileForBox } from '../runtime/Profiles.js';
 import { ScriptRegistry } from '../runtime/ScriptRegistry.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { GLOBAL_SETTINGS, SettingsStore } from '../runtime/Settings.js';
@@ -225,7 +224,9 @@ export default class BotPanel {
         const buttons = el('div', 'rs2b0t-buttons');
         button(buttons, 'Save', () => {
             Credentials.save(userInput.value.trim(), passInput.value);
-            saveProfileForBox(userInput.value.trim(), passInput.value);
+            if (boxId() !== '' && window.parent !== window) {
+                window.parent.postMessage({ type: 'rs2b0t:profile-save', username: userInput.value.trim(), password: passInput.value }, window.location.origin);
+            }
             status.textContent = 'saved locally (plaintext)';
             status.className = 'rs2b0t-load-status rs2b0t-load-ok';
         });
