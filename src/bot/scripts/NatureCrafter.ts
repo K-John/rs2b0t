@@ -10,7 +10,6 @@ import { Paint } from '../api/hud/Paint.js';
 import { Skills } from '../api/hud/Skills.js';
 import { Shop } from '../api/hud/Shop.js';
 import { Trade } from '../api/hud/Trade.js';
-import { withdrawOp } from '../api/hud/bankOps.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Locs } from '../api/queries/Locs.js';
 import { Npcs } from '../api/queries/Npcs.js';
@@ -20,6 +19,7 @@ import { Traversal } from '../api/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { type SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
+import { LOW_COINS } from './NatureRunnerLogic.js';
 
 const ESSENCE = 'Rune essence';
 const ESSENCE_ID = 1436; // blankrune (unnoted essence); the bank-note variant has a different id
@@ -39,12 +39,13 @@ const ARD_BANK = new Tile(2655, 3283, 0); // Ardougne East bank, by Captain Barn
 const STORE_TILE = new Tile(2767, 3122, 0); // Jiminua's Jungle Store, Karamja
 const UNNOTE_NPC = 'Jiminua';
 const BATCH = 26; // essence un-noted per store visit
-const COINS_BUFFER = 10000; // fare + un-note margin buffer
 
 export const SETTINGS: SettingsSchema = {
     mode: { type: 'string', default: 'Master', options: ['Master', 'Runner'], label: 'Mode', help: 'Master crafts natures at the altar and takes essence from runners; Runner ferries essence to the master (runner ships in a later phase)' },
     partner: { type: 'string', default: '', label: 'Partner name(s)', help: 'Master: runner name(s) to accept essence from, comma-separated. Runner: the master to deliver to.' },
-    bankAt: { type: 'number', default: 0, label: 'Bank natures at (0 = never)', help: 'Master: 0 = never bank — natures stack into one slot so just hold them (recommended). Set > 0 to deposit profit once holding that many, but banking uses the quest-gated Shilo Village bank, so only useful for a master with the quest' }
+    bankAt: { type: 'number', default: 0, label: 'Bank natures at (0 = never)', help: 'Master: 0 = never bank — natures stack into one slot so just hold them (recommended). Set > 0 to deposit profit once holding that many, but banking uses the quest-gated Shilo Village bank, so only useful for a master with the quest' },
+    withdrawEss: { type: 'number', default: 0, min: 0, label: 'Essence per restock (0 = all)', help: 'Runner: noted essence withdrawn per bank restock; 0 = the whole bank stack' },
+    withdrawCoins: { type: 'number', default: 10000, min: 0, label: 'Coins target at restock', help: 'Runner: top coins up to this at each restock (boat fares + shop buy-backs)' }
 };
 
 function inTemple(): boolean {
@@ -70,6 +71,8 @@ export default class NatureCrafter extends TaskBot {
     private mode = 'Master';
     private partners: string[] = [];
     private bankAt = 0;
+    private essPer = 0;
+    private coinsTarget = 10000;
     private crafted = 0;
     private received = 0;
     private trades = 0;
@@ -82,6 +85,8 @@ export default class NatureCrafter extends TaskBot {
         this.mode = this.settings.str('mode', 'Master');
         this.partners = this.settings.str('partner', '').split(',').map(s => s.trim()).filter(Boolean);
         this.bankAt = Math.max(0, this.settings.num('bankAt', 0)); // 0 = never bank
+        this.essPer = Math.max(0, this.settings.num('withdrawEss', 0));
+        this.coinsTarget = Math.max(LOW_COINS, this.settings.num('withdrawCoins', 10000));
         this.startedAt = Date.now();
         this.xpAtStart = Skills.xp('runecraft');
 
@@ -139,6 +144,8 @@ export default class NatureCrafter extends TaskBot {
     countCraft(n: number): void { this.crafted += n; }
     countTrade(essence: number): void { this.trades++; this.received += essence; }
     bankThreshold(): number { return this.bankAt; }
+    essPerRestock(): number { return this.essPer; }
+    coinTarget(): number { return this.coinsTarget; }
     isPartner(name: string | null): boolean {
         return name !== null && this.partners.some(p => p.toLowerCase() === name.toLowerCase());
     }
@@ -398,7 +405,7 @@ class UnNoteEssence implements Task {
 
 class BankRestock implements Task {
     constructor(private bot: NatureCrafter) {}
-    validate(): boolean { return essCount() === 0; }
+    validate(): boolean { return essCount() === 0 || Inventory.count(COINS) < LOW_COINS; }
     async execute(): Promise<void> {
         this.bot.setStatus('restocking at the Ardougne bank');
         await this.bot.walkTo(ARD_BANK, 3);
@@ -410,26 +417,31 @@ class BankRestock implements Task {
         }
 
         await Bank.setNoteMode(false);
-        const needCoins = COINS_BUFFER - Inventory.count(COINS);
+        const needCoins = this.bot.coinTarget() - Inventory.count(COINS);
         if (needCoins > 0 && Bank.count(COINS) > 0) {
             await Bank.withdrawX(COINS, Math.min(needCoins, Bank.count(COINS)));
-        } else if (Inventory.count(COINS) < 500) {
-            this.bot.log('NatureCrafter runner: out of coins (bank + pack) for fares. Stopping.');
+        }
+        if (Inventory.count(COINS) < LOW_COINS) {
+            this.bot.log('NatureCrafter runner: out of coins (bank + pack) for fares and buy-backs. Stopping.');
             ScriptRunner.stop();
             return;
         }
 
         const banked = Bank.count(ESSENCE);
         if (banked === 0) {
-            this.bot.log('NatureCrafter runner: out of Rune essence in the bank. Stopping.');
-            ScriptRunner.stop();
+            if (essCount() === 0) {
+                this.bot.log('NatureCrafter runner: out of Rune essence in the bank. Stopping.');
+                ScriptRunner.stop();
+            }
             return;
         }
+        const per = this.bot.essPerRestock();
+        const want = per > 0 ? Math.min(per, banked) : banked;
         await Bank.setNoteMode(true);
-        await Bank.withdrawX(ESSENCE, banked);
+        await Bank.withdrawX(ESSENCE, want);
         await Execution.delayUntil(() => essCount() > 0, 3000);
         await Bank.setNoteMode(false);
-        this.bot.log(`withdrew ${essCount()} essence (${notedEssence() > 0 ? 'noted' : 'unnoted'}) + coins for the run`);
+        this.bot.log(`withdrew ${essCount()} essence (${notedEssence() > 0 ? 'noted' : 'unnoted'}) + coins topped to ${Inventory.count(COINS)}`);
     }
 }
 
