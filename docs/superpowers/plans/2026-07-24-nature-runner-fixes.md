@@ -30,22 +30,22 @@
 - Consumes: nothing
 - Produces: recorded baselines later tasks compare against (test count, tsc status, which sim base the live smokes run on)
 
-- [ ] **Step 1: Confirm branch and tree**
+- [x] **Step 1: Confirm branch and tree**
 
 Run: `git status --short --branch`
 Expected: `## nature-runner-fixes`, clean tree, tip commit `docs: nature-runner fixes design spec`.
 
-- [ ] **Step 2: Full test baseline**
+- [x] **Step 2: Full test baseline**
 
 Run: `bun test 2>&1 | tail -5`
 Expected: 0 fail. Record the pass count — later tasks must not go below it.
 
-- [ ] **Step 3: Typecheck baseline**
+- [x] **Step 3: Typecheck baseline**
 
 Run: `bunx tsc --noEmit 2>&1 | tail -3`
 Record the error count (may be non-zero pre-existing). Later tasks require **no new** errors, not zero.
 
-- [ ] **Step 4: Live smoke baseline (env permitting)**
+- [x] **Step 4: Live smoke baseline (env permitting)**
 
 Check which sim is up: `curl -sf -o /dev/null http://localhost:8888/bot.html && echo 8888 || (curl -sf -o /dev/null http://localhost:8890/bot.html && echo 8890)`.
 If one answers, run the UNMODIFIED runner smoke against it and record base + result:
@@ -69,7 +69,7 @@ If no sim is up: record "no sim — live steps deferred" and continue; Task 11 l
   - `planStoreStep(stock: number, noted: number, unnoted: number): StoreStep`
   - `offerCount(unnoted: number): number`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/scripts/NatureRunnerLogic.test.ts`:
 
@@ -133,12 +133,12 @@ describe('offerCount (trade-window law: never more than 25)', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `bun test test/scripts/NatureRunnerLogic.test.ts`
 Expected: FAIL — cannot resolve `#/bot/scripts/NatureRunnerLogic.js`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `src/bot/scripts/NatureRunnerLogic.ts`:
 
@@ -174,12 +174,12 @@ export function offerCount(unnoted: number): number {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `bun test test/scripts/NatureRunnerLogic.test.ts`
 Expected: 12 pass, 0 fail.
 
-- [ ] **Step 5: Lint + commit**
+- [x] **Step 5: Lint + commit**
 
 ```bash
 bunx eslint src/bot/scripts/NatureRunnerLogic.ts test/scripts/NatureRunnerLogic.test.ts
@@ -202,7 +202,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 Why: the deficit-sell runs while holding BOTH noted and unnoted essence. Today's first-name-match could sell the just-bought unnoted ones — selling and re-buying the same items forever.
 
-- [ ] **Step 1: Extend sell() with pick**
+- [x] **Step 1: Extend sell() with pick**
 
 In `src/bot/api/hud/Shop.ts`, replace the top of the `sell` while-loop:
 
@@ -232,12 +232,12 @@ with:
 
 The rest of the method body (stepOpIndex, invButton, countHeld delta) is unchanged.
 
-- [ ] **Step 2: Verify suite + lint**
+- [x] **Step 2: Verify suite + lint**
 
 Run: `bun test 2>&1 | tail -3` — pass count ≥ Task 1 baseline.
 Run: `bunx eslint src/bot/api/hud/Shop.ts` — clean.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/bot/api/hud/Shop.ts
@@ -259,7 +259,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 Engine facts (verified in `~/code/rs2b2t-content/scripts/interface_trade/interfaces/tradeside.if`): tradeside inv ops are option1 `Offer 1`, option2 `Offer 5`, option3 `Offer 10`, option4 `Offer All`, option5 `Offer X` (count dialog). Non-stackable offers appear as N count-1 entries in `myOffer()` — sum them.
 
-- [ ] **Step 1: Add the OFFER_X constant**
+- [x] **Step 1: Add the OFFER_X constant**
 
 In `src/bot/api/hud/Trade.ts`, after `const OFFER_ALL = 4;` add:
 
@@ -267,7 +267,7 @@ In `src/bot/api/hud/Trade.ts`, after `const OFFER_ALL = 4;` add:
 const OFFER_X = 5; // tradeside option5 = "Offer X" -> count dialog
 ```
 
-- [ ] **Step 2: Add offer() after offerAll()**
+- [x] **Step 2: Add offer() after offerAll()**
 
 ```ts
     // offer exactly n (never more): Offer-X + count dialog; pick chooses among same-name slots
@@ -295,12 +295,12 @@ const OFFER_X = 5; // tradeside option5 = "Offer X" -> count dialog
     },
 ```
 
-- [ ] **Step 3: Verify suite + lint**
+- [x] **Step 3: Verify suite + lint**
 
 Run: `bun test 2>&1 | tail -3` — pass count ≥ baseline.
 Run: `bunx eslint src/bot/api/hud/Trade.ts` — clean.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/bot/api/hud/Trade.ts
@@ -322,7 +322,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 Note: the `LOW_COINS` floor fully engages once Task 6 adds the store-task coins gate; between Tasks 5 and 6 a below-floor runner may still visit the store once (transient mid-plan state, acceptable).
 
-- [ ] **Step 1: Imports + constant removal**
+- [x] **Step 1: Imports + constant removal**
 
 Add to the imports in `src/bot/scripts/NatureCrafter.ts`:
 
@@ -336,7 +336,7 @@ Delete the `COINS_BUFFER` constant line:
 const COINS_BUFFER = 10000; // fare + un-note margin buffer
 ```
 
-- [ ] **Step 2: SETTINGS additions**
+- [x] **Step 2: SETTINGS additions**
 
 In the `SETTINGS` object, after the `bankAt` entry add:
 
@@ -345,7 +345,7 @@ In the `SETTINGS` object, after the `bankAt` entry add:
     withdrawCoins: { type: 'number', default: 10000, min: 0, label: 'Coins target at restock', help: 'Runner: top coins up to this at each restock (boat fares + shop buy-backs)' }
 ```
 
-- [ ] **Step 3: Fields + accessors**
+- [x] **Step 3: Fields + accessors**
 
 After `private bankAt = 0;` add:
 
@@ -368,7 +368,7 @@ Next to the other accessors (`bankThreshold()` etc.) add:
     coinTarget(): number { return this.coinsTarget; }
 ```
 
-- [ ] **Step 4: Replace BankRestock**
+- [x] **Step 4: Replace BankRestock**
 
 Replace the entire `BankRestock` class with:
 
@@ -418,12 +418,12 @@ class BankRestock implements Task {
 
 (The `withdrew ... (noted)` log shape is asserted by `tools/naturecrafter-runner-test.ts` — keep it.)
 
-- [ ] **Step 5: Verify suite + lint**
+- [x] **Step 5: Verify suite + lint**
 
 Run: `bun test 2>&1 | tail -3` — pass count ≥ baseline.
 Run: `bunx eslint src/bot/scripts/NatureCrafter.ts` — clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/bot/scripts/NatureCrafter.ts
@@ -443,7 +443,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `planStoreStep`, `STORE_PASSES`, `LOW_COINS` (Task 2); `Shop.sell(..., pick)` (Task 3)
 - Produces: nothing new
 
-- [ ] **Step 1: Imports + constant removal**
+- [x] **Step 1: Imports + constant removal**
 
 Extend the Task 5 import line to:
 
@@ -457,7 +457,7 @@ Delete the `BATCH` constant line:
 const BATCH = 26; // essence un-noted per store visit
 ```
 
-- [ ] **Step 2: Replace UnNoteEssence + add the stock helper**
+- [x] **Step 2: Replace UnNoteEssence + add the stock helper**
 
 Replace the entire `UnNoteEssence` class with (keep `openUnnoteShop()` as is):
 
@@ -503,11 +503,11 @@ class UnNoteEssence implements Task {
 
 The `i => i.id !== ESSENCE_ID` pick sells the NOTED stack only. `Shop.buy` self-bounds when stock runs out; the next pass's deficit sell covers the shortfall (spec §1).
 
-- [ ] **Step 3: Verify suite + lint**
+- [x] **Step 3: Verify suite + lint**
 
 Run: `bun test 2>&1 | tail -3`; `bunx eslint src/bot/scripts/NatureCrafter.ts`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/bot/scripts/NatureCrafter.ts
@@ -527,13 +527,13 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `offerCount`, `TRADE_CAP` (Task 2); `Trade.offer` (Task 4)
 - Produces: nothing new
 
-- [ ] **Step 1: Extend the logic import**
+- [x] **Step 1: Extend the logic import**
 
 ```ts
 import { planStoreStep, offerCount, LOW_COINS, STORE_PASSES, TRADE_CAP } from './NatureRunnerLogic.js';
 ```
 
-- [ ] **Step 2: Replace DriveTrade**
+- [x] **Step 2: Replace DriveTrade**
 
 Replace the entire `DriveTrade` class with:
 
@@ -586,11 +586,11 @@ class DriveTrade implements Task {
 
 (Delivery is counted from the unnoted delta, not `=== 0`, because the over-cap path deliberately keeps a remainder.)
 
-- [ ] **Step 3: Verify suite + lint**
+- [x] **Step 3: Verify suite + lint**
 
 Run: `bun test 2>&1 | tail -3`; `bunx eslint src/bot/scripts/NatureCrafter.ts`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/bot/scripts/NatureCrafter.ts
@@ -610,7 +610,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: bot `walkTo`, `Game.tile()`, Paint `buttons()` (`p.buttons([{id,label}]) => clicked id | null`, see `AIOQuester.ts:183`)
 - Produces (used by Task 9's ordering): `goBankActive(): boolean` on the bot; `GoBankPark` sits directly after `DriveTrade` in the runner task list
 
-- [ ] **Step 1: Field + accessor**
+- [x] **Step 1: Field + accessor**
 
 After the `coinsTarget` field add:
 
@@ -624,7 +624,7 @@ Next to the other accessors add:
     goBankActive(): boolean { return this.goBank; }
 ```
 
-- [ ] **Step 2: Paint button (runner branch only)**
+- [x] **Step 2: Paint button (runner branch only)**
 
 In `onPaint`, inside the `else` (runner) branch after the two `p.row(...)` lines, add:
 
@@ -637,7 +637,7 @@ In `onPaint`, inside the `else` (runner) branch after the two `p.row(...)` lines
             }
 ```
 
-- [ ] **Step 3: GoBankPark task**
+- [x] **Step 3: GoBankPark task**
 
 Add after the `DriveTrade` class:
 
@@ -658,7 +658,7 @@ class GoBankPark implements Task {
 }
 ```
 
-- [ ] **Step 4: Runner task order**
+- [x] **Step 4: Runner task order**
 
 In `onStart()`'s runner branch, change the `this.add(...)` to:
 
@@ -673,11 +673,11 @@ In `onStart()`'s runner branch, change the `this.add(...)` to:
             );
 ```
 
-- [ ] **Step 5: Verify suite + lint**
+- [x] **Step 5: Verify suite + lint**
 
 Run: `bun test 2>&1 | tail -3`; `bunx eslint src/bot/scripts/NatureCrafter.ts`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/bot/scripts/NatureCrafter.ts
@@ -697,7 +697,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `GroundItems.query()` (`src/bot/api/queries/GroundItems.ts`; entity has `.name`, `.id`, `.count`, `.interact('Take')`); `PICKUP_RANGE` (Task 2)
 - Produces: nothing new
 
-- [ ] **Step 1: Imports**
+- [x] **Step 1: Imports**
 
 ```ts
 import { GroundItems, type GroundItem } from '../api/queries/GroundItems.js';
@@ -709,7 +709,7 @@ Extend the logic import with `PICKUP_RANGE`:
 import { planStoreStep, offerCount, LOW_COINS, STORE_PASSES, TRADE_CAP, PICKUP_RANGE } from './NatureRunnerLogic.js';
 ```
 
-- [ ] **Step 2: Helper + task**
+- [x] **Step 2: Helper + task**
 
 Add after `GoBankPark`:
 
@@ -746,7 +746,7 @@ class PickupNotedEssence implements Task {
 
 (Success is measured by `notedEssence()` growing, NOT `Inventory.used()` — a picked-up note merges into an existing stack without changing slot count.)
 
-- [ ] **Step 3: Final runner task order**
+- [x] **Step 3: Final runner task order**
 
 ```ts
             this.add(
@@ -760,11 +760,11 @@ class PickupNotedEssence implements Task {
             );
 ```
 
-- [ ] **Step 4: Verify suite + lint**
+- [x] **Step 4: Verify suite + lint**
 
 Run: `bun test 2>&1 | tail -3`; `bunx eslint src/bot/scripts/NatureCrafter.ts`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/bot/scripts/NatureCrafter.ts
@@ -787,7 +787,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 The runner smoke's success predicate (`unnoted >= 20`) and the `withdrew ... (noted)` log regex already hold under the new behavior — no assertion change there. The e2e smoke's note-of-1 wedge regression must track the new batch size.
 
-- [ ] **Step 1: e2e seed 27 → 26**
+- [x] **Step 1: e2e seed 27 → 26**
 
 In `tools/naturecrafter-e2e-test.ts` line 82, replace:
 
@@ -801,7 +801,7 @@ with:
     await cheatQuiet(pageR, '~bankitem blankrune 26'); // 26 = 25 + 1 -> leaves a "note of 1" (the finding-#1 wedge case)
 ```
 
-- [ ] **Step 2: e2e crafted threshold 54 → 52**
+- [x] **Step 2: e2e crafted threshold 54 → 52**
 
 Line 110, replace:
 
@@ -815,7 +815,7 @@ with:
         if (m.natures >= 52 && m.rcXp > xp0) { crafted = true; } // all 26 essence crafted (26*2) — a note-of-1 wedge would stall at 50
 ```
 
-- [ ] **Step 3: runner-test comment**
+- [x] **Step 3: runner-test comment**
 
 Line 58, replace the trailing comment:
 
@@ -829,11 +829,11 @@ with:
     await cheatQuiet(page, '~bankitem blankrune 52'); // 2+ batches — withdraws as one note, un-notes 25 at a time
 ```
 
-- [ ] **Step 4: Stale-reference sweep**
+- [x] **Step 4: Stale-reference sweep**
 
 Run: `grep -rn "26" tools/naturecrafter-*.ts | grep -v -E "2655|3260|2600|2690"` — confirm no remaining batch-26 assumptions (master-test's `SEED = 26` stays: it's master-side pack capacity, unrelated to the runner batch).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/naturecrafter-e2e-test.ts tools/naturecrafter-runner-test.ts
@@ -852,7 +852,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: everything above
 - Produces: evidence for the completion claim
 
-- [ ] **Step 1: Suite + typecheck + lint**
+- [x] **Step 1: Suite + typecheck + lint**
 
 ```bash
 bun test 2>&1 | tail -3
@@ -862,24 +862,24 @@ bunx eslint src/bot/scripts/NatureRunnerLogic.ts src/bot/scripts/NatureCrafter.t
 
 Expected: pass count ≥ Task 1 baseline; tsc errors ≤ Task 1 baseline (no new); eslint clean.
 
-- [ ] **Step 2: Runner smoke (live, env permitting)**
+- [x] **Step 2: Runner smoke (live, env permitting)**
 
 Using the base recorded in Task 1: `bun tools/naturecrafter-runner-test.ts http://localhost:<port> 12`
 Expected: PASS with `unnoted=25` in the tail samples and store logs showing `selling 25 noted essence` / `buying 25 essence`.
 Note: if the sim serves a prebuilt bot bundle, rebuild/redeploy it first the same way the Task 1 baseline run was served (`bun run build:bot` + the sim's deploy path); confirm the new log strings appear to prove fresh code is running.
 
-- [ ] **Step 3: e2e smoke (live, env permitting)**
+- [x] **Step 3: e2e smoke (live, env permitting)**
 
 `bun tools/naturecrafter-e2e-test.ts http://localhost:<port> 15`
 Expected: PASS — runner delivers 25 then the leftover 1; master crafts ≥52 natures.
 
-- [ ] **Step 4: Manual/headed checks (document results honestly)**
+- [x] **Step 4: Manual/headed checks (document results honestly)**
 
 These three have no headless harness; verify headed against the sim (or defer to the user with an explicit note in the final report):
 1. **Drain mode:** pre-stock Jiminua above 30 (sell ~40 notes by hand or via a second account), start the runner → paint/status shows a buy with NO preceding sell (`buying 25 essence from stock (40 in the shop)`).
 2. **Go bank:** press `Go bank` mid-loop → bot walks to the Ardougne bank, status `parked at the bank — press Resume`, button label now `Resume`; press it → loop resumes.
 3. **Pickup:** drop a noted essence stack near the bot (second account or manual drop) → log `picked up N noted essence`.
 
-- [ ] **Step 5: Finish the branch**
+- [x] **Step 5: Finish the branch**
 
 Invoke `superpowers:finishing-a-development-branch` (merge/PR decision belongs to the user's normal PR flow — repo pattern is PRs into main).
