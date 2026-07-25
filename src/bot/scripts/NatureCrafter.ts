@@ -11,6 +11,7 @@ import { Skills } from '../api/hud/Skills.js';
 import { Shop } from '../api/hud/Shop.js';
 import { Trade } from '../api/hud/Trade.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
+import { GroundItems, type GroundItem } from '../api/queries/GroundItems.js';
 import { Locs } from '../api/queries/Locs.js';
 import { Npcs } from '../api/queries/Npcs.js';
 import { Players } from '../api/queries/Players.js';
@@ -19,7 +20,7 @@ import { Traversal } from '../api/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { type SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
-import { planStoreStep, offerCount, LOW_COINS, STORE_PASSES, TRADE_CAP } from './NatureRunnerLogic.js';
+import { planStoreStep, offerCount, LOW_COINS, STORE_PASSES, TRADE_CAP, PICKUP_RANGE } from './NatureRunnerLogic.js';
 
 const ESSENCE = 'Rune essence';
 const ESSENCE_ID = 1436; // blankrune (unnoted essence); the bank-note variant has a different id
@@ -101,6 +102,7 @@ export default class NatureCrafter extends TaskBot {
                 new ContinueDialog(),
                 new DriveTrade(this),
                 new GoBankPark(this),
+                new PickupNotedEssence(this),
                 new DeliverEssence(this),
                 new UnNoteEssence(this),
                 new BankRestock(this)
@@ -397,6 +399,35 @@ class GoBankPark implements Task {
         }
         this.bot.setStatus('parked at the bank — press Resume');
         await Execution.delayTicks(2);
+    }
+}
+
+function groundNotedEss(): GroundItem | null {
+    return GroundItems.query()
+        .where(g => (g.name ?? '').toLowerCase() === ESSENCE.toLowerCase() && g.id !== ESSENCE_ID)
+        .within(PICKUP_RANGE)
+        .nearest();
+}
+
+class PickupNotedEssence implements Task {
+    constructor(private bot: NatureCrafter) {}
+    validate(): boolean { return !Trade.active() && groundNotedEss() !== null; }
+    async execute(): Promise<void> {
+        const drop = groundNotedEss();
+        if (!drop) {
+            return;
+        }
+        this.bot.setStatus('picking up dropped noted essence');
+        this.bot.log(`noted essence on the ground (${drop.count}) — another runner died? picking it up`);
+        const before = notedEssence();
+        if (!(await drop.interact('Take'))) {
+            await Execution.delayTicks(2);
+            return;
+        }
+        await Execution.delayUntil(() => notedEssence() > before, 8000);
+        if (notedEssence() > before) {
+            this.bot.log(`picked up ${notedEssence() - before} noted essence`);
+        }
     }
 }
 
