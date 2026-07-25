@@ -114,6 +114,13 @@ scope (25 extra pickups, slot pressure, trade-cap interference).
   `LOW_COINS` left the runner below the floor again after one boat fare, so it
   ping-ponged bank↔boat. `coinTargetFor()` raises any lower setting; unit-tested.
 - **Three extra live probes** beyond the plan (see Testing).
+- **Pickup fires at task boundaries, not mid-walk** (found live). `TaskBot.loop()` runs the
+  first valid task's `execute()` to completion — only random events yield — so a stack that
+  lands while the runner is walking Ardougne→Karamja is seen when that leg ends, not
+  immediately. Acceptable: the runner's cycle is mostly short executes (store passes,
+  delivery waits, bank visits), and a dead runner's stack is near those spots anyway.
+  Making walks abortable would mean an abort hook on the shared `walkResilient` — out of
+  scope here.
 
 ## Testing
 
