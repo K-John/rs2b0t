@@ -20,7 +20,7 @@ import { Traversal } from '../api/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { type SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
-import { planStoreStep, offerCount, LOW_COINS, STORE_PASSES, TRADE_CAP, PICKUP_RANGE } from './NatureRunnerLogic.js';
+import { planStoreStep, offerCount, coinTargetFor, LOW_COINS, STORE_PASSES, TRADE_CAP, PICKUP_RANGE } from './NatureRunnerLogic.js';
 
 const ESSENCE = 'Rune essence';
 const ESSENCE_ID = 1436; // blankrune (unnoted essence); the bank-note variant has a different id
@@ -87,7 +87,7 @@ export default class NatureCrafter extends TaskBot {
         this.partners = this.settings.str('partner', '').split(',').map(s => s.trim()).filter(Boolean);
         this.bankAt = Math.max(0, this.settings.num('bankAt', 0)); // 0 = never bank
         this.essPer = Math.max(0, this.settings.num('withdrawEss', 0));
-        this.coinsTarget = Math.max(LOW_COINS, this.settings.num('withdrawCoins', 10000));
+        this.coinsTarget = coinTargetFor(this.settings.num('withdrawCoins', 10000));
         this.startedAt = Date.now();
         this.xpAtStart = Skills.xp('runecraft');
 

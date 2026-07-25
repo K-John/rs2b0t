@@ -1,6 +1,6 @@
 import { expect, test, describe } from 'bun:test';
 
-import { planStoreStep, offerCount, TRADE_CAP, BUY_ONLY_STOCK } from '#/bot/scripts/NatureRunnerLogic.js';
+import { planStoreStep, offerCount, coinTargetFor, TRADE_CAP, BUY_ONLY_STOCK, LOW_COINS, MIN_COIN_TARGET } from '#/bot/scripts/NatureRunnerLogic.js';
 
 describe('planStoreStep (one store action per pass, re-planned against live stock)', () => {
     test('holding the full trade cap = done, regardless of stock', () => {
@@ -40,6 +40,22 @@ describe('planStoreStep (one store action per pass, re-planned against live stoc
 
     test('nothing to sell, nothing to buy = done (leave with a partial load)', () => {
         expect(planStoreStep(0, 0, 10)).toEqual({ op: 'done' });
+    });
+});
+
+describe('coinTargetFor (a restock must clear the low-coin floor by a whole trip)', () => {
+    test('keeps a generous setting as-is', () => {
+        expect(coinTargetFor(10000)).toBe(10000);
+    });
+
+    test('a target at or under the floor would ping-pong bank<->boat, so it is raised', () => {
+        expect(coinTargetFor(LOW_COINS)).toBe(MIN_COIN_TARGET);
+        expect(coinTargetFor(0)).toBe(MIN_COIN_TARGET);
+        expect(coinTargetFor(-5)).toBe(MIN_COIN_TARGET);
+    });
+
+    test('the floor always has room above it for fares plus a buy-back', () => {
+        expect(MIN_COIN_TARGET).toBeGreaterThan(LOW_COINS * 2);
     });
 });
 
