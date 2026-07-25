@@ -1,6 +1,6 @@
 import { expect, test, describe } from 'bun:test';
 
-import { planStoreStep, offerCount, coinTargetFor, TRADE_CAP, BUY_ONLY_STOCK, LOW_COINS, MIN_COIN_TARGET } from '#/bot/scripts/NatureRunnerLogic.js';
+import { planStoreStep, offerCount, coinTargetFor, RUNES, RUNE_OPTIONS, DEFAULT_RUNE, TRADE_CAP, BUY_ONLY_STOCK, LOW_COINS, MIN_COIN_TARGET } from '#/bot/scripts/NatureRunnerLogic.js';
 
 describe('planStoreStep (one store action per pass, re-planned against live stock)', () => {
     test('holding the full trade cap = done, regardless of stock', () => {
@@ -40,6 +40,35 @@ describe('planStoreStep (one store action per pass, re-planned against live stoc
 
     test('nothing to sell, nothing to buy = done (leave with a partial load)', () => {
         expect(planStoreStep(0, 0, 10)).toEqual({ op: 'done' });
+    });
+});
+
+describe('RUNES (one row per rune the pair can run)', () => {
+    test('nature keeps the long route: Ardougne bank, ship, Jiminua un-noting', () => {
+        const nature = RUNES['Nature runes'];
+        expect(nature.rune).toBe('Nature rune');
+        expect(nature.talisman).toBe('Nature talisman');
+        expect(nature.level).toBe(44);
+        expect([nature.ruins.x, nature.ruins.z]).toEqual([2865, 3022]);
+        expect([nature.runnerBank.x, nature.runnerBank.z]).toEqual([2655, 3283]);
+        expect(nature.unnote?.npc).toBe('Jiminua');
+    });
+
+    test('air is the short route: Falador East bank, no un-noting leg', () => {
+        const air = RUNES['Air runes'];
+        expect(air.rune).toBe('Air rune');
+        expect(air.talisman).toBe('Air talisman');
+        expect(air.level).toBe(1);
+        expect([air.ruins.x, air.ruins.z]).toEqual([2988, 3294]);
+        expect([air.runnerBank.x, air.runnerBank.z]).toEqual([3013, 3355]);
+        expect(air.masterBank).toEqual(air.runnerBank);
+        expect(air.unnote).toBeNull();
+    });
+
+    test('the dropdown offers exactly the configured runes, defaulting to the original nature loop', () => {
+        expect(RUNE_OPTIONS).toEqual(['Nature runes', 'Air runes']);
+        expect(RUNES[DEFAULT_RUNE]).toBeDefined();
+        expect(DEFAULT_RUNE).toBe('Nature runes');
     });
 });
 

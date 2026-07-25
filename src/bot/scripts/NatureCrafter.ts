@@ -20,25 +20,17 @@ import { Traversal } from '../api/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { type SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
-import { planStoreStep, offerCount, coinTargetFor, LOW_COINS, STORE_PASSES, TRADE_CAP, PICKUP_RANGE } from './NatureRunnerLogic.js';
+import { planStoreStep, offerCount, coinTargetFor, RUNES, RUNE_OPTIONS, DEFAULT_RUNE, type RuneType, LOW_COINS, STORE_PASSES, TRADE_CAP, PICKUP_RANGE } from './NatureRunnerLogic.js';
 
 const ESSENCE = 'Rune essence';
 const ESSENCE_ID = 1436; // blankrune (unnoted essence); the bank-note variant has a different id
-const NATURE = 'Nature rune';
-const TALISMAN = 'Nature talisman';
 const RUINS = 'Mysterious ruins';
 const ALTAR = { name: 'Altar', op: 'Craft-rune' };
 const PORTAL = { name: 'Portal', op: 'Use' };
 const BOOTH = { name: 'Bank booth', op: 'Use-quickly' };
-const RUINS_TILE = new Tile(2865, 3022, 0); // nature Mysterious ruins = the trade spot
-const BANK_TILE = new Tile(2852, 2954, 0); // Shilo Village bank (needs the Shilo Village quest)
 const TEMPLE_Z = 4000; // altar temples sit at z ~4800; the overworld is < 4000
-const RC_LEVEL = 44;
 const RUNNER_RANGE = 2; // tiles; only trade an adjacent runner (OPPLAYER4 walks you to them)
 const COINS = 'Coins';
-const ARD_BANK = new Tile(2655, 3283, 0); // Ardougne East bank, by Captain Barnaby's pier
-const STORE_TILE = new Tile(2767, 3122, 0); // Jiminua's Jungle Store, Karamja
-const UNNOTE_NPC = 'Jiminua';
 const LADDER = 'Ladder';
 const CLIMB_UP = 'Climb-up';
 const CLIMB_DOWN = 'Climb-down';
@@ -46,11 +38,12 @@ const AGGRO_SHAKE_TICKS = 5; // ~3s upstairs, long enough for the spiders to dro
 const SHAKE_COOLDOWN_MS = 60_000;
 
 export const SETTINGS: SettingsSchema = {
-    mode: { type: 'string', default: 'Master', options: ['Master', 'Runner'], label: 'Mode', help: 'Master crafts natures at the altar and takes essence from runners; Runner ferries essence to the master (runner ships in a later phase)' },
+    rune: { type: 'string', default: DEFAULT_RUNE, options: RUNE_OPTIONS, label: 'Rune', help: 'which rune the pair crafts. Nature = Ardougne bank + ship + Jiminua un-noting; Air = Falador East bank, straight there and back' },
+    mode: { type: 'string', default: 'Master', options: ['Master', 'Runner'], label: 'Mode', help: 'Master crafts at the altar and takes essence from runners; Runner ferries essence to the master' },
     partner: { type: 'string', default: '', label: 'Partner name(s)', help: 'Master: runner name(s) to accept essence from, comma-separated. Runner: the master to deliver to.' },
-    bankAt: { type: 'number', default: 0, label: 'Bank natures at (0 = never)', help: 'Master: 0 = never bank — natures stack into one slot so just hold them (recommended). Set > 0 to deposit profit once holding that many, but banking uses the quest-gated Shilo Village bank, so only useful for a master with the quest' },
-    withdrawEss: { type: 'number', default: 0, min: 0, label: 'Essence per restock (0 = all)', help: 'Runner: noted essence withdrawn per bank restock; 0 = the whole bank stack' },
-    withdrawCoins: { type: 'number', default: 10000, min: 0, label: 'Coins target at restock', help: 'Runner: top coins up to this at each restock (boat fares + shop buy-backs)' }
+    bankAt: { type: 'number', default: 0, label: 'Bank runes at (0 = never)', help: 'Master: 0 = never bank — runes stack into one slot so just hold them (recommended). Set > 0 to deposit profit once holding that many; note the nature master\'s nearest bank is the quest-gated Shilo Village one' },
+    withdrawEss: { type: 'number', default: 0, min: 0, label: 'Essence per restock (0 = default)', help: 'Runner: essence withdrawn per bank restock. 0 = the whole bank stack when noting (nature), or one trade-load (air)' },
+    withdrawCoins: { type: 'number', default: 10000, min: 0, label: 'Coins target at restock', help: 'Runner: top coins up to this at each restock (boat fares + shop buy-backs). Unused by air.' }
 };
 
 function inTemple(): boolean {
@@ -60,8 +53,8 @@ function inTemple(): boolean {
 function essCount(): number {
     return Inventory.count(ESSENCE);
 }
-function natureCount(): number {
-    return Inventory.count(NATURE);
+function runeCount(bot: NatureCrafter): number {
+    return Inventory.count(bot.cfg().rune);
 }
 function notedEssence(): number {
     return Inventory.items().filter(i => i.name?.toLowerCase() === ESSENCE.toLowerCase() && i.id !== ESSENCE_ID).reduce((s, i) => s + i.count, 0);
@@ -74,6 +67,8 @@ export default class NatureCrafter extends TaskBot {
     override loopDelay = 600;
 
     private mode = 'Master';
+    private rune = DEFAULT_RUNE;
+    private conf: RuneType = RUNES[DEFAULT_RUNE];
     private partners: string[] = [];
     private bankAt = 0;
     private essPer = 0;
@@ -89,6 +84,8 @@ export default class NatureCrafter extends TaskBot {
     override async onStart(): Promise<void> {
         await Execution.delayUntil(() => Game.ingame() && Game.tile() !== null, 0);
         this.mode = this.settings.str('mode', 'Master');
+        this.rune = this.settings.str('rune', DEFAULT_RUNE);
+        this.conf = RUNES[this.rune] ?? RUNES[DEFAULT_RUNE];
         this.partners = this.settings.str('partner', '').split(',').map(s => s.trim()).filter(Boolean);
         this.bankAt = Math.max(0, this.settings.num('bankAt', 0)); // 0 = never bank
         this.essPer = Math.max(0, this.settings.num('withdrawEss', 0));
@@ -102,24 +99,26 @@ export default class NatureCrafter extends TaskBot {
         }
 
         if (this.mode === 'Runner') {
-            this.log(`NatureCrafter runner starting — ferrying essence to [${this.partners.join(', ')}] via the Ardougne bank + ship`);
+            const route = this.conf.unnote ? `via the bank + ship + ${this.conf.unnote.npc}` : 'straight from the bank (unnoted)';
+            this.log(`NatureCrafter runner starting — ferrying essence for ${this.rune} to [${this.partners.join(', ')}] ${route}`);
             this.add(
                 new ContinueDialog(),
                 new DriveTrade(this),
                 new GoBankPark(this),
-                new PickupNotedEssence(this),
+                // the note legs only exist on the long route; the short one carries unnoted essence
+                ...(this.conf.unnote ? [new PickupNotedEssence(this)] : []),
                 new DeliverEssence(this),
-                new UnNoteEssence(this),
+                ...(this.conf.unnote ? [new UnNoteEssence(this)] : []),
                 new BankRestock(this)
             );
             return;
         }
 
-        if (Skills.level('runecraft') < RC_LEVEL) {
-            this.log(`NatureCrafter: Runecrafting ${RC_LEVEL} required for natures (have ${Skills.level('runecraft')}) — stopping.`);
+        if (Skills.level('runecraft') < this.conf.level) {
+            this.log(`NatureCrafter: Runecrafting ${this.conf.level} required for ${this.rune} (have ${Skills.level('runecraft')}) — stopping.`);
             throw new Error('NatureCrafter: runecrafting level too low');
         }
-        this.log(`NatureCrafter master starting — accepting essence from [${this.partners.join(', ')}], ${this.bankAt > 0 ? `banking natures at ${this.bankAt}` : 'holding natures (never banking)'}`);
+        this.log(`NatureCrafter master starting — ${this.rune} at ${this.conf.ruins}, accepting essence from [${this.partners.join(', ')}], ${this.bankAt > 0 ? `banking at ${this.bankAt}` : 'holding runes (never banking)'}`);
         this.add(
             new ContinueDialog(),
             new HandleOpenTrade(this),
@@ -134,12 +133,12 @@ export default class NatureCrafter extends TaskBot {
 
     override onPaint(ctx: CanvasRenderingContext2D): void {
         const p = Paint.begin(ctx, { dock: 'chatbox', accent: '#a0e6c8' });
-        p.title(`NatureCrafter — ${this.mode.toLowerCase()} — ${this.status}`);
+        p.title(`NatureCrafter — ${this.rune} — ${this.mode.toLowerCase()} — ${this.status}`);
         const mins = (Date.now() - this.startedAt) / 60_000;
         p.row(`Runtime: ${fmtDuration(mins)}`, `Mode: ${this.mode}`, this.mode === 'Master' ? `RC lvl: ${Skills.level('runecraft')}` : `To: ${this.partners[0] ?? '?'}`);
         if (this.mode === 'Master') {
-            p.row(`Natures: ${this.crafted}`, `Trades: ${this.trades}`, `Ess in: ${this.received}`);
-            p.row(`Pack ess: ${essCount()}`, `Pack nat: ${natureCount()}`, `Runners: ${this.partners.length}`);
+            p.row(`Crafted: ${this.crafted}`, `Trades: ${this.trades}`, `Ess in: ${this.received}`);
+            p.row(`Pack ess: ${essCount()}`, `Pack runes: ${runeCount(this)}`, `Runners: ${this.partners.length}`);
         } else {
             p.row(`Deliveries: ${this.trades}`, `Ess sent: ${this.received}`, `Coins: ${Inventory.count(COINS)}`);
             p.row(`Pack ess: ${essCount()}`, `noted: ${notedEssence()}`, `unnoted: ${unnotedEssence()}`);
@@ -147,13 +146,14 @@ export default class NatureCrafter extends TaskBot {
             const clicked = p.buttons([{ id: 'gobank', label: this.goBank ? 'Resume' : 'Go bank' }]);
             if (clicked === 'gobank') {
                 this.goBank = !this.goBank;
-                this.log(this.goBank ? 'Go bank pressed — heading to the Ardougne bank to park' : 'Resume pressed — back to the loop');
+                this.log(this.goBank ? 'Go bank pressed — heading to the bank to park' : 'Resume pressed — back to the loop');
             }
         }
         ScriptRunner.paintControls(p);
         p.end();
     }
 
+    cfg(): RuneType { return this.conf; }
     setStatus(s: string): void { this.status = s; }
     countCraft(n: number): void { this.crafted += n; }
     countTrade(essence: number): void { this.trades++; this.received += essence; }
@@ -230,14 +230,14 @@ class CraftNatures implements Task {
     async execute(): Promise<void> {
         const altar = Locs.query().name(ALTAR.name).action(ALTAR.op).nearest();
         if (!altar) { await Execution.delayTicks(2); return; }
-        this.bot.setStatus('crafting natures');
+        this.bot.setStatus('crafting runes');
         const before = essCount();
-        this.bot.log(`crafting ${before} essence into natures at the altar`);
+        this.bot.log(`crafting ${before} essence at the altar`);
         if (!(await altar.interact(ALTAR.op))) { await Execution.delayTicks(2); return; }
         await Execution.delayUntil(() => essCount() === 0, 8000);
         const made = before - essCount();
         this.bot.countCraft(made);
-        this.bot.log(`crafted ${made} ${NATURE}s`);
+        this.bot.log(`crafted ${made} ${this.bot.cfg().rune}s`);
         await portalOut(this.bot);
     }
 }
@@ -256,11 +256,11 @@ class EnterAltar implements Task {
     validate(): boolean { return !inTemple() && essCount() > 0; }
     async execute(): Promise<void> {
         this.bot.setStatus('entering the altar to craft');
-        await this.bot.walkTo(RUINS_TILE, 1);
+        await this.bot.walkTo(this.bot.cfg().ruins, 1);
         const ruins = Locs.query().name(RUINS).nearest();
-        const talisman = Inventory.first(TALISMAN);
+        const talisman = Inventory.first(this.bot.cfg().talisman);
         if (!ruins || !talisman) { await Execution.delayTicks(2); return; }
-        this.bot.log(`using the ${TALISMAN} on the mysterious ruins`);
+        this.bot.log(`using the ${this.bot.cfg().talisman} on the mysterious ruins`);
         if (!(await talisman.useOn(ruins))) { await Execution.delayTicks(2); return; }
         if (await Execution.delayUntil(() => inTemple(), 10_000)) {
             this.bot.log('entered the altar');
@@ -277,32 +277,33 @@ class EnterAltar implements Task {
 class BankNatures implements Task {
     private backoffUntil = 0;
     constructor(private bot: NatureCrafter) {}
-    validate(): boolean { return this.bot.bankThreshold() > 0 && !inTemple() && essCount() === 0 && natureCount() >= this.bot.bankThreshold() && !Trade.active() && Date.now() >= this.backoffUntil; }
+    validate(): boolean { return this.bot.bankThreshold() > 0 && !inTemple() && essCount() === 0 && runeCount(this.bot) >= this.bot.bankThreshold() && !Trade.active() && Date.now() >= this.backoffUntil; }
     async execute(): Promise<void> {
-        this.bot.setStatus('banking natures');
-        this.bot.log(`heading to the bank with ${natureCount()} natures`);
+        const cfg = this.bot.cfg();
+        this.bot.setStatus('banking runes');
+        this.bot.log(`heading to the bank with ${runeCount(this.bot)} ${cfg.rune}s`);
         // short timeout so an unreachable quest-gated bank fails fast, not after the default 240s
-        const reached = await Traversal.walkResilient(BANK_TILE, { radius: 3, attempts: 2, timeoutMs: 30_000, log: m => this.bot.log(`  ${m}`) });
-        const opened = reached && ((await Bank.openBooth(BANK_TILE, BOOTH.name, BOOTH.op, m => this.bot.log(`  ${m}`)))
+        const reached = await Traversal.walkResilient(cfg.masterBank, { radius: 3, attempts: 2, timeoutMs: 30_000, log: m => this.bot.log(`  ${m}`) });
+        const opened = reached && ((await Bank.openBooth(cfg.masterBank, BOOTH.name, BOOTH.op, m => this.bot.log(`  ${m}`)))
             || (await Bank.openNearest(BOOTH.name, BOOTH.op, m => this.bot.log(`  ${m}`))));
         if (!opened) {
-            this.bot.log('NatureCrafter: bank unreachable (Shilo Village quest?) — holding natures (they stack) and continuing to serve runners');
+            this.bot.log('NatureCrafter: bank unreachable (Shilo Village quest?) — holding runes (they stack) and continuing to serve runners');
             this.backoffUntil = Date.now() + 300_000;
-            await this.bot.walkTo(RUINS_TILE, 1);
+            await this.bot.walkTo(cfg.ruins, 1);
             return;
         }
-        const made = natureCount();
-        await Bank.depositAllMatching(depositAllExcept([TALISMAN]), m => this.bot.log(`  ${m}`));
+        const made = runeCount(this.bot);
+        await Bank.depositAllMatching(depositAllExcept([cfg.talisman]), m => this.bot.log(`  ${m}`));
         await Execution.delayTicks(1);
-        this.bot.log(`deposited ${made} ${NATURE}s`);
-        await this.bot.walkTo(RUINS_TILE, 1);
+        this.bot.log(`deposited ${made} ${cfg.rune}s`);
+        await this.bot.walkTo(cfg.ruins, 1);
     }
 }
 
 class AcceptRunner implements Task {
     constructor(private bot: NatureCrafter) {}
     validate(): boolean {
-        // no natureCount guard — task order lets BankNatures preempt; gating here breaks bankAt=0
+        // no rune-count guard — task order lets BankNatures preempt; gating here breaks bankAt=0
         return !inTemple() && essCount() === 0 && !Trade.active() && this.bot.nearestRunner() !== null;
     }
     async execute(): Promise<void> {
@@ -320,7 +321,7 @@ class WaitForRunner implements Task {
     validate(): boolean { return !inTemple() && essCount() === 0; }
     async execute(): Promise<void> {
         this.bot.setStatus('waiting for a runner at the ruins');
-        await this.bot.walkTo(RUINS_TILE, 1);
+        await this.bot.walkTo(this.bot.cfg().ruins, 1);
         await Execution.delayTicks(2);
     }
 }
@@ -354,13 +355,13 @@ async function shakeAggroOnLadder(bot: NatureCrafter): Promise<void> {
 }
 
 // opens via Talk-to + the first ("yes/buy") dialogue option, not a bare Trade op
-async function openUnnoteShop(): Promise<boolean> {
+async function openUnnoteShop(name: string): Promise<boolean> {
     if (Shop.isOpen()) {
         return true;
     }
     // the scene reads empty for a tick or two after the ladder trip — blank isn't absent
-    await Execution.delayUntil(() => Npcs.query().name(UNNOTE_NPC).nearest() !== null, 5000);
-    const npc = Npcs.query().name(UNNOTE_NPC).nearest();
+    await Execution.delayUntil(() => Npcs.query().name(name).nearest() !== null, 5000);
+    const npc = Npcs.query().name(name).nearest();
     if (!npc) {
         return false;
     }
@@ -427,9 +428,9 @@ class GoBankPark implements Task {
     validate(): boolean { return this.bot.goBankActive() && !Trade.active(); }
     async execute(): Promise<void> {
         const here = Game.tile();
-        if (!here || ARD_BANK.distanceTo(here) > 4) {
-            this.bot.setStatus('Go bank: walking to the Ardougne bank');
-            await this.bot.walkTo(ARD_BANK, 3);
+        if (!here || this.bot.cfg().runnerBank.distanceTo(here) > 4) {
+            this.bot.setStatus('Go bank: walking to the bank');
+            await this.bot.walkTo(this.bot.cfg().runnerBank, 3);
             return;
         }
         this.bot.setStatus('parked at the bank — press Resume');
@@ -482,7 +483,7 @@ class DeliverEssence implements Task {
     async execute(): Promise<void> {
         const masterName = this.bot.partnerNames()[0];
         this.bot.setStatus(`walking to ${masterName}`);
-        await this.bot.walkTo(RUINS_TILE, 2);
+        await this.bot.walkTo(this.bot.cfg().ruins, 2);
         const master = Players.query().name(...this.bot.partnerNames()).nearest();
         if (!master) {
             this.bot.log(`at the ruins — waiting for the master '${masterName}' to be here`);
@@ -503,17 +504,21 @@ function shopEssStock(): number {
 class UnNoteEssence implements Task {
     private lastShakeAt = 0;
     constructor(private bot: NatureCrafter) {}
-    validate(): boolean { return notedEssence() > 0 && unnotedEssence() === 0 && Inventory.count(COINS) >= LOW_COINS; }
+    validate(): boolean { return this.bot.cfg().unnote !== null && notedEssence() > 0 && unnotedEssence() === 0 && Inventory.count(COINS) >= LOW_COINS; }
     async execute(): Promise<void> {
+        const store = this.bot.cfg().unnote;
+        if (!store) {
+            return;
+        }
         this.bot.setStatus('topping up unnoted essence at the store');
-        await this.bot.walkTo(STORE_TILE, 3);
+        await this.bot.walkTo(store.tile, 3);
         // one trip per arrival — a retried store visit must not climb all over again
         if (Date.now() - this.lastShakeAt > SHAKE_COOLDOWN_MS) {
             await shakeAggroOnLadder(this.bot);
             this.lastShakeAt = Date.now();
         }
-        if (!(await openUnnoteShop())) {
-            this.bot.log(`couldn't open ${UNNOTE_NPC}'s store — retrying`);
+        if (!(await openUnnoteShop(store.npc))) {
+            this.bot.log(`couldn't open ${store.npc}'s store — retrying`);
             return;
         }
         for (let pass = 0; pass < STORE_PASSES; pass++) {
@@ -524,7 +529,7 @@ class UnNoteEssence implements Task {
             }
             const before = { noted: notedEssence(), unnoted: unnotedEssence() };
             if (step.op === 'sell') {
-                this.bot.log(`selling ${step.n} noted essence to ${UNNOTE_NPC} (stock ${stock})`);
+                this.bot.log(`selling ${step.n} noted essence to ${store.npc} (stock ${stock})`);
                 await Shop.sell(ESSENCE, step.n, i => i.id !== ESSENCE_ID);
             } else {
                 this.bot.log(`buying ${step.n} essence from stock (${stock} in the shop)`);
@@ -542,26 +547,30 @@ class UnNoteEssence implements Task {
 
 class BankRestock implements Task {
     constructor(private bot: NatureCrafter) {}
-    validate(): boolean { return essCount() === 0 || Inventory.count(COINS) < LOW_COINS; }
+    // coins only matter on the noting route (fares + buy-backs); the short route never spends any
+    validate(): boolean { return essCount() === 0 || (this.bot.cfg().unnote !== null && Inventory.count(COINS) < LOW_COINS); }
     async execute(): Promise<void> {
-        this.bot.setStatus('restocking at the Ardougne bank');
-        await this.bot.walkTo(ARD_BANK, 3);
-        const opened = (await Bank.openBooth(ARD_BANK, BOOTH.name, BOOTH.op, m => this.bot.log(`  ${m}`)))
+        const cfg = this.bot.cfg();
+        this.bot.setStatus('restocking at the bank');
+        await this.bot.walkTo(cfg.runnerBank, 3);
+        const opened = (await Bank.openBooth(cfg.runnerBank, BOOTH.name, BOOTH.op, m => this.bot.log(`  ${m}`)))
             || (await Bank.openNearest(BOOTH.name, BOOTH.op, m => this.bot.log(`  ${m}`)));
         if (!opened) {
-            this.bot.log('could not open the Ardougne bank — retrying');
+            this.bot.log('could not open the bank — retrying');
             return;
         }
 
         await Bank.setNoteMode(false);
-        const needCoins = this.bot.coinTarget() - Inventory.count(COINS);
-        if (needCoins > 0 && Bank.count(COINS) > 0) {
-            await Bank.withdrawX(COINS, Math.min(needCoins, Bank.count(COINS)));
-        }
-        if (Inventory.count(COINS) < LOW_COINS) {
-            this.bot.log('NatureCrafter runner: out of coins (bank + pack) for fares and buy-backs. Stopping.');
-            ScriptRunner.stop();
-            return;
+        if (cfg.unnote) {
+            const needCoins = this.bot.coinTarget() - Inventory.count(COINS);
+            if (needCoins > 0 && Bank.count(COINS) > 0) {
+                await Bank.withdrawX(COINS, Math.min(needCoins, Bank.count(COINS)));
+            }
+            if (Inventory.count(COINS) < LOW_COINS) {
+                this.bot.log('NatureCrafter runner: out of coins (bank + pack) for fares and buy-backs. Stopping.');
+                ScriptRunner.stop();
+                return;
+            }
         }
 
         const banked = Bank.count(ESSENCE);
@@ -573,6 +582,15 @@ class BankRestock implements Task {
             return;
         }
         const per = this.bot.essPerRestock();
+        if (!cfg.unnote) {
+            // unnoted essence takes a slot each, and only TRADE_CAP of it can be handed over per trade
+            const room = Inventory.free() || TRADE_CAP; // 0 = pack not read yet; withdrawX stops at full anyway
+            const want = Math.min(per > 0 ? per : TRADE_CAP, banked, room);
+            await Bank.withdrawX(ESSENCE, want);
+            await Execution.delayUntil(() => essCount() > 0, 3000);
+            this.bot.log(`withdrew ${essCount()} unnoted essence for the run`);
+            return;
+        }
         const want = per > 0 ? Math.min(per, banked) : banked;
         await Bank.setNoteMode(true);
         await Bank.withdrawX(ESSENCE, want);
