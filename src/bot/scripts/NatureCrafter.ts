@@ -72,6 +72,7 @@ export default class NatureCrafter extends TaskBot {
     private bankAt = 0;
     private essPer = 0;
     private coinsTarget = 10000;
+    private goBank = false;
     private crafted = 0;
     private received = 0;
     private trades = 0;
@@ -99,6 +100,7 @@ export default class NatureCrafter extends TaskBot {
             this.add(
                 new ContinueDialog(),
                 new DriveTrade(this),
+                new GoBankPark(this),
                 new DeliverEssence(this),
                 new UnNoteEssence(this),
                 new BankRestock(this)
@@ -134,6 +136,12 @@ export default class NatureCrafter extends TaskBot {
         } else {
             p.row(`Deliveries: ${this.trades}`, `Ess sent: ${this.received}`, `Coins: ${Inventory.count(COINS)}`);
             p.row(`Pack ess: ${essCount()}`, `noted: ${notedEssence()}`, `unnoted: ${unnotedEssence()}`);
+            p.gap();
+            const clicked = p.buttons([{ id: 'gobank', label: this.goBank ? 'Resume' : 'Go bank' }]);
+            if (clicked === 'gobank') {
+                this.goBank = !this.goBank;
+                this.log(this.goBank ? 'Go bank pressed — heading to the Ardougne bank to park' : 'Resume pressed — back to the loop');
+            }
         }
         ScriptRunner.paintControls(p);
         p.end();
@@ -145,6 +153,7 @@ export default class NatureCrafter extends TaskBot {
     bankThreshold(): number { return this.bankAt; }
     essPerRestock(): number { return this.essPer; }
     coinTarget(): number { return this.coinsTarget; }
+    goBankActive(): boolean { return this.goBank; }
     isPartner(name: string | null): boolean {
         return name !== null && this.partners.some(p => p.toLowerCase() === name.toLowerCase());
     }
@@ -373,6 +382,21 @@ class DriveTrade implements Task {
                 this.pending = 0;
             }
         }
+    }
+}
+
+class GoBankPark implements Task {
+    constructor(private bot: NatureCrafter) {}
+    validate(): boolean { return this.bot.goBankActive() && !Trade.active(); }
+    async execute(): Promise<void> {
+        const here = Game.tile();
+        if (!here || ARD_BANK.distanceTo(here) > 4) {
+            this.bot.setStatus('Go bank: walking to the Ardougne bank');
+            await this.bot.walkTo(ARD_BANK, 3);
+            return;
+        }
+        this.bot.setStatus('parked at the bank — press Resume');
+        await Execution.delayTicks(2);
     }
 }
 
