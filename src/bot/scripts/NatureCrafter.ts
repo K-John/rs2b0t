@@ -19,7 +19,7 @@ import { Traversal } from '../api/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { type SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
-import { LOW_COINS } from './NatureRunnerLogic.js';
+import { planStoreStep, LOW_COINS, STORE_PASSES } from './NatureRunnerLogic.js';
 
 const ESSENCE = 'Rune essence';
 const ESSENCE_ID = 1436; // blankrune (unnoted essence); the bank-note variant has a different id
@@ -38,7 +38,6 @@ const COINS = 'Coins';
 const ARD_BANK = new Tile(2655, 3283, 0); // Ardougne East bank, by Captain Barnaby's pier
 const STORE_TILE = new Tile(2767, 3122, 0); // Jiminua's Jungle Store, Karamja
 const UNNOTE_NPC = 'Jiminua';
-const BATCH = 26; // essence un-noted per store visit
 
 export const SETTINGS: SettingsSchema = {
     mode: { type: 'string', default: 'Master', options: ['Master', 'Runner'], label: 'Mode', help: 'Master crafts natures at the altar and takes essence from runners; Runner ferries essence to the master (runner ships in a later phase)' },
@@ -381,25 +380,41 @@ class DeliverEssence implements Task {
     }
 }
 
+function shopEssStock(): number {
+    return Shop.stock().find(s => s.name.toLowerCase() === ESSENCE.toLowerCase())?.count ?? 0;
+}
+
 class UnNoteEssence implements Task {
     constructor(private bot: NatureCrafter) {}
-    validate(): boolean { return notedEssence() > 0 && unnotedEssence() === 0; }
+    validate(): boolean { return notedEssence() > 0 && unnotedEssence() === 0 && Inventory.count(COINS) >= LOW_COINS; }
     async execute(): Promise<void> {
-        this.bot.setStatus('un-noting a batch at the store');
+        this.bot.setStatus('topping up unnoted essence at the store');
         await this.bot.walkTo(STORE_TILE, 3);
         if (!(await openUnnoteShop())) {
             this.bot.log(`couldn't open ${UNNOTE_NPC}'s store — retrying`);
             return;
         }
-        const batch = Math.min(BATCH, notedEssence());
-        this.bot.log(`selling ${batch} noted essence to ${UNNOTE_NPC}, buying it back unnoted`);
-        const notedBefore = notedEssence();
-        await Shop.sell(ESSENCE, batch);
-        await Execution.delayUntil(() => notedEssence() <= notedBefore - batch, 3000);
-        await Shop.buy(ESSENCE, batch);
-        await Execution.delayUntil(() => unnotedEssence() >= batch, 4000);
+        for (let pass = 0; pass < STORE_PASSES; pass++) {
+            const stock = shopEssStock();
+            const step = planStoreStep(stock, notedEssence(), unnotedEssence());
+            if (step.op === 'done') {
+                break;
+            }
+            const before = { noted: notedEssence(), unnoted: unnotedEssence() };
+            if (step.op === 'sell') {
+                this.bot.log(`selling ${step.n} noted essence to ${UNNOTE_NPC} (stock ${stock})`);
+                await Shop.sell(ESSENCE, step.n, i => i.id !== ESSENCE_ID);
+            } else {
+                this.bot.log(`buying ${step.n} essence from stock (${stock} in the shop)`);
+                await Shop.buy(ESSENCE, step.n);
+            }
+            if (notedEssence() === before.noted && unnotedEssence() === before.unnoted) {
+                this.bot.log('store pass made no progress (out of coins or raced) — leaving with what we have');
+                break;
+            }
+        }
         await Shop.close();
-        this.bot.log(`un-noted ${unnotedEssence()} essence (noted left: ${notedEssence()})`);
+        this.bot.log(`store visit done: ${unnotedEssence()} unnoted held (noted left: ${notedEssence()})`);
     }
 }
 
