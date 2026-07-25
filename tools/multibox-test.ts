@@ -8,7 +8,7 @@ const u2 = `mbx${tag}b`;
 function fail(msg: string): never { console.error(`FAIL: ${msg}`); process.exit(1); }
 
 interface Snap { id: number; username: string; ingame: boolean; loopCycle: number; drawn: number; mode: string; focused: boolean }
-type Mbx = { multibox: { add(a: { username: string; password: string }): unknown; focus(id: number): void; slots(): Snap[] } };
+type Mbx = { multibox: { add(a: { username: string; password: string }): unknown; focus(id: number): void; slots(): Snap[]; importProfiles(a: unknown): number } };
 
 const app = await electron.launch({
     args: ['desktop/main.cjs', `--server=${server}/multibox.html`],
@@ -57,6 +57,35 @@ try {
     const afterNav = by(await slots(), ids[1]).loopCycle;
     if (afterNav < beforeNav) fail(`iframe reloaded on navigation (loopCycle ${beforeNav} -> ${afterNav})`);
     console.log('PASS: switching the active bot kept sessions alive (no reload)');
+
+    const u3 = `mbx${tag}c`;
+    const u4 = `mbx${tag}d`;
+
+    const imported = await page.evaluate(u => (globalThis as never as Mbx).multibox.importProfiles([{ username: u, password: 'test' }]), u3);
+    if (imported !== 1) fail(`importProfiles imported ${imported}, expected 1`);
+    await page.click('#mbx-add');
+    await page.click(`.mbx-profile-row:has-text("${u3}")`);
+    await page.waitForFunction(() => { const s = (globalThis as never as Mbx).multibox.slots(); return s.length === 3 && s.every(x => x.ingame); }, undefined, { timeout: 90000 })
+        .catch(() => fail('profile-loaded bot did not reach ingame within 90s'));
+    console.log('PASS: chooser loaded a saved profile into a live slot');
+
+    await page.click('#mbx-add');
+    await page.fill('#mbx-new-user', u4);
+    await page.fill('#mbx-new-pass', 'test');
+    await page.click('#mbx-new-go');
+    await page.waitForFunction(() => { const s = (globalThis as never as Mbx).multibox.slots(); return s.length === 4 && s.every(x => x.ingame); }, undefined, { timeout: 90000 })
+        .catch(() => fail('create-new bot did not reach ingame within 90s'));
+    const savedNames = await page.evaluate(() => (JSON.parse(localStorage.getItem('rs2b0t:multibox:profiles') ?? '[]') as { username: string }[]).map(p => p.username));
+    if (!savedNames.includes(u4)) fail(`create-new did not persist a profile (saved: ${savedNames.join(', ')})`);
+    const boxed = await page.evaluate(u => Array.from(document.querySelectorAll('iframe')).some(f => f.src.includes(`box=${u}`)), u3);
+    if (!boxed) fail('profile bot iframe missing its ?box= namespace');
+    console.log('PASS: create-new persisted a profile; slots namespaced by username');
+
+    await page.click('#mbx-drawer');
+    if (!(await page.evaluate(() => document.getElementById('mbx-rail')!.offsetWidth === 0))) fail('drawer did not hide the rail');
+    await page.click('#mbx-drawer');
+    if (!(await page.evaluate(() => document.getElementById('mbx-rail')!.offsetWidth > 0))) fail('drawer did not restore the rail');
+    console.log('PASS: rail drawer toggles');
 
     console.log('\nPASS');
 } finally {
