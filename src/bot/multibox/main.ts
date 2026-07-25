@@ -1,5 +1,7 @@
 import { DomSlotOps } from './DomSlotOps.js';
 import { MultiBoxController } from './MultiBoxController.js';
+import { ProfileChooser } from './ProfileChooser.js';
+import { upsertProfile, type Profile } from '../runtime/Profiles.js';
 import type { Account } from './types.js';
 
 function boot(): void {
@@ -19,8 +21,12 @@ function boot(): void {
         if (snap) { controller.focus(snap.id); renderRail(); }
     });
 
-    // No prompt: a bot starts empty and gets its login typed into its own panel.
-    addTile.addEventListener('click', () => { controller.add(); renderRail(); });
+    const chooser = new ProfileChooser(p => {
+        controller.add(p);
+        renderRail();
+    });
+    document.body.appendChild(chooser.el);
+    addTile.addEventListener('click', () => chooser.open());
 
     // Bind live status (name + online dot) onto the rail tiles, which DomSlotOps
     // keeps in slot order — so snapshot[i] is tile[i].
@@ -44,7 +50,18 @@ function boot(): void {
         controller,
         add: (a?: Account) => controller.add(a),
         focus: (id: number) => { controller.focus(id); renderRail(); },
-        slots: () => controller.snapshot()
+        slots: () => controller.snapshot(),
+        importProfiles: (json: string | Profile[]): number => {
+            const arr = typeof json === 'string' ? (JSON.parse(json) as Profile[]) : json;
+            let n = 0;
+            for (const p of Array.isArray(arr) ? arr : []) {
+                if (p && typeof p.username === 'string' && p.username.length > 0 && typeof p.password === 'string') {
+                    upsertProfile({ username: p.username, password: p.password });
+                    n++;
+                }
+            }
+            return n;
+        }
     };
 }
 
