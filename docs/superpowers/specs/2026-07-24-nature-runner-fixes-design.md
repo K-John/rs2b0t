@@ -105,14 +105,26 @@ scope (25 extra pickups, slot pressure, trade-cap interference).
 | `LOW_COINS` | 1000 | coin floor: below it, bank instead of shopping |
 | `PICKUP_RANGE` | 20 | max tiles to chase a ground noted stack |
 
+## Amendments (found during execution)
+
+- **Bounded ground-pickup retries.** `Take` that never lands (full pack, unreachable
+  stack) would keep `PickupNotedEssence.validate()` true forever and starve
+  deliveries. After 3 failed attempts the drop is ignored for 2 minutes.
+- **Coin target clamped to `MIN_COIN_TARGET = 3000`.** A target at or just above
+  `LOW_COINS` left the runner below the floor again after one boat fare, so it
+  ping-ponged bank↔boat. `coinTargetFor()` raises any lower setting; unit-tested.
+- **Three extra live probes** beyond the plan (see Testing).
+
 ## Testing
 
 - Unit (`test/scripts/NatureRunnerLogic.test.ts`): buy-only above 30, deficit sell
   at/below 30, run-dry re-plan, done-at-25, noted-bounded sell, nothing-possible →
   leave, offer-cap math.
-- Existing `tools/naturecrafter-runner-test.ts` smoke still passes.
-- Live acceptance on the local sim: store loop against seeded shop stock, Go bank
-  park/resume, ground-stack pickup.
+- Existing `tools/naturecrafter-runner-test.ts` + `-e2e-test.ts` smokes still pass.
+- New live probes: `naturecrafter-cap-test.ts` (a 27-essence runner offers exactly
+  25), `naturecrafter-gobank-test.ts` (real canvas click on the paint button →
+  parks → Resume releases), `naturecrafter-pickup-test.ts` (drops its own note and
+  loots it back). All three registered in the smoke fleet's timeout table.
 
 ## Out of scope
 
