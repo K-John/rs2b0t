@@ -28,6 +28,21 @@ function boot(): void {
     document.body.appendChild(chooser.el);
     addTile.addEventListener('click', () => chooser.open());
 
+    const app = document.getElementById('mbx-app')!;
+    const drawer = document.getElementById('mbx-drawer')!;
+    const RAIL_HIDDEN_KEY = 'rs2b0t:multibox:railHidden';
+    function setRailHidden(hidden: boolean): void {
+        app.classList.toggle('mbx-rail-hidden', hidden);
+        drawer.textContent = hidden ? '◀' : '▶';
+        localStorage.setItem(RAIL_HIDDEN_KEY, hidden ? '1' : '0');
+        // the focused slot re-fits the widened/narrowed main pane via its resize listener
+        window.dispatchEvent(new Event('resize'));
+    }
+    drawer.addEventListener('click', () => setRailHidden(!app.classList.contains('mbx-rail-hidden')));
+    if (localStorage.getItem(RAIL_HIDDEN_KEY) === '1') {
+        setRailHidden(true);
+    }
+
     // Bind live status (name + online dot) onto the rail tiles, which DomSlotOps
     // keeps in slot order — so snapshot[i] is tile[i].
     function renderRail(): void {

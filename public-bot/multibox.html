@@ -40,6 +40,12 @@
         .mbx-addtile { display: flex; align-items: center; justify-content: center; height: 52px; flex: 0 0 auto; font-size: 14px; color: #666; border: 1px dashed #444; border-radius: 4px; cursor: pointer; }
         .mbx-addtile:hover { color: #04A800; border-color: #04A800; }
 
+        #mbx-drawer { position: fixed; top: 50%; right: 264px; transform: translateY(-50%); z-index: 50; width: 16px; height: 56px; display: flex; align-items: center; justify-content: center; background: #111; border: 1px solid #333; border-right: 0; border-radius: 4px 0 0 4px; color: #666; cursor: pointer; }
+        #mbx-drawer:hover { color: #04A800; border-color: #04A800; }
+        #mbx-app.mbx-rail-hidden #mbx-rail { display: none; }
+        #mbx-app.mbx-rail-hidden #mbx-drawer { right: 0; }
+        #mbx-app.mbx-rail-hidden .mbx-slot.is-focused .mbx-clip { right: 0; }
+
         .mbx-chooser-overlay { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }
         .mbx-chooser-overlay[hidden] { display: none; }
         .mbx-chooser { width: 300px; max-height: 70vh; overflow-y: auto; background: #111; border: 1px solid #333; border-radius: 4px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
@@ -61,6 +67,7 @@
         <div id="mbx-rail">
             <div id="mbx-add" class="mbx-addtile">+ add bot</div>
         </div>
+        <div id="mbx-drawer" title="show/hide bots">▶</div>
     </div>
     <script type="module" src="./bot/multibox.js"></script>
 </body>

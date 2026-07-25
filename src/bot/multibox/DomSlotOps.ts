@@ -33,6 +33,10 @@ const CROP_TRANSFORM = `translate(${CROP_TX}px, ${CROP_TY}px) scale(${CROP_K})`;
 // standalone single-instance client keeps its own RenderGate default.
 const RAIL_BACKGROUND_INTERVAL_MS = 1000;
 
+function railWidth(): number {
+    return document.getElementById('mbx-rail')?.offsetWidth ?? RAIL_W;
+}
+
 interface Lcb {
     client: { constructor: { loopCycle: number } };
     reader: { ingame(): boolean; localPlayerName(): string | null };
@@ -146,7 +150,7 @@ class DomSlotHandle implements SlotHandle {
     }
 
     private paintMirror = (): void => {
-        if (this.mode !== 'focused') {
+        if (this.mode !== 'focused' || this.el.offsetParent === null) {
             return;
         }
         const src = this.iframe.contentDocument?.getElementById('canvas') as HTMLCanvasElement | null;
@@ -184,7 +188,7 @@ class DomSlotHandle implements SlotHandle {
         this.el.classList.toggle('is-focused', focused);
         if (focused) {
             // fill the main pane (viewport minus the rail), centered, whole client visible
-            const mainW = window.innerWidth - RAIL_W;
+            const mainW = window.innerWidth - railWidth();
             const mainH = window.innerHeight;
             const k = Math.min(mainW / LOGICAL_W, mainH / LOGICAL_H);
             const dx = (mainW - LOGICAL_W * k) / 2;
