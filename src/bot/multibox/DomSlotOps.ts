@@ -72,7 +72,12 @@ class DomSlotHandle implements SlotHandle {
         const name = document.createElement('span');
         name.className = 'mbx-name';
         name.textContent = account.username;
-        cap.append(dot, name);
+        const close = document.createElement('button');
+        close.className = 'mbx-close';
+        close.type = 'button';
+        close.title = 'remove bot';
+        close.textContent = '✕';
+        cap.append(dot, name, close);
 
         const body = document.createElement('div');
         body.className = 'mbx-body';

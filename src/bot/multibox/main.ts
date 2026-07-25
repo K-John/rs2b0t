@@ -18,7 +18,13 @@ function boot(): void {
         if (!tile) return;
         const idx = Array.from(rail.querySelectorAll('.mbx-slot')).indexOf(tile);
         const snap = controller.snapshot()[idx];
-        if (snap) { controller.focus(snap.id); renderRail(); }
+        if (!snap) return;
+        if ((ev.target as HTMLElement).closest('.mbx-close')) {
+            controller.remove(snap.id);
+        } else {
+            controller.focus(snap.id);
+        }
+        renderRail();
     });
 
     const chooser = new ProfileChooser(p => {

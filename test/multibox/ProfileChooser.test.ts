@@ -60,6 +60,25 @@ describe('ProfileChooser', () => {
         expect(chooser.el.hidden).toBe(true);
     });
 
+    test('load all loads every profile and closes', () => {
+        upsertProfile({ username: 'alice', password: 'a' });
+        upsertProfile({ username: 'bob', password: 'b' });
+        const { chooser, loaded } = make();
+        chooser.open();
+        (chooser.el.querySelector('#mbx-load-all') as HTMLElement).click();
+        expect(loaded).toEqual([
+            { username: 'alice', password: 'a' },
+            { username: 'bob', password: 'b' }
+        ]);
+        expect(chooser.el.hidden).toBe(true);
+    });
+
+    test('load all is absent when no profiles are saved', () => {
+        const { chooser } = make();
+        chooser.open();
+        expect(chooser.el.querySelector('#mbx-load-all')).toBeNull();
+    });
+
     test('create-new with an empty username does nothing', () => {
         const { chooser, loaded } = make();
         chooser.open();

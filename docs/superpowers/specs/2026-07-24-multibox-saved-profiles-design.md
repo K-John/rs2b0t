@@ -62,6 +62,14 @@ tabs are unaffected).
   ticking); main pane takes the full width.
 - State persisted in wall localStorage.
 
+### 5. Amendments (user-requested during execution)
+
+- Rail collapses by width, not `display: none` — the focused slot's fixed clip is
+  a rail descendant and `display: none` blanked it. Handle sits at the top edge.
+- Each rail tile carries a ✕ in its cap that removes the bot (`controller.remove`).
+- The chooser has a "load all profiles" button that loads every saved profile
+  (controller dedup makes already-loaded ones a no-op).
+
 ## Testing
 
 - Unit (happy-dom, existing multibox test pattern): ProfileStore

@@ -22,6 +22,15 @@ try {
     await page.waitForFunction(() => Boolean((globalThis as never as Mbx).multibox), undefined, { timeout: 30000 });
     console.log('manager booted');
 
+    // hermetic: the Electron profile persists localStorage across smoke runs
+    await page.evaluate(() => {
+        localStorage.removeItem('rs2b0t:multibox:profiles');
+        localStorage.removeItem('rs2b0t:multibox:accounts');
+        localStorage.removeItem('rs2b0t:multibox:railHidden');
+    });
+    const railHidden = () => page.evaluate(() => document.getElementById('mbx-app')!.classList.contains('mbx-rail-hidden'));
+    if (await railHidden()) await page.click('#mbx-drawer');
+
     await page.evaluate(([a, b]) => { const m = (globalThis as never as Mbx).multibox; m.add({ username: a, password: 'test' }); m.add({ username: b, password: 'test' }); }, [u1, u2]);
 
     await page.waitForFunction(() => { const s = (globalThis as never as Mbx).multibox.slots(); return s.length === 2 && s.every(x => x.ingame); }, undefined, { timeout: 90000 })
@@ -81,8 +90,20 @@ try {
     if (!boxed) fail('profile bot iframe missing its ?box= namespace');
     console.log('PASS: create-new persisted a profile; slots namespaced by username');
 
-    const railHidden = () => page.evaluate(() => document.getElementById('mbx-app')!.classList.contains('mbx-rail-hidden'));
-    if (await railHidden()) await page.click('#mbx-drawer');
+    const u4idx = await page.evaluate(u => (globalThis as never as Mbx).multibox.slots().findIndex(s => s.username === u), u4);
+    if (u4idx < 0) fail('create-new bot missing from slots');
+    await page.click(`.mbx-slot >> nth=${u4idx} >> .mbx-close`);
+    await page.waitForFunction(u => { const s = (globalThis as never as Mbx).multibox.slots(); return s.length === 3 && !s.some(x => x.username === (u as string)); }, u4, { timeout: 10000 })
+        .catch(() => fail('tile ✕ did not remove the bot'));
+    await page.click('#mbx-add');
+    await page.click('#mbx-load-all');
+    await page.waitForFunction(() => { const s = (globalThis as never as Mbx).multibox.slots(); return s.length === 4 && s.every(x => x.ingame); }, undefined, { timeout: 90000 })
+        .catch(async () => {
+            const s = await page.evaluate(() => (globalThis as never as Mbx).multibox.slots().map(x => `${x.username}:${x.ingame ? 'in' : 'out'}`));
+            fail(`load-all did not restore the removed bot to ingame [${s.join(', ')}]`);
+        });
+    console.log('PASS: tile ✕ removed a bot; load-all restored it (dedup held)');
+
     await page.click('#mbx-drawer');
     if (!(await page.evaluate(() => document.getElementById('mbx-rail')!.offsetWidth === 0))) fail('drawer did not hide the rail');
     const focusedVisible = await page.evaluate(() => {

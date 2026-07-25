@@ -101,5 +101,16 @@ export class ProfileChooser {
             });
             this.list.appendChild(row);
         }
+        const all = document.createElement('button');
+        all.id = 'mbx-load-all';
+        all.type = 'button';
+        all.textContent = 'load all profiles';
+        all.addEventListener('click', () => {
+            this.close();
+            for (const p of listProfiles()) {
+                this.onLoad(p);
+            }
+        });
+        this.list.appendChild(all);
     }
 }

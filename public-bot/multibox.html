@@ -21,6 +21,8 @@
         .mbx-dot { width: 8px; height: 8px; border-radius: 50%; background: #555; flex: 0 0 auto; }
         .mbx-dot.is-online { background: #04A800; }
         .mbx-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mbx-close { margin-left: auto; flex: 0 0 auto; background: none; border: 0; color: #666; cursor: pointer; font: inherit; padding: 0 2px; }
+        .mbx-close:hover { color: #e05b5b; }
         /* TILE_W/TILE_H below must match TILE_W/TILE_H in DomSlotOps.ts (crop math depends on it) */
         .mbx-body { position: relative; width: 236px; height: 155px; background: #000; }
         .mbx-clip { position: absolute; inset: 0; overflow: hidden; background: #000; }
@@ -54,6 +56,7 @@
         .mbx-chooser-title { color: #5be05b; }
         .mbx-chooser-list { display: flex; flex-direction: column; gap: 4px; }
         .mbx-chooser-empty { color: #666; }
+        #mbx-load-all { background: #07330a; border: 1px solid #04A800; color: #5be05b; padding: 5px 7px; border-radius: 3px; cursor: pointer; font: inherit; }
         .mbx-profile-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; border: 1px solid #2c2c2c; border-radius: 4px; cursor: pointer; }
         .mbx-profile-row:hover { border-color: #04A800; }
         .mbx-profile-del { background: none; border: 0; color: #666; cursor: pointer; font: inherit; }
