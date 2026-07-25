@@ -8,7 +8,7 @@ const u2 = `mbx${tag}b`;
 function fail(msg: string): never { console.error(`FAIL: ${msg}`); process.exit(1); }
 
 interface Snap { id: number; username: string; ingame: boolean; loopCycle: number; drawn: number; mode: string; focused: boolean }
-type Mbx = { multibox: { add(a: { username: string; password: string }): unknown; focus(id: number): void; slots(): Snap[]; importProfiles(a: unknown): number } };
+type Mbx = { multibox: { add(a: { username: string; password: string }): unknown; focus(id: number): void; slots(): Snap[]; importProfiles(a: unknown): Promise<number>; profiles(): string[] } };
 
 const app = await electron.launch({
     args: ['desktop/main.cjs', `--server=${server}/multibox.html`],
@@ -70,6 +70,14 @@ try {
     const u3 = `mbx${tag}c`;
     const u4 = `mbx${tag}d`;
 
+    await page.click('#mbx-add');
+    await page.fill('#mbx-vault-pass', 'smoke-pass');
+    await page.fill('#mbx-vault-confirm', 'smoke-pass');
+    await page.click('#mbx-vault-go');
+    await page.waitForSelector('.mbx-chooser-overlay:not([hidden]) .mbx-chooser-empty', { timeout: 10000 });
+    await page.click('.mbx-chooser-overlay:not([hidden])', { position: { x: 8, y: 8 } });
+    console.log('PASS: vault passphrase set; chooser gated behind it');
+
     const imported = await page.evaluate(u => (globalThis as never as Mbx).multibox.importProfiles([{ username: u, password: 'test' }]), u3);
     if (imported !== 1) fail(`importProfiles imported ${imported}, expected 1`);
     await page.click('#mbx-add');
@@ -84,7 +92,10 @@ try {
     await page.click('#mbx-new-go');
     await page.waitForFunction(() => { const s = (globalThis as never as Mbx).multibox.slots(); return s.length === 4 && s.every(x => x.ingame); }, undefined, { timeout: 90000 })
         .catch(() => fail('create-new bot did not reach ingame within 90s'));
-    const savedNames = await page.evaluate(() => (JSON.parse(localStorage.getItem('rs2b0t:multibox:profiles') ?? '[]') as { username: string }[]).map(p => p.username));
+    const savedNames = await page.evaluate(() => (globalThis as never as Mbx).multibox.profiles());
+    const rawStore = await page.evaluate(() => localStorage.getItem('rs2b0t:multibox:profiles') ?? '');
+    if ((JSON.parse(rawStore) as { v?: number }).v !== 1) fail('profile store is not an encrypted blob');
+    if (rawStore.includes(u4)) fail('profile store contains a plaintext username');
     if (!savedNames.includes(u4)) fail(`create-new did not persist a profile (saved: ${savedNames.join(', ')})`);
     const boxed = await page.evaluate(u => Array.from(document.querySelectorAll('iframe')).some(f => f.src.includes(`box=${u}`)), u3);
     if (!boxed) fail('profile bot iframe missing its ?box= namespace');
