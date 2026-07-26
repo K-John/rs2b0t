@@ -289,9 +289,11 @@ class BankEverything implements Task {
     constructor(private bot: NatureCrafter) {
         this.nextBankAt = Date.now() + bot.bankIntervalMs(); // first trip is a full interval away
     }
+    // deliberately NOT gated on an empty pack: a master with runners feeding it is never empty,
+    // so waiting for that window meant the trip never fired at all under load
     validate(): boolean {
         return this.bot.bankIntervalMs() > 0 && Date.now() >= this.nextBankAt
-            && !inTemple() && essCount() === 0 && !Trade.active() && Date.now() >= this.backoffUntil;
+            && !inTemple() && !Trade.active() && Date.now() >= this.backoffUntil;
     }
     async execute(): Promise<void> {
         const cfg = this.bot.cfg();
@@ -310,7 +312,8 @@ class BankEverything implements Task {
         }
         const made = runeCount(this.bot);
         const before = Inventory.used();
-        await Bank.depositAllMatching(depositAllExcept([cfg.talisman]), m => this.bot.log(`  ${m}`));
+        // essence is raw material in transit, not profit — bank the runes and the litter, keep it
+        await Bank.depositAllMatching(depositAllExcept([cfg.talisman, ESSENCE]), m => this.bot.log(`  ${m}`));
         await Execution.delayTicks(1);
         this.bot.log(`banked ${made} ${cfg.rune}s, cleared ${before - Inventory.used()} slot(s); back to the altar`);
         await this.bot.walkTo(cfg.ruins, 1);

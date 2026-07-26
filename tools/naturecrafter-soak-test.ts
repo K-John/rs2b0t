@@ -11,6 +11,7 @@ const base = process.argv[2] || 'http://localhost:8890';
 const budgetMin = Number(process.argv[3]) || 60;
 const NUM_RUNNERS = Number(process.argv[4]) || 8;
 const RUNE = process.argv[5] || 'Air runes';
+const BANK_EVERY = process.argv[6] || '20'; // master bank interval (min) — exercised inside the window
 
 interface RuneRoute {
     talisman: string;
@@ -54,7 +55,6 @@ if (!route) { fail(`unknown rune '${RUNE}' — expected one of: ${Object.keys(RO
 const stamp = Date.now().toString(36).slice(-5);
 const M_USER = `sokm${stamp}`;
 const R_USERS = Array.from({ length: NUM_RUNNERS }, (_, i) => `sk${i}${stamp}`);
-const MASTER_BANK_EVERY = '20'; // exercise the timed bank trip a few times inside the soak window
 
 type Abi = {
     __rs2b0t: { Inventory: { items(): { name: string | null; id: number; count: number }[] }; Skills: { xp(s: string): number }; reader: { worldTile(): { x: number; z: number; level: number } | null } };
@@ -85,7 +85,7 @@ async function teleTo(page: Page, user: string, tele: string): Promise<void> {
     if (!ok) fail(`${user}: relogin failed`);
 }
 
-function sample(page: Page): Promise<{ pos: { x: number; z: number; level: number } | null; runes: number; ess: number; coins: number; rcXp: number; state: string; lastLog: string; stopReason: string }> {
+function sample(page: Page): Promise<{ pos: { x: number; z: number; level: number } | null; runes: number; ess: number; coins: number; rcXp: number; state: string; bankTrips: number; lastLog: string; stopReason: string }> {
     return page.evaluate(rn => {
         const g = globalThis as never as Abi;
         const items = g.__rs2b0t.Inventory.items();
@@ -98,6 +98,7 @@ function sample(page: Page): Promise<{ pos: { x: number; z: number; level: numbe
             coins: items.filter(i => (i.name ?? '').toLowerCase() === 'coins').reduce((s, i) => s + i.count, 0),
             rcXp: g.__rs2b0t.Skills.xp('runecraft'),
             state: g.rs2b0t.runner.state,
+            bankTrips: msgs.filter(mm => /min bank trip/.test(mm)).length,
             lastLog: (msgs[msgs.length - 1] ?? '').slice(0, 46),
             stopReason: msgs.filter(m => /Stopping\.|stall guard|crashed/i.test(m)).slice(-1)[0] ?? ''
         };
@@ -123,8 +124,8 @@ try {
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:mode', 'Master');
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:partner', names);
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:bankEvery', every);
-    }, [R_USERS.join(','), RUNE, MASTER_BANK_EVERY]);
-    console.log(`  master '${M_USER}' ready at the altar (banking everything every ${MASTER_BANK_EVERY}min)`);
+    }, [R_USERS.join(','), RUNE, BANK_EVERY]);
+    console.log(`  master '${M_USER}' ready at the altar (banking everything every ${BANK_EVERY}min)`);
 
     for (let i = 0; i < NUM_RUNNERS; i++) {
         await bringUp(rPages[i], R_USERS[i]);
@@ -163,7 +164,7 @@ try {
         const mins = Math.round((Date.now() - startedAt) / 6000) / 10;
         const craftedEss = Math.round((m.rcXp - xp0) / route.xpPerEssence);
         const inFlight = rr.reduce((s, r) => s + r.ess, 0);
-        if (/min bank trip/.test(m.lastLog)) { masterBankTrips++; }
+        masterBankTrips = Math.max(masterBankTrips, m.bankTrips);
         if (m.state !== 'running' && !sawMasterStop) { sawMasterStop = m.stopReason || m.state; }
 
         rr.forEach((r, i) => {
@@ -203,6 +204,10 @@ try {
     if (stoppedRunners.size > 0) { problems.push(`${stoppedRunners.size} runner(s) stopped: ${[...stoppedRunners.entries()].map(([i, w]) => `R${i} (${w})`).join('; ')}`); }
     if (idle.length > 0) { problems.push(`${idle.join(', ')} never delivered — wedged or starved`); }
     if (craftedEss === 0) { problems.push('master crafted nothing'); }
+    // a busy master used to skip its bank trip entirely — only trust it if one actually fired
+    if (Number(BANK_EVERY) > 0 && elapsedMin > Number(BANK_EVERY) + 3 && masterBankTrips === 0) {
+        problems.push(`master never banked in ${elapsedMin}min despite a ${BANK_EVERY}min interval — the trip is being starved`);
+    }
 
     if (problems.length === 0) {
         console.log(`\nPASS: ${NUM_RUNNERS} runners fed the master for ${elapsedMin}min with no stops, no crashes and every runner delivering.`);
