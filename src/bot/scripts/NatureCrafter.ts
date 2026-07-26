@@ -41,7 +41,7 @@ export const SETTINGS: SettingsSchema = {
     rune: { type: 'string', default: DEFAULT_RUNE, options: RUNE_OPTIONS, label: 'Rune', help: 'which rune the pair crafts. Nature = Ardougne bank + ship + Jiminua un-noting; Air = Falador East bank, straight there and back' },
     mode: { type: 'string', default: 'Master', options: ['Master', 'Runner'], label: 'Mode', help: 'Master crafts at the altar and takes essence from runners; Runner ferries essence to the master' },
     partner: { type: 'string', default: '', label: 'Partner name(s)', help: 'Master: runner name(s) to accept essence from, comma-separated. Runner: the master to deliver to.' },
-    bankAt: { type: 'number', default: 0, label: 'Bank runes at (0 = never)', help: 'Master: 0 = never bank — runes stack into one slot so just hold them (recommended). Set > 0 to deposit profit once holding that many; note the nature master\'s nearest bank is the quest-gated Shilo Village one' },
+    bankEvery: { type: 'number', default: 60, min: 0, label: 'Bank everything every N minutes (0 = never)', help: 'Master: walks to the bank on this timer and deposits everything except the talisman — banks the runes and clears out whatever random events have left in the pack. Air banks at Falador East; the nature master\'s nearest bank is the quest-gated Shilo Village one, so it may not be reachable' },
     withdrawEss: { type: 'number', default: 0, min: 0, label: 'Essence per restock (0 = default)', help: 'Runner: essence withdrawn per bank restock. 0 = the whole bank stack when noting (nature), or one trade-load (air)' },
     withdrawCoins: { type: 'number', default: 10000, min: 0, label: 'Coins target at restock', help: 'Runner: top coins up to this at each restock (boat fares + shop buy-backs). Unused by air.' }
 };
@@ -70,7 +70,7 @@ export default class NatureCrafter extends TaskBot {
     private rune = DEFAULT_RUNE;
     private conf: RuneType = RUNES[DEFAULT_RUNE];
     private partners: string[] = [];
-    private bankAt = 0;
+    private bankMs = 60 * 60_000;
     private essPer = 0;
     private coinsTarget = 10000;
     private goBank = false;
@@ -87,7 +87,7 @@ export default class NatureCrafter extends TaskBot {
         this.rune = this.settings.str('rune', DEFAULT_RUNE);
         this.conf = RUNES[this.rune] ?? RUNES[DEFAULT_RUNE];
         this.partners = this.settings.str('partner', '').split(',').map(s => s.trim()).filter(Boolean);
-        this.bankAt = Math.max(0, this.settings.num('bankAt', 0)); // 0 = never bank
+        this.bankMs = Math.max(0, this.settings.num('bankEvery', 60)) * 60_000; // 0 = never bank
         this.essPer = Math.max(0, this.settings.num('withdrawEss', 0));
         this.coinsTarget = coinTargetFor(this.settings.num('withdrawCoins', 10000));
         this.startedAt = Date.now();
@@ -118,15 +118,14 @@ export default class NatureCrafter extends TaskBot {
             this.log(`NatureCrafter: Runecrafting ${this.conf.level} required for ${this.rune} (have ${Skills.level('runecraft')}) — stopping.`);
             throw new Error('NatureCrafter: runecrafting level too low');
         }
-        this.log(`NatureCrafter master starting — ${this.rune} at ${this.conf.ruins}, accepting essence from [${this.partners.join(', ')}], ${this.bankAt > 0 ? `banking at ${this.bankAt}` : 'holding runes (never banking)'}`);
+        this.log(`NatureCrafter master starting — ${this.rune} at ${this.conf.ruins}, accepting essence from [${this.partners.join(', ')}], ${this.bankMs > 0 ? `banking everything every ${Math.round(this.bankMs / 60_000)}min` : 'never banking'}`);
         this.add(
             new ContinueDialog(),
             new HandleOpenTrade(this),
             new CraftNatures(this),
             new ExitTemple(this),
             new EnterAltar(this),
-            new BankNatures(this),
-            new ReturnJunk(this),
+            new BankEverything(this),
             new AcceptRunner(this),
             new WaitForRunner(this)
         );
@@ -158,10 +157,12 @@ export default class NatureCrafter extends TaskBot {
     }
 
     cfg(): RuneType { return this.conf; }
+    // the client is never told whether an obj is tradeable or bankable (ObjType has no such
+    // field — it is server-side only), so the only way to know is to try and watch it refuse
     setStatus(s: string): void { this.status = s; }
     countCraft(n: number): void { this.crafted += n; }
     countTrade(essence: number): void { this.trades++; this.received += essence; }
-    bankThreshold(): number { return this.bankAt; }
+    bankIntervalMs(): number { return this.bankMs; }
     essPerRestock(): number { return this.essPer; }
     coinTarget(): number { return this.coinsTarget; }
     goBankActive(): boolean { return this.goBank; }
@@ -185,23 +186,7 @@ export default class NatureCrafter extends TaskBot {
 
 // master: the talisman, the runes it crafts and the essence it works on are the only things it
 // should ever hold. Anything else is random-event litter, and it eats the slots essence needs.
-function masterJunk(bot: NatureCrafter): { name: string; id: number }[] {
-    const keep = [bot.cfg().talisman, bot.cfg().rune, ESSENCE].map(n => n.toLowerCase());
-    const seen = new Set<string>();
-    const out: { name: string; id: number }[] = [];
-    for (const i of Inventory.items()) {
-        const name = i.name;
-        if (name === null || keep.includes(name.toLowerCase()) || seen.has(name.toLowerCase())) {
-            continue;
-        }
-        seen.add(name.toLowerCase());
-        out.push({ name, id: i.id });
-    }
-    return out;
-}
-
 class HandleOpenTrade implements Task {
-    private junkTries = 0;
     constructor(private bot: NatureCrafter) {}
     validate(): boolean { return Trade.active(); }
     async execute(): Promise<void> {
@@ -229,31 +214,9 @@ class HandleOpenTrade implements Task {
             await Trade.decline();
             return;
         }
-        // the real safety: never let the talisman, the crafted runes or essence leave. Offering
-        // moves items out of the pack, so this is checked against the offer, not the pack.
-        const offered = Trade.myOffer();
-        const precious = [this.bot.cfg().talisman, this.bot.cfg().rune, ESSENCE].map(n => n.toLowerCase());
-        if (offered.some(o => precious.includes((o.name ?? '').toLowerCase()))) {
-            this.bot.log('safety: my talisman/runes are in the trade offer — declining so nothing is given away');
+        if (Trade.myOffer().length > 0) {
+            this.bot.log('safety: something is in MY trade offer — declining so nothing is given away');
             await Trade.decline();
-            return;
-        }
-
-        // hand back random-event litter; an untradeable reward stops being retried after 3 goes
-        const junk = masterJunk(this.bot);
-        if (junk.length > 0 && this.junkTries < 3) {
-            this.junkTries++;
-            this.bot.setStatus(`returning ${junk[0].name} to ${who}`);
-            this.bot.log(`handing ${junk.map(j => j.name).join(', ')} back to ${who} — random-event litter`);
-            for (const j of junk) {
-                await Trade.offerAll(j.name);
-            }
-            return;
-        }
-        if (offered.length > 0) {
-            this.junkTries = 0;
-            this.bot.setStatus(`giving ${who} the litter back`);
-            await Trade.accept();
             return;
         }
 
@@ -318,14 +281,23 @@ class EnterAltar implements Task {
     }
 }
 
-class BankNatures implements Task {
+// Everything-goes bank trip on a timer: banks the runes and, with them, whatever random events
+// have dropped in the pack. Cheaper than reasoning about which litter can be traded or dropped.
+class BankEverything implements Task {
     private backoffUntil = 0;
-    constructor(private bot: NatureCrafter) {}
-    validate(): boolean { return this.bot.bankThreshold() > 0 && !inTemple() && essCount() === 0 && runeCount(this.bot) >= this.bot.bankThreshold() && !Trade.active() && Date.now() >= this.backoffUntil; }
+    private nextBankAt: number;
+    constructor(private bot: NatureCrafter) {
+        this.nextBankAt = Date.now() + bot.bankIntervalMs(); // first trip is a full interval away
+    }
+    validate(): boolean {
+        return this.bot.bankIntervalMs() > 0 && Date.now() >= this.nextBankAt
+            && !inTemple() && essCount() === 0 && !Trade.active() && Date.now() >= this.backoffUntil;
+    }
     async execute(): Promise<void> {
         const cfg = this.bot.cfg();
-        this.bot.setStatus('banking runes');
-        this.bot.log(`heading to the bank with ${runeCount(this.bot)} ${cfg.rune}s`);
+        this.nextBankAt = Date.now() + this.bot.bankIntervalMs();
+        this.bot.setStatus('banking everything');
+        this.bot.log(`${Math.round(this.bot.bankIntervalMs() / 60_000)}min bank trip — ${runeCount(this.bot)} ${cfg.rune}s and anything else in the pack`);
         // short timeout so an unreachable quest-gated bank fails fast, not after the default 240s
         const reached = await Traversal.walkResilient(cfg.masterBank, { radius: 3, attempts: 2, timeoutMs: 30_000, log: m => this.bot.log(`  ${m}`) });
         const opened = reached && ((await Bank.openBooth(cfg.masterBank, BOOTH.name, BOOTH.op, m => this.bot.log(`  ${m}`)))
@@ -337,40 +309,18 @@ class BankNatures implements Task {
             return;
         }
         const made = runeCount(this.bot);
+        const before = Inventory.used();
         await Bank.depositAllMatching(depositAllExcept([cfg.talisman]), m => this.bot.log(`  ${m}`));
         await Execution.delayTicks(1);
-        this.bot.log(`deposited ${made} ${cfg.rune}s`);
+        this.bot.log(`banked ${made} ${cfg.rune}s, cleared ${before - Inventory.used()} slot(s); back to the altar`);
         await this.bot.walkTo(cfg.ruins, 1);
-    }
-}
-
-class ReturnJunk implements Task {
-    private blockedUntil = 0;
-    constructor(private bot: NatureCrafter) {}
-    validate(): boolean {
-        return !inTemple() && !Trade.active() && Date.now() >= this.blockedUntil
-            && masterJunk(this.bot).length > 0 && this.bot.nearestRunner() !== null;
-    }
-    async execute(): Promise<void> {
-        const runner = this.bot.nearestRunner();
-        const junk = masterJunk(this.bot);
-        if (!runner || junk.length === 0) {
-            return;
-        }
-        this.bot.setStatus(`returning ${junk.length} item(s) to ${runner.name}`);
-        await Trade.request(runner.name ?? '');
-        if (!(await Execution.delayUntil(() => Trade.active(), 4000))) {
-            // untradeable litter would otherwise re-open a trade forever — let crafting continue
-            this.blockedUntil = Date.now() + 120_000;
-            this.bot.log(`could not open a trade to hand back ${junk.map(j => j.name).join(', ')} — carrying it for now`);
-        }
     }
 }
 
 class AcceptRunner implements Task {
     constructor(private bot: NatureCrafter) {}
     validate(): boolean {
-        // no rune-count guard — task order lets BankNatures preempt; gating here breaks bankAt=0
+        // no rune-count guard — task order lets the bank trip preempt when its timer is due
         return !inTemple() && essCount() === 0 && !Trade.active() && this.bot.nearestRunner() !== null;
     }
     async execute(): Promise<void> {

@@ -1,5 +1,5 @@
-// Random-event litter smoke: a runner must bank anything that isn't essence, and a master must
-// trade back anything that isn't its talisman or its runes — without ever giving those two away.
+// Random-event litter smoke: a runner banks anything that isn't essence at each restock, and the
+// master makes a timed bank trip that deposits everything except its talisman.
 // Usage: bun tools/naturecrafter-junk-test.ts [base] [budget-min]
 
 import type { Page } from 'playwright-core';
@@ -13,7 +13,11 @@ const M_USER = `njm${stamp}`;
 const R_USER = `njr${stamp}`;
 const RUINS_TELE = '::tele 0,46,51,39,24'; // air Mysterious ruins (2983,3288)
 const BANK_TELE = '::tele 0,47,52,5,27'; // Falador East bank (3013,3355)
-const JUNK = ['bones', 'bronze_axe']; // debugnames known to work with ~item on this engine
+const JUNK = ['bones', 'bronze_axe']; // ordinary litter: banks fine, trades fine
+// untradeable AND unbankable-by-trade litter: the timed bank trip is what clears it
+const UNTRADEABLE = 'research_package';
+const UNTRADEABLE_NAME = 'research package';
+const BANK_EVERY_MIN = '1'; // the smoke can't wait an hour — this is why the interval is a setting
 
 type Abi = {
     __rs2b0t: { Inventory: { items(): { name: string | null; id: number; count: number }[] }; reader: { worldTile(): { x: number; z: number; level: number } | null } };
@@ -66,16 +70,17 @@ try {
     await teleTo(pageM, M_USER, RUINS_TELE);
     await teleTo(pageR, R_USER, BANK_TELE);
 
-    // master starts holding litter it must hand back, plus the talisman it must never give away
+    // master starts holding litter its bank trip must clear, plus the talisman it must keep
     await cheatQuiet(pageM, '~clearinv');
     await cheatQuiet(pageM, '~item air_talisman 1');
     for (const j of JUNK) { await cheatQuiet(pageM, `~item ${j} 1`); }
-    await pageM.evaluate(n => {
+    await cheatQuiet(pageM, `~item ${UNTRADEABLE} 1`);
+    await pageM.evaluate(([n, b]) => {
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:rune', 'Air runes');
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:mode', 'Master');
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:partner', n);
-        sessionStorage.setItem('rs2b0t:set:NatureCrafter:bankAt', '400');
-    }, R_USER);
+        sessionStorage.setItem('rs2b0t:set:NatureCrafter:bankEvery', b);
+    }, [R_USER, BANK_EVERY_MIN]);
 
     // runner starts holding litter it must bank before it can carry a full trade load
     await cheatQuiet(pageR, '~clearinv');
@@ -99,7 +104,7 @@ try {
     const deadline = Date.now() + budgetMin * 60_000;
     let seenM = 0, seenR = 0;
     let m = m0, r = r0;
-    let runnerBanked = false, masterHandedBack = false;
+    let runnerBanked = false, masterBanked = false;
     while (Date.now() < deadline) {
         m = await sample(pageM); r = await sample(pageR);
         for (let i = seenR; i < r.logs.length; i++) { console.log(`   [R] ${r.logs[i]}`); }
@@ -109,24 +114,23 @@ try {
         const secs = Math.round((budgetMin * 60_000 - (deadline - Date.now())) / 1000);
         console.log(`  t=${secs}s | M junk=[${m.junk.join(',')}] talisman=${m.talisman} runes=${m.runes} | R junk=[${r.junk.join(',')}] | ${m.state}/${r.state}`);
 
-        // the master must never part with these, litter hand-back or not
-        if (m.talisman === 0) fail('master lost its Air talisman — it must never be traded away');
-        if (r.names.includes('air talisman')) fail('the talisman ended up on the runner — master gave away something precious');
+        // the talisman must survive every bank trip — it is the one thing the master keeps
+        if (m.talisman === 0) fail('master lost its Air talisman — the bank trip must keep it');
 
         if (r.logs.some(l => /banked \d+ slot\(s\) of random-event litter/.test(l)) && r.junk.length === 0) { runnerBanked = true; }
-        // the master's litter lands on the runner, which banks it on its next restock — same path
-        if (m.logs.some(l => /handing .* back to/.test(l)) && m.junk.length === 0) { masterHandedBack = true; }
-        if (runnerBanked && masterHandedBack) { break; }
+        // one timed trip must clear ALL of it, ordinary litter and the untradeable alike
+        if (m.logs.some(l => /banked \d+ Air runes, cleared \d+ slot/.test(l)) && m.junk.length === 0) { masterBanked = true; }
+        if (runnerBanked && masterBanked) { break; }
         if (m.state === 'crashed' || r.state === 'crashed') { break; }
         await pageM.waitForTimeout(2500);
     }
 
-    if (runnerBanked && masterHandedBack) {
-        console.log(`PASS: runner banked its seeded litter [${r0.junk.join(', ')}] before loading essence; master handed its litter [${m0.junk.join(', ')}] back and kept its talisman (master pack is now talisman + essence only). The returned litter sits on the runner until its next restock banks it the same way.`);
+    if (runnerBanked && masterBanked) {
+        console.log(`PASS: runner banked its litter at restock; the master's timed bank trip cleared everything including the untradeable ${UNTRADEABLE_NAME}, keeping only its talisman.`);
         await browser.close();
         process.exit(0);
     }
-    fail(`litter not cleared within ${budgetMin}min [runnerBanked=${runnerBanked} masterHandedBack=${masterHandedBack} Mjunk=${m.junk.join(',')} Rjunk=${r.junk.join(',')} Mstate=${m.state} Rstate=${r.state}]`);
+    fail(`litter not cleared within ${budgetMin}min [runnerBanked=${runnerBanked} masterBanked=${masterBanked} Mpack=${m.names.join(',')} Rpack=${r.names.join(',')} Mstate=${m.state} Rstate=${r.state}]`);
 } catch (e) {
     console.error(e);
     fail(String(e));
