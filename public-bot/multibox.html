@@ -44,6 +44,9 @@
         .mbx-resources { width: 236px; box-sizing: border-box; flex: 0 0 auto; padding: 7px 8px; border: 1px solid #2c2c2c; border-radius: 4px; background: #0a0a0a; display: flex; flex-direction: column; gap: 4px; }
         .mbx-resource-bots { padding-bottom: 4px; border-bottom: 1px solid #222; color: #5be05b; }
         .mbx-resource-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 3px 8px; }
+        /* an author display rule beats the UA's [hidden]{display:none}, so the
+           hidden host rows need this or they stay on screen */
+        .mbx-resource-row[hidden] { display: none; }
         .mbx-resource-label { color: #666; }
         .mbx-resource-value { color: #bbb; text-align: right; white-space: nowrap; }
         .mbx-resource-value.mbx-resource-detail { flex: 1 0 100%; color: #d9a45b; text-align: left; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }

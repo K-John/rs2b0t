@@ -56,6 +56,11 @@ afterEach(() => {
 });
 
 describe('ResourcePanel', () => {
+    test('a hidden host row is actually not displayed, despite the row being a flex box', async () => {
+        const html = await Bun.file('public-bot/multibox.html').text();
+        expect(html).toContain('.mbx-resource-row[hidden] { display: none; }');
+    });
+
     test('the resource card starts explicitly measuring and contains only the requested metrics', async () => {
         const html = await Bun.file('public-bot/multibox.html').text();
         expect(html.indexOf('id="mbx-resources"')).toBeGreaterThan(html.indexOf('id="mbx-add"'));
