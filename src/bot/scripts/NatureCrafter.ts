@@ -20,7 +20,7 @@ import { Traversal } from '../api/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { type SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
-import { planStoreStep, offerCount, coinTargetFor, RUNES, RUNE_OPTIONS, DEFAULT_RUNE, type RuneType, LOW_COINS, STORE_PASSES, TRADE_CAP, PICKUP_RANGE } from './NatureRunnerLogic.js';
+import { planStoreStep, offerCount, coinTargetFor, shortRouteWithdraw, RUNES, RUNE_OPTIONS, DEFAULT_RUNE, type RuneType, LOW_COINS, STORE_PASSES, TRADE_CAP, PICKUP_RANGE } from './NatureRunnerLogic.js';
 
 const ESSENCE = 'Rune essence';
 const ESSENCE_ID = 1436; // blankrune (unnoted essence); the bank-note variant has a different id
@@ -135,10 +135,13 @@ export default class NatureCrafter extends TaskBot {
         const p = Paint.begin(ctx, { dock: 'chatbox', accent: '#a0e6c8' });
         p.title(`NatureCrafter — ${this.rune} — ${this.mode.toLowerCase()} — ${this.status}`);
         const mins = (Date.now() - this.startedAt) / 60_000;
+        const xpGained = Skills.xp('runecraft') - this.xpAtStart;
+        const xph = mins > 0.5 ? `${((xpGained / mins) * 60 / 1000).toFixed(1)}k` : '—';
         p.row(`Runtime: ${fmtDuration(mins)}`, `Mode: ${this.mode}`, this.mode === 'Master' ? `RC lvl: ${Skills.level('runecraft')}` : `To: ${this.partners[0] ?? '?'}`);
         if (this.mode === 'Master') {
             p.row(`Crafted: ${this.crafted}`, `Trades: ${this.trades}`, `Ess in: ${this.received}`);
-            p.row(`Pack ess: ${essCount()}`, `Pack runes: ${runeCount(this)}`, `Runners: ${this.partners.length}`);
+            p.row(`RC xp: ${xpGained}`, `RC xp/h: ${xph}`, `Runners: ${this.partners.length}`);
+            p.row(`Pack ess: ${essCount()}`, `Pack runes: ${runeCount(this)}`, '');
         } else {
             p.row(`Deliveries: ${this.trades}`, `Ess sent: ${this.received}`, `Coins: ${Inventory.count(COINS)}`);
             p.row(`Pack ess: ${essCount()}`, `noted: ${notedEssence()}`, `unnoted: ${unnotedEssence()}`);
@@ -583,9 +586,7 @@ class BankRestock implements Task {
         }
         const per = this.bot.essPerRestock();
         if (!cfg.unnote) {
-            // unnoted essence takes a slot each, and only TRADE_CAP of it can be handed over per trade
-            const room = Inventory.free() || TRADE_CAP; // 0 = pack not read yet; withdrawX stops at full anyway
-            const want = Math.min(per > 0 ? per : TRADE_CAP, banked, room);
+            const want = shortRouteWithdraw(per, banked, Inventory.free());
             await Bank.withdrawX(ESSENCE, want);
             await Execution.delayUntil(() => essCount() > 0, 3000);
             this.bot.log(`withdrew ${essCount()} unnoted essence for the run`);

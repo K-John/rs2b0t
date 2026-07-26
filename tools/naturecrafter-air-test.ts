@@ -78,13 +78,16 @@ try {
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:bankAt', '400');
     }, R_USER);
 
-    // deliberately NO coins anywhere: the air route must never ask for fare money
+    // deliberately NO coins anywhere: the air route must never ask for fare money.
+    // withdrawEss is set OVER the trade cap on purpose — a value carried over from the noting
+    // route used to fill the pack (28), costing the master a second altar trip for the leftover 3.
     await cheatQuiet(pageR, '~clearinv');
     await cheatQuiet(pageR, `~bankitem blankrune ${SEED}`);
     await pageR.evaluate(n => {
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:rune', 'Air runes');
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:mode', 'Runner');
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:partner', n);
+        sessionStorage.setItem('rs2b0t:set:NatureCrafter:withdrawEss', '28');
     }, M_USER);
     await pageR.waitForTimeout(800);
 
@@ -106,7 +109,13 @@ try {
         const secs = Math.round((budgetMin * 60_000 - (deadline - Date.now())) / 1000);
         console.log(`  t=${secs}s | M air=${m.airRunes} rc+${m.rcXp - xp0} @${m.pos ? `${m.pos.x},${m.pos.z}` : '?'} | R unnoted=${r.unnoted} noted=${r.noted} coins=${r.coins} @${r.pos ? `${r.pos.x},${r.pos.z}` : '?'} ${r.state}`);
 
-        if (r.logs.some(l => /withdrew \d+ unnoted essence/.test(l))) { withdrewUnnoted = true; }
+        for (const l of r.logs) {
+            const hit = /withdrew (\d+) unnoted essence/.exec(l);
+            if (!hit) { continue; }
+            withdrewUnnoted = true;
+            if (Number(hit[1]) > 25) { fail(`withdrew ${hit[1]} unnoted essence — a trade window only moves 25, so the rest costs an extra altar trip`); }
+        }
+        if (r.unnoted > 25) { fail(`runner is carrying ${r.unnoted} unnoted essence, over the 25 trade cap`); }
         if (r.logs.some(l => /delivered \d+ essence/.test(l))) { delivered = true; }
         if (m.airRunes > 0 && m.rcXp > xp0) { crafted = true; }
         if (r.noted > 0) { fail(`the air runner banked a NOTE (${r.noted}) — the short route must withdraw unnoted`); }

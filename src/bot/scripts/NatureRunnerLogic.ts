@@ -68,3 +68,10 @@ export function planStoreStep(stock: number, noted: number, unnoted: number): St
 export function offerCount(unnoted: number): number {
     return Math.max(0, Math.min(TRADE_CAP, unnoted));
 }
+
+// Short route only. A trade window moves at most TRADE_CAP, so anything carried beyond it just
+// buys the master a second altar round trip for the remainder — cap it however big withdrawEss is.
+export function shortRouteWithdraw(perSetting: number, banked: number, room: number): number {
+    const want = perSetting > 0 ? Math.min(perSetting, TRADE_CAP) : TRADE_CAP;
+    return Math.max(0, Math.min(want, banked, room > 0 ? room : TRADE_CAP));
+}

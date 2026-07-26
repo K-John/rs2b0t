@@ -1,6 +1,6 @@
 import { expect, test, describe } from 'bun:test';
 
-import { planStoreStep, offerCount, coinTargetFor, RUNES, RUNE_OPTIONS, DEFAULT_RUNE, TRADE_CAP, BUY_ONLY_STOCK, LOW_COINS, MIN_COIN_TARGET } from '#/bot/scripts/NatureRunnerLogic.js';
+import { planStoreStep, offerCount, coinTargetFor, shortRouteWithdraw, RUNES, RUNE_OPTIONS, DEFAULT_RUNE, TRADE_CAP, BUY_ONLY_STOCK, LOW_COINS, MIN_COIN_TARGET } from '#/bot/scripts/NatureRunnerLogic.js';
 
 describe('planStoreStep (one store action per pass, re-planned against live stock)', () => {
     test('holding the full trade cap = done, regardless of stock', () => {
@@ -69,6 +69,32 @@ describe('RUNES (one row per rune the pair can run)', () => {
         expect(RUNE_OPTIONS).toEqual(['Nature runes', 'Air runes']);
         expect(RUNES[DEFAULT_RUNE]).toBeDefined();
         expect(DEFAULT_RUNE).toBe('Nature runes');
+    });
+});
+
+describe('shortRouteWithdraw (air: one trade window per trip, never a leftover)', () => {
+    test('default takes exactly a trade load', () => {
+        expect(shortRouteWithdraw(0, 1000, 28)).toBe(TRADE_CAP);
+    });
+
+    test('a withdrawEss carried over from the noting route must not fill the pack', () => {
+        // the live bug: 28 withdrawn -> trade 25 -> a second altar trip for the leftover 3
+        expect(shortRouteWithdraw(28, 1000, 28)).toBe(TRADE_CAP);
+        expect(shortRouteWithdraw(1000, 1000, 28)).toBe(TRADE_CAP);
+    });
+
+    test('a smaller withdrawEss still wins', () => {
+        expect(shortRouteWithdraw(10, 1000, 28)).toBe(10);
+    });
+
+    test('bounded by what the bank and the pack actually have', () => {
+        expect(shortRouteWithdraw(0, 7, 28)).toBe(7);
+        expect(shortRouteWithdraw(0, 1000, 3)).toBe(3);
+        expect(shortRouteWithdraw(0, 0, 28)).toBe(0);
+    });
+
+    test('an unread pack (0 slots) falls back to the cap rather than withdrawing nothing', () => {
+        expect(shortRouteWithdraw(0, 1000, 0)).toBe(TRADE_CAP);
     });
 });
 
