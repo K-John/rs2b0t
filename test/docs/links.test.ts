@@ -1,0 +1,77 @@
+import { describe, expect, test } from 'bun:test';
+import { existsSync, readFileSync } from 'node:fs';
+import { Glob } from 'bun';
+import { extractLinks, extractPointers, extractRepoPaths, headingAnchors, resolveRelative } from '../../tools/lib/docLinks.js';
+
+// these two hold example pointers as test fixtures, not live references
+const FIXTURES = new Set(['test/tools/docLinks.test.ts', 'test/docs/links.test.ts']);
+
+const DOCS = ['README.md', 'desktop/README.md', ...[...new Glob('docs/*.md').scanSync('.')]].filter(existsSync).sort();
+const SOURCES = [...new Glob('{src,tools,test}/**/*.{ts,sh}').scanSync('.')].filter(f => !f.startsWith('src/3rdparty/') && !FIXTURES.has(f)).sort();
+
+const anchorCache = new Map<string, string[]>();
+function anchorsOf(page: string): string[] {
+    let anchors = anchorCache.get(page);
+    if (!anchors) {
+        anchors = headingAnchors(readFileSync(page, 'utf8'));
+        anchorCache.set(page, anchors);
+    }
+    return anchors;
+}
+
+describe('documentation links', () => {
+    test('scans every manual page', () => {
+        expect(DOCS.length).toBeGreaterThanOrEqual(4);
+        expect(DOCS).toContain('README.md');
+        expect(DOCS).toContain('docs/API.md');
+    });
+
+    test('every relative link resolves to a file that exists', () => {
+        const broken: string[] = [];
+        for (const doc of DOCS) {
+            for (const { href, line } of extractLinks(readFileSync(doc, 'utf8'))) {
+                const target = resolveRelative(doc, href);
+                if (!existsSync(target)) broken.push(`${doc}:${line} -> ${href}`);
+            }
+        }
+        expect(broken).toEqual([]);
+    });
+
+    test('every #anchor exists as a heading in its target page', () => {
+        const broken: string[] = [];
+        for (const doc of DOCS) {
+            for (const { href, line } of extractLinks(readFileSync(doc, 'utf8'))) {
+                const anchor = href.split('#')[1];
+                if (!anchor) continue;
+                const target = resolveRelative(doc, href);
+                if (!target.endsWith('.md') || !existsSync(target)) continue;
+                if (!anchorsOf(target).includes(anchor)) broken.push(`${doc}:${line} -> ${href}`);
+            }
+        }
+        expect(broken).toEqual([]);
+    });
+
+    test('every backticked repo path cited in the docs exists', () => {
+        const missing: string[] = [];
+        for (const doc of DOCS) {
+            for (const { path, line } of extractRepoPaths(readFileSync(doc, 'utf8'))) {
+                if (!existsSync(path)) missing.push(`${doc}:${line} -> ${path}`);
+            }
+        }
+        expect(missing).toEqual([]);
+    });
+
+    test('every docs pointer in source resolves to a real page and anchor', () => {
+        const dangling: string[] = [];
+        for (const file of SOURCES) {
+            for (const { page, anchor, line } of extractPointers(readFileSync(file, 'utf8'))) {
+                if (!existsSync(page)) {
+                    dangling.push(`${file}:${line} -> ${page}`);
+                    continue;
+                }
+                if (anchor && !anchorsOf(page).includes(anchor)) dangling.push(`${file}:${line} -> ${page}#${anchor}`);
+            }
+        }
+        expect(dangling).toEqual([]);
+    });
+});
