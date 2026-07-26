@@ -92,12 +92,35 @@ The wall's resource card draws from two sources:
 - **CPU and memory** — polled from `/__rs2b0t/resources`, served **only** by
   `tools/live-proxy.ts:120`. Prod has no proxy; the engine 404s it.
 
-By the card's own contract that renders as `offline`, which is the
-honest-telemetry design working correctly — but it leaves a hosted user staring
-at two permanently-`offline` rows.
+The damage is worse than two dead rows. `refresh()` fetches the endpoint
+**first**, and any failure short-circuits to `renderAll(...)`, which writes the
+same text to `cpu`, `memory` **and** `traffic` (`ResourcePanel.ts:335`). The
+in-page collector is only consulted further down, inside `readTraffic()`, which
+that early return never reaches. So on a hosted wall the traffic row goes
+`offline` too — even though it is fully measurable in the browser.
 
-On the `prod` target, construct the card with only the rows it can measure: bot
-count and traffic. Nothing guessed, nothing zero-substituted, no dead rows.
+Fix it by making an **absent** monitor different from a **broken** one:
+
+- On HTTP **404**, latch host telemetry off for the session: hide the CPU and RAM
+  rows outright and keep rendering traffic from `getTrafficSnapshot()`.
+- Every other failure (5xx, network error, malformed body) keeps today's loud
+  behaviour untouched. A monitor that exists and is misbehaving must still say so.
+
+Gate this on the probe, not on the build target. `deploy-local.sh` also serves the
+wall straight from the engine with no proxy, so a local wall has exactly the same
+absent endpoint — one rule fixes both, and no build flag has to be kept in sync
+with which deployments happen to run a proxy.
+
+Traffic rate needs a sample timestamp, which normally comes from the envelope's
+`sampledAt`. With no envelope, `rateForTraffic` needs a local clock, so
+`ResourcePanelOptions` gains `now?: () => number` (default `() => Date.now()`) to
+keep the rate maths testable.
+
+Row hiding needs the row elements, not just the value spans the panel holds
+today: give the two `.mbx-resource-row` divs ids in `multibox.html` and add them
+to `ResourcePanelNodes` as optional members.
+
+Nothing guessed, nothing zero-substituted, no dead rows.
 
 Do **not** answer `/__rs2b0t/resources` from the engine. The card measures *the
 user's browser*; a server-side sample would be confidently wrong rather than
@@ -110,10 +133,17 @@ asset.
 
 ### 4. Discoverability
 
-Add a `MultiBox` link to the single client's panel, pointing at `./wall`, gated
-on `boxId() === ''` (`src/bot/runtime/box.ts`). The wall spawns its iframes with
-`?box=<account>`, so the link renders on standalone `/rs2b0t` and not inside the
-wall's own slots.
+Add a `MultiBox` link to the single client's panel, gated on `boxId() === ''`
+(`src/bot/runtime/box.ts`). The wall spawns its iframes with `?box=<account>`, so
+the link renders on standalone `/rs2b0t` and not inside the wall's own slots.
+
+The href is `./multibox.html`, **not** `./wall`. Relative resolution has to work
+from both deployments off one build: from `/rs2b0t/index.html` it gives
+`/rs2b0t/multibox.html`, and from local dev's `/bot.html` it gives
+`/multibox.html` — both real files the engine serves by exact path. `./wall`
+would resolve to `/wall` locally, which does not exist. The pretty
+`/rs2b0t/wall` URL is for humans and the README; the in-client link takes the
+path that needs no per-target branching.
 
 Keeping the single client as the default costs discoverability; this is the
 repayment.
