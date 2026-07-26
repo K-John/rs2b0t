@@ -32,7 +32,7 @@ export const RUNES: Record<string, RuneType> = {
     },
     'Air runes': {
         talisman: 'Air talisman', rune: 'Air rune', level: 1,
-        ruins: new Tile(2988, 3294, 0), // south of Falador
+        ruins: new Tile(2983, 3288, 0), // south of Falador
         runnerBank: new Tile(3013, 3355, 0), // Falador East
         masterBank: new Tile(3013, 3355, 0),
         unnote: null

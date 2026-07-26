@@ -59,7 +59,7 @@ describe('RUNES (one row per rune the pair can run)', () => {
         expect(air.rune).toBe('Air rune');
         expect(air.talisman).toBe('Air talisman');
         expect(air.level).toBe(1);
-        expect([air.ruins.x, air.ruins.z]).toEqual([2988, 3294]);
+        expect([air.ruins.x, air.ruins.z]).toEqual([2983, 3288]);
         expect([air.runnerBank.x, air.runnerBank.z]).toEqual([3013, 3355]);
         expect(air.masterBank).toEqual(air.runnerBank);
         expect(air.unnote).toBeNull();
