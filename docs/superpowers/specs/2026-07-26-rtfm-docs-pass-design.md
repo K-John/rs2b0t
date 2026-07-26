@@ -108,7 +108,7 @@ Ordered so a stranger can follow top to bottom:
 
 ### `package.json` scripts
 
-Add `test`, `lint`, `format`, `gen:scriptdocs`. Lint and format are currently undocumented because they are uninvokable. (`bunx eslint src/bot/nav` verified clean, so the documented command works.)
+Add `test`, `lint`, `format`, `gen:scriptdocs`. Lint and format are currently undocumented because they are uninvokable. `bunx eslint .` is verified clean, so it is the real gate. `format` takes explicit paths rather than `.`: prettier is configured but unenforced, and `prettier --write .` would rewrite 310 pre-existing files.
 
 ### Private details in a public repo
 
@@ -177,4 +177,4 @@ Emits `docs/SCRIPTS.md` from `ScriptRegistry` — the 36 registered bots already
 - `bun test` covers link integrity and `SCRIPTS.md` freshness, and passes.
 - `bun test`, `bun run lint`, `bun run format` exist, are documented, and pass.
 - Public API surface carries TSDoc ending in `@see`; internals carry pointers, not prose.
-- `bunx eslint` and `prettier --check` clean.
+- `bun run lint` and `bunx tsc --noEmit` clean (both pass on the tree today, so any failure is this branch's). Prettier is checked **only on files this branch touches** — `prettier --check .` already fails on 310 pre-existing files and is not a signal about this work.
