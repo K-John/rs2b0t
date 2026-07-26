@@ -126,6 +126,7 @@ export default class NatureCrafter extends TaskBot {
             new ExitTemple(this),
             new EnterAltar(this),
             new BankNatures(this),
+            new ReturnJunk(this),
             new AcceptRunner(this),
             new WaitForRunner(this)
         );
@@ -182,7 +183,25 @@ export default class NatureCrafter extends TaskBot {
     }
 }
 
+// master: the talisman, the runes it crafts and the essence it works on are the only things it
+// should ever hold. Anything else is random-event litter, and it eats the slots essence needs.
+function masterJunk(bot: NatureCrafter): { name: string; id: number }[] {
+    const keep = [bot.cfg().talisman, bot.cfg().rune, ESSENCE].map(n => n.toLowerCase());
+    const seen = new Set<string>();
+    const out: { name: string; id: number }[] = [];
+    for (const i of Inventory.items()) {
+        const name = i.name;
+        if (name === null || keep.includes(name.toLowerCase()) || seen.has(name.toLowerCase())) {
+            continue;
+        }
+        seen.add(name.toLowerCase());
+        out.push({ name, id: i.id });
+    }
+    return out;
+}
+
 class HandleOpenTrade implements Task {
+    private junkTries = 0;
     constructor(private bot: NatureCrafter) {}
     validate(): boolean { return Trade.active(); }
     async execute(): Promise<void> {
@@ -210,9 +229,31 @@ class HandleOpenTrade implements Task {
             await Trade.decline();
             return;
         }
-        if (Trade.myOffer().length > 0) {
-            this.bot.log('safety: something is in MY trade offer — declining so nothing is given away');
+        // the real safety: never let the talisman, the crafted runes or essence leave. Offering
+        // moves items out of the pack, so this is checked against the offer, not the pack.
+        const offered = Trade.myOffer();
+        const precious = [this.bot.cfg().talisman, this.bot.cfg().rune, ESSENCE].map(n => n.toLowerCase());
+        if (offered.some(o => precious.includes((o.name ?? '').toLowerCase()))) {
+            this.bot.log('safety: my talisman/runes are in the trade offer — declining so nothing is given away');
             await Trade.decline();
+            return;
+        }
+
+        // hand back random-event litter; an untradeable reward stops being retried after 3 goes
+        const junk = masterJunk(this.bot);
+        if (junk.length > 0 && this.junkTries < 3) {
+            this.junkTries++;
+            this.bot.setStatus(`returning ${junk[0].name} to ${who}`);
+            this.bot.log(`handing ${junk.map(j => j.name).join(', ')} back to ${who} — random-event litter`);
+            for (const j of junk) {
+                await Trade.offerAll(j.name);
+            }
+            return;
+        }
+        if (offered.length > 0) {
+            this.junkTries = 0;
+            this.bot.setStatus(`giving ${who} the litter back`);
+            await Trade.accept();
             return;
         }
 
@@ -300,6 +341,29 @@ class BankNatures implements Task {
         await Execution.delayTicks(1);
         this.bot.log(`deposited ${made} ${cfg.rune}s`);
         await this.bot.walkTo(cfg.ruins, 1);
+    }
+}
+
+class ReturnJunk implements Task {
+    private blockedUntil = 0;
+    constructor(private bot: NatureCrafter) {}
+    validate(): boolean {
+        return !inTemple() && !Trade.active() && Date.now() >= this.blockedUntil
+            && masterJunk(this.bot).length > 0 && this.bot.nearestRunner() !== null;
+    }
+    async execute(): Promise<void> {
+        const runner = this.bot.nearestRunner();
+        const junk = masterJunk(this.bot);
+        if (!runner || junk.length === 0) {
+            return;
+        }
+        this.bot.setStatus(`returning ${junk.length} item(s) to ${runner.name}`);
+        await Trade.request(runner.name ?? '');
+        if (!(await Execution.delayUntil(() => Trade.active(), 4000))) {
+            // untradeable litter would otherwise re-open a trade forever — let crafting continue
+            this.blockedUntil = Date.now() + 120_000;
+            this.bot.log(`could not open a trade to hand back ${junk.map(j => j.name).join(', ')} — carrying it for now`);
+        }
     }
 }
 
@@ -392,7 +456,13 @@ class DriveTrade implements Task {
                 const held = unnotedEssence();
                 const n = offerCount(held);
                 if (n <= 0) {
-                    await Execution.delayTicks(1);
+                    // nothing to give — but the master may be handing random-event litter back
+                    if (Trade.theirOffer().length > 0) {
+                        this.bot.setStatus('taking items back from the master');
+                        await Trade.accept();
+                    } else {
+                        await Execution.delayTicks(1);
+                    }
                     return;
                 }
                 this.pending = n;
@@ -564,6 +634,14 @@ class BankRestock implements Task {
         }
 
         await Bank.setNoteMode(false);
+        // random events hand out items that eat the slots essence needs — dump anything unrelated
+        const keep = cfg.unnote ? [ESSENCE, COINS] : [ESSENCE];
+        const before = Inventory.used();
+        await Bank.depositAllMatching(depositAllExcept(keep), m => this.bot.log(`  ${m}`));
+        if (Inventory.used() < before) {
+            this.bot.log(`banked ${before - Inventory.used()} slot(s) of random-event litter`);
+        }
+
         if (cfg.unnote) {
             const needCoins = this.bot.coinTarget() - Inventory.count(COINS);
             if (needCoins > 0 && Bank.count(COINS) > 0) {
