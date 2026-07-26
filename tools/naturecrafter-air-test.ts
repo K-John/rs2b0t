@@ -14,7 +14,7 @@ const R_USER = `nar${stamp}`; // runner at the Falador East bank
 const RUINS_TELE = '::tele 0,46,51,39,24'; // air Mysterious ruins (2983,3288)
 const BANK_TELE = '::tele 0,47,52,5,27'; // Falador East bank (3013,3355)
 const RUNE = 'Air runes';
-const SEED = 60; // bank essence — more than one trade load, so a second trip has stock
+const SEED = Number(process.argv[4]) || 60; // bank essence; pass a small number to drain the bank and watch it stop honestly
 
 type Abi = {
     __rs2b0t: { Inventory: { items(): { name: string | null; id: number; count: number }[] }; Skills: { xp(s: string): number }; reader: { worldTile(): { x: number; z: number; level: number } | null } };
@@ -75,7 +75,6 @@ try {
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:rune', 'Air runes');
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:mode', 'Master');
         sessionStorage.setItem('rs2b0t:set:NatureCrafter:partner', n);
-        sessionStorage.setItem('rs2b0t:set:NatureCrafter:bankAt', '400');
     }, R_USER);
 
     // deliberately NO coins anywhere: the air route must never ask for fare money.

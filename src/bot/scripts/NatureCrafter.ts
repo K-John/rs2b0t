@@ -569,6 +569,7 @@ class UnNoteEssence implements Task {
 }
 
 class BankRestock implements Task {
+    private emptyReads = 0;
     constructor(private bot: NatureCrafter) {}
     // coins only matter on the noting route (fares + buy-backs); the short route never spends any
     validate(): boolean { return essCount() === 0 || (this.bot.cfg().unnote !== null && Inventory.count(COINS) < LOW_COINS); }
@@ -592,12 +593,16 @@ class BankRestock implements Task {
             this.bot.log(`banked ${before - Inventory.used()} slot(s) of random-event litter`);
         }
 
+        // blank is not empty: the item list reads [] for a beat after opening and after a deposit,
+        // and one stale read here used to stop a runner that had thousands of essence banked
+        await Execution.delayUntil(() => Bank.loaded(), 3000);
+
         if (cfg.unnote) {
             const needCoins = this.bot.coinTarget() - Inventory.count(COINS);
             if (needCoins > 0 && Bank.count(COINS) > 0) {
                 await Bank.withdrawX(COINS, Math.min(needCoins, Bank.count(COINS)));
             }
-            if (Inventory.count(COINS) < LOW_COINS) {
+            if (Inventory.count(COINS) < LOW_COINS && Bank.loaded()) {
                 this.bot.log('NatureCrafter runner: out of coins (bank + pack) for fares and buy-backs. Stopping.');
                 ScriptRunner.stop();
                 return;
@@ -606,12 +611,14 @@ class BankRestock implements Task {
 
         const banked = Bank.count(ESSENCE);
         if (banked === 0) {
-            if (essCount() === 0) {
-                this.bot.log('NatureCrafter runner: out of Rune essence in the bank. Stopping.');
+            // only believe an empty bank after it reads empty on three separate restocks
+            if (essCount() === 0 && ++this.emptyReads >= 3) {
+                this.bot.log('NatureCrafter runner: out of Rune essence in the bank (three reads). Stopping.');
                 ScriptRunner.stop();
             }
             return;
         }
+        this.emptyReads = 0;
         const per = this.bot.essPerRestock();
         if (!cfg.unnote) {
             const want = shortRouteWithdraw(per, banked, Inventory.free());
