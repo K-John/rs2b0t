@@ -20,6 +20,7 @@ How the client works, how to run it, and how to write bots for it.
 | [Scripting API](API.md) | the complete `@rs2b0t/api` surface, with examples |
 | [World-walking](NAV.md) | the collision pack, pathfinding, doors, transports, arrival |
 | [Quests](QUESTS.md) | the quest engine, quest modules, exec primitives, provisioning |
+| [Clue scrolls](CLUES.md) | the clue database, step kinds, tool acquisition, tracing |
 | [Dev and deploy](DEV.md) | build targets, the three run modes, the hosting pipeline |
 
 ---
