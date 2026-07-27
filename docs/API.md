@@ -1,3 +1,5 @@
+[Manual](README.md) › Scripting API
+
 # rs2b0t Scripting API
 
 Bots are written in TypeScript against **`@rs2b0t/api`** — a stable, versioned
@@ -511,3 +513,11 @@ export default defineBot({
     create: () => new BoneBurier(),
 });
 ```
+
+---
+
+## See also
+
+- [Manual index](README.md)
+- [Running locally](RUNNING.md) — getting a client up to run these against
+- [`templates/script-template/`](../templates/script-template/) — an out-of-tree starter

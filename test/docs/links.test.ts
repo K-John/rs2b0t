@@ -6,7 +6,7 @@ import { extractLinks, extractPointers, extractRepoPaths, headingAnchors, resolv
 // these two hold example pointers as test fixtures, not live references
 const FIXTURES = new Set(['test/tools/docLinks.test.ts', 'test/docs/links.test.ts']);
 
-const DOCS = ['README.md', 'desktop/README.md', ...[...new Glob('docs/*.md').scanSync('.')]].filter(existsSync).sort();
+const DOCS = ['README.md', 'desktop/README.md', 'templates/script-template/README.md', ...[...new Glob('docs/*.md').scanSync('.')]].filter(existsSync).sort();
 const SOURCES = [...new Glob('{src,tools,test}/**/*.{ts,sh}').scanSync('.')].filter(f => !f.startsWith('src/3rdparty/') && !FIXTURES.has(f)).sort();
 
 const anchorCache = new Map<string, string[]>();
@@ -54,11 +54,32 @@ describe('documentation links', () => {
     test('every backticked repo path cited in the docs exists', () => {
         const missing: string[] = [];
         for (const doc of DOCS) {
+            const dir = doc.includes('/') ? doc.slice(0, doc.lastIndexOf('/')) : '';
             for (const { path, line } of extractRepoPaths(readFileSync(doc, 'utf8'))) {
-                if (!existsSync(path)) missing.push(`${doc}:${line} -> ${path}`);
+                // a nested page may name a path relative to itself
+                if (existsSync(path) || (dir !== '' && existsSync(`${dir}/${path}`))) continue;
+                missing.push(`${doc}:${line} -> ${path}`);
             }
         }
         expect(missing).toEqual([]);
+    });
+
+    test('every page under docs/ is reachable from docs/README.md', () => {
+        const index = 'docs/README.md';
+        expect(existsSync(index)).toBe(true);
+        const reachable = new Set<string>([index]);
+        const queue = [index];
+        while (queue.length > 0) {
+            const doc = queue.shift()!;
+            for (const { href } of extractLinks(readFileSync(doc, 'utf8'))) {
+                const target = resolveRelative(doc, href);
+                if (!target.startsWith('docs/') || !target.endsWith('.md') || reachable.has(target) || !existsSync(target)) continue;
+                reachable.add(target);
+                queue.push(target);
+            }
+        }
+        const pages = [...new Glob('docs/*.md').scanSync('.')].sort();
+        expect(pages.filter(page => !reachable.has(page))).toEqual([]);
     });
 
     test('every docs pointer in source resolves to a real page and anchor', () => {

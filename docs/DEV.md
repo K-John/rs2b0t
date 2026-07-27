@@ -1,3 +1,5 @@
+[Manual](README.md) › Dev & deploy
+
 # rs2b0t — Dev & Deploy
 
 The rs2b0t bot client has **three canonical run modes**, one command each.
@@ -7,6 +9,13 @@ The rs2b0t bot client has **three canonical run modes**, one command each.
 | **Local dev** | `sh tools/deploy-local.sh` | single (`/bot.html`) or wall (`/multibox.html`) | local engine at `localhost:8890` |
 | **Wall vs live** | `bun run b0t` | multibox wall | local client + reverse proxy → `w1.rs2b2t.com` |
 | **Hosted (prod)** | `make deploy` *(in `~/code/rs2b2t`)* | single (`/rs2b0t`) + wall (`/rs2b0t/wall`) | **same-origin** at `w1.rs2b2t.com/rs2b0t` |
+
+## Contents
+
+- [Live wall viewers and resource telemetry](#live-wall-viewers-and-resource-telemetry)
+- [Build targets](#build-targets-botbundlets-srcconfigtargetts)
+- [Hosting the single client (prod)](#hosting-the-single-client-prod)
+- [Local-engine test tricks](#local-engine-test-tricks)
 
 ## Live wall viewers and resource telemetry
 
@@ -152,3 +161,9 @@ background throttling.
   then every `tools/*-test.ts` sequentially, hours; per-smoke logs in `out/smoke-logs/`).
   `--list` / `--only <substr>` / `--skip <substr>` subset it; SPECIAL-environment smokes
   (desktop/hosted/multibox/e2e/rendergate + dev harnesses) are excluded automatically.
+
+## See also
+
+- [Manual index](README.md)
+- [Running locally](RUNNING.md) — the from-scratch local setup
+- [Scripting API](API.md)
