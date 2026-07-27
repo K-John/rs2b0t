@@ -17,6 +17,8 @@ import {
     BAR_OPTIONS,
     recipeForBar,
     withdrawPlan,
+    withdrawFor,
+    canSmelt,
     countPrimary,
     type Recipe
 } from './SmelterBotLogic.js';
@@ -98,11 +100,14 @@ export default class SmelterBot extends TaskBot {
     furnaceTile(): Tile { return this.furnaceStand; }
     boothLocName(): string { return this.boothName; }
     primaryCount(): number { return countPrimary(Inventory.items(), this.recipe); }
+    canSmelt(): boolean { return canSmelt(Inventory.items(), this.recipe); }
 }
 
 class BankTrip implements Task {
     constructor(private bot: SmelterBot) {}
-    validate(): boolean { return this.bot.primaryCount() === 0; }
+    // anything the pack cannot make a bar from means go and restock, not just an
+    // empty primary ore — iron without coal is equally unsmeltable
+    validate(): boolean { return !this.bot.canSmelt(); }
     async execute(): Promise<void> {
         this.bot.setStatus('banking');
         await walkOpening(this.bot.bankTile(), 0, this.bot.obstacleList(), m => this.bot.log(m));
@@ -111,31 +116,40 @@ class BankTrip implements Task {
             return;
         }
         await Bank.depositInventory();
-        await Execution.delayTicks(1);
+
+        // The item list refills asynchronously after a deposit, so until it does every
+        // count reads 0 — indistinguishable from an empty bank. Reading it too early is
+        // what produced "'Coal' vanished from the bank mid-trip" (#117): ore does not
+        // vanish, the list had simply not arrived. Never judge stock from an empty list.
+        if (!(await Execution.delayUntil(() => Bank.loaded(), 5000))) {
+            this.bot.log('the bank list has not filled in yet — retrying this trip');
+            return;
+        }
         this.bot.countTrip();
 
         const recipe = this.bot.activeRecipe();
-        const plan = withdrawPlan(recipe);
+        const bankNameFor = (ore: string): string | null =>
+            Bank.items().find(i => i.name !== null && i.name.toLowerCase().includes(ore.toLowerCase()))?.name ?? null;
+        const stock = (ore: string): number => {
+            const name = bankNameFor(ore);
+            return name === null ? 0 : Bank.count(name);
+        };
 
-        for (const step of plan) {
-            const bankItem = Bank.items().find(i => i.name !== null && i.name.toLowerCase().includes(step.ore.toLowerCase()));
-            const have = bankItem?.name ? Bank.count(bankItem.name) : 0;
-            if (!bankItem || bankItem.name === null || have < step.count) {
-                this.bot.log(`out of '${step.ore}' — bank has ${have}, need ${step.count} for a full trip of ${recipe.bar}. Stopping.`);
-                this.bot.setStatus(`out of ${step.ore} — stopped`);
-                ScriptRunner.stop();
-                return;
-            }
+        const plan = withdrawFor(recipe, stock);
+        if (plan.length === 0) {
+            const short = recipe.ingredients.map(i => `${i.ore} ${stock(i.ore)}`).join(', ');
+            this.bot.log(`the bank cannot supply even one ${recipe.bar} bar (${short}) — stopping.`);
+            this.bot.setStatus('out of ore — stopped');
+            ScriptRunner.stop();
+            return;
         }
 
         for (const step of plan) {
-            const bankItem = Bank.items().find(i => i.name !== null && i.name.toLowerCase().includes(step.ore.toLowerCase()));
-            if (!bankItem || bankItem.name === null) {
-                this.bot.log(`'${step.ore}' vanished from the bank mid-trip — stopping.`);
-                ScriptRunner.stop();
+            const bankName = bankNameFor(step.ore);
+            if (bankName === null) {
+                this.bot.log(`'${step.ore}' is not in the bank list — retrying this trip`);
                 return;
             }
-            const bankName = bankItem.name;
             this.bot.setStatus(`withdrawing ${step.count} ${bankName}`);
             if (!(await Bank.withdrawX(bankName, step.count))) {
                 this.bot.log(`could not withdraw ${step.count} ${bankName} — retrying next trip`);
@@ -147,7 +161,7 @@ class BankTrip implements Task {
 
 class SmeltTrip implements Task {
     constructor(private bot: SmelterBot) {}
-    validate(): boolean { return this.bot.primaryCount() > 0 && !ChatDialog.canContinue(); }
+    validate(): boolean { return this.bot.canSmelt() && !ChatDialog.canContinue(); }
     async execute(): Promise<void> {
         const furnace = () => Locs.query().name(this.bot.furnaceLocName()).action('Smelt').where(l => l.tile().distanceTo(this.bot.furnaceTile()) <= this.bot.leashRadius()).nearest();
         const here = Game.tile();
