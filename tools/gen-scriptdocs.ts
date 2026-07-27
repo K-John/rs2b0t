@@ -13,7 +13,9 @@ function anchor(text: string): string {
 
 // a bare | ends the cell
 function cell(text: string): string {
-    return text.replace(/\|/g, '\\|');
+    return text
+        .replace(/\\/g, '\\\\')
+        .replace(/\|/g, '\\|');
 }
 
 function settingRow(key: string, def: SettingDef): string {
