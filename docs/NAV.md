@@ -279,3 +279,4 @@ numbers. What they govern:
 - [Scripting API](API.md#movement) — the script-facing movement surface
 - [Architecture](ARCHITECTURE.md#from-interact-to-a-packet) — how a click reaches the client
 - [Running locally](RUNNING.md#deploying-the-client) — building the collision pack
+- [Quests](QUESTS.md) — a heavy consumer of walking and doors
