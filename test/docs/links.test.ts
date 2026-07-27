@@ -7,7 +7,7 @@ import { extractLinks, extractPointers, extractRepoPaths, headingAnchors, resolv
 const FIXTURES = new Set(['test/tools/docLinks.test.ts', 'test/docs/links.test.ts']);
 
 const DOCS = ['README.md', 'desktop/README.md', 'templates/script-template/README.md', ...[...new Glob('docs/*.md').scanSync('.')]].filter(existsSync).sort();
-const SOURCES = [...new Glob('{src,tools,test}/**/*.{ts,sh}').scanSync('.')].filter(f => !f.startsWith('src/3rdparty/') && !FIXTURES.has(f)).sort();
+const SOURCES = [...new Glob('{src,tools,test,packages}/**/*.{ts,sh}').scanSync('.')].filter(f => !f.startsWith('src/3rdparty/') && !FIXTURES.has(f)).sort();
 
 const anchorCache = new Map<string, string[]>();
 function anchorsOf(page: string): string[] {

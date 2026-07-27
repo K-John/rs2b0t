@@ -15,6 +15,10 @@ const COMPASS: [number, number][] = [
     [1, -1]
 ];
 
+/**
+ * Tiles to flee to, ordered by how well they escape a threat.
+ * @see docs/API.md#events
+ */
 export function fleeCandidates(from: Pt, threat: { x: number; z: number }, dist: number): Pt[] {
     return COMPASS.map(([dx, dz]) => ({ x: from.x + dx * dist, z: from.z + dz * dist, level: from.level })).sort((a, b) => {
         const da = Math.max(Math.abs(a.x - threat.x), Math.abs(a.z - threat.z));
