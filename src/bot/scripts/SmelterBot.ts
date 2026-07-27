@@ -27,6 +27,10 @@ import { fmtDuration } from '../api/hud/paintLogic.js';
 const DEFAULT_BANK_STAND = new Tile(3269, 3167, 0);
 const DEFAULT_FURNACE_STAND = new Tile(3275, 3185, 0);
 const BOOTH = { op: 'Use-quickly' };
+// A pack holds 28, so 30 always clears it in one go and the engine caps the rest.
+// Sending the measured ore count instead would make a momentarily stale pack read
+// smelt short.
+const SMELT_X = 30;
 
 export const SETTINGS: SettingsSchema = {
     bar: { type: 'string', default: 'Bronze', options: [...BAR_OPTIONS], label: 'Bar to smelt', help: 'withdraw plan + coal ratio are derived from this' },
@@ -198,7 +202,7 @@ class SmeltTrip implements Task {
         const barKeyword = ({ Adamant: 'Adamantite', Rune: 'Runite' } as Record<string, string>)[recipe.bar] ?? recipe.bar;
         const before = this.bot.primaryCount();
         this.bot.setStatus(`smelting ${recipe.bar}`);
-        if (await ChatDialog.makeX(barKeyword, before)) {
+        if (await ChatDialog.makeX(barKeyword, SMELT_X)) {
             await Execution.delayUntil(() => this.bot.primaryCount() === 0 || ChatDialog.canContinue(), 120000);
             if (this.bot.primaryCount() < before) { this.bot.recordSmelt(before - this.bot.primaryCount()); }
         } else {
