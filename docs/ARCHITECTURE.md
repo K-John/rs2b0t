@@ -159,4 +159,5 @@ the signature of synchronous blocking, or of awaiting a promise that is not an
 - [Scripting API](API.md) — the surface built on this
 - [Running locally](RUNNING.md) — building and deploying it
 - [World-walking](NAV.md) — the largest subsystem built on the adapter
+- [MultiBox](MULTIBOX.md#slots-and-iframes) — many clients in one tab
 - [Dev and deploy](DEV.md) — build targets and how the client resolves its server

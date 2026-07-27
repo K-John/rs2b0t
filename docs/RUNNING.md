@@ -163,7 +163,7 @@ The bundled scripts are worked examples of the API — see [the scripting API](A
 
 `http://localhost:<web>/multibox.html` runs several accounts in one tab. Keep the tab
 visible: a backgrounded browser tab is throttled to roughly 1 fps and every bot in it
-starves.
+starves. See [MultiBox](MULTIBOX.md).
 
 ## Desktop shell
 

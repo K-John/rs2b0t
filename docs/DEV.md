@@ -12,37 +12,17 @@ The rs2b0t bot client has **three canonical run modes**, one command each.
 
 ## Contents
 
-- [Live wall viewers and resource telemetry](#live-wall-viewers-and-resource-telemetry)
+- [Live wall viewers and the launcher](#live-wall-viewers-and-the-launcher)
 - [Build targets](#build-targets-botbundlets-srcconfigtargetts)
 - [Hosting the single client (prod)](#hosting-the-single-client-prod)
 - [Local-engine test tricks](#local-engine-test-tricks)
 
-## Live wall viewers and resource telemetry
+## Live wall viewers and the launcher
 
-The multibox rail shows current bot count, CPU, RAM, and bot traffic. On Linux, every
-managed viewer is launched in its own transient systemd cgroup-v2 scope: CPU is the
-delta of cumulative `cpu.stat usage_usec`, and RAM is `memory.current`. Those counters cover every browser
-thread/process and remain valid when Firefox/Chrome creates or exits content processes.
-On macOS, the monitor uses the dedicated viewer's process tree instead. Each bot client
-and cache worker counts its actual WebSocket application payload in both directions and
-publishes deltas to the wall, which means direct production sockets are included even
-when they bypass the local proxy. HTTP assets, headers, and transport overhead are not
-counted. The card updates once per second by changing its own text only — it never reloads
-or reparents a bot iframe.
-
-Bot count and traffic are measured inside the browser, so they work on any wall. CPU and
-RAM come from the local proxy's `/__rs2b0t/resources`; a wall served straight from an
-engine (hosted, or `deploy-local.sh`) has no such endpoint, and those two rows are hidden
-rather than shown as permanently `offline`. A monitor that answers but misbehaves is a
-different case and still reports loudly on every row.
-
-The card never substitutes guessed or zero values for missing telemetry. `measuring…`
-means a real second sample is still pending; `unavailable` identifies
-a metric whose source cannot currently be measured; `offline` means the resource
-endpoint cannot be reached; and `monitor error` means its response was invalid. Traffic
-shows numeric `0 B/s` after two unchanged browser-counter samples while at least one bot
-publisher is present. An empty wall reports that no publisher appeared. There are no
-last-known values, host/headroom estimates, or zero-value substitutes for missing data.
+The multibox rail reports bot count, CPU, RAM, and bot traffic. What those readings
+mean — and the rule that no missing metric is ever replaced by a guess or a zero —
+is documented in [MultiBox](MULTIBOX.md#resource-telemetry). This section covers the
+viewers that produce them and the launcher that supervises both.
 
 ```bash
 bun run b0t                         # dedicated Electron viewer (default)
@@ -167,3 +147,4 @@ background throttling.
 - [Manual index](README.md)
 - [Running locally](RUNNING.md) — the from-scratch local setup
 - [Scripting API](API.md)
+- [MultiBox](MULTIBOX.md) — the wall itself, and what the telemetry readings mean
