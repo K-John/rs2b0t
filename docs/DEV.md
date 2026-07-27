@@ -4,18 +4,19 @@
 
 The rs2b0t bot client has **three canonical run modes**, one command each.
 
-| Mode | Command | Client | Serving / origin |
-|---|---|---|---|
-| **Local dev** | `sh tools/deploy-local.sh` | single (`/bot.html`) or wall (`/multibox.html`) | local engine at `localhost:8890` |
-| **Wall vs live** | `bun run b0t` | multibox wall | local client + reverse proxy → `w1.rs2b2t.com` |
-| **Hosted (prod)** | `make deploy` *(in `~/code/rs2b2t`)* | single (`/rs2b0t`) + wall (`/rs2b0t/wall`) | **same-origin** at `w1.rs2b2t.com/rs2b0t` |
+| Mode | Command | Client | Serving / origin | Detail |
+|---|---|---|---|---|
+| **Local dev** | `sh tools/deploy-local.sh` | single (`/bot.html`) or wall (`/multibox.html`) | a local engine | [Running locally](RUNNING.md) |
+| **Wall vs live** | `bun run b0t` | multibox wall | local client + reverse proxy → `w1.rs2b2t.com` | [MultiBox](MULTIBOX.md) |
+| **Hosted (prod)** | `make deploy` | single (`/rs2b0t`) + wall (`/rs2b0t/wall`) | **same-origin** at `w1.rs2b2t.com/rs2b0t` | [below](#maintainer--private-infrastructure) |
 
 ## Contents
 
 - [Live wall viewers and the launcher](#live-wall-viewers-and-the-launcher)
 - [Build targets](#build-targets-botbundlets-srcconfigtargetts)
-- [Hosting the single client (prod)](#hosting-the-single-client-prod)
-- [Local-engine test tricks](#local-engine-test-tricks)
+- [Maintainer / private infrastructure](#maintainer--private-infrastructure)
+  - [The maintainer engine](#the-maintainer-engine)
+  - [Hosting the single client (prod)](#hosting-the-single-client-prod)
 
 ## Live wall viewers and the launcher
 
@@ -87,7 +88,30 @@ game WebSocket host and which RSA login modulus it uses:
   because it is served from the game origin, `/crc` + the cache/game WebSockets are all
   same-origin and **no proxy is involved**. The build aborts if `PROD_RSAN` is unset.
 
-## Hosting the single client (prod)
+## Maintainer / private infrastructure
+
+Everything in this section depends on repositories that are **not published**
+alongside this one — the rs2b2t engine mirror (`~/code/rs2b2t-engine`) and the ops
+repo (`~/code/rs2b2t`). If you are working from a public clone, the equivalent
+public path is [Running locally](RUNNING.md).
+
+### The maintainer engine
+
+- Engine at `~/code/rs2b2t-engine`: `npm run quickstart` (web `:8890`). Deploy the client
+  with `ENGINE_DIR=~/code/rs2b2t-engine sh tools/deploy-local.sh`.
+- The engine uses a **rotated 1024-bit RSA login key** (not the upstream 512-bit default);
+  the matching modulus is baked into the `local` target. A stock-key client gets login
+  code 6 unless `LOCAL_RSAE` and `LOCAL_RSAN` are supplied to `deploy-local.sh`.
+- Cheats/debugprocs (staffModLevel 4 locally): `::tele 0,mx,mz,lx,lz`, `::~maxme`,
+  `::~item <objname> <count>`, `::~bankitem`, `::~spawnloc <locname>`. `::~maxme`'s
+  level-up dialogs swallow the next typed command — do cheats on the clean post-relogin
+  state, or clear dialogs first.
+
+The headless harness ABI and the smoke fleet are documented in
+[Testing](TESTING.md#live-harnesses).
+
+
+### Hosting the single client (prod)
 
 The single-instance client is served same-origin from the engine at
 `w1.rs2b2t.com/rs2b0t`. It is baked into the **engine image** at build time (in
@@ -123,28 +147,10 @@ one is starved. It does **not** survive being backgrounded: the game loop is
 all of it. For unattended running use `bun run b0t`, whose Electron shell disables
 background throttling.
 
-## Local-engine test tricks
-
-- Engine at `~/code/rs2b2t-engine`: `npm run quickstart` (web `:8890`). Deploy the client
-  with `ENGINE_DIR=~/code/rs2b2t-engine sh tools/deploy-local.sh`.
-- The engine uses a **rotated 1024-bit RSA login key** (not the upstream 512-bit default);
-  the matching modulus is baked into the `local` target. A stock-key client gets login
-  code 6 unless `LOCAL_RSAE` and `LOCAL_RSAN` are supplied to `deploy-local.sh`.
-- Cheats/debugprocs (staffModLevel 4 locally): `::tele 0,mx,mz,lx,lz`, `::~maxme`,
-  `::~item <objname> <count>`, `::~bankitem`, `::~spawnloc <locname>`. `::~maxme`'s
-  level-up dialogs swallow the next typed command — do cheats on the clean post-relogin
-  state, or clear dialogs first.
-- Headless harness ABI: `globalThis.rs2b0t` (`.client`, `.runner`, `.reader`, `.registry`,
-  `.actions`). Boot when `rs2b0t.client.constructor.loopCycle > 10`; login auto-creates a
-  local account. See `tools/*-test.ts` for the pattern.
-- `bun run smoke` — the full live smoke fleet against the local engine (deploys once,
-  then every `tools/*-test.ts` sequentially, hours; per-smoke logs in `out/smoke-logs/`).
-  `--list` / `--only <substr>` / `--skip <substr>` subset it; SPECIAL-environment smokes
-  (desktop/hosted/multibox/e2e/rendergate + dev harnesses) are excluded automatically.
-
 ## See also
 
 - [Manual index](README.md)
 - [Running locally](RUNNING.md) — the from-scratch local setup
 - [Scripting API](API.md)
+- [Testing](TESTING.md) — unit tests and live harnesses
 - [MultiBox](MULTIBOX.md) — the wall itself, and what the telemetry readings mean

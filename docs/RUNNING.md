@@ -253,7 +253,8 @@ These require repositories that are not published alongside this one.
 - Cheats and debugprocs (staffModLevel 4 locally): `::tele 0,mx,mz,lx,lz`, `::~maxme`,
   `::~item <objname> <count>`, `::~bankitem`, `::~spawnloc <locname>`. The level-up
   dialogs raised by `::~maxme` swallow the next typed command — clear dialogs first.
-- Production hosting and the deploy pipeline: see [Dev and deploy](DEV.md).
+- Production hosting and the deploy pipeline: see
+  [Dev and deploy](DEV.md#maintainer--private-infrastructure).
 
 ## See also
 
