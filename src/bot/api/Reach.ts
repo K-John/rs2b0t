@@ -1,3 +1,4 @@
+// docs/NAV.md#the-reach-primitive
 import type { WorldTile } from '../adapter/ClientAdapter.js';
 import { reader } from '../adapter/ClientAdapter.js';
 import { Execution } from './Execution.js';

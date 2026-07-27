@@ -112,7 +112,7 @@ it), and then:
 
 1. builds the stock client (`bun run build`) and the bot client (`bun run build:bot`);
 2. builds the baked navigation collision pack from **that engine's** map data on
-   first run, if `out/collision.lcnav.gz` is absent;
+   first run, if `out/collision.lcnav.gz` is absent — see [World-walking](NAV.md#the-collision-pack);
 3. copies the client bundles into `public/client/` and `public/bot/`;
 4. installs `public-bot/bot.html` as `public/bot.html` and `public-bot/multibox.html`
    as `public/multibox.html`.

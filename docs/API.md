@@ -306,6 +306,9 @@ ChatDialog.make(match?: string): Promise<boolean>  // contains match at the larg
 
 ## Movement
 
+How this works underneath — the collision pack, doors, transports, and arrival
+semantics — is [World-walking](NAV.md).
+
 ```ts
 Traversal.walkTo(dest: WorldTile, opts?: {
     radius?: number;    // arrive within N tiles (default 2)
@@ -520,4 +523,5 @@ export default defineBot({
 
 - [Manual index](README.md)
 - [Running locally](RUNNING.md) — getting a client up to run these against
+- [World-walking](NAV.md) — what `Traversal.walkTo` does underneath
 - [`templates/script-template/`](../templates/script-template/) — an out-of-tree starter
