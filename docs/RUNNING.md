@@ -191,6 +191,8 @@ The suite is 979 tests across 131 files. One of them, `ensureSpade > walks to th
 NEARER spawn and takes the spade`, currently fails in a full run and passes when
 `test/clues` runs alone — an order-dependent failure that predates this page.
 
+See [Testing](TESTING.md) for the layout and for the live harnesses.
+
 ## Lint and format
 
 ```sh
@@ -223,7 +225,7 @@ bun run smoke                     # the full fleet — hours
 69 harnesses are currently in the fleet. `bun run smoke` **deploys first** via
 `tools/deploy-local.sh`, then runs each harness sequentially against the local
 engine, logging to `out/smoke-logs/`. `--list` exits before deploying, so it is safe
-to run at any time.
+to run at any time. See [Testing](TESTING.md#the-smoke-fleet).
 
 ## Troubleshooting
 
@@ -256,5 +258,6 @@ These require repositories that are not published alongside this one.
 
 - [Manual index](README.md)
 - [Scripting API](API.md) — writing bots
+- [Testing](TESTING.md) — unit tests and the live harnesses
 - [Dev and deploy](DEV.md) — build targets, run modes, hosting
 - [`desktop/README.md`](../desktop/README.md) — the Electron shell

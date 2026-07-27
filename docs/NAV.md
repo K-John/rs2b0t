@@ -281,3 +281,4 @@ numbers. What they govern:
 - [Running locally](RUNNING.md#deploying-the-client) — building the collision pack
 - [Quests](QUESTS.md) — a heavy consumer of walking and doors
 - [Clue scrolls](CLUES.md) — coordinate clues and chasing NPCs
+- [Testing](TESTING.md) — the nav unit tests and live route harnesses
