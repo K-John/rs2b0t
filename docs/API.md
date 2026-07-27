@@ -524,4 +524,5 @@ export default defineBot({
 - [Manual index](README.md)
 - [Running locally](RUNNING.md) — getting a client up to run these against
 - [World-walking](NAV.md) — what `Traversal.walkTo` does underneath
+- [Bundled scripts](SCRIPTS.md) — 36 worked examples
 - [`templates/script-template/`](../templates/script-template/) — an out-of-tree starter

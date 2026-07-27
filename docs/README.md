@@ -7,6 +7,7 @@ How the client works, how to run it, and how to write bots for it.
 | If you want to… | Read |
 |---|---|
 | Write a bot | [Scripting API](API.md), then [`templates/script-template/`](../templates/script-template/) |
+| See what already exists | [Bundled scripts](SCRIPTS.md) |
 | Run it locally | [Running locally](RUNNING.md) |
 | Change the client itself | [Architecture](ARCHITECTURE.md), then [Testing](TESTING.md) |
 | Maintain the deployment | [Dev and deploy](DEV.md) |
@@ -22,6 +23,7 @@ How the client works, how to run it, and how to write bots for it.
 | [Quests](QUESTS.md) | the quest engine, quest modules, exec primitives, provisioning |
 | [Clue scrolls](CLUES.md) | the clue database, step kinds, tool acquisition, tracing |
 | [MultiBox](MULTIBOX.md) | the wall: slots, profiles, login coordination, telemetry |
+| [Bundled scripts](SCRIPTS.md) | catalog of the shipped bots and their settings (generated) |
 | [Testing](TESTING.md) | unit tests, the live-harness ABI, the smoke fleet |
 | [Dev and deploy](DEV.md) | build targets, the three run modes, the hosting pipeline |
 

@@ -157,7 +157,8 @@ Open `http://localhost:<web>/bot.html`, register an account (a fresh engine has
 `website.registration` enabled), and log in. Then open the panel, pick a script from
 the library, set any parameters, and start it.
 
-The bundled scripts are worked examples of the API — see [the scripting API](API.md).
+The bundled scripts are worked examples of the API — see [the catalog](SCRIPTS.md)
+and [the scripting API](API.md).
 
 ## The MultiBox wall
 
