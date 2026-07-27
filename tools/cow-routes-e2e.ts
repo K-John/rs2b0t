@@ -51,7 +51,7 @@ if (!Number.isFinite(minutes) || minutes <= 10) {
     fail('--minutes must be greater than 10');
 }
 
-const evidenceDir = join(import.meta.dir, '..', 'docs', 'cowkiller-e2e');
+const evidenceDir = join(import.meta.dir, '..', 'out', 'cowkiller-e2e');
 mkdirSync(evidenceDir, { recursive: true });
 
 const suffix = Date.now().toString(36).slice(-5);
