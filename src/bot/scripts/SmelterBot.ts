@@ -121,12 +121,16 @@ class BankTrip implements Task {
         }
         await Bank.depositInventory();
 
-        // The item list refills asynchronously after a deposit, so until it does every
-        // count reads 0 — indistinguishable from an empty bank. Reading it too early is
-        // what produced "'Coal' vanished from the bank mid-trip" (#117): ore does not
-        // vanish, the list had simply not arrived. Never judge stock from an empty list.
-        if (!(await Execution.delayUntil(() => Bank.loaded(), 5000))) {
-            this.bot.log('the bank list has not filled in yet — retrying this trip');
+        // Two different empties look identical through Bank.count: the list refills
+        // asynchronously after a deposit, and the window can be closed outright (the run
+        // toggle clicks a controls-tab component and the server shuts the modal to serve
+        // it). Either way every ore reads 0, which is what produced "'Coal' vanished from
+        // the bank mid-trip" (#117). Ore does not vanish — so establish the window is
+        // open AND filled before believing anything it says, and say which one failed.
+        if (!(await Execution.delayUntil(() => Bank.isOpen() && Bank.loaded(), 5000))) {
+            this.bot.log(Bank.isOpen()
+                ? 'the bank list has not filled in yet — retrying this trip'
+                : 'the bank window closed — reopening and retrying this trip');
             return;
         }
         this.bot.countTrip();
@@ -149,6 +153,11 @@ class BankTrip implements Task {
         }
 
         for (const step of plan) {
+            // re-checked per step: the window can shut between withdrawals too
+            if (!Bank.isOpen() || !Bank.loaded()) {
+                this.bot.log('the bank window closed mid-withdrawal — reopening and retrying this trip');
+                return;
+            }
             const bankName = bankNameFor(step.ore);
             if (bankName === null) {
                 this.bot.log(`'${step.ore}' is not in the bank list — retrying this trip`);
