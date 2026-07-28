@@ -86,6 +86,17 @@ function inBox(t: PointLike, b: { minX: number; maxX: number; minZ: number; maxZ
     return t.x >= b.minX && t.x <= b.maxX && t.z >= b.minZ && t.z <= b.maxZ;
 }
 
+/**
+ * Whether two points share a chamber, permissive when the reference is not in one.
+ *
+ * The chambers overlap inside FIELD_RADIUS, so distance cannot tell them apart — a
+ * drop in the next room reads as nearer than half of our own room's spawns.
+ */
+export function sameRoom(reference: PointLike | null, other: PointLike | null): boolean {
+    const room = roomOf(reference);
+    return room === null || roomOf(other) === room;
+}
+
 export function roomOf(t: PointLike | null): Room | null {
     if (t === null) {
         return null;

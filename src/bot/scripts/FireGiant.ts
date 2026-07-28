@@ -32,7 +32,7 @@ import { Locs } from '../api/queries/Locs.js';
 import {
     AMULET, BARREL_BANK, BARREL_EXIT, BARREL_LOC, BARREL_OP, DEFAULT_MELEE_TILE, DEFAULT_SAFESPOT, DEFAULT_SAFESPOT_FALLBACK, DUNGEON_MIN_Z, EXIT_DOOR, EXIT_DOOR_LOC, EXIT_OPTIONS, ESCAPE_TELES,
     LEDGE_DOOR, LEDGE_LOC, LEDGE_OP, legFor, RAFT_LOC, RAFT_OP, RAFT_STAND,
-    attackRangeFor, eastFirst, lootWaitMs, ROCK_LOC, roomOf, takenByAnother, ROPE, ROPE_THROW_STAND, TREE_LOC, TREE_STAND, type EscapeTele
+    attackRangeFor, eastFirst, lootWaitMs, ROCK_LOC, sameRoom, takenByAnother, ROPE, ROPE_THROW_STAND, TREE_LOC, TREE_STAND, type EscapeTele
 } from './FireGiantLogic.js';
 
 const TARGET = 'Fire giant';
@@ -204,8 +204,7 @@ function hasRope(): boolean {
 // overlap inside FIELD_RADIUS, and the nearest east giant is closer to the west
 // safespot than two of the west ones, so a radius alone drags the bot next door.
 function sameRoomAsAnchor(tile: Tile): boolean {
-    const room = roomOf(anchor());
-    return room === null || roomOf(tile) === room;
+    return sameRoom(anchor(), tile);
 }
 
 function fieldGiants(): Npc[] {
@@ -236,7 +235,9 @@ function findLoot() {
         .where(g => {
             const name = (g.name ?? '').toLowerCase();
             const wanted = LOOT_SET.has(name) || (BANK_COMMON && matchesCommonBankLoot(g.name ?? ''));
-            return wanted && (lootSkip.get(lootKey(g)) ?? 0) < now;
+            // Someone else's kills in the next chamber are not ours to collect, and the
+            // rooms overlap inside FIELD_RADIUS so distance will not keep us out of them
+            return wanted && sameRoomAsAnchor(g.tile()) && (lootSkip.get(lootKey(g)) ?? 0) < now;
         })
         .within(FIELD_RADIUS)
         .nearest();
