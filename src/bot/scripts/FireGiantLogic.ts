@@ -66,6 +66,18 @@ export function takenByAnother(e: Engagement): boolean {
     return e.targetsAnother || (e.inCombat && !e.targetsMe);
 }
 
+/**
+ * How long to wait for a Take to land, given how far the drop is.
+ *
+ * A Take on a corpse several tiles off walks there first, so a flat short wait
+ * reports failure while the pickup is still in flight — and with a safespot walk-back
+ * queued behind it, the bot cancels its own pickup and trades places with the loot
+ * forever.
+ */
+export function lootWaitMs(distance: number): number {
+    return 1200 + Math.max(0, distance) * 700;
+}
+
 export type Room = 'west' | 'east';
 export const WEST_ROOM = { minX: 2556, maxX: 2571, minZ: 9880, maxZ: 9902 };
 export const EAST_ROOM = { minX: 2572, maxX: 2586, minZ: 9880, maxZ: 9902 };

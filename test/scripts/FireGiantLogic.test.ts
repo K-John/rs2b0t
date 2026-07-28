@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { AP_RANGE, attackRangeFor, BARREL_EXIT, EXIT_OPTIONS, eastFirst, takenByAnother, DEFAULT_MELEE_TILE, DEFAULT_SAFESPOT, DEFAULT_SAFESPOT_FALLBACK, ESCAPE_TELES, legFor, LEDGE, POST_ROCK, RAFT_STAND, ROCK_TILE, roomOf, ROPE_THROW_STAND, THROW_ZONE, WASHED_OUT } from '#/bot/scripts/FireGiantLogic.js';
+import { AP_RANGE, attackRangeFor, lootWaitMs, BARREL_EXIT, EXIT_OPTIONS, eastFirst, takenByAnother, DEFAULT_MELEE_TILE, DEFAULT_SAFESPOT, DEFAULT_SAFESPOT_FALLBACK, ESCAPE_TELES, legFor, LEDGE, POST_ROCK, RAFT_STAND, ROCK_TILE, roomOf, ROPE_THROW_STAND, THROW_ZONE, WASHED_OUT } from '#/bot/scripts/FireGiantLogic.js';
 
 const at = (x: number, z: number, level = 0) => ({ x, z, level });
 
@@ -204,6 +204,25 @@ describe('EXIT_OPTIONS', () => {
         expect(EXIT_OPTIONS).toContain('Camelot');
         expect(EXIT_OPTIONS).toContain('Ardougne');
         expect(EXIT_OPTIONS.length).toBe(5);
+    });
+});
+
+// The Take walks to the drop first, so a flat short wait reported failure while the
+// pickup was in flight; the safespot walk-back then cancelled it and the bot traded
+// places with the loot forever.
+describe('lootWaitMs', () => {
+    test('an adjacent drop still gets a usable minimum', () => {
+        expect(lootWaitMs(0)).toBeGreaterThanOrEqual(1000);
+    });
+    test('it grows with distance, so a far corpse is not called a failure', () => {
+        expect(lootWaitMs(8)).toBeGreaterThan(lootWaitMs(1));
+    });
+    test('a drop at the edge of the field allows for the whole walk', () => {
+        // 10 tiles is FIELD_RADIUS; walking that is seconds, not one tick
+        expect(lootWaitMs(10)).toBeGreaterThanOrEqual(5000);
+    });
+    test('a negative distance cannot shorten the wait', () => {
+        expect(lootWaitMs(-5)).toBe(lootWaitMs(0));
     });
 });
 
