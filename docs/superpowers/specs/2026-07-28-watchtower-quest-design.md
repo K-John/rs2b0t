@@ -112,8 +112,8 @@ bushes give red herrings the wizard rejects. Return to the wizard (ladder works 
 - **Grew's island** via the rope swing: `"Don't eat me; I can help you."` → he wants Gorad's
   tooth. Pick up jangerberries while here.
 - **Gorad** (2577,3021, Toban's camp): only becomes killable once Grew has been spoken to.
-  Kill → `ogretooth`. **`ai_queue3` only queues the tooth while stage < 4**, so Gorad must die
-  before the relic is shown to `ogre_guard2`.
+  Kill → `ogretooth`. `[queue,defeat_gorad]` **silently returns on a full inventory**, so the
+  bot needs a free slot before the killing blow; Gorad respawns, so a miss is only a delay.
 - Back to Grew with the tooth → `relicpart2` **and** `powering_crystal1`.
 - Back to Og with the stolen gold → `relicpart1`.
 - Use all three parts on the wizard → `ogrerelic`, stage 3.
@@ -238,6 +238,39 @@ The held-item wedge rule from `docs/QUESTS.md` applies directly here: a relic pa
 crystal in the pack is part of the state machine's memory, so the step that hands one over
 and the step that acquires it must never both be reachable from one snapshot.
 
+### Nothing in this quest hard-locks
+
+Every quest item has a re-issue path, so **losing one is always a detour, never a dead end**.
+`decide()` should therefore route to the recovery step rather than parking:
+
+| Lost | Recovered from | Gate |
+|---|---|---|
+| `toban_key` | Og, `"I have lost the key!"` | `spoken_og` and not yet `helped_og` |
+| `stolen_gold` | re-open `tobanchest` | key in hand |
+| `ogretooth` | kill Gorad again | `spoken_grew` and not yet `helped_grew` |
+| `relicpart1` / `2` / `3` | Og / Grew / Toban, `"I have lost the relic part…"` | the matching `helped_*` bit |
+| `ogrerelic` | wizard, `"I have lost the relic you gave me."` | stage 3 |
+| `skavidmap` | `city_guard`, `"I have lost the map you gave me."` | stage ≥ 6 |
+| `powering_crystal1` | Grew, `"I've lost the crystal you gave me."` | `helped_grew` |
+| `powering_crystal2` | `mad_skavid`, `"But I've lost it!"` | stage ≥ 7, and not already banked |
+| `powering_crystal3` | search the `shaman_robe` spawn (2617,9437) | six shaman kills |
+| `powering_crystal4` | re-mine the Rock of Dalgroth | six kills, and not already banked |
+| `magic_ogre_potion` | brew another ogre potion and re-infuse it | stage ≥ 9; costs one more set of ingredients |
+| `rock cake`, `nightshade`, `death rune`, `lit candle`, `jangerberries` | their spawns and stalls respawn | — |
+
+Two consequences the module must respect. Several of these checks read the **bank** as well
+as the inventory (`mad_skavid`, both mined crystals), so a crystal parked in the bank blocks
+its own re-issue — crystals must be carried or deliberately withdrawn before recovery is
+attempted. And **the tribes only re-issue what they have already given**: the `"I have lost…"`
+options are gated on the corresponding `helped_*` bit, so the first acquisition still has to
+succeed in order. That ordering is self-enforcing rather than hazardous, because
+`check_relic_parts` will not grant the relic — and so cannot advance the stage — until all
+three parts have been handed in.
+
+One asymmetry worth coding to: `[oploc1,tobanchest]` **consumes** the key, while
+`[oplocu,tobanchest]` (use key on chest) does not. The module should always use the key on
+the chest, keeping it for a second opening if the gold is somehow lost.
+
 ### Nav changes
 
 Two edges added to `transports.json`, both safe for every bot because neither is quest-gated
@@ -318,9 +351,9 @@ PR when the end-to-end run passes — how Waterfall and Priest in Peril landed.
   takes an object off a blocked tile is unverified; phase A settles it.
 - **`enter_gutanoth` drops invisible walls for 3 ticks** after each gate crossing. Arrival
   checks must key on the destination tile, not on the gate becoming passable.
-- **Gorad must die before stage 4.** If a resumed bot finds itself at stage 4+ without
-  `ogretooth` and without `relicpart2`, the tooth is unobtainable and the quest is dead. The
-  module must therefore never show the relic to `ogre_guard2` while `helped_grew` is unset —
-  this is the one irreversible ordering hazard in the quest.
 - The **6,230-tile cave-6 region** was mapped but its full boundary with the lower city was
   not walked; phase D confirms the route from the battlement to the cave-6 mouth.
+- **Re-brewing the potion needs bank items.** It is the only recovery in the table above that
+  cannot be satisfied in the field, since guam leaf and bat bones are bank-required. If the
+  magic potion is lost mid-enclave, the bot returns to the bank rather than parking — but it
+  will park if the bank is empty, which is the correct outcome and must say so.
