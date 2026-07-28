@@ -24,7 +24,7 @@ How the client works, how to run it, and how to write bots for it.
 | [Clue scrolls](CLUES.md) | the clue database, step kinds, tool acquisition, tracing |
 | [MultiBox](MULTIBOX.md) | the wall: slots, profiles, login coordination, telemetry |
 | [Bundled scripts](SCRIPTS.md) | catalog of the shipped bots and their settings (generated) |
-| [Testing](TESTING.md) | unit tests, the live-harness ABI, the smoke fleet |
+| [Testing](TESTING.md) | unit tests, the live-harness ABI, the end-to-end smoke |
 | [Dev and deploy](DEV.md) | build targets, the three run modes, the hosting pipeline |
 
 ---

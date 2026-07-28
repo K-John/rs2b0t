@@ -5,7 +5,7 @@
 
 # Bundled scripts
 
-The client ships **36 scripts** across 17 categories. They double as worked
+The client ships **38 scripts** across 18 categories. They double as worked
 examples of the [scripting API](API.md) — the source for each is under
 [`src/bot/scripts/`](../src/bot/scripts/).
 
@@ -14,7 +14,7 @@ Settings listed here are the parameters the panel exposes before you start a scr
 ## Contents
 
 - [Agility](#agility) — 3
-- [Combat](#combat) — 8
+- [Combat](#combat) — 9
 - [Cooking](#cooking) — 1
 - [Crafting](#crafting) — 4
 - [Firemaking](#firemaking) — 1
@@ -23,6 +23,7 @@ Settings listed here are the parameters the panel exposes before you start a scr
 - [Mining](#mining) — 2
 - [Money making](#money-making) — 2
 - [Navigation](#navigation) — 1
+- [Prayer](#prayer) — 1
 - [Quest](#quest) — 2
 - [Runecrafting](#runecrafting) — 2
 - [Smithing](#smithing) — 2
@@ -73,7 +74,8 @@ Tags: `course`, `wilderness`, `food`, `death-recovery`
 | `food` | string | `"Lobster"` | Food (name contains) |
 | `eatAtHp` | number (1–100) | `50` | Eat below HP% |
 | `eatToHp` | number (1–100) | `90` | Eat up to HP% |
-| `foodWithdraw` | number (1–28) | `20` | Food to withdraw after death |
+| `foodWithdraw` | number (1–28) | `20` | Food to withdraw |
+| `minFood` | number (0–28) | `1` | Bank below food count |
 | `obstacleTimeoutTicks` | number (5–60) | `24` | Obstacle timeout (ticks) |
 
 ## Combat
@@ -103,7 +105,7 @@ Tags: `ardougne`, `thieving`, `banking`, `clues`, `afk`
 | `bankStrategy` | string | `"Off"` | Periodic bank — one of: Off, Loot count, Time, Either |
 | `bankEveryItems` | number (1–27) | `15` | Bank at N loot items |
 | `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
-| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs |
+| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs/caskets |
 
 ### AutoFighter
 
@@ -127,6 +129,7 @@ Tags: `combat`, `clues`, `banking`, `afk`
 | `solveClues` | boolean | `true` | Solve clue drops |
 | `banking` | string | `"Auto"` | Banking — one of: Auto, None |
 | `bankAtLootSlots` | number (1–27) | `12` | Bank at loot slots |
+| `bankCommonJunk` | boolean | `true` | Bank common junk too |
 
 ### ChaosDruidKiller
 
@@ -143,7 +146,7 @@ Tags: `wilderness`, `edgeville`, `herbs`, `banking`
 | `bankStrategy` | string | `"Off"` | Periodic bank — one of: Off, Loot count, Time, Either |
 | `bankEveryItems` | number (1–27) | `15` | Bank at N loot items |
 | `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
-| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs |
+| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs/caskets |
 
 ### ChickenKiller
 
@@ -163,7 +166,7 @@ Tags: `lumbridge`, `bones`, `feathers`, `afk`
 | `bankStrategy` | string | `"Off"` | Periodic bank — one of: Off, Loot count, Time, Either |
 | `bankEveryItems` | number (1–27) | `15` | Bank at N loot items |
 | `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
-| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs |
+| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs/caskets |
 
 ### CowKiller
 
@@ -185,7 +188,39 @@ Tags: `lumbridge`, `falador`, `cowhide`, `bones`, `banking`, `afk`
 | `bankStrategy` | string | `"Off"` | Periodic bank — one of: Off, Loot count, Time, Either |
 | `bankEveryItems` | number (1–27) | `15` | Bank at N loot items |
 | `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
-| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs |
+| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs/caskets |
+
+### FireGiant
+
+Waterfall Dungeon fire giants: range/mage safespot or melee, enters by raft + rope + Glarial's amulet, rides the barrel out to bank
+
+Tags: `waterfall`, `safespot`, `members`, `banking`
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| `combatStyle` | string | `"melee"` | Combat style — one of: melee, mage, range |
+| `meleeStyle` | string | `"strength"` | Melee style — one of: attack, strength, defence |
+| `staff` | string | `"Staff of air"` | Staff — one of: Staff, Magic staff, Staff of air, Staff of water, Staff of earth, Staff of fire, Battlestaff, Air battlestaff, Water battlestaff, Earth battlestaff, Fire battlestaff, Mystic air staff, Mystic water staff, Mystic earth staff, Mystic fire staff |
+| `spell` | string | `"Wind Strike"` | Autocast spell — one of: Wind Strike, Water Strike, Earth Strike, Fire Strike, Wind Bolt, Water Bolt, Earth Bolt, Fire Bolt, Wind Blast, Water Blast, Earth Blast, Fire Blast, Wind Wave, Water Wave, Earth Wave, Fire Wave |
+| `runesWithdraw` | number (1–2000) | `150` | Casts of runes per bank trip |
+| `runeBuffer` | number (0–2000) | `500` | Spare runes per type |
+| `bow` | string | `"Maple shortbow"` | Bow — one of: Shortbow, Longbow, Oak shortbow, Oak longbow, Willow shortbow, Willow longbow, Maple shortbow, Maple longbow, Yew shortbow, Yew longbow, Magic shortbow, Magic longbow |
+| `rangeStyle` | string | `"rapid"` | Ranged style — one of: accurate, rapid, longrange |
+| `ammo` | string | `"Iron arrow"` | Ammo — one of: Bronze arrow, Iron arrow, Steel arrow, Mithril arrow, Adamant arrow, Rune arrow |
+| `ammoWithdraw` | number (1–5000) | `500` | Ammo per bank trip |
+| `food` | string | `"Lobster"` | Food — one of: Lobster, Swordfish, Tuna, Salmon, Trout, Pike, Bass, Herring, Sardine, Anchovies, Shrimps, Cooked meat, Cooked chicken, Bread, Stew, Cake, Chocolate cake, Plain pizza, Meat pizza, Anchovy pizza, Pineapple pizza, Redberry pie, Meat pie, Apple pie |
+| `foodWithdraw` | number (1–27) | `20` | Food to withdraw per bank run |
+| `eatHp` | number (1–99) | `50` | Eat below HP% |
+| `panicHp` | number (1–98) | `25` | Panic-to-bank below HP% |
+| `loot` | string[] | `["Adamant javelin","Big bones","Blood rune","Chaos rune","Chaos talisman","Coins","Death rune","Dragon med helm","Dragon spear","Dragonstone","Fire battlestaff","Fire rune","Half of a key","Herb","Law rune","Lobster","Mithril sq shield","Nature rune","Nature talisman","Rune 2h sword","Rune arrow","Rune battleaxe","Rune javelin","Rune kiteshield","Rune scimitar","Rune spear","Rune sq shield","Runite bar","Shield left half","Silver ore","Steel arrow","Steel axe","Steel bar","Strength potion(2)","Uncut diamond","Uncut emerald","Uncut ruby","Uncut sapphire"]` | Loot to pick up (drop table) — one of: Adamant javelin, Big bones, Blood rune, Chaos rune, Chaos talisman, Coins, Death rune, Dragon med helm, Dragon spear, Dragonstone, Fire battlestaff, Fire rune, Half of a key, Herb, Law rune, Lobster, Mithril sq shield, Nature rune, Nature talisman, Rune 2h sword, Rune arrow, Rune battleaxe, Rune javelin, Rune kiteshield, Rune scimitar, Rune spear, Rune sq shield, Runite bar, Shield left half, Silver ore, Steel arrow, Steel axe, Steel bar, Strength potion(2), Uncut diamond, Uncut emerald, Uncut ruby, Uncut sapphire |
+| `bankCommonJunk` | boolean | `true` | Also grab shared gems/junk |
+| `buryBones` | boolean | `false` | Bury big bones |
+| `safespotTile` | tile | `{"x":2568,"z":9892,"level":0}` | Safespot tile (west room) |
+| `safespotFallbackTile` | tile | `{"x":2568,"z":9893,"level":0}` | Safespot fallback tile |
+| `meleeTile` | tile | `{"x":2575,"z":9893,"level":0}` | Melee anchor tile (centre room) |
+| `escapeTele` | string | `"Barrel (free)"` | Way out — one of: Barrel (free), Camelot, Ardougne, Falador, Varrock |
+| `teleStock` | number (1–10) | `2` | Spare escape casts |
+| `bankTile` | tile | `{"x":2725,"z":3491,"level":0}` | Bank stand tile |
 
 ### GreenDragon
 
@@ -207,7 +242,7 @@ Tags: `wilderness`, `dragons`, `hides`
 | `eatHp` | number (1–99) | `50` | Eat below HP% |
 | `panicHp` | number (1–98) | `30` | Escape below HP% |
 | `escape` | string | `"Flee to bank"` | Escape mode — one of: Flee to bank, Teleport to Varrock |
-| `loot` | string[] | `["Adamant full helm","Adamantite ore","Chaos talisman","Coins","Dragon bones","Dragonhide","Fire rune","Half of a key","Herb","Law rune","Mithril axe","Mithril kiteshield","Mithril spear","Nature rune","Nature talisman","Rune dagger","Rune javelin","Steel battleaxe","Steel platelegs","Uncut diamond","Uncut emerald","Uncut ruby","Uncut sapphire","Water rune"]` | Loot to pick up (drop table) — one of: Adamant full helm, Adamantite ore, Bass, Chaos talisman, Coins, Dragon bones, Dragonhide, Fire rune, Half of a key, Herb, Law rune, Mithril axe, Mithril kiteshield, Mithril spear, Nature rune, Nature talisman, Rune dagger, Rune javelin, Steel battleaxe, Steel platelegs, Uncut diamond, Uncut emerald, Uncut ruby, Uncut sapphire, Water rune |
+| `loot` | string[] | `["Adamant full helm","Adamantite ore","Chaos talisman","Coins","Dragon bones","Dragon spear","Dragonhide","Fire rune","Half of a key","Herb","Law rune","Mithril axe","Mithril kiteshield","Mithril spear","Nature rune","Nature talisman","Rune dagger","Rune javelin","Rune spear","Shield left half","Steel battleaxe","Steel platelegs","Uncut diamond","Uncut emerald","Uncut ruby","Uncut sapphire","Water rune"]` | Loot to pick up (drop table) — one of: Adamant full helm, Adamantite ore, Bass, Chaos talisman, Coins, Dragon bones, Dragon spear, Dragonhide, Fire rune, Half of a key, Herb, Law rune, Mithril axe, Mithril kiteshield, Mithril spear, Nature rune, Nature talisman, Rune dagger, Rune javelin, Rune spear, Shield left half, Steel battleaxe, Steel platelegs, Uncut diamond, Uncut emerald, Uncut ruby, Uncut sapphire, Water rune |
 | `bankCommonJunk` | boolean | `true` | Also grab shared gems/junk |
 | `anchorTile` | tile | `{"x":3096,"z":3814,"level":0}` | Dragon field tile |
 | `bankTile` | tile | `{"x":3094,"z":3493,"level":0}` | Bank stand tile (Edgeville) |
@@ -233,7 +268,7 @@ Tags: `ardougne`, `safespot`, `afk`
 | `foodWithdraw` | number (1–27) | `20` | Food to withdraw per bank run |
 | `eatHp` | number (1–99) | `50` | Eat below HP% |
 | `panicHp` | number (1–98) | `25` | Panic-to-bank below HP% |
-| `loot` | string[] | `["Air rune","Big bones","Black sq shield","Blood rune","Chaos rune","Chaos talisman","Coins","Cosmic rune","Death rune","Earth rune","Half of a key","Herb","Law rune","Magic staff","Mithril spear","Mithril sword","Nature rune","Nature talisman","Rune javelin","Steel bar","Steel kiteshield","Steel med helm","Uncut diamond","Uncut emerald","Uncut ruby","Uncut sapphire"]` | Loot to pick up (drop table) — one of: Air rune, Big bones, Black sq shield, Blood rune, Chaos rune, Chaos talisman, Coal, Coins, Cosmic rune, Death rune, Earth rune, Half of a key, Herb, Iron arrow, Law rune, Magic staff, Mithril spear, Mithril sword, Nature rune, Nature talisman, Rune javelin, Spinach roll, Steel arrow, Steel bar, Steel kiteshield, Steel med helm, Uncut diamond, Uncut emerald, Uncut ruby, Uncut sapphire |
+| `loot` | string[] | `["Air rune","Big bones","Black sq shield","Blood rune","Chaos rune","Chaos talisman","Coins","Cosmic rune","Death rune","Dragon spear","Earth rune","Half of a key","Herb","Law rune","Magic staff","Mithril spear","Mithril sword","Nature rune","Nature talisman","Rune javelin","Rune spear","Shield left half","Steel bar","Steel kiteshield","Steel med helm","Uncut diamond","Uncut emerald","Uncut ruby","Uncut sapphire"]` | Loot to pick up (drop table) — one of: Air rune, Big bones, Black sq shield, Blood rune, Chaos rune, Chaos talisman, Coal, Coins, Cosmic rune, Death rune, Dragon spear, Earth rune, Half of a key, Herb, Iron arrow, Law rune, Magic staff, Mithril spear, Mithril sword, Nature rune, Nature talisman, Rune javelin, Rune spear, Shield left half, Spinach roll, Steel arrow, Steel bar, Steel kiteshield, Steel med helm, Uncut diamond, Uncut emerald, Uncut ruby, Uncut sapphire |
 | `bankCommonJunk` | boolean | `true` | Also grab shared gems/junk |
 | `buryBones` | boolean | `false` | Bury big bones |
 | `safespotTile` | tile | `{"x":2553,"z":3406,"level":0}` | Safespot / field tile |
@@ -276,7 +311,7 @@ Tags: `rellekka`, `keys`, `afk`
 | `bankStrategy` | string | `"Off"` | Periodic bank — one of: Off, Loot count, Time, Either |
 | `bankEveryItems` | number (1–27) | `15` | Bank at N loot items |
 | `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
-| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs |
+| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs/caskets |
 | `solveClues` | boolean | `true` | Solve easy clues |
 | `spade` | string | `"Spade"` | Spade item (dig clues) |
 
@@ -476,6 +511,18 @@ Tags: `navigation`, `utility`, `web-walk`
 | `customTile` | tile | `{"x":0,"z":0,"level":0}` | Custom tile (x,z) |
 | `arriveRadius` | number (0–12) | `3` | Arrive within (tiles) |
 
+## Prayer
+
+### BoneBurier
+
+Bank-standing Prayer trainer — withdraws full loads of an exact bone name and buries them until the bank is empty
+
+Tags: `prayer`, `bones`, `banking`, `afk`
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| `boneName` | string | `"Bones"` | Bone name (exact) |
+
 ## Quest
 
 ### AIOQuester
@@ -486,7 +533,7 @@ Tags: `quest`, `queue`, `aio`
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
-| `quests` | string[] | `[]` | Quest queue (empty = all) — one of: runemysteries, doric, sheep, priest, cook, hetty, romeojuliet, prince, waterfall, gobdip, demon, ball, arthur, priestperil, blackknight |
+| `quests` | string[] | `[]` | Quest queue (empty = all) — one of: runemysteries, doric, sheep, priest, cook, hetty, romeojuliet, prince, waterfall, gobdip, demon, ball, arthur, priestperil, blackknight, druid, zanaris, desertrescue |
 | `food` | string | `"Trout"` | Food item |
 | `eatAtHp` | number (1–99) | `50` | Eat below HP% |
 
@@ -596,13 +643,13 @@ Tags: `ardougne`, `thieving`, `banking`, `clues`, `afk`
 | `bankStrategy` | string | `"Off"` | Periodic bank — one of: Off, Loot count, Time, Either |
 | `bankEveryItems` | number (1–27) | `15` | Bank at N loot items |
 | `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
-| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs |
+| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs/caskets |
 
 ### Thiever
 
-Pickpockets an NPC (Man by default); eats food when a failed steal hurts (anchor = start tile)
+Pickpockets an NPC (Man by default), eats after failed steals, and optionally banks to restock food before returning to the start tile
 
-Tags: `pickpocket`, `coins`
+Tags: `pickpocket`, `coins`, `banking`, `food`
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
@@ -610,6 +657,9 @@ Tags: `pickpocket`, `coins`
 | `action` | string | `"Pickpocket"` | Action |
 | `food` | string | `""` | Food to eat (name contains) |
 | `eatAtHp` | number (0–100) | `50` | Eat below HP% |
+| `banking` | string | `"None"` | Food banking — one of: None, Auto |
+| `foodWithdraw` | number (1–27) | `10` | Food to carry |
+| `bankAtFood` | number (0–26) | `0` | Bank at food remaining |
 | `dropMatch` | string | `""` | Drop when full (name contains) |
 | `loot` | string | `"coins"` | Pick up from ground (name contains) |
 | `obstacle` | string | `"door, gate"` | Openable obstacles (name contains) |

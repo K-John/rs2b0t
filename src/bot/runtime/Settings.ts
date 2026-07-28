@@ -52,8 +52,10 @@ export class SettingsBag {
 
 function parseValue(def: SettingDef, raw: string): unknown {
     switch (def.type) {
-        case 'boolean':
-            return raw === 'true' || raw === '1' || raw === 'yes';
+        case 'boolean': {
+            const normalized = raw.trim().toLowerCase();
+            return normalized === 'true' || normalized === '1' || normalized === 'yes';
+        }
         case 'number': {
             const n = Number(raw);
             if (!Number.isFinite(n)) {
@@ -66,13 +68,22 @@ function parseValue(def: SettingDef, raw: string): unknown {
                 const wanted = raw.trim().toLowerCase();
                 return def.options.find(o => o.toLowerCase() === wanted) ?? def.default;
             }
-            return raw;
+            return raw.trim();
         }
-        case 'string[]':
-            return raw
+        case 'string[]': {
+            const values = raw
                 .split(',')
                 .map(s => s.trim())
                 .filter(s => s.length > 0);
+            if (!def.options || def.options.length === 0) {
+                return values;
+            }
+            return values.flatMap(value => {
+                const wanted = value.toLowerCase();
+                const option = def.options!.find(candidate => candidate.toLowerCase() === wanted);
+                return option === undefined ? [] : [option];
+            });
+        }
         case 'tile':
             return parseTile(raw) ?? def.default;
         default:
@@ -120,7 +131,7 @@ const LAMP_SKILLS: string[] = [
 
 export const GLOBAL_SETTINGS: SettingsSchema = {
     lampSkill: { type: 'string', default: 'strength', options: LAMP_SKILLS, label: 'Genie lamp skill', help: 'which skill genie/lamp random events train' },
-    bankCommonJunk: { type: 'boolean', default: true, label: 'Bank gems/fruit/beer/kebabs (default)' },
+    bankCommonJunk: { type: 'boolean', default: true, label: 'Bank gems/fruit/beer/kebabs/caskets (default)' },
     runAuto: { type: 'boolean', default: true, label: 'Auto re-enable run', help: 'flip the run orb back on once energy regenerates (the engine forces it off at 0)' },
     runEnergyMin: { type: 'number', default: 20, min: 0, max: 100, label: 'Re-enable run at energy %', help: 'higher = longer walk-regen phases with faster bursts; 0 = re-enable immediately' }
 };

@@ -100,7 +100,7 @@ See the **[API reference](docs/API.md)** for the complete surface.
 
 ## Bundled scripts
 
-`src/bot/scripts/` ships 36 bots across combat, thieving, skilling, shop running,
+`src/bot/scripts/` ships 38 bots across combat, thieving, skilling, shop running,
 clue solving, and quests, plus navigation and banking utilities. They double as
 worked examples of the API.
 

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import Tile from '#/bot/api/Tile.js';
-import { SETTINGS } from '#/bot/scripts/AutoFighter.js';
+import { SETTINGS, shouldKeepBankItem } from '#/bot/scripts/AutoFighter.js';
 import {
     autoBankEnabled,
     BANKING_OPTIONS,
@@ -10,6 +10,7 @@ import {
     SPOT_OPTIONS,
     START_POSITION
 } from '#/bot/scripts/AutoFighterData.js';
+import { matchesEntityName } from '#/bot/api/queries/Query.js';
 import { resolveControl } from '#/bot/ui/paramControls.js';
 
 describe('AutoFighter data', () => {
@@ -24,6 +25,12 @@ describe('AutoFighter data', () => {
     test('target is a freeform text control', () => {
         expect(SETTINGS.target.options).toBeUndefined();
         expect(resolveControl(SETTINGS.target)).toBe('text');
+    });
+    test('fresh NPC snapshots match lowercase freeform targets', () => {
+        expect(matchesEntityName('Man', 'man')).toBe(true);
+        expect(matchesEntityName(' Chicken ', ' chicken ')).toBe(true);
+        expect(matchesEntityName('Woman', 'man')).toBe(false);
+        expect(matchesEntityName(null, 'man')).toBe(false);
     });
     test('killing spot defaults to the script start or accepts coordinates', () => {
         expect(SPOT_OPTIONS).toEqual([START_POSITION, CUSTOM_COORDINATES]);
@@ -42,5 +49,19 @@ describe('AutoFighter data', () => {
         expect(autoBankEnabled('Auto')).toBe(true);
         expect(autoBankEnabled('auto')).toBe(true);
         expect(autoBankEnabled('None')).toBe(false);
+    });
+    test('banking deposits only the generic reward Casket when common junk is enabled', () => {
+        expect(SETTINGS.bankCommonJunk).toMatchObject({ type: 'boolean', default: true });
+        expect(shouldKeepBankItem('Casket', 405, 'Trout', true)).toBe(false);
+        expect(shouldKeepBankItem('Casket', 405, 'Trout', false)).toBe(true);
+        expect(shouldKeepBankItem('Casket', 2714, 'Trout', true)).toBe(true);
+        expect(shouldKeepBankItem('Casket', 406, 'Trout', true)).toBe(true);
+        expect(shouldKeepBankItem('Rusty casket', 3849, 'Trout', true)).toBe(true);
+    });
+    test('banking still protects food, coins, clue tools, and clue scrolls', () => {
+        for (const [name, id] of [['Trout', 333], ['Coins', 995], ['Spade', 952], ['Clue scroll', 2677]] as const) {
+            expect(shouldKeepBankItem(name, id, 'Trout', true)).toBe(true);
+        }
+        expect(shouldKeepBankItem('Uncut ruby', 1619, 'Trout', true)).toBe(false);
     });
 });

@@ -188,9 +188,7 @@ bun test test/docs            # the manual's own link integrity
 `bunfig.toml` preloads `test/setup-dom.ts`, which registers happy-dom globally — that
 is what lets DOM-touching modules be imported in unit tests.
 
-The suite is 979 tests across 131 files. One of them, `ensureSpade > walks to the
-NEARER spawn and takes the spade`, currently fails in a full run and passes when
-`test/clues` runs alone — an order-dependent failure that predates this page.
+The suite is 1303 tests across 139 files, and passes clean.
 
 See [Testing](TESTING.md) for the layout and for the live harnesses.
 
@@ -203,7 +201,7 @@ bun run format src/bot/nav/Navigator.ts  # prettier, on paths you name
 
 Two honest caveats:
 
-- `bun run lint` currently reports **63 pre-existing problems** — 12 in
+- `bun run lint` currently reports **61 pre-existing problems** — 10 in
   `src/bot`, `tools`, and `test`, and 51 in the vendored client under `src/client`,
   `src/dash3d`, `src/graphics`, `src/io`, and `src/mapview`. The bar is *don't add
   new ones*, not *get to zero*.
@@ -218,15 +216,15 @@ entrypoints. See [Architecture](ARCHITECTURE.md#the-fences).
 ## Smoke harnesses
 
 ```sh
-bun run smoke --list              # what would run (exits before deploying)
-bun run smoke --only rockcrab     # a subset
-bun run smoke                     # the full fleet — hours
+bun run smoke                                     # against localhost:8890
+bun run smoke http://localhost:8888 user pass     # another engine, named account
 ```
 
-69 harnesses are currently in the fleet. `bun run smoke` **deploys first** via
-`tools/deploy-local.sh`, then runs each harness sequentially against the local
-engine, logging to `out/smoke-logs/`. `--list` exits before deploying, so it is safe
-to run at any time. See [Testing](TESTING.md#the-smoke-fleet).
+`bun run smoke` drives one browser through boot, login, and a full start / pause /
+resume / stop cycle of `QuestDashboard`, writing screenshots to `out/`. It does not
+deploy — deploy first, or it loads a stale client. Nine further per-subsystem
+harnesses live in `tools/` and are run individually. See
+[Testing](TESTING.md#the-end-to-end-smoke).
 
 ## Troubleshooting
 

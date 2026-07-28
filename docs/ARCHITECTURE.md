@@ -59,7 +59,7 @@ The exceptions are the protocol const-enums (`ServerProt`, `ClientProt`,
 
 > `DOM only in src/bot/ui/, main.ts, and src/bot/multibox/{DomSlotOps,ProfileChooser,VaultPrompt,main}.ts.`
 
-This is what keeps the bot logic headless, and therefore unit-testable: the 979-test
+This is what keeps the bot logic headless, and therefore unit-testable: the 1303-test
 suite imports subsystem modules directly without a browser.
 
 ## From `interact()` to a packet

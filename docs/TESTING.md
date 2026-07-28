@@ -18,31 +18,31 @@ Unit tests cannot see any of that; live harnesses cannot iterate quickly.
 - [Unit tests](#unit-tests)
 - [What makes this testable](#what-makes-this-testable)
 - [Live harnesses](#live-harnesses)
-- [The smoke fleet](#the-smoke-fleet)
+- [The end-to-end smoke](#the-end-to-end-smoke)
 - [Writing a harness](#writing-a-harness)
 - [Known failures](#known-failures)
 
 ## Unit tests
 
 ```sh
-bun test                 # everything — 979 tests across 131 files
+bun test                 # everything — 1303 tests across 139 files
 bun test test/nav        # one directory
 bun test test/docs       # the manual's own integrity
 ```
 
 | Directory | Files | Covers |
 |---|---|---|
-| [`test/scripts/`](../test/scripts/) | 23 | per-bot decision logic |
-| [`test/api/`](../test/api/) | 14 | the scripting surface |
-| [`test/clues/`](../test/clues/) | 9 | clue db, executor, solvers |
+| [`test/scripts/`](../test/scripts/) | 26 | per-bot decision logic |
+| [`test/quests/`](../test/quests/) | 26 | quest `decide()` branches, engine, primitives |
+| [`test/api/`](../test/api/) | 16 | the scripting surface |
+| [`test/bot/`](../test/bot/) | 13 | base classes, paint, combat, nav |
+| [`test/clues/`](../test/clues/) | 10 | clue db, executor, solvers |
 | [`test/multibox/`](../test/multibox/) | 9 | slots, vault, login coordination |
-| [`test/quests/`](../test/quests/) | 8 | quest `decide()` branches |
+| [`test/runtime/`](../test/runtime/) | 8 | scheduler, registry, settings |
 | [`test/tools/`](../test/tools/) | 8 | tooling libraries, including doc links |
-| [`test/runtime/`](../test/runtime/) | 7 | scheduler, registry, settings |
 | [`test/ui/`](../test/ui/) | 6 | panel and overlay |
 | [`test/nav/`](../test/nav/) | 4 | path math, reach, walk ladder |
 | [`test/shops/`](../test/shops/) | 4 | stock model, ring logic |
-| [`test/bot/`](../test/bot/) | 4 | base classes |
 | [`test/config/`](../test/config/) · [`test/events/`](../test/events/) · [`test/input/`](../test/input/) · [`test/io/`](../test/io/) · [`test/client/`](../test/client/) · [`test/util/`](../test/util/) · [`test/docs/`](../test/docs/) | 1–2 each | targeted |
 
 ## What makes this testable
@@ -108,33 +108,27 @@ Some hard-won details:
   held, tiles reached — not on log lines.
 - Software rendering (SwiftShader) is unreliable for some harnesses; several need a
   real GPU. Parallel browsers also perturb door timing, so validate a door fix solo.
-- A few harnesses need **Node, not Bun**: Playwright's Electron launcher uses Node's
-  inspector socket, which Bun breaks. See [`desktop/README.md`](../desktop/README.md).
 
-## The smoke fleet
+## The end-to-end smoke
 
 ```sh
-bun run smoke --list              # what would run — exits before deploying
-bun run smoke --only rockcrab     # a subset
-bun run smoke --skip naturecrafter
-bun run smoke                     # everything — hours
+bun run smoke                                     # against localhost:8890
+bun run smoke http://localhost:8888 user pass     # another engine, named account
 ```
 
-[`tools/run-all-smokes.ts`](../tools/run-all-smokes.ts) deploys once via
-[`tools/deploy-local.sh`](../tools/deploy-local.sh), then runs each harness
-sequentially against the local engine, one log per smoke in `out/smoke-logs/`.
+[`tools/e2e-smoke.ts`](../tools/e2e-smoke.ts) is the single harness that stands in
+for the whole client. It boots `bot.html`, logs in, asserts the adapter banner is
+empty and the tick counter is advancing, then starts `QuestDashboard` from the
+library and drives it through pause, resume and stop — checking that the overlay
+actually paints and that a paused script makes no progress. Screenshots land in
+`out/`, and any page error fails the run.
 
-69 harnesses are in the default fleet. Some are **excluded automatically** because
-they need a special environment rather than a plain local engine — the desktop shell,
-the hosted layout, the multibox wall, the render gate, external script loading, and a
-couple of long-running dev harnesses. Run those directly.
+It does **not** deploy. Deploy first (`bun run b0t`, or
+[`tools/deploy-local.sh`](../tools/deploy-local.sh)) or it loads a stale client.
 
-Timeouts are per-harness: 360 s by default, with a table of longer budgets for the
-slow ones. A new harness that needs longer must be added there, or it is killed
-mid-run and looks like a failure.
-
-Because `bun run smoke` deploys, it rebuilds the shared `out/` — do not start one
-while a wall is running. See [the launcher lock](RUNNING.md#troubleshooting).
+The other 9 harnesses are per-subsystem and are run individually — a quest chain,
+FireGiant, the hosted wall, relogin, external script loading, a nature-runner soak.
+Several want a real GPU or a special environment rather than a plain local engine.
 
 ## Writing a harness
 
@@ -162,12 +156,8 @@ common source of a flaky harness.
 
 ## Known failures
 
-`ensureSpade > walks to the NEARER spawn and takes the spade` fails in a full
-`bun test` run and passes when [`test/clues/`](../test/clues/) runs alone. It is
-order-dependent — the module-mock leak described above — and it predates this page.
-
-[`src/bot/clues/data/cluedb.ts`](../src/bot/clues/data/cluedb.ts) is also currently
-stale against the local content pack (one medium clue's `Rope` requirement), so
+[`src/bot/clues/data/cluedb.ts`](../src/bot/clues/data/cluedb.ts) is currently stale
+against the local content pack (one medium clue's `Rope` requirement), so
 `bun tools/clues/gen-cluedb.ts --check` reports drift.
 
 ## See also
@@ -175,4 +165,3 @@ stale against the local content pack (one medium clue's `Rope` requirement), so
 - [Manual index](README.md)
 - [Running locally](RUNNING.md#tests) — getting an engine to run these against
 - [Architecture](ARCHITECTURE.md#the-fences) — the fences that keep the logic headless
-- [`desktop/README.md`](../desktop/README.md) — the Node-not-Bun harness

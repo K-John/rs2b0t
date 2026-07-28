@@ -195,6 +195,31 @@ export const reader = {
         return raw?.npcCount ?? 0;
     },
 
+    /**
+     * The eight corners of an NPC's bounding box in overlay-canvas pixels, ground
+     * ring first then the top ring in the same winding, so edges are 0-1-2-3-0,
+     * 4-5-6-7-4 and 0-4, 1-5, 2-6, 3-7. Null when the NPC is gone or off-screen.
+     */
+    npcBox(index: number): { x: number; y: number }[] | null {
+        const npc = raw?.npc[index];
+        if (!raw || !npc) {
+            return null;
+        }
+        const half = npc.size * 64; // scene units are 128 per tile
+        const corners: [number, number][] = [[-half, -half], [half, -half], [half, half], [-half, half]];
+        const out: { x: number; y: number }[] = [];
+        for (const height of [0, npc.height]) {
+            for (const [dx, dz] of corners) {
+                const p = raw.overlayPos(npc.x + dx, npc.z + dz, height);
+                if (!p) {
+                    return null;
+                }
+                out.push(p);
+            }
+        }
+        return out;
+    },
+
     npcs(): NpcSnapshot[] {
         const out: NpcSnapshot[] = [];
         if (!raw || !raw.localPlayer) {
@@ -647,6 +672,16 @@ export const reader = {
         return IfType.list[comId]?.text ?? null;
     },
 
+    mainModalTexts(): string[] {
+        if (!raw || raw.mainModalId === -1) {
+            return [];
+        }
+
+        return walkComponents(raw.mainModalId)
+            .filter(com => com.type === ComponentType.TYPE_TEXT && com.text)
+            .map(com => com.text!);
+    },
+
     ifModelObjId(comId: number): number | null {
         const com = IfType.list[comId];
         return com && com.model1Type === 4 ? com.model1Id : null;
@@ -697,17 +732,17 @@ export const reader = {
         return raw?.sideIcon[tab] ?? -1;
     },
 
-    questStatuses(): { name: string; colour: number }[] {
+    questStatuses(): { comId: number; name: string; colour: number }[] {
         const QUEST_TAB = 2;
         const root = reader.sideTabInterface(QUEST_TAB);
         if (root === -1) {
             return [];
         }
 
-        const out: { name: string; colour: number }[] = [];
+        const out: { comId: number; name: string; colour: number }[] = [];
         for (const com of walkComponents(root)) {
             if (com.type === ComponentType.TYPE_TEXT && com.text) {
-                out.push({ name: com.text, colour: com.colour });
+                out.push({ comId: com.id, name: com.text, colour: com.colour });
             }
         }
 

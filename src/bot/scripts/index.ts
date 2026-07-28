@@ -20,6 +20,7 @@ import QuestDashboard from '../quests/QuestDashboard.js';
 import AIOQuester, { AIO_SETTINGS } from './AIOQuester.js';
 import MossGiant, { SETTINGS as MOSSGIANT_SETTINGS } from './MossGiant.js';
 import GreenDragon, { SETTINGS as GREENDRAGON_SETTINGS } from './GreenDragon.js';
+import FireGiant, { SETTINGS as FIREGIANT_SETTINGS } from './FireGiant.js';
 import RockCrab, { SETTINGS as ROCKCRAB_SETTINGS } from './RockCrab.js';
 import ThievingBot, { SETTINGS as THIEVING_SETTINGS } from './ThievingBot.js';
 import TutorialBot from './TutorialBot.js';
@@ -32,6 +33,7 @@ import LeatherCrafter, { CRAFTER_SETTINGS } from './LeatherCrafter.js';
 import Firemaker, { FIREMAKER_SETTINGS } from './Firemaker.js';
 import SmithingBot, { SETTINGS as SMITHING_SETTINGS } from './SmithingBot.js';
 import BankFletcher, { SETTINGS as BANKFLETCHER_SETTINGS } from './BankFletcher.js';
+import BoneBurier, { BONE_BURIER_SETTINGS } from './BoneBurier.js';
 import FlaxPicker, { SETTINGS as FLAXPICKER_SETTINGS } from './FlaxPicker.js';
 import FlaxSpinner, { SETTINGS as FLAXSPINNER_SETTINGS } from './FlaxSpinner.js';
 import EssMiner, { SETTINGS as ESSMINER_SETTINGS } from './EssMiner.js';
@@ -120,6 +122,15 @@ ScriptRegistry.register({
 });
 
 ScriptRegistry.register({
+    name: 'FireGiant',
+    description: 'Waterfall Dungeon fire giants: range/mage safespot or melee, enters by raft + rope + Glarial\'s amulet, rides the barrel out to bank',
+    category: 'Combat',
+    tags: ['waterfall', 'safespot', 'members', 'banking'],
+    settingsSchema: FIREGIANT_SETTINGS,
+    create: () => new FireGiant()
+});
+
+ScriptRegistry.register({
     name: 'ArdyFighter',
     description: 'Fights East Ardougne market guards, feeds itself from the Baker\'s stall, loots rares, banks them at the south bank, solves clue drops (needs melee stats that beat the 60s guard respawn — ~str 80 unarmed)',
     category: 'Combat',
@@ -130,9 +141,9 @@ ScriptRegistry.register({
 
 ScriptRegistry.register({
     name: 'Thiever',
-    description: 'Pickpockets an NPC (Man by default); eats food when a failed steal hurts (anchor = start tile)',
+    description: 'Pickpockets an NPC (Man by default), eats after failed steals, and optionally banks to restock food before returning to the start tile',
     category: 'Thieving',
-    tags: ['pickpocket', 'coins'],
+    tags: ['pickpocket', 'coins', 'banking', 'food'],
     settingsSchema: THIEVING_SETTINGS,
     create: () => new ThievingBot()
 });
@@ -266,6 +277,15 @@ ScriptRegistry.register({
     tags: ['fletching', 'banking', 'afk'],
     settingsSchema: BANKFLETCHER_SETTINGS,
     create: () => new BankFletcher()
+});
+
+ScriptRegistry.register({
+    name: 'BoneBurier',
+    description: 'Bank-standing Prayer trainer — withdraws full loads of an exact bone name and buries them until the bank is empty',
+    category: 'Prayer',
+    tags: ['prayer', 'bones', 'banking', 'afk'],
+    settingsSchema: BONE_BURIER_SETTINGS,
+    create: () => new BoneBurier()
 });
 
 ScriptRegistry.register({

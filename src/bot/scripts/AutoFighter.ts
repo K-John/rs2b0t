@@ -16,6 +16,7 @@ import { Sustain } from '../api/Sustain.js';
 import { nearestBank } from '../api/BankLocations.js';
 import { GroundItems } from '../api/queries/GroundItems.js';
 import { Npcs, type Npc } from '../api/queries/Npcs.js';
+import { matchesEntityName } from '../api/queries/Query.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import Tile from '../api/Tile.js';
 import { countMatching, matchesAny, shouldBank, shouldEat, shouldPanic, slotsMatching } from './ArdyFighterLogic.js';
@@ -31,6 +32,8 @@ import {
 } from './AutoFighterData.js';
 import { SolveClue } from '../clues/SolveClue.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
+import { Reach } from '../api/Reach.js';
+import { RANDOM_EVENT_CASKET_ID } from '../api/Banking.js';
 
 const BOOTH = { name: 'Bank booth', op: 'Use-quickly' };
 const KIT = ['spade', 'sextant', 'watch', 'chart'];
@@ -50,7 +53,8 @@ export const SETTINGS: SettingsSchema = {
     loot: { type: 'string[]', default: DEFAULT_LOOT, label: 'Loot item names (contains)', help: 'defaults to gem-table items + clue scrolls, nothing else' },
     solveClues: { type: 'boolean', default: true, label: 'Solve clue drops', group: 'Clues' },
     banking: { type: 'string', default: 'Auto', options: BANKING_OPTIONS, label: 'Banking', help: 'Auto = bank loot at the nearest bank and return; None = no loot-only bank trips' },
-    bankAtLootSlots: { type: 'number', default: 12, min: 1, max: 27, label: 'Bank at loot slots', showIf: { key: 'banking', anyOf: ['Auto'] } }
+    bankAtLootSlots: { type: 'number', default: 12, min: 1, max: 27, label: 'Bank at loot slots', showIf: { key: 'banking', anyOf: ['Auto'] } },
+    bankCommonJunk: { type: 'boolean', default: true, label: 'Bank common junk too' }
 };
 
 let TARGET = 'Guard';
@@ -65,6 +69,7 @@ let LOOT = DEFAULT_LOOT;
 let SOLVE_CLUES = true;
 let BANK_AT = 12;
 let AUTO_BANK = true;
+let BANK_COMMON = true;
 let COMBAT_MODE = 1;
 
 function foodCount(): number {
@@ -72,6 +77,13 @@ function foodCount(): number {
 }
 function lootSlots(): number {
     return slotsMatching(Inventory.items(), LOOT);
+}
+
+export function shouldKeepBankItem(name: string, id: number, food: string, bankCommon: boolean): boolean {
+    const n = name.toLowerCase();
+    const genericCasket = id === RANDOM_EVENT_CASKET_ID;
+    return matchesAny(name, [food]) || n === 'coins' || KIT.includes(n) || n.includes('clue')
+        || (n.includes('casket') && !genericCasket) || (genericCasket && !bankCommon);
 }
 
 export default class AutoFighter extends TaskBot {
@@ -107,6 +119,7 @@ export default class AutoFighter extends TaskBot {
         SOLVE_CLUES = this.settings.bool('solveClues', true);
         BANK_AT = this.settings.num('bankAtLootSlots', 12);
         AUTO_BANK = autoBankEnabled(this.settings.str('banking', 'Auto'));
+        BANK_COMMON = this.settings.bool('bankCommonJunk', true);
         COMBAT_MODE = parseCombatStyle(this.settings.str('combatStyle', 'strength'));
 
         this.solveClue = new SolveClue({
@@ -219,12 +232,21 @@ class LootDrops implements Task {
             return;
         }
         this.bot.setStatus(`looting ${drop.name} at ${drop.tile()}`);
+        const id = drop.id;
+        const tile = drop.tile();
+        const find = () => GroundItems.query()
+            .where(item => item.id === id && item.tile().equals(tile))
+            .nearest();
         const before = countMatching(Inventory.items(), LOOT);
-        if (!(await drop.interact('Take'))) {
-            await Execution.delayTicks(2);
-            return;
-        }
-        if (await Execution.delayUntil(() => countMatching(Inventory.items(), LOOT) > before, 5000)) {
+        const status = await Reach.entityOp({
+            find,
+            op: 'Take',
+            expect: () => countMatching(Inventory.items(), LOOT) > before,
+            expectMs: 5000,
+            what: drop.name ?? 'loot',
+            log: message => this.bot.log(message)
+        });
+        if (status === 'done' && countMatching(Inventory.items(), LOOT) > before) {
             this.bot.countLoot();
         }
     }
@@ -319,11 +341,7 @@ class BankRun implements Task {
         if (!(await Bank.openNearest(BOOTH.name, BOOTH.op, m => this.bot.log(`  ${m}`)))) {
             return;
         }
-        const keep = (name: string): boolean => {
-            const n = name.toLowerCase();
-            return matchesAny(name, [FOOD]) || n === 'coins' || KIT.includes(n) || n.includes('clue') || n.includes('casket');
-        };
-        await Bank.depositAllMatching(name => !keep(name), m => this.bot.log(`  ${m}`));
+        await Bank.depositAllMatching((name, id) => !shouldKeepBankItem(name, id, FOOD, BANK_COMMON), m => this.bot.log(`  ${m}`));
         for (let guard = 0; guard < FOOD_WITHDRAW && foodCount() < FOOD_WITHDRAW && !Inventory.isFull(); guard++) {
             const before = foodCount();
             if (!(await Bank.withdraw(FOOD, 'Withdraw-1'))) {
@@ -371,7 +389,7 @@ class Fight implements Task {
             .nearest();
     }
     private track(engaged: Npc): Npc | null {
-        return Npcs.all().find(n => n.index === engaged.index && n.name === TARGET) ?? null;
+        return Npcs.all().find(n => n.index === engaged.index && matchesEntityName(n.name, TARGET)) ?? null;
     }
     validate(): boolean {
         return !Game.inCombat() && Skills.hpFraction() >= EAT_AT && this.findTarget() !== null;
@@ -382,11 +400,15 @@ class Fight implements Task {
             return;
         }
         this.bot.setStatus(`attacking ${TARGET} at ${target.tile()}`);
-        if (!(await target.interact('Attack'))) {
-            await Execution.delayTicks(2);
-            return;
-        }
-        if (!(await Execution.delayUntil(() => Game.inCombat() || ChatDialog.canContinue(), 5000)) || ChatDialog.canContinue()) {
+        const status = await Reach.entityOp({
+            find: () => this.track(target),
+            op: 'Attack',
+            expect: () => Game.inCombat() || ChatDialog.canContinue(),
+            expectMs: 5000,
+            what: TARGET,
+            log: message => this.bot.log(message)
+        });
+        if (status !== 'done' || ChatDialog.canContinue()) {
             return;
         }
         this.bot.setStatus('fighting');
