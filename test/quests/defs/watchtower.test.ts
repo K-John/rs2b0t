@@ -513,3 +513,30 @@ describe('watchtower decide — jangerberries without a wasted rope', () => {
         expect(step.kind === 'custom' && step.name).toMatch(/swing back/i);
     });
 });
+
+describe('watchtower decide — wizard steps stay on the wizard floor', () => {
+    test('a relic part is handed over without climbing down first', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'helped-toban', 'helped-grew'),
+            invIds: new Map([[WT_ITEM.RELIC_PART2.id, 1], [WT_ITEM.JANGERBERRIES.id, 2]]),
+            tile: { x: 2544, z: 3112, level: 2 }
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/give Relic part/i);
+    });
+
+    test('the lever is pulled from the wizard floor, not after a climb down', () => {
+        const step = decide(snapshot({
+            progress: P(11),
+            tile: { x: 2544, z: 3112, level: 2 }
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/lever/i);
+    });
+
+    test('a wizard step still escapes a genuinely wrong pocket', () => {
+        const step = decide(snapshot({
+            progress: P(11),
+            tile: { x: 2576, z: 3027, level: 0 }
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/leave Toban/i);
+    });
+});

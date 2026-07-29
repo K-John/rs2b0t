@@ -140,7 +140,7 @@ function stageTribes(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
 
     for (const part of RELIC_PARTS) {
         if (held(snap, part.id) > 0) {
-            return at(area, 'yanille', {
+            return at(area, 'towerFloor', {
                 kind: 'custom',
                 name: `give ${part.name} to the wizard`,
                 run: log => giveRelicPart(part.id, log)
@@ -168,7 +168,7 @@ function stageRelicGate(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
     if (banked(snap, WT_ITEM.OGRE_RELIC.id) > 0) {
         return withdrawFrom([{ name: WT_ITEM.OGRE_RELIC.name, id: WT_ITEM.OGRE_RELIC.id, qty: 1 }]);
     }
-    return { kind: 'custom', name: 'ask the wizard for another relic', run: askWizardForRelic };
+    return at(area, 'towerFloor', { kind: 'custom', name: 'ask the wizard for another relic', run: askWizardForRelic });
 }
 
 function stageCityEntry(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
@@ -236,7 +236,7 @@ function stageEnclaveEntry(snap: QuestSnapshot, area: WatchtowerArea): QuestStep
 
 function stagePotion(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
     if (held(snap, WT_ITEM.OGRE_POTION.id) > 0) {
-        return { kind: 'custom', name: 'have the wizard infuse the ogre potion', run: infusePotion };
+        return at(area, 'towerFloor', { kind: 'custom', name: 'have the wizard infuse the ogre potion', run: infusePotion });
     }
     const escape = escapePocket(area, 'yanille');
     if (escape) {
@@ -306,7 +306,7 @@ function stageShamans(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
     if (recovery) {
         return recovery;
     }
-    return { kind: 'custom', name: 'take all four crystals to the wizard', run: showCrystalsToWizard };
+    return at(area, 'towerFloor', { kind: 'custom', name: 'take all four crystals to the wizard', run: showCrystalsToWizard });
 }
 
 const CRYSTAL_RECOVERY: Readonly<Record<number, { name: string; run: (log: (m: string) => void) => Promise<boolean> }>> = {
@@ -360,7 +360,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
         case WATCHTOWER_STAGE.STARTED: {
             if (held(snap, WT_ITEM.FINGERNAILS.id) > 0) {
-                return { kind: 'custom', name: 'give the fingernails to the wizard', run: handInFingernails };
+                return at(area, 'towerFloor', { kind: 'custom', name: 'give the fingernails to the wizard', run: handInFingernails });
             }
             return escapePocket(area, 'yanille')
                 ?? { kind: 'custom', name: 'search the bush by the Watchtower for evidence', run: searchEvidenceBush };
@@ -385,8 +385,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return stageEnclaveEntry(snap, area);
 
         case WATCHTOWER_STAGE.FED_NIGHTSHADE:
-            return escapePocket(area, 'yanille')
-                ?? { kind: 'custom', name: 'ask the wizard how to beat the shamans', run: askWizardAboutShamans };
+            return at(area, 'towerFloor', { kind: 'custom', name: 'ask the wizard how to beat the shamans', run: askWizardAboutShamans });
 
         case WATCHTOWER_STAGE.LEARNED_POTION:
             return stagePotion(snap, area);
@@ -395,8 +394,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return stageShamans(snap, area);
 
         case WATCHTOWER_STAGE.FOUND_ALL_CRYSTALS:
-            return escapePocket(area, 'yanille')
-                ?? { kind: 'custom', name: 'pull the lever to activate the shield', run: pullLever };
+            return at(area, 'towerFloor', { kind: 'custom', name: 'pull the lever to activate the shield', run: pullLever });
 
         default:
             return { kind: 'wait', reason: 'Watch Tower stage ' + snap.stage + ' is not implemented yet' };
