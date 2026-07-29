@@ -318,6 +318,19 @@ Four things the scripts did not make obvious, each found by running the quest:
   to being parked. Fixed in the shared engine; Watch Tower's flags were equally blind.
 - **One shop trip, not six.** Jiminua is 35 tiles from Trufitus and the mound is 200 the
   other way, so buying one item per `buy` step cost six crossings of the island.
+- **Rashiliyia's tomb is the other way round.** The climbing rocks drop you *south* of
+  the skeletal doors; the dolmen and the remains are north, behind them. Three bones is
+  the only way through, so `derive-doors` must not bake them — with the edge in, the
+  pathfinder routed through a wall and the walker repathed forever against "This door
+  is completely sealed"; the ancient gate had the same problem.
+- **A plain z test cannot name the two sides.** The corridor east of the doors runs up
+  to z=9511 on the *southern* side, so "north of z=9480" put the foot of the climbing
+  rocks behind the doors. The dolmen room needs its own bounding box.
+- **Leaving the chamber is three moves.** Cross back south, walk to the foot of the
+  rocks, then climb — "no climbable rocks in range" was the bot standing at the dolmen
+  with the remains in hand and nowhere to go.
+- **The pack was baked with the jungle plants, not the carved doors** they hide, so the
+  tile east of the doors is not a stand the walker can reach at all.
 
 ## Deliverable
 
