@@ -312,49 +312,46 @@ describe('shilo decide — the opening', () => {
 });
 
 describe('shilo decide — the mound', () => {
-    test('no spade buys one at Jiminua rather than banking', () => {
+    test('an empty pack buys the whole outstanding kit in one Jiminua trip', () => {
         const step = decide(snapshot({ progress: progress(SV_STAGE.STARTED), invIds: PROVISIONED }));
-        expect(step.kind).toBe('buy');
-        expect(step.kind === 'buy' && step.item).toBe('Spade');
-        expect(step.kind === 'buy' && step.shop.npc).toBe('Jiminua');
+        expect(step.kind).toBe('custom');
+        // Everything the rest of the quest needs from a shop, not one item per crossing.
+        for (const want of ['Spade', 'Candle', 'Tinderbox', 'Rope', 'Chisel', 'Bronze bar', 'Hammer']) {
+            expect(name(step)).toContain(want);
+        }
     });
 
-    test('with a spade it digs', () => {
-        const step = decide(snapshot({
-            progress: progress(SV_STAGE.STARTED),
-            invIds: carrying([SV_ITEM.SPADE.id, 1])
-        }));
+    const KIT: [number, number][] = [
+        [SV_ITEM.SPADE.id, 1], [SV_ITEM.CANDLE.id, 1], [SV_ITEM.TINDERBOX.id, 1],
+        [SV_ITEM.ROPE.id, 1], [SV_ITEM.CHISEL.id, 1], [SV_ITEM.BRONZE_BAR.id, 1], [SV_ITEM.HAMMER.id, 1]
+    ];
+
+    test('with the kit it digs', () => {
+        const step = decide(snapshot({ progress: progress(SV_STAGE.STARTED), invIds: carrying(...KIT) }));
         expect(name(step)).toContain('dig');
     });
 
     test('the light source is bought unlit and lit with a tinderbox', () => {
         const noCandle = decide(snapshot({ progress: progress(SV_STAGE.DUG_MOUND), invIds: PROVISIONED }));
-        expect(noCandle.kind === 'buy' && noCandle.item).toBe('Candle');
+        expect(name(noCandle)).toContain('Candle');
+        expect(name(noCandle)).toContain('Tinderbox');
 
-        const noBox = decide(snapshot({
-            progress: progress(SV_STAGE.DUG_MOUND),
-            invIds: carrying([SV_ITEM.CANDLE.id, 1])
-        }));
-        expect(noBox.kind === 'buy' && noBox.item).toBe('Tinderbox');
-
-        const both = decide(snapshot({
-            progress: progress(SV_STAGE.DUG_MOUND),
-            invIds: carrying([SV_ITEM.CANDLE.id, 1], [SV_ITEM.TINDERBOX.id, 1])
-        }));
+        const both = decide(snapshot({ progress: progress(SV_STAGE.DUG_MOUND), invIds: carrying(...KIT) }));
         expect(name(both)).toBe('light the candle');
 
         const lit = decide(snapshot({
             progress: progress(SV_STAGE.DUG_MOUND),
-            invIds: carrying([SV_ITEM.LIT_CANDLE.id, 1])
+            invIds: carrying(...KIT, [SV_ITEM.LIT_CANDLE.id, 1])
         }));
         expect(name(lit)).toContain('fissure');
     });
 
     test('the rope is bought before the fissure is tied', () => {
-        expect(decide(snapshot({ progress: progress(SV_STAGE.LIT_MOUND), invIds: PROVISIONED })).kind).toBe('buy');
+        expect(name(decide(snapshot({ progress: progress(SV_STAGE.LIT_MOUND), invIds: PROVISIONED }))))
+            .toContain('Rope');
         expect(name(decide(snapshot({
             progress: progress(SV_STAGE.LIT_MOUND),
-            invIds: carrying([SV_ITEM.ROPE.id, 1])
+            invIds: carrying(...KIT)
         })))).toContain('rope');
     });
 
@@ -402,7 +399,7 @@ describe('shilo decide — Ah Za Rhoon and the crafts', () => {
     test('the key comes before the necklace, and both need a chisel', () => {
         const flags = ['read-tattered', 'read-crumpled', 'pommel-taken', 'found-door'];
         const noChisel = middle(flags, [[SV_ITEM.BONE_SHARD.id, 1], [SV_ITEM.SWORD_POMMEL.id, 1]]);
-        expect(noChisel.kind === 'buy' && noChisel.item).toBe('Chisel');
+        expect(name(noChisel)).toContain('Chisel');
 
         const key = middle(flags, [
             [SV_ITEM.CHISEL.id, 1], [SV_ITEM.BONE_SHARD.id, 1], [SV_ITEM.SWORD_POMMEL.id, 1]
@@ -420,7 +417,7 @@ describe('shilo decide — Ah Za Rhoon and the crafts', () => {
         const noBar = middle(flags, [
             [SV_ITEM.CHISEL.id, 1], [SV_ITEM.BONE_KEY.id, 1], [SV_ITEM.BONE_BEADS.id, 1]
         ]);
-        expect(noBar.kind === 'buy' && noBar.item).toBe('Bronze bar');
+        expect(name(noBar)).toContain('Bronze bar');
 
         const bar = middle(flags, [
             [SV_ITEM.CHISEL.id, 1], [SV_ITEM.BONE_KEY.id, 1], [SV_ITEM.BONE_BEADS.id, 1],

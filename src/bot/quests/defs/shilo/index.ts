@@ -2,7 +2,7 @@
 import type { WorldTile } from '../../../adapter/ClientAdapter.js';
 import { QUESTS } from '../../data/quests.js';
 import { flagValue, hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
-import { SV_ITEM, SV_TILE, shiloArea, type ShiloArea } from './areas.js';
+import { SV_ITEM, SV_TILE, shiloArea, type ShiloArea, type ShiloItem } from './areas.js';
 import {
     buryZadimus,
     crossCaveIn,
@@ -44,12 +44,10 @@ import {
     owned,
     sourceBones,
     sourceBronzeWire,
-    sourceChisel,
     sourceCoins,
     sourceFood,
     sourceLitCandle,
-    sourceRope,
-    sourceSpade,
+    sourceTools,
     withdrawFrom,
     worn
 } from './supplies.js';
@@ -132,19 +130,34 @@ function stageStart(snap: QuestSnapshot, area: ShiloArea): QuestStep {
         ?? inTheOpen(area, step('ask Mosol Rei for the Wampum belt', takeWampumBelt));
 }
 
+/**
+ * Everything Jiminua stocks that the rest of the quest still wants, so one shop trip
+ * covers the whole fissure sequence and both crafts instead of six island crossings.
+ */
+function toolsFrom(stage: number): ShiloItem[] {
+    const need: ShiloItem[] = [];
+    if (stage <= SV_STAGE.SEARCHED_MOUND) need.push(SV_ITEM.SPADE);
+    if (stage <= SV_STAGE.DUG_MOUND) need.push(SV_ITEM.CANDLE, SV_ITEM.TINDERBOX);
+    if (stage <= SV_STAGE.LIT_MOUND) need.push(SV_ITEM.ROPE);
+    need.push(SV_ITEM.CHISEL, SV_ITEM.BRONZE_BAR, SV_ITEM.HAMMER);
+    return need;
+}
+
 function stageMound(snap: QuestSnapshot, area: ShiloArea): QuestStep {
-    const spade = sourceSpade(snap);
-    return spade ?? inTheOpen(area, step('dig the mound of earth open', digMound));
+    const kit = sourceTools(snap, toolsFrom(SV_STAGE.STARTED));
+    return kit ? inTheOpen(area, kit) : inTheOpen(area, step('dig the mound of earth open', digMound));
 }
 
 function stageLight(snap: QuestSnapshot, area: ShiloArea): QuestStep {
-    const candle = sourceLitCandle(snap);
-    return candle ?? inTheOpen(area, step('drop a lit candle into the fissure', lightFissure));
+    const candle = sourceLitCandle(snap, toolsFrom(SV_STAGE.DUG_MOUND));
+    return candle
+        ? inTheOpen(area, candle)
+        : inTheOpen(area, step('drop a lit candle into the fissure', lightFissure));
 }
 
 function stageRope(snap: QuestSnapshot, area: ShiloArea): QuestStep {
-    const rope = sourceRope(snap);
-    return rope ?? inTheOpen(area, step('tie the rope to the fissure', ropeFissure));
+    const kit = sourceTools(snap, toolsFrom(SV_STAGE.LIT_MOUND));
+    return kit ? inTheOpen(area, kit) : inTheOpen(area, step('tie the rope to the fissure', ropeFissure));
 }
 
 /**
@@ -205,7 +218,7 @@ function craftChain(snap: QuestSnapshot, area: ShiloArea): QuestStep | null {
     if (!needKey && !needBeads) {
         return null;
     }
-    const chisel = sourceChisel(snap);
+    const chisel = sourceTools(snap, [SV_ITEM.CHISEL]);
     if (chisel) {
         return inTheOpen(area, chisel);
     }

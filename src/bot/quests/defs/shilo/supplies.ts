@@ -2,6 +2,7 @@
 import { Execution } from '../../../api/Execution.js';
 import type Tile from '../../../api/Tile.js';
 import { Traversal } from '../../../api/Traversal.js';
+import { Shop } from '../../../api/hud/Shop.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { GroundItems } from '../../../api/queries/GroundItems.js';
@@ -62,11 +63,42 @@ export function buyFromJiminua(item: ShiloItem, qty: number, unitGp: number): Qu
     return { kind: 'buy', item: item.name, qty, shop: JIMINUA_SHOP, estGp: qty * unitGp };
 }
 
-function shopSourced(snap: QuestSnapshot, item: ShiloItem, qty: number, unitGp: number): QuestStep | null {
-    if (held(snap, item.id) >= qty) {
-        return null;
+/**
+ * Jiminua is 35 tiles from Trufitus but the mound is 200 the other way, so buying
+ * one item per trip costs six crossings of the island. Every tool the rest of the
+ * quest still needs is bought in a single visit instead.
+ */
+export function stockUp(wanted: readonly { item: ShiloItem; qty: number }[]): QuestStep {
+    const list = wanted.map(w => `${w.qty}× ${w.item.name}`).join(', ');
+    return { kind: 'custom', name: `buy ${list} from Jiminua`, run: log => buyKit(wanted, log) };
+}
+
+async function buyKit(wanted: readonly { item: ShiloItem; qty: number }[], log: (m: string) => void): Promise<boolean> {
+    if (!(await Traversal.walkResilient(SV_TILE.JIMINUA, { radius: 3, attempts: 3, timeoutMs: 240_000, log }))) {
+        return false;
     }
-    return buyFromJiminua(item, qty - held(snap, item.id), unitGp);
+    if (!(await Shop.open(JIMINUA_SHOP.npc))) {
+        log("could not open Jiminua's shop");
+        return false;
+    }
+    let bought = 0;
+    for (const { item, qty } of wanted) {
+        const short = qty - carriedId(item.id);
+        if (short <= 0) {
+            continue;
+        }
+        if ((await Shop.buy(item.name, short)) > 0) {
+            bought++;
+        } else {
+            log(`Jiminua is out of ${item.name}, or the purse is empty`);
+        }
+    }
+    await Shop.close();
+    return bought > 0;
+}
+
+function carriedId(id: number): number {
+    return Inventory.items().filter(entry => entry.id === id).reduce((sum, entry) => sum + entry.count, 0);
 }
 
 /**
@@ -87,16 +119,17 @@ export function sourceCoins(snap: QuestSnapshot, want: number): QuestStep | null
     return withdrawFrom([{ name: SV_ITEM.COINS.name, id: SV_ITEM.COINS.id, qty: Math.min(want, available) }]);
 }
 
-export function sourceRope(snap: QuestSnapshot): QuestStep | null {
-    return shopSourced(snap, SV_ITEM.ROPE, 1, PRICE.ROPE);
+/**
+ * The whole outstanding toolkit, judged by what the remaining quest still needs.
+ * One `stockUp` step buys all of it in a single visit.
+ */
+export function kitShortfall(snap: QuestSnapshot, need: readonly ShiloItem[]): { item: ShiloItem; qty: number }[] {
+    return need.filter(item => held(snap, item.id) === 0).map(item => ({ item, qty: 1 }));
 }
 
-export function sourceSpade(snap: QuestSnapshot): QuestStep | null {
-    return shopSourced(snap, SV_ITEM.SPADE, 1, PRICE.SPADE);
-}
-
-export function sourceChisel(snap: QuestSnapshot): QuestStep | null {
-    return shopSourced(snap, SV_ITEM.CHISEL, 1, PRICE.CHISEL);
+export function sourceTools(snap: QuestSnapshot, need: readonly ShiloItem[]): QuestStep | null {
+    const short = kitShortfall(snap, need);
+    return short.length === 0 ? null : stockUp(short);
 }
 
 export function sourceFood(snap: QuestSnapshot, want: number): QuestStep | null {
@@ -111,15 +144,13 @@ export function sourceFood(snap: QuestSnapshot, want: number): QuestStep | null 
  * Only a lit candle, lit black candle or lit torch satisfies the fissure, and the
  * shop sells the candle unlit — so the tinderbox rides along and lights it.
  */
-export function sourceLitCandle(snap: QuestSnapshot): QuestStep | null {
+export function sourceLitCandle(snap: QuestSnapshot, need: readonly ShiloItem[] = []): QuestStep | null {
     if (held(snap, SV_ITEM.LIT_CANDLE.id) > 0) {
         return null;
     }
-    if (held(snap, SV_ITEM.CANDLE.id) === 0) {
-        return buyFromJiminua(SV_ITEM.CANDLE, 1, PRICE.CANDLE);
-    }
-    if (held(snap, SV_ITEM.TINDERBOX.id) === 0) {
-        return buyFromJiminua(SV_ITEM.TINDERBOX, 1, PRICE.TINDERBOX);
+    const short = kitShortfall(snap, [...need, SV_ITEM.CANDLE, SV_ITEM.TINDERBOX]);
+    if (short.length > 0) {
+        return stockUp(short);
     }
     return { kind: 'custom', name: 'light the candle', run: lightCandle };
 }
@@ -144,15 +175,13 @@ export async function lightCandle(log: (m: string) => void): Promise<boolean> {
  * Nothing sells bronze wire. Smithing 4 turns a Jiminua bar into one at the Tai Bwo
  * Wannai anvil, which is why the quest asks for the level at all.
  */
-export function sourceBronzeWire(snap: QuestSnapshot): QuestStep | null {
+export function sourceBronzeWire(snap: QuestSnapshot, need: readonly ShiloItem[] = []): QuestStep | null {
     if (held(snap, SV_ITEM.BRONZE_WIRE.id) > 0) {
         return null;
     }
-    if (held(snap, SV_ITEM.BRONZE_BAR.id) === 0) {
-        return buyFromJiminua(SV_ITEM.BRONZE_BAR, 1, PRICE.BRONZE_BAR);
-    }
-    if (held(snap, SV_ITEM.HAMMER.id) === 0) {
-        return buyFromJiminua(SV_ITEM.HAMMER, 1, PRICE.HAMMER);
+    const short = kitShortfall(snap, [...need, SV_ITEM.BRONZE_BAR, SV_ITEM.HAMMER]);
+    if (short.length > 0) {
+        return stockUp(short);
     }
     return { kind: 'custom', name: 'smith the bronze bar into wire', run: smithBronzeWire };
 }
