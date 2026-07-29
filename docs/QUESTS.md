@@ -229,6 +229,25 @@ fall out of that, and both were found the hard way:
 - **A stand tile next to an unwalkable loc is not automatically reachable.**
   [`tools/nav/probe-tile.ts`](../tools/nav/probe-tile.ts) pathfinds to every tile a quest
   module names, from each of its regions, and is worth running before any live attempt.
+  Note that `findPath` snapping to within five tiles is a weaker claim than
+  `walkResilient(radius: 2)` actually arriving — a wide blocker whose only open side faces
+  away satisfies the first and never the second.
+- **A flood over the baked graph merges components the player cannot really connect.**
+  Any door edge the walker can click but not *pay* — a guarded gate, a toll — makes two
+  regions look like one. Watch Tower's design concluded a gold bar was unnecessary for
+  exactly this reason, and the opposite was true.
+
+Three engine behaviours bit this quest hard enough to be worth stating once:
+
+- **An op that opens a dialogue does so a tick later.** Driving it immediately makes
+  `talkThrough` find nothing open and start a *fresh* conversation with the same NPC —
+  which lands in a dead-end line, or at an aggressive NPC gets you attacked. Wait for
+  `ChatDialog.isOpen()` first, then drive what is already there.
+- **Colour tags displace punctuation.** Stripping `@dbl@` leaves a space where it stood,
+  so `"potion@dbl@."` normalises to `"potion ."`. Journal needles must not span a tag
+  boundary next to a mark.
+- **`ownsInventory: true` opts the quest out of the engine's food provisioning**, so a
+  `sustain` block declares foods that nothing ever withdraws. Source food yourself.
 
 ## See also
 
