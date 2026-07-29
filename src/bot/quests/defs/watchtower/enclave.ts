@@ -1,5 +1,6 @@
 import { Execution } from '../../../api/Execution.js';
 import { Game } from '../../../api/Game.js';
+import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Skills } from '../../../api/hud/Skills.js';
 import { GroundItems } from '../../../api/queries/GroundItems.js';
@@ -7,7 +8,7 @@ import { Locs, type Loc } from '../../../api/queries/Locs.js';
 import { Npcs } from '../../../api/queries/Npcs.js';
 import { Sustain } from '../../../api/Sustain.js';
 import { Traversal } from '../../../api/Traversal.js';
-import { talkThrough } from '../../exec/primitives.js';
+import { driveDialog } from '../../exec/primitives.js';
 import { WT_ITEM, WT_LOC, WT_NPC, WT_TILE, watchtowerArea } from './areas.js';
 import { settleScene } from './scene.js';
 
@@ -37,7 +38,11 @@ export async function enterEnclave(log: (m: string) => void): Promise<boolean> {
         log('could not use Nightshade on the enclave guard');
         return false;
     }
-    await talkThrough(WT_NPC.ENCLAVE_GUARD, [], log);
+    // Drive the dialogue the nightshade opened; never start a fresh one, because
+    // both of this guard's own conversation options make him attack.
+    if (await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue(), 8000)) {
+        await driveDialog([], log);
+    }
     if (!(await Execution.delayUntil(() => watchtowerArea(Game.tile()) === 'enclave', 15_000))) {
         return false;
     }
