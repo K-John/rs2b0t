@@ -5,6 +5,9 @@ import transportsJson from '../../src/bot/nav/data/transports.json';
 import stairsJson from '../../src/bot/nav/data/stairEdges.json';
 import { PathFinder, type DoorEdgeData, type NavPoint } from '../../src/bot/nav/PathFinder.js';
 import { WT_CAVES, WT_NIGHTSHADE, WT_TILE } from '../../src/bot/quests/defs/watchtower/areas.js';
+import { ARDOUGNE_ADVENTURER, MAGIC_GUILD, OGRE_HERBLORE } from '../../src/bot/quests/defs/watchtower/supplies.js';
+
+const SHOPS = { adventurer: ARDOUGNE_ADVENTURER, magicGuild: MAGIC_GUILD, ogreHerblore: OGRE_HERBLORE };
 
 let bytes: Uint8Array = new Uint8Array(fs.readFileSync('out/collision.lcnav.gz'));
 if (bytes[0] === 0x1f && bytes[1] === 0x8b) bytes = gunzipSync(bytes);
@@ -62,6 +65,9 @@ for (const cave of WT_CAVES) {
 }
 for (const [key, tile] of Object.entries(WT_NIGHTSHADE)) {
     stands.push([`nightshade.${key}`, tile as NavPoint]);
+}
+for (const [key, shop] of Object.entries(SHOPS)) {
+    stands.push([`shop.${key}(${shop.npc})`, shop.anchor as NavPoint]);
 }
 
 // An unwalkable loc tile is fine to target — the walker snaps to a neighbour — but

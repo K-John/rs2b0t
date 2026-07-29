@@ -2,15 +2,20 @@ import Tile from '../../../api/Tile.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { WT_ITEM, WT_TILE, type WatchtowerItem } from './areas.js';
 
-export const ARDOUGNE_GENERAL = { npc: 'Shop keeper', anchor: new Tile(2615, 3294, 0) };
-export const ARDOUGNE_HERBLORE = { npc: 'Shop keeper', anchor: new Tile(2666, 3304, 0) };
-export const MAGIC_GUILD = { npc: 'Shop keeper', anchor: new Tile(2596, 3088, 0) };
-export const OGRE_HERBLORE = { npc: 'Grud', anchor: new Tile(2510, 3032, 0) };
+/**
+ * Every shop here was read out of the engine's own configs rather than a guide.
+ * Nobody in this game is called 'Shop keeper': the shop belongs to a named NPC
+ * through param=owned_shop, and Shop.open() matches on the display name.
+ */
+export const ARDOUGNE_ADVENTURER = { npc: 'Aemad', anchor: new Tile(2613, 3294, 0) };
+export const MAGIC_GUILD = { npc: 'Magic Store owner', anchor: new Tile(2595, 3087, 1) };
+export const OGRE_HERBLORE = { npc: 'Ogre merchant', anchor: new Tile(2528, 3048, 0) };
 
-const ROPE_PRICE = 25;
-const DEATH_RUNE_PRICE = 300;
-const VIAL_PRICE = 60;
-const PESTLE_PRICE = 200;
+// Shop asking prices run above the obj cost, so each of these leaves headroom.
+const ROPE_PRICE = 60;
+const DEATH_RUNE_PRICE = 120;
+const VIAL_PRICE = 20;
+const PESTLE_PRICE = 40;
 
 export function held(snap: QuestSnapshot, id: number): number {
     return snap.invIds?.get(id) ?? 0;
@@ -84,7 +89,7 @@ export function sourceCoins(snap: QuestSnapshot, want: number): QuestStep | null
 }
 
 export function sourceRope(snap: QuestSnapshot): QuestStep | null {
-    return source(snap, WT_ITEM.ROPE, 1, ARDOUGNE_GENERAL, ROPE_PRICE);
+    return source(snap, WT_ITEM.ROPE, 1, ARDOUGNE_ADVENTURER, ROPE_PRICE);
 }
 
 export function sourceDeathRune(snap: QuestSnapshot): QuestStep | null {
@@ -92,7 +97,7 @@ export function sourceDeathRune(snap: QuestSnapshot): QuestStep | null {
 }
 
 export function sourceVial(snap: QuestSnapshot): QuestStep | null {
-    return source(snap, WT_ITEM.VIAL_WATER, 1, ARDOUGNE_HERBLORE, VIAL_PRICE);
+    return source(snap, WT_ITEM.VIAL_WATER, 1, ARDOUGNE_ADVENTURER, VIAL_PRICE);
 }
 
 export function sourcePestle(snap: QuestSnapshot): QuestStep | null {
