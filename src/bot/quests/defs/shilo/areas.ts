@@ -129,20 +129,27 @@ export type ShiloArea =
     | 'ahZaRhoonSouth'
     | 'berviriusTomb'
     | 'rashEntry'
+    | 'rashLedge'
     | 'rashInner'
     | 'shiloVillage'
     | 'unknown';
 
+/** The gate sits at z=9516 and the rocks run 9511-9515, so the ledge is what's between. */
+export const RASH_GATE_Z = 9516;
+export const RASH_ROCKS_BOTTOM_Z = 9511;
+
 /**
- * Every underground area here sits in its own mapsquare, and Rashiliyia's tomb
- * splits at the climbing rocks: north of them is the gated corridor, south is the
- * tomb proper.
+ * Every underground area here sits in its own mapsquare, and Rashiliyia's tomb has
+ * three parts, not two: the corridor from the hillside doors, the ledge the gate
+ * drops you onto, and the tomb below the climbing rocks. Collapsing the ledge into
+ * either neighbour makes the gate open and re-open forever.
  */
 export function shiloArea(tile: QuestSnapshot['tile']): ShiloArea {
     if (!tile) return 'unknown';
     const { x, z } = tile;
     if (x >= 2880 && x <= 2943 && z >= 9472 && z <= 9535) {
-        return z > 9511 ? 'rashEntry' : 'rashInner';
+        if (z >= RASH_GATE_Z) return 'rashEntry';
+        return z > RASH_ROCKS_BOTTOM_Z ? 'rashLedge' : 'rashInner';
     }
     if (x >= 2880 && x <= 2943 && z >= 9344 && z <= 9407) return 'ahZaRhoonNorth';
     if (x >= 2880 && x <= 2943 && z >= 9280 && z <= 9343) return 'ahZaRhoonSouth';
@@ -153,5 +160,5 @@ export function shiloArea(tile: QuestSnapshot['tile']): ShiloArea {
 }
 
 export function isUnderTomb(area: ShiloArea): boolean {
-    return area === 'rashEntry' || area === 'rashInner';
+    return area === 'rashEntry' || area === 'rashLedge' || area === 'rashInner';
 }

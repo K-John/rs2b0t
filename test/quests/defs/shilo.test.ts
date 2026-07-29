@@ -54,12 +54,17 @@ describe('shiloArea', () => {
         expect(shiloArea(at(2888, 9283))).toBe('ahZaRhoonSouth');
         expect(shiloArea(at(2760, 9389))).toBe('berviriusTomb');
         expect(shiloArea(at(2929, 9525))).toBe('rashEntry');
+        expect(shiloArea(at(2929, 9515))).toBe('rashLedge');
         expect(shiloArea(at(2928, 9511))).toBe('rashInner');
         expect(shiloArea(at(2852, 2954))).toBe('shiloVillage');
     });
 
-    test('the tomb splits at the climbing rocks, not at the mapsquare edge', () => {
-        expect(shiloArea(at(2929, 9515))).toBe('rashEntry');
+    test('the ledge between the gate and the rocks is its own area', () => {
+        // Collapsing it into either neighbour makes the gate open and re-open forever.
+        expect(shiloArea(at(2929, 9516))).toBe('rashEntry');
+        expect(shiloArea(at(2929, 9515))).toBe('rashLedge');
+        expect(shiloArea(at(2928, 9512))).toBe('rashLedge');
+        expect(shiloArea(at(2928, 9511))).toBe('rashInner');
         expect(shiloArea(at(2892, 9487))).toBe('rashInner');
         expect(shiloArea(at(2892, 9480))).toBe('rashInner');
     });
@@ -468,6 +473,11 @@ describe('shilo decide — the tomb', () => {
         expect(name(step)).toContain('ancient gate');
     });
 
+    test('on the ledge past the gate it climbs down, never re-opens the gate', () => {
+        const step = tomb([[SV_ITEM.BONE_KEY.id, 1]], at(2929, 9515), [SV_ITEM.DEAD_BEADS.id]);
+        expect(name(step)).toContain('climb down');
+    });
+
     test('in the chamber it feeds the door one bone at a time', () => {
         const step = tomb([[SV_ITEM.BONE_KEY.id, 1]], at(2892, 9482), [SV_ITEM.DEAD_BEADS.id]);
         expect(name(step)).toContain('place a bone');
@@ -515,14 +525,22 @@ describe('shilo decide — the boss and the ending', () => {
         expect(name(step)).toContain('tomb dolmen');
     });
 
-    test('in the entry corridor it climbs back down to the chamber', () => {
-        const step = decide(snapshot({
+    test('in the entry corridor it passes the gate; on the ledge it climbs down', () => {
+        const gate = decide(snapshot({
             progress: progress(SV_STAGE.UNLOCKED_TOMBDOOR),
             invIds: carrying(),
             wornIds: new Set([SV_ITEM.DEAD_BEADS.id]),
             tile: at(2929, 9525)
         }));
-        expect(name(step)).toContain('climb down');
+        expect(name(gate)).toContain('ancient gate');
+
+        const ledge = decide(snapshot({
+            progress: progress(SV_STAGE.UNLOCKED_TOMBDOOR),
+            invIds: carrying(),
+            wornIds: new Set([SV_ITEM.DEAD_BEADS.id]),
+            tile: at(2929, 9515)
+        }));
+        expect(name(ledge)).toContain('climb down');
     });
 
     test('holding the remains it climbs out and delivers them to Bervirius', () => {

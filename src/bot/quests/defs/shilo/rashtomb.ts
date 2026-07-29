@@ -7,7 +7,7 @@ import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Equipment } from '../../../api/hud/Equipment.js';
 import type { Npc } from '../../../api/entities/index.js';
 import { Npcs } from '../../../api/queries/Npcs.js';
-import { SV_ITEM, SV_LOC, SV_NPC, SV_TILE, TOMB_DOOR_Z } from './areas.js';
+import { SV_ITEM, SV_LOC, SV_NPC, SV_TILE, TOMB_DOOR_Z, type ShiloArea } from './areas.js';
 import { driveChoice, heldId, here, locNear, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 /** The doors hide themselves again about fifty ticks after the trees are searched. */
@@ -108,7 +108,7 @@ export async function enterRashTomb(log: (m: string) => void): Promise<boolean> 
  */
 export async function leaveRashTomb(log: (m: string) => void): Promise<boolean> {
     if (here() !== 'rashEntry') {
-        return here() === 'rashInner' ? climbRashRocks('up', log) : true;
+        return true;
     }
     if (heldId(SV_ITEM.BONE_KEY.id) === 0) {
         const ok = await promptLoc(
@@ -139,42 +139,52 @@ export async function leaveRashTomb(log: (m: string) => void): Promise<boolean> 
 }
 
 /**
- * The gate only opens southbound for someone wearing the Beads of the Dead;
- * everyone else gets Rashiliyia instead. Northbound is free.
+ * The gate teleports across itself in whichever direction you came from, so both
+ * crossings are the same click. Southbound it refuses anyone not wearing the Beads
+ * of the Dead — and summons Rashiliyia instead of saying so.
  */
-export async function openAncientGate(log: (m: string) => void): Promise<boolean> {
-    if (here() !== 'rashEntry') {
+export async function passGate(dir: 'in' | 'out', log: (m: string) => void): Promise<boolean> {
+    const want: ShiloArea = dir === 'in' ? 'rashLedge' : 'rashEntry';
+    if (here() === want) {
         return true;
     }
-    if (!Equipment.contains(SV_ITEM.DEAD_BEADS.name)) {
+    if (dir === 'in' && !Equipment.contains(SV_ITEM.DEAD_BEADS.name)) {
         log('the Beads of the Dead are not worn — the gate would summon Rashiliyia');
         return false;
     }
     const gate = locNear(SV_LOC.ANCIENT_GATE, 'Open', 12);
     if (!gate) {
-        // Not in range yet: walk in and let the next pass click it.
-        return promptLoc(
+        // Out of range: walk up to the gate and let the next pass click it.
+        const ok = await promptLoc(
             {
                 name: SV_LOC.ANCIENT_GATE,
                 op: 'Open',
                 near: SV_TILE.ANCIENT_GATE,
-                expect: () => Game.tile() !== null && (Game.tile()!.z <= 9515 || locNear(SV_LOC.ANCIENT_GATE, 'Open', 6) !== null)
+                expect: () => here() === want
             },
             log
         );
+        if (ok) {
+            await settleScene();
+        }
+        return ok;
     }
     if (!(await gate.interact('Open'))) {
         return false;
     }
-    return Execution.delayUntil(() => (Game.tile()?.z ?? 9999) <= 9515, 12_000);
+    const ok = await Execution.delayUntil(() => here() === want, 15_000);
+    if (ok) {
+        await settleScene();
+    }
+    return ok;
 }
 
 /**
- * The rocks are clicked from wherever the gate dropped us — the landing tile is
- * unwalkable in the baked pack, so nothing may try to walk to it first.
+ * The rocks are clicked from wherever the gate dropped us — the ledge is unwalkable
+ * in the baked pack, so nothing may try to walk onto it first.
  */
 export async function climbRashRocks(dir: 'down' | 'up', log: (m: string) => void): Promise<boolean> {
-    const want = dir === 'down' ? 'rashInner' : 'rashEntry';
+    const want: ShiloArea = dir === 'down' ? 'rashInner' : 'rashLedge';
     if (here() === want) {
         return true;
     }

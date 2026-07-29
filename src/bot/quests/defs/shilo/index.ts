@@ -29,7 +29,7 @@ import {
     climbRashRocks,
     enterRashTomb,
     leaveRashTomb,
-    openAncientGate,
+    passGate,
     placeBone,
     searchCarvedDoors,
     unlockCarvedDoors,
@@ -90,6 +90,8 @@ function escapePocket(area: ShiloArea): QuestStep | null {
             return step("climb out of Bervirius' tomb", leaveBerviriusTomb);
         case 'rashInner':
             return step('climb up out of the tomb chamber', log => climbRashRocks('up', log));
+        case 'rashLedge':
+            return step('open the ancient gate back out', log => passGate('out', log));
         case 'rashEntry':
             return step("unlock Rashiliyia's tomb exit", leaveRashTomb);
         default:
@@ -274,8 +276,11 @@ function stageTomb(snap: QuestSnapshot, area: ShiloArea): QuestStep {
             ? step('place a bone in the tomb door', placeBone)
             : { kind: 'wait', reason: 'all three bones are placed — waiting for the journal' };
     }
+    if (area === 'rashLedge') {
+        return step('climb down to the tomb chamber', log => climbRashRocks('down', log));
+    }
     if (area === 'rashEntry') {
-        return step('open the ancient gate', openAncientGate);
+        return step('open the ancient gate', log => passGate('in', log));
     }
     const supplies = tombSupplies(snap, wanted);
     if (supplies) {
@@ -295,8 +300,11 @@ function stageBoss(snap: QuestSnapshot, area: ShiloArea): QuestStep {
     if (area === 'rashInner') {
         return step('search the tomb dolmen', workTheDolmen);
     }
-    if (area === 'rashEntry') {
+    if (area === 'rashLedge') {
         return step('climb down to the tomb chamber', log => climbRashRocks('down', log));
+    }
+    if (area === 'rashEntry') {
+        return step('open the ancient gate', log => passGate('in', log));
     }
     const beads = needBeads(snap, area);
     if (beads) {
