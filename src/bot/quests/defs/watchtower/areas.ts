@@ -113,6 +113,7 @@ export const WT_TILE = {
     HILL: new Tile(2546, 3065, 0),
     ROCK_CAKE_STALL: new Tile(2505, 3023, 0),
     BATTLEMENT_GUARD: new Tile(2503, 3011, 0),
+    BATTLEMENT_INSIDE: new Tile(2508, 3011, 0),
     JUMP_STAND: new Tile(2531, 3026, 0),
     JUMP_BACK_STAND: new Tile(2530, 3029, 0),
     CITY_GUARD: new Tile(2541, 3029, 0),

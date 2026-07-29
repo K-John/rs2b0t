@@ -117,6 +117,26 @@ export async function crossBattlement(log: (m: string) => void): Promise<boolean
     return true;
 }
 
+/** The battlement climbs both ways once the market gift is paid. */
+export async function leaveLowerCity(log: (m: string) => void): Promise<boolean> {
+    if (watchtowerArea(Game.tile()) !== 'lowerCity') {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(WT_TILE.BATTLEMENT_INSIDE, { radius: 1, attempts: 3, timeoutMs: 120_000, log }))) {
+        return false;
+    }
+    const wall = locNear(WT_LOC.BATTLEMENT, 'Climb-over', 8);
+    if (!wall || !(await wall.interact('Climb-over'))) {
+        log('no battlement in range to climb back over');
+        return false;
+    }
+    if (!(await Execution.delayUntil(() => watchtowerArea(Game.tile()) !== 'lowerCity', 12_000))) {
+        return false;
+    }
+    await settleScene();
+    return true;
+}
+
 export async function jumpChasm(log: (m: string) => void): Promise<boolean> {
     if (watchtowerArea(Game.tile()) === 'cityGuard') {
         return true;

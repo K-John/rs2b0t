@@ -7,6 +7,7 @@ import {
     askRiddle,
     crossBattlement,
     jumpBack,
+    leaveLowerCity,
     showRelicToGuard,
     stealRockCake
 } from './gutanoth.js';
@@ -75,9 +76,7 @@ function escapePocket(area: WatchtowerArea, wanted: WatchtowerArea): QuestStep |
             return { kind: 'custom', name: 'leave the shaman enclave', run: leaveEnclave };
         case 'lowerCity':
             // The battlement is a two-way climb once the market gift is paid.
-            return wanted === 'lowerCity'
-                ? null
-                : { kind: 'custom', name: 'climb back over the battlement', run: crossBattlement };
+            return { kind: 'custom', name: 'climb back over the battlement', run: leaveLowerCity };
         default:
             return null;
     }
