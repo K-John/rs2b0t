@@ -6,7 +6,7 @@ import { Locs, type Loc } from '../../../api/queries/Locs.js';
 import { Npcs } from '../../../api/queries/Npcs.js';
 import { Reach } from '../../../api/Reach.js';
 import { Traversal } from '../../../api/Traversal.js';
-import { talkStrict, talkThrough } from '../../exec/primitives.js';
+import { driveDialog, talkStrict, talkThrough } from '../../exec/primitives.js';
 import { WT_ITEM, WT_LOC, WT_NPC, WT_TILE, watchtowerArea } from './areas.js';
 import { settleScene } from './scene.js';
 
@@ -112,15 +112,25 @@ export async function crossBattlement(log: (m: string) => void): Promise<boolean
         log('no battlement guard in range');
         return false;
     }
-    // First contact sets "prove it with a gift"; the cake is what satisfies it.
-    const cake = Inventory.items().find(item => item.id === WT_ITEM.ROCK_CAKE.id);
-    const opened = cake ? await cake.useOn(guard) : await guard.interact('Talk-to');
-    if (!opened) {
-        return false;
+    // He ignores the cake until he has asked for a gift — opnpcu only accepts it
+    // once the market bits are 1 — so talk first. Talking while already holding the
+    // cake completes the whole exchange in one go.
+    if (await guard.interact('Talk-to')) {
+        if (await awaitDialogue('the battlement guard', log)) {
+            // The unmatched option here is "Not if I can help it."
+            await talkStrict(WT_NPC.OGRE_GUARD, ['But I am a friend to ogres...'], log);
+        }
     }
-    if (await awaitDialogue('the battlement guard', log)) {
-        // The unmatched option here is "Not if I can help it."
-        await talkStrict(WT_NPC.OGRE_GUARD, ['But I am a friend to ogres...'], log);
+    if (await Execution.delayUntil(() => watchtowerArea(Game.tile()) === 'lowerCity', 10_000)) {
+        await settleScene();
+        return true;
+    }
+    // Otherwise he has only just asked; hand the cake over now.
+    const cake = Inventory.items().find(item => item.id === WT_ITEM.ROCK_CAKE.id);
+    if (cake && (await cake.useOn(guard))) {
+        if (await awaitDialogue('the battlement guard', log)) {
+            await driveDialog([], log);
+        }
     }
     if (await Execution.delayUntil(() => watchtowerArea(Game.tile()) === 'lowerCity', 10_000)) {
         await settleScene();
