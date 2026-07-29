@@ -69,8 +69,11 @@ export async function enterCave(index: number, log: (m: string) => void): Promis
         return false;
     }
     await settleScene();
+    // p_teleport lands exactly on the landing tile, so anything further out means we
+    // were dumped in the dark cave. Cave 4's landing is only 9 tiles from it, so the
+    // tolerance has to be tight.
     const here = Game.tile();
-    if (here && cave.landing.distanceTo(here) > 12) {
+    if (here && cave.landing.distanceTo(here) > 5) {
         log(`landed away from cave ${index} — the map or the lit light source is missing`);
         return false;
     }
@@ -86,9 +89,17 @@ export async function leaveCave(log: (m: string) => void): Promise<boolean> {
         .action('Leave')
         .within(24)
         .nearest();
-    if (!exit || !(await exit.interact('Leave'))) {
-        log('no cave exit in range');
-        return false;
+    if (exit) {
+        if (!(await exit.interact('Leave'))) {
+            return false;
+        }
+    } else {
+        // The dark cave has no ordinary exit, only a climbing rope.
+        const rope = locNear(WT_LOC.DARK_CAVE_ESCAPE, 'Climb', 32);
+        if (!rope || !(await rope.interact('Climb'))) {
+            log('no cave exit in range');
+            return false;
+        }
     }
     if (!(await Execution.delayUntil(() => watchtowerArea(Game.tile()) !== 'skavidCaves', 12_000))) {
         return false;

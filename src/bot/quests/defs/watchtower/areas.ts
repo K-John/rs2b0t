@@ -67,6 +67,7 @@ export const WT_LOC = {
     JUMP_IN: 2830,
     JUMP_OUT: 2831,
     ENCLAVE_CAVE: 2813,
+    DARK_CAVE_ESCAPE: 2825,
     ROCK_OF_DALGROTH: 2816,
     CAVE_IN: [2805, 2806, 2807, 2808, 2809, 2810] as readonly number[],
     CAVE_OUT: [2817, 2818, 2819, 2820, 2821, 2822] as readonly number[]
