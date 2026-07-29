@@ -652,3 +652,21 @@ describe('shilo decide — pockets a step enters itself', () => {
         expect(name(step)).toContain('climb up');
     });
 });
+
+describe('shilo decide — a half-stocked bakery', () => {
+    const readyForTomb = (bread: number) => decide(snapshot({
+        progress: progress(SV_STAGE.UNLOCKED_RASH_TOMB),
+        invIds: carrying([SV_ITEM.BONE_KEY.id, 1]),
+        inv: new Map([['bread', bread]]),
+        wornIds: new Set([SV_ITEM.DEAD_BEADS.id]),
+        tile: KARAMJA
+    }));
+
+    test('an empty pack buys food before the tomb', () => {
+        expect(readyForTomb(0).kind).toBe('buy');
+    });
+
+    test('four loaves are enough to go in — Jiminua bakes ten at a time', () => {
+        expect(name(readyForTomb(4))).toContain("enter Rashiliyia's tomb");
+    });
+});

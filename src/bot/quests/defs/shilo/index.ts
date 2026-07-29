@@ -59,6 +59,13 @@ const TOMB_BONES = 3;
 const TOMB_FOOD = 8;
 
 /**
+ * Jiminua bakes ten loaves at a time and the stock drains, so insisting on the full
+ * eight would send the bot back for the last two while the oven catches up. Below
+ * this, though, the tomb is not worth entering.
+ */
+const TOMB_FOOD_MIN = 4;
+
+/**
  * The island, generously bounded. Everything the quest needs is on it except coins
  * and bones, and there is no bank here until the quest itself opens Shilo's — so
  * provisioning only runs while we are still on the mainland.
@@ -264,7 +271,9 @@ function bonesWanted(snap: QuestSnapshot): number {
 
 /** Nothing can be fetched from inside, so the bones and the food go in with us. */
 function tombSupplies(snap: QuestSnapshot, bones: number): QuestStep | null {
-    return (bones > 0 ? sourceBones(snap, bones) : null) ?? sourceFood(snap, TOMB_FOOD);
+    const carried = snap.inv.get(QUEST_FOOD.toLowerCase()) ?? 0;
+    const food = carried < TOMB_FOOD_MIN ? sourceFood(snap, TOMB_FOOD) : null;
+    return (bones > 0 ? sourceBones(snap, bones) : null) ?? food;
 }
 
 /**
