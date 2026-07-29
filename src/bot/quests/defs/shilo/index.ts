@@ -29,6 +29,7 @@ import {
     climbRashRocks,
     enterRashTomb,
     leaveRashTomb,
+    leaveTombChamber,
     passGate,
     placeBone,
     searchCarvedDoors,
@@ -94,7 +95,7 @@ function escapePocket(area: ShiloArea): QuestStep | null {
         case 'berviriusTomb':
             return step("climb out of Bervirius' tomb", leaveBerviriusTomb);
         case 'rashInner':
-            return step('climb up out of the tomb chamber', log => climbRashRocks('up', log));
+            return step('leave the tomb chamber', leaveTombChamber);
         case 'rashLedge':
             return step('open the ancient gate back out', log => passGate('out', log));
         case 'rashEntry':

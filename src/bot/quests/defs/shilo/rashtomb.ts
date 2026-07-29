@@ -230,28 +230,49 @@ export async function placeBone(log: (m: string) => void): Promise<boolean> {
 
 /**
  * The dolmen is on the far side of the skeletal doors, and the doors revert to
- * closed three ticks after any crossing — so getting back to it is another `Open`,
- * which teleports rather than walks. Nothing routes through them: they are excluded
- * from the door bake precisely because three bones is the only way in.
+ * closed three ticks after any crossing — so every trip through them is another
+ * `Open`, which teleports rather than walks. Nothing routes through them: they are
+ * excluded from the door bake precisely because three bones is the only way in.
  */
-export async function returnNorthOfDoors(log: (m: string) => void): Promise<boolean> {
-    const north = (): boolean => (Game.tile()?.z ?? 0) > TOMB_DOOR_Z;
-    if (north()) {
+export async function crossTombDoors(dir: 'north' | 'south', log: (m: string) => void): Promise<boolean> {
+    const there = (): boolean => {
+        const z = Game.tile()?.z ?? 0;
+        return dir === 'north' ? z > TOMB_DOOR_Z : z <= TOMB_DOOR_Z;
+    };
+    if (there()) {
         return true;
     }
     const doors = locNear(SV_LOC.TOMB_DOORS, 'Open', 8);
     if (!doors) {
-        log('no skeletal doors in range to cross back through');
+        log(`no skeletal doors in range to cross ${dir}`);
         return false;
     }
     if (!(await doors.interact('Open'))) {
         return false;
     }
-    const ok = await Execution.delayUntil(north, 15_000);
+    const ok = await Execution.delayUntil(there, 15_000);
     if (ok) {
         await settleScene();
     }
     return ok;
+}
+
+/**
+ * Leaving the chamber is three moves, not one: back through the skeletal doors,
+ * east to the foot of the climbing rocks, then up. Nothing but the doors connects
+ * the dolmen room to the rest of the tomb.
+ */
+export async function leaveTombChamber(log: (m: string) => void): Promise<boolean> {
+    if (here() !== 'rashInner') {
+        return true;
+    }
+    if (!(await crossTombDoors('south', log))) {
+        return false;
+    }
+    if (!(await Traversal.walkResilient(SV_TILE.RASH_ROCKS_BOTTOM, { radius: 2, attempts: 3, timeoutMs: 120_000, log }))) {
+        return false;
+    }
+    return climbRashRocks('up', log);
 }
 
 const FIGHT_MS = 240_000;
@@ -269,7 +290,7 @@ export async function workTheDolmen(log: (m: string) => void): Promise<boolean> 
     if (boss()) {
         return fightNazastarool(log);
     }
-    if (!(await returnNorthOfDoors(log))) {
+    if (!(await crossTombDoors('north', log))) {
         return false;
     }
     const searched = await promptLoc(

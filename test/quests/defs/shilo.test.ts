@@ -488,9 +488,9 @@ describe('shilo decide — the tomb', () => {
             progress: progress(SV_STAGE.UNLOCKED_RASH_TOMB),
             invIds: new Map([[SV_ITEM.COINS.id, 5000], [SV_ITEM.BONE_KEY.id, 1]]),
             wornIds: new Set([SV_ITEM.DEAD_BEADS.id]),
-            tile: at(2892, 9482)
+            tile: at(2892, 9479)
         }));
-        expect(name(step)).toContain('climb up');
+        expect(name(step)).toContain('leave the tomb chamber');
     });
 
     test('all three placed, it waits — the third bone opens the doors itself', () => {
@@ -550,7 +550,7 @@ describe('shilo decide — the boss and the ending', () => {
             wornIds: new Set([SV_ITEM.DEAD_BEADS.id]),
             tile: at(2892, 9487)
         }));
-        expect(name(inside)).toContain('climb up');
+        expect(name(inside)).toContain('leave the tomb chamber');
 
         const outside = decide(snapshot({
             progress: progress(SV_STAGE.UNLOCKED_TOMBDOOR),
@@ -649,7 +649,7 @@ describe('shilo decide — pockets a step enters itself', () => {
             invIds: carrying([SV_ITEM.RASH_CORPSE.id, 1]),
             tile: at(2892, 9487)
         }));
-        expect(name(step)).toContain('climb up');
+        expect(name(step)).toContain('leave the tomb chamber');
     });
 });
 
