@@ -109,3 +109,32 @@ export function sourceLightSource(snap: QuestSnapshot): QuestStep | null {
     }
     return { kind: 'grabGround', item: WT_ITEM.LIT_CANDLE.name, anchor: WT_TILE.CANDLE, waitIfMissing: true };
 }
+
+/** Ordered by preference; the module withdraws whichever the bank actually holds. */
+export const QUEST_FOODS = ['Tuna', 'Swordfish', 'Lobster'] as const;
+
+export function carriedFood(snap: QuestSnapshot): number {
+    return QUEST_FOODS.reduce((total, food) => total + (snap.inv.get(food.toLowerCase()) ?? 0), 0);
+}
+
+/**
+ * The shamans are 99 in every combat stat and respawn about every hundred ticks,
+ * so an enclave trip without food is a death. ownsInventory means the engine's
+ * own food provisioning never runs for this quest.
+ */
+export function sourceFood(snap: QuestSnapshot, want: number): QuestStep | null {
+    const carried = carriedFood(snap);
+    if (carried >= want) {
+        return null;
+    }
+    if (!snap.bankKnown) {
+        return scanBank();
+    }
+    for (const food of QUEST_FOODS) {
+        const inBank = snap.bank?.get(food.toLowerCase()) ?? 0;
+        if (inBank > 0) {
+            return { kind: 'withdraw', items: [{ name: food, qty: Math.min(want - carried, inBank) }], bank: WT_TILE.YANILLE_BANK };
+        }
+    }
+    return { kind: 'wait', reason: 'no food in the bank for the shaman enclave' };
+}

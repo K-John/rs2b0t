@@ -656,6 +656,7 @@ describe('watchtower decide — a cave trip needs the map and a light', () => {
     test('stage 10 fetching nightshade without the map re-asks the city guard', () => {
         const step = decide(snapshot({
             progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+            inv: new Map([['tuna', 10]]),
             invIds: new Map([[WT_ITEM.MAGIC_OGRE_POTION.id, 1], [WT_ITEM.LIT_CANDLE.id, 1]])
         }));
         expect(step.kind === 'custom' && step.name).toMatch(/skavid map/i);
@@ -664,6 +665,7 @@ describe('watchtower decide — a cave trip needs the map and a light', () => {
     test('with the map banked it is withdrawn rather than re-asked', () => {
         const step = decide(snapshot({
             progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+            inv: new Map([['tuna', 10]]),
             invIds: new Map([[WT_ITEM.MAGIC_OGRE_POTION.id, 1], [WT_ITEM.LIT_CANDLE.id, 1]]),
             bankIds: new Map([[WT_ITEM.SKAVID_MAP.id, 1]])
         }));
@@ -673,6 +675,7 @@ describe('watchtower decide — a cave trip needs the map and a light', () => {
     test('with map and light in hand it goes for the nightshade', () => {
         const step = decide(snapshot({
             progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+            inv: new Map([['tuna', 10]]),
             invIds: new Map([
                 [WT_ITEM.MAGIC_OGRE_POTION.id, 1],
                 [WT_ITEM.SKAVID_MAP.id, 1],
@@ -680,5 +683,25 @@ describe('watchtower decide — a cave trip needs the map and a light', () => {
             ])
         }));
         expect(step.kind === 'custom' && step.name).toMatch(/nightshade/i);
+    });
+});
+
+describe('watchtower decide — the enclave is never entered without food', () => {
+    test('stage 10 with no food withdraws some before going in', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+            invIds: new Map([[WT_ITEM.MAGIC_OGRE_POTION.id, 1], [WT_ITEM.NIGHTSHADE.id, 1]]),
+            bank: new Map([['tuna', 100]])
+        }));
+        expect(step.kind).toBe('withdraw');
+    });
+
+    test('with no food anywhere it parks naming the problem', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+            invIds: new Map([[WT_ITEM.MAGIC_OGRE_POTION.id, 1], [WT_ITEM.NIGHTSHADE.id, 1]])
+        }));
+        expect(step.kind).toBe('wait');
+        expect(step.kind === 'wait' && step.reason).toMatch(/food/i);
     });
 });

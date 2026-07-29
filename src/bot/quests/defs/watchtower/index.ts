@@ -48,6 +48,7 @@ import {
     sourceDeathRune,
     sourceLightSource,
     sourcePestle,
+    sourceFood,
     sourceRope,
     sourceVial,
     withdrawFrom
@@ -55,6 +56,9 @@ import {
 
 // Enough for both chasm tolls, a death rune and the odd shop trip.
 const CITY_PURSE = 2000;
+
+// Enough to survive a respawned shaman on the way to the rock.
+const ENCLAVE_FOOD = 8;
 
 function escapePocket(area: WatchtowerArea, wanted: WatchtowerArea): QuestStep | null {
     if (area === wanted) {
@@ -243,7 +247,10 @@ function stageEnclaveEntry(snap: QuestSnapshot, area: WatchtowerArea): QuestStep
         return needCaveKit(snap, area)
             ?? { kind: 'custom', name: 'take Nightshade from the skavid cave', run: takeNightshade };
     }
-    return { kind: 'custom', name: 'feed the enclave guard Nightshade', run: enterEnclave };
+    const food = sourceFood(snap, ENCLAVE_FOOD);
+    return food
+        ? at(area, 'yanille', food)
+        : { kind: 'custom', name: 'feed the enclave guard Nightshade', run: enterEnclave };
 }
 
 function stagePotion(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
@@ -285,6 +292,15 @@ function stagePotion(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
 
 function stageShamans(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
     const left = flagValue(snap.progress, 'shamans-left') ?? 6;
+
+    // Dissolved shamans respawn, so every trip in here needs food, not just the
+    // one that does the killing.
+    if (area !== 'enclave') {
+        const food = sourceFood(snap, ENCLAVE_FOOD);
+        if (food) {
+            return at(area, 'yanille', food);
+        }
+    }
 
     if (left > 0) {
         if (held(snap, WT_ITEM.MAGIC_OGRE_POTION.id) === 0) {
