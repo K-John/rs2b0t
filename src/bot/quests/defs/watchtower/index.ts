@@ -383,6 +383,15 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (area === 'unknown') {
         return { kind: 'wait', reason: 'player location unavailable' };
     }
+    // Pulling the lever teleports into the shielded copy of the tower in region
+    // 45_73, and nothing else goes there. Standing in it means the quest is done,
+    // whatever the journal colour has caught up to.
+    if (area === 'mirrorTower') {
+        if (held(snap, WT_ITEM.WATCHTOWER_SPELL.id) > 0) {
+            return { kind: 'custom', name: 'read the Watchtower spell scroll', run: readSpellScroll };
+        }
+        return { kind: 'custom', name: 'climb down from the activated Watchtower', run: leaveWizardFloor };
+    }
 
     switch (snap.stage) {
         case WATCHTOWER_STAGE.NOT_STARTED:

@@ -758,3 +758,22 @@ describe('watchtower decide — food is only demanded for trips that re-enter', 
         expect(step.kind === 'wait' && step.reason).toMatch(/food/i);
     });
 });
+
+describe('watchtower decide — the mirror tower means done', () => {
+    test('standing in region 45_73 with the scroll, it reads it', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.FOUND_ALL_CRYSTALS),
+            tile: { x: 2928, z: 4715, level: 2 },
+            invIds: new Map([[WT_ITEM.WATCHTOWER_SPELL.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/scroll/i);
+    });
+
+    test('without the scroll it climbs down rather than retrying the lever', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.FOUND_ALL_CRYSTALS),
+            tile: { x: 2928, z: 4715, level: 2 }
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/climb down/i);
+    });
+});
