@@ -117,6 +117,10 @@ export async function searchEvidenceBush(log: (m: string) => void): Promise<bool
     if (!(await Traversal.walkResilient(WT_TILE.BUSH_NAIL, { radius: 1, attempts: 3, timeoutMs: 300_000, log }))) {
         return false;
     }
+    if (Inventory.free() === 0) {
+        log('pack is full — the bush cannot hand over the fingernails');
+        return false;
+    }
     // Forty-odd decoy bushes share the name, and only this one holds evidence.
     const bush = Locs.query()
         .where(loc => loc.id === WT_LOC.BUSH_NAIL)
