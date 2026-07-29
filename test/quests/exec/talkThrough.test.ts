@@ -133,6 +133,31 @@ describe('talkThrough door handling', () => {
         expect(ok).toBe(true);
     });
 
+    test('a distant target is never probed — out of BFS range reads as walled off', async () => {
+        // 400 expansions run out at ~11 tiles of open ground, so a patrolling NPC
+        // would otherwise have us opening doors it is simply too far to need.
+        npcReachable = false;
+        sceneNpc = { name: 'Fred the Farmer', tile: { x: 40, z: 40, level: 0 }, ops: ['Talk-to'] };
+        sceneDoor = { name: 'Door', ops: ['Open'], tile: { x: 1, z: 0, level: 0 }, distance: 1 };
+
+        const ok = await talkThrough('Fred the Farmer', [], () => {});
+
+        expect(doorInteractOps).toEqual([]);
+        expect(npcInteractOps).toEqual(['Talk-to']);
+        expect(ok).toBe(true);
+    });
+
+    test('a target on another level is never probed', async () => {
+        npcReachable = false;
+        sceneNpc = { name: 'Fred the Farmer', tile: { x: 3, z: 1, level: 1 }, ops: ['Talk-to'] };
+        sceneDoor = { name: 'Door', ops: ['Open'], tile: { x: 1, z: 0, level: 0 }, distance: 1 };
+
+        const ok = await talkThrough('Fred the Farmer', [], () => {});
+
+        expect(doorInteractOps).toEqual([]);
+        expect(ok).toBe(true);
+    });
+
     test('walled off with no door to open falls through to the plain click', async () => {
         npcReachable = false;
 

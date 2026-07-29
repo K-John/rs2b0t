@@ -47,6 +47,12 @@ export interface ReachEntityOpts<T extends ReachEntity> {
 }
 
 const REACH_BFS_STEPS = 400;
+/**
+ * How far the scene probe's verdict is worth trusting. `REACH_BFS_STEPS` expansions
+ * run out at ~11 tiles of open ground, so beyond this a plain "too far" reads exactly
+ * like "walled off" — and a patrolling target would have us opening doors for nothing.
+ */
+const PROBE_RADIUS = 10;
 
 async function closeIn(near: WorldTile, radius: number, log: (m: string) => void): Promise<ReachStatus> {
     const ok = await Traversal.walkResilient(near, { radius, attempts: 4, timeoutMs: 90_000, log });
@@ -102,7 +108,8 @@ async function reachThroughDoors(
         // click below and costs nothing.
         if (probeUnreachable && !expect()) {
             const blocked = targetTile();
-            if (blocked
+            const here = reader.worldTile();
+            if (blocked && here && blocked.level === here.level && chebyshev(here, blocked) <= PROBE_RADIUS
                 && !Reachability.canReach(blocked, { maxSteps: REACH_BFS_STEPS, adjacentOk: true })
                 && (await openBlockingDoor(blocked, log))) {
                 continue;

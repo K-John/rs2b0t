@@ -255,6 +255,11 @@ leaves you there, silently, forever. So the NPC paths (`npcDialog`, and `entityO
 under `openWhenUnreachable`) probe the scene themselves and open the door on their own
 verdict. A wrong probe is harmless: it falls through to the ordinary click.
 
+That probe is only trusted within `PROBE_RADIUS` on the same level. `REACH_BFS_STEPS`
+expansions run out at about eleven tiles of open ground, so past that "too far to
+search" is indistinguishable from "walled off" — and a patrolling target would have
+the bot opening doors it never needed.
+
 `Reach.npcDialog` searches the whole scene and lets the server walk the player to the
 target, so it follows an NPC that wanders. A leash-limited approach loop cannot — a
 patrolling NPC simply walks out of range and the interaction is abandoned.
