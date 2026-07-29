@@ -143,12 +143,22 @@ describe('junglepotion decide', () => {
         expect(step.kind === 'custom' && step.name).toBe('pick Ardrigal');
     });
 
-    test('a found_ stage with an unidentified herb identifies it first', () => {
-        const step = decide(snapshot({
+    test('a carried unid is identified whatever the journal says', () => {
+        // At found_snake_weed with the unid held the journal writes no line at all,
+        // and every other found_ stage writes the previous "go and pick it" line.
+        expect(decide(snapshot({
             stage: JP_STAGE.FOUND_ARDRIGAL,
             invIds: new Map([[1527, 1]])
-        }));
-        expect(step.kind === 'custom' && step.name).toBe('identify the Ardrigal');
+        })).kind === 'custom' && decide(snapshot({
+            stage: JP_STAGE.FOUND_ARDRIGAL,
+            invIds: new Map([[1527, 1]])
+        })).name).toBe('identify the Ardrigal');
+
+        const noStage = decide(snapshot({ stage: undefined, invIds: new Map([[1525, 1]]) }));
+        expect(noStage.kind === 'custom' && noStage.name).toBe('identify the Snake weed');
+
+        const wrongStage = decide(snapshot({ stage: JP_STAGE.GET_SITO_FOIL, invIds: new Map([[1529, 1]]) }));
+        expect(wrongStage.kind === 'custom' && wrongStage.name).toBe('identify the Sito foil');
     });
 
     test('a found_ stage with a clean herb hands it over', () => {

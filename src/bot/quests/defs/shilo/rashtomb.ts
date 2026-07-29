@@ -2,11 +2,13 @@
 import { Execution } from '../../../api/Execution.js';
 import { Game } from '../../../api/Game.js';
 import { Sustain } from '../../../api/Sustain.js';
+import { Traversal } from '../../../api/Traversal.js';
+import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Equipment } from '../../../api/hud/Equipment.js';
 import type { Npc } from '../../../api/entities/index.js';
 import { Npcs } from '../../../api/queries/Npcs.js';
-import { SV_ITEM, SV_LOC, SV_NPC, SV_TILE } from './areas.js';
-import { heldId, here, locNear, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { SV_ITEM, SV_LOC, SV_NPC, SV_TILE, TOMB_DOOR_Z } from './areas.js';
+import { driveChoice, heldId, here, locNear, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 /** The doors hide themselves again about fifty ticks after the trees are searched. */
 function carvedDoors(): ReturnType<typeof locNear> {
@@ -42,17 +44,24 @@ export async function searchCarvedDoors(log: (m: string) => void): Promise<boole
     if (!(await revealDoors(log))) {
         return false;
     }
-    return promptLoc(
-        {
-            name: SV_LOC.CARVED_DOORS,
-            op: 'Search',
-            near: SV_TILE.CARVED_DOORS,
-            // The bit lands with the message box; there is nothing else to observe.
-            expect: () => true,
-            expectMs: 3000
-        },
-        log
-    );
+    if (!(await Traversal.walkResilient(SV_TILE.CARVED_DOORS, { radius: 2, attempts: 3, timeoutMs: 180_000, log }))) {
+        return false;
+    }
+    await settleScene();
+    const doors = locNear(SV_LOC.CARVED_DOORS, 'Search', 10);
+    if (!doors) {
+        log('the carved doors closed again before they could be searched');
+        return false;
+    }
+    if (!(await doors.interact('Search'))) {
+        return false;
+    }
+    // The bit lands with the message box and nothing else changes, so the journal
+    // on the next pass is the only honest confirmation.
+    if (!(await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue(), 8000))) {
+        return false;
+    }
+    return driveChoice([], log);
 }
 
 export async function unlockCarvedDoors(log: (m: string) => void): Promise<boolean> {
@@ -200,20 +209,25 @@ export async function placeBone(log: (m: string) => void): Promise<boolean> {
     );
 }
 
-export async function enterTombRoom(log: (m: string) => void): Promise<boolean> {
-    const tile = Game.tile();
-    if (tile && tile.z < 9480) {
+/**
+ * The third bone pushes you south through the doors, but the dolmen is on the north
+ * side — and the doors revert to closed three ticks later, so the way back is
+ * another `Open`, which teleports rather than walks.
+ */
+export async function returnNorthOfDoors(log: (m: string) => void): Promise<boolean> {
+    const north = (): boolean => (Game.tile()?.z ?? 0) > TOMB_DOOR_Z;
+    if (north()) {
         return true;
     }
-    const ok = await promptLoc(
-        {
-            name: SV_LOC.TOMB_DOORS,
-            op: 'Open',
-            near: SV_TILE.TOMB_DOORS,
-            expect: () => (Game.tile()?.z ?? 9999) < 9480
-        },
-        log
-    );
+    const doors = locNear(SV_LOC.TOMB_DOORS, 'Open', 8);
+    if (!doors) {
+        log('no skeletal doors in range to cross back through');
+        return false;
+    }
+    if (!(await doors.interact('Open'))) {
+        return false;
+    }
+    const ok = await Execution.delayUntil(north, 15_000);
     if (ok) {
         await settleScene();
     }
@@ -234,6 +248,9 @@ export async function workTheDolmen(log: (m: string) => void): Promise<boolean> 
     const boss = (): Npc | null => Npcs.query().name(SV_NPC.NAZASTAROOL).action('Attack').within(14).nearest();
     if (boss()) {
         return fightNazastarool(log);
+    }
+    if (!(await returnNorthOfDoors(log))) {
+        return false;
     }
     const searched = await promptLoc(
         {

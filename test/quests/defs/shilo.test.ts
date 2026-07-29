@@ -483,14 +483,24 @@ describe('shilo decide — the tomb', () => {
         expect(name(step)).toContain('climb up');
     });
 
-    test('all three placed, it opens the doors', () => {
+    test('all three placed, it waits — the third bone opens the doors itself', () => {
         const step = decide(snapshot({
             progress: progress(SV_STAGE.UNLOCKED_RASH_TOMB, ['bones-placed:3']),
             invIds: new Map([[SV_ITEM.COINS.id, 5000], [SV_ITEM.BONE_KEY.id, 1]]),
             wornIds: new Set([SV_ITEM.DEAD_BEADS.id]),
             tile: at(2892, 9482)
         }));
-        expect(name(step)).toContain('skeletal tomb doors');
+        expect(step.kind).toBe('wait');
+    });
+
+    test('pushed south of the doors, the dolmen step crosses back on its own', () => {
+        const step = decide(snapshot({
+            progress: progress(SV_STAGE.UNLOCKED_TOMBDOOR),
+            invIds: carrying(),
+            wornIds: new Set([SV_ITEM.DEAD_BEADS.id]),
+            tile: at(2892, 9480)
+        }));
+        expect(name(step)).toContain('tomb dolmen');
     });
 });
 

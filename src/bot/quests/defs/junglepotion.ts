@@ -2,15 +2,14 @@
 import { actions, reader } from '../../adapter/ClientAdapter.js';
 import { Execution } from '../../api/Execution.js';
 import { Game } from '../../api/Game.js';
-import { Reach } from '../../api/Reach.js';
 import Tile from '../../api/Tile.js';
 import { Traversal } from '../../api/Traversal.js';
-import { ChatDialog } from '../../api/hud/ChatDialog.js';
 import { Inventory } from '../../api/hud/Inventory.js';
 import { Quests } from '../../api/hud/Quests.js';
 import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { talkStrict } from '../exec/primitives.js';
+import { heldId, promptLoc, settleScene } from '../exec/prompts.js';
 
 export const JUNGLE_POTION_QUEST = 'Jungle Potion';
 
@@ -75,10 +74,6 @@ const START_DIALOGUE = [
 ];
 
 const HAND_IN_DIALOGUE = ['Of course!'];
-
-function heldId(id: number): number {
-    return Inventory.items().filter(item => item.id === id).reduce((sum, item) => sum + item.count, 0);
-}
 
 function inCaves(tile: QuestSnapshot['tile']): boolean {
     return tile !== null && tile !== undefined && tile.z >= 9400;
@@ -172,38 +167,44 @@ export async function readJungleProgress(): Promise<QuestProgress | undefined> {
     return progress;
 }
 
+/** The cave mouth raises a message box first, then the yes/no prompt. */
 async function enterPothole(log: (m: string) => void): Promise<boolean> {
     if (inCaves(Game.tile())) {
         return true;
     }
-    const status = await Reach.locOp({
-        name: POTHOLE_ENTRANCE.loc,
-        op: POTHOLE_ENTRANCE.op,
-        near: POTHOLE_ENTRANCE.stand,
-        expect: () => ChatDialog.options().length > 0 || inCaves(Game.tile()),
+    const ok = await promptLoc(
+        {
+            name: POTHOLE_ENTRANCE.loc,
+            op: POTHOLE_ENTRANCE.op,
+            near: POTHOLE_ENTRANCE.stand,
+            prefer: ["Yes, I'll enter the cave."],
+            expect: () => inCaves(Game.tile())
+        },
         log
-    });
-    if (status !== 'done') {
-        return false;
+    );
+    if (ok) {
+        await settleScene();
     }
-    if (ChatDialog.options().length > 0) {
-        await ChatDialog.chooseOption(ChatDialog.options().find(o => /yes/i.test(o)) ?? ChatDialog.options()[0]);
-    }
-    return Execution.delayUntil(() => inCaves(Game.tile()), 10_000);
+    return ok;
 }
 
 export async function leavePothole(log: (m: string) => void): Promise<boolean> {
     if (!inCaves(Game.tile())) {
         return true;
     }
-    const status = await Reach.locOp({
-        name: POTHOLE_EXIT.loc,
-        op: POTHOLE_EXIT.op,
-        near: POTHOLE_EXIT.stand,
-        expect: () => !inCaves(Game.tile()),
+    const ok = await promptLoc(
+        {
+            name: POTHOLE_EXIT.loc,
+            op: POTHOLE_EXIT.op,
+            near: POTHOLE_EXIT.stand,
+            expect: () => !inCaves(Game.tile())
+        },
         log
-    });
-    return status === 'done';
+    );
+    if (ok) {
+        await settleScene();
+    }
+    return ok;
 }
 
 export function pickHerb(herb: JungleHerb): (log: (m: string) => void) => Promise<boolean> {
@@ -219,14 +220,15 @@ export function pickHerb(herb: JungleHerb): (log: (m: string) => void) => Promis
         if (!herb.underground && inCaves(Game.tile()) && !(await leavePothole(log))) {
             return false;
         }
-        const status = await Reach.locOp({
-            name: herb.loc,
-            op: herb.op,
-            near: herb.stand,
-            expect: () => heldId(herb.unidId) > 0 || heldId(herb.id) > 0,
+        return promptLoc(
+            {
+                name: herb.loc,
+                op: herb.op,
+                near: herb.stand,
+                expect: () => heldId(herb.unidId) > 0
+            },
             log
-        });
-        return status === 'done';
+        );
     };
 }
 
@@ -272,6 +274,15 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (snap.journal === 'unknown') {
         return { kind: 'wait', reason: 'quest journal not loaded' };
     }
+    // A carried unid outranks the journal. It exists only because we just picked
+    // it, which is exactly the state the journal cannot render: at `found_snake_weed`
+    // holding the unid it writes no line at all, and every other `found_` stage
+    // writes the *previous* stage's "go and pick it" line.
+    const carried = JUNGLE_HERBS.find(h => (snap.invIds?.get(h.unidId) ?? 0) > 0);
+    if (carried) {
+        return { kind: 'custom', name: `identify the ${carried.name}`, run: identifyHerb(carried) };
+    }
+
     const stage = snap.stage;
     if (stage === undefined) {
         return { kind: 'wait', reason: 'Jungle Potion journal stage unavailable' };
@@ -287,18 +298,10 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (!herb) {
         return { kind: 'wait', reason: `Jungle Potion stage ${stage} is not implemented` };
     }
-    const held = snap.invIds?.get(herb.id) ?? 0;
-    const unid = snap.invIds?.get(herb.unidId) ?? 0;
-
     // Picking is what advances `get_` to `found_`, and only `found_` accepts a
-    // hand-in — so a herb carried into a `get_` stage still has to be re-picked.
-    if (stage % 2 === 1) {
-        return { kind: 'custom', name: `pick ${herb.name}`, run: pickHerb(herb) };
-    }
-    if (unid > 0) {
-        return { kind: 'custom', name: `identify the ${herb.name}`, run: identifyHerb(herb) };
-    }
-    if (held === 0) {
+    // hand-in — so a clean herb carried into a `get_` stage still has to be re-picked.
+    const held = snap.invIds?.get(herb.id) ?? 0;
+    if (stage % 2 === 1 || held === 0) {
         return { kind: 'custom', name: `pick ${herb.name}`, run: pickHerb(herb) };
     }
     return { kind: 'custom', name: `give the ${herb.name} to Trufitus`, run: handInHerb };

@@ -104,9 +104,14 @@ export const SV_TILE = {
     // Passing the gate southbound drops you here; the rocks are clicked from it.
     GATE_SOUTH_LANDING: new Tile(2929, 9515, 0),
     RASH_ROCKS_BOTTOM: new Tile(2928, 9511, 0),
-    TOMB_DOORS: new Tile(2892, 9479, 0),
+    // North of the skeletal doors: both the dolmen and the way in from the rocks
+    // are on this side, and the doors themselves sit at z=9480.
+    TOMB_DOORS: new Tile(2892, 9482, 0),
     RASH_DOLMEN: new Tile(2891, 9487, 0)
 } as const;
+
+/** The skeletal doors divide the tomb; everything the quest needs is north of them. */
+export const TOMB_DOOR_Z = 9480;
 
 /** Bones are sold nowhere and dropped by nothing this quest kills. */
 export const BONE_SPAWNS: readonly Tile[] = [

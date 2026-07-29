@@ -28,7 +28,6 @@ import { SV_STAGE, readShiloProgress } from './journal.js';
 import {
     climbRashRocks,
     enterRashTomb,
-    enterTombRoom,
     leaveRashTomb,
     openAncientGate,
     placeBone,
@@ -269,9 +268,11 @@ function stageTomb(snap: QuestSnapshot, area: ShiloArea): QuestStep {
         return escapePocket(area) ?? { kind: 'wait', reason: 'short of bones and nowhere to go' };
     }
     if (area === 'rashInner') {
+        // The third bone opens the doors and pushes us through by itself, so there
+        // is nothing left to do here once the journal has caught up.
         return wanted > 0
             ? step('place a bone in the tomb door', placeBone)
-            : step('open the skeletal tomb doors', enterTombRoom);
+            : { kind: 'wait', reason: 'all three bones are placed — waiting for the journal' };
     }
     if (area === 'rashEntry') {
         return step('open the ancient gate', openAncientGate);
