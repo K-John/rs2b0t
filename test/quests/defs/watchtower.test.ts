@@ -409,10 +409,19 @@ describe('watchtower decide — into the city guard pocket', () => {
         expect(step.kind === 'custom' && step.name).toMatch(/chasm|jump|guard/i);
     });
 
-    test('the chasm toll is withdrawn before the jump is attempted', () => {
+    test('short of the toll inside the lower city, it climbs out toward the bank', () => {
         const step = decide(snapshot({
             progress: P(4, 'market-paid'),
             tile: { x: 2526, z: 3018, level: 0 },
+            invIds: new Map(),
+            bankIds: new Map([[WT_ITEM.COINS.id, 100000]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/battlement/i);
+    });
+
+    test('short of the toll on the mainland, it withdraws it', () => {
+        const step = decide(snapshot({
+            progress: P(4, 'market-paid'),
             invIds: new Map(),
             bankIds: new Map([[WT_ITEM.COINS.id, 100000]])
         }));
