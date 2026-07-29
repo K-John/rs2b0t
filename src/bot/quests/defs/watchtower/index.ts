@@ -1,6 +1,6 @@
 import { QUESTS } from '../../data/quests.js';
-import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
-import { RELIC_PARTS, WT_ITEM, WT_TILE, watchtowerArea, type WatchtowerArea } from './areas.js';
+import { flagValue, hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
+import { CRYSTALS, RELIC_PARTS, WT_ITEM, WT_TILE, watchtowerArea, type WatchtowerArea } from './areas.js';
 import {
     CHASM_TOLL,
     answerRiddle,
@@ -11,12 +11,19 @@ import {
     stealRockCake
 } from './gutanoth.js';
 import { WATCHTOWER_STAGE, readWatchtowerProgress } from './journal.js';
+import { answerMadSkavid, learnFromScaredSkavid, learnWord, nextSkavidCave, takeNightshade } from './caves.js';
+import { dissolveShamans, enterEnclave, leaveEnclave, mineDalgroth, searchShamanRobe } from './enclave.js';
+import { brewOgrePotion, grindBatBones, infusePotion } from './potion.js';
 import {
+    askWizardAboutShamans,
     askWizardForRelic,
     giveRelicPart,
     handInFingernails,
     leaveWizardFloor,
+    pullLever,
+    readSpellScroll,
     searchEvidenceBush,
+    showCrystalsToWizard,
     startQuest
 } from './tower.js';
 import {
@@ -30,7 +37,20 @@ import {
     talkToOg,
     talkToToban
 } from './tribes.js';
-import { banked, bankOnly, held, owned, scanBank, sourceCoins, sourceDeathRune, sourceRope, withdrawFrom } from './supplies.js';
+import {
+    banked,
+    bankOnly,
+    held,
+    owned,
+    scanBank,
+    sourceCoins,
+    sourceDeathRune,
+    sourceLightSource,
+    sourcePestle,
+    sourceRope,
+    sourceVial,
+    withdrawFrom
+} from './supplies.js';
 
 // Enough for both chasm tolls, a death rune and the odd shop trip.
 const CITY_PURSE = 2000;
@@ -137,9 +157,154 @@ function stageRiddle(snap: QuestSnapshot): QuestStep {
     return purse ?? { kind: 'custom', name: 'answer the riddle with a death rune', run: answerRiddle };
 }
 
+function stageCaves(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
+    if (held(snap, WT_ITEM.SKAVID_MAP.id) === 0) {
+        const banked = bankOnly(snap, WT_ITEM.SKAVID_MAP);
+        if (banked && banked.kind === 'withdraw') {
+            return banked;
+        }
+        return { kind: 'custom', name: 'ask the city guard for another skavid map', run: askRiddle };
+    }
+    const light = sourceLightSource(snap);
+    if (light) {
+        return light;
+    }
+    const cave = nextSkavidCave(snap.progress);
+    if (cave === 5) {
+        return { kind: 'custom', name: 'learn skavid words from the scared skavid', run: learnFromScaredSkavid };
+    }
+    if (cave <= 4) {
+        return { kind: 'custom', name: `answer the skavid in cave ${cave}`, run: log => learnWord(cave, log) };
+    }
+    // Cave 6 is behind the battlement, so the market gift has to be paid first.
+    if (area !== 'lowerCity' && !hasFlag(snap.progress, 'market-paid')) {
+        if (held(snap, WT_ITEM.ROCK_CAKE.id) === 0) {
+            return { kind: 'custom', name: 'steal a rock cake for the battlement guard', run: stealRockCake };
+        }
+        return { kind: 'custom', name: 'give the rock cake to the battlement guard', run: crossBattlement };
+    }
+    return { kind: 'custom', name: 'answer the mad skavid for a crystal', run: answerMadSkavid };
+}
+
+function stageEnclaveEntry(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
+    if (area === 'enclave') {
+        return { kind: 'custom', name: 'leave the shaman enclave', run: leaveEnclave };
+    }
+    if (held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
+        return sourceLightSource(snap)
+            ?? { kind: 'custom', name: 'take Nightshade from the skavid cave', run: takeNightshade };
+    }
+    return { kind: 'custom', name: 'feed the enclave guard Nightshade', run: enterEnclave };
+}
+
+function stagePotion(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
+    if (held(snap, WT_ITEM.OGRE_POTION.id) > 0) {
+        return { kind: 'custom', name: 'have the wizard infuse the ogre potion', run: infusePotion };
+    }
+    const escape = escapePocket(area, 'yanille');
+    if (escape) {
+        return escape;
+    }
+    const midBrew = held(snap, WT_ITEM.GUAM_VIAL.id) > 0 || held(snap, WT_ITEM.GUAM_JANGER_VIAL.id) > 0;
+    if (!midBrew) {
+        const guam = bankOnly(snap, WT_ITEM.GUAM_LEAF);
+        if (guam) {
+            return guam;
+        }
+        const vial = sourceVial(snap);
+        if (vial) {
+            return vial;
+        }
+    }
+    if (held(snap, WT_ITEM.GUAM_JANGER_VIAL.id) === 0 && held(snap, WT_ITEM.JANGERBERRIES.id) === 0) {
+        return needRope(snap, area)
+            ?? { kind: 'custom', name: 'pick jangerberries on Grew island', run: pickJangerberries };
+    }
+    if (held(snap, WT_ITEM.GROUND_BAT_BONES.id) === 0) {
+        const bones = bankOnly(snap, WT_ITEM.BAT_BONES);
+        if (bones) {
+            return bones;
+        }
+        const pestle = sourcePestle(snap);
+        if (pestle) {
+            return pestle;
+        }
+        return { kind: 'custom', name: 'grind the bat bones', run: grindBatBones };
+    }
+    return { kind: 'custom', name: 'brew the ogre potion', run: brewOgrePotion };
+}
+
+function stageShamans(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
+    const left = flagValue(snap.progress, 'shamans-left') ?? 6;
+
+    if (left > 0) {
+        if (held(snap, WT_ITEM.MAGIC_OGRE_POTION.id) === 0) {
+            if (area === 'enclave') {
+                return { kind: 'custom', name: 'leave the enclave to brew another potion', run: leaveEnclave };
+            }
+            return stagePotion(snap, area);
+        }
+        if (area !== 'enclave' && held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
+            return { kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade };
+        }
+        return { kind: 'custom', name: 'dissolve the ogre shamans', run: dissolveShamans };
+    }
+
+    if (held(snap, WT_ITEM.CRYSTAL4.id) === 0 && banked(snap, WT_ITEM.CRYSTAL4.id) === 0) {
+        if (area !== 'enclave' && held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
+            return { kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade };
+        }
+        return { kind: 'custom', name: 'mine the Rock of Dalgroth', run: mineDalgroth };
+    }
+    if (held(snap, WT_ITEM.CRYSTAL3.id) === 0 && banked(snap, WT_ITEM.CRYSTAL3.id) === 0) {
+        if (area !== 'enclave' && held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
+            return { kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade };
+        }
+        return { kind: 'custom', name: 'search a shaman robe for the third crystal', run: searchShamanRobe };
+    }
+    if (area === 'enclave') {
+        return { kind: 'custom', name: 'leave the shaman enclave', run: leaveEnclave };
+    }
+    const recovery = recoverCrystals(snap);
+    if (recovery) {
+        return recovery;
+    }
+    return { kind: 'custom', name: 'take all four crystals to the wizard', run: showCrystalsToWizard };
+}
+
+const CRYSTAL_RECOVERY: Readonly<Record<number, { name: string; run: (log: (m: string) => void) => Promise<boolean> }>> = {
+    [WT_ITEM.CRYSTAL1.id]: { name: 'ask Grew for another crystal', run: talkToGrew },
+    [WT_ITEM.CRYSTAL2.id]: { name: 'ask the mad skavid for another crystal', run: answerMadSkavid },
+    [WT_ITEM.CRYSTAL3.id]: { name: 'search a shaman robe for the third crystal', run: searchShamanRobe },
+    [WT_ITEM.CRYSTAL4.id]: { name: 'mine the Rock of Dalgroth again', run: mineDalgroth }
+};
+
+function recoverCrystals(snap: QuestSnapshot): QuestStep | null {
+    // Every re-issue check reads the bank as well as the pack, so a banked crystal
+    // blocks its own replacement. Withdraw before asking anyone for another.
+    const inBank = CRYSTALS.filter(crystal => held(snap, crystal.id) === 0 && banked(snap, crystal.id) > 0);
+    if (inBank.length > 0) {
+        return withdrawFrom(inBank.map(crystal => ({ name: crystal.name, id: crystal.id, qty: 1 })));
+    }
+    if (!snap.bankKnown) {
+        return scanBank();
+    }
+    const lost = CRYSTALS.find(crystal => held(snap, crystal.id) === 0);
+    if (!lost) {
+        return null;
+    }
+    const recovery = CRYSTAL_RECOVERY[lost.id];
+    return { kind: 'custom', name: recovery.name, run: recovery.run };
+}
+
 export function decide(snap: QuestSnapshot): QuestStep {
     if (snap.journal === 'complete' || (snap.stage ?? -1) >= WATCHTOWER_STAGE.COMPLETE) {
-        return { kind: 'done' };
+        if (held(snap, WT_ITEM.WATCHTOWER_SPELL.id) > 0) {
+            return { kind: 'custom', name: 'read the Watchtower spell scroll', run: readSpellScroll };
+        }
+        // Completing teleports into the mirror tower in region 45_73.
+        const stranded = escapePocket(watchtowerArea(snap.tile), 'yanille');
+        return stranded ?? { kind: 'done' };
     }
     if (snap.journal === 'unknown') {
         return { kind: 'wait', reason: 'quest journal not loaded' };
@@ -175,6 +340,26 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
         case WATCHTOWER_STAGE.GIVEN_RIDDLE:
             return stageRiddle(snap);
+
+        case WATCHTOWER_STAGE.SOLVED_RIDDLE:
+            return stageCaves(snap, area);
+
+        case WATCHTOWER_STAGE.SKAVID_CRYSTAL:
+            return stageEnclaveEntry(snap, area);
+
+        case WATCHTOWER_STAGE.FED_NIGHTSHADE:
+            return escapePocket(area, 'yanille')
+                ?? { kind: 'custom', name: 'ask the wizard how to beat the shamans', run: askWizardAboutShamans };
+
+        case WATCHTOWER_STAGE.LEARNED_POTION:
+            return stagePotion(snap, area);
+
+        case WATCHTOWER_STAGE.MADE_POTION:
+            return stageShamans(snap, area);
+
+        case WATCHTOWER_STAGE.FOUND_ALL_CRYSTALS:
+            return escapePocket(area, 'yanille')
+                ?? { kind: 'custom', name: 'pull the lever to activate the shield', run: pullLever };
 
         default:
             return { kind: 'wait', reason: 'Watch Tower stage ' + snap.stage + ' is not implemented yet' };

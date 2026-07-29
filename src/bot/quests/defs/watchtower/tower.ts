@@ -1,13 +1,15 @@
+import { actions, reader } from '../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../api/Execution.js';
 import { Game } from '../../../api/Game.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
+import { Quests } from '../../../api/hud/Quests.js';
 import { Locs, type Loc } from '../../../api/queries/Locs.js';
 import { Npcs } from '../../../api/queries/Npcs.js';
 import { Reach } from '../../../api/Reach.js';
 import { Traversal } from '../../../api/Traversal.js';
 import { driveDialog, talkThrough } from '../../exec/primitives.js';
 import { WT_ITEM, WT_LOC, WT_NPC, WT_TILE, watchtowerArea } from './areas.js';
-import { WATCHTOWER_STAGE } from './journal.js';
+import { WATCHTOWER_QUEST, WATCHTOWER_STAGE } from './journal.js';
 import { settleScene } from './scene.js';
 
 function level(): number {
@@ -163,4 +165,55 @@ export async function askWizardForRelic(log: (m: string) => void): Promise<boole
         return false;
     }
     return talkToWizard(['I have lost the relic you gave me.'], log);
+}
+
+export async function askWizardAboutShamans(log: (m: string) => void): Promise<boolean> {
+    if (!(await climbToWizard(WATCHTOWER_STAGE.FED_NIGHTSHADE, log))) {
+        return false;
+    }
+    return talkToWizard([], log);
+}
+
+export async function showCrystalsToWizard(log: (m: string) => void): Promise<boolean> {
+    if (!(await climbToWizard(WATCHTOWER_STAGE.MADE_POTION, log))) {
+        return false;
+    }
+    const crystal = Inventory.items().find(item => item.id === WT_ITEM.CRYSTAL1.id);
+    const wizard = Npcs.query().name(WT_NPC.WIZARD).nearest();
+    if (!crystal || !wizard || !(await crystal.useOn(wizard))) {
+        return false;
+    }
+    return driveDialog(['This is the last one.', 'I have found another crystal!'], log);
+}
+
+export async function pullLever(log: (m: string) => void): Promise<boolean> {
+    if (!(await climbToWizard(WATCHTOWER_STAGE.FOUND_ALL_CRYSTALS, log))) {
+        return false;
+    }
+    if (!(await Traversal.walkResilient(WT_TILE.LEVER_STAND, { radius: 1, attempts: 3, timeoutMs: 60_000, log }))) {
+        return false;
+    }
+    const lever = locNear(WT_LOC.LEVER, 'Pull', 6);
+    if (!lever || !(await lever.interact('Pull'))) {
+        log('no Watchtower lever in range');
+        return false;
+    }
+    return Execution.delayUntil(() => Quests.status(WATCHTOWER_QUEST) === 'complete', 40_000);
+}
+
+export async function readSpellScroll(log: (m: string) => void): Promise<boolean> {
+    const scroll = Inventory.items().find(item => item.id === WT_ITEM.WATCHTOWER_SPELL.id);
+    if (!scroll) {
+        return true;
+    }
+    if (!(await scroll.interact('Read'))) {
+        return false;
+    }
+    await Execution.delayTicks(2);
+    if (reader.modals().main !== -1) {
+        actions.closeModal();
+        await Execution.delayTicks(1);
+    }
+    log('memorised the Watchtower Teleport scroll');
+    return true;
 }
