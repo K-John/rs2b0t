@@ -77,9 +77,7 @@ export const SV_TILE = {
     // Anywhere inside 2794-2798 x 3087-3090 counts as sacred for the burial.
     SACRED_GROUND: new Tile(2796, 3088, 0),
 
-    MOUND: new Tile(2921, 2999, 0),
     MOUND_STAND: new Tile(2921, 2998, 0),
-    AHZARHOON_LANDING: new Tile(2898, 9401, 0),
 
     CAVE_IN_NORTH: new Tile(2887, 9374, 0),
     CAVE_IN_SOUTH: new Tile(2888, 9283, 0),
@@ -87,24 +85,18 @@ export const SV_TILE = {
     OLD_SACKS: new Tile(2938, 9285, 0),
     GALLOWS: new Tile(2933, 9325, 0),
     WATERFALL_ROCKS: new Tile(2939, 9349, 0),
-    WATERFALL_EXIT: new Tile(2929, 2946, 0),
 
     WELL_STACKED_ROCKS: new Tile(2762, 2989, 0),
-    BERVIRIUS_LANDING: new Tile(2760, 9389, 0),
     BERVIRIUS_DOLMEN: new Tile(2765, 9364, 0),
     HANDHOLDS: new Tile(2764, 9376, 0),
-    CAIRN_EXIT_LANDING: new Tile(2764, 2976, 0),
 
     PALM_TREES: new Tile(2914, 3092, 0),
     // West of the doors, cardinally adjacent. The pack was baked with the jungle
     // plants that hide them, not with the doors, so nothing east of (2916,3090) is
     // a stand the walker can actually reach.
     CARVED_DOORS: new Tile(2915, 3090, 0),
-    RASH_ENTRY_LANDING: new Tile(2929, 9525, 0),
     TOMB_EXIT: new Tile(2928, 9526, 0),
     ANCIENT_GATE: new Tile(2929, 9517, 0),
-    // Passing the gate southbound drops you here; the rocks are clicked from it.
-    GATE_SOUTH_LANDING: new Tile(2929, 9515, 0),
     RASH_ROCKS_BOTTOM: new Tile(2928, 9511, 0),
     // South of the skeletal doors, which is the side the climbing rocks drop you
     // on. The dolmen is behind them: three bones is the only way through.
@@ -144,8 +136,8 @@ export type ShiloArea =
     | 'unknown';
 
 /** The gate sits at z=9516 and the rocks run 9511-9515, so the ledge is what's between. */
-export const RASH_GATE_Z = 9516;
-export const RASH_ROCKS_BOTTOM_Z = 9511;
+const RASH_GATE_Z = 9516;
+const RASH_ROCKS_BOTTOM_Z = 9511;
 
 /**
  * Every underground area here sits in its own mapsquare, and Rashiliyia's tomb has
