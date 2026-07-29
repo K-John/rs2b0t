@@ -11,7 +11,7 @@ import {
     stealRockCake
 } from './gutanoth.js';
 import { WATCHTOWER_STAGE, readWatchtowerProgress } from './journal.js';
-import { answerMadSkavid, learnFromScaredSkavid, learnWord, nextSkavidCave, takeNightshade } from './caves.js';
+import { answerMadSkavid, leaveCave, learnFromScaredSkavid, learnWord, nextSkavidCave, takeNightshade } from './caves.js';
 import { dissolveShamans, enterEnclave, leaveEnclave, mineDalgroth, searchShamanRobe } from './enclave.js';
 import { brewOgrePotion, grindBatBones, infusePotion } from './potion.js';
 import {
@@ -69,9 +69,27 @@ function escapePocket(area: WatchtowerArea, wanted: WatchtowerArea): QuestStep |
             return { kind: 'custom', name: "leave Toban's camp", run: leaveTobanCamp };
         case 'cityGuard':
             return { kind: 'custom', name: 'jump back out of the city-guard pocket', run: jumpBack };
+        case 'skavidCaves':
+            return { kind: 'custom', name: 'leave the skavid cave', run: leaveCave };
+        case 'enclave':
+            return { kind: 'custom', name: 'leave the shaman enclave', run: leaveEnclave };
+        case 'lowerCity':
+            // The battlement is a two-way climb once the market gift is paid.
+            return wanted === 'lowerCity'
+                ? null
+                : { kind: 'custom', name: 'climb back over the battlement', run: crossBattlement };
         default:
             return null;
     }
+}
+
+/**
+ * Take `step` only once we are somewhere it can start from, escaping any other
+ * sealed pocket first. `wanted` is where the step's own leg expects to begin;
+ * the open mainland always qualifies, because every leg can walk from there.
+ */
+function at(area: WatchtowerArea, wanted: WatchtowerArea, step: QuestStep): QuestStep {
+    return escapePocket(area, wanted) ?? step;
 }
 
 /** Each trip onto Grew's island consumes one rope; the swing back out is free. */
@@ -84,36 +102,49 @@ function stageTribes(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
 
     if (!hasFlag(progress, 'helped-og')) {
         if (held(snap, WT_ITEM.STOLEN_GOLD.id) > 0 || !hasFlag(progress, 'spoken-og')) {
-            return { kind: 'custom', name: 'talk to Og', run: talkToOg };
+            return at(area, 'yanille', { kind: 'custom', name: 'talk to Og', run: talkToOg });
         }
         if (held(snap, WT_ITEM.TOBAN_KEY.id) > 0) {
-            return { kind: 'custom', name: "take the stolen gold from Toban's chest", run: openTobanChest };
+            return at(area, 'tobanCamp', { kind: 'custom', name: "take the stolen gold from Toban's chest", run: openTobanChest });
         }
-        return { kind: 'custom', name: 'ask Og for another chest key', run: talkToOg };
+        return at(area, 'yanille', { kind: 'custom', name: 'ask Og for another chest key', run: talkToOg });
     }
 
     if (!hasFlag(progress, 'helped-toban')) {
         if (held(snap, WT_ITEM.DRAGON_BONES.id) > 0 || !hasFlag(progress, 'spoken-toban')) {
-            return { kind: 'custom', name: 'talk to Toban', run: talkToToban };
+            return at(area, 'tobanCamp', { kind: 'custom', name: 'talk to Toban', run: talkToToban });
         }
-        return bankOnly(snap, WT_ITEM.DRAGON_BONES) ?? { kind: 'custom', name: 'talk to Toban', run: talkToToban };
+        const bones = bankOnly(snap, WT_ITEM.DRAGON_BONES);
+        return bones
+            ? at(area, 'yanille', bones)
+            : at(area, 'tobanCamp', { kind: 'custom', name: 'talk to Toban', run: talkToToban });
     }
 
     if (!hasFlag(progress, 'helped-grew')) {
         if (held(snap, WT_ITEM.OGRE_TOOTH.id) > 0 || !hasFlag(progress, 'spoken-grew')) {
-            return needRope(snap, area) ?? { kind: 'custom', name: 'talk to Grew', run: talkToGrew };
+            const rope = needRope(snap, area);
+            return rope
+                ? at(area, 'yanille', rope)
+                : at(area, 'grewIsland', { kind: 'custom', name: 'talk to Grew', run: talkToGrew });
         }
-        return { kind: 'custom', name: "knock out one of Gorad's teeth", run: killGorad };
+        return at(area, 'tobanCamp', { kind: 'custom', name: "knock out one of Gorad's teeth", run: killGorad });
     }
 
     for (const part of RELIC_PARTS) {
         if (held(snap, part.id) > 0) {
-            return { kind: 'custom', name: `give ${part.name} to the wizard`, run: log => giveRelicPart(part.id, log) };
+            return at(area, 'yanille', {
+                kind: 'custom',
+                name: `give ${part.name} to the wizard`,
+                run: log => giveRelicPart(part.id, log)
+            });
         }
     }
 
     if (owned(snap, WT_ITEM.JANGERBERRIES.id) < JANGERBERRY_TARGET) {
-        return needRope(snap, area) ?? { kind: 'custom', name: 'pick jangerberries on Grew island', run: pickJangerberries };
+        const rope = needRope(snap, area);
+        return rope
+            ? at(area, 'yanille', rope)
+            : at(area, 'grewIsland', { kind: 'custom', name: 'pick jangerberries on Grew island', run: pickJangerberries });
     }
 
     return escapePocket(area, 'yanille')

@@ -445,3 +445,41 @@ describe('watchtower decide — into the city guard pocket', () => {
         expect(step.kind).toBe('buy');
     });
 });
+
+describe('watchtower decide — never act from the wrong pocket', () => {
+    test('holding the stolen gold inside Toban camp, it leaves before seeking Og', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'spoken-og'),
+            invIds: new Map([[WT_ITEM.STOLEN_GOLD.id, 1]]),
+            tile: { x: 2576, z: 3027, level: 0 }
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/leave Toban/i);
+    });
+
+    test('stranded on Grew island with a relic part, it swings out first', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'helped-toban', 'helped-grew'),
+            invIds: new Map([[WT_ITEM.RELIC_PART2.id, 1]]),
+            tile: { x: 2513, z: 3084, level: 0 }
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/swing back/i);
+    });
+
+    test('no stage leaves the bot parked merely because it woke in a pocket', () => {
+        const POCKETS: [string, { x: number; z: number; level: number }][] = [
+            ['grewIsland', { x: 2513, z: 3084, level: 0 }],
+            ['tobanCamp', { x: 2576, z: 3027, level: 0 }],
+            ['cityGuard', { x: 2541, z: 3029, level: 0 }],
+            ['skavidCaves', { x: 2504, z: 9441, level: 0 }],
+            ['enclave', { x: 2588, z: 9410, level: 0 }],
+            ['towerFloor', { x: 2544, z: 3112, level: 2 }],
+            ['lowerCity', { x: 2526, z: 3018, level: 0 }]
+        ];
+        for (const stage of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) {
+            for (const [name, tile] of POCKETS) {
+                const step = decide(snapshot({ progress: P(stage), tile, bankKnown: true }));
+                expect(`${stage}/${name}=${step.kind}`).not.toContain('=wait');
+            }
+        }
+    });
+});
