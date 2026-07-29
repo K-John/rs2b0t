@@ -106,9 +106,10 @@ export const SV_TILE = {
     // Passing the gate southbound drops you here; the rocks are clicked from it.
     GATE_SOUTH_LANDING: new Tile(2929, 9515, 0),
     RASH_ROCKS_BOTTOM: new Tile(2928, 9511, 0),
-    // North of the skeletal doors: both the dolmen and the way in from the rocks
-    // are on this side, and the doors themselves sit at z=9480.
-    TOMB_DOORS: new Tile(2892, 9482, 0),
+    // Well north of the skeletal doors: both the dolmen and the way in from the
+    // rocks are on this side, and standing any closer lets the walker try to cross
+    // a door that only three bones open.
+    TOMB_DOORS: new Tile(2892, 9484, 0),
     RASH_DOLMEN: new Tile(2891, 9487, 0)
 } as const;
 
