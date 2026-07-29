@@ -28,7 +28,8 @@ interface SoloSnapshot {
     logs: { time: number; level: string; msg: string }[];
 }
 
-const browser = await launchBrowser({ swiftshader: true });
+// SwiftShader renderers crash the page after a handful of launches on this box.
+const browser = await launchBrowser();
 try {
     const page = await browser.newPage();
     const t0 = Date.now();
