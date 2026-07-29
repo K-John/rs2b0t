@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { SV_ITEM, inDolmenRoom, shiloArea } from '#/bot/quests/defs/shilo/areas.js';
 import { SV_STAGE, parseShiloJournal } from '#/bot/quests/defs/shilo/journal.js';
 import { decide, shilo } from '#/bot/quests/defs/shilo/index.js';
+import { evaluate } from '#/bot/quests/EligibilityEvaluator.js';
 import { flagValue, hasFlag } from '#/bot/quests/engine/types.js';
 import type { QuestProgress, QuestSnapshot } from '#/bot/quests/engine/types.js';
 
@@ -689,5 +690,22 @@ describe('inDolmenRoom', () => {
     test('a null tile is never in the room', () => {
         expect(inDolmenRoom(null)).toBe(false);
         expect(inDolmenRoom(undefined)).toBe(false);
+    });
+});
+
+describe('shilo eligibility', () => {
+    test('Shilo Village is blocked until Jungle Potion is complete', () => {
+        // The engine enforces this twice — Mosol Rei will not hand over the belt and
+        // Trufitus will not take it — so the queue must not offer Shilo first.
+        const maxed = new Map(['crafting', 'agility', 'smithing', 'mining'].map(s => [s, 99]));
+        const player = { questPoints: 20, skillLevels: maxed, completedQuests: new Set<string>() };
+        const items = { counts: new Map<string, number>() };
+
+        const blocked = evaluate(shilo.record, player, items, 'notStarted');
+        expect(blocked.status).toBe('BLOCKED');
+        expect(blocked.reasons.join(' ')).toContain('junglepotion');
+
+        const ready = evaluate(shilo.record, { ...player, completedQuests: new Set(['junglepotion']) }, items, 'notStarted');
+        expect(ready.status).toBe('READY');
     });
 });
