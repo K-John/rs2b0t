@@ -212,7 +212,7 @@ export async function climbRashRocks(dir: 'down' | 'up', log: (m: string) => voi
     return ok;
 }
 
-/** Three plain bones, one recess at a time; the third opens the doors and walks you in. */
+/** Three plain bones, one recess at a time; the third opens the doors and pushes you through. */
 export async function placeBone(log: (m: string) => void): Promise<boolean> {
     if (heldId(SV_ITEM.BONES.id) === 0) {
         log('no bones left for the door recesses');
@@ -229,9 +229,10 @@ export async function placeBone(log: (m: string) => void): Promise<boolean> {
 }
 
 /**
- * The third bone pushes you south through the doors, but the dolmen is on the north
- * side — and the doors revert to closed three ticks later, so the way back is
- * another `Open`, which teleports rather than walks.
+ * The dolmen is on the far side of the skeletal doors, and the doors revert to
+ * closed three ticks after any crossing — so getting back to it is another `Open`,
+ * which teleports rather than walks. Nothing routes through them: they are excluded
+ * from the door bake precisely because three bones is the only way in.
  */
 export async function returnNorthOfDoors(log: (m: string) => void): Promise<boolean> {
     const north = (): boolean => (Game.tile()?.z ?? 0) > TOMB_DOOR_Z;
