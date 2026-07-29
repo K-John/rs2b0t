@@ -5,7 +5,7 @@ import { GroundItems } from '../../../api/queries/GroundItems.js';
 import { Locs, type Loc } from '../../../api/queries/Locs.js';
 import { Reach } from '../../../api/Reach.js';
 import { Traversal } from '../../../api/Traversal.js';
-import { talkThrough } from '../../exec/primitives.js';
+import { talkStrict, talkThrough } from '../../exec/primitives.js';
 import { WT_ITEM, WT_LOC, WT_NPC, WT_TILE, watchtowerArea } from './areas.js';
 import { settleScene } from './scene.js';
 
@@ -23,7 +23,8 @@ export async function talkToOg(log: (m: string) => void): Promise<boolean> {
     if ((await Reach.npcDialog({ name: WT_NPC.OG, near: WT_TILE.OG, log })) !== 'done') {
         return false;
     }
-    return talkThrough(WT_NPC.OG, ['I seek entrance to the city of ogres.', 'I have your gold.', 'I have lost the key!'], log);
+    // The unmatched option here is "I have come to kill you."
+    return talkStrict(WT_NPC.OG, ['I seek entrance to the city of ogres.', 'I have your gold.', 'I have lost the key!'], log);
 }
 
 export async function enterTobanCamp(log: (m: string) => void): Promise<boolean> {
@@ -94,7 +95,8 @@ export async function talkToToban(log: (m: string) => void): Promise<boolean> {
     if ((await Reach.npcDialog({ name: WT_NPC.TOBAN, near: WT_TILE.TOBAN, log })) !== 'done') {
         return false;
     }
-    return talkThrough(
+    // The unmatched option here is "Die, creature!"
+    return talkStrict(
         WT_NPC.TOBAN,
         ['I seek entrance to the city of ogres.', 'I could do something for you...', 'I can\'t find the relic part you gave me.'],
         log
@@ -150,7 +152,8 @@ export async function talkToGrew(log: (m: string) => void): Promise<boolean> {
     if ((await Reach.npcDialog({ name: WT_NPC.GREW, near: WT_TILE.GREW, log })) !== 'done') {
         return false;
     }
-    return talkThrough(
+    // The unmatched option here is "You will have to kill me first."
+    return talkStrict(
         WT_NPC.GREW,
         ['Don\'t eat me; I can help you.', 'I\'ve lost the relic part you gave me.', 'I\'ve lost the crystal you gave me.'],
         log

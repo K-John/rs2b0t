@@ -238,6 +238,16 @@ export async function talkThrough(npcName: string, prefer: string[], log: (m: st
 }
 
 /**
+ * Like `talkThrough`, but abandons the dialogue instead of guessing when no
+ * preferred option matches. Use it wherever the unmatched option is harmful —
+ * several ogres offer "I have come to kill you" as the alternative.
+ * @see docs/QUESTS.md#exec-primitives
+ */
+export function talkStrict(npcName: string, prefer: string[], log: (m: string) => void): Promise<boolean> {
+    return talkChoosingBy(npcName, [], prefer, log);
+}
+
+/**
  * Drive a dialogue whose correct option depends on what the NPC just said.
  * @see docs/QUESTS.md#exec-primitives
  */

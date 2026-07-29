@@ -5,7 +5,7 @@ import { Locs, type Loc } from '../../../api/queries/Locs.js';
 import { Npcs } from '../../../api/queries/Npcs.js';
 import { Reach } from '../../../api/Reach.js';
 import { Traversal } from '../../../api/Traversal.js';
-import { talkThrough } from '../../exec/primitives.js';
+import { talkStrict, talkThrough } from '../../exec/primitives.js';
 import { WT_ITEM, WT_LOC, WT_NPC, WT_TILE, watchtowerArea } from './areas.js';
 import { settleScene } from './scene.js';
 
@@ -100,7 +100,8 @@ export async function crossBattlement(log: (m: string) => void): Promise<boolean
     if (!opened) {
         return false;
     }
-    await talkThrough(WT_NPC.OGRE_GUARD, ['But I am a friend to ogres...'], log);
+    // The unmatched option here is "Not if I can help it."
+    await talkStrict(WT_NPC.OGRE_GUARD, ['But I am a friend to ogres...'], log);
     if (await Execution.delayUntil(() => watchtowerArea(Game.tile()) === 'lowerCity', 10_000)) {
         await settleScene();
         return true;
@@ -192,7 +193,8 @@ export async function askRiddle(log: (m: string) => void): Promise<boolean> {
     if ((await Reach.npcDialog({ name: WT_NPC.CITY_GUARD, near: WT_TILE.CITY_GUARD, log })) !== 'done') {
         return false;
     }
-    return talkThrough(
+    // The unmatched option here is "I am an ogre killer come to destroy you!"
+    return talkStrict(
         WT_NPC.CITY_GUARD,
         ['I seek passage into the skavid caves.', 'I have lost the map you gave me.'],
         log
