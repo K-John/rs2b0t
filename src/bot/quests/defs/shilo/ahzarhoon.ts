@@ -1,4 +1,5 @@
 // docs/superpowers/specs/2026-07-29-shilo-village-design.md
+import { actions, reader } from '../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../api/Execution.js';
 import { Game } from '../../../api/Game.js';
 import { Traversal } from '../../../api/Traversal.js';
@@ -217,9 +218,18 @@ export function readScroll(itemId: number): (log: (m: string) => void) => Promis
             return false;
         }
         await Execution.delayTicks(2);
-        // Reading leaves no observable trace until the journal reloads, so the
-        // honest end of this step is simply a closed dialogue.
-        return driveChoice(YES_READ, log);
+        if (!(await driveChoice(YES_READ, log))) {
+            return false;
+        }
+        // The scroll body is a *main* modal built with if_settext, not a chat box.
+        // driveChoice cannot see it, and while it is up every journal read comes
+        // back empty — which reads as "stage unavailable" and parks the quest.
+        await Execution.delayUntil(() => reader.modals().main !== -1, 6000);
+        if (reader.modals().main !== -1) {
+            actions.closeModal();
+            await Execution.delayTicks(1);
+        }
+        return true;
     };
 }
 
