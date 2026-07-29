@@ -734,3 +734,27 @@ describe('watchtower decide — holding all four crystals', () => {
         expect(step.kind).toBe('scanBank');
     });
 });
+
+describe('watchtower decide — food is only demanded for trips that re-enter', () => {
+    const allFour = new Map([
+        [WT_ITEM.CRYSTAL1.id, 1], [WT_ITEM.CRYSTAL2.id, 1],
+        [WT_ITEM.CRYSTAL3.id, 1], [WT_ITEM.CRYSTAL4.id, 1]
+    ]);
+
+    test('carrying every crystal with no food, it still reaches the wizard', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:0'),
+            invIds: allFour
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/crystals to the wizard/i);
+    });
+
+    test('but a trip back in without food still parks', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+            invIds: new Map([[WT_ITEM.MAGIC_OGRE_POTION.id, 1], [WT_ITEM.NIGHTSHADE.id, 1]])
+        }));
+        expect(step.kind).toBe('wait');
+        expect(step.kind === 'wait' && step.reason).toMatch(/food/i);
+    });
+});

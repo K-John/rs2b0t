@@ -293,14 +293,11 @@ function stagePotion(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
 function stageShamans(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
     const left = flagValue(snap.progress, 'shamans-left') ?? 6;
 
-    // Dissolved shamans respawn, so every trip in here needs food, not just the
-    // one that does the killing.
-    if (area !== 'enclave') {
-        const food = sourceFood(snap, ENCLAVE_FOOD);
-        if (food) {
-            return at(area, 'yanille', food);
-        }
-    }
+    // Dissolved shamans respawn, so any trip back in needs food — but only the
+    // steps that actually go back in. Demanding it while merely carrying the
+    // crystals to the wizard parks the quest for no reason.
+    const enclaveFood = area === 'enclave' ? null : sourceFood(snap, ENCLAVE_FOOD);
+    const provisioned = (step: QuestStep): QuestStep => (enclaveFood ? at(area, 'yanille', enclaveFood) : step);
 
     if (left > 0) {
         if (held(snap, WT_ITEM.MAGIC_OGRE_POTION.id) === 0) {
@@ -311,24 +308,24 @@ function stageShamans(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
         }
         if (area !== 'enclave' && held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
             return needCaveKit(snap, area)
-                ?? { kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade };
+                ?? provisioned({ kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade });
         }
-        return { kind: 'custom', name: 'dissolve the ogre shamans', run: dissolveShamans };
+        return provisioned({ kind: 'custom', name: 'dissolve the ogre shamans', run: dissolveShamans });
     }
 
     if (held(snap, WT_ITEM.CRYSTAL4.id) === 0 && banked(snap, WT_ITEM.CRYSTAL4.id) === 0) {
         if (area !== 'enclave' && held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
             return needCaveKit(snap, area)
-                ?? { kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade };
+                ?? provisioned({ kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade });
         }
-        return { kind: 'custom', name: 'mine the Rock of Dalgroth', run: mineDalgroth };
+        return provisioned({ kind: 'custom', name: 'mine the Rock of Dalgroth', run: mineDalgroth });
     }
     if (held(snap, WT_ITEM.CRYSTAL3.id) === 0 && banked(snap, WT_ITEM.CRYSTAL3.id) === 0) {
         if (area !== 'enclave' && held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
             return needCaveKit(snap, area)
-                ?? { kind: 'custom', name: 'search a shaman robe for the third crystal', run: searchShamanRobe };
+                ?? provisioned({ kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade });
         }
-        return { kind: 'custom', name: 'search a shaman robe for the third crystal', run: searchShamanRobe };
+        return provisioned({ kind: 'custom', name: 'search a shaman robe for the third crystal', run: searchShamanRobe });
     }
     if (area === 'enclave') {
         return { kind: 'custom', name: 'leave the shaman enclave', run: leaveEnclave };
