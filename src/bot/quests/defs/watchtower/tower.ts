@@ -2,9 +2,10 @@ import { Execution } from '../../../api/Execution.js';
 import { Game } from '../../../api/Game.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Locs, type Loc } from '../../../api/queries/Locs.js';
+import { Npcs } from '../../../api/queries/Npcs.js';
 import { Reach } from '../../../api/Reach.js';
 import { Traversal } from '../../../api/Traversal.js';
-import { talkThrough } from '../../exec/primitives.js';
+import { driveDialog, talkThrough } from '../../exec/primitives.js';
 import { WT_ITEM, WT_LOC, WT_NPC, WT_TILE, watchtowerArea } from './areas.js';
 import { WATCHTOWER_STAGE } from './journal.js';
 import { settleScene } from './scene.js';
@@ -136,4 +137,30 @@ export async function handInFingernails(log: (m: string) => void): Promise<boole
         return false;
     }
     return talkToWizard(['What do you suggest I do?', 'So what do I do?'], log);
+}
+
+export async function giveRelicPart(id: number, log: (m: string) => void): Promise<boolean> {
+    if (!(await climbToWizard(WATCHTOWER_STAGE.GIVEN_FINGERNAILS, log))) {
+        return false;
+    }
+    const part = Inventory.items().find(item => item.id === id);
+    if (!part) {
+        log(`relic part ${id} is not in the pack`);
+        return false;
+    }
+    const wizard = Npcs.query().name(WT_NPC.WIZARD).nearest();
+    if (!wizard || !(await part.useOn(wizard))) {
+        return false;
+    }
+    if (!(await Execution.delayUntil(() => Inventory.items().every(item => item.id !== id), 8000))) {
+        return false;
+    }
+    return driveDialog([], log);
+}
+
+export async function askWizardForRelic(log: (m: string) => void): Promise<boolean> {
+    if (!(await climbToWizard(WATCHTOWER_STAGE.MADE_RELIC, log))) {
+        return false;
+    }
+    return talkToWizard(['I have lost the relic you gave me.'], log);
 }

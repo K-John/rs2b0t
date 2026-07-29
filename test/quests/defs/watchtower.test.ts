@@ -252,3 +252,113 @@ describe('watchtower decide — the tower', () => {
         expect(step.kind === 'custom' && step.name).toMatch(/down/i);
     });
 });
+
+const P = (stage: number, ...flags: string[]) => ({ stage, flags: new Set(flags) });
+
+describe('watchtower decide — the tribes', () => {
+    test('stage 2 with nothing done talks to Og first', () => {
+        const step = decide(snapshot({ progress: P(2) }));
+        expect(step.kind === 'custom' && step.name).toMatch(/og/i);
+    });
+
+    test('holding the key, it goes for the chest', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'spoken-og'),
+            invIds: new Map([[WT_ITEM.TOBAN_KEY.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/chest|gold/i);
+    });
+
+    test('holding the stolen gold, it returns to Og', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'spoken-og'),
+            invIds: new Map([[WT_ITEM.STOLEN_GOLD.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/og/i);
+    });
+
+    test('Toban is next once Og is helped, and is spoken to before he wants bones', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og'),
+            bankIds: new Map([[WT_ITEM.DRAGON_BONES.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/toban/i);
+    });
+
+    test('once Toban has asked, the banked dragon bones are withdrawn', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'spoken-toban'),
+            bankIds: new Map([[WT_ITEM.DRAGON_BONES.id, 1]])
+        }));
+        expect(step.kind).toBe('withdraw');
+    });
+
+    test('with no dragon bones anywhere it parks naming the item', () => {
+        const step = decide(snapshot({ progress: P(2, 'helped-og', 'spoken-toban') }));
+        expect(step.kind).toBe('wait');
+        expect(step.kind === 'wait' && step.reason).toMatch(/dragon bones/i);
+    });
+
+    test('Grew is spoken to before Gorad is attacked', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'helped-toban'),
+            invIds: new Map([[WT_ITEM.ROPE.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/grew/i);
+    });
+
+    test('once Grew has asked for the tooth, it goes for Gorad', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'helped-toban', 'spoken-grew')
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/gorad|tooth/i);
+    });
+
+    test('holding the tooth, it returns to Grew', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'helped-toban', 'spoken-grew'),
+            invIds: new Map([[WT_ITEM.OGRE_TOOTH.id, 1], [WT_ITEM.ROPE.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/grew/i);
+    });
+
+    test('it withdraws rope before swinging to Grew', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'helped-toban'),
+            bankIds: new Map([[WT_ITEM.ROPE.id, 5]])
+        }));
+        expect(step.kind).toBe('withdraw');
+    });
+
+    test('already on the island, no rope is needed', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'helped-toban'),
+            tile: { x: 2513, z: 3084, level: 0 }
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/grew/i);
+    });
+
+    test('it picks jangerberries once the tribes are done', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'helped-toban', 'helped-grew'),
+            tile: { x: 2513, z: 3084, level: 0 }
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/jangerberr/i);
+    });
+
+    test('holding a relic part with every tribe helped, it takes it to the wizard', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'helped-toban', 'helped-grew'),
+            invIds: new Map([[WT_ITEM.RELIC_PART1.id, 1], [WT_ITEM.JANGERBERRIES.id, 2]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/relic part/i);
+    });
+
+    test('with the tribes done and no parts left it parks rather than looping', () => {
+        const step = decide(snapshot({
+            progress: P(2, 'helped-og', 'helped-toban', 'helped-grew'),
+            invIds: new Map([[WT_ITEM.JANGERBERRIES.id, 2]])
+        }));
+        expect(step.kind).toBe('wait');
+    });
+});
