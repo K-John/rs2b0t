@@ -104,8 +104,8 @@ export const WT_TILE = {
         new Tile(2516, 3086, 0),
         new Tile(2517, 3082, 0)
     ],
-    TOBAN_CAVE: new Tile(2499, 2990, 0),
-    TOBAN_LADDER: new Tile(2575, 3029, 0),
+    TOBAN_CAVE: new Tile(2499, 2988, 0),
+    TOBAN_LADDER: new Tile(2575, 3028, 0),
     TOBAN_CHEST: new Tile(2575, 3032, 0),
     TOBAN: new Tile(2576, 3027, 0),
     GORAD: new Tile(2577, 3021, 0),
@@ -114,10 +114,10 @@ export const WT_TILE = {
     ROCK_CAKE_STALL: new Tile(2505, 3023, 0),
     BATTLEMENT_GUARD: new Tile(2503, 3011, 0),
     JUMP_STAND: new Tile(2531, 3026, 0),
-    JUMP_BACK_STAND: new Tile(2531, 3029, 0),
+    JUMP_BACK_STAND: new Tile(2530, 3029, 0),
     CITY_GUARD: new Tile(2541, 3029, 0),
     ENCLAVE_GUARD: new Tile(2507, 3037, 0),
-    ENCLAVE_EXIT: new Tile(2598, 9469, 0),
+    ENCLAVE_EXIT: new Tile(2598, 9467, 0),
     ROCK_OF_DALGROTH: new Tile(2590, 9450, 0),
     SHAMAN_ROBE: new Tile(2617, 9437, 0),
     SHAMANS: [
