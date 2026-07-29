@@ -1,6 +1,7 @@
 import { Execution } from '../../../api/Execution.js';
 import { Game } from '../../../api/Game.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
+import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Locs, type Loc } from '../../../api/queries/Locs.js';
 import { Npcs } from '../../../api/queries/Npcs.js';
 import { Reach } from '../../../api/Reach.js';
@@ -17,6 +18,19 @@ function heldId(id: number): number {
 
 function locNear(id: number, op: string, within = 8): Loc | null {
     return Locs.query().where(loc => loc.id === id).action(op).within(within).nearest();
+}
+
+/**
+ * An op that opens a dialogue does so a tick later. Without this wait the driver
+ * sees no dialogue, starts a fresh conversation with the nearest NPC instead, and
+ * lands in whatever dead-end line that NPC offers.
+ */
+async function awaitDialogue(what: string, log: (m: string) => void): Promise<boolean> {
+    if (await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue(), 8000)) {
+        return true;
+    }
+    log(`${what} did not open a dialogue`);
+    return false;
 }
 
 /** West of the relic gate is inside the city; the guard throws you east onto the hill. */
@@ -38,7 +52,9 @@ async function offerRelic(log: (m: string) => void): Promise<boolean> {
     if (!(await relic.useOn(guard))) {
         return false;
     }
-    await talkThrough(WT_NPC.OGRE_GUARD, [], log);
+    if (await awaitDialogue('the north-west gate guard', log)) {
+        await talkThrough(WT_NPC.OGRE_GUARD, [], log);
+    }
     return Execution.delayUntil(() => pastRelicGate(), 10_000);
 }
 
@@ -102,8 +118,10 @@ export async function crossBattlement(log: (m: string) => void): Promise<boolean
     if (!opened) {
         return false;
     }
-    // The unmatched option here is "Not if I can help it."
-    await talkStrict(WT_NPC.OGRE_GUARD, ['But I am a friend to ogres...'], log);
+    if (await awaitDialogue('the battlement guard', log)) {
+        // The unmatched option here is "Not if I can help it."
+        await talkStrict(WT_NPC.OGRE_GUARD, ['But I am a friend to ogres...'], log);
+    }
     if (await Execution.delayUntil(() => watchtowerArea(Game.tile()) === 'lowerCity', 10_000)) {
         await settleScene();
         return true;
@@ -159,7 +177,10 @@ export async function jumpChasm(log: (m: string) => void): Promise<boolean> {
         log('no Jump-From rock at the chasm — the level-1 loc may not be clickable from level 0');
         return false;
     }
-    if (!(await talkThrough(WT_NPC.OGRE_GUARD, ["Okay, I'll pay it."], log))) {
+    if (!(await awaitDialogue('the chasm guard', log))) {
+        return false;
+    }
+    if (!(await talkStrict(WT_NPC.OGRE_GUARD, ["Okay, I'll pay it."], log))) {
         return false;
     }
     if (!(await Execution.delayUntil(() => watchtowerArea(Game.tile()) === 'cityGuard', 12_000))) {
@@ -219,6 +240,8 @@ export async function answerRiddle(log: (m: string) => void): Promise<boolean> {
     if (!guard || !rune || !(await rune.useOn(guard))) {
         return false;
     }
-    await talkThrough(WT_NPC.CITY_GUARD, [], log);
+    if (await awaitDialogue('the city guard', log)) {
+        await talkThrough(WT_NPC.CITY_GUARD, [], log);
+    }
     return Execution.delayUntil(() => heldId(WT_ITEM.SKAVID_MAP.id) > 0, 10_000);
 }
