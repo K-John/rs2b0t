@@ -595,3 +595,29 @@ describe('shilo module', () => {
         expect(SV_ITEM.DEAD_BEADS.name).toBe('Beads of the dead');
     });
 });
+
+describe('shilo decide — recovery', () => {
+    test('past the carved doors it never re-cuts a lost bone key', () => {
+        // The doors stay unlocked, and the tomb exit refuses to open for anyone
+        // still carrying the key — so a replacement would be a wasted trip.
+        const step = decide(snapshot({
+            progress: progress(SV_STAGE.UNLOCKED_RASH_TOMB),
+            invIds: carrying([SV_ITEM.CHISEL.id, 1]),
+            wornIds: new Set([SV_ITEM.DEAD_BEADS.id]),
+            tile: KARAMJA
+        }));
+        expect(name(step)).not.toContain('bone shard');
+        expect(name(step)).not.toContain('gallows');
+    });
+
+    test('before the carved doors a lost key is re-cut', () => {
+        const step = decide(snapshot({
+            progress: progress(SV_STAGE.ENTERED_AH_ZA_RHOON, [
+                'read-tattered', 'read-crumpled', 'pommel-taken', 'found-door'
+            ]),
+            invIds: carrying([SV_ITEM.CHISEL.id, 1], [SV_ITEM.BRONZE_BAR.id, 1], [SV_ITEM.HAMMER.id, 1]),
+            tile: KARAMJA
+        }));
+        expect(name(step)).toContain('gallows');
+    });
+});

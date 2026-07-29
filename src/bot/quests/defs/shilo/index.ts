@@ -201,7 +201,7 @@ function stageMiddle(snap: QuestSnapshot, area: ShiloArea): QuestStep {
         return inTheOpen(area, step('search the carved doors for their lock', searchCarvedDoors));
     }
 
-    const craft = craftChain(snap, area);
+    const craft = craftChain(snap, area, true);
     if (craft) {
         return craft;
     }
@@ -212,8 +212,11 @@ function stageMiddle(snap: QuestSnapshot, area: ShiloArea): QuestStep {
  * The necklace and the key share a chisel and both are refused until their own bit
  * is set — the crumpled scroll for the beads, the searched door for the key.
  */
-function craftChain(snap: QuestSnapshot, area: ShiloArea): QuestStep | null {
-    const needKey = held(snap, SV_ITEM.BONE_KEY.id) === 0;
+function craftChain(snap: QuestSnapshot, area: ShiloArea, wantKey: boolean): QuestStep | null {
+    // Past the carved doors the key is optional — they stay unlocked, and the tomb
+    // exit actually refuses to open for anyone still carrying it. Demanding a
+    // replacement then would send the bot back to the gallows for nothing.
+    const needKey = wantKey && held(snap, SV_ITEM.BONE_KEY.id) === 0;
     const needBeads = owned(snap, SV_ITEM.DEAD_BEADS.id) === 0 && !worn(snap, SV_ITEM.DEAD_BEADS.id);
     if (!needKey && !needBeads) {
         return null;
@@ -268,13 +271,13 @@ function needBeads(snap: QuestSnapshot, area: ShiloArea): QuestStep | null {
         return { kind: 'equip', item: SV_ITEM.DEAD_BEADS.name };
     }
     return recoverFromBank(snap, SV_ITEM.DEAD_BEADS)
-        ?? craftChain(snap, area)
+        ?? craftChain(snap, area, false)
         ?? { kind: 'wait', reason: 'no Beads of the Dead to wear' };
 }
 
 /** Engine stages 10 and 11: through the hillside doors, past the gate, down the rocks. */
 function stageTomb(snap: QuestSnapshot, area: ShiloArea): QuestStep {
-    const craft = craftChain(snap, area);
+    const craft = craftChain(snap, area, false);
     if (craft) {
         return craft;
     }
