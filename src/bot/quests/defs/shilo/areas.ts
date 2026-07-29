@@ -109,11 +109,18 @@ export const SV_TILE = {
     // South of the skeletal doors, which is the side the climbing rocks drop you
     // on. The dolmen is behind them: three bones is the only way through.
     TOMB_DOORS: new Tile(2892, 9479, 0),
+    TOMB_DOORS_INSIDE: new Tile(2892, 9482, 0),
     RASH_DOLMEN: new Tile(2891, 9487, 0)
 } as const;
 
-/** The skeletal doors divide the tomb; the dolmen is on their north side. */
-export const TOMB_DOOR_Z = 9480;
+/**
+ * The dolmen room, behind the skeletal doors. A plain z test cannot stand in for
+ * this: the corridor east of the doors runs up to z=9511 on the *southern* side.
+ */
+export function inDolmenRoom(tile: QuestSnapshot['tile']): boolean {
+    return tile !== null && tile !== undefined
+        && tile.x >= 2886 && tile.x <= 2898 && tile.z >= 9481 && tile.z <= 9492;
+}
 
 /** Bones are sold nowhere and dropped by nothing this quest kills. */
 export const BONE_SPAWNS: readonly Tile[] = [

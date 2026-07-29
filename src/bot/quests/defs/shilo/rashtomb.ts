@@ -7,7 +7,7 @@ import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Equipment } from '../../../api/hud/Equipment.js';
 import type { Npc } from '../../../api/entities/index.js';
 import { Npcs } from '../../../api/queries/Npcs.js';
-import { SV_ITEM, SV_LOC, SV_NPC, SV_TILE, TOMB_DOOR_Z, type ShiloArea } from './areas.js';
+import { SV_ITEM, SV_LOC, SV_NPC, SV_TILE, inDolmenRoom, type ShiloArea } from './areas.js';
 import { driveChoice, heldId, here, locNear, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 /** The doors hide themselves again about fifty ticks after the trees are searched. */
@@ -235,13 +235,16 @@ export async function placeBone(log: (m: string) => void): Promise<boolean> {
  * excluded from the door bake precisely because three bones is the only way in.
  */
 export async function crossTombDoors(dir: 'north' | 'south', log: (m: string) => void): Promise<boolean> {
-    const there = (): boolean => {
-        const z = Game.tile()?.z ?? 0;
-        return dir === 'north' ? z > TOMB_DOOR_Z : z <= TOMB_DOOR_Z;
-    };
+    const want = dir === 'north';
+    const there = (): boolean => inDolmenRoom(Game.tile()) === want;
     if (there()) {
         return true;
     }
+    const stand = want ? SV_TILE.TOMB_DOORS : SV_TILE.TOMB_DOORS_INSIDE;
+    if (!(await Traversal.walkResilient(stand, { radius: 2, attempts: 3, timeoutMs: 120_000, log }))) {
+        return false;
+    }
+    await settleScene();
     const doors = locNear(SV_LOC.TOMB_DOORS, 'Open', 8);
     if (!doors) {
         log(`no skeletal doors in range to cross ${dir}`);

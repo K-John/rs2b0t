@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { SV_ITEM, shiloArea } from '#/bot/quests/defs/shilo/areas.js';
+import { SV_ITEM, inDolmenRoom, shiloArea } from '#/bot/quests/defs/shilo/areas.js';
 import { SV_STAGE, parseShiloJournal } from '#/bot/quests/defs/shilo/journal.js';
 import { decide, shilo } from '#/bot/quests/defs/shilo/index.js';
 import { flagValue, hasFlag } from '#/bot/quests/engine/types.js';
@@ -668,5 +668,26 @@ describe('shilo decide — a half-stocked bakery', () => {
 
     test('four loaves are enough to go in — Jiminua bakes ten at a time', () => {
         expect(name(readyForTomb(4))).toContain("enter Rashiliyia's tomb");
+    });
+});
+
+describe('inDolmenRoom', () => {
+    test('the corridor east of the skeletal doors is not the dolmen room', () => {
+        // It runs up to z=9511 on the *southern* side, so a plain z test would put
+        // the foot of the climbing rocks behind the doors.
+        expect(inDolmenRoom(at(2928, 9511))).toBe(false);
+        expect(inDolmenRoom(at(2892, 9479))).toBe(false);
+        expect(inDolmenRoom(at(2892, 9480))).toBe(false);
+    });
+
+    test('the room itself, from the door landing to the dolmen', () => {
+        expect(inDolmenRoom(at(2892, 9481))).toBe(true);
+        expect(inDolmenRoom(at(2891, 9487))).toBe(true);
+        expect(inDolmenRoom(at(2892, 9482))).toBe(true);
+    });
+
+    test('a null tile is never in the room', () => {
+        expect(inDolmenRoom(null)).toBe(false);
+        expect(inDolmenRoom(undefined)).toBe(false);
     });
 });
