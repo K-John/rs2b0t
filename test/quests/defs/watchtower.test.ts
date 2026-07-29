@@ -456,10 +456,10 @@ describe('watchtower decide — never act from the wrong pocket', () => {
         expect(step.kind === 'custom' && step.name).toMatch(/leave Toban/i);
     });
 
-    test('stranded on Grew island with a relic part, it swings out first', () => {
+    test('stranded on Grew island with nothing left to do there, it swings out first', () => {
         const step = decide(snapshot({
             progress: P(2, 'helped-og', 'helped-toban', 'helped-grew'),
-            invIds: new Map([[WT_ITEM.RELIC_PART2.id, 1]]),
+            invIds: new Map([[WT_ITEM.RELIC_PART2.id, 1], [WT_ITEM.JANGERBERRIES.id, 2]]),
             tile: { x: 2513, z: 3084, level: 0 }
         }));
         expect(step.kind === 'custom' && step.name).toMatch(/swing back/i);
@@ -481,5 +481,35 @@ describe('watchtower decide — never act from the wrong pocket', () => {
                 expect(`${stage}/${name}=${step.kind}`).not.toContain('=wait');
             }
         }
+    });
+});
+
+describe('watchtower decide — jangerberries without a wasted rope', () => {
+    const tribesDone = ['helped-og', 'helped-toban', 'helped-grew'];
+
+    test('standing on the island short of berries, it picks them before leaving', () => {
+        const step = decide(snapshot({
+            progress: P(2, ...tribesDone),
+            invIds: new Map([[WT_ITEM.RELIC_PART2.id, 1]]),
+            tile: { x: 2513, z: 3084, level: 0 }
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/jangerberr/i);
+    });
+
+    test('off the island, relic parts are delivered before a berry trip', () => {
+        const step = decide(snapshot({
+            progress: P(2, ...tribesDone),
+            invIds: new Map([[WT_ITEM.RELIC_PART2.id, 1], [WT_ITEM.ROPE.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/relic part/i);
+    });
+
+    test('on the island with berries already, it leaves instead of loitering', () => {
+        const step = decide(snapshot({
+            progress: P(2, ...tribesDone),
+            invIds: new Map([[WT_ITEM.JANGERBERRIES.id, 2], [WT_ITEM.RELIC_PART2.id, 1]]),
+            tile: { x: 2513, z: 3084, level: 0 }
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/swing back/i);
     });
 });

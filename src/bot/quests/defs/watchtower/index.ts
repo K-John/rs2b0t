@@ -129,6 +129,15 @@ function stageTribes(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
         return at(area, 'tobanCamp', { kind: 'custom', name: "knock out one of Gorad's teeth", run: killGorad });
     }
 
+    const shortOfBerries = owned(snap, WT_ITEM.JANGERBERRIES.id) < JANGERBERRY_TARGET;
+    const pickBerries: QuestStep = { kind: 'custom', name: 'pick jangerberries on Grew island', run: pickJangerberries };
+
+    // Standing on the island already: take the berries now rather than swinging
+    // out to the wizard and paying another rope to come back for them.
+    if (shortOfBerries && area === 'grewIsland') {
+        return pickBerries;
+    }
+
     for (const part of RELIC_PARTS) {
         if (held(snap, part.id) > 0) {
             return at(area, 'yanille', {
@@ -139,11 +148,9 @@ function stageTribes(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
         }
     }
 
-    if (owned(snap, WT_ITEM.JANGERBERRIES.id) < JANGERBERRY_TARGET) {
+    if (shortOfBerries) {
         const rope = needRope(snap, area);
-        return rope
-            ? at(area, 'yanille', rope)
-            : at(area, 'grewIsland', { kind: 'custom', name: 'pick jangerberries on Grew island', run: pickJangerberries });
+        return rope ? at(area, 'yanille', rope) : at(area, 'grewIsland', pickBerries);
     }
 
     return escapePocket(area, 'yanille')
