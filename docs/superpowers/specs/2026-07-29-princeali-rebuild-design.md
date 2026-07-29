@@ -144,8 +144,14 @@ The Lumbridge castle wheel at 3209,3212,1 is the one this quest uses.
 concluded it was "dead server-side" because OPLOC2 at the wheel was silently dropped.
 That diagnosis predates the multi-level loc-snapshot settle fix in `e146904`
 (2026-07-22) by six days, and a level-1 loc queried in the tick after a staircase
-climb reads back empty — blank is not absent. The wheel is assumed live and proved by
-a dedicated live probe before anything else is built on it.
+climb reads back empty — blank is not absent.
+
+**Probe result (2026-07-29): the wheel is live.** `tools/princeali-wheel-probe.ts`
+walked to 3209,3213,1, sent Spin and got `make menu open — products: [Wool, Flax]`,
+then spun a ball of wool. The walk log shows the mechanism the old probe tripped over:
+the route climbs the staircase at 3205,3209 into level 1 and needs a settle before the
+loc query. So `3a8c3a9`'s note is wrong, and `sheepshearer` is walking 215 tiles to
+Falador for no reason — recorded as a follow-up, not changed here.
 
 Its geometry agrees with `forceapproach=south`: north is `castlewall`, east a
 `castlearrowslit`, west a `chair`, and `spinningwheel_icon` sits at 3209,3213,1. The
