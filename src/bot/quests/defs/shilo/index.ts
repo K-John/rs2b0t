@@ -218,9 +218,15 @@ function craftChain(snap: QuestSnapshot, area: ShiloArea): QuestStep | null {
     if (!needKey && !needBeads) {
         return null;
     }
-    const chisel = sourceTools(snap, [SV_ITEM.CHISEL]);
-    if (chisel) {
-        return inTheOpen(area, chisel);
+    // One trip: the chisel cuts both the key and the beads, and the bar and hammer
+    // are the necklace's wire.
+    const need: ShiloItem[] = [SV_ITEM.CHISEL];
+    if (needBeads && held(snap, SV_ITEM.BRONZE_WIRE.id) === 0) {
+        need.push(SV_ITEM.BRONZE_BAR, SV_ITEM.HAMMER);
+    }
+    const kit = sourceTools(snap, need);
+    if (kit) {
+        return inTheOpen(area, kit);
     }
     if (needKey) {
         if (held(snap, SV_ITEM.BONE_SHARD.id) === 0) {

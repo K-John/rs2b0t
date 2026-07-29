@@ -134,11 +134,20 @@ try {
             if (!ok) {
                 fail(`could not seed ${item}`);
             }
-            await page.evaluate(
-                x => (globalThis as never as { __rs2b0t: { Equipment: { equip(n: string): Promise<boolean> } } }).__rs2b0t.Equipment.equip(x),
-                item
-            );
-            await page.waitForTimeout(400);
+            // Equipment.equip() awaits Execution.delayUntil, which needs a running
+            // script context and throws from page.evaluate. The direct driver's
+            // held-op is synchronous, so drive the Wield/Wear op itself.
+            await page.evaluate(x => {
+                const inv = (globalThis as never as {
+                    __rs2b0t: { Inventory: { first(n: string): { actions(): string[]; interact(a: string): unknown } | null } };
+                }).__rs2b0t.Inventory;
+                const entry = inv.first(x);
+                const op = entry?.actions().find(o => /wield|wear|equip/i.test(o));
+                if (entry && op) {
+                    entry.interact(op);
+                }
+            }, item);
+            await page.waitForTimeout(700);
         }
         console.log(`geared: ${GEAR.map(g => g[1]).join(', ')}`);
     }

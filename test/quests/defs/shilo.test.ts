@@ -398,17 +398,19 @@ describe('shilo decide — Ah Za Rhoon and the crafts', () => {
 
     test('the key comes before the necklace, and both need a chisel', () => {
         const flags = ['read-tattered', 'read-crumpled', 'pommel-taken', 'found-door'];
+        // One trip: the chisel cuts both, and the bar and hammer are the wire.
         const noChisel = middle(flags, [[SV_ITEM.BONE_SHARD.id, 1], [SV_ITEM.SWORD_POMMEL.id, 1]]);
-        expect(name(noChisel)).toContain('Chisel');
+        for (const want of ['Chisel', 'Bronze bar', 'Hammer']) {
+            expect(name(noChisel)).toContain(want);
+        }
 
-        const key = middle(flags, [
-            [SV_ITEM.CHISEL.id, 1], [SV_ITEM.BONE_SHARD.id, 1], [SV_ITEM.SWORD_POMMEL.id, 1]
-        ]);
+        const CRAFT: [number, number][] = [
+            [SV_ITEM.CHISEL.id, 1], [SV_ITEM.BRONZE_BAR.id, 1], [SV_ITEM.HAMMER.id, 1]
+        ];
+        const key = middle(flags, [...CRAFT, [SV_ITEM.BONE_SHARD.id, 1], [SV_ITEM.SWORD_POMMEL.id, 1]]);
         expect(name(key)).toContain('bone shard into a key');
 
-        const beads = middle(flags, [
-            [SV_ITEM.CHISEL.id, 1], [SV_ITEM.BONE_KEY.id, 1], [SV_ITEM.SWORD_POMMEL.id, 1]
-        ]);
+        const beads = middle(flags, [...CRAFT, [SV_ITEM.BONE_KEY.id, 1], [SV_ITEM.SWORD_POMMEL.id, 1]]);
         expect(name(beads)).toContain('ivory pommel');
     });
 
@@ -418,6 +420,7 @@ describe('shilo decide — Ah Za Rhoon and the crafts', () => {
             [SV_ITEM.CHISEL.id, 1], [SV_ITEM.BONE_KEY.id, 1], [SV_ITEM.BONE_BEADS.id, 1]
         ]);
         expect(name(noBar)).toContain('Bronze bar');
+        expect(name(noBar)).toContain('Hammer');
 
         const bar = middle(flags, [
             [SV_ITEM.CHISEL.id, 1], [SV_ITEM.BONE_KEY.id, 1], [SV_ITEM.BONE_BEADS.id, 1],
