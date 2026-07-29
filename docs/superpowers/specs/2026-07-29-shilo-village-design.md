@@ -288,6 +288,27 @@ Order of work:
 4. One uncheated end-to-end from a fresh account: Druidic Ritual → Jungle Potion → Shilo
    Village, `~maxme` only.
 
+## What the live runs changed
+
+Four things the scripts did not make obvious, each found by running the quest:
+
+- **`start_junglepotion` tests `%druidquest = ^druid_complete` for equality**, so the
+  prerequisite cheat has to set exactly 4. A higher value reads as "requirements not
+  met" and Trufitus silently refuses the job — the module was right and the harness
+  was wrong.
+- **Jungle Potion's journal has a hole.** At `found_snake_weed` while the unidentified
+  herb is held it writes no line at all, and every other `found_` stage writes the
+  *previous* stage's "go and pick it" line. A carried unid now outranks the journal:
+  it exists only because we just picked it, which is exactly the state the journal
+  cannot express.
+- **Scripted chains have quiet gaps.** Burying Zadimus runs dig → apparition → speech
+  → shard → closing box, and between those nothing is open. `driveChoice` returned at
+  the first gap and the rest never ran, so `driveUntil(expect)` drives to the goal
+  instead of to the first silence.
+- **The ledge past the ancient gate is its own area.** The gate drops you at
+  (2929,9515), between itself and the climbing rocks. Treating that as still the entry
+  corridor made `decide()` re-open the gate, which sends you straight back north.
+
 ## Deliverable
 
 One PR from `shilo-village` (main is PR-only): the transport edges, the two quest records,

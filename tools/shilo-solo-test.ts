@@ -29,6 +29,14 @@ const purse = opt('--purse') ?? '';
 // "0,mx,mz,lx,lz" — drop the account next to the leg under test instead of
 // walking it from Lumbridge every run.
 const tele = opt('--tele');
+const gear = which === 'shilo' && !flag('--no-gear');
+const GEAR: readonly (readonly [string, string])[] = [
+    ['rune_scimitar', 'Rune scimitar'],
+    ['rune_platebody', 'Rune platebody'],
+    ['rune_platelegs', 'Rune platelegs'],
+    ['rune_full_helm', 'Rune full helm'],
+    ['rune_kiteshield', 'Rune kiteshield']
+];
 const minutes = Number(opt('--minutes') ?? 30);
 // The issue asks for 2x ticks; 300ms is half of the engine's 600.
 const speed = opt('--speed') ?? '300';
@@ -109,6 +117,30 @@ try {
             fail(`could not give ${pair}`);
         }
         console.log(`carrying ${pair}`);
+    }
+
+    // `~maxme` grants stats, never gear, and Nazastarool has three forms totalling
+    // 220 hitpoints. A maxed account fighting bare-handed is not the account the
+    // issue means, so the test dresses one.
+    if (gear) {
+        const held = (n: string): Promise<number> =>
+            page.evaluate(x => (globalThis as never as { __rs2b0t: { Inventory: { count(n: string): number } } }).__rs2b0t.Inventory.count(x), n);
+        for (const [obj, item] of GEAR) {
+            let ok = false;
+            for (let i = 0; i < 5 && !ok; i++) {
+                await cheatQuiet(page, `give ${obj} 1`);
+                ok = (await held(item)) > 0;
+            }
+            if (!ok) {
+                fail(`could not seed ${item}`);
+            }
+            await page.evaluate(
+                x => (globalThis as never as { __rs2b0t: { Equipment: { equip(n: string): Promise<boolean> } } }).__rs2b0t.Equipment.equip(x),
+                item
+            );
+            await page.waitForTimeout(400);
+        }
+        console.log(`geared: ${GEAR.map(g => g[1]).join(', ')}`);
     }
 
     if (tele) {
