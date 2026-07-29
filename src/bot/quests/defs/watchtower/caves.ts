@@ -137,7 +137,7 @@ export async function takeNightshade(log: (m: string) => void): Promise<boolean>
         return false;
     }
     const plant = GroundItems.query().name(WT_ITEM.NIGHTSHADE.name).within(4).nearest();
-    if (!plant || !(await plant.take())) {
+    if (!plant || !(await plant.interact('Take'))) {
         log('no Nightshade on the cave floor — it respawns, so this is worth retrying');
         return false;
     }

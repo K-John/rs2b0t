@@ -540,3 +540,31 @@ describe('watchtower decide — wizard steps stay on the wizard floor', () => {
         expect(step.kind === 'custom' && step.name).toMatch(/leave Toban/i);
     });
 });
+
+describe('watchtower decide — stage 3 hides inside stage 2', () => {
+    const tribesDone = ['helped-og', 'helped-toban', 'helped-grew'];
+
+    test('the journal cannot tell 2 from 3, so owning the relic decides it', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.GIVEN_FINGERNAILS, ...tribesDone),
+            invIds: new Map([[WT_ITEM.OGRE_RELIC.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/north-west ogre guard/i);
+    });
+
+    test('a relic sitting in the bank also counts, and is withdrawn', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.GIVEN_FINGERNAILS, ...tribesDone),
+            bankIds: new Map([[WT_ITEM.OGRE_RELIC.id, 1]])
+        }));
+        expect(step.kind).toBe('withdraw');
+    });
+
+    test('without a relic it is still the tribal stage', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.GIVEN_FINGERNAILS, 'helped-og', 'helped-toban'),
+            invIds: new Map([[WT_ITEM.ROPE.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/grew/i);
+    });
+});

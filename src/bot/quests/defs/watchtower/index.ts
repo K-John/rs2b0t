@@ -366,8 +366,12 @@ export function decide(snap: QuestSnapshot): QuestStep {
                 ?? { kind: 'custom', name: 'search the bush by the Watchtower for evidence', run: searchEvidenceBush };
         }
 
+        // The journal renders one block for stages 2 through 5, so stage 3 reads back
+        // as stage 2. Owning the assembled relic is the only visible difference.
         case WATCHTOWER_STAGE.GIVEN_FINGERNAILS:
-            return stageTribes(snap, area);
+            return owned(snap, WT_ITEM.OGRE_RELIC.id) > 0
+                ? stageRelicGate(snap, area)
+                : stageTribes(snap, area);
 
         case WATCHTOWER_STAGE.MADE_RELIC:
             return stageRelicGate(snap, area);

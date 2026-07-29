@@ -176,7 +176,7 @@ export async function pickJangerberries(log: (m: string) => void): Promise<boole
             continue;
         }
         const before = heldId(WT_ITEM.JANGERBERRIES.id);
-        if (await berry.take()) {
+        if (await berry.interact('Take')) {
             await Execution.delayUntil(() => heldId(WT_ITEM.JANGERBERRIES.id) > before, 5000);
         }
     }

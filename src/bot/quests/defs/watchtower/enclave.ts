@@ -123,7 +123,7 @@ export async function searchShamanRobe(log: (m: string) => void): Promise<boolea
     }
     if (heldId(WT_ITEM.SHAMAN_ROBE.id) === 0) {
         const robe = GroundItems.query().name(WT_ITEM.SHAMAN_ROBE.name).within(4).nearest();
-        if (!robe || !(await robe.take())) {
+        if (!robe || !(await robe.interact('Take'))) {
             log('no shaman robe on the enclave floor');
             return false;
         }
