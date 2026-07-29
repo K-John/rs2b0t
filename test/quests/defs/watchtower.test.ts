@@ -220,3 +220,35 @@ describe('watchtower decide — terminal cases', () => {
         expect(watchtower.record.items.every(i => i.kind === 'mustHave')).toBe(true);
     });
 });
+
+describe('watchtower decide — the tower', () => {
+    test('stage 0 goes to the wizard', () => {
+        const step = decide(snapshot({ stage: WATCHTOWER_STAGE.NOT_STARTED }));
+        expect(step.kind).toBe('custom');
+        expect(step.kind === 'custom' && step.name).toMatch(/wizard/i);
+    });
+
+    test('stage 1 without fingernails searches the bush', () => {
+        const step = decide(snapshot({ stage: WATCHTOWER_STAGE.STARTED }));
+        expect(step.kind).toBe('custom');
+        expect(step.kind === 'custom' && step.name).toMatch(/bush|evidence/i);
+    });
+
+    test('stage 1 holding fingernails hands them in', () => {
+        const step = decide(snapshot({
+            stage: WATCHTOWER_STAGE.STARTED,
+            invIds: new Map([[WT_ITEM.FINGERNAILS.id, 1]])
+        }));
+        expect(step.kind).toBe('custom');
+        expect(step.kind === 'custom' && step.name).toMatch(/fingernails|finger nails/i);
+    });
+
+    test('stranded on the wizard floor at stage 1 without evidence, it climbs down', () => {
+        const step = decide(snapshot({
+            stage: WATCHTOWER_STAGE.STARTED,
+            tile: { x: 2544, z: 3112, level: 2 }
+        }));
+        expect(step.kind).toBe('custom');
+        expect(step.kind === 'custom' && step.name).toMatch(/down/i);
+    });
+});
