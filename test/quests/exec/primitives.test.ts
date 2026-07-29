@@ -83,3 +83,16 @@ describe('talkOp', () => {
         expect(talkOp(['Attack', 'Pickpocket'])).toBeNull();
     });
 });
+
+describe('pickByLine — the option list must not be mistaken for the NPC line', () => {
+    const rules: readonly LineRule[] = [{ whenLine: 'ar cur', choose: 'Gor.' }];
+    const options = ['Cur.', 'Ar.', 'Bidith.', 'Tanath.', 'Gor.'];
+
+    test('the option labels alone match no rule, so a clobbered capture yields null', () => {
+        expect(pickByLine(options, options, rules)).toBeNull();
+    });
+
+    test('the NPC line still matches once captured before the options appear', () => {
+        expect(pickByLine(['Ar cur...'], options, rules)).toBe('Gor.');
+    });
+});

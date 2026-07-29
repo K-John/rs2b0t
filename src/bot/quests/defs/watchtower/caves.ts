@@ -184,6 +184,11 @@ export async function answerMadSkavid(log: (m: string) => void): Promise<boolean
         }
         await Execution.delayTicks(2);
     }
+    // Leave under our own steam even on failure: the region beyond the east gate
+    // overlaps the battlement side, so decide() cannot tell them apart and would
+    // send the escape at a battlement it has no path to.
     log('the mad skavid did not hand over a crystal in five attempts');
+    await leaveCave(log);
+    await leaveEastGate(log);
     return false;
 }

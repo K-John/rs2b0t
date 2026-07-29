@@ -265,7 +265,11 @@ export async function talkChoosingBy(
         if (EventSignal.pending()) {
             return false;
         }
-        if (ChatDialog.isOpen()) {
+        const opts = ChatDialog.options();
+        // Capture the NPC's line only while no option list is up: the options page
+        // is itself made of text components, and would otherwise overwrite the very
+        // phrase the rules match against.
+        if (opts.length === 0 && ChatDialog.isOpen()) {
             const texts = ChatDialog.texts();
             if (texts.length > 0) {
                 spoken = texts;
@@ -276,7 +280,6 @@ export async function talkChoosingBy(
             await Execution.delayTicks(1);
             continue;
         }
-        const opts = ChatDialog.options();
         if (opts.length > 0) {
             const pick = pickByLine(spoken, opts, rules) ?? pickPreferred(opts, prefer);
             if (!pick) {
