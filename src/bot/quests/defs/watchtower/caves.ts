@@ -53,10 +53,18 @@ function locNear(id: number, op: string, within = 20): Loc | null {
 }
 
 export async function enterCave(index: number, log: (m: string) => void): Promise<boolean> {
-    if (watchtowerArea(Game.tile()) === 'skavidCaves') {
-        return true;
-    }
     const cave = WT_CAVES.find(entry => entry.index === index)!;
+    const start = Game.tile();
+    if (start && watchtowerArea(start) === 'skavidCaves') {
+        // The six caves are separate sealed rooms. Being in one of them is only
+        // useful if it is this one; otherwise walk out before trying the mouth.
+        if (cave.landing.distanceTo(start) <= 5) {
+            return true;
+        }
+        if (!(await leaveCave(log))) {
+            return false;
+        }
+    }
     if (!(await Traversal.walkResilient(cave.mouth, { radius: 2, attempts: 3, timeoutMs: 300_000, log }))) {
         return false;
     }
