@@ -248,6 +248,21 @@ Three engine behaviours bit this quest hard enough to be worth stating once:
   boundary next to a mark.
 - **`ownsInventory: true` opts the quest out of the engine's food provisioning**, so a
   `sustain` block declares foods that nothing ever withdraws. Source food yourself.
+- **Nobody is called `Shop keeper`.** A shop belongs to a named NPC through
+  `param=owned_shop` in the engine's `.npc` config, and `Shop.open()` matches the display
+  name. Read the owner out of the configs; a guide will not tell you.
+- **A tool that is merely absent produces no refusal.** Mining without a pickaxe is not
+  an error — the rock simply does not respond, and the step retries until the watchdog
+  parks it. Anything a step needs but does not consume has to be sourced explicitly.
+
+Two habits fall out of the last one, and both cost hours here:
+
+- **Seed a stage test with only what that stage produces, never with its tools.** Every
+  Watch Tower stage-10 test handed the bot a pickaxe, so all of them passed and the
+  quest still could not mine. Only the uncheated run found it.
+- **Guarding a requirement by location inverts it.** "Skip the pickaxe check inside the
+  enclave, because one cannot be fetched from there" describes exactly the state that
+  must walk back out. Source before entering, and let the pocket-escape handle the rest.
 
 ## See also
 
