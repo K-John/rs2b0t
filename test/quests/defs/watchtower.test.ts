@@ -651,3 +651,34 @@ describe('parseWatchtowerJournal — colour tags leave a space before punctuatio
         expect(p?.stage).toBe(WATCHTOWER_STAGE.FED_NIGHTSHADE);
     });
 });
+
+describe('watchtower decide — a cave trip needs the map and a light', () => {
+    test('stage 10 fetching nightshade without the map re-asks the city guard', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+            invIds: new Map([[WT_ITEM.MAGIC_OGRE_POTION.id, 1], [WT_ITEM.LIT_CANDLE.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/skavid map/i);
+    });
+
+    test('with the map banked it is withdrawn rather than re-asked', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+            invIds: new Map([[WT_ITEM.MAGIC_OGRE_POTION.id, 1], [WT_ITEM.LIT_CANDLE.id, 1]]),
+            bankIds: new Map([[WT_ITEM.SKAVID_MAP.id, 1]])
+        }));
+        expect(step.kind).toBe('withdraw');
+    });
+
+    test('with map and light in hand it goes for the nightshade', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+            invIds: new Map([
+                [WT_ITEM.MAGIC_OGRE_POTION.id, 1],
+                [WT_ITEM.SKAVID_MAP.id, 1],
+                [WT_ITEM.LIT_CANDLE.id, 1]
+            ])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/nightshade/i);
+    });
+});

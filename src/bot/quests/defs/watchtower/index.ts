@@ -199,7 +199,12 @@ function stageRiddle(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
         : { kind: 'custom', name: 'answer the riddle with a death rune', run: answerRiddle };
 }
 
-function stageCaves(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
+/**
+ * A cave mouth refuses entry without the map and a lit light source, and bounces
+ * you to a fixed tile — which loops forever if the kit was banked or lost. Every
+ * cave trip checks for both first.
+ */
+function needCaveKit(snap: QuestSnapshot, area: WatchtowerArea): QuestStep | null {
     if (held(snap, WT_ITEM.SKAVID_MAP.id) === 0) {
         const inBank = bankOnly(snap, WT_ITEM.SKAVID_MAP);
         if (inBank && inBank.kind === 'withdraw') {
@@ -208,8 +213,13 @@ function stageCaves(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
         return { kind: 'custom', name: 'ask the city guard for another skavid map', run: askRiddle };
     }
     const light = sourceLightSource(snap);
-    if (light) {
-        return at(area, 'yanille', light);
+    return light ? at(area, 'yanille', light) : null;
+}
+
+function stageCaves(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
+    const kit = needCaveKit(snap, area);
+    if (kit) {
+        return kit;
     }
     const cave = nextSkavidCave(snap.progress);
     if (cave === 5) {
@@ -230,7 +240,7 @@ function stageEnclaveEntry(snap: QuestSnapshot, area: WatchtowerArea): QuestStep
         return { kind: 'custom', name: 'leave the shaman enclave', run: leaveEnclave };
     }
     if (held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
-        return sourceLightSource(snap)
+        return needCaveKit(snap, area)
             ?? { kind: 'custom', name: 'take Nightshade from the skavid cave', run: takeNightshade };
     }
     return { kind: 'custom', name: 'feed the enclave guard Nightshade', run: enterEnclave };
@@ -284,20 +294,23 @@ function stageShamans(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
             return stagePotion(snap, area);
         }
         if (area !== 'enclave' && held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
-            return { kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade };
+            return needCaveKit(snap, area)
+                ?? { kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade };
         }
         return { kind: 'custom', name: 'dissolve the ogre shamans', run: dissolveShamans };
     }
 
     if (held(snap, WT_ITEM.CRYSTAL4.id) === 0 && banked(snap, WT_ITEM.CRYSTAL4.id) === 0) {
         if (area !== 'enclave' && held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
-            return { kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade };
+            return needCaveKit(snap, area)
+                ?? { kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade };
         }
         return { kind: 'custom', name: 'mine the Rock of Dalgroth', run: mineDalgroth };
     }
     if (held(snap, WT_ITEM.CRYSTAL3.id) === 0 && banked(snap, WT_ITEM.CRYSTAL3.id) === 0) {
         if (area !== 'enclave' && held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
-            return { kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade };
+            return needCaveKit(snap, area)
+                ?? { kind: 'custom', name: 'search a shaman robe for the third crystal', run: searchShamanRobe };
         }
         return { kind: 'custom', name: 'search a shaman robe for the third crystal', run: searchShamanRobe };
     }
