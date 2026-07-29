@@ -1,9 +1,24 @@
-import Tile from '../../../api/Tile.js';
 import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
 import { RELIC_PARTS, WT_ITEM, WT_TILE, watchtowerArea, type WatchtowerArea } from './areas.js';
+import {
+    CHASM_TOLL,
+    answerRiddle,
+    askRiddle,
+    crossBattlement,
+    jumpBack,
+    showRelicToGuard,
+    stealRockCake
+} from './gutanoth.js';
 import { WATCHTOWER_STAGE, readWatchtowerProgress } from './journal.js';
-import { giveRelicPart, handInFingernails, leaveWizardFloor, searchEvidenceBush, startQuest } from './tower.js';
+import {
+    askWizardForRelic,
+    giveRelicPart,
+    handInFingernails,
+    leaveWizardFloor,
+    searchEvidenceBush,
+    startQuest
+} from './tower.js';
 import {
     JANGERBERRY_TARGET,
     killGorad,
@@ -15,51 +30,33 @@ import {
     talkToOg,
     talkToToban
 } from './tribes.js';
+import { banked, bankOnly, held, owned, scanBank, sourceCoins, sourceDeathRune, sourceRope, withdrawFrom } from './supplies.js';
 
-const ARDOUGNE_GENERAL = { npc: 'Shop keeper', anchor: new Tile(2615, 3294, 0) };
-const ROPE_PRICE = 25;
+// Enough for both chasm tolls, a death rune and the odd shop trip.
+const CITY_PURSE = 2000;
 
-function held(snap: QuestSnapshot, id: number): number {
-    return snap.invIds?.get(id) ?? 0;
-}
-
-function banked(snap: QuestSnapshot, id: number): number {
-    return snap.bankIds?.get(id) ?? 0;
-}
-
-function owned(snap: QuestSnapshot, id: number): number {
-    return held(snap, id) + banked(snap, id);
-}
-
-function withdrawFrom(items: { name: string; id: number; qty: number }[]): QuestStep {
-    return { kind: 'withdraw', items, bank: WT_TILE.YANILLE_BANK };
-}
-
-/** Bank first, then shop. Null once the pack already holds enough. */
-function source(
-    snap: QuestSnapshot,
-    item: { id: number; name: string },
-    qty: number,
-    shop: { npc: string; anchor: Tile },
-    unitGp: number
-): QuestStep | null {
-    if (held(snap, item.id) >= qty) {
+function escapePocket(area: WatchtowerArea, wanted: WatchtowerArea): QuestStep | null {
+    if (area === wanted) {
         return null;
     }
-    if (!snap.bankKnown) {
-        return { kind: 'scanBank', bank: WT_TILE.YANILLE_BANK };
+    switch (area) {
+        case 'towerFloor':
+        case 'mirrorTower':
+            return { kind: 'custom', name: 'climb down from the wizard floor', run: leaveWizardFloor };
+        case 'grewIsland':
+            return { kind: 'custom', name: 'swing back off Grew island', run: leaveGrewIsland };
+        case 'tobanCamp':
+            return { kind: 'custom', name: "leave Toban's camp", run: leaveTobanCamp };
+        case 'cityGuard':
+            return { kind: 'custom', name: 'jump back out of the city-guard pocket', run: jumpBack };
+        default:
+            return null;
     }
-    const missing = qty - held(snap, item.id);
-    const inBank = banked(snap, item.id);
-    if (inBank > 0) {
-        return withdrawFrom([{ name: item.name, id: item.id, qty: Math.min(missing, inBank) }]);
-    }
-    return { kind: 'buy', item: item.name, qty: missing, shop, estGp: missing * unitGp };
 }
 
 /** Each trip onto Grew's island consumes one rope; the swing back out is free. */
 function needRope(snap: QuestSnapshot, area: WatchtowerArea): QuestStep | null {
-    return area === 'grewIsland' ? null : source(snap, WT_ITEM.ROPE, 1, ARDOUGNE_GENERAL, ROPE_PRICE);
+    return area === 'grewIsland' ? null : sourceRope(snap);
 }
 
 function stageTribes(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
@@ -79,60 +76,65 @@ function stageTribes(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
         if (held(snap, WT_ITEM.DRAGON_BONES.id) > 0 || !hasFlag(progress, 'spoken-toban')) {
             return { kind: 'custom', name: 'talk to Toban', run: talkToToban };
         }
-        if (!snap.bankKnown) {
-            return { kind: 'scanBank', bank: WT_TILE.YANILLE_BANK };
-        }
-        if (banked(snap, WT_ITEM.DRAGON_BONES.id) > 0) {
-            return withdrawFrom([{ name: WT_ITEM.DRAGON_BONES.name, id: WT_ITEM.DRAGON_BONES.id, qty: 1 }]);
-        }
-        return { kind: 'wait', reason: 'no Dragon bones in the bank for Toban' };
+        return bankOnly(snap, WT_ITEM.DRAGON_BONES) ?? { kind: 'custom', name: 'talk to Toban', run: talkToToban };
     }
 
     if (!hasFlag(progress, 'helped-grew')) {
         if (held(snap, WT_ITEM.OGRE_TOOTH.id) > 0 || !hasFlag(progress, 'spoken-grew')) {
-            const rope = needRope(snap, area);
-            return rope ?? { kind: 'custom', name: 'talk to Grew', run: talkToGrew };
+            return needRope(snap, area) ?? { kind: 'custom', name: 'talk to Grew', run: talkToGrew };
         }
         return { kind: 'custom', name: "knock out one of Gorad's teeth", run: killGorad };
     }
 
     for (const part of RELIC_PARTS) {
         if (held(snap, part.id) > 0) {
-            return {
-                kind: 'custom',
-                name: `give ${part.name} to the wizard`,
-                run: log => giveRelicPart(part.id, log)
-            };
+            return { kind: 'custom', name: `give ${part.name} to the wizard`, run: log => giveRelicPart(part.id, log) };
         }
     }
 
     if (owned(snap, WT_ITEM.JANGERBERRIES.id) < JANGERBERRY_TARGET) {
-        const rope = needRope(snap, area);
-        return rope ?? { kind: 'custom', name: 'pick jangerberries on Grew island', run: pickJangerberries };
+        return needRope(snap, area) ?? { kind: 'custom', name: 'pick jangerberries on Grew island', run: pickJangerberries };
     }
 
-    const escape = escapePocket(area, 'yanille');
-    if (escape) {
-        return escape;
-    }
-    return { kind: 'wait', reason: 'every tribe is helped but no relic part is in the pack' };
+    return escapePocket(area, 'yanille')
+        ?? { kind: 'wait', reason: 'every tribe is helped but no relic part is in the pack' };
 }
 
-function escapePocket(area: WatchtowerArea, wanted: WatchtowerArea): QuestStep | null {
-    if (area === wanted) {
-        return null;
+function stageRelicGate(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
+    if (held(snap, WT_ITEM.OGRE_RELIC.id) > 0) {
+        return escapePocket(area, 'yanille')
+            ?? { kind: 'custom', name: 'show the relic to the north-west ogre guard', run: showRelicToGuard };
     }
-    switch (area) {
-        case 'towerFloor':
-        case 'mirrorTower':
-            return { kind: 'custom', name: 'climb down from the wizard floor', run: leaveWizardFloor };
-        case 'grewIsland':
-            return { kind: 'custom', name: 'swing back off Grew island', run: leaveGrewIsland };
-        case 'tobanCamp':
-            return { kind: 'custom', name: "leave Toban's camp", run: leaveTobanCamp };
-        default:
-            return null;
+    if (!snap.bankKnown) {
+        return scanBank();
     }
+    if (banked(snap, WT_ITEM.OGRE_RELIC.id) > 0) {
+        return withdrawFrom([{ name: WT_ITEM.OGRE_RELIC.name, id: WT_ITEM.OGRE_RELIC.id, qty: 1 }]);
+    }
+    return { kind: 'custom', name: 'ask the wizard for another relic', run: askWizardForRelic };
+}
+
+function stageCityEntry(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
+    if (area === 'cityGuard') {
+        return { kind: 'custom', name: 'ask the city guard for passage', run: askRiddle };
+    }
+    if (!hasFlag(snap.progress, 'market-paid')) {
+        if (held(snap, WT_ITEM.ROCK_CAKE.id) === 0) {
+            return { kind: 'custom', name: 'steal a rock cake from the ogre stall', run: stealRockCake };
+        }
+        return { kind: 'custom', name: 'give the rock cake to the battlement guard', run: crossBattlement };
+    }
+    const purse = held(snap, WT_ITEM.COINS.id) < CHASM_TOLL * 2 ? sourceCoins(snap, CITY_PURSE) : null;
+    return purse ?? { kind: 'custom', name: 'pay the ogre guard, jump the chasm, ask the riddle', run: askRiddle };
+}
+
+function stageRiddle(snap: QuestSnapshot): QuestStep {
+    const rune = sourceDeathRune(snap);
+    if (rune) {
+        return rune;
+    }
+    const purse = held(snap, WT_ITEM.COINS.id) < CHASM_TOLL * 2 ? sourceCoins(snap, CITY_PURSE) : null;
+    return purse ?? { kind: 'custom', name: 'answer the riddle with a death rune', run: answerRiddle };
 }
 
 export function decide(snap: QuestSnapshot): QuestStep {
@@ -158,12 +160,21 @@ export function decide(snap: QuestSnapshot): QuestStep {
             if (held(snap, WT_ITEM.FINGERNAILS.id) > 0) {
                 return { kind: 'custom', name: 'give the fingernails to the wizard', run: handInFingernails };
             }
-            const escape = escapePocket(area, 'yanille');
-            return escape ?? { kind: 'custom', name: 'search the bush by the Watchtower for evidence', run: searchEvidenceBush };
+            return escapePocket(area, 'yanille')
+                ?? { kind: 'custom', name: 'search the bush by the Watchtower for evidence', run: searchEvidenceBush };
         }
 
         case WATCHTOWER_STAGE.GIVEN_FINGERNAILS:
             return stageTribes(snap, area);
+
+        case WATCHTOWER_STAGE.MADE_RELIC:
+            return stageRelicGate(snap, area);
+
+        case WATCHTOWER_STAGE.GIVEN_RELIC:
+            return stageCityEntry(snap, area);
+
+        case WATCHTOWER_STAGE.GIVEN_RIDDLE:
+            return stageRiddle(snap);
 
         default:
             return { kind: 'wait', reason: 'Watch Tower stage ' + snap.stage + ' is not implemented yet' };

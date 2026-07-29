@@ -362,3 +362,86 @@ describe('watchtower decide — the tribes', () => {
         expect(step.kind).toBe('wait');
     });
 });
+
+describe('watchtower decide — the relic gate', () => {
+    test('stage 3 holding the relic shows it to the north-west guard', () => {
+        const step = decide(snapshot({
+            progress: P(3),
+            invIds: new Map([[WT_ITEM.OGRE_RELIC.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/guard/i);
+    });
+
+    test('stage 3 with the relic banked withdraws it', () => {
+        const step = decide(snapshot({
+            progress: P(3),
+            bankIds: new Map([[WT_ITEM.OGRE_RELIC.id, 1]])
+        }));
+        expect(step.kind).toBe('withdraw');
+    });
+
+    test('stage 3 with no relic anywhere asks the wizard for a copy', () => {
+        const step = decide(snapshot({ progress: P(3) }));
+        expect(step.kind === 'custom' && step.name).toMatch(/wizard|another|copy/i);
+    });
+});
+
+describe('watchtower decide — into the city guard pocket', () => {
+    test('stage 4 with no rock cake steals one', () => {
+        const step = decide(snapshot({ progress: P(4, 'market-asked') }));
+        expect(step.kind === 'custom' && step.name).toMatch(/rock cake|steal/i);
+    });
+
+    test('stage 4 holding the cake gives it to the battlement guard', () => {
+        const step = decide(snapshot({
+            progress: P(4, 'market-asked'),
+            invIds: new Map([[WT_ITEM.ROCK_CAKE.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/battlement|guard/i);
+    });
+
+    test('with the market paid and coins in hand, it heads for the chasm', () => {
+        const step = decide(snapshot({
+            progress: P(4, 'market-paid'),
+            tile: { x: 2526, z: 3018, level: 0 },
+            invIds: new Map([[WT_ITEM.COINS.id, 500]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/chasm|jump|guard/i);
+    });
+
+    test('the chasm toll is withdrawn before the jump is attempted', () => {
+        const step = decide(snapshot({
+            progress: P(4, 'market-paid'),
+            tile: { x: 2526, z: 3018, level: 0 },
+            invIds: new Map(),
+            bankIds: new Map([[WT_ITEM.COINS.id, 100000]])
+        }));
+        expect(step.kind).toBe('withdraw');
+    });
+
+    test('already in the pocket, it asks the guard for passage', () => {
+        const step = decide(snapshot({
+            progress: P(4, 'market-paid'),
+            tile: { x: 2541, z: 3029, level: 0 },
+            invIds: new Map([[WT_ITEM.COINS.id, 500]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/riddle|passage|guard/i);
+    });
+
+    test('stage 5 holding a death rune answers the riddle', () => {
+        const step = decide(snapshot({
+            progress: P(5),
+            tile: { x: 2541, z: 3029, level: 0 },
+            invIds: new Map([[WT_ITEM.DEATH_RUNE.id, 1], [WT_ITEM.COINS.id, 500]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/riddle|rune/i);
+    });
+
+    test('stage 5 without a death rune buys one', () => {
+        const step = decide(snapshot({
+            progress: P(5),
+            invIds: new Map([[WT_ITEM.COINS.id, 5000]])
+        }));
+        expect(step.kind).toBe('buy');
+    });
+});
