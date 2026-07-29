@@ -114,7 +114,9 @@ export const WT_TILE = {
     GORAD: new Tile(2577, 3021, 0),
     GATE_RELIC_STAND: new Tile(2506, 3062, 0),
     HILL: new Tile(2546, 3065, 0),
-    ROCK_CAKE_STALL: new Tile(2505, 3023, 0),
+    // North of the counter: the steal is refused while ogre_trader2 (spawns
+    // 2506,3020) is within 3 tiles, and every tile beside it at z=3023 is exactly 3.
+    ROCK_CAKE_STALL: new Tile(2506, 3024, 0),
     BATTLEMENT_GUARD: new Tile(2503, 3011, 0),
     BATTLEMENT_INSIDE: new Tile(2508, 3011, 0),
     JUMP_STAND: new Tile(2531, 3026, 0),

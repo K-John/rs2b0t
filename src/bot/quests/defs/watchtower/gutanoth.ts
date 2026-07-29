@@ -65,10 +65,12 @@ export async function stealRockCake(log: (m: string) => void): Promise<boolean> 
     if (heldId(WT_ITEM.ROCK_CAKE.id) > 0) {
         return true;
     }
-    if (!(await Traversal.walkResilient(WT_TILE.ROCK_CAKE_STALL, { radius: 1, attempts: 3, timeoutMs: 300_000, log }))) {
-        return false;
-    }
     for (let attempt = 0; attempt < 8; attempt++) {
+        // Re-assert the stand each pass: the trader wanders, and being pushed to a
+        // tile within 3 of him turns every steal into a refusal.
+        if (!(await Traversal.walkResilient(WT_TILE.ROCK_CAKE_STALL, { radius: 0, attempts: 3, timeoutMs: 300_000, log }))) {
+            return false;
+        }
         const stall = locNear(WT_LOC.ROCK_CAKE_STALL, 'Steal-From', 6);
         if (stall && (await stall.interact('Steal-From'))) {
             if (await Execution.delayUntil(() => heldId(WT_ITEM.ROCK_CAKE.id) > 0, 6000)) {
