@@ -103,6 +103,14 @@ function inTheOpen(area: ShiloArea, stepIfOpen: QuestStep): QuestStep {
 }
 
 /**
+ * For steps that enter their own pocket. Escaping unconditionally would climb
+ * straight back out of the tomb the step just walked into, forever.
+ */
+function inTheOpenOrIn(area: ShiloArea, ownPocket: ShiloArea, stepIfOk: QuestStep): QuestStep {
+    return area === ownPocket ? stepIfOk : inTheOpen(area, stepIfOk);
+}
+
+/**
  * Coins and bones are the only things this quest cannot buy on Karamja, and the
  * nearest bank is an ocean away — so both are settled before the crossing and
  * never mid-quest, unless something is lost.
@@ -190,7 +198,7 @@ function stageMiddle(snap: QuestSnapshot, area: ShiloArea): QuestStep {
             }
             return step('take the corpse from the ancient gallows', takeZadimusCorpse);
         }
-        return inTheOpen(area, step("search the dolmen in Bervirius' tomb", searchBerviriusDolmen));
+        return inTheOpenOrIn(area, 'berviriusTomb', step("search the dolmen in Bervirius' tomb", searchBerviriusDolmen));
     }
 
     if (inCaves) {
@@ -241,7 +249,7 @@ function craftChain(snap: QuestSnapshot, area: ShiloArea, wantKey: boolean): Que
     if (held(snap, SV_ITEM.BONE_BEADS.id) === 0) {
         if (held(snap, SV_ITEM.SWORD_POMMEL.id) === 0) {
             return recoverFromBank(snap, SV_ITEM.SWORD_POMMEL)
-                ?? inTheOpen(area, step("search the dolmen in Bervirius' tomb", searchBerviriusDolmen));
+                ?? inTheOpenOrIn(area, 'berviriusTomb', step("search the dolmen in Bervirius' tomb", searchBerviriusDolmen));
         }
         return step('carve the ivory pommel into beads', craftBoneBeads);
     }
@@ -317,7 +325,7 @@ function stageBoss(snap: QuestSnapshot, area: ShiloArea): QuestStep {
         if (held(snap, SV_ITEM.RASH_CORPSE.id) === 0) {
             return recoverFromBank(snap, SV_ITEM.RASH_CORPSE) ?? { kind: 'wait', reason: 'the remains are unreachable' };
         }
-        return inTheOpen(area, step("lay the remains on Bervirius' dolmen", deliverCorpse));
+        return inTheOpenOrIn(area, 'berviriusTomb', step("lay the remains on Bervirius' dolmen", deliverCorpse));
     }
     if (area === 'rashInner') {
         return step('search the tomb dolmen', workTheDolmen);

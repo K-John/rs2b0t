@@ -621,3 +621,34 @@ describe('shilo decide — recovery', () => {
         expect(name(step)).toContain('gallows');
     });
 });
+
+describe('shilo decide — pockets a step enters itself', () => {
+    test("standing in Bervirius' tomb it searches the dolmen, it does not climb out", () => {
+        // searchBerviriusDolmen crawls in on its own; escaping unconditionally would
+        // climb straight back out of the tomb it just entered, forever.
+        const step = decide(snapshot({
+            progress: progress(SV_STAGE.ENTERED_AH_ZA_RHOON, ['read-tattered', 'read-crumpled']),
+            invIds: carrying([SV_ITEM.BONE_SHARD.id, 1]),
+            tile: at(2765, 9370)
+        }));
+        expect(name(step)).toContain('search the dolmen');
+    });
+
+    test("delivering the remains works from inside Bervirius' tomb too", () => {
+        const step = decide(snapshot({
+            progress: progress(SV_STAGE.UNLOCKED_TOMBDOOR),
+            invIds: carrying([SV_ITEM.RASH_CORPSE.id, 1]),
+            tile: at(2765, 9370)
+        }));
+        expect(name(step)).toContain('lay the remains');
+    });
+
+    test('from any other pocket it still escapes first', () => {
+        const step = decide(snapshot({
+            progress: progress(SV_STAGE.UNLOCKED_TOMBDOOR),
+            invIds: carrying([SV_ITEM.RASH_CORPSE.id, 1]),
+            tile: at(2892, 9487)
+        }));
+        expect(name(step)).toContain('climb up');
+    });
+});
