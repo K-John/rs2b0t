@@ -81,11 +81,20 @@ export async function unlockCarvedDoors(log: (m: string) => void): Promise<boole
 }
 
 export async function enterRashTomb(log: (m: string) => void): Promise<boolean> {
-    if (here() === 'rashEntry' || here() === 'rashInner') {
+    if (here() !== 'karamja') {
         return true;
     }
     if (!(await revealDoors(log))) {
         return false;
+    }
+    // Once the bone key has been used the doors answer a plain Open and become the
+    // Hillside entrance for good — but a restart finds them shut again behind the
+    // palms, and nothing named "Hillside entrance" exists to Enter yet.
+    if (!hillsideEntrance()) {
+        const shut = locNear(SV_LOC.CARVED_DOORS, 'Open', 10);
+        if (shut && (await shut.interact('Open'))) {
+            await Execution.delayUntil(() => hillsideEntrance() !== null, 10_000);
+        }
     }
     const ok = await promptLoc(
         {
