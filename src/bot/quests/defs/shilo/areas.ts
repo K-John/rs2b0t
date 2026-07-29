@@ -96,7 +96,10 @@ export const SV_TILE = {
     CAIRN_EXIT_LANDING: new Tile(2764, 2976, 0),
 
     PALM_TREES: new Tile(2914, 3092, 0),
-    CARVED_DOORS: new Tile(2917, 3091, 0),
+    // West of the doors, cardinally adjacent. The pack was baked with the jungle
+    // plants that hide them, not with the doors, so nothing east of (2916,3090) is
+    // a stand the walker can actually reach.
+    CARVED_DOORS: new Tile(2915, 3090, 0),
     RASH_ENTRY_LANDING: new Tile(2929, 9525, 0),
     TOMB_EXIT: new Tile(2928, 9526, 0),
     ANCIENT_GATE: new Tile(2929, 9517, 0),
