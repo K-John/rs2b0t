@@ -53,7 +53,14 @@ function main(): void {
         openable.add(id);
     }
 
-    const ONE_WAY_EXCLUDED = new Set(['3108,3353,0', '3109,3353,0']);
+    const ONE_WAY_EXCLUDED = new Set([
+        '3108,3353,0', '3109,3353,0',
+        // Gu'Tanoth city gates. Every one is held by an ogre guard who demands a
+        // gold bar or a relic and teleports you down the hill otherwise, so a baked
+        // door edge is a lie: the walker routes through and is thrown out on loop.
+        // Watch Tower crosses them itself, in the right order.
+        '2549,3028,0', '2550,3028,0', '2504,3062,0', '2504,3063,0'
+    ]);
     // Current Engine gates.rs2 hits loc_add(type=-1) for this Duel Arena outer
     // leaf and leaves Gate#3198 closed. Omit that unusable edge so navigation
     // detours through its paired Gate#3197 one tile north.
