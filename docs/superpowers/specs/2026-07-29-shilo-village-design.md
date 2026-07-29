@@ -308,6 +308,16 @@ Four things the scripts did not make obvious, each found by running the quest:
 - **The ledge past the ancient gate is its own area.** The gate drops you at
   (2929,9515), between itself and the climbing rocks. Treating that as still the entry
   corridor made `decide()` re-open the gate, which sends you straight back north.
+- **Both scrolls render their body as a *main* modal**, built with `if_settext`, not as
+  a chat box. `driveChoice` cannot see it, and while it is up every journal read comes
+  back empty — which `decide()` reads as "stage unavailable" and parks the quest one
+  step after the scroll it just read.
+- **The watchdog could not see journal flags.** Reading a scroll or searching a lock
+  moves no item, no tile and no stage — only a named flag, which `progressSignature`
+  ignored. Every such step read as "no progress" and spent its whole budget on the way
+  to being parked. Fixed in the shared engine; Watch Tower's flags were equally blind.
+- **One shop trip, not six.** Jiminua is 35 tiles from Trufitus and the mound is 200 the
+  other way, so buying one item per `buy` step cost six crossings of the island.
 
 ## Deliverable
 

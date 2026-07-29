@@ -283,6 +283,10 @@ Shilo Village added three more, each of which cost a live run:
 - **A door that refuses the key that opens it is a `useOn`, not an `Open`.** Rashiliyia's
   tomb exit answers "The door seems to be locked!" to anyone *carrying* the bone key.
   Read the `oplocu` handler before assuming an op exists for what you want.
+- **Not every box is a chat box.** A scroll body built with `if_settext` is a *main*
+  modal: dialogue drivers cannot see it, and while it is up every journal read comes back
+  empty — which reads as "stage unavailable" and parks the quest one step later. Close it
+  with `actions.closeModal()`, the same way `readProgress` does.
 
 Two habits fall out of the tool lesson, and both cost hours here:
 
