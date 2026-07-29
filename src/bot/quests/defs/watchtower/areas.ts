@@ -82,7 +82,10 @@ export const WT_NPC = {
     OGRE_GUARD: 'Ogre guard',
     ENCLAVE_GUARD: 'Enclave guard',
     SHAMAN: 'Ogre shaman',
-    SKAVID: 'Skavid'
+    // Only the four language talkers are plain 'Skavid'.
+    SKAVID: 'Skavid',
+    SCARED_SKAVID: 'Scared skavid',
+    MAD_SKAVID: 'Mad skavid'
 } as const;
 
 export const WT_TILE = {

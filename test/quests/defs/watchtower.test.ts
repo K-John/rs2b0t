@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { CRYSTALS, WT_ITEM, watchtowerArea } from '#/bot/quests/defs/watchtower/areas.js';
+import { CRYSTALS, WT_ITEM, WT_NPC, watchtowerArea } from '#/bot/quests/defs/watchtower/areas.js';
 import { WATCHTOWER_STAGE, parseWatchtowerJournal } from '#/bot/quests/defs/watchtower/journal.js';
 import { flagValue, hasFlag } from '#/bot/quests/engine/types.js';
 import type { QuestSnapshot } from '#/bot/quests/engine/types.js';
@@ -566,5 +566,19 @@ describe('watchtower decide — stage 3 hides inside stage 2', () => {
             invIds: new Map([[WT_ITEM.ROPE.id, 1]])
         }));
         expect(step.kind === 'custom' && step.name).toMatch(/grew/i);
+    });
+});
+
+describe('watchtower npc names', () => {
+    test('only the four language talkers are plain Skavid', () => {
+        expect(WT_NPC.SKAVID).toBe('Skavid');
+        expect(WT_NPC.SCARED_SKAVID).toBe('Scared skavid');
+        expect(WT_NPC.MAD_SKAVID).toBe('Mad skavid');
+    });
+
+    test('all four ogre guards share one name, so they are told apart by where we stand', () => {
+        expect(WT_NPC.OGRE_GUARD).toBe('Ogre guard');
+        expect(WT_NPC.CITY_GUARD).toBe('City guard');
+        expect(WT_NPC.ENCLAVE_GUARD).toBe('Enclave guard');
     });
 });

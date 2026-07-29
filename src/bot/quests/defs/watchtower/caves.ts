@@ -4,7 +4,7 @@ import { Inventory } from '../../../api/hud/Inventory.js';
 import { GroundItems } from '../../../api/queries/GroundItems.js';
 import { Locs, type Loc } from '../../../api/queries/Locs.js';
 import { Traversal } from '../../../api/Traversal.js';
-import { talkChoosingBy, talkThrough, type LineRule } from '../../exec/primitives.js';
+import { talkChoosingBy, talkStrict, type LineRule } from '../../exec/primitives.js';
 import { hasFlag, type QuestProgress } from '../../engine/types.js';
 import { WT_CAVES, WT_ITEM, WT_LOC, WT_NIGHTSHADE, WT_NPC, watchtowerArea } from './areas.js';
 import { settleScene } from './scene.js';
@@ -109,7 +109,7 @@ export async function learnFromScaredSkavid(log: (m: string) => void): Promise<b
     if (!(await reachSkavid(5, log))) {
         return false;
     }
-    if (!(await talkThrough(WT_NPC.SKAVID, ["Okay, okay, I'm not going to hurt you."], log))) {
+    if (!(await talkStrict(WT_NPC.SCARED_SKAVID, ["Okay, okay, I'm not going to hurt you."], log))) {
         return false;
     }
     return leaveCave(log);
@@ -119,7 +119,7 @@ export async function learnWord(index: number, log: (m: string) => void): Promis
     if (!(await reachSkavid(index, log))) {
         return false;
     }
-    if (!(await talkThrough(WT_NPC.SKAVID, [SKAVID_REPLIES[index]], log))) {
+    if (!(await talkStrict(WT_NPC.SKAVID, [SKAVID_REPLIES[index]], log))) {
         return false;
     }
     return leaveCave(log);
@@ -153,7 +153,7 @@ export async function answerMadSkavid(log: (m: string) => void): Promise<boolean
     }
     // He says one of four phrases at random, so a wrong guess costs only a retry.
     for (let attempt = 0; attempt < 5; attempt++) {
-        await talkChoosingBy(WT_NPC.SKAVID, MAD_SKAVID_RULES, ["But I've lost it!"], log);
+        await talkChoosingBy(WT_NPC.MAD_SKAVID, MAD_SKAVID_RULES, ["But I've lost it!"], log);
         if (heldId(WT_ITEM.CRYSTAL2.id) > 0) {
             return leaveCave(log);
         }
