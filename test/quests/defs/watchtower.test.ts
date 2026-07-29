@@ -2,6 +2,8 @@ import { describe, expect, test } from 'bun:test';
 import { CRYSTALS, WT_ITEM, watchtowerArea } from '#/bot/quests/defs/watchtower/areas.js';
 import { WATCHTOWER_STAGE, parseWatchtowerJournal } from '#/bot/quests/defs/watchtower/journal.js';
 import { flagValue, hasFlag } from '#/bot/quests/engine/types.js';
+import type { QuestSnapshot } from '#/bot/quests/engine/types.js';
+import { decide, watchtower } from '#/bot/quests/defs/watchtower/index.js';
 
 const at = (x: number, z: number, level = 0) => ({ x, z, level });
 
@@ -163,5 +165,58 @@ describe('parseWatchtowerJournal', () => {
 
     test('unrecognised journal text yields undefined, never a default stage', () => {
         expect(parseWatchtowerJournal(['something else entirely'])).toBeUndefined();
+    });
+});
+
+function snapshot(o: Partial<QuestSnapshot> = {}): QuestSnapshot {
+    return {
+        journal: o.journal ?? 'inProgress',
+        inv: o.inv ?? new Map(),
+        invIds: o.invIds ?? new Map(),
+        worn: o.worn ?? new Set(),
+        wornIds: o.wornIds ?? new Set(),
+        noProgress: 0,
+        bankCoins: o.bankCoins ?? 0,
+        stage: o.stage ?? o.progress?.stage,
+        progress: o.progress,
+        bank: o.bank ?? new Map(),
+        bankIds: o.bankIds ?? new Map(),
+        bankKnown: o.bankKnown ?? true,
+        tile: o.tile === undefined ? { x: 2612, z: 3092, level: 0 } : o.tile,
+        freeSlots: o.freeSlots ?? 28
+    };
+}
+
+describe('watchtower decide — terminal cases', () => {
+    test('a complete journal is done', () => {
+        expect(decide(snapshot({ journal: 'complete' })).kind).toBe('done');
+    });
+
+    test('stage 13 is done even before the journal colour catches up', () => {
+        expect(decide(snapshot({ stage: WATCHTOWER_STAGE.COMPLETE })).kind).toBe('done');
+    });
+
+    test('an unloaded journal waits — it is not notStarted', () => {
+        expect(decide(snapshot({ journal: 'unknown' })).kind).toBe('wait');
+    });
+
+    test('a missing stage waits rather than guessing', () => {
+        expect(decide(snapshot({ stage: undefined })).kind).toBe('wait');
+    });
+
+    test('an unknown location waits rather than acting on a guess', () => {
+        expect(decide(snapshot({ stage: 2, tile: null })).kind).toBe('wait');
+    });
+
+    test('the module owns its inventory and reads progress, not a bare stage', () => {
+        expect(watchtower.ownsInventory).toBe(true);
+        expect(watchtower.readProgress).toBeDefined();
+        expect(watchtower.record.id).toBe('itwatchtower');
+        expect(watchtower.record.name).toBe('Watch Tower');
+    });
+
+    test('the record demands exactly the three drop-only items from the bank', () => {
+        expect(watchtower.record.items.map(i => i.name).sort()).toEqual(['Bat bones', 'Dragon bones', 'Guam leaf']);
+        expect(watchtower.record.items.every(i => i.kind === 'mustHave')).toBe(true);
     });
 });
