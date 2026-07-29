@@ -218,9 +218,11 @@ function stageCaves(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
     if (cave <= 4) {
         return { kind: 'custom', name: `answer the skavid in cave ${cave}`, run: log => learnWord(cave, log) };
     }
-    // Cave 6's mouth is approachable from the mainland, so the battlement is not
-    // needed here — only the cave-6 exit lands on the far side.
-    return { kind: 'custom', name: 'answer the mad skavid for a crystal', run: answerMadSkavid };
+    // Cave 6 is behind the gold-bar gate, so the bar has to be in the pack first.
+    const bar = bankOnly(snap, WT_ITEM.GOLD_BAR);
+    return bar
+        ? at(area, 'yanille', bar)
+        : { kind: 'custom', name: 'answer the mad skavid for a crystal', run: answerMadSkavid };
 }
 
 function stageEnclaveEntry(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {

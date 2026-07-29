@@ -184,7 +184,8 @@ export const QUESTS: QuestRecord[] = [
         items: [
             { name: 'Dragon bones', qty: 1, kind: 'mustHave' },
             { name: 'Guam leaf', qty: 1, kind: 'mustHave' },
-            { name: 'Bat bones', qty: 1, kind: 'mustHave' }
+            { name: 'Bat bones', qty: 1, kind: 'mustHave' },
+            { name: 'Gold bar', qty: 1, kind: 'mustHave' }
         ]
     },
     {

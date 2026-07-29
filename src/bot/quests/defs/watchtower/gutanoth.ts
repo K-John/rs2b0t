@@ -7,7 +7,8 @@ import { Npcs } from '../../../api/queries/Npcs.js';
 import { Reach } from '../../../api/Reach.js';
 import { Traversal } from '../../../api/Traversal.js';
 import { driveDialog, talkStrict, talkThrough } from '../../exec/primitives.js';
-import { WT_ITEM, WT_LOC, WT_NPC, WT_TILE, watchtowerArea } from './areas.js';
+import { Navigator } from '../../../nav/Navigator.js';
+import { WT_CAVES, WT_ITEM, WT_LOC, WT_NPC, WT_TILE, watchtowerArea } from './areas.js';
 import { settleScene } from './scene.js';
 
 export const CHASM_TOLL = 20;
@@ -254,4 +255,81 @@ export async function answerRiddle(log: (m: string) => void): Promise<boolean> {
         await talkThrough(WT_NPC.CITY_GUARD, [], log);
     }
     return Execution.delayUntil(() => heldId(WT_ITEM.SKAVID_MAP.id) > 0, 10_000);
+}
+
+/**
+ * The east gate is the only way to cave 6's side of the city, and its guard wants
+ * a bar of gold. Like the relic gate he refuses first contact and throws you down
+ * the hill, so the crossing takes two approaches.
+ *
+ * The region beyond overlaps the battlement side geographically, so membership is
+ * decided by asking the pathfinder rather than by a bounding box.
+ */
+export async function pastEastGate(): Promise<boolean> {
+    const here = Game.tile();
+    if (!here) {
+        return false;
+    }
+    const cave6 = WT_CAVES.find(cave => cave.index === 6)!;
+    const path = await Navigator.findPath(here, cave6.stand, { timeoutMs: 8000 });
+    return path.ok;
+}
+
+async function offerGoldBar(log: (m: string) => void): Promise<boolean> {
+    if (!(await Traversal.walkResilient(WT_TILE.EAST_GATE_STAND, { radius: 2, attempts: 3, timeoutMs: 300_000, log }))) {
+        return false;
+    }
+    const guard = Npcs.query().name(WT_NPC.OGRE_GUARD).nearest();
+    const bar = Inventory.items().find(item => item.id === WT_ITEM.GOLD_BAR.id);
+    if (!guard || !bar) {
+        log('no ogre guard at the east gate, or no gold bar in the pack');
+        return false;
+    }
+    if (!(await bar.useOn(guard))) {
+        return false;
+    }
+    if (await awaitDialogue('the east gate guard', log)) {
+        await talkThrough(WT_NPC.OGRE_GUARD, [], log);
+    }
+    return Execution.delayUntil(() => (Game.tile()?.z ?? 9999) <= 3027 && (Game.tile()?.x ?? 0) >= 2540, 10_000);
+}
+
+export async function crossEastGate(log: (m: string) => void): Promise<boolean> {
+    if (await pastEastGate()) {
+        return true;
+    }
+    if (heldId(WT_ITEM.GOLD_BAR.id) === 0) {
+        log('no Gold bar for the east gate guard');
+        return false;
+    }
+    if (await offerGoldBar(log)) {
+        await settleScene();
+        return true;
+    }
+    log('east gate guard threw us down the hill — returning to pay again');
+    if (!(await offerGoldBar(log))) {
+        return false;
+    }
+    await settleScene();
+    return true;
+}
+
+/** Once the bar is paid the gate is an ordinary door, so the way out is just Open. */
+export async function leaveEastGate(log: (m: string) => void): Promise<boolean> {
+    if (!(await pastEastGate())) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(WT_TILE.EAST_GATE_INSIDE, { radius: 1, attempts: 3, timeoutMs: 120_000, log }))) {
+        return false;
+    }
+    const gate = locNear(WT_LOC.GATE_EAST, 'Open', 6);
+    if (!gate || !(await gate.interact('Open'))) {
+        log('no east gate in range to open');
+        return false;
+    }
+    if (!(await Execution.delayUntil(() => (Game.tile()?.z ?? 0) >= 3029, 12_000))) {
+        return false;
+    }
+    await settleScene();
+    return true;
 }

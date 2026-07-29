@@ -215,8 +215,9 @@ describe('watchtower decide — terminal cases', () => {
         expect(watchtower.record.name).toBe('Watch Tower');
     });
 
-    test('the record demands exactly the three drop-only items from the bank', () => {
-        expect(watchtower.record.items.map(i => i.name).sort()).toEqual(['Bat bones', 'Dragon bones', 'Guam leaf']);
+    test('the record demands exactly the four bank-supplied items', () => {
+        expect(watchtower.record.items.map(i => i.name).sort())
+            .toEqual(['Bat bones', 'Dragon bones', 'Gold bar', 'Guam leaf']);
         expect(watchtower.record.items.every(i => i.kind === 'mustHave')).toBe(true);
     });
 });

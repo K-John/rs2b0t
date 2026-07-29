@@ -68,9 +68,12 @@ item or dialogue precondition.
 
 **Two findings that shrink the work:**
 
-- **No gold bar is needed.** `ogre_guard1`'s gate at (2549–2550,3028) has MAIN on *both*
-  sides — it is a shortcut, not a barrier. Nothing in the quest reads `%gutanoth_gold`. The
-  mine-and-smelt leg the wiki implies is dead weight; skip the gate entirely.
+- ~~**No gold bar is needed.**~~ **Wrong — corrected 2026-07-28 during implementation.**
+  Both sides of `ogre_guard1`'s gate looked like MAIN only because the gate was baked as an
+  ordinary door edge, so the flood crossed it and merged the two components. With that lie
+  removed, the region south of it — 82 tiles containing **cave 6's mouth** — is reachable
+  *only* through that gate, and its guard wants a bar of gold. The gold bar is mandatory,
+  and is bank-supplied like the other drop-only items.
 - **Jangerberries are in-quest**, not a 1/256 werewolf drop. Four ground spawns sit inside
   Grew's island at (2510,3090), (2512,3080), (2516,3086), (2517,3082).
 

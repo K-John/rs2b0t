@@ -21,6 +21,7 @@ export const WT_ITEM = {
     BAT_BONES: { id: 530, name: 'Bat bones' },
     DRAGON_BONES: { id: 536, name: 'Dragon bones' },
     DEATH_RUNE: { id: 560, name: 'Death rune' },
+    GOLD_BAR: { id: 2357, name: 'Gold bar' },
     OGRE_RELIC: { id: 2372, name: 'Ogre relic' },
     RELIC_PART1: { id: 2373, name: 'Relic part 1' },
     RELIC_PART2: { id: 2374, name: 'Relic part 2' },
@@ -62,6 +63,7 @@ export const WT_LOC = {
     TOBAN_CAVE: 2811,
     TOBAN_LADDER_DOWN: 2812,
     GATE_RELIC: 2788,
+    GATE_EAST: 2786,
     ROCK_CAKE_STALL: 2793,
     BATTLEMENT: 2832,
     JUMP_IN: 2830,
@@ -118,6 +120,8 @@ export const WT_TILE = {
     // North of the counter: the steal is refused while ogre_trader2 (spawns
     // 2506,3020) is within 3 tiles, and every tile beside it at z=3023 is exactly 3.
     ROCK_CAKE_STALL: new Tile(2506, 3024, 0),
+    EAST_GATE_STAND: new Tile(2550, 3030, 0),
+    EAST_GATE_INSIDE: new Tile(2549, 3027, 0),
     BATTLEMENT_GUARD: new Tile(2503, 3011, 0),
     BATTLEMENT_INSIDE: new Tile(2508, 3011, 0),
     JUMP_STAND: new Tile(2531, 3026, 0),

@@ -4,7 +4,7 @@ import { cheat, cheatQuiet, mainlandAccount, relog, startScript } from './tutori
 
 // The record's mustHave items are drop-only, so every solo leg would otherwise be
 // blocked by provisioning before decide() ever runs.
-const PREREQ_ITEMS = 'dragon_bones:1,guam_leaf:1,bat_bones:1';
+const PREREQ_ITEMS = 'dragon_bones:1,guam_leaf:1,bat_bones:1,gold_bar:1';
 
 const argv = process.argv.slice(2);
 const opt = (name: string): string | undefined => {

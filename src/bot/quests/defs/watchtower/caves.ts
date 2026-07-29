@@ -7,6 +7,7 @@ import { Traversal } from '../../../api/Traversal.js';
 import { talkChoosingBy, talkStrict, type LineRule } from '../../exec/primitives.js';
 import { hasFlag, type QuestProgress } from '../../engine/types.js';
 import { WT_CAVES, WT_ITEM, WT_LOC, WT_NIGHTSHADE, WT_NPC, watchtowerArea } from './areas.js';
+import { crossEastGate, leaveEastGate } from './gutanoth.js';
 import { settleScene } from './scene.js';
 
 /** Cave index to the one word that skavid understands. */
@@ -167,6 +168,11 @@ export async function takeNightshade(log: (m: string) => void): Promise<boolean>
 }
 
 export async function answerMadSkavid(log: (m: string) => void): Promise<boolean> {
+    // Cave 6 sits on the far side of the gold-bar gate, and the whole trip is one
+    // leg so the crossing state never has to survive a decide() round trip.
+    if (watchtowerArea(Game.tile()) !== 'skavidCaves' && !(await crossEastGate(log))) {
+        return false;
+    }
     if (!(await reachSkavid(6, log))) {
         return false;
     }
@@ -174,7 +180,7 @@ export async function answerMadSkavid(log: (m: string) => void): Promise<boolean
     for (let attempt = 0; attempt < 5; attempt++) {
         await talkChoosingBy(WT_NPC.MAD_SKAVID, MAD_SKAVID_RULES, ["But I've lost it!"], log);
         if (heldId(WT_ITEM.CRYSTAL2.id) > 0) {
-            return leaveCave(log);
+            return (await leaveCave(log)) && leaveEastGate(log);
         }
         await Execution.delayTicks(2);
     }
