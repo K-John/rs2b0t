@@ -19,6 +19,33 @@ export function pickPreferred(options: string[], prefer: string[]): string | nul
     return null;
 }
 
+export interface LineRule {
+    /** Lower-case fragment of the NPC's spoken line. */
+    whenLine: string;
+    /** Option to choose when that fragment is present. */
+    choose: string;
+}
+
+function flattenLines(lines: string[]): string {
+    return lines.join(' ').replace(/@[a-z0-9]{3}@/gi, ' ').replace(/[|\s]+/g, ' ').trim().toLowerCase();
+}
+
+export function pickByLine(lines: string[], options: string[], rules: readonly LineRule[]): string | null {
+    const said = flattenLines(lines);
+    if (said.length === 0) {
+        return null;
+    }
+    // Longest first: overlapping phrases like "cur tanath" and "ar cur" must not
+    // let the shorter rule win on a line that contains both.
+    const hit = [...rules]
+        .sort((a, b) => b.whenLine.length - a.whenLine.length)
+        .find(rule => said.includes(rule.whenLine.toLowerCase()));
+    if (!hit) {
+        return null;
+    }
+    return options.find(o => o.toLowerCase().includes(hit.choose.toLowerCase())) ?? null;
+}
+
 export function talkOp(actions: string[]): string | null {
     return actions.find(a => /^talk/i.test(a)) ?? null;
 }
@@ -184,20 +211,76 @@ export async function driveDialog(prefer: string[], log: (m: string) => void): P
     return !ChatDialog.isOpen();
 }
 
+async function openDialogue(npcName: string, log: (m: string) => void): Promise<boolean> {
+    if (ChatDialog.isOpen()) {
+        return true;
+    }
+    const npc = Npcs.query().name(npcName).where(n => talkOp(n.actions()) !== null).nearest();
+    if (!npc) {
+        log(`no '${npcName}' nearby to talk to`);
+        return false;
+    }
+    if (!(await npc.interact(talkOp(npc.actions())!))) {
+        return false;
+    }
+    if (!(await Execution.delayUntil(() => ChatDialog.isOpen(), 8000))) {
+        log(`'${npcName}' never opened a dialogue`);
+        return false;
+    }
+    return true;
+}
+
 export async function talkThrough(npcName: string, prefer: string[], log: (m: string) => void): Promise<boolean> {
-    if (!ChatDialog.isOpen()) {
-        const npc = Npcs.query().name(npcName).where(n => talkOp(n.actions()) !== null).nearest();
-        if (!npc) {
-            log(`no '${npcName}' nearby to talk to`);
-            return false;
-        }
-        if (!(await npc.interact(talkOp(npc.actions())!))) {
-            return false;
-        }
-        if (!(await Execution.delayUntil(() => ChatDialog.isOpen(), 8000))) {
-            log(`'${npcName}' never opened a dialogue`);
-            return false;
-        }
+    if (!(await openDialogue(npcName, log))) {
+        return false;
     }
     return driveDialog(prefer, log);
+}
+
+/**
+ * Drive a dialogue whose correct option depends on what the NPC just said.
+ * @see docs/QUESTS.md#exec-primitives
+ */
+export async function talkChoosingBy(
+    npcName: string,
+    rules: readonly LineRule[],
+    prefer: string[],
+    log: (m: string) => void
+): Promise<boolean> {
+    if (!(await openDialogue(npcName, log))) {
+        return false;
+    }
+    let spoken: string[] = [];
+    for (let i = 0; i < 120; i++) {
+        if (EventSignal.pending()) {
+            return false;
+        }
+        if (ChatDialog.isOpen()) {
+            const texts = ChatDialog.texts();
+            if (texts.length > 0) {
+                spoken = texts;
+            }
+        }
+        if (ChatDialog.canContinue()) {
+            await ChatDialog.continue();
+            await Execution.delayTicks(1);
+            continue;
+        }
+        const opts = ChatDialog.options();
+        if (opts.length > 0) {
+            const pick = pickByLine(spoken, opts, rules) ?? pickPreferred(opts, prefer);
+            if (!pick) {
+                log(`no rule or preference matched [${opts.join(' | ')}] after "${spoken.join(' ')}"`);
+                return false;
+            }
+            await ChatDialog.chooseOption(pick);
+            await Execution.delayTicks(2);
+            continue;
+        }
+        if (!ChatDialog.isOpen()) {
+            break;
+        }
+        await Execution.delayTicks(1);
+    }
+    return !ChatDialog.isOpen();
 }
