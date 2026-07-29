@@ -582,3 +582,32 @@ describe('watchtower npc names', () => {
         expect(WT_NPC.ENCLAVE_GUARD).toBe('Enclave guard');
     });
 });
+
+describe('watchtower decide — banking never starts from a sealed pocket', () => {
+    test('stage 5 inside the city-guard pocket jumps out before checking the bank', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.GIVEN_RIDDLE),
+            tile: { x: 2541, z: 3029, level: 0 },
+            bankKnown: false
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/jump back/i);
+    });
+
+    test('stage 5 outside may go to the bank', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.GIVEN_RIDDLE),
+            bankKnown: false
+        }));
+        expect(step.kind).toBe('scanBank');
+    });
+
+    test('stage 6 in a cave leaves before withdrawing a light source', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.SOLVED_RIDDLE, 'has-map'),
+            invIds: new Map([[WT_ITEM.SKAVID_MAP.id, 1]]),
+            tile: { x: 2504, z: 9441, level: 0 },
+            bankIds: new Map([[WT_ITEM.LIT_CANDLE.id, 1]])
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/leave the skavid cave/i);
+    });
+});

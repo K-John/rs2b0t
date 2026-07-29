@@ -163,10 +163,10 @@ function stageRelicGate(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
             ?? { kind: 'custom', name: 'show the relic to the north-west ogre guard', run: showRelicToGuard };
     }
     if (!snap.bankKnown) {
-        return scanBank();
+        return at(area, 'yanille', scanBank());
     }
     if (banked(snap, WT_ITEM.OGRE_RELIC.id) > 0) {
-        return withdrawFrom([{ name: WT_ITEM.OGRE_RELIC.name, id: WT_ITEM.OGRE_RELIC.id, qty: 1 }]);
+        return at(area, 'yanille', withdrawFrom([{ name: WT_ITEM.OGRE_RELIC.name, id: WT_ITEM.OGRE_RELIC.id, qty: 1 }]));
     }
     return at(area, 'towerFloor', { kind: 'custom', name: 'ask the wizard for another relic', run: askWizardForRelic });
 }
@@ -182,29 +182,34 @@ function stageCityEntry(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
         return { kind: 'custom', name: 'give the rock cake to the battlement guard', run: crossBattlement };
     }
     const purse = held(snap, WT_ITEM.COINS.id) < CHASM_TOLL * 2 ? sourceCoins(snap, CITY_PURSE) : null;
-    return purse ?? { kind: 'custom', name: 'pay the ogre guard, jump the chasm, ask the riddle', run: askRiddle };
+    return purse
+        ? at(area, 'yanille', purse)
+        : { kind: 'custom', name: 'pay the ogre guard, jump the chasm, ask the riddle', run: askRiddle };
 }
 
-function stageRiddle(snap: QuestSnapshot): QuestStep {
+function stageRiddle(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
+    // Banking and shopping happen on the mainland, so leave the pocket first.
     const rune = sourceDeathRune(snap);
     if (rune) {
-        return rune;
+        return at(area, 'yanille', rune);
     }
     const purse = held(snap, WT_ITEM.COINS.id) < CHASM_TOLL * 2 ? sourceCoins(snap, CITY_PURSE) : null;
-    return purse ?? { kind: 'custom', name: 'answer the riddle with a death rune', run: answerRiddle };
+    return purse
+        ? at(area, 'yanille', purse)
+        : { kind: 'custom', name: 'answer the riddle with a death rune', run: answerRiddle };
 }
 
 function stageCaves(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
     if (held(snap, WT_ITEM.SKAVID_MAP.id) === 0) {
-        const banked = bankOnly(snap, WT_ITEM.SKAVID_MAP);
-        if (banked && banked.kind === 'withdraw') {
-            return banked;
+        const inBank = bankOnly(snap, WT_ITEM.SKAVID_MAP);
+        if (inBank && inBank.kind === 'withdraw') {
+            return at(area, 'yanille', inBank);
         }
         return { kind: 'custom', name: 'ask the city guard for another skavid map', run: askRiddle };
     }
     const light = sourceLightSource(snap);
     if (light) {
-        return light;
+        return at(area, 'yanille', light);
     }
     const cave = nextSkavidCave(snap.progress);
     if (cave === 5) {
@@ -380,7 +385,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return stageCityEntry(snap, area);
 
         case WATCHTOWER_STAGE.GIVEN_RIDDLE:
-            return stageRiddle(snap);
+            return stageRiddle(snap, area);
 
         case WATCHTOWER_STAGE.SOLVED_RIDDLE:
             return stageCaves(snap, area);
