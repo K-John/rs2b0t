@@ -48,6 +48,7 @@ import {
     sourceDeathRune,
     sourceLightSource,
     sourcePestle,
+    sourcePickaxe,
     sourceFood,
     sourceRope,
     sourceVial,
@@ -314,6 +315,11 @@ function stageShamans(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
     }
 
     if (held(snap, WT_ITEM.CRYSTAL4.id) === 0 && banked(snap, WT_ITEM.CRYSTAL4.id) === 0) {
+        // Sourced before the trip in: a pickaxe cannot be fetched from inside.
+        const pick = area === 'enclave' ? null : sourcePickaxe(snap);
+        if (pick) {
+            return at(area, 'yanille', pick);
+        }
         if (area !== 'enclave' && held(snap, WT_ITEM.NIGHTSHADE.id) === 0) {
             return needCaveKit(snap, area)
                 ?? provisioned({ kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade });

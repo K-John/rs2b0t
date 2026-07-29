@@ -18,6 +18,7 @@ export const WT_ITEM = {
     GUAM_LEAF: { id: 249, name: 'Guam leaf' },
     GUAM_VIAL: { id: 91, name: 'Unfinished potion' },
     PESTLE: { id: 233, name: 'Pestle and mortar' },
+    PICKAXE: { id: 1265, name: 'Bronze pickaxe' },
     BAT_BONES: { id: 530, name: 'Bat bones' },
     DRAGON_BONES: { id: 536, name: 'Dragon bones' },
     DEATH_RUNE: { id: 560, name: 'Death rune' },

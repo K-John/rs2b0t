@@ -16,6 +16,7 @@ const ROPE_PRICE = 60;
 const DEATH_RUNE_PRICE = 120;
 const VIAL_PRICE = 20;
 const PESTLE_PRICE = 40;
+const PICKAXE_PRICE = 60;
 
 export function held(snap: QuestSnapshot, id: number): number {
     return snap.invIds?.get(id) ?? 0;
@@ -102,6 +103,15 @@ export function sourceVial(snap: QuestSnapshot): QuestStep | null {
 
 export function sourcePestle(snap: QuestSnapshot): QuestStep | null {
     return source(snap, WT_ITEM.PESTLE, 1, OGRE_HERBLORE, PESTLE_PRICE);
+}
+
+/**
+ * The Rock of Dalgroth is the quest's only mining, and a rock simply does not
+ * respond without a pickaxe — no message, no refusal, so the step retries forever.
+ * Aemad stocks bronze, which is all a max-stats miner needs here.
+ */
+export function sourcePickaxe(snap: QuestSnapshot): QuestStep | null {
+    return source(snap, WT_ITEM.PICKAXE, 1, ARDOUGNE_ADVENTURER, PICKAXE_PRICE);
 }
 
 /** The candle by the tower respawns already lit, so no tinderbox is needed. */

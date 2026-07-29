@@ -777,3 +777,35 @@ describe('watchtower decide — the mirror tower means done', () => {
         expect(step.kind === 'custom' && step.name).toMatch(/climb down/i);
     });
 });
+
+describe('watchtower decide — the Rock of Dalgroth needs a pickaxe', () => {
+    const mining = (over: Partial<QuestSnapshot> = {}) => decide(snapshot({
+        progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:0'),
+        inv: new Map([['tuna', 10]]),
+        invIds: new Map([[WT_ITEM.NIGHTSHADE.id, 1], [WT_ITEM.SKAVID_MAP.id, 1], [WT_ITEM.LIT_CANDLE.id, 1]]),
+        ...over
+    }));
+
+    test('with no pickaxe anywhere it buys one rather than mining bare-handed', () => {
+        const step = mining();
+        expect(step.kind).toBe('buy');
+        expect(step.kind === 'buy' && step.item).toBe(WT_ITEM.PICKAXE.name);
+    });
+
+    test('a banked pickaxe is withdrawn instead of bought', () => {
+        const step = mining({ bankIds: new Map([[WT_ITEM.PICKAXE.id, 1]]) });
+        expect(step.kind).toBe('withdraw');
+    });
+
+    test('with a pickaxe carried it goes and mines', () => {
+        const step = mining({
+            invIds: new Map([
+                [WT_ITEM.NIGHTSHADE.id, 1],
+                [WT_ITEM.SKAVID_MAP.id, 1],
+                [WT_ITEM.LIT_CANDLE.id, 1],
+                [WT_ITEM.PICKAXE.id, 1]
+            ])
+        });
+        expect(step.kind === 'custom' && step.name).toMatch(/Rock of Dalgroth/i);
+    });
+});
