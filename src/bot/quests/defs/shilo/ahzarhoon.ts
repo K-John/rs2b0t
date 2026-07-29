@@ -116,6 +116,17 @@ export async function enterFissure(log: (m: string) => void): Promise<boolean> {
     return ok;
 }
 
+/**
+ * Getting to the south room from the surface is two crossings, not one — a death or
+ * a restart puts us back on Karamja and every harvest step has to climb in again.
+ */
+async function inSouthRoom(log: (m: string) => void): Promise<boolean> {
+    if (!inCaves() && !(await enterFissure(log))) {
+        return false;
+    }
+    return crossCaveIn('ahZaRhoonSouth', log);
+}
+
 /** The two cave rooms are separate mapsquares joined only by this rubble squeeze. */
 export async function crossCaveIn(to: 'ahZaRhoonNorth' | 'ahZaRhoonSouth', log: (m: string) => void): Promise<boolean> {
     if (here() === to) {
@@ -136,7 +147,7 @@ export async function takeTatteredScroll(log: (m: string) => void): Promise<bool
     if (heldId(SV_ITEM.TATTERED_SCROLL.id) > 0) {
         return true;
     }
-    if (!(await crossCaveIn('ahZaRhoonSouth', log))) {
+    if (!(await inSouthRoom(log))) {
         return false;
     }
     // A failed Agility roll drops the ceiling on you instead of yielding the scroll;
@@ -157,7 +168,7 @@ export async function takeCrumpledScroll(log: (m: string) => void): Promise<bool
     if (heldId(SV_ITEM.CRUMPLED_SCROLL.id) > 0) {
         return true;
     }
-    if (!(await crossCaveIn('ahZaRhoonSouth', log))) {
+    if (!(await inSouthRoom(log))) {
         return false;
     }
     return promptLoc(
@@ -175,7 +186,7 @@ export async function takeZadimusCorpse(log: (m: string) => void): Promise<boole
     if (heldId(SV_ITEM.ZADIMUS_CORPSE.id) > 0 || heldId(SV_ITEM.BONE_SHARD.id) > 0 || heldId(SV_ITEM.BONE_KEY.id) > 0) {
         return true;
     }
-    if (!(await crossCaveIn('ahZaRhoonSouth', log))) {
+    if (!(await inSouthRoom(log))) {
         return false;
     }
     return promptLoc(
