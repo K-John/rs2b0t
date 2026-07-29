@@ -57,7 +57,7 @@ for (const [key, value] of Object.entries(WT_TILE)) {
     }
 }
 for (const cave of WT_CAVES) {
-    stands.push([`cave${cave.index}.mouth`, cave.mouth]);
+    stands.push([`cave${cave.index}.stand`, cave.stand]);
     stands.push([`cave${cave.index}.landing`, cave.landing]);
 }
 for (const [key, tile] of Object.entries(WT_NIGHTSHADE)) {

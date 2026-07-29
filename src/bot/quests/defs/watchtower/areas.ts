@@ -139,17 +139,19 @@ export const WT_TILE = {
 
 export interface SkavidCave {
     index: number;
-    mouth: Tile;
+    /** A walkable tile the mouth can actually be clicked from. The mouth loc itself
+     *  is a 4x2 blocker, and for cave 1 the only reachable side is the south. */
+    stand: Tile;
     landing: Tile;
 }
 
 export const WT_CAVES: readonly SkavidCave[] = [
-    { index: 1, mouth: new Tile(2560, 3023, 0), landing: new Tile(2498, 9418, 0) },
-    { index: 2, mouth: new Tile(2522, 3069, 0), landing: new Tile(2532, 9469, 0) },
-    { index: 3, mouth: new Tile(2539, 3053, 0), landing: new Tile(2518, 9455, 0) },
-    { index: 4, mouth: new Tile(2552, 3053, 0), landing: new Tile(2498, 9451, 0) },
-    { index: 5, mouth: new Tile(2553, 3034, 0), landing: new Tile(2504, 9441, 0) },
-    { index: 6, mouth: new Tile(2527, 3012, 0), landing: new Tile(2522, 9411, 0) }
+    { index: 1, stand: new Tile(2561, 3021, 0), landing: new Tile(2498, 9418, 0) },
+    { index: 2, stand: new Tile(2522, 3070, 0), landing: new Tile(2532, 9469, 0) },
+    { index: 3, stand: new Tile(2539, 3054, 0), landing: new Tile(2518, 9455, 0) },
+    { index: 4, stand: new Tile(2552, 3054, 0), landing: new Tile(2498, 9451, 0) },
+    { index: 5, stand: new Tile(2552, 3034, 0), landing: new Tile(2504, 9441, 0) },
+    { index: 6, stand: new Tile(2529, 3013, 0), landing: new Tile(2522, 9411, 0) }
 ];
 
 export const WT_NIGHTSHADE = {

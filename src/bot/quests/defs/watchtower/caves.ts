@@ -65,7 +65,7 @@ export async function enterCave(index: number, log: (m: string) => void): Promis
             return false;
         }
     }
-    if (!(await Traversal.walkResilient(cave.mouth, { radius: 2, attempts: 3, timeoutMs: 300_000, log }))) {
+    if (!(await Traversal.walkResilient(cave.stand, { radius: 1, attempts: 3, timeoutMs: 300_000, log }))) {
         return false;
     }
     const mouth = locNear(WT_LOC.CAVE_IN[index - 1], 'Enter', 10);

@@ -218,13 +218,8 @@ function stageCaves(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
     if (cave <= 4) {
         return { kind: 'custom', name: `answer the skavid in cave ${cave}`, run: log => learnWord(cave, log) };
     }
-    // Cave 6 is behind the battlement, so the market gift has to be paid first.
-    if (area !== 'lowerCity' && !hasFlag(snap.progress, 'market-paid')) {
-        if (held(snap, WT_ITEM.ROCK_CAKE.id) === 0) {
-            return { kind: 'custom', name: 'steal a rock cake for the battlement guard', run: stealRockCake };
-        }
-        return { kind: 'custom', name: 'give the rock cake to the battlement guard', run: crossBattlement };
-    }
+    // Cave 6's mouth is approachable from the mainland, so the battlement is not
+    // needed here — only the cave-6 exit lands on the far side.
     return { kind: 'custom', name: 'answer the mad skavid for a crystal', run: answerMadSkavid };
 }
 
