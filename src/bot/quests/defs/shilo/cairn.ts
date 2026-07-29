@@ -1,10 +1,9 @@
 // docs/superpowers/specs/2026-07-29-shilo-village-design.md
-import { Execution } from '../../../api/Execution.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Quests } from '../../../api/hud/Quests.js';
 import { SV_ITEM, SV_LOC, SV_TILE } from './areas.js';
 import { SHILO_QUEST } from './journal.js';
-import { driveChoice, heldId, here, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { driveUntil, heldId, here, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 const YES_CRAWL = ['Yes Please, I can think of nothing nicer!'];
 const YES_NOTES = ["Yes, I'll make some notes."];
@@ -87,9 +86,7 @@ async function useItemOnItem(sourceId: number, targetId: number, want: number, l
     if (!(await source.useOn(target))) {
         return false;
     }
-    await Execution.delayTicks(2);
-    await driveChoice([], log);
-    return Execution.delayUntil(() => heldId(want) > 0, 12_000);
+    return driveUntil(() => heldId(want) > 0, [], log);
 }
 
 export function craftBoneBeads(log: (m: string) => void): Promise<boolean> {

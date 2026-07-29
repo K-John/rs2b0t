@@ -4,7 +4,7 @@ import { Game } from '../../../api/Game.js';
 import { Traversal } from '../../../api/Traversal.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { SV_ITEM, SV_LOC, SV_TILE } from './areas.js';
-import { driveChoice, heldId, here, locNear, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { driveChoice, driveUntil, heldId, here, locNear, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 const YES_CRAWL = ["Yes, I'll give it a go!"];
 const YES_SEARCH = ["Yes, I'm quite sure."];
@@ -206,6 +206,8 @@ export function readScroll(itemId: number): (log: (m: string) => void) => Promis
             return false;
         }
         await Execution.delayTicks(2);
+        // Reading leaves no observable trace until the journal reloads, so the
+        // honest end of this step is simply a closed dialogue.
         return driveChoice(YES_READ, log);
     };
 }
@@ -255,8 +257,7 @@ export async function buryZadimus(log: (m: string) => void): Promise<boolean> {
     if (!(await corpse.interact('Bury'))) {
         return false;
     }
-    // The apparition speaks before it surrenders the shard.
-    await Execution.delayTicks(4);
-    await driveChoice([], log);
-    return Execution.delayUntil(() => heldId(SV_ITEM.BONE_SHARD.id) > 0, 30_000);
+    // Dig, apparition, speech, shard, closing box — a chain with gaps in it, so the
+    // shard rather than a closed dialogue is what ends the step.
+    return driveUntil(() => heldId(SV_ITEM.BONE_SHARD.id) > 0, [], log, 60_000);
 }

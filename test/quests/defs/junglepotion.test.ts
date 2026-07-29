@@ -146,13 +146,8 @@ describe('junglepotion decide', () => {
     test('a carried unid is identified whatever the journal says', () => {
         // At found_snake_weed with the unid held the journal writes no line at all,
         // and every other found_ stage writes the previous "go and pick it" line.
-        expect(decide(snapshot({
-            stage: JP_STAGE.FOUND_ARDRIGAL,
-            invIds: new Map([[1527, 1]])
-        })).kind === 'custom' && decide(snapshot({
-            stage: JP_STAGE.FOUND_ARDRIGAL,
-            invIds: new Map([[1527, 1]])
-        })).name).toBe('identify the Ardrigal');
+        const found = decide(snapshot({ stage: JP_STAGE.FOUND_ARDRIGAL, invIds: new Map([[1527, 1]]) }));
+        expect(found.kind === 'custom' && found.name).toBe('identify the Ardrigal');
 
         const noStage = decide(snapshot({ stage: undefined, invIds: new Map([[1525, 1]]) }));
         expect(noStage.kind === 'custom' && noStage.name).toBe('identify the Snake weed');

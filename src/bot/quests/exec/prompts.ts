@@ -57,6 +57,33 @@ export async function driveChoice(prefer: string[], log: (m: string) => void): P
     return !ChatDialog.isOpen();
 }
 
+/**
+ * Keep answering prompts until the goal lands. A scripted chain leaves gaps where
+ * nothing is open yet — `driveChoice` alone returns at the first of them and the
+ * rest of the chain never runs.
+ * @see docs/QUESTS.md#exec-primitives
+ */
+export async function driveUntil(
+    expect: () => boolean,
+    prefer: string[],
+    log: (m: string) => void,
+    ms = 30_000
+): Promise<boolean> {
+    const deadline = performance.now() + ms;
+    while (performance.now() < deadline) {
+        if (expect()) {
+            return true;
+        }
+        if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
+            if (!(await driveChoice(prefer, log))) {
+                return expect();
+            }
+        }
+        await Execution.delayTicks(1);
+    }
+    return expect();
+}
+
 export interface LocPrompt {
     name: string;
     op: string;
@@ -88,12 +115,7 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
     if (status !== 'done') {
         return false;
     }
-    if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
-        if (!(await driveChoice(step.prefer ?? [], log))) {
-            return false;
-        }
-    }
-    return Execution.delayUntil(step.expect, step.expectMs ?? 20_000);
+    return driveUntil(step.expect, step.prefer ?? [], log, step.expectMs ?? 20_000);
 }
 
 /**
@@ -124,10 +146,5 @@ export async function useOnLoc(
     if (!(await item.useOn(target))) {
         return false;
     }
-    if (await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue() || expect(), 8000)) {
-        if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
-            await driveChoice(prefer, log);
-        }
-    }
-    return Execution.delayUntil(expect, 20_000);
+    return driveUntil(expect, prefer, log);
 }
