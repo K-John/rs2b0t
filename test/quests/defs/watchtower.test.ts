@@ -797,6 +797,21 @@ describe('watchtower decide — the Rock of Dalgroth needs a pickaxe', () => {
         expect(step.kind).toBe('withdraw');
     });
 
+    test('standing in the enclave with no pickaxe it leaves to get one', () => {
+        const step = mining({ tile: { x: 2589, z: 9450, level: 0 } });
+        expect(step.kind === 'custom' && step.name).toMatch(/leave the shaman enclave/i);
+    });
+
+    test('the pickaxe is carried in with the shaman trip, not fetched after', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+            inv: new Map([['tuna', 10]]),
+            invIds: new Map([[WT_ITEM.MAGIC_OGRE_POTION.id, 1], [WT_ITEM.NIGHTSHADE.id, 1]])
+        }));
+        expect(step.kind).toBe('buy');
+        expect(step.kind === 'buy' && step.item).toBe(WT_ITEM.PICKAXE.name);
+    });
+
     test('with a pickaxe carried it goes and mines', () => {
         const step = mining({
             invIds: new Map([

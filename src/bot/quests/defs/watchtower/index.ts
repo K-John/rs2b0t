@@ -311,12 +311,19 @@ function stageShamans(snap: QuestSnapshot, area: WatchtowerArea): QuestStep {
             return needCaveKit(snap, area)
                 ?? provisioned({ kind: 'custom', name: 'take Nightshade for the enclave', run: takeNightshade });
         }
+        // The mining follows in the same visit, so the pickaxe rides along rather
+        // than costing a second trip through the guard.
+        const pick = area === 'enclave' ? null : sourcePickaxe(snap);
+        if (pick) {
+            return provisioned(at(area, 'yanille', pick));
+        }
         return provisioned({ kind: 'custom', name: 'dissolve the ogre shamans', run: dissolveShamans });
     }
 
     if (held(snap, WT_ITEM.CRYSTAL4.id) === 0 && banked(snap, WT_ITEM.CRYSTAL4.id) === 0) {
-        // Sourced before the trip in: a pickaxe cannot be fetched from inside.
-        const pick = area === 'enclave' ? null : sourcePickaxe(snap);
+        // No area guard: standing in the enclave without a pickaxe is precisely the
+        // case that has to walk back out for one, and at() does the leaving.
+        const pick = sourcePickaxe(snap);
         if (pick) {
             return at(area, 'yanille', pick);
         }
