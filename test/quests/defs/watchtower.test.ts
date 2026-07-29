@@ -621,3 +621,33 @@ describe('watchtower decide — banking never starts from a sealed pocket', () =
         expect(step.kind === 'custom' && step.name).toMatch(/leave the skavid cave/i);
     });
 });
+
+describe('parseWatchtowerJournal — colour tags leave a space before punctuation', () => {
+    test('stage 9 with the brewed potion is not mistaken for stage 8', () => {
+        const p = parseWatchtowerJournal([
+            '|@str@I need to defeat the ogre shamans and find the other|',
+            '@str@crystals.|',
+            '@str@I tried to defeat the shamans, but they are protected|',
+            '@str@by powerful magics!|',
+            '|@dbl@I have made the @dre@ogre potion@dbl@. I need to get it enchanted by the Watchtower wizard.|'
+        ]);
+        expect(p?.stage).toBe(WATCHTOWER_STAGE.LEARNED_POTION);
+    });
+
+    test('stage 9 before brewing also reads as 9, not 8', () => {
+        const p = parseWatchtowerJournal([
+            '|@str@I need to defeat the ogre shamans and find the other|',
+            '@str@crystals.|',
+            '@dbl@I need to make the @dre@potion@dbl@ that will @dre@defeat the ogre @dre@shamans@dbl@.'
+        ]);
+        expect(p?.stage).toBe(WATCHTOWER_STAGE.LEARNED_POTION);
+    });
+
+    test('stage 8 itself still reads as 8', () => {
+        const p = parseWatchtowerJournal([
+            '@str@I used some cave nightshade to distract the guard.|',
+            '@dbl@I need to @dre@defeat the ogre shamans@dbl@ and @dre@find the other crystals.|'
+        ]);
+        expect(p?.stage).toBe(WATCHTOWER_STAGE.FED_NIGHTSHADE);
+    });
+});

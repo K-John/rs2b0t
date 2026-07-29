@@ -86,7 +86,9 @@ function readStage(text: string): number | undefined {
     if (text.includes('quest complete!')) return WATCHTOWER_STAGE.COMPLETE;
     if (text.includes('i have taken the crystals to the watchtower wizard')) return WATCHTOWER_STAGE.FOUND_ALL_CRYSTALS;
     if (text.includes('he infused it into a magic ogre potion')) return WATCHTOWER_STAGE.MADE_POTION;
-    if (text.includes('i have made the ogre potion. i need to get it enchanted') || text.includes('i need to make the')) {
+    // Needles avoid punctuation that sits next to a colour tag: stripping "@dbl@"
+    // leaves a space before the mark, so "potion." normalises to "potion .".
+    if (text.includes('i need to get it enchanted') || text.includes('i need to make the')) {
         return WATCHTOWER_STAGE.LEARNED_POTION;
     }
     if (text.includes('i need to defeat the ogre shamans and find the other')) return WATCHTOWER_STAGE.FED_NIGHTSHADE;
