@@ -42,7 +42,6 @@ export const SV_LOC = {
     OLD_SACKS: 'Old sacks',
     GALLOWS: 'Ancient gallows',
     WATERFALL_ROCKS: 'Waterfall rocks',
-    CLIMB_ROCKS: 'Rocks',
     WELL_STACKED_ROCKS: 'Well stacked rocks',
     BERVIRIUS_DOLMEN: 'Tomb dolmen',
     HANDHOLDS: 'Climbing rocks',
@@ -157,8 +156,4 @@ export function shiloArea(tile: QuestSnapshot['tile']): ShiloArea {
     if (z >= 4000) return 'unknown';
     if (x >= 2830 && x <= 2880 && z >= 2930 && z <= 2975) return 'shiloVillage';
     return 'karamja';
-}
-
-export function isUnderTomb(area: ShiloArea): boolean {
-    return area === 'rashEntry' || area === 'rashLedge' || area === 'rashInner';
 }

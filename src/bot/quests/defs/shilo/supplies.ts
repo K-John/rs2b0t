@@ -1,6 +1,5 @@
 // docs/superpowers/specs/2026-07-29-shilo-village-design.md
 import { Execution } from '../../../api/Execution.js';
-import type Tile from '../../../api/Tile.js';
 import { Traversal } from '../../../api/Traversal.js';
 import { Shop } from '../../../api/hud/Shop.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
@@ -17,17 +16,8 @@ import { BONE_SPAWNS, SV_ITEM, SV_NPC, SV_TILE, type ShiloItem } from './areas.j
  */
 export const JIMINUA_SHOP = { npc: SV_NPC.JIMINUA, anchor: SV_TILE.JIMINUA };
 
-// Asking prices run well above obj cost and climb as stock drains; each leaves headroom.
-const PRICE = {
-    ROPE: 60,
-    SPADE: 30,
-    CHISEL: 20,
-    CANDLE: 20,
-    TINDERBOX: 20,
-    HAMMER: 20,
-    BRONZE_BAR: 40,
-    BREAD: 40
-} as const;
+// Asking prices run well above obj cost and climb as stock drains; this leaves headroom.
+const BREAD_PRICE = 40;
 
 /** Two ship fares, the whole Jiminua kit, and headroom for a second shop trip. */
 export const KARAMJA_PURSE = 2000;
@@ -56,11 +46,6 @@ export function scanBank(): QuestStep {
 
 export function withdrawFrom(items: { name: string; id: number; qty: number }[]): QuestStep {
     return { kind: 'withdraw', items, bank: SV_TILE.ARDOUGNE_BANK };
-}
-
-/** Buying is the only source for the Jiminua kit — the bank is an ocean away. */
-export function buyFromJiminua(item: ShiloItem, qty: number, unitGp: number): QuestStep {
-    return { kind: 'buy', item: item.name, qty, shop: JIMINUA_SHOP, estGp: qty * unitGp };
 }
 
 /**
@@ -137,7 +122,7 @@ export function sourceFood(snap: QuestSnapshot, want: number): QuestStep | null 
     if (carried >= want) {
         return null;
     }
-    return { kind: 'buy', item: QUEST_FOOD, qty: want - carried, shop: JIMINUA_SHOP, estGp: (want - carried) * PRICE.BREAD };
+    return { kind: 'buy', item: QUEST_FOOD, qty: want - carried, shop: JIMINUA_SHOP, estGp: (want - carried) * BREAD_PRICE };
 }
 
 /**
@@ -259,5 +244,3 @@ export async function gatherBones(want: number, log: (m: string) => void): Promi
     }
     return carried() >= want;
 }
-
-export const BONE_TILES: readonly Tile[] = BONE_SPAWNS;
