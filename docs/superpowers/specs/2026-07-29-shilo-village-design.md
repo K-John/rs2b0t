@@ -100,9 +100,18 @@ them (they are `GROUND_DECOR` / `CENTREPIECE`, not doors).
 | `zqrockjump1/2/3` "Stepping stones" | Balance | (2925,2950/2949/2948) | EASTJUNGLE (2925,2951) ↔ MAINLAND (2925,2947) | one tile per stone; `stat_random(agility,50,253)` fall |
 | `zqclimbingrocks` "Rocks" | Climb | (2792–2794, 2978–2980) | MAINLAND (2795,z) ↔ CAIRNISLE (2791,z) | Agility 15 eastbound only; moves 4 tiles |
 
-They become six curated `transports.json` edges, `kind: "shortcut"`, the same shape as the
-existing Ropeswing entries. Every bot gains the route; the Shilo module carries no code for
-them.
+The log and the climbing rocks become **four curated `transports.json` edges**, `kind:
+"dungeon"` — the kind that carries a `toTile`, so the executor waits for the landing rather
+than for a door to open. Every bot gains the route and the Shilo module carries no code for
+them. Re-probing after the edges: the mound, the carved doors and Cairn Isle all report
+`pathable-from=[MAINLAND]`, and MAINLAND grows by exactly 6,353 tiles — EASTJUNGLE plus
+CAIRNISLE.
+
+**The stepping stones are deliberately not an edge.** All three stone tiles are unwalkable
+water in the pack, so `PathFinder.addEdges` would drop any per-hop edge, and a single
+four-tile edge would satisfy the executor's `chebyshev(me, toTile) <= 3` landing test after
+the first of four clicks. They buy nothing either: with the log in place, the waterfall exit
+routes back to Trufitus in 100 waypoints and to the mound in 130.
 
 Quest-scripted crossings stay in the module, because nothing but the quest can use them:
 
