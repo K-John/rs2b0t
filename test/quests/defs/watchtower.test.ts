@@ -705,3 +705,32 @@ describe('watchtower decide — the enclave is never entered without food', () =
         expect(step.kind === 'wait' && step.reason).toMatch(/food/i);
     });
 });
+
+describe('watchtower decide — holding all four crystals', () => {
+    const allFour = new Map([
+        [WT_ITEM.CRYSTAL1.id, 1], [WT_ITEM.CRYSTAL2.id, 1],
+        [WT_ITEM.CRYSTAL3.id, 1], [WT_ITEM.CRYSTAL4.id, 1]
+    ]);
+
+    test('goes straight to the wizard without a bank trip', () => {
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:0'),
+            inv: new Map([['tuna', 10]]),
+            invIds: allFour,
+            bankKnown: false
+        }));
+        expect(step.kind === 'custom' && step.name).toMatch(/crystals to the wizard/i);
+    });
+
+    test('a missing crystal still consults the bank first', () => {
+        const partial = new Map(allFour);
+        partial.delete(WT_ITEM.CRYSTAL2.id);
+        const step = decide(snapshot({
+            progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:0'),
+            inv: new Map([['tuna', 10]]),
+            invIds: partial,
+            bankKnown: false
+        }));
+        expect(step.kind).toBe('scanBank');
+    });
+});

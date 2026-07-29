@@ -348,6 +348,12 @@ const CRYSTAL_RECOVERY: Readonly<Record<number, { name: string; run: (log: (m: s
 };
 
 function recoverCrystals(snap: QuestSnapshot): QuestStep | null {
+    // Nothing to recover once all four are carried — do not walk to the bank
+    // merely to learn what is in it.
+    const lost = CRYSTALS.find(crystal => held(snap, crystal.id) === 0);
+    if (!lost) {
+        return null;
+    }
     // Every re-issue check reads the bank as well as the pack, so a banked crystal
     // blocks its own replacement. Withdraw before asking anyone for another.
     const inBank = CRYSTALS.filter(crystal => held(snap, crystal.id) === 0 && banked(snap, crystal.id) > 0);
@@ -356,10 +362,6 @@ function recoverCrystals(snap: QuestSnapshot): QuestStep | null {
     }
     if (!snap.bankKnown) {
         return scanBank();
-    }
-    const lost = CRYSTALS.find(crystal => held(snap, crystal.id) === 0);
-    if (!lost) {
-        return null;
     }
     const recovery = CRYSTAL_RECOVERY[lost.id];
     return { kind: 'custom', name: recovery.name, run: recovery.run };
