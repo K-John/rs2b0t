@@ -75,8 +75,11 @@ export async function dissolveShamans(log: (m: string) => void): Promise<boolean
     }
     for (const spot of WT_TILE.SHAMANS) {
         if (heldId(WT_ITEM.MAGIC_OGRE_POTION.id) === 0) {
-            log('the magic ogre potion is gone — leaving to brew another');
-            return leaveEnclave(log);
+            // Spent on the sixth shaman, or lost. Either way stay put and let
+            // decide() choose: the rock is mined from in here, and a brewing trip
+            // leaves through the ordinary escape.
+            log('the magic ogre potion is spent');
+            return true;
         }
         if (Skills.effective('hitpoints') * 2 < Skills.level('hitpoints')) {
             await Sustain.run();
