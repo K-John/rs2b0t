@@ -121,6 +121,11 @@ Some hard-won details:
   [`tools/shilo-solo-test.ts`](../tools/shilo-solo-test.ts) is the current worked
   example: `--stage`/`--bits` jump the quest varps, `--tele` drops the account beside
   the leg under test, and `--speed 300` runs the engine at 2× ticks.
+- **Measure throughput per tick, never per hour.** A dev world does not tick at 600ms
+  and `--speed` changes it again, so an actions/hour figure read off a sim is fiction.
+  [`tools/roguespurse-test.ts`](../tools/roguespurse-test.ts) reports herbs/**tick**
+  from the `host.tickCount` delta, which is comparable to the engine's own limits
+  (5 user events per tick) and to a real 600ms world.
 
 ## The end-to-end smoke
 

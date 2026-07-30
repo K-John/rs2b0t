@@ -114,6 +114,22 @@ Cheap local checks first — a failed gate must not cost a walk to Karamja.
    Otherwise world-walk to `(2823,3119)`, `enterPothole`, `settleScene`, then walk to the
    stand.
 
+### Karamja costs 30gp, and the navigator says "unreachable" instead
+
+The two ship crossings in `nav/data/specialCrossings.ts` are `Pay-fare` and
+`requires: { item: 'Coins', count: 30 }`. `WalkExecutor.resetAvoids` prunes every crossing
+whose requirement the pack does not meet, so an account with no coins does not get told it is
+broke — it gets told the entire island is `unreachable`. Confirmed live: the cold-start run
+sat at Al Kharid cycling `expansion budget exceeded` → `unreachable`, while the same route
+probed offline (where the fare is not modelled) solved in 100,111 expansions, well inside the
+300,000 budget.
+
+So travel is not self-sufficient without a fare. Rather than guess at geography — "am I on
+Karamja yet?" — the bot acts on the navigator's own verdict: a walk that fails with
+`lastOutcome === 'unreachable'` while holding fewer than 30 coins triggers one bank trip for
+a 100gp float, then the walk retries. An empty bank stops the script naming the amount. On
+the island (or already carrying coins) the leg never fires.
+
 ## The grind loop
 
 One `loop()` iteration issues at most one tick's worth of packets and then waits a tick. In
@@ -126,7 +142,8 @@ order — each line is one user event, four total, inside the engine's budget of
 
 This is a pipeline, not a sequence. `opheld` runs during decode and `oploc` resolves in the
 movement phase, so at steady state one tick identifies the previous tick's unid, drops the
-previous tick's herb, and searches for the next: ~1 herb/tick, a ceiling near 5.4k xp/hr.
+previous tick's herb, and searches for the next: 1 herb/tick, which at a 600ms tick is
+6000 herbs and **15k Herblore xp per hour**.
 
 ### Throughput
 
@@ -138,8 +155,11 @@ pack-full edge cases.
 The pipeline's real advantage is that it **degrades gracefully**. If part of a tick's burst is
 dropped (the `clearPendingAction` question above, or a modal state change eating a beat), the
 identical loop still makes progress at 2–4 ticks per herb. There is no "safe mode" toggle to
-pick wrong. Real throughput is measured, not assumed: the paint reports herbs/hr and xp/hr,
-and the send order gets tuned from that number on a live run.
+pick wrong. Real throughput is measured, not assumed: the paint reports herbs/hr and xp/hr.
+
+Measured on the local sim: **1.00 herbs/tick** over 834 ticks, steady state holding exactly
+one unid and one identified purse in the pack. `clearPendingAction` does not cancel the
+same-tick wall interaction. No tuning was needed.
 
 ## Staying at the wall
 
@@ -168,12 +188,27 @@ identified count, herbs/hr, pack contents, then `ScriptRunner.paintControls`.
   drop + search; zero free slots → no search; continue pending → continue first
 - gates — Herblore 1/2/3/8 × JP stage 0/8/9/10/12, including `unknown` journal
 - refusal detection — the two `mes` strings above, and near-misses that must not match
+- fare — `FARE` still equals what every ship crossing charges, and the float still covers the
+  fare plus the Al Kharid gate, so the constants cannot drift from the nav data unnoticed
 
 `bun test`, `bun run lint`, `bun run typecheck`, and `bun tools/gen-scriptdocs.ts --check`
 all clean.
 
-Live, on the local sim: a JP-complete account at the wall to confirm xp climbs and to measure
-herbs/hr, then a cold start from the mainland to prove the travel leg.
+Live, via `tools/roguespurse-test.ts` against the local sim. `herbs/tick` is the metric that
+matters — it is immune to `::speed`, and 1.0 is the ceiling:
+
+| `--at` | Proves |
+|---|---|
+| `cave` | seated on the stand, the cycle alone |
+| `pothole` | the `Rocks` climb + the in-cave walk to the wall |
+| `mainland` | the whole travel leg, Karamja crossing included (needs `--fare`) |
+
+Plus two refusal runs that must leave the script stopped, not running: `--stage 0` (the JP
+gate) and `--no-maxme` (Herblore 1).
+
+`::give` reaches the pack and never the bank, so `--fare` seeds coins directly. The bank
+*withdraw* inside the fare leg is therefore not live-seeded — it is the same `Bank.withdrawX`
+every other bot uses, but that one step rests on the unit suite, not on a live run.
 
 ## Out of scope
 
