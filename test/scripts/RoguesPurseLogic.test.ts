@@ -7,12 +7,15 @@ import {
     IDENTIFY_LEVEL,
     WALL_STAGE,
     checkGates,
+    detourCost,
     isLevelRefusal,
     isStageRefusal,
-    planCycle
+    planCycle,
+    rankBanksByDetour
 } from '#/bot/scripts/RoguesPurseLogic.js';
 import { JP_STAGE } from '#/bot/quests/defs/junglepotion.js';
 import { SPECIAL_CROSSINGS } from '#/bot/nav/data/specialCrossings.js';
+import { BANK_LOCATIONS, bankDistance } from '#/bot/api/BankLocations.js';
 
 describe('planCycle (one tick of packets)', () => {
     test('an empty pack only searches', () => {
@@ -108,6 +111,48 @@ describe('boat fare (the navigator prunes crossings it cannot pay for)', () => {
     test('the float covers the fare and leaves change for the Al Kharid gate', () => {
         const gate = SPECIAL_CROSSINGS.find(sc => /al kharid/i.test(sc.label ?? ''));
         expect(FARE_FLOAT).toBeGreaterThanOrEqual(FARE + (gate?.requires?.count ?? 0));
+    });
+});
+
+describe('rankBanksByDetour (bank on the way, not nearest to us)', () => {
+    // `p_teleport(map_findsquare(0_50_50_21_18, ...))` in player_death.
+    const LUMBRIDGE_DEATH = { x: 3221, z: 3218, level: 0 };
+    const POTHOLE = { x: 2823, z: 3119, level: 0 };
+    const named = (name: string) => BANK_LOCATIONS.find(b => b.name === name)!;
+
+    test('the Lumbridge death spawn banks at Draynor, not the nearer Al Kharid', () => {
+        const alKharid = named('Al Kharid');
+        const draynor = named('Draynor');
+        // Al Kharid really is closer to the corpse — that is the trap.
+        expect(bankDistance(LUMBRIDGE_DEATH, alKharid.tile)).toBeLessThan(
+            bankDistance(LUMBRIDGE_DEATH, draynor.tile)
+        );
+        // ...but it is backwards, so it loses once the walk to Karamja is counted.
+        expect(detourCost(LUMBRIDGE_DEATH, draynor.tile, POTHOLE)).toBeLessThan(
+            detourCost(LUMBRIDGE_DEATH, alKharid.tile, POTHOLE)
+        );
+
+        const ranked = rankBanksByDetour(LUMBRIDGE_DEATH, POTHOLE, BANK_LOCATIONS);
+        expect(ranked.findIndex(b => b.name === 'Draynor')).toBeLessThan(
+            ranked.findIndex(b => b.name === 'Al Kharid')
+        );
+    });
+
+    test('a bank we are standing on costs only the onward leg', () => {
+        const bank = { x: 3093, z: 3243 };
+        expect(detourCost(bank, bank, POTHOLE)).toBeCloseTo(
+            Math.hypot(POTHOLE.x - bank.x, POTHOLE.z - bank.z)
+        );
+    });
+
+    test('ranking is stable and keeps every candidate', () => {
+        const ranked = rankBanksByDetour(LUMBRIDGE_DEATH, POTHOLE, BANK_LOCATIONS);
+        expect(ranked.length).toBe(BANK_LOCATIONS.length);
+        for (let i = 1; i < ranked.length; i++) {
+            expect(detourCost(LUMBRIDGE_DEATH, ranked[i - 1]!.tile, POTHOLE)).toBeLessThanOrEqual(
+                detourCost(LUMBRIDGE_DEATH, ranked[i]!.tile, POTHOLE)
+            );
+        }
     });
 });
 

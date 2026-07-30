@@ -130,22 +130,39 @@ Karamja yet?" — the bot acts on the navigator's own verdict: a walk that fails
 a 100gp float, then the walk retries. An empty bank stops the script naming the amount. On
 the island (or already carrying coins) the leg never fires.
 
-### Picking a bank a broke account can reach
+### The bank has to be on the way, not merely nearby
 
-`nearestUsableBank` ranks by straight-line distance and knows nothing about affordability, so
-its nearest answer can be a bank behind a crossing the empty pack cannot pay for. Walking at
-one of those fails slowly and then repeats.
+Ranking banks by distance from the player is the wrong metric, and it picks badly here.
+`nearestUsableBank` would send the Lumbridge death spawn to **Al Kharid**, which really is the
+closest bank to the corpse — and 50 tiles in the wrong direction, so the walk to Karamja then
+comes straight back west past Draynor's door. The first live deathwalk did exactly that,
+passing within 15 tiles of the Draynor booth at `(3106,3268)` on its way to Port Sarim, having
+already paid the 10gp toll to get out of Al Kharid again.
 
-So the fare trip probes each candidate with `WalkExecutor.probeDest` and takes the nearest bank
-that actually solves; the probe calls `resetAvoids()` itself, so it sees exactly the pruning a
-real walk would. Four candidates are tried before giving up.
+So candidates are ranked by the detour they add to the journey —
+`detourCost = dist(here → bank) + dist(bank → pothole)` — which from the death spawn gives:
 
-This is insurance, not a fix for an observed failure. I expected it to skip Al Kharid from the
-Lumbridge death spawn on account of the 10gp toll gate — **it does not, and that expectation was
-wrong**: the live run walked in down the east bank of the Lum, `(3238,3303) → (3275,3269) →
-(3276,3172)`, so the bank is reachable broke and the gate is only a shortcut. It paid the gate
-on the way back *out*, with the float it had just withdrawn. The case the probe genuinely
-covers is dying with a bank ranked nearest across a ferry — Karamja ranking Ardougne, say.
+| Detour | Bank |
+|---|---|
+| 428 | Draynor |
+| 519 | Al Kharid |
+| 552 | Falador East |
+
+Draynor wins on the rule rather than by being hardcoded, so a death anywhere else still routes
+through whatever bank is genuinely on the way. Measured saving: recovery took 91s against 130s
+via Al Kharid (at `--speed 100`, ±10s poll granularity — call it ~4 minutes of real time per
+death on a 600ms world), plus the toll.
+
+Ranking alone is still affordability-blind, so the chosen bank is then probed with
+`WalkExecutor.probeDest`, which calls `resetAvoids()` itself and so sees exactly the pruning a
+real walk would; up to four candidates are tried. That guard is insurance rather than a fix for
+an observed failure — the case it covers is dying with the cheapest-detour bank across a ferry,
+Karamja ranking Ardougne being the obvious one.
+
+One expectation of mine was wrong and is worth recording: I assumed the 10gp toll gate made Al
+Kharid unreachable while broke. It does not — the first run walked in down the east bank of the
+Lum, `(3238,3303) → (3275,3269) → (3276,3172)`. The gate is only a shortcut, and the bot paid it
+on the way back *out* with the float it had just withdrawn.
 
 ## Deathwalk
 
@@ -164,10 +181,10 @@ of the ordinary `atWall()` walk in the loop for the same reason.
 Deaths are counted in the paint beside the carried fare.
 
 Verified live by killing the account mid-grind with `::~death` rather than posing a post-death
-state: it respawned, banked at Al Kharid, withdrew 100gp, crossed the toll gate, sailed from
-Port Sarim, climbed back into the pothole and resumed at the wall. The pack came back `0u/1p`
-— the purse (cost 5) survived, the cost-0 unids did not — and the coins were short of the fare,
-which is the premise this leg rests on.
+state: it respawned, banked at **Draynor**, withdrew 100gp, sailed from Port Sarim, climbed back
+into the pothole and resumed at the wall. The pack came back `0u/1p` — the purse (cost 5)
+survived, the cost-0 unids did not — and the coins were short of the fare, which is the premise
+this leg rests on.
 
 Two harness lessons, both of which produced a false pass first:
 
@@ -239,6 +256,8 @@ identified count, herbs/hr, pack contents, then `ScriptRunner.paintControls`.
 - refusal detection — the two `mes` strings above, and near-misses that must not match
 - fare — `FARE` still equals what every ship crossing charges, and the float still covers the
   fare plus the Al Kharid gate, so the constants cannot drift from the nav data unnoticed
+- bank choice — Al Kharid *is* the nearer bank to the death spawn and still loses on detour
+  cost, so the trap cannot return by anyone "optimising" the ranking back to nearest-first
 
 `bun test`, `bun run lint`, `bun run typecheck`, and `bun tools/gen-scriptdocs.ts --check`
 all clean.

@@ -73,6 +73,30 @@ export function checkGates(state: GateState): Gate {
     };
 }
 
+export interface Point {
+    x: number;
+    z: number;
+}
+
+function dist(a: Point, b: Point): number {
+    return Math.hypot(b.x - a.x, b.z - a.z);
+}
+
+/**
+ * Cost of banking at `bank` on the way from `here` to `dest`, rather than distance from the
+ * player. A bank behind us is a there-and-back detour even when it is the closest one: from the
+ * Lumbridge death spawn Al Kharid is nearest, but it is 50 tiles the wrong way and the walk
+ * afterwards comes straight back past Draynor.
+ */
+export function detourCost(here: Point, bank: Point, dest: Point): number {
+    return dist(here, bank) + dist(bank, dest);
+}
+
+/** Candidate banks for the fare trip, cheapest detour first. */
+export function rankBanksByDetour<T extends { tile: Point }>(here: Point, dest: Point, banks: readonly T[]): T[] {
+    return [...banks].sort((a, b) => detourCost(here, a.tile, dest) - detourCost(here, b.tile, dest));
+}
+
 export type CycleAction = 'continue' | 'identify' | 'drop' | 'search';
 
 export interface CycleState {

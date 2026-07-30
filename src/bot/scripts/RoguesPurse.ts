@@ -1,5 +1,5 @@
 import { actions } from '../adapter/ClientAdapter.js';
-import { bankUnlocked, nearestUsableBank, type BankLocation } from '../api/BankLocations.js';
+import { BANK_LOCATIONS, bankUnlocked, type BankLocation } from '../api/BankLocations.js';
 import { LoopingBot } from '../api/Bot.js';
 import { Execution } from '../api/Execution.js';
 import { Game } from '../api/Game.js';
@@ -34,7 +34,8 @@ import {
     checkGates,
     isLevelRefusal,
     isStageRefusal,
-    planCycle
+    planCycle,
+    rankBanksByDetour
 } from './RoguesPurseLogic.js';
 
 const PURSE = JUNGLE_HERBS.find(h => h.key === 'rogues purse')!;
@@ -46,10 +47,9 @@ const ANCHOR_SLACK = 3;
 const DEAD_SEARCHES = 30;
 
 /**
- * How many banks to try before giving up on the fare. `nearestUsableBank` ranks by
- * straight-line distance and knows nothing about affordability, so its nearest answer can sit
- * behind a crossing the empty pack cannot pay for — dying on Karamja would rank Ardougne
- * across a 30gp ferry. Probing each candidate applies the same pruning a real walk would.
+ * How many banks to try before giving up on the fare. Candidates are ranked by detour cost and
+ * then probed, because ranking alone is affordability-blind: dying on Karamja would rank
+ * Ardougne cheapest, across a 30gp ferry the empty pack cannot pay for.
  */
 const BANK_TRIES = 4;
 const BANK_PROBE_EXPANSIONS = 300_000;
@@ -252,13 +252,14 @@ export default class RoguesPurse extends LoopingBot {
         if (!here) {
             return null;
         }
-        const tried = new Set<string>();
-        for (let i = 0; i < BANK_TRIES; i++) {
-            const bank = nearestUsableBank(here, b => bankUnlocked(b) && !tried.has(b.name));
-            if (!bank) {
-                return null;
-            }
-            tried.add(bank.name);
+        // Cheapest detour on the way to the pothole, not nearest to us — Draynor sits on the
+        // Lumbridge->Port Sarim line, where Al Kharid is 50 tiles backwards plus a toll.
+        const ranked = rankBanksByDetour(
+            here,
+            POTHOLE_ENTRANCE.stand,
+            BANK_LOCATIONS.filter(b => b.tile.level === here.level && bankUnlocked(b))
+        );
+        for (const bank of ranked.slice(0, BANK_TRIES)) {
             if ((await WalkExecutor.probeDest(bank.tile, BANK_PROBE_EXPANSIONS)).ok) {
                 return bank;
             }
