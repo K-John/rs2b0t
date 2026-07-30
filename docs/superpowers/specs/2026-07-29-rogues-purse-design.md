@@ -130,6 +130,55 @@ Karamja yet?" — the bot acts on the navigator's own verdict: a walk that fails
 a 100gp float, then the walk retries. An empty bank stops the script naming the amount. On
 the island (or already carrying coins) the leg never fires.
 
+### Picking a bank a broke account can reach
+
+`nearestUsableBank` ranks by straight-line distance and knows nothing about affordability, so
+its nearest answer can be a bank behind a crossing the empty pack cannot pay for. Walking at
+one of those fails slowly and then repeats.
+
+So the fare trip probes each candidate with `WalkExecutor.probeDest` and takes the nearest bank
+that actually solves; the probe calls `resetAvoids()` itself, so it sees exactly the pruning a
+real walk would. Four candidates are tried before giving up.
+
+This is insurance, not a fix for an observed failure. I expected it to skip Al Kharid from the
+Lumbridge death spawn on account of the 10gp toll gate — **it does not, and that expectation was
+wrong**: the live run walked in down the east bank of the Lum, `(3238,3303) → (3275,3269) →
+(3276,3172)`, so the bank is reachable broke and the gate is only a shortcut. It paid the gate
+on the way back *out*, with the float it had just withdrawn. The case the probe genuinely
+covers is dying with a bank ranked nearest across a ferry — Karamja ranking Ardougne, say.
+
+## Deathwalk
+
+Death is not incidental here. `player_death` teleports to `map_findsquare(0_50_50_21_18)` —
+Lumbridge `(3221,3218)` — and `player_death_lose_items` calls
+`move_priciest_item_on_hero_to_death` three times. That proc moves **one** of the priciest item
+(`inv_moveitem(..., 1)`), so the pack that comes back holds one unid, one purse and a *single*
+coin — never a payable fare, whatever the float was. Everything else drops at the wall.
+
+The shared `DeathRecovery` task owns detection (`/oh dear.*you are dead/i`, exactly what
+`mes("Oh dear you are dead!")` emits) and the "recovered once near the anchor" test. Its
+`walkBack` hook runs `travel({ needFare: true })`, which banks *first* rather than spending the
+whole walk ladder rediscovering that Karamja is unreachable. The death branch is checked ahead
+of the ordinary `atWall()` walk in the loop for the same reason.
+
+Deaths are counted in the paint beside the carried fare.
+
+Verified live by killing the account mid-grind with `::~death` rather than posing a post-death
+state: it respawned, banked at Al Kharid, withdrew 100gp, crossed the toll gate, sailed from
+Port Sarim, climbed back into the pothole and resumed at the wall. The pack came back `0u/1p`
+— the purse (cost 5) survived, the cost-0 unids did not — and the coins were short of the fare,
+which is the premise this leg rests on.
+
+Two harness lessons, both of which produced a false pass first:
+
+- **Debugprocs need the `~` prefix.** `ClientCheatHandler` only dispatches one when the command
+  starts with `Environment.node.debugProcChar`. `::death` and `::bank_f2p` are silently dropped;
+  `::~death` and `::~bank_f2p` work. `setvar`/`give`/`tele`/`speed` are separate built-ins, which
+  is why those worked and hid the problem.
+- **"xp resumed" is not evidence of recovery.** A bot that never died keeps grinding, so the
+  first version of this assertion passed while the deathwalk had never run. The test now requires
+  seeing the account *out of the caves* after the kill before it will accept resumed xp.
+
 ## The grind loop
 
 One `loop()` iteration issues at most one tick's worth of packets and then waits a tick. In
@@ -203,8 +252,8 @@ matters — it is immune to `::speed`, and 1.0 is the ceiling:
 | `pothole` | the `Rocks` climb + the in-cave walk to the wall |
 | `mainland` | the whole travel leg, Karamja crossing included (needs `--fare`) |
 
-Plus two refusal runs that must leave the script stopped, not running: `--stage 0` (the JP
-gate) and `--no-maxme` (Herblore 1).
+Plus `--bank-coins --die-after N` for the deathwalk, and two refusal runs that must leave the
+script stopped rather than running: `--stage 0` (the JP gate) and `--no-maxme` (Herblore 1).
 
 `::give` reaches the pack and never the bank, so `--fare` seeds coins directly. The bank
 *withdraw* inside the fare leg is therefore not live-seeded — it is the same `Bank.withdrawX`

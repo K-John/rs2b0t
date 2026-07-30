@@ -113,8 +113,14 @@ Some hard-won details:
   level-93 boss. `Equipment.equip()` awaits `Execution.delayUntil`, which needs a
   running script context and throws from `page.evaluate` — drive the Wield/Wear
   held-op yourself; the direct input driver's is synchronous.
-- **`::give` reaches the inventory, never the bank.** There is no working bank cheat
-  in the current content, so a bank-withdraw path stays a unit-test concern.
+- **`::give` reaches the inventory, never the bank** — but `::bank_f2p` stocks the bank
+  (coins included) and raises no dialog, so bank-withdraw paths *are* testable. Prefer it
+  to `::bank_preset`, which first asks "This clears your bank. Continue?" and needs the
+  choice answered before it does anything.
+- **`::death` is a clean kill** (`~damage_self(999)`): respawn is Lumbridge `(3221,3218)`,
+  and `move_priciest_item_on_hero_to_death` keeps *one* of each of the three priciest items
+  — so a coin stack comes back as a single coin. Use it to test death recovery for real
+  rather than seeding a post-death pose.
 - **A stage test seeds only what that stage produces, never its tools.** See
   [Quests](QUESTS.md#adding-a-quest) — every Watch Tower stage-10 test handed the bot
   a pickaxe, so all of them passed while the quest could not mine.

@@ -2,6 +2,7 @@
 // Live RoguesPurse run against a local engine.
 //   bun tools/roguespurse-test.ts --base http://localhost:8888 --minutes 4
 //   bun tools/roguespurse-test.ts --at mainland --fare 100 --minutes 25 --speed 100
+//   bun tools/roguespurse-test.ts --bank-coins --die-after 60 --minutes 30   # deathwalk
 //   bun tools/roguespurse-test.ts --stage 0 --no-maxme --minutes 2   # gate rejection
 //
 // herbs/tick is the metric that matters: it is immune to `::speed`, and 1.0 is the
@@ -66,10 +67,15 @@ try {
     console.log(`junglepotion=${stage}, relogged`);
 
     // The Karamja ship is a Pay-fare crossing; without coins the navigator prunes it and
-    // the whole island reads as unreachable. `::give` reaches the pack, never the bank.
+    // the whole island reads as unreachable. `::give` reaches the pack, never the bank —
+    // `::~bank_f2p` is the one that stocks the bank (with coins) and raises no confirm dialog,
+    // unlike `::~bank_preset`. Debugprocs need the `~` prefix or the handler silently drops them.
     const fare = opt('--fare');
     if (fare && !(await cheatQuiet(page, `give coins ${Number(fare) || 100}`))) {
         fail('could not give coins');
+    }
+    if (flag('--bank-coins') && !(await cheatQuiet(page, '~bank_f2p'))) {
+        fail('could not stock the bank');
     }
 
     const seat = at === 'cave' ? WALL_TELE : at === 'pothole' ? POTHOLE_TELE : null;
@@ -119,6 +125,16 @@ try {
 
     const first = await read();
     const deadline = Date.now() + minutes * 60_000;
+    // `::~death` is ~damage_self(999): respawns at Lumbridge and drops all but 1 of each of the
+    // three priciest items, so the pack comes back with a single coin — not a payable fare.
+    const dieAfter = opt('--die-after') ? Number(opt('--die-after')) * 1000 : null;
+    const dieAt = dieAfter === null ? null : Date.now() + dieAfter;
+    let killed = false;
+    /** Seen out of the caves after the kill — the only proof `~death` actually landed. */
+    let deathSeen = false;
+    let recovered = false;
+    /** Herblore xp at the moment of death — xp past this proves the walk back worked. */
+    let killedXp: number | null = null;
     let lastLogTime = 0;
     let last = first;
     let grindStart: Snapshot | null = null;
@@ -143,6 +159,26 @@ try {
         if (!grindStart && gained > 0) {
             grindStart = last;
         }
+        // Only kill once it is actually grinding, so the deathwalk starts from the wall.
+        if (dieAt !== null && !killed && grindStart && Date.now() >= dieAt) {
+            if (!(await cheatQuiet(page, '~death'))) {
+                fail('could not kill the account');
+            }
+            killed = true;
+            killedXp = last.xp;
+            console.log('  >>> killed the account — watching the deathwalk');
+        }
+        // Leaving the caves is the only evidence the kill landed. Without this check a cheat
+        // the handler silently dropped looks identical to a death recovered from instantly.
+        const underground = (last.pos?.z ?? 0) >= 9400;
+        if (killed && !deathSeen && !underground) {
+            deathSeen = true;
+            console.log(`  >>> death confirmed: respawned at ${last.pos?.x},${last.pos?.z}`);
+        }
+        if (deathSeen && !recovered && underground && killedXp !== null && last.xp > killedXp + 25) {
+            recovered = true;
+            console.log(`  >>> recovered: grinding again at ${last.pos?.x},${last.pos?.z}`);
+        }
         if (last.runner !== 'running') {
             break;
         }
@@ -164,6 +200,19 @@ try {
     }
     if (!expectGrind && last.runner === 'running') {
         fail('a failed gate left the script running');
+    }
+    if (dieAt !== null) {
+        const back = !!last.pos && last.pos.z >= 9400;
+        console.log(`DEATHWALK killed=${killed} deathSeen=${deathSeen} recovered=${recovered} backInCaves=${back}`);
+        if (!killed) {
+            fail('never reached a grinding state to kill');
+        }
+        if (!deathSeen) {
+            fail('never left the caves after ~death — the kill did not land');
+        }
+        if (!recovered || !back) {
+            fail('deathwalk did not get back underground and resume grinding');
+        }
     }
     console.log('PASS');
 } finally {
