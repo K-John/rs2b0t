@@ -43,10 +43,7 @@ export type Gate = { ok: true } | { ok: false; reason: string };
 
 const RUN_THE_QUEST = `run AIOQuester with ${JUNGLE_POTION_QUEST} first`;
 
-/**
- * Both engine gates, checked before the walk to Karamja rather than after it.
- * @see docs/superpowers/specs/2026-07-29-rogues-purse-design.md
- */
+/** Both engine gates, checked before the walk to Karamja rather than after it. */
 export function checkGates(state: GateState): Gate {
     if (state.herbloreLevel < IDENTIFY_LEVEL) {
         return {
