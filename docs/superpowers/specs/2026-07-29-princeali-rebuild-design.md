@@ -285,6 +285,35 @@ Order of live work:
 is rewritten as a table test over every stage branch, both wedge paths, and the
 ID-versus-name cases (a `plainwig` in the pack must not satisfy the blond-wig check).
 
+## Live result
+
+Uncheated 0 → 110, bank seeded with 2m coins and nothing else, `::speed 300`:
+
+| | |
+|---|---|
+| Wall clock | **15 min 37 s** |
+| Result | `status=complete princequest=110 qp=3` |
+| Parks / blocks / no-progress | 0 |
+| Al-Kharid trips | 3 (the structural minimum) |
+| Clay mined | 1 — the forge's recovery path never fired |
+| Pickaxe grabs | 1 |
+| Bank trips | 2 (one scan, one withdrawal) — the purse floor held |
+
+The route ran in the designed order first time: bank, purse, Hassan, Osman, Shantay
+(bar + 2 water), Lumbridge (tinderbox + shears), onions, shear, spin at Lumbridge,
+Thessalia, pickaxe, clay, Wydin, Bartender, logs, ashes, dye, Ned's wig, dye the wig,
+Aggie's paste, Ned's rope, soft clay, Lady Keli, Osman's forge, Joe, the break-in,
+Hassan. One Leela conversation handed the key over *and* promoted to stage 30, so no
+separate handover step was ever needed.
+
+Also verified on their own: stage 100 → 110; the already-forged wedge
+(`--keystatus 1`, Osman refuses the print) → 110; Keli-respawn recovery at stage 50 → 110.
+
+The one blemish in that run was a single `journal stage unavailable` wait after Joe's
+beers — `Quests.journal` cannot open behind a lingering chat box. Fixed by closing any
+main modal first and retrying three times a tick apart, and re-verified on the stage-30
+leg where it occurred.
+
 ## Out of scope
 
 - No change to `nav/data/doors.json`, `transports.json` or `specialCrossings.ts`. The
