@@ -223,7 +223,12 @@ export default class CoalTrucks extends LoopingBot {
             ScriptRunner.stop();
             return;
         }
-        const moved = result === 'all' ? held : held - Inventory.count(COAL);
+        // Same race as the pull: the message can beat the inventory by a tick, and a real
+        // 12-coal deposit then reads as 0. "full" moves nothing, so it has nothing to wait for.
+        if (result === 'all' || result === 'partial') {
+            await Execution.delayUntil(() => Inventory.count(COAL) < held, 2000);
+        }
+        const moved = held - Inventory.count(COAL);
         this.depositedEstimate = Math.min(TRUCK_MAX, this.depositedEstimate + moved);
         this.log(`put ${moved} coal in the truck (${result})`);
         this.phase = phaseAfterDeposit(result);
