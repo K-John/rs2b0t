@@ -178,26 +178,21 @@ export default class CoalTrucks extends LoopingBot {
             return;
         }
         this.status = 'mining coal';
+        const before = Inventory.count(COAL);
         if (!(await rock.interact(MINE_OP))) {
             await Execution.delayTicks(2);
             return;
         }
-        let count = Inventory.count(COAL);
-        let lastGain = performance.now();
-        while (!Inventory.isFull()) {
-            if (EventSignal.pending() || ChatDialog.canContinue()) {
-                return;
-            }
-            const now = Inventory.count(COAL);
-            if (now > count) {
-                count = now;
-                lastGain = performance.now();
-            }
-            if (performance.now() - lastGain > MINE_STALL_MS) {
-                return;
-            }
-            await Execution.delayTicks(2);
-        }
+        // A rock yields one coal and depletes, so return on the gain and let the next
+        // loop pick a live rock. Waiting out the stall on a spent rock was costing the
+        // whole 20s: measured 1 coal / 20s, against ~1 coal / 2s once this returns early.
+        await Execution.delayUntil(
+            () => Inventory.count(COAL) > before
+                || Inventory.isFull()
+                || EventSignal.pending()
+                || ChatDialog.canContinue(),
+            MINE_STALL_MS
+        );
     }
 
     private async deposit(): Promise<void> {
