@@ -239,6 +239,7 @@ export default class CoalTrucks extends LoopingBot {
             await Execution.delayTicks(2);
             return;
         }
+        const before = Inventory.count(COAL);
         const mark = GameMessages.mark();
         if (!(await truck.interact(REMOVE_OP))) {
             await Execution.delayTicks(2);
@@ -252,7 +253,10 @@ export default class CoalTrucks extends LoopingBot {
         if (result === 'no-space') {
             return;
         }
-        this.log(`took ${Inventory.count(COAL)} coal from the truck (${result})`);
+        // The message can beat the inventory by a tick, so settle before counting or
+        // a real pull logs as "took 0".
+        await Execution.delayUntil(() => Inventory.count(COAL) > before, 2000);
+        this.log(`took ${Inventory.count(COAL) - before} coal from the truck (${result})`);
         this.truckEmpty = truckEmptyAfterRemove(result);
     }
 
