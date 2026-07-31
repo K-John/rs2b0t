@@ -255,10 +255,25 @@ try {
         }
         console.log(`PASS: no pickaxe — walked to the bank and stopped honestly at ${fmt(last.pos)}`);
     } else {
+        // "It gained xp" would pass a run that mined forever and never completed a
+        // cycle, so require the whole loop: filled the truck to the cap, ran to Seers,
+        // and drained it.
         if (gained <= 0) {
             fail('no mining xp gained over the full run');
         }
-        console.log(`PASS: +${gained} mining xp over ${ticks} ticks, truck at ${truckAfter}`);
+        if (!deposits.includes('all')) {
+            fail(`never completed a plain deposit (saw [${deposits.join(',')}])`);
+        }
+        if (!deposits.includes('full') && !deposits.includes('partial')) {
+            fail(`never filled the truck to the 120 cap (saw [${deposits.join(',')}])`);
+        }
+        if (!reachedSeers) {
+            fail('filled the truck but never ran it to Seers');
+        }
+        if (!crossed) {
+            fail('reached Seers without ever taking the log balance');
+        }
+        console.log(`PASS: full cycle — deposits [${deposits.join(',')}], crossed the log, truck at ${truckAfter}, +${gained} mining xp over ${ticks} ticks`);
     }
 } finally {
     await browser.close();
