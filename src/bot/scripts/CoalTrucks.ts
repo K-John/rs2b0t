@@ -22,6 +22,7 @@ import {
     COAL_MINING_LEVEL,
     COAL_ROCK_IDS,
     MINE_ANCHOR,
+    MINE_AREA,
     MINE_OP,
     MINE_TRUCK,
     MINE_TRUCK_STAND,
@@ -77,6 +78,9 @@ export default class CoalTrucks extends LoopingBot {
 
         this.log(`CoalTrucks — mine ${MINE_ANCHOR}, truck ${MINE_TRUCK}, Seers truck ${SEERS_TRUCK}, bank ${SEERS_BANK}`);
         this.log('no combat handling: the level-27 giant bats here are aggressive below 55 combat');
+        if (!this.hasPickaxe()) {
+            this.log('no pickaxe held — banking at Seers for one before mining');
+        }
     }
 
     override grindTargets(): string[] {
@@ -88,12 +92,15 @@ export default class CoalTrucks extends LoopingBot {
     }
 
     override async loop(): Promise<void> {
+        const wasDraining = this.phase === 'drain';
         const action = decide({
             phase: this.phase,
             packFull: Inventory.isFull(),
             coalHeld: Inventory.count(COAL),
             rockAvailable: this.findRock() !== null,
-            truckEmpty: this.truckEmpty
+            truckEmpty: this.truckEmpty,
+            hasPickaxe: this.hasPickaxe(),
+            atMine: this.atMine()
         });
 
         switch (action.kind) {
@@ -125,13 +132,27 @@ export default class CoalTrucks extends LoopingBot {
                 if (await this.walkTo(MINE_ANCHOR, 4)) {
                     this.phase = 'fill';
                     this.truckEmpty = false;
-                    this.depositedEstimate = 0;
-                    this.trips++;
+                    // Only a completed drain closes a cycle; a mid-fill pickaxe detour
+                    // must not zero a truck that is already part-loaded.
+                    if (wasDraining) {
+                        this.depositedEstimate = 0;
+                        this.trips++;
+                    }
                 }
                 break;
         }
 
         await Execution.delayTicks(1);
+    }
+
+    private hasPickaxe(): boolean {
+        const held = [...Equipment.items(), ...Inventory.items()].map(i => i.name ?? '');
+        return bestPickaxe(Skills.level('mining'), name => held.some(n => n.toLowerCase() === name.toLowerCase())) !== null;
+    }
+
+    private atMine(): boolean {
+        const here = Game.tile();
+        return here !== null && MINE_ANCHOR.distanceTo(here) <= MINE_AREA;
     }
 
     private findRock(): Loc | null {
@@ -268,9 +289,7 @@ export default class CoalTrucks extends LoopingBot {
     }
 
     private async ensurePickaxe(): Promise<void> {
-        const heldNames = [...Equipment.items(), ...Inventory.items()].map(i => i.name ?? '');
-        const has = (name: string): boolean => heldNames.some(n => n.toLowerCase() === name.toLowerCase());
-        if (bestPickaxe(Skills.level('mining'), has) !== null) {
+        if (this.hasPickaxe()) {
             return;
         }
         const fromBank = bestPickaxe(Skills.level('mining'), name => Bank.count(name) > 0);

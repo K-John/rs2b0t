@@ -18,7 +18,7 @@ const TELE = {
     logWest: '0,40,54,38,21' // 2598,3477 — west of the log balance
 };
 
-const PHASES = ['cross', 'fill', 'run', 'drain', 'full'] as const;
+const PHASES = ['cross', 'fill', 'run', 'drain', 'nopick', 'full'] as const;
 type Phase = (typeof PHASES)[number];
 
 const argv = process.argv.slice(2);
@@ -61,17 +61,37 @@ try {
         fail('could not max stats');
     }
 
-    // The phase seeds never hand over a pickaxe — a stage test that seeds its own
-    // tools proves nothing (docs/TESTING.md#live-harnesses).
-    const seat = phase === 'drain' ? TELE.seersTruck
-        : phase === 'run' ? TELE.mineTruck
-            : phase === 'cross' ? TELE.logWest
-                : TELE.mine;
+    // A fresh bot always starts in the fill phase, so there is no teleport that drops it
+    // straight into draining — the run/cross/drain legs all start at the mine truck with
+    // a full truck and a full pack, and reach their leg through the real transitions.
+    const seat = phase === 'run' || phase === 'cross' || phase === 'drain' ? TELE.mineTruck : TELE.mine;
 
-    if (phase === 'drain' || phase === 'run') {
-        // ::setvar works on a protected varp as long as the account is idle.
+    // ::setvar works on a protected varp as long as the account is idle.
+    if (phase === 'drain' || phase === 'run' || phase === 'cross') {
         if (!(await cheatQuiet(page, 'setvar coal_truck 120'))) {
             fail('could not seed the truck');
+        }
+    }
+    if (phase === 'run' || phase === 'cross' || phase === 'drain') {
+        // 27, not 28: the pickaxe needs the last slot, and 27 coal + pickaxe is still
+        // a full pack, so the deposit fires against a full truck and answers "full".
+        if (!(await cheatQuiet(page, 'give coal 27'))) {
+            fail('could not seed the pack with coal');
+        }
+    }
+    if (phase === 'fill') {
+        // Coal is a 16/100 roll, so a pack mined from empty takes ~11 minutes. Seed
+        // most of it and let the bot mine the last few: the leg is about the deposit
+        // ladder, and the xp assertion still proves it did the mining itself.
+        if (!(await cheatQuiet(page, 'give coal 24'))) {
+            fail('could not seed the pack with coal');
+        }
+    }
+    // ~maxme grants stats and never gear. Pickaxe *acquisition* is what --phase nopick
+    // covers, so handing one to the other legs cannot hide a missing-tool bug.
+    if (phase !== 'nopick') {
+        if (!(await cheatQuiet(page, 'give rune_pickaxe'))) {
+            fail('could not seed a pickaxe');
         }
     }
     if (!(await cheatQuiet(page, `tele ${seat}`))) {
@@ -116,7 +136,15 @@ try {
     const deadline = t0 + minutes * 60_000;
     let lastLogTime = 0;
     let last = first;
+    // WalkExecutor logs "<label>: crossed" only after isOnFarSide confirms it, so this
+    // is evidence the log was actually walked — not that a packet was sent.
     let crossed = false;
+    /** A leg that meant to hand over a pickaxe and did not is a broken seed, not a pass. */
+    let sawNoPickaxe = false;
+    const deposits: string[] = [];
+    // A completed cycle ends back at the mine, so the final position is no evidence
+    // Seers was ever reached — track it across the whole run.
+    let reachedSeers = false;
 
     while (Date.now() < deadline) {
         await page.waitForTimeout(10_000);
@@ -127,13 +155,23 @@ try {
         for (const line of last.logs) {
             if (line.time > lastLogTime) {
                 console.log(`      · [${line.level}] ${line.msg}`);
+                if (line.msg.includes('Coal trucks log balance: crossed')) {
+                    crossed = true;
+                }
+                if (line.msg.includes('no pickaxe') || line.msg.includes('no usable pickaxe')) {
+                    sawNoPickaxe = true;
+                }
+                const deposit = /coal in the truck \((\w+)\)/.exec(line.msg);
+                if (deposit) {
+                    deposits.push(deposit[1]);
+                }
             }
         }
         if (last.logs.length > 0) {
             lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time));
         }
-        if ((last.pos?.x ?? 0) >= 2603 && (last.pos?.z ?? 0) <= 3480) {
-            crossed = true;
+        if ((last.pos?.x ?? 0) >= 2650) {
+            reachedSeers = true;
         }
         if (last.runner === 'stopped') {
             console.log('  runner stopped');
@@ -144,17 +182,29 @@ try {
     const truckAfter = await getServerVar(page, 'coal_truck');
     const ticks = last.tick - first.tick;
     const gained = last.xp - first.xp;
-    console.log(`final: truck=${truckAfter} xp=+${gained} over ${ticks} ticks pos=${fmt(last.pos)}`);
+    console.log(`final: truck=${truckAfter} xp=+${gained} over ${ticks} ticks pos=${fmt(last.pos)} deposits=[${deposits.join(',')}]`);
+
+    // Catch a broken seed before it reads as a pass: every leg but nopick hands over a
+    // pickaxe, and a pack seeded so full it has no room for one silently reroutes the
+    // whole run down the no-pickaxe path.
+    if (phase !== 'nopick' && sawNoPickaxe) {
+        fail('the pickaxe seed did not land — the pack had no free slot for it');
+    }
 
     // Assert on game state, never on log lines.
     if (phase === 'cross') {
         if (!crossed) {
-            fail(`never crossed the river (ended at ${fmt(last.pos)})`);
+            fail(`the log balance never reported a crossing (ended at ${fmt(last.pos)})`);
         }
+        // A crossing that dumped us on the level-1 deck would strand us there: the deck
+        // is an 8x5 island with no descent, so arriving anywhere else proves level 0.
         if (last.pos?.level !== 0) {
-            fail(`log balance landed on level ${last.pos?.level} — the edge levels in transports.json are wrong`);
+            fail(`log balance left us on level ${last.pos?.level} — the edge levels in transports.json are wrong`);
         }
-        console.log(`PASS: crossed to ${fmt(last.pos)} on level 0`);
+        if ((last.pos?.x ?? 0) < 2603) {
+            fail(`crossed but drifted back west (${fmt(last.pos)})`);
+        }
+        console.log(`PASS: crossed the log balance, now at ${fmt(last.pos)} on level 0`);
     } else if (phase === 'fill') {
         if ((truckAfter ?? 0) <= (truckBefore ?? 0)) {
             fail(`truck did not gain coal (${truckBefore} -> ${truckAfter})`);
@@ -169,10 +219,26 @@ try {
         }
         console.log(`PASS: truck ${truckBefore} -> ${truckAfter}`);
     } else if (phase === 'run') {
-        if ((last.pos?.x ?? 0) < 2650) {
+        if (!deposits.includes('full')) {
+            fail(`the deposit never reported a full truck (saw [${deposits.join(',')}])`);
+        }
+        if (!reachedSeers) {
             fail(`never reached Seers (ended at ${fmt(last.pos)})`);
         }
-        console.log(`PASS: reached ${fmt(last.pos)}`);
+        console.log('PASS: deposit answered "full", ran to Seers');
+    } else if (phase === 'nopick') {
+        // Regression guard: mining with no pickaxe fails silently, so the bot must
+        // notice and stop rather than mime at the rocks forever.
+        if (last.runner !== 'stopped') {
+            fail(`no pickaxe but the bot is still ${last.runner} at ${fmt(last.pos)}`);
+        }
+        if (gained > 0) {
+            fail(`gained ${gained} mining xp with no pickaxe — the seed is wrong`);
+        }
+        if ((last.pos?.x ?? 0) < 2650) {
+            fail(`stopped without going to the bank for a pickaxe (${fmt(last.pos)})`);
+        }
+        console.log(`PASS: no pickaxe — walked to the bank and stopped honestly at ${fmt(last.pos)}`);
     } else {
         if (gained <= 0) {
             fail('no mining xp gained over the full run');

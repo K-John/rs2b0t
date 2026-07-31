@@ -13,6 +13,9 @@ export const COAL_ROCK_IDS: readonly number[] = [2096, 2097];
 /** The truck line runs east across the river; the far-bank trucks are a 245-cost detour. */
 export const TRUCK_LEASH = 4;
 
+/** Anything inside this of the anchor counts as the working area: rocks, truck stand, walk slop. */
+export const MINE_AREA = 20;
+
 export const MINE_ANCHOR = new Tile(2582, 3481, 0);
 export const MINE_TRUCK = new Tile(2574, 3487, 0);
 export const MINE_TRUCK_STAND = new Tile(2575, 3486, 0);
@@ -40,6 +43,8 @@ export interface WorldView {
     coalHeld: number;
     rockAvailable: boolean;
     truckEmpty: boolean;
+    hasPickaxe: boolean;
+    atMine: boolean;
 }
 
 const DEPOSIT_PATTERNS: readonly [RegExp, DepositResult][] = [
@@ -85,6 +90,12 @@ export function truckEmptyAfterRemove(result: RemoveResult): boolean {
 }
 
 export function decide(view: WorldView): Action {
+    // Mining without a pickaxe fails silently — no message, no xp — so this outranks
+    // every phase. The bank is the only place to fix it.
+    if (!view.hasPickaxe) {
+        return { kind: 'bank' };
+    }
+
     if (view.phase === 'run') {
         return { kind: 'travel-to-seers' };
     }
@@ -94,6 +105,10 @@ export function decide(view: WorldView): Action {
             return { kind: 'bank' };
         }
         return view.truckEmpty ? { kind: 'travel-to-mine' } : { kind: 'remove' };
+    }
+
+    if (!view.atMine) {
+        return { kind: 'travel-to-mine' };
     }
 
     if (view.packFull) {

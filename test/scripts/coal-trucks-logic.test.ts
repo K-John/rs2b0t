@@ -96,7 +96,37 @@ const view = (over: Partial<WorldView> = {}): WorldView => ({
     coalHeld: 0,
     rockAvailable: true,
     truckEmpty: false,
+    hasPickaxe: true,
+    atMine: true,
     ...over
+});
+
+describe('decide — pickaxe outranks every phase', () => {
+    // Live regression: ~maxme grants stats and never gear, so the bot stood in the
+    // mine clicking rocks for three minutes with no pickaxe, no message and no xp.
+    test('no pickaxe banks instead of mining', () => {
+        expect(decide(view({ hasPickaxe: false }))).toEqual({ kind: 'bank' });
+    });
+    test('no pickaxe banks even mid-run', () => {
+        expect(decide(view({ phase: 'run', hasPickaxe: false }))).toEqual({ kind: 'bank' });
+    });
+    test('no pickaxe banks even with a full pack', () => {
+        expect(decide(view({ packFull: true, hasPickaxe: false }))).toEqual({ kind: 'bank' });
+    });
+});
+
+describe('decide — getting back to the mine', () => {
+    // Without this the bot idles at the bank forever after fetching a pickaxe:
+    // findRock is leashed to the mine, so rockAvailable is false and it just waits.
+    test('walks to the mine when the fill phase starts away from it', () => {
+        expect(decide(view({ atMine: false }))).toEqual({ kind: 'travel-to-mine' });
+    });
+    test('a full pack away from the mine still walks back first', () => {
+        expect(decide(view({ atMine: false, packFull: true }))).toEqual({ kind: 'travel-to-mine' });
+    });
+    test('being away from the mine does not disturb the drain phase', () => {
+        expect(decide(view({ phase: 'drain', atMine: false }))).toEqual({ kind: 'remove' });
+    });
 });
 
 describe('decide — fill', () => {
