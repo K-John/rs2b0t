@@ -18,7 +18,7 @@ const TELE = {
     logWest: '0,40,54,38,21' // 2598,3477 — west of the log balance
 };
 
-const PHASES = ['cross', 'fill', 'run', 'drain', 'nopick', 'full'] as const;
+const PHASES = ['cross', 'fill', 'partial', 'run', 'drain', 'nopick', 'full'] as const;
 type Phase = (typeof PHASES)[number];
 
 const argv = process.argv.slice(2);
@@ -79,12 +79,19 @@ try {
             fail('could not seed the pack with coal');
         }
     }
-    if (phase === 'fill') {
+    if (phase === 'fill' || phase === 'partial') {
         // Coal is a 16/100 roll, so a pack mined from empty takes ~11 minutes. Seed
         // most of it and let the bot mine the last few: the leg is about the deposit
         // ladder, and the xp assertion still proves it did the mining itself.
         if (!(await cheatQuiet(page, 'give coal 24'))) {
             fail('could not seed the pack with coal');
+        }
+    }
+    if (phase === 'partial') {
+        // 110 + a 27-coal pack overshoots 120, so the truck takes 10 and answers
+        // "some" — the one deposit branch the other legs never reach.
+        if (!(await cheatQuiet(page, 'setvar coal_truck 110'))) {
+            fail('could not seed the truck');
         }
     }
     // ~maxme grants stats and never gear. Pickaxe *acquisition* is what --phase nopick
@@ -213,6 +220,14 @@ try {
             fail('no mining xp gained — the bot never mined');
         }
         console.log(`PASS: truck ${truckBefore} -> ${truckAfter}, +${gained} mining xp`);
+    } else if (phase === 'partial') {
+        if (!deposits.includes('partial')) {
+            fail(`the deposit never reported a partial accept (saw [${deposits.join(',')}])`);
+        }
+        if (!reachedSeers) {
+            fail('a partial accept means the truck hit 120 — the bot should have run to Seers');
+        }
+        console.log(`PASS: deposit answered "partial" at the 120 cap, then ran to Seers (truck ${truckBefore} -> ${truckAfter})`);
     } else if (phase === 'drain') {
         if ((truckAfter ?? 120) >= (truckBefore ?? 120)) {
             fail(`truck was not drained (${truckBefore} -> ${truckAfter})`);
