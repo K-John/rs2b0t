@@ -152,6 +152,10 @@ try {
     // A completed cycle ends back at the mine, so the final position is no evidence
     // Seers was ever reached — track it across the whole run.
     let reachedSeers = false;
+    // Capping the truck should not end the fill phase: the bot tops the pack up first,
+    // so mining xp must still move between the capping deposit and the crossing.
+    let xpAtCap: number | null = null;
+    let xpAtCross: number | null = null;
 
     while (Date.now() < deadline) {
         await page.waitForTimeout(10_000);
@@ -164,6 +168,7 @@ try {
                 console.log(`      · [${line.level}] ${line.msg}`);
                 if (line.msg.includes('Coal trucks log balance: crossed')) {
                     crossed = true;
+                    xpAtCross ??= last.xp;
                 }
                 if (line.msg.includes('no pickaxe') || line.msg.includes('no usable pickaxe')) {
                     sawNoPickaxe = true;
@@ -171,6 +176,9 @@ try {
                 const deposit = /coal in the truck \((\w+)\)/.exec(line.msg);
                 if (deposit) {
                     deposits.push(deposit[1]);
+                    if ((deposit[1] === 'partial' || deposit[1] === 'full') && xpAtCap === null) {
+                        xpAtCap = last.xp;
+                    }
                 }
             }
         }
@@ -227,7 +235,15 @@ try {
         if (!reachedSeers) {
             fail('a partial accept means the truck hit 120 — the bot should have run to Seers');
         }
-        console.log(`PASS: deposit answered "partial" at the 120 cap, then ran to Seers (truck ${truckBefore} -> ${truckAfter})`);
+        // The partial leg leaves the pack short (110 + 27 caps at 120, keeping 17), so the
+        // bot must mine the difference before leaving — the haul costs the same either way.
+        if (xpAtCap === null || xpAtCross === null) {
+            fail(`never saw both the cap and the crossing (cap=${xpAtCap}, cross=${xpAtCross})`);
+        }
+        if (xpAtCross <= xpAtCap) {
+            fail(`no mining between capping the truck and leaving — the pack was not topped up (xp ${xpAtCap} -> ${xpAtCross})`);
+        }
+        console.log(`PASS: capped at 120, topped the pack up (+${xpAtCross - xpAtCap} xp before leaving), then ran to Seers (truck ${truckBefore} -> ${truckAfter})`);
     } else if (phase === 'drain') {
         if ((truckAfter ?? 120) >= (truckBefore ?? 120)) {
             fail(`truck was not drained (${truckBefore} -> ${truckAfter})`);

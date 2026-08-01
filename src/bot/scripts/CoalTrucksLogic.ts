@@ -43,6 +43,7 @@ export interface WorldView {
     coalHeld: number;
     rockAvailable: boolean;
     truckEmpty: boolean;
+    truckFull: boolean;
     hasPickaxe: boolean;
     atMine: boolean;
 }
@@ -81,8 +82,8 @@ export function classifyRemove(lines: readonly string[]): RemoveResult {
     return classify(lines, REMOVE_PATTERNS, 'none');
 }
 
-export function phaseAfterDeposit(result: DepositResult): Phase {
-    return result === 'partial' || result === 'full' ? 'run' : 'fill';
+export function truckFullAfterDeposit(result: DepositResult): boolean {
+    return result === 'partial' || result === 'full';
 }
 
 export function truckEmptyAfterRemove(result: RemoveResult): boolean {
@@ -105,6 +106,14 @@ export function decide(view: WorldView): Action {
             return { kind: 'bank' };
         }
         return view.truckEmpty ? { kind: 'travel-to-mine' } : { kind: 'remove' };
+    }
+
+    // A capped truck does not mean leave immediately: the haul costs the same six bank
+    // hops whether the pack holds 17 or 27, so top it up first and the extra coal is free.
+    if (view.truckFull) {
+        return view.packFull || !view.rockAvailable || !view.atMine
+            ? { kind: 'travel-to-seers' }
+            : { kind: 'mine' };
     }
 
     if (!view.atMine) {

@@ -9,7 +9,7 @@ import {
     classifyDeposit,
     classifyRemove,
     decide,
-    phaseAfterDeposit,
+    truckFullAfterDeposit,
     truckEmptyAfterRemove,
     type WorldView
 } from '#/bot/scripts/CoalTrucksLogic.js';
@@ -62,17 +62,17 @@ describe('classifyRemove', () => {
     });
 });
 
-describe('phaseAfterDeposit', () => {
-    test('a full or partial accept ends the fill phase', () => {
-        expect(phaseAfterDeposit('partial')).toBe('run');
-        expect(phaseAfterDeposit('full')).toBe('run');
+describe('truckFullAfterDeposit', () => {
+    test('a partial or refused accept both mean the truck is at the cap', () => {
+        expect(truckFullAfterDeposit('partial')).toBe(true);
+        expect(truckFullAfterDeposit('full')).toBe(true);
     });
-    test('a clean accept keeps filling', () => {
-        expect(phaseAfterDeposit('all')).toBe('fill');
+    test('a clean accept leaves room', () => {
+        expect(truckFullAfterDeposit('all')).toBe(false);
     });
-    test('an unread or malformed outcome keeps filling — never advance on doubt', () => {
-        expect(phaseAfterDeposit('none')).toBe('fill');
-        expect(phaseAfterDeposit('wrong-item')).toBe('fill');
+    test('an unread or malformed outcome is not evidence of a cap — never advance on doubt', () => {
+        expect(truckFullAfterDeposit('none')).toBe(false);
+        expect(truckFullAfterDeposit('wrong-item')).toBe(false);
     });
 });
 
@@ -96,9 +96,34 @@ const view = (over: Partial<WorldView> = {}): WorldView => ({
     coalHeld: 0,
     rockAvailable: true,
     truckEmpty: false,
+    truckFull: false,
     hasPickaxe: true,
     atMine: true,
     ...over
+});
+
+describe('decide — topping the pack up on a capped truck', () => {
+    // The haul costs the same six bank hops whether the pack holds 17 or 27, so the
+    // coal mined between the cap and departure is free.
+    test('keeps mining once the truck is capped but the pack is not', () => {
+        expect(decide(view({ truckFull: true, coalHeld: 17 }))).toEqual({ kind: 'mine' });
+    });
+    test('leaves once both are full', () => {
+        expect(decide(view({ truckFull: true, packFull: true }))).toEqual({ kind: 'travel-to-seers' });
+    });
+    test('does not deposit again into a capped truck', () => {
+        expect(decide(view({ truckFull: true, packFull: true }))).not.toEqual({ kind: 'deposit' });
+    });
+    test('leaves rather than waiting for a respawn — the haul beats idling', () => {
+        expect(decide(view({ truckFull: true, rockAvailable: false, coalHeld: 17 })))
+            .toEqual({ kind: 'travel-to-seers' });
+    });
+    test('a capped truck away from the mine hauls instead of walking back', () => {
+        expect(decide(view({ truckFull: true, atMine: false }))).toEqual({ kind: 'travel-to-seers' });
+    });
+    test('still outranked by a missing pickaxe', () => {
+        expect(decide(view({ truckFull: true, packFull: true, hasPickaxe: false }))).toEqual({ kind: 'bank' });
+    });
 });
 
 describe('decide — pickaxe outranks every phase', () => {

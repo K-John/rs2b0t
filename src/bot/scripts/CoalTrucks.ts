@@ -37,7 +37,7 @@ import {
     classifyDeposit,
     classifyRemove,
     decide,
-    phaseAfterDeposit,
+    truckFullAfterDeposit,
     truckEmptyAfterRemove,
     type DepositResult,
     type Phase,
@@ -56,6 +56,7 @@ export default class CoalTrucks extends LoopingBot {
 
     private phase: Phase = 'fill';
     private truckEmpty = false;
+    private truckFull = false;
     private depositedEstimate = 0;
     private banked = 0;
     private trips = 0;
@@ -99,6 +100,7 @@ export default class CoalTrucks extends LoopingBot {
             coalHeld: Inventory.count(COAL),
             rockAvailable: this.findRock() !== null,
             truckEmpty: this.truckEmpty,
+            truckFull: this.truckFull,
             hasPickaxe: this.hasPickaxe(),
             atMine: this.atMine()
         });
@@ -116,6 +118,7 @@ export default class CoalTrucks extends LoopingBot {
                 break;
             case 'travel-to-seers':
                 this.status = 'running the coal to Seers';
+                this.phase = 'run';
                 if (await this.walkTo(SEERS_TRUCK_STAND, 1)) {
                     this.phase = 'drain';
                     this.truckEmpty = false;
@@ -132,6 +135,7 @@ export default class CoalTrucks extends LoopingBot {
                 if (await this.walkTo(MINE_ANCHOR, 4)) {
                     this.phase = 'fill';
                     this.truckEmpty = false;
+                    this.truckFull = false;
                     // Only a completed drain closes a cycle; a mid-fill pickaxe detour
                     // must not zero a truck that is already part-loaded.
                     if (wasDraining) {
@@ -230,8 +234,8 @@ export default class CoalTrucks extends LoopingBot {
         }
         const moved = held - Inventory.count(COAL);
         this.depositedEstimate = Math.min(TRUCK_MAX, this.depositedEstimate + moved);
-        this.log(`put ${moved} coal in the truck (${result})`);
-        this.phase = phaseAfterDeposit(result);
+        this.truckFull = truckFullAfterDeposit(result);
+        this.log(`put ${moved} coal in the truck (${result})${this.truckFull ? ' — capped, topping the pack up before the run' : ''}`);
     }
 
     private async remove(): Promise<void> {
