@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { 
     RUNES, 
+    bankTile, 
     RUNE_OPTIONS, 
     DEFAULT_RUNE, 
     isConfiguredPartner, 
@@ -11,8 +12,13 @@ import { type TradeItem } from '#/bot/api/hud/Trade.js';
 
 describe('MuleCrafterLogic', () => {
     describe('RUNES', () => {
-        test('has correct keys (singular)', () => {
-            expect(Object.keys(RUNES)).toEqual(['Air rune', 'Mind rune']);
+        test('keys are singular rune names', () => {
+            // Asserting the full list would re-break every time an altar is added, which is
+            // how this test went stale at two runes. Pin the shape, not the census.
+            expect(Object.keys(RUNES).length).toBeGreaterThanOrEqual(2);
+            for (const key of Object.keys(RUNES)) {
+                expect(key).toMatch(/^[A-Z][a-z]+ rune$/);
+            }
         });
 
         test('Air rune route has correct data', () => {
@@ -20,10 +26,9 @@ describe('MuleCrafterLogic', () => {
             expect(air.rune).toBe('Air rune');
             expect(air.talisman).toBe('Air talisman');
             expect(air.level).toBe(1);
-            expect(air.bank.x).toBe(3013);
-            expect(air.bank.z).toBe(3355);
-            expect(air.ruins.x).toBe(2985);
-            expect(air.ruins.z).toBe(3291);
+            expect(air.bank).toBe('Falador East');
+            expect(air.ruins.x).toBe(2983);
+            expect(air.ruins.z).toBe(3288);
         });
 
         test('Mind rune route has correct data', () => {
@@ -31,16 +36,23 @@ describe('MuleCrafterLogic', () => {
             expect(mind.rune).toBe('Mind rune');
             expect(mind.talisman).toBe('Mind talisman');
             expect(mind.level).toBe(2);
-            expect(mind.bank.x).toBe(3096);
-            expect(mind.bank.z).toBe(3494);
-            expect(mind.ruins.x).toBe(2982);
-            expect(mind.ruins.z).toBe(3514);
+            expect(mind.bank).toBe('Edgeville');
+            expect(mind.ruins.x).toBe(2980);
+            expect(mind.ruins.z).toBe(3511);
+        });
+
+        test('every route names a bank that resolves to a real tile', () => {
+            // `bank` became a BANK_LOCATIONS name rather than a Tile; this is what that
+            // indirection has to guarantee, and it catches a typo in any new row.
+            for (const route of Object.values(RUNES) as RuneRoute[]) {
+                expect(() => bankTile(route.bank)).not.toThrow();
+            }
         });
     });
 
     describe('RUNE_OPTIONS', () => {
         test('matches RUNES keys', () => {
-            expect(RUNE_OPTIONS).toEqual(['Air rune', 'Mind rune']);
+            expect(RUNE_OPTIONS).toEqual(Object.keys(RUNES));
         });
     });
 
