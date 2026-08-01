@@ -179,6 +179,11 @@ try {
                 if (/^banked \d+ coal/.test(line.msg)) {
                     haulOrder.push('bank');
                 }
+                // Walking to the truck with a full pack is the detour this catches: the
+                // operation order can read bank-then-pull while the route still doubles back.
+                if (line.msg.includes('walking to the Seers truck')) {
+                    haulOrder.push('truck-walk');
+                }
                 if (/^took \d+ coal from the truck/.test(line.msg)) {
                     haulOrder.push('took');
                 }
@@ -215,10 +220,12 @@ try {
         fail('the pickaxe seed did not land — the pack had no free slot for it');
     }
 
-    // Any leg that actually hauls must bank the carried pack before touching the truck:
-    // the truck is capped, so a truck-first detour costs 196 tiles against 156.
-    if (haulOrder.includes('took') && haulOrder.indexOf('bank') !== 0) {
-        fail(`went to the truck before banking the carried pack (order: ${haulOrder.slice(0, 4).join(' -> ')})`);
+    // Any leg that actually hauls must bank the carried pack before walking anywhere near
+    // the truck: it is capped, so a truck-first route costs 196 tiles against 156. Checking
+    // the walk and not just the pull matters — the operation order can read bank-then-pull
+    // while the route still doubles back, which is exactly how this shipped broken once.
+    if (haulOrder.includes('took') && haulOrder[0] !== 'bank') {
+        fail(`walked to the truck before banking the carried pack (order: ${haulOrder.slice(0, 5).join(' -> ')})`);
     }
 
     // Assert on game state, never on log lines.

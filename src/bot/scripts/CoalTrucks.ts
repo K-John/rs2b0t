@@ -120,8 +120,11 @@ export default class CoalTrucks extends LoopingBot {
                 await this.deposit();
                 break;
             case 'travel-to-seers':
-                this.status = 'running the coal to Seers';
+                this.status = 'heading to the Seers truck';
                 this.phase = 'run';
+                if (!this.at(SEERS_TRUCK_STAND, 1)) {
+                    this.log('walking to the Seers truck to unload');
+                }
                 if (await this.walkTo(SEERS_TRUCK_STAND, 1)) {
                     this.phase = 'drain';
                     this.truckEmpty = false;
@@ -341,9 +344,13 @@ export default class CoalTrucks extends LoopingBot {
         return out;
     }
 
-    private async walkTo(dest: Tile, radius: number): Promise<boolean> {
+    private at(dest: Tile, radius: number): boolean {
         const here = Game.tile();
-        if (here && dest.distanceTo(here) <= radius) {
+        return here !== null && dest.distanceTo(here) <= radius;
+    }
+
+    private async walkTo(dest: Tile, radius: number): Promise<boolean> {
+        if (this.at(dest, radius)) {
             return true;
         }
         return Traversal.walkResilient(dest, { radius, attempts: 6, timeoutMs: 300_000, log: m => this.log(`  ${m}`) });

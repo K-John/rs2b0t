@@ -124,9 +124,12 @@ export function decide(view: WorldView): Action {
     // A capped truck does not mean leave immediately: the haul costs the same six bank
     // hops whether the pack holds 17 or 27, so top it up first and the extra coal is free.
     if (view.truckFull) {
-        return view.packFull || !view.rockAvailable || !view.atMine
-            ? { kind: 'travel-to-seers' }
-            : { kind: 'mine' };
+        if (view.atMine && !view.packFull && view.rockAvailable) {
+            return { kind: 'mine' };
+        }
+        // Same reason as the run phase: the truck is capped, so what we carry cannot go
+        // into it. Head for the bank, not the truck, or the walk in doubles back.
+        return view.coalHeld > 0 ? { kind: 'bank' } : { kind: 'travel-to-seers' };
     }
 
     if (!view.atMine) {

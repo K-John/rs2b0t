@@ -134,18 +134,25 @@ describe('decide — topping the pack up on a capped truck', () => {
     test('keeps mining once the truck is capped but the pack is not', () => {
         expect(decide(view({ truckFull: true, coalHeld: 17 }))).toEqual({ kind: 'mine' });
     });
-    test('leaves once both are full', () => {
-        expect(decide(view({ truckFull: true, packFull: true }))).toEqual({ kind: 'travel-to-seers' });
+    // Regression: the fill phase used to jump straight to travel-to-seers, which walks to
+    // the TRUCK stand with a full pack and then doubles back to the bank — 196 tiles
+    // against 156. The truck is capped, so the carried pack can only go to the bank.
+    test('heads for the bank, not the truck, once both are full', () => {
+        expect(decide(view({ truckFull: true, packFull: true, coalHeld: 27 }))).toEqual({ kind: 'bank' });
     });
     test('does not deposit again into a capped truck', () => {
-        expect(decide(view({ truckFull: true, packFull: true }))).not.toEqual({ kind: 'deposit' });
+        expect(decide(view({ truckFull: true, packFull: true, coalHeld: 27 }))).not.toEqual({ kind: 'deposit' });
     });
-    test('leaves rather than waiting for a respawn — the haul beats idling', () => {
+    test('banks a part load rather than carrying it past the bank to the truck', () => {
         expect(decide(view({ truckFull: true, rockAvailable: false, coalHeld: 17 })))
+            .toEqual({ kind: 'bank' });
+    });
+    test('only heads for the truck once empty-handed', () => {
+        expect(decide(view({ truckFull: true, rockAvailable: false, coalHeld: 0 })))
             .toEqual({ kind: 'travel-to-seers' });
     });
-    test('a capped truck away from the mine hauls instead of walking back', () => {
-        expect(decide(view({ truckFull: true, atMine: false }))).toEqual({ kind: 'travel-to-seers' });
+    test('a capped truck away from the mine, empty-handed, goes to unload', () => {
+        expect(decide(view({ truckFull: true, atMine: false, coalHeld: 0 }))).toEqual({ kind: 'travel-to-seers' });
     });
     test('still outranked by a missing pickaxe', () => {
         expect(decide(view({ truckFull: true, packFull: true, hasPickaxe: false }))).toEqual({ kind: 'bank' });
