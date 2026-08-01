@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
-import { pickaxeReq, axeReq } from '#/bot/scripts/Tools.js';
-import { resolveFishMethod } from '#/bot/scripts/FishingMethods.js';
+import { pickaxeReq, axeReq } from '#/bot/api/Tools.js';
+import { resolveFishMethod } from '#/bot/api/FishingMethods.js';
 import {
     AXE_BAR_FOR,
     BOB_VENDOR,

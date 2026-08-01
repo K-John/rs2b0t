@@ -19,11 +19,17 @@ import { walkOpening } from '../api/walkOpening.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
-import { resolveFishingLocation, type FishingLocation } from './FishingLocations.js';
-import { type GatheringLocation } from './GatheringLocations.js';
-import { resolveMiningLocation } from './MiningLocations.js';
-import { resolveWoodcuttingLocation } from './WoodcuttingLocations.js';
-import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS, ROCK_OPTIONS, resolveRockIds } from './MiningRocks.js';
+import { resolveFishingLocation, type FishingLocation } from '../api/FishingLocations.js';
+import {
+    DEFAULT_CAMP_RADIUS,
+    DEFAULT_CHASE_RADIUS,
+    resolveCampRadius,
+    resolveChaseRadius,
+    type GatheringLocation
+} from '../api/GatheringLocations.js';
+import { resolveMiningLocation } from '../api/MiningLocations.js';
+import { resolveWoodcuttingLocation } from '../api/WoodcuttingLocations.js';
+import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS, ROCK_OPTIONS, resolveRockIds } from '../api/MiningRocks.js';
 import {
     TINDERBOX,
     expandLocalFirePlot,
@@ -52,7 +58,7 @@ import {
     toolRestockPlan,
     toolsNeedingEquip,
     type ToolReq
-} from './Tools.js';
+} from '../api/Tools.js';
 import { createChopBurnTasks } from './ChopBurnTasks.js';
 import {
     FISHING_METHOD_OPTIONS,
@@ -65,7 +71,7 @@ import {
     resolveFishMethod,
     spotMatchesMethod,
     type FishingMethod
-} from './FishingMethods.js';
+} from '../api/FishingMethods.js';
 import {
     bankHumanDelayMs,
     cookBatchAfterLoad,
@@ -131,7 +137,7 @@ import {
     type ToolAcquireMode,
     type ToolAcquirePlan,
     type ToolVendor
-} from './ToolAcquire.js';
+} from '../api/ToolAcquire.js';
 
 /** Default half-size of the Auto (start) burn box around the script start tile. */
 const LOCAL_BURN_HALF = 8;
@@ -144,20 +150,22 @@ export const HOME_ARRIVE_RADIUS = 8;
 
 /**
  * Floor for non-Auto location modes (named camps + power None).
- * Named camps are large (Catherby pier, Fishing Guild docks, multi-rock mines) —
- * a tight UI default like 10–18 leaves "no spots within N of anchor" while standing
- * in camp. Floor 40 still clipped Fishing Guild pier hops (hunt was also capped at 40).
+ * This is **camp membership** (ReturnToAnchor / wander bound from the home pin),
+ * not the fishing-spot search disk. Spot hops use player-relative chase inside camp.
  * Auto keeps the raw setting so freeform / unverified snaps stay conservative.
  */
-export const NAMED_CAMP_LEASH_FLOOR = 64;
+export const NAMED_CAMP_LEASH_FLOOR = DEFAULT_CAMP_RADIUS;
 
 /** @deprecated Prefer {@link NAMED_CAMP_LEASH_FLOOR} — same value, kept for imports. */
 export const START_TILE_LEASH_FLOOR = NAMED_CAMP_LEASH_FLOOR;
 
+/** Default player-relative fish chase for named camps (re-export for tests). */
+export { DEFAULT_CHASE_RADIUS };
+
 /**
  * Effective gather leash from the UI value + location mode.
  * - Auto → respect setting (freeform / unverified chunk snaps).
- * - Named camp or None → at least {@link NAMED_CAMP_LEASH_FLOOR}.
+ * - Named camp or None → at least {@link NAMED_CAMP_LEASH_FLOOR} (camp membership).
  */
 export function effectiveGatherLeash(settingLeash: number, locationSetting: string): number {
     const raw = Math.max(2, Math.floor(Number.isFinite(settingLeash) ? settingLeash : 10));
@@ -175,14 +183,24 @@ export function isAutoLocation(locationSetting: string): boolean {
 /**
  * Origin for fishing-spot distance checks.
  *
- * Named camps pin the pier/mine anchor so bank squares never count as in-camp
- * resources. Freeform fish (Auto with no preset / power None) must measure from
- * the **player** — river spots hop, and after a hunt walk the start-tile anchor
- * leaves the bot idling on "no spots within N of anchor" while spots sit next
- * to the player (Ardougne Auto freeform regression).
+ * - **Named camp**: measure from the **player** so pier/river hops beside the bot
+ *   stay valid even when far from the home pin (resource fence is camp membership).
+ * - **Freeform fish** (Auto with no preset / power None): same player origin —
+ *   river hops after a hunt walk must not idle on "no spots near start-tile anchor".
+ * - No player tile → fall back to anchor/home.
  */
-export function gatherSpotRangeOrigin(freeformFish: boolean, hasPlayerTile: boolean): 'player' | 'anchor' {
-    return freeformFish && hasPlayerTile ? 'player' : 'anchor';
+export function gatherSpotRangeOrigin(
+    freeformFish: boolean,
+    hasPlayerTile: boolean,
+    namedCamp = false
+): 'player' | 'anchor' {
+    if (!hasPlayerTile) {
+        return 'anchor';
+    }
+    if (namedCamp || freeformFish) {
+        return 'player';
+    }
+    return 'anchor';
 }
 
 /** Spot is inside the gather/hunt disk measured from {@link gatherSpotRangeOrigin}. */
@@ -191,23 +209,32 @@ export function spotWithinGatherRange(distFromOrigin: number, maxDist: number): 
 }
 
 /**
- * Pier-hop hunt radius past the gather leash.
- * Must exceed the leash (no hard 40 cap) so named camps with a high floor still
- * chase spots that hop further along the dock.
+ * Resource still belongs to the named camp (Chebyshev from home pin).
+ * Freeform has no camp fence — callers skip this check.
  */
-export function gatherHuntRadius(leash: number): number {
-    const L = Math.max(2, Math.floor(Number.isFinite(leash) ? leash : 10));
-    return Math.max(L + 12, 28);
+export function resourceWithinCamp(distFromHome: number, campRadius: number): boolean {
+    const R = Math.max(2, Math.floor(Number.isFinite(campRadius) ? campRadius : NAMED_CAMP_LEASH_FLOOR));
+    return Number.isFinite(distFromHome) && distFromHome <= R;
+}
+
+/**
+ * Freeform hunt radius past the UI/start leash.
+ * Generous pad so river hops beyond the old "leash+12" wall still walk-to
+ * (status used to idle on "no spots within 40 of you" with leash 28).
+ * Named camps do not use this — they accept any spot in camp membership.
+ */
+export function gatherHuntRadius(primaryDisk: number): number {
+    const L = Math.max(2, Math.floor(Number.isFinite(primaryDisk) ? primaryDisk : 10));
+    return Math.max(L + 24, 48);
 }
 
 /**
  * Whether post-bank / no-target gather should walk toward the camp anchor.
  *
- * "Already home" is the soft {@link HOME_ARRIVE_RADIUS} disk — not the full gather
- * leash. Named camps floor leash to 64 so pier/mine hunting stays wide; bank stands
- * often sit inside that disk but in another map square (Catherby bank→pier ≈ 36).
- * Treating full leash as home left Fisher idling on "no spots within N of anchor"
- * at the bank (#154).
+ * "Already home" is the soft {@link HOME_ARRIVE_RADIUS} disk — not camp membership.
+ * Bank stands often sit inside the membership disk but far from resources
+ * (Catherby bank→pier ≈ 36). Treating full membership as home left Fisher idling
+ * on "no spots" at the bank (#154).
  */
 export function shouldWalkHomeToGatherAnchor(
     distToAnchor: number | null | undefined,
@@ -226,7 +253,10 @@ export function shouldWalkHomeToGatherAnchor(
  * BankCatch / restock use the tight {@link HOME_ARRIVE_RADIUS} disk via
  * {@link shouldWalkHomeToGatherAnchor}. Gather must **not** — freeform pier-hops and
  * brief spot despawns sit just outside the 8-tile disk and thrash hunt↔home.
- * Only pull home when clearly off-camp (bank square / long wander).
+ * Only pull home when clearly off the resource pad (bank square / long wander).
+ *
+ * Uses a soft threshold (~20–28), not full camp membership — bank at ~36 must
+ * still soft-home even when membership is 64.
  */
 export function shouldSoftHomeFromGatherMiss(
     distToAnchor: number | null | undefined,
@@ -236,7 +266,7 @@ export function shouldSoftHomeFromGatherMiss(
         return false;
     }
     const L = Math.max(2, Math.floor(Number.isFinite(leash) ? leash : NAMED_CAMP_LEASH_FLOOR));
-    // ≥20 tiles off anchor, or past half the leash (named camps) — not the soft disk.
+    // ≥20 tiles off anchor, or past half a tight freeform leash — not the soft arrive disk.
     const threshold = Math.max(HOME_ARRIVE_RADIUS + 12, Math.min(L, 28));
     return distToAnchor > threshold;
 }
@@ -276,7 +306,8 @@ export const GATHERING_SETTINGS: SettingsSchema = {
     target: { type: 'string', default: 'Rocks', label: 'Target name', help: 'in-game name, e.g. Rocks / Tree / Fishing spot' },
     action: { type: 'string', default: 'Mine', label: 'Action', help: 'right-click op, e.g. Mine / Chop down / Net' },
     dropMatch: { type: 'string', default: 'ore', label: 'Drop items containing', help: 'when full, drop items whose name contains this (the gathered product)' },
-    // Named camps / None floor to NAMED_CAMP_LEASH_FLOOR. Auto alone keeps the setting.
+    // Named camps / None floor membership to NAMED_CAMP_LEASH_FLOOR. Auto alone keeps the setting.
+    // Named-camp fishing hops use a separate player-relative chase disk (see DEFAULT_CHASE_RADIUS).
     leashRadius: {
         type: 'number',
         default: 10,
@@ -284,7 +315,7 @@ export const GATHERING_SETTINGS: SettingsSchema = {
         max: 64,
         label: 'Leash radius (tiles)',
         help:
-            'How far from the camp/start anchor to hunt targets. Only Location Auto uses this value as-is (freeform and unverified chunk snaps). Named camps and None floor to 64 so large piers/mines (Fishing Guild, Catherby) stay fully in range.'
+            'Camp/start membership radius (ReturnToAnchor). Only Location Auto uses this as-is (freeform and unverified chunk snaps). Named camps and None floor to 64. Fishing spots at named camps chase from the player inside the camp, not from this pin disk alone.'
     }
 };
 
@@ -511,15 +542,18 @@ export default class GatheringBot extends TaskBot {
             this.location = null;
         }
 
-        // Named/Auto camps pin the gather leash to the camp spot. Power mode (None)
-        // and Auto freeform (no preset in this 64×64 map square) leash from the live
-        // start tile. Leash width: only Auto respects the UI setting; named camps
-        // and None floor to NAMED_CAMP_LEASH_FLOOR (Fishing Guild / Catherby need ~64).
-        this.leash = effectiveGatherLeash(this.leash, locSetting);
+        // Membership:
+        // - Resolved camp (named or Auto-snap) → camp geography (campRadius / floor 64),
+        //   never the Auto UI leash (that was clipping camp scan to e.g. 18).
+        // - Freeform Auto / power None → start-tile leash from UI (+ None floor).
+        // Fishing discovery for named camps is any matching spot inside membership;
+        // freeform uses player-relative hunt (see Gather.findFishSpot).
         if (this.location?.spot) {
             this.anchor = resolveRunAnchor(new Tile(here.x, here.z, here.level), this.location.spot);
+            this.leash = resolveCampRadius(this.location.campRadius, NAMED_CAMP_LEASH_FLOOR);
         } else {
             this.anchor = new Tile(here.x, here.z, here.level);
+            this.leash = effectiveGatherLeash(this.leash, locSetting);
         }
 
         // After ::tele / zone load, Locs+Npcs are empty for a beat (docs/NAV.md
@@ -1906,7 +1940,26 @@ export default class GatheringBot extends TaskBot {
     getAnchor(): Tile {
         return this.anchor!;
     }
+    /**
+     * Camp membership / wander bound (ReturnToAnchor, rock disk from home).
+     * Named camps floor to {@link NAMED_CAMP_LEASH_FLOOR}; Auto freeform uses UI leash.
+     */
     leashRadius(): number {
+        return this.leash;
+    }
+    /** True when a named (or Auto-snapped) camp preset is active. */
+    isNamedCamp(): boolean {
+        return this.location !== null;
+    }
+    /**
+     * Player-relative fishing primary disk.
+     * Named camps: location.chaseRadius or {@link DEFAULT_CHASE_RADIUS}.
+     * Freeform: same as membership leash (UI / floor).
+     */
+    chaseRadius(): number {
+        if (this.location) {
+            return resolveChaseRadius(this.location.chaseRadius, DEFAULT_CHASE_RADIUS);
+        }
         return this.leash;
     }
     targetName(): string {
@@ -2847,6 +2900,7 @@ export default class GatheringBot extends TaskBot {
     /**
      * No named camp preset — Auto freeform or power None.
      * Fisher spot search is player-relative; start tile still bounds wander via ReturnToAnchor.
+     * Named camps also chase fish from the player, but fence spots to camp membership.
      */
     isFreeformCamp(): boolean {
         return this.location === null;
@@ -4416,59 +4470,100 @@ class Gather implements Task {
     private activeFishIndex: number | null = null;
 
     /**
-     * Distance origin for fishing spots.
-     * Freeform fish → player (chase river hops); named camp → pier/mine anchor.
+     * Distance origin for ranking fishing spots (prefer nearest to player).
      * Game.tile() is a plain WorldTile — wrap with Tile.from for distanceTo.
      */
     private fishSpotOrigin(): Tile {
         const freeformFish = this.bot.isNpc() && this.bot.isFreeformCamp();
+        const namedCamp = this.bot.isNamedCamp();
         const here = Game.tile();
-        if (gatherSpotRangeOrigin(freeformFish, here !== null) === 'player' && here) {
+        if (gatherSpotRangeOrigin(freeformFish, here !== null, namedCamp) === 'player' && here) {
             return Tile.from(here);
         }
         return this.bot.getAnchor();
     }
 
-    private spotCandidate(n: { id: number; tile: () => Tile; actions: () => string[] }, maxDist: number): boolean {
-        const t = n.tile();
-        const origin = this.bot.isNpc() ? this.fishSpotOrigin() : this.bot.getAnchor();
+    /** Freeform primary disk = UI/start leash; hunt extends past it. */
+    private freeformHuntRadius(): number {
+        return gatherHuntRadius(this.bot.leashRadius());
+    }
+
+    /** Shared filters: usable, not whirlpool, method matches. */
+    private fishSpotBaseOk(n: { id: number; tile: () => Tile; actions: () => string[] }): boolean {
         return (
-            spotWithinGatherRange(origin.distanceTo(t), maxDist) &&
-            this.bot.usable(keyOf(t)) &&
+            this.bot.usable(keyOf(n.tile())) &&
             !WHIRLPOOL_IDS.has(n.id) &&
             this.bot.matchesSpot(n.actions())
         );
     }
 
-    /** Preferred spots inside the configured leash. */
-    private findSpot() {
-        const leash = this.bot.leashRadius();
-        return Npcs.query()
-            .name(this.bot.targetName())
-            .where(n => this.spotCandidate(n, leash))
-            .nearest();
+    /**
+     * Whether a fishing spot is in range for this camp mode.
+     * - Named / Auto-snap: any spot inside camp membership (home pin). No player-distance wall.
+     * - Freeform: spot within hunt of the player, or still within hunt of the start-tile anchor
+     *   (so we can walk along a river hop without idling on "within 40 of you").
+     */
+    private fishSpotInRange(spotTile: Tile): boolean {
+        if (this.bot.isNamedCamp()) {
+            return resourceWithinCamp(this.bot.getAnchor().distanceTo(spotTile), this.bot.leashRadius());
+        }
+        const origin = this.fishSpotOrigin();
+        const hunt = this.freeformHuntRadius();
+        if (spotWithinGatherRange(origin.distanceTo(spotTile), hunt)) {
+            return true;
+        }
+        // Spot still near the freeform start pin — walk the river even if far from the player.
+        return spotWithinGatherRange(this.bot.getAnchor().distanceTo(spotTile), hunt);
     }
 
     /**
-     * Spots that hopped just outside the leash (common on long piers).
-     * Hunt radius is wider than leash so we walk to them instead of stalling.
-     * Not hard-capped at 40 — named camps floor leash to 64 and still need headroom.
+     * Nearest matching fishing spot in scene for this mode.
+     * Named camps: entire membership disk (fixes "no spots within 40 of you" mid-pier).
+     * Freeform: player/start hunt disks.
      */
+    private findFishSpot() {
+        return Npcs.query()
+            .name(this.bot.targetName())
+            .where(n => this.fishSpotBaseOk(n) && this.fishSpotInRange(n.tile()))
+            .nearest();
+    }
+
+    /** @deprecated Prefer {@link findFishSpot} — kept for call sites that meant "nearby only". */
+    private findSpot() {
+        return this.findFishSpot();
+    }
+
+    /** Freeform-only: spots just outside primary leash of the player (legacy hunt path). */
     private huntRadius(): number {
-        return gatherHuntRadius(this.bot.leashRadius());
+        return this.bot.isNamedCamp() ? this.bot.leashRadius() : this.freeformHuntRadius();
     }
 
     private findHuntSpot() {
-        const leash = this.bot.leashRadius();
-        const hunt = this.huntRadius();
+        // Named: findFishSpot already covers full camp — no separate hunt tier.
+        if (this.bot.isNamedCamp()) {
+            return null;
+        }
+        const primary = this.bot.leashRadius();
+        const hunt = this.freeformHuntRadius();
         const origin = this.fishSpotOrigin();
         return Npcs.query()
             .name(this.bot.targetName())
             .where(n => {
+                if (!this.fishSpotBaseOk(n)) {
+                    return false;
+                }
                 const d = origin.distanceTo(n.tile());
-                return d > leash && this.spotCandidate(n, hunt);
+                return d > primary && d <= hunt;
             })
             .nearest();
+    }
+
+    /** Named: same as findFishSpot (full membership). Freeform: null. */
+    private findCampScanSpot() {
+        if (!this.bot.isNamedCamp()) {
+            return null;
+        }
+        return this.findFishSpot();
     }
 
     private findRock() {
@@ -4520,11 +4615,11 @@ class Gather implements Task {
             if (this.bot.isFreeformCamp() && beyondLeash(this.bot, Game.tile(), 4)) {
                 return false;
             }
-            // Prefer in-leash spots; also stay active for pier-hop hunts just outside leash.
-            if (this.findSpot() !== null || this.findHuntSpot() !== null) {
+            // Named: any matching spot in camp membership. Freeform: player/start hunt disks.
+            if (this.findFishSpot() !== null || this.findHuntSpot() !== null) {
                 return true;
             }
-            // No spots in hunt range: keep-alive near the pier so status updates, but yield
+            // No spots in range: keep-alive near the pier so status updates, but yield
             // to ReturnToAnchor when we've wandered off (e.g. after bank / whirlpool flee).
             return !beyondLeash(this.bot, Game.tile(), 4);
         }
@@ -4724,25 +4819,19 @@ class Gather implements Task {
     }
 
     private async executeFish(): Promise<void> {
-        const target = this.findSpot();
+        // Named: nearest matching spot in camp membership. Freeform: player/start hunt.
+        // If the spot is far, interact will path; we still walk when beyond a short step.
+        const target = this.findFishSpot() ?? this.findHuntSpot();
 
         if (!target) {
             this.activeFishIndex = null;
-            // Pier hop: chase a nearby out-of-leash spot immediately — don't wait out leftover cast anim.
-            const hunt = this.findHuntSpot();
-            if (hunt) {
-                const ht = hunt.tile();
-                this.bot.setStatus(`fish: hunting spot @ ${ht}`);
-                await Traversal.walkTo(ht, { radius: 1, timeoutMs: 20_000 });
-                return;
-            }
-            // No hunt target either. Short finishing-cast wait, waking if a spot reappears.
+            // No target. Short finishing-cast wait, waking if a spot reappears.
             if (Game.animating()) {
                 this.bot.setStatus('fish: finishing cast (no spot)');
                 await Execution.delayUntil(
                     () =>
                         !Game.animating() ||
-                        this.findSpot() !== null ||
+                        this.findFishSpot() !== null ||
                         this.findHuntSpot() !== null ||
                         EventSignal.pending() ||
                         Inventory.isFull() ||
@@ -4764,15 +4853,42 @@ class Gather implements Task {
                 await this.bot.walkHomeIfNeeded(m => this.bot.log(`  ${m}`));
                 return;
             }
-            // Freeform measures from the player; named camps from the pier anchor.
-            const originLabel =
-                gatherSpotRangeOrigin(this.bot.isFreeformCamp(), here !== null) === 'player'
-                    ? 'you'
-                    : 'anchor';
-            this.bot.setStatus(`fish: no spots within ${this.huntRadius()} of ${originLabel}`);
+            // Named: membership disk from home. Freeform: hunt from player/start.
+            if (this.bot.isNamedCamp()) {
+                this.bot.setStatus(`fish: no spots in camp (r${this.bot.leashRadius()} of home)`);
+            } else {
+                this.bot.setStatus(`fish: no spots within ${this.freeformHuntRadius()} of you/start`);
+            }
             await Execution.delayTicks(2);
             return;
         }
+
+        // Walk when the spot is more than a few tiles away (pier hop / camp scan).
+        const here0 = Game.tile();
+        const spotTile = target.tile();
+        if (here0 && Tile.from(here0).distanceTo(spotTile) > 2) {
+            this.bot.setStatus(`fish: walking to spot @ ${spotTile}`);
+            await Traversal.walkTo(spotTile, { radius: 1, timeoutMs: 20_000 });
+            // Re-resolve after walk — hop may have moved.
+            const again = this.findFishSpot() ?? this.findHuntSpot();
+            if (!again) {
+                this.activeFishIndex = null;
+                return;
+            }
+            // Fall through to interact with the (possibly new) nearest spot.
+            return this.executeFishAfterArrive(again);
+        }
+
+        await this.executeFishAfterArrive(target);
+    }
+
+    private async executeFishAfterArrive(target: {
+        index: number;
+        tile: () => Tile;
+        actions: () => string[];
+        interact: (op: string) => Promise<boolean>;
+        id: number;
+    }): Promise<void> {
 
         const index = target.index;
         const startTile = target.tile();
