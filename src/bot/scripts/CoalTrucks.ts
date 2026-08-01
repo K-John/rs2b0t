@@ -4,7 +4,7 @@ import { EventSignal } from '../api/EventSignal.js';
 import { Game } from '../api/Game.js';
 import type Tile from '../api/Tile.js';
 import { Traversal } from '../api/Traversal.js';
-import { depositMatcher } from '../api/Banking.js';
+import { depositAllExcept } from '../api/Banking.js';
 import { Bank } from '../api/hud/Bank.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
 import { Equipment } from '../api/hud/Equipment.js';
@@ -156,9 +156,14 @@ export default class CoalTrucks extends LoopingBot {
         await Execution.delayTicks(1);
     }
 
-    private hasPickaxe(): boolean {
+    /** The one pickaxe worth keeping — a spare or an unusable tier is junk and gets banked. */
+    private heldPickaxe(): string | null {
         const held = [...Equipment.items(), ...Inventory.items()].map(i => i.name ?? '');
-        return bestPickaxe(Skills.level('mining'), name => held.some(n => n.toLowerCase() === name.toLowerCase())) !== null;
+        return bestPickaxe(Skills.level('mining'), name => held.some(n => n.toLowerCase() === name.toLowerCase()));
+    }
+
+    private hasPickaxe(): boolean {
+        return this.heldPickaxe() !== null;
     }
 
     private atMine(): boolean {
@@ -297,7 +302,11 @@ export default class CoalTrucks extends LoopingBot {
         this.bankFails = 0;
         try {
             const held = Inventory.count(COAL);
-            await Bank.depositAllMatching(depositMatcher(name => name.toLowerCase() === COAL.toLowerCase(), true));
+            // Everything but the pickaxe. Random events leave coins and junk that the
+            // truck will not take, and anything kept squats a coal slot on every future
+            // load — so the keep-list is exactly the one pickaxe in use, spares included.
+            const keep = this.heldPickaxe();
+            await Bank.depositAllMatching(depositAllExcept(keep ? [keep] : []));
             await Execution.delayTicks(1);
             const moved = held - Inventory.count(COAL);
             this.banked += moved;

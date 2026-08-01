@@ -40,6 +40,10 @@ if (!PHASES.includes(phase)) {
 interface Snapshot {
     pos: { x: number; z: number; level: number } | null;
     coal: number;
+    /** Anything held that is neither coal nor a pickaxe — random-event junk must not pile up. */
+    junk: string[];
+    /** Count, not a flag: a kept spare is exactly the leak the keep-list must not have. */
+    picks: number;
     xp: number;
     tick: number;
     runner: string;
@@ -101,6 +105,16 @@ try {
             fail('could not seed a pickaxe');
         }
     }
+    // Stand-ins for random-event leavings: neither is coal, neither is bankable by the
+    // truck, and both squat a coal slot on every future load until the bank clears them.
+    // A spare bronze pickaxe checks the keep-list is the pickaxe *in use*, not any pickaxe.
+    if (phase === 'drain' || phase === 'full') {
+        for (const junk of ['give coins 500', 'give bones 3', 'give bronze_pickaxe']) {
+            if (!(await cheatQuiet(page, junk))) {
+                fail(`could not seed junk (${junk})`);
+            }
+        }
+    }
     if (!(await cheatQuiet(page, `tele ${seat}`))) {
         fail(`could not tele for phase ${phase}`);
     }
@@ -122,9 +136,12 @@ try {
                     runner: { state: string; ctx?: { log?: { time: number; level: string; msg: string }[] } };
                 };
             };
+            const inv = g.__rs2b0t.reader.inventory().map(i => i.name ?? '');
             return {
                 pos: g.__rs2b0t.reader.worldTile(),
-                coal: g.__rs2b0t.reader.inventory().filter(i => i.name === 'Coal').length,
+                coal: inv.filter(n => n === 'Coal').length,
+                junk: [...new Set(inv.filter(n => n !== 'Coal' && !/pickaxe$/i.test(n)))],
+                picks: inv.filter(n => /pickaxe$/i.test(n)).length,
                 xp: g.__rs2b0t.Skills.xp('mining'),
                 tick: g.rs2b0t.host.tickCount,
                 runner: g.rs2b0t.runner.state,
@@ -226,6 +243,23 @@ try {
     // while the route still doubles back, which is exactly how this shipped broken once.
     if (haulOrder.includes('took') && haulOrder[0] !== 'bank') {
         fail(`walked to the truck before banking the carried pack (order: ${haulOrder.slice(0, 5).join(' -> ')})`);
+    }
+
+    // Junk-seeded legs: banking must be bank-all-except-the-pickaxe. Anything the deposit
+    // misses squats a coal slot on every future load — a silent leak, not a failure.
+    if (phase === 'drain' || phase === 'full') {
+        if (last.junk.length > 0) {
+            fail(`junk still held after banking: ${last.junk.join(', ')} — the deposit is allow-listing, not bank-all-except`);
+        }
+        if (last.picks === 0) {
+            fail('banked the pickaxe too — the keep-list is not protecting the tool in use');
+        }
+        // The seed includes a spare bronze pickaxe: the keep-list must be the ONE pickaxe
+        // bestPickaxe selected, not "anything shaped like a pickaxe".
+        if (last.picks > 1) {
+            fail(`${last.picks} pickaxes still held — the keep-list is a category, not the tool in use`);
+        }
+        console.log('junk check: pack holds only coal + exactly one pickaxe');
     }
 
     // Assert on game state, never on log lines.
