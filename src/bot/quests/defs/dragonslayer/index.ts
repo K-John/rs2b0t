@@ -9,7 +9,7 @@ import Tile from '../../../api/Tile.js';
 import { hasFlag } from '../../engine/types.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { QUESTS } from '../../data/quests.js';
-import type { NpcStop } from '../../exec/primitives.js';
+import { gotoNpc, talkThrough, type NpcStop } from '../../exec/primitives.js';
 import { DS_ID, DS_ITEM, DS_LOC, DS_NPC, SHIP_PRICE, WORMBRAIN_PRICE } from './areas.js';
 import { DRAGON_STAGE, readDragonProgress } from './journal.js';
 import { MAZE_CHEST, MAZE_LEGS, MAZE_TO_BASEMENT, heldById, mazeSceneLoaded, mazeWalk, pastLeg, runMazeLeg } from './maze.js';
@@ -20,13 +20,21 @@ const GUILDMASTER: NpcStop = {
     npc: 'Guild master', anchor: DS_NPC.GUILDMASTER, leash: 8,
     prefer: ['Do you know where I could get a Rune Plate mail body?']
 };
+/** At stage 1 Oziach opens with small talk; only the rune plate line starts him off. */
+const OZIACH_FIRST: NpcStop = {
+    npc: 'Oziach', anchor: DS_NPC.OZIACH, leash: 6,
+    prefer: [
+        'Can you sell me some Rune plate mail?',
+        "The guildmaster of the Champions' Guild told me.",
+        'So how am I meant to prove that?',
+        'A dragon, that sounds like fun!',
+        'And will I need anything to defeat this dragon?'
+    ]
+};
 const OZIACH: NpcStop = {
     npc: 'Oziach', anchor: DS_NPC.OZIACH, leash: 6,
     prefer: [
         'So where can I find this dragon?',
-        'Where is the first piece of the map?',
-        'Where is the second piece of the map?',
-        'Where is the third piece of the map?',
         'Where can I get an antidragon shield?',
         "Ok I'll try and get everything together."
     ]
@@ -64,6 +72,33 @@ const NED_ABOARD: NpcStop = {
 };
 
 const ORACLE_DOOR_ITEMS = [DS_ID.MIND_BOMB, DS_ID.UNFIRED_BOWL, DS_ID.LOBSTER_POT, DS_ID.SILK];
+
+const FIND_DRAGON = 'So where can I find this dragon?';
+/**
+ * Oziach hands out the briefing one branch at a time, and each branch loops back
+ * to the same menu. One pass per branch, so the whole briefing is a single step
+ * the engine can see succeed rather than the same talk repeated until it parks.
+ */
+const OZIACH_BRANCHES: readonly string[][] = [
+    [FIND_DRAGON, 'Where is the first piece of the map?'],
+    [FIND_DRAGON, 'Where is the second piece of the map?'],
+    [FIND_DRAGON, 'Where is the third piece of the map?'],
+    ['Where can I get an antidragon shield?']
+];
+
+async function briefOziach(log: (m: string) => void): Promise<boolean> {
+    if (!(await gotoNpc(OZIACH, [], log))) {
+        return false;
+    }
+    for (const prefer of OZIACH_BRANCHES) {
+        log(`asking Oziach: ${prefer[prefer.length - 1]}`);
+        if (!(await talkThrough(OZIACH.npc, prefer, log))) {
+            return false;
+        }
+        await Execution.delayTicks(1);
+    }
+    return heldById(DS_ID.MAZE_KEY);
+}
 
 const walk = (to: Tile, log: (m: string) => void, radius = 2): Promise<boolean> =>
     Traversal.walkResilient(to, { radius, attempts: 3, timeoutMs: 180_000, log });
@@ -225,16 +260,14 @@ export function decide(snap: QuestSnapshot): QuestStep {
         return { kind: 'talk', stop: GUILDMASTER };
     }
     if (stage === DRAGON_STAGE.SPOKEN_GUILDMASTER) {
-        return { kind: 'talk', stop: OZIACH };
+        return { kind: 'talk', stop: OZIACH_FIRST };
     }
 
     if (stage === DRAGON_STAGE.SPOKEN_OZIACH) {
         // Oziach sets the three briefing flags and hands over the maze key across
         // several dialogue branches, so keep returning until they are all set.
         if (hasFlag(snap.progress, 'needs-briefing') || !heldById(DS_ID.MAZE_KEY)) {
-            if (!snap.inv.has(DS_ITEM.MAZE_KEY.toLowerCase()) || hasFlag(snap.progress, 'needs-briefing')) {
-                return { kind: 'talk', stop: OZIACH };
-            }
+            return custom('get the briefing from Oziach', briefOziach);
         }
         if (!hasFlag(snap.progress, 'has-shield') && !snap.worn.has(DS_ITEM.SHIELD.toLowerCase())) {
             return { kind: 'talk', stop: DUKE };
@@ -277,7 +310,7 @@ export const dragonslayer: QuestModule = {
     record: QUESTS.find(r => r.id === 'dragon')!,
     bank: FALADOR_BANK,
     grind: ['Giant rat', 'Ghost', 'Skeleton', 'Zombie', 'Melzar the mad', 'Lesser demon', 'Elvarg'],
-    food: 20,
+    food: 8,
     tools: [
         'coins', 'maze key', 'key', 'map part', 'crandor map', 'plank', 'nails', 'hammer',
         'dragonfire shield', "wizard's mind bomb", 'unfired bowl', 'lobster pot', 'silk'
