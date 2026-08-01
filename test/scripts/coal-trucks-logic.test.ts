@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import {
     COAL_MINING_LEVEL,
     MINE_TRUCK,
+    MAX_PULLS_PER_HAUL,
     MINE_TRUCK_STAND,
     SEERS_TRUCK,
     SEERS_TRUCK_STAND,
@@ -97,9 +98,34 @@ const view = (over: Partial<WorldView> = {}): WorldView => ({
     rockAvailable: true,
     truckEmpty: false,
     truckFull: false,
+    pullsThisHaul: 0,
     hasPickaxe: true,
     atMine: true,
     ...over
+});
+
+describe('decide — the last pull is not worth the trip', () => {
+    // A 120 truck drains in 4 full packs plus a ~12 remainder; that last 102-tile round
+    // trip for 12 coal loses money. The remainder rides to the next cycle.
+    test('keeps pulling below the cap', () => {
+        expect(decide(view({ phase: 'drain', pullsThisHaul: MAX_PULLS_PER_HAUL - 1 })))
+            .toEqual({ kind: 'remove' });
+    });
+    test('heads home once the pull budget is spent, even with coal still in the truck', () => {
+        expect(decide(view({ phase: 'drain', pullsThisHaul: MAX_PULLS_PER_HAUL })))
+            .toEqual({ kind: 'travel-to-mine' });
+    });
+    test('banks what is carried before heading home on a spent budget', () => {
+        expect(decide(view({ phase: 'drain', pullsThisHaul: MAX_PULLS_PER_HAUL, coalHeld: 27 })))
+            .toEqual({ kind: 'bank' });
+    });
+    test('an empty truck still ends the haul early', () => {
+        expect(decide(view({ phase: 'drain', truckEmpty: true, pullsThisHaul: 1 })))
+            .toEqual({ kind: 'travel-to-mine' });
+    });
+    test('four is the measured optimum, not an arbitrary cap', () => {
+        expect(MAX_PULLS_PER_HAUL).toBe(4);
+    });
 });
 
 describe('decide — topping the pack up on a capped truck', () => {
@@ -170,8 +196,16 @@ describe('decide — fill', () => {
 });
 
 describe('decide — run', () => {
-    test('travels to Seers regardless of what is carried', () => {
-        expect(decide(view({ phase: 'run', coalHeld: 20 }))).toEqual({ kind: 'travel-to-seers' });
+    // The truck is capped when the run starts, so the carried pack cannot go into it.
+    // Touching the truck first and doubling back to the bank costs 196 against 156.
+    test('banks the carried pack before going anywhere near the truck', () => {
+        expect(decide(view({ phase: 'run', coalHeld: 27 }))).toEqual({ kind: 'bank' });
+    });
+    test('a part load is still banked first', () => {
+        expect(decide(view({ phase: 'run', coalHeld: 1 }))).toEqual({ kind: 'bank' });
+    });
+    test('empty-handed, it heads for the truck to start draining', () => {
+        expect(decide(view({ phase: 'run', coalHeld: 0 }))).toEqual({ kind: 'travel-to-seers' });
     });
 });
 

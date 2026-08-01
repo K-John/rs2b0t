@@ -22,6 +22,7 @@ import {
     COAL_MINING_LEVEL,
     COAL_ROCK_IDS,
     MINE_ANCHOR,
+    MAX_PULLS_PER_HAUL,
     MINE_AREA,
     MINE_OP,
     MINE_TRUCK,
@@ -57,6 +58,7 @@ export default class CoalTrucks extends LoopingBot {
     private phase: Phase = 'fill';
     private truckEmpty = false;
     private truckFull = false;
+    private pullsThisHaul = 0;
     private depositedEstimate = 0;
     private banked = 0;
     private trips = 0;
@@ -101,6 +103,7 @@ export default class CoalTrucks extends LoopingBot {
             rockAvailable: this.findRock() !== null,
             truckEmpty: this.truckEmpty,
             truckFull: this.truckFull,
+            pullsThisHaul: this.pullsThisHaul,
             hasPickaxe: this.hasPickaxe(),
             atMine: this.atMine()
         });
@@ -122,6 +125,7 @@ export default class CoalTrucks extends LoopingBot {
                 if (await this.walkTo(SEERS_TRUCK_STAND, 1)) {
                     this.phase = 'drain';
                     this.truckEmpty = false;
+                    this.pullsThisHaul = 0;
                 }
                 break;
             case 'remove':
@@ -265,8 +269,11 @@ export default class CoalTrucks extends LoopingBot {
         // The message can beat the inventory by a tick, so settle before counting or
         // a real pull logs as "took 0".
         await Execution.delayUntil(() => Inventory.count(COAL) > before, 2000);
-        this.log(`took ${Inventory.count(COAL) - before} coal from the truck (${result})`);
+        this.pullsThisHaul++;
         this.truckEmpty = truckEmptyAfterRemove(result);
+        const budgetSpent = !this.truckEmpty && this.pullsThisHaul >= MAX_PULLS_PER_HAUL;
+        this.log(`took ${Inventory.count(COAL) - before} coal from the truck (${result})`
+            + `${budgetSpent ? ' — pull budget spent, the remainder rides to the next cycle' : ''}`);
     }
 
     private async bank(): Promise<void> {
@@ -289,7 +296,11 @@ export default class CoalTrucks extends LoopingBot {
             const held = Inventory.count(COAL);
             await Bank.depositAllMatching(depositMatcher(name => name.toLowerCase() === COAL.toLowerCase(), true));
             await Execution.delayTicks(1);
-            this.banked += held - Inventory.count(COAL);
+            const moved = held - Inventory.count(COAL);
+            this.banked += moved;
+            if (moved > 0) {
+                this.log(`banked ${moved} coal (${this.banked} this run)`);
+            }
             await this.ensurePickaxe();
         } finally {
             await Bank.close();

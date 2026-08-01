@@ -156,6 +156,9 @@ try {
     // so mining xp must still move between the capping deposit and the crossing.
     let xpAtCap: number | null = null;
     let xpAtCross: number | null = null;
+    // The truck is capped when the haul starts, so the carried pack must reach the bank
+    // before the bot touches the truck. Ordered log of which happened first.
+    const haulOrder: string[] = [];
 
     while (Date.now() < deadline) {
         await page.waitForTimeout(10_000);
@@ -172,6 +175,12 @@ try {
                 }
                 if (line.msg.includes('no pickaxe') || line.msg.includes('no usable pickaxe')) {
                     sawNoPickaxe = true;
+                }
+                if (/^banked \d+ coal/.test(line.msg)) {
+                    haulOrder.push('bank');
+                }
+                if (/^took \d+ coal from the truck/.test(line.msg)) {
+                    haulOrder.push('took');
                 }
                 const deposit = /coal in the truck \((\w+)\)/.exec(line.msg);
                 if (deposit) {
@@ -204,6 +213,12 @@ try {
     // whole run down the no-pickaxe path.
     if (phase !== 'nopick' && sawNoPickaxe) {
         fail('the pickaxe seed did not land — the pack had no free slot for it');
+    }
+
+    // Any leg that actually hauls must bank the carried pack before touching the truck:
+    // the truck is capped, so a truck-first detour costs 196 tiles against 156.
+    if (haulOrder.includes('took') && haulOrder.indexOf('bank') !== 0) {
+        fail(`went to the truck before banking the carried pack (order: ${haulOrder.slice(0, 4).join(' -> ')})`);
     }
 
     // Assert on game state, never on log lines.
@@ -248,7 +263,13 @@ try {
         if ((truckAfter ?? 120) >= (truckBefore ?? 120)) {
             fail(`truck was not drained (${truckBefore} -> ${truckAfter})`);
         }
-        console.log(`PASS: truck ${truckBefore} -> ${truckAfter}`);
+        // The 4-pull budget deliberately leaves the ~12 remainder rather than spending a
+        // 102-tile round trip on it, so a truck drained to zero means the cap is not working.
+        if ((truckAfter ?? 0) === 0) {
+            fail('truck drained to zero — the 4-pull budget should leave the remainder behind');
+        }
+        const pulls = haulOrder.filter(e => e === 'took').length;
+        console.log(`PASS: truck ${truckBefore} -> ${truckAfter} in ${pulls} pulls, remainder left for the next cycle`);
     } else if (phase === 'run') {
         if (!deposits.includes('full')) {
             fail(`the deposit never reported a full truck (saw [${deposits.join(',')}])`);

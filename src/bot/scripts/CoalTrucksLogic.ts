@@ -16,6 +16,14 @@ export const TRUCK_LEASH = 4;
 /** Anything inside this of the anchor counts as the working area: rocks, truck stand, walk slop. */
 export const MINE_AREA = 20;
 
+/**
+ * Pulls per haul before heading back. A 120 truck drains in 4 full packs plus a ~12
+ * remainder, and that last 102-tile round trip for 12 coal is poor value. The remainder
+ * is not lost — it stays in the truck and the miner tops it up next cycle. Measured per
+ * cycle: 4 pulls banks 135 over 720 tiles, 5 pulls banks 147 over 822.
+ */
+export const MAX_PULLS_PER_HAUL = 4;
+
 export const MINE_ANCHOR = new Tile(2582, 3481, 0);
 export const MINE_TRUCK = new Tile(2574, 3487, 0);
 export const MINE_TRUCK_STAND = new Tile(2575, 3486, 0);
@@ -44,6 +52,7 @@ export interface WorldView {
     rockAvailable: boolean;
     truckEmpty: boolean;
     truckFull: boolean;
+    pullsThisHaul: number;
     hasPickaxe: boolean;
     atMine: boolean;
 }
@@ -97,15 +106,19 @@ export function decide(view: WorldView): Action {
         return { kind: 'bank' };
     }
 
+    // The truck is capped when the run starts, so the carried pack cannot go into it.
+    // Bank on the way in rather than touching the truck first and doubling back —
+    // mine->bank is 156, mine->truck->bank is 196.
     if (view.phase === 'run') {
-        return { kind: 'travel-to-seers' };
+        return view.coalHeld > 0 ? { kind: 'bank' } : { kind: 'travel-to-seers' };
     }
 
     if (view.phase === 'drain') {
         if (view.coalHeld > 0) {
             return { kind: 'bank' };
         }
-        return view.truckEmpty ? { kind: 'travel-to-mine' } : { kind: 'remove' };
+        const spent = view.truckEmpty || view.pullsThisHaul >= MAX_PULLS_PER_HAUL;
+        return spent ? { kind: 'travel-to-mine' } : { kind: 'remove' };
     }
 
     // A capped truck does not mean leave immediately: the haul costs the same six bank
