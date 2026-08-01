@@ -1,12 +1,14 @@
 import { Execution } from '../../api/Execution.js';
 import { Game } from '../../api/Game.js';
 import { Inventory } from '../../api/hud/Inventory.js';
+import { Skills } from '../../api/hud/Skills.js';
 import { GroundItems } from '../../api/queries/GroundItems.js';
 import { Npcs } from '../../api/queries/Npcs.js';
 import { Traversal } from '../../api/Traversal.js';
 import Tile from '../../api/Tile.js';
 import { gotoNpc, talkThrough, type NpcStop } from '../exec/primitives.js';
 import { executeStep } from '../exec/steps.js';
+import { QuestFood } from '../food.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { QUESTS } from '../data/quests.js';
 
@@ -24,9 +26,76 @@ const WYSON: NpcStop = { npc: 'Wyson the gardener', anchor: new Tile(3013, 3377,
 const GOBLIN_FARM = new Tile(2958, 3507, 0);
 const ONION_PATCH = new Tile(3188, 3267, 0);
 const PORT_SARIM_SHOP = { npc: 'Wydin', anchor: new Tile(3014, 3204, 0) };
+const DRAYNOR_BANK = new Tile(3093, 3243, 0);
+/** South of the village, clear of the goblins' aggression range. */
+const RETREAT = new Tile(2967, 3486, 0);
+
+const BANK_FOODS = [
+    'Shark',
+    'Lobster',
+    'Swordfish',
+    'Tuna',
+    'Salmon',
+    'Trout',
+    'Bread',
+    'Cooked meat',
+    'Cooked chicken',
+    'Cake',
+    'Cheese',
+    'Banana'
+] as const;
+
+/** Wydin is already on the dye run, and sells the only food near the route. */
+const SHOP_FOOD = { name: 'Cheese', cost: 12 };
+const FOOD_TARGET = 12;
+/**
+ * The village is a long walk from Draynor, so only restock when nearly out.
+ * Topping up to the target after every bite trades the whole grind for the road.
+ */
+const FOOD_RESTOCK_AT = 2;
+/** Break off and eat rather than trade the last hits for one more mail. */
+const RETREAT_HP = 0.4;
 
 const has = (snap: QuestSnapshot, name: string): boolean => (snap.inv.get(name) ?? 0) > 0;
 const qty = (snap: QuestSnapshot, name: string): number => snap.inv.get(name) ?? 0;
+const banked = (snap: QuestSnapshot, name: string): number => snap.bank?.get(name.toLowerCase()) ?? 0;
+
+function foodNames(): string[] {
+    const configured = QuestFood.name?.trim();
+    const names = [configured, ...BANK_FOODS].filter((name): name is string => Boolean(name));
+    return [...new Map(names.map(name => [name.toLowerCase(), name])).values()];
+}
+
+function foodHeld(snap: QuestSnapshot): number {
+    return foodNames().reduce((total, name) => total + qty(snap, name.toLowerCase()), 0);
+}
+
+function packFood(): number {
+    return foodNames().reduce((total, name) => total + Inventory.count(name), 0);
+}
+
+/** Stock up before the grind: bank first, then buy what Wydin carries. */
+function sourceFood(snap: QuestSnapshot): QuestStep | null {
+    const have = foodHeld(snap);
+    if (have > FOOD_RESTOCK_AT) {
+        return null;
+    }
+    if (!snap.bankKnown) {
+        return { kind: 'scanBank', bank: DRAYNOR_BANK };
+    }
+    for (const name of foodNames()) {
+        const available = banked(snap, name);
+        if (available > 0) {
+            return { kind: 'withdraw', items: [{ name, qty: Math.min(FOOD_TARGET - have, available) }], bank: DRAYNOR_BANK };
+        }
+    }
+    const missing = FOOD_TARGET - have;
+    const cost = missing * SHOP_FOOD.cost;
+    if (qty(snap, 'coins') + snap.bankCoins >= cost) {
+        return { kind: 'buy', item: SHOP_FOOD.name, qty: missing, shop: PORT_SARIM_SHOP, estGp: cost };
+    }
+    return null;
+}
 
 async function farmGoblinMail(log: (m: string) => void): Promise<boolean> {
     const drop = GroundItems.query().name('Goblin mail').within(15).nearest();
@@ -36,6 +105,11 @@ async function farmGoblinMail(log: (m: string) => void): Promise<boolean> {
             return false;
         }
         return Execution.delayUntil(() => Inventory.count('Goblin mail') > before, 6000);
+    }
+    if (Skills.hpFraction() < RETREAT_HP && packFood() === 0) {
+        log('out of food and hurt — leaving the goblins alone');
+        await Traversal.walkResilient(RETREAT, { radius: 3, attempts: 2, timeoutMs: 90_000, log });
+        return false;
     }
     if (Game.inCombat()) {
         await Execution.delayTicks(2);
@@ -52,6 +126,10 @@ async function farmGoblinMail(log: (m: string) => void): Promise<boolean> {
     }
     await Traversal.walkResilient(GOBLIN_FARM, { radius: 4, attempts: 2, timeoutMs: 90_000, log });
     return false;
+}
+
+function gatherGoblinMail(snap: QuestSnapshot): QuestStep {
+    return sourceFood(snap) ?? { kind: 'custom', name: 'farm goblin mail', run: farmGoblinMail };
 }
 
 async function makeBlueDye(log: (m: string) => void): Promise<boolean> {
@@ -136,11 +214,13 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
 export const goblindiplomacy: QuestModule = {
     record: QUESTS.find(r => r.id === 'gobdip')!,
-    bank: new Tile(3093, 3243, 0),
-    tools: ['goblin mail', 'dye', 'woad', 'redberries', 'onion', 'coins'],
+    bank: DRAYNOR_BANK,
+    tools: ['goblin mail', 'dye', 'woad', 'redberries', 'onion', 'coins', ...foodNames().map(n => n.toLowerCase())],
     grind: ['Goblin'],
+    food: FOOD_TARGET,
+    sustain: { foods: foodNames(), eatBelowHp: 0.6 },
     gather: {
-        'goblin mail': () => ({ kind: 'custom', name: 'farm goblin mail', run: farmGoblinMail }),
+        'goblin mail': gatherGoblinMail,
         'orange dye': () => ({ kind: 'custom', name: 'make orange dye', run: makeOrangeDye }),
         'blue dye': () => ({ kind: 'custom', name: 'make blue dye', run: makeBlueDye })
     },
