@@ -3,7 +3,6 @@ import {
     RUNES, 
     bankTile, 
     RUNE_OPTIONS, 
-    DEFAULT_RUNE, 
     isConfiguredPartner, 
     classifyMuleState, 
     type RuneRoute 
