@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 
 import { DS_ID } from '#/bot/quests/defs/dragonslayer/areas.js';
 import { MAZE_LEGS, MAZE_NPC, doorCrossed, inMaze, legFromPosition } from '#/bot/quests/defs/dragonslayer/maze.js';
+import { OZIACH_GOALS } from '#/bot/quests/defs/dragonslayer/index.js';
 
 describe("Melzar's Maze route", () => {
     test('every key a kill drops is spent by a later door', () => {
@@ -88,5 +89,38 @@ describe("Melzar's Maze route", () => {
         expect(MAZE_LEGS[legFromPosition({ x: 2932, z: 9641, level: 0 })]).toMatchObject({ kind: 'kill', npcId: MAZE_NPC.ZOMBIE });
         // The dead end the second-floor descent drops into, not the entrance hall.
         expect(MAZE_LEGS[legFromPosition({ x: 2936, z: 3240, level: 0 })]).toMatchObject({ kind: 'climb', op: 'Climb-down' });
+    });
+});
+
+describe('Oziach', () => {
+    test('every goal is judged on a phrase his reply actually contains', () => {
+        // Straight out of area_edgeville/scripts/oziach.rs2. If a line is
+        // reworded upstream the goal silently never completes and the
+        // conversation loops, so the phrases are pinned here.
+        const REPLIES: Record<string, string> = {
+            'Where is the first piece of the map?':
+                "Deep in a strange building known as Melzar's maze|located north west of Rimmington.",
+            'Where is the second piece of the map?':
+                'You will need to talk to the oracle on the ice mountain.',
+            'Where is the third piece of the map?':
+                'That was stolen by one of the goblins from the goblin village.',
+            'Where can I get an antidragon shield?':
+                'I believe the Duke of Lumbridge Castle may have one in his armoury.'
+        };
+        expect(OZIACH_GOALS).toHaveLength(4);
+        for (const goal of OZIACH_GOALS) {
+            const reply = REPLIES[goal.ask];
+            expect(reply).toBeDefined();
+            expect(reply.toLowerCase()).toContain(goal.heard);
+        }
+    });
+
+    test('no goal phrase matches another goal reply', () => {
+        for (const goal of OZIACH_GOALS) {
+            const others = OZIACH_GOALS.filter(g => g !== goal);
+            for (const other of others) {
+                expect(other.heard).not.toContain(goal.heard);
+            }
+        }
     });
 });

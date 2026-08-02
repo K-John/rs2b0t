@@ -1,4 +1,6 @@
+import { EventSignal } from '../../../api/EventSignal.js';
 import { Execution } from '../../../api/Execution.js';
+import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Game } from '../../../api/Game.js';
 import { Equipment } from '../../../api/hud/Equipment.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
@@ -9,7 +11,7 @@ import Tile from '../../../api/Tile.js';
 import { hasFlag } from '../../engine/types.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { QUESTS } from '../../data/quests.js';
-import { gotoNpc, talkAsking, talkThrough, type NpcStop } from '../../exec/primitives.js';
+import { gotoNpc, openDialogue, talkThrough, type NpcStop } from '../../exec/primitives.js';
 import { DS_ID, DS_ITEM, DS_LOC, DS_NPC, SHIP_PRICE, WORMBRAIN_PRICE } from './areas.js';
 import { DRAGON_STAGE, readDragonProgress } from './journal.js';
 import { MazeRun, heldById, inMaze, leaveMaze, lootChest, mazeSceneLoaded } from './maze.js';
@@ -21,26 +23,9 @@ const GUILDMASTER: NpcStop = {
     npc: 'Guild master', anchor: DS_NPC.GUILDMASTER, leash: 8,
     prefer: ['Do you know where I could get a Rune Plate mail body?']
 };
-/** At stage 1 Oziach opens with small talk; only the rune plate line starts him off. */
-const OZIACH_FIRST: NpcStop = {
-    npc: 'Oziach', anchor: DS_NPC.OZIACH, leash: 6,
-    prefer: [
-        'Can you sell me some Rune plate mail?',
-        "The guildmaster of the Champions' Guild told me.",
-        'So how am I meant to prove that?',
-        'A dragon, that sounds like fun!',
-        'And will I need anything to defeat this dragon?',
-        // The varp flips to stage 2 partway through, so the briefing menu can
-        // appear before this step ends.
-        'So where can I find this dragon?',
-        'Where is the first piece of the map?',
-        'Where is the second piece of the map?',
-        'Where is the third piece of the map?',
-        'Where can I get an antidragon shield?'
-    ]
-};
-/** Only the walk; talkAsking drives what he is actually asked. */
+/** Only the walk; the goal loop below decides what he is actually asked. */
 const OZIACH: NpcStop = { npc: 'Oziach', anchor: DS_NPC.OZIACH, leash: 6, prefer: [] };
+
 const DUKE: NpcStop = {
     npc: 'Duke Horacio', anchor: DS_NPC.DUKE, leash: 6,
     prefer: ["I seek a shield that will protect me from the dragon's breath."]
@@ -70,31 +55,106 @@ const NAILS_NEEDED = 12;
 
 const ORACLE_DOOR_ITEMS = [DS_ID.MIND_BOMB, DS_ID.UNFIRED_BOWL, DS_ID.LOBSTER_POT, DS_ID.SILK];
 
+/**
+ * Everything Oziach has to be asked, and how to tell he has answered.
+ *
+ * Exactly four branches move this quest on, and each one does it in a different
+ * way — `oziach.rs2` lines 100/107/124/131/138:
+ *
+ *   the rune-plate chain   -> %dragonquest = spoken_to_oziach
+ *   first piece            -> hands over melzarkey
+ *   second piece           -> %dragon_oracle
+ *   third piece            -> %dragon_goblin
+ *   antidragon shield      -> %dragon_shield
+ *
+ * None of those varps are readable from the client, and the quest journal — the
+ * one thing that reflects them — cannot be read while a dialogue is open. So the
+ * goals are judged on what he SAYS, which is distinctive per branch and arrives
+ * in the same tick as the varp. Tracking which options were clicked instead is
+ * what looped: his menus re-offer questions already answered, so the first and
+ * second map piece trade places forever and the conversation never ends.
+ */
+const OZIACH_OPENING: readonly string[] = [
+    'Can you sell me some Rune plate mail?',
+    "The guildmaster of the Champions' Guild told me.",
+    'So how am I meant to prove that?',
+    'A dragon, that sounds like fun!',
+    'And will I need anything to defeat this dragon?'
+];
+
 const FIND_DRAGON = 'So where can I find this dragon?';
 const FAREWELL = "Ok I'll try and get everything together.";
 
-/**
- * The whole briefing in one conversation.
- *
- * His menus re-offer questions already answered, so this has to be driven by a
- * primitive that takes each line at most once — an ordinary prefer list cycles
- * between the map pieces forever. FIND_DRAGON is in the list only because the
- * three piece questions live in the submenu it opens.
- */
-const OZIACH_BRIEFING: readonly string[] = [
-    FIND_DRAGON,
-    'Where is the first piece of the map?',
-    'Where is the second piece of the map?',
-    'Where is the third piece of the map?',
-    'Where can I get an antidragon shield?'
+interface OziachGoal {
+    readonly ask: string;
+    /** A phrase only this branch's reply contains. */
+    readonly heard: string;
+}
+
+export const OZIACH_GOALS: readonly OziachGoal[] = [
+    { ask: 'Where is the first piece of the map?', heard: "melzar's maze" },
+    { ask: 'Where is the second piece of the map?', heard: 'oracle on the ice mountain' },
+    { ask: 'Where is the third piece of the map?', heard: 'goblins from the goblin village' },
+    { ask: 'Where can I get an antidragon shield?', heard: 'duke of lumbridge castle' }
 ];
 
-async function briefOziach(log: (m: string) => void): Promise<boolean> {
+const flatten = (lines: string[]): string =>
+    lines.join(' ').replace(/@[a-z0-9]{3}@/gi, ' ').replace(/[|\s]+/g, ' ').trim().toLowerCase();
+
+const optionFor = (options: string[], want: string): string | undefined =>
+    options.find(o => o.toLowerCase().includes(want.toLowerCase()));
+
+/** Drives Oziach until every goal has been answered, then leaves. */
+async function talkOziach(log: (m: string) => void): Promise<boolean> {
     if (!(await gotoNpc(OZIACH, [], log))) {
         return false;
     }
-    log('getting the briefing from Oziach');
-    return talkAsking(OZIACH.npc, OZIACH_BRIEFING, FAREWELL, log);
+    if (!(await openDialogue(OZIACH.npc, log))) {
+        return false;
+    }
+    const answered = new Set<string>();
+    for (let i = 0; i < 200; i++) {
+        if (EventSignal.pending()) {
+            return false;
+        }
+        const options = ChatDialog.options();
+        if (options.length === 0 && ChatDialog.isOpen()) {
+            const said = flatten(ChatDialog.texts());
+            for (const goal of OZIACH_GOALS) {
+                if (said.includes(goal.heard) && !answered.has(goal.ask)) {
+                    answered.add(goal.ask);
+                    log(`Oziach answered: ${goal.ask}`);
+                }
+            }
+        }
+        if (ChatDialog.canContinue()) {
+            await ChatDialog.continue();
+            await Execution.delayTicks(1);
+            continue;
+        }
+        if (options.length > 0) {
+            const outstanding = OZIACH_GOALS.filter(g => !answered.has(g.ask));
+            const pick =
+                OZIACH_OPENING.map(o => optionFor(options, o)).find(o => o !== undefined)
+                ?? outstanding.map(g => optionFor(options, g.ask)).find(o => o !== undefined)
+                ?? (outstanding.length > 0 ? optionFor(options, FIND_DRAGON) : undefined)
+                ?? optionFor(options, FAREWELL);
+            if (!pick) {
+                log(`nothing useful in [${options.join(' | ')}]`);
+                return false;
+            }
+            await ChatDialog.chooseOption(pick);
+            await Execution.delayTicks(2);
+            continue;
+        }
+        if (!ChatDialog.isOpen()) {
+            break;
+        }
+        await Execution.delayTicks(1);
+    }
+    // The journal is readable again now the dialogue has closed; decide() re-runs
+    // this step until it agrees, so a partial pass costs one more conversation.
+    return answered.size === OZIACH_GOALS.length;
 }
 
 const walk = (to: Tile, log: (m: string) => void, radius = 2): Promise<boolean> =>
@@ -439,7 +499,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         return { kind: 'talk', stop: GUILDMASTER };
     }
     if (stage === DRAGON_STAGE.SPOKEN_GUILDMASTER) {
-        return { kind: 'talk', stop: OZIACH_FIRST };
+        return custom('talk to Oziach', talkOziach);
     }
 
     if (stage === DRAGON_STAGE.SPOKEN_OZIACH) {
@@ -454,7 +514,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         // Oziach sets the three briefing flags and hands over the maze key across
         // several dialogue branches, so keep returning until they are all set.
         if (hasFlag(snap.progress, 'needs-briefing') || !anywhere(snap, DS_ID.MAZE_KEY)) {
-            return custom('get the briefing from Oziach', briefOziach);
+            return custom('get the briefing from Oziach', talkOziach);
         }
         if (!hasFlag(snap.progress, 'has-shield') && !anywhere(snap, DS_ID.SHIELD)) {
             return { kind: 'talk', stop: DUKE };
