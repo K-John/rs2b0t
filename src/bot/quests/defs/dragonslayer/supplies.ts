@@ -288,6 +288,13 @@ async function grabPlanks(need: number, log: (m: string) => void): Promise<boole
         plankTried.clear();
         return true;
     }
+    // This leg is the one that goes into the wilderness, and provisioning runs
+    // before the module's own steps get a look in — so the kit is bought here
+    // rather than after, when it would be too late to matter.
+    if (!loadoutSettled()) {
+        await buyLoadout(log);
+        return false;
+    }
     const loose = GroundItems.query().name('Plank').within(14).nearest();
     if (loose) {
         const before = Inventory.count('Plank');
@@ -332,10 +339,45 @@ export const SUPPLY_GATHERS: Record<string, (snap: QuestSnapshot, need: number) 
     "wizard's mind bomb": () => custom('buy a mind bomb at the Rising Sun', buyMindBomb),
     'unfired bowl': () => custom('make an unfired bowl', makeUnfiredBowl),
     nails: (_snap, need) => custom(`smith ${need} nails`, log => smithNails(need, log)),
-    plank: (_snap, need) => custom(`fetch ${need} planks`, log => grabPlanks(need, log)),
-    'adamant longsword': () => buy('Adamant longsword', 1, SUPPLY.SWORD_SHOP, 4500),
-    'adamant full helm': () => buy('Adamant full helm', 1, SUPPLY.PEKSA, 5000)
+    plank: (_snap, need) => custom(`fetch ${need} planks`, log => grabPlanks(need, log))
 };
 
 /** Worn before anything in the maze or the lair is attacked. */
 export const SUPPLY_LOADOUT: readonly string[] = ['Adamant longsword', 'Adamant full helm'];
+
+/**
+ * Best melee kit a free shop sells, each stocked one at a time — so this is a
+ * single attempt per run, not a requirement. Max stats can take Elvarg bare
+ * handed; it is just slower, and slower beats parked.
+ */
+const KIT: readonly { item: string; shop: { npc: string; anchor: Tile }; estGp: number }[] = [
+    { item: 'Adamant longsword', shop: SUPPLY.SWORD_SHOP, estGp: 4500 },
+    { item: 'Adamant full helm', shop: SUPPLY.PEKSA, estGp: 5000 }
+];
+
+const kitTried = new Set<string>();
+
+export async function buyLoadout(log: (m: string) => void): Promise<boolean> {
+    for (const entry of KIT) {
+        if (kitTried.has(entry.item) || Inventory.contains(entry.item)) {
+            continue;
+        }
+        kitTried.add(entry.item);
+        log(`shopping for a ${entry.item}`);
+        if (!(await walk(entry.shop.anchor, log, 3)) || !(await Shop.open(entry.shop.npc))) {
+            log(`${entry.shop.npc} would not trade — going without`);
+            return true;
+        }
+        await Shop.buy(entry.item, 1);
+        await Shop.close();
+        if (!Inventory.contains(entry.item)) {
+            log(`${entry.item} out of stock — going without`);
+        }
+        return true;
+    }
+    return true;
+}
+
+/** True once every kit shop has been visited (or written off) this run. */
+export const loadoutSettled = (): boolean =>
+    KIT.every(e => kitTried.has(e.item) || Inventory.contains(e.item));

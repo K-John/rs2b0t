@@ -275,23 +275,23 @@ export const QUESTS: QuestRecord[] = [
         id: 'dragon', name: 'Dragon Slayer', questPoints: 2,
         requirements: { minQuestPoints: 32 },
         items: [
-            // 10k buys Wormbrain's map piece and 2k buys the ship; the rest of the
-            // list the module sources itself, because nothing in free-to-play sells
-            // planks, nails or an unfired bowl.
-            { name: 'Coins', qty: 13000, kind: 'mustHave' },
+            // 10k buys Wormbrain's map piece, 2k buys the ship, and the rest covers
+            // the shopping below — provisioning re-checks this every loop while any
+            // item is still outstanding, so anything short of the full bill sends
+            // the bot back to the bank after each purchase.
+            { name: 'Coins', qty: 22000, kind: 'mustHave' },
+            // Melee kit is deliberately NOT listed here. Every free-to-play shop
+            // that sells it stocks exactly one, so a second run in the same world
+            // finds the shelf empty and a required item with no supply parks the
+            // quest forever. The module buys what it can and fights on regardless.
+            { name: 'Dragonfire shield', qty: 1, kind: 'acquirable' },
             { name: "Wizard's mind bomb", qty: 1, kind: 'acquirable' },
             { name: 'Silk', qty: 1, kind: 'acquirable' },
             { name: 'Lobster pot', qty: 1, kind: 'acquirable' },
             { name: 'Unfired bowl', qty: 1, kind: 'acquirable' },
             { name: 'Plank', qty: 3, kind: 'acquirable' },
             { name: 'Nails', qty: 12, kind: 'acquirable' },
-            { name: 'Hammer', qty: 1, kind: 'acquirable' },
-            { name: 'Dragonfire shield', qty: 1, kind: 'acquirable' },
-            // Melzar's lesser demon and Elvarg are both level 80+. Max stats with
-            // bare fists is a very long fight; these are the best melee kit a
-            // free-to-play shop will sell.
-            { name: 'Adamant longsword', qty: 1, kind: 'acquirable' },
-            { name: 'Adamant full helm', qty: 1, kind: 'acquirable' }
+            { name: 'Hammer', qty: 1, kind: 'acquirable' }
         ]
     },
     {

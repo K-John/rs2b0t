@@ -13,7 +13,7 @@ import { gotoNpc, talkThrough, type NpcStop } from '../../exec/primitives.js';
 import { DS_ID, DS_ITEM, DS_LOC, DS_NPC, SHIP_PRICE, WORMBRAIN_PRICE } from './areas.js';
 import { DRAGON_STAGE, readDragonProgress } from './journal.js';
 import { MazeRun, heldById, inMaze, leaveMaze, lootChest, mazeSceneLoaded } from './maze.js';
-import { SUPPLY_GATHERS, SUPPLY_LOADOUT, SUPPLY_TOOLS } from './supplies.js';
+import { SUPPLY_GATHERS, SUPPLY_LOADOUT, SUPPLY_TOOLS, buyLoadout, loadoutSettled } from './supplies.js';
 
 const FALADOR_BANK = new Tile(3013, 3355, 0);
 
@@ -460,6 +460,10 @@ export function decide(snap: QuestSnapshot): QuestStep {
         }
         if (!hasFlag(snap.progress, 'has-shield') && !anywhere(snap, DS_ID.SHIELD)) {
             return { kind: 'talk', stop: DUKE };
+        }
+        // Buy the melee kit before the maze, once, and never block on it.
+        if (!loadoutSettled()) {
+            return custom('buy melee kit', buyLoadout);
         }
         const kit = wearKit(snap);
         if (kit) {
