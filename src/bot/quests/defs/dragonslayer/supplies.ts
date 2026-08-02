@@ -163,10 +163,44 @@ async function mineFor(rockIds: readonly number[], item: string, want: number, a
 
 const ROCKS = { clay: [2108, 2109], iron: [2092, 2093], coal: [2096, 2097] } as const;
 
+/**
+ * Bronze pickaxes lie on the ground for nothing, and one of them is thirteen
+ * tiles from the Falador bank. Nurmof is a last resort, not a first stop — his
+ * shop is at the bottom of the Dwarven Mine.
+ */
+const PICKAXE_SPAWNS: readonly Tile[] = [
+    new Tile(3009, 3342, 0), // Falador, just south of the bank
+    new Tile(3081, 3429, 0), // Barbarian Village
+    new Tile(2963, 3216, 0)  // Rimmington
+];
+
+const pickaxeTried = new Set<string>();
+
 async function ensurePickaxe(log: (m: string) => void): Promise<boolean> {
     if (Inventory.items().some(i => i.name?.toLowerCase().includes('pickaxe'))) {
+        pickaxeTried.clear();
         return true;
     }
+    const loose = GroundItems.query().name(SUPPLY_ITEM.PICKAXE).within(12).nearest();
+    if (loose) {
+        log('taking the pickaxe off the ground');
+        if (await loose.interact('Take')) {
+            return Execution.delayUntil(() => Inventory.contains(SUPPLY_ITEM.PICKAXE), 8000);
+        }
+    }
+    const here = Game.tile();
+    const spawn = PICKAXE_SPAWNS
+        .filter(t => !pickaxeTried.has(`${t.x},${t.z}`))
+        .sort((a, b) => (here ? a.distanceTo(here) - b.distanceTo(here) : 0))[0];
+    if (spawn) {
+        pickaxeTried.add(`${spawn.x},${spawn.z}`);
+        log(`checking the pickaxe spawn at (${spawn.x},${spawn.z})`);
+        await walk(spawn, log, 1);
+        await sceneLoaded();
+        return false;
+    }
+    // Every spawn was bare — they respawn, but Nurmof always has one.
+    log('no pickaxe on the ground anywhere — buying one from Nurmof');
     if (!(await ensureCoins(200, log)) || !(await walk(SUPPLY.NURMOF.anchor, log, 2))) {
         return false;
     }
