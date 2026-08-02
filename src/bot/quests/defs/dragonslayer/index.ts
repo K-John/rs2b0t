@@ -563,10 +563,7 @@ export const dragonslayer: QuestModule = {
     ],
     sustain: { foods: ['Shark', 'Lobster', 'Swordfish', 'Tuna', 'Salmon', 'Trout'], eatBelowHp: 0.65 },
     readProgress: readDragonProgress,
-    gather: {
-        'dragonfire shield': () => ({ kind: 'talk', stop: DUKE }),
-        ...SUPPLY_GATHERS
-    },
+    gather: SUPPLY_GATHERS,
     decide
 };
 

@@ -286,17 +286,23 @@ export const QUESTS: QuestRecord[] = [
             // that sells it stocks exactly one, so a second run in the same world
             // finds the shelf empty and a required item with no supply parks the
             // quest forever. The module buys what it can and fights on regardless.
-            // Nails first, and it is not cosmetic: six steel bars means six iron
-            // and twelve coal in the pack at once, and there is no room for that
-            // behind the rest of the list. Provisioning works down this in order.
+            // Order matters, and it is not cosmetic. Provisioning works down this
+            // list, so the hammer has to come before the nails it smiths them
+            // with — an anvil without one does nothing at all and reports no
+            // error — and the nails have to come before everything else, because
+            // six steel bars means six iron and twelve coal in the pack at once
+            // and there is no room for that behind the rest of the list.
+            { name: 'Hammer', qty: 1, kind: 'acquirable' },
             { name: 'Nails', qty: 12, kind: 'acquirable' },
-            { name: 'Dragonfire shield', qty: 1, kind: 'acquirable' },
+            // The shield is deliberately absent: the Duke only offers it once
+            // Oziach's briefing has set dragon_shield, so provisioning — which
+            // runs before the quest is even started — can never obtain it. The
+            // module asks him at the stage where he will actually answer.
             { name: "Wizard's mind bomb", qty: 1, kind: 'acquirable' },
             { name: 'Silk', qty: 1, kind: 'acquirable' },
             { name: 'Lobster pot', qty: 1, kind: 'acquirable' },
             { name: 'Unfired bowl', qty: 1, kind: 'acquirable' },
-            { name: 'Plank', qty: 3, kind: 'acquirable' },
-            { name: 'Hammer', qty: 1, kind: 'acquirable' }
+            { name: 'Plank', qty: 3, kind: 'acquirable' }
         ]
     },
     {

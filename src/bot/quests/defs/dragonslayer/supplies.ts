@@ -250,6 +250,11 @@ async function smithNails(need: number, log: (m: string) => void): Promise<boole
     }
     const bars = Math.ceil(need / 2);
     if (Inventory.count(SUPPLY_ITEM.STEEL_BAR) > 0) {
+        // An anvil without a hammer does nothing and says nothing.
+        if (!Inventory.contains('Hammer')) {
+            log('no hammer — an anvil will not answer without one');
+            return false;
+        }
         if (!(await walk(SUPPLY_LOC.ANVIL, log, 1)) || !(await sceneLoaded())) {
             return false;
         }
