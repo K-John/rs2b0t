@@ -300,7 +300,9 @@ export async function smithNails(need: number, log: (m: string) => void): Promis
     }
     const bars = Math.ceil(need / 2);
     const ore = (): number => Inventory.count(SUPPLY_ITEM.IRON_ORE);
-    const KEEP = ['coins', 'pickaxe', 'hammer', 'iron ore', 'coal', 'steel bar', 'nails',
+    // 'maze key' earns its slot: it is the one item whose absence decide() reads
+    // as "the briefing never happened", which sends the bot back to Oziach.
+    const KEEP = ['coins', 'pickaxe', 'hammer', 'maze key', 'iron ore', 'coal', 'steel bar', 'nails',
         'shark', 'lobster', 'swordfish', 'tuna', 'salmon', 'trout'];
     const coal = (): number => Inventory.count(SUPPLY_ITEM.COAL);
     const steel = (): number => Inventory.count(SUPPLY_ITEM.STEEL_BAR);
@@ -317,8 +319,15 @@ export async function smithNails(need: number, log: (m: string) => void): Promis
             if (!(await openBankLeg('no bank to clear the pack at', FALADOR_BANK, log))) {
                 return false;
             }
+            const spare = Inventory.items()
+                .filter(i => i.name !== null && !KEEP.some(k => i.name!.toLowerCase().includes(k)))
+                .map(i => i.name);
             await Bank.depositAllMatching((name) => !KEEP.some(k => name.toLowerCase().includes(k)));
-            actions.closeModal();
+            log(`banked ${spare.length} items for ore room: ${spare.join(', ')}`);
+            // Left OPEN deliberately. QuestEngine only re-reads the bank while the
+            // interface is up, and a stale snapshot makes everything just deposited
+            // look lost — which is what sent the bot back to Oziach for a maze key
+            // that was sitting in the bank the whole time.
             return false;
         }
         if (!(await ensurePickaxe(log))) {

@@ -77,19 +77,52 @@ export function parseDragonJournal(lines: readonly string[] | string): QuestProg
  */
 let lastGood: QuestProgress | undefined;
 
+/**
+ * What the last journal read actually saw. `decide()` branches entirely on this,
+ * so when the bot goes somewhere unexpected this is the first thing to look at:
+ * a flag that flaps between loops means the read is failing, not that the quest
+ * moved backwards.
+ */
+export interface JournalRead {
+    reads: number;
+    failures: number;
+    cached: boolean;
+    chars: number;
+    stage?: number;
+    flags: string[];
+}
+
+export const journalRead: JournalRead = { reads: 0, failures: 0, cached: false, chars: 0, flags: [] };
+
+export function describeJournal(): string {
+    const { stage, flags, cached, failures, reads } = journalRead;
+    return `stage=${stage ?? '?'} flags=[${flags.join(',') || 'none'}]`
+        + `${cached ? ' (CACHED — this read failed)' : ''}`
+        + `${failures > 0 ? ` reads=${reads} failures=${failures}` : ''}`;
+}
+
 export async function readDragonProgress(): Promise<QuestProgress | undefined> {
     const status = Quests.status(DRAGON_QUEST);
     if (status === 'complete') return { stage: DRAGON_STAGE.COMPLETE, flags: new Set() };
     if (status === 'notStarted') return { stage: DRAGON_STAGE.NOT_STARTED, flags: new Set() };
     if (status !== 'inProgress') return undefined;
 
-    const progress = parseDragonJournal(await Quests.journal(DRAGON_QUEST));
+    const lines = await Quests.journal(DRAGON_QUEST);
+    const progress = parseDragonJournal(lines);
     if (reader.modals().main !== -1) {
         actions.closeModal();
         await Execution.delayTicks(1);
     }
+    journalRead.reads++;
+    journalRead.chars = normalize(lines).length;
+    journalRead.cached = progress === undefined;
     if (progress) {
         lastGood = progress;
+    } else {
+        journalRead.failures++;
     }
-    return progress ?? lastGood;
+    const used = progress ?? lastGood;
+    journalRead.stage = used?.stage;
+    journalRead.flags = [...(used?.flags ?? [])];
+    return used;
 }

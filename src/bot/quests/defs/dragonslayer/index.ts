@@ -13,7 +13,7 @@ import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.j
 import { QUESTS } from '../../data/quests.js';
 import { gotoNpc, openDialogue, talkThrough, type NpcStop } from '../../exec/primitives.js';
 import { DS_ID, DS_ITEM, DS_LOC, DS_NPC, SHIP_PRICE, WORMBRAIN_PRICE } from './areas.js';
-import { DRAGON_STAGE, readDragonProgress } from './journal.js';
+import { DRAGON_STAGE, describeJournal, readDragonProgress } from './journal.js';
 import { MazeRun, heldById, inMaze, leaveMaze, lootChest, mazeSceneLoaded } from './maze.js';
 import { SUPPLY_GATHERS, SUPPLY_TOOLS, smithNails } from './supplies.js';
 
@@ -458,6 +458,14 @@ async function killElvarg(log: (m: string) => void): Promise<boolean> {
 const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep =>
     ({ kind: 'custom', name, run });
 
+/** Where an item is, for logs that have to explain a decision. */
+function where(snap: QuestSnapshot, id: number): 'carried' | 'worn' | 'banked' | 'nowhere' {
+    if ((snap.invIds?.get(id) ?? 0) > 0) return 'carried';
+    if (snap.wornIds?.has(id)) return 'worn';
+    if ((snap.bankIds?.get(id) ?? 0) > 0) return 'banked';
+    return 'nowhere';
+}
+
 /** Inventory, worn or bank — the quest is resumable from any of the three. */
 function anywhere(snap: QuestSnapshot, id: number): boolean {
     return (snap.invIds?.get(id) ?? 0) > 0
@@ -513,8 +521,9 @@ export function decide(snap: QuestSnapshot): QuestStep {
         }
         // Oziach sets the three briefing flags and hands over the maze key across
         // several dialogue branches, so keep returning until they are all set.
-        if (hasFlag(snap.progress, 'needs-briefing') || !anywhere(snap, DS_ID.MAZE_KEY)) {
-            return custom('get the briefing from Oziach', talkOziach);
+        const key = where(snap, DS_ID.MAZE_KEY);
+        if (hasFlag(snap.progress, 'needs-briefing') || key === 'nowhere') {
+            return custom(`get the briefing from Oziach — ${describeJournal()} mazekey=${key}`, talkOziach);
         }
         if (!hasFlag(snap.progress, 'has-shield') && !anywhere(snap, DS_ID.SHIELD)) {
             return { kind: 'talk', stop: DUKE };
@@ -524,7 +533,9 @@ export function decide(snap: QuestSnapshot): QuestStep {
         // behind it. Skipped entirely when the nails are already in the bank.
         const nails = (snap.invIds?.get(DS_ID.NAILS) ?? 0) + (snap.bankIds?.get(DS_ID.NAILS) ?? 0);
         if (nails < NAILS_NEEDED) {
-            return custom(`smith ${NAILS_NEEDED - nails} nails`, log => smithNails(NAILS_NEEDED - nails, log));
+            const have = `${snap.invIds?.get(DS_ID.NAILS) ?? 0} carried / ${snap.bankIds?.get(DS_ID.NAILS) ?? 0} banked`;
+            return custom(`smith ${NAILS_NEEDED - nails} nails (${have}, bank ${snap.bankKnown ? 'seen' : 'UNSEEN'})`,
+                log => smithNails(NAILS_NEEDED - nails, log));
         }
         const banked = bankedPieces(snap);
         if (banked.length > 0 && !heldById(DS_ID.MAP)) {
