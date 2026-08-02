@@ -75,27 +75,27 @@ const ORACLE_DOOR_ITEMS = [DS_ID.MIND_BOMB, DS_ID.UNFIRED_BOWL, DS_ID.LOBSTER_PO
 
 const FIND_DRAGON = 'So where can I find this dragon?';
 /**
- * Oziach hands out the briefing one branch at a time, and each branch loops back
- * to the same menu. One pass per branch, so the whole briefing is a single step
- * the engine can see succeed rather than the same talk repeated until it parks.
+ * One dialogue covers the whole briefing: each answer drops its own question
+ * from the menu, so the next preferred line down is the next branch. Asking as
+ * a plain talk step instead re-opens the dialogue per branch, and the repeated
+ * step reads to the engine as no progress.
  */
-const OZIACH_BRANCHES: readonly string[][] = [
-    [FIND_DRAGON, 'Where is the first piece of the map?'],
-    [FIND_DRAGON, 'Where is the second piece of the map?'],
-    [FIND_DRAGON, 'Where is the third piece of the map?'],
-    ['Where can I get an antidragon shield?']
+const OZIACH_BRIEFING = [
+    FIND_DRAGON,
+    'Where is the first piece of the map?',
+    'Where is the second piece of the map?',
+    'Where is the third piece of the map?',
+    'Where can I get an antidragon shield?',
+    "Ok I'll try and get everything together."
 ];
 
 async function briefOziach(log: (m: string) => void): Promise<boolean> {
     if (!(await gotoNpc(OZIACH, [], log))) {
         return false;
     }
-    for (const prefer of OZIACH_BRANCHES) {
-        log(`asking Oziach: ${prefer[prefer.length - 1]}`);
-        if (!(await talkThrough(OZIACH.npc, prefer, log))) {
-            return false;
-        }
-        await Execution.delayTicks(1);
+    log('getting the full briefing from Oziach');
+    if (!(await talkThrough(OZIACH.npc, OZIACH_BRIEFING, log))) {
+        return false;
     }
     return heldById(DS_ID.MAZE_KEY);
 }
@@ -269,7 +269,8 @@ export function decide(snap: QuestSnapshot): QuestStep {
         if (hasFlag(snap.progress, 'needs-briefing') || !heldById(DS_ID.MAZE_KEY)) {
             return custom('get the briefing from Oziach', briefOziach);
         }
-        if (!hasFlag(snap.progress, 'has-shield') && !snap.worn.has(DS_ITEM.SHIELD.toLowerCase())) {
+        if (!hasFlag(snap.progress, 'has-shield') && !snap.worn.has(DS_ITEM.SHIELD.toLowerCase())
+            && !snap.inv.has(DS_ITEM.SHIELD.toLowerCase())) {
             return { kind: 'talk', stop: DUKE };
         }
         if (!hasFlag(snap.progress, 'map-melzar') && !heldById(DS_ID.MAP)) {
