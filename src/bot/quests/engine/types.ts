@@ -87,5 +87,11 @@ export interface QuestModule {
     readProgress?: () => QuestProgress | undefined | Promise<QuestProgress | undefined>;
     /** Optional quest-specific survival policy applied while this module is active. */
     sustain?: QuestSustain;
+    /**
+     * Spending money to keep in the pack, default `COIN_FLOAT`. Set 0 when the
+     * module fetches coins at the point of sale — the float is restored on every
+     * provisioning loop, so a standing balance means a bank trip per purchase.
+     */
+    coinFloat?: number;
     decide(snap: QuestSnapshot): QuestStep;
 }

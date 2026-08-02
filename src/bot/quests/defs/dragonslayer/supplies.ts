@@ -95,7 +95,7 @@ const buy = (item: string, qty: number, shop: { npc: string; anchor: Tile }, est
 
 /** The barmaid sells through dialogue, so the generic buy step cannot see her. */
 async function buyMindBomb(log: (m: string) => void): Promise<boolean> {
-    if (Inventory.count('Coins') < 10) {
+    if (!(await ensureCoins(10, log))) {
         log('no coins for a mind bomb');
         return false;
     }
@@ -154,7 +154,7 @@ async function ensurePickaxe(log: (m: string) => void): Promise<boolean> {
     if (Inventory.items().some(i => i.name?.toLowerCase().includes('pickaxe'))) {
         return true;
     }
-    if (!(await walk(SUPPLY.NURMOF.anchor, log, 2))) {
+    if (!(await ensureCoins(200, log)) || !(await walk(SUPPLY.NURMOF.anchor, log, 2))) {
         return false;
     }
     if (!(await Shop.open(SUPPLY.NURMOF.npc))) {
@@ -211,6 +211,9 @@ async function makeUnfiredBowl(log: (m: string) => void): Promise<boolean> {
     if (!Inventory.contains(SUPPLY_ITEM.JUG_WATER)) {
         if (!Inventory.contains(SUPPLY_ITEM.JUG)) {
             log('buying a jug');
+            if (!(await ensureCoins(200, log))) {
+                return false;
+            }
             if (!(await walk(SUPPLY.GENERAL_STORE.anchor, log, 2)) || !(await Shop.open(SUPPLY.GENERAL_STORE.npc))) {
                 return false;
             }
@@ -249,47 +252,35 @@ async function smithNails(need: number, log: (m: string) => void): Promise<boole
         return true;
     }
     const bars = Math.ceil(need / 2);
-    if (Inventory.count(SUPPLY_ITEM.STEEL_BAR) > 0) {
-        // An anvil without a hammer does nothing and says nothing.
-        if (!Inventory.contains('Hammer')) {
-            log('no hammer — an anvil will not answer without one');
+    const ore = (): number => Inventory.count(SUPPLY_ITEM.IRON_ORE);
+    const coal = (): number => Inventory.count(SUPPLY_ITEM.COAL);
+    const steel = (): number => Inventory.count(SUPPLY_ITEM.STEEL_BAR);
+
+    // Mine first, then smelt the whole load, then hammer the whole load. Ordered
+    // the other way round the leg smelts one bar, walks to the anvil for two
+    // nails, and walks back — six round trips across half of Asgarnia.
+    if (steel() === 0 && (ore() < bars || coal() < bars * 2)) {
+        if (!(await ensurePickaxe(log))) {
             return false;
         }
-        if (!(await walk(SUPPLY_LOC.ANVIL, log, 1)) || !(await sceneLoaded())) {
-            return false;
+        if (ore() < bars) {
+            return mineFor(ROCKS.iron, SUPPLY_ITEM.IRON_ORE, bars, SUPPLY_LOC.IRON_ROCKS, log);
         }
-        const anvil = Locs.query().name('Anvil').within(5).nearest();
-        const bar = Inventory.first(SUPPLY_ITEM.STEEL_BAR);
-        if (!anvil || !bar) {
-            log('no anvil in reach');
-            return false;
-        }
-        log('hammering out nails');
-        if (!(await bar.useOn(anvil))) {
-            return false;
-        }
-        if (!(await Execution.delayUntil(() => ChatDialog.isMainMakePanel(), 6000))) {
-            return false;
-        }
-        const before = Inventory.count('Nails');
-        if (!(await ChatDialog.makeFromPanelMax('Nails'))) {
-            return false;
-        }
-        await Execution.delayUntil(() => Inventory.count('Nails') > before, 30_000);
-        return Inventory.count('Nails') >= need;
+        return mineFor(ROCKS.coal, SUPPLY_ITEM.COAL, bars * 2, SUPPLY_LOC.COAL_ROCKS, log);
     }
-    if (Inventory.count(SUPPLY_ITEM.IRON_ORE) >= bars && Inventory.count(SUPPLY_ITEM.COAL) >= bars * 2) {
+
+    if (ore() > 0 && coal() >= 2) {
         if (!(await walk(SUPPLY_LOC.FURNACE, log, 1)) || !(await sceneLoaded())) {
             return false;
         }
         const furnace = Locs.query().name('Furnace').within(5).nearest();
-        const ore = Inventory.first(SUPPLY_ITEM.IRON_ORE);
-        if (!furnace || !ore) {
+        const held = Inventory.first(SUPPLY_ITEM.IRON_ORE);
+        if (!furnace || !held) {
             log('no furnace in reach');
             return false;
         }
-        log('smelting steel bars');
-        if (!(await ore.useOn(furnace))) {
+        log(`smelting ${Math.min(ore(), Math.floor(coal() / 2))} steel bars`);
+        if (!(await held.useOn(furnace))) {
             return false;
         }
         if (!(await Execution.delayUntil(() => ChatDialog.isMakeMenu(), 6000))) {
@@ -298,15 +289,42 @@ async function smithNails(need: number, log: (m: string) => void): Promise<boole
         if (!(await ChatDialog.make('Steel'))) {
             return false;
         }
-        return Execution.delayUntil(() => Inventory.count(SUPPLY_ITEM.STEEL_BAR) > 0, 30_000);
+        // The make menu runs a batch. Wait for the ore to run out, not for the
+        // first bar to land, or the anvil leg starts with one bar in the pack.
+        await Execution.delayUntil(() => ore() === 0 || coal() < 2, 180_000);
+        return steel() > 0;
     }
-    if (!(await ensurePickaxe(log))) {
+
+    if (steel() === 0) {
+        log('no steel and nothing to smelt it from');
         return false;
     }
-    if (Inventory.count(SUPPLY_ITEM.IRON_ORE) < bars) {
-        return mineFor(ROCKS.iron, SUPPLY_ITEM.IRON_ORE, bars, SUPPLY_LOC.IRON_ROCKS, log);
+    // An anvil without a hammer does nothing and says nothing.
+    if (!Inventory.contains('Hammer')) {
+        log('no hammer — an anvil will not answer without one');
+        return false;
     }
-    return mineFor(ROCKS.coal, SUPPLY_ITEM.COAL, bars * 2, SUPPLY_LOC.COAL_ROCKS, log);
+    if (!(await walk(SUPPLY_LOC.ANVIL, log, 1)) || !(await sceneLoaded())) {
+        return false;
+    }
+    const anvil = Locs.query().name('Anvil').within(5).nearest();
+    const bar = Inventory.first(SUPPLY_ITEM.STEEL_BAR);
+    if (!anvil || !bar) {
+        log('no anvil in reach');
+        return false;
+    }
+    log(`hammering ${steel()} bars into nails`);
+    if (!(await bar.useOn(anvil))) {
+        return false;
+    }
+    if (!(await Execution.delayUntil(() => ChatDialog.isMainMakePanel(), 6000))) {
+        return false;
+    }
+    if (!(await ChatDialog.makeFromPanelMax('Nails'))) {
+        return false;
+    }
+    await Execution.delayUntil(() => steel() === 0, 180_000);
+    return Inventory.count('Nails') >= need;
 }
 
 /** Spawns already emptied this trip, so the walk moves on instead of circling. */
@@ -395,6 +413,23 @@ const kitTried = new Set<string>();
 
 /** Worn is owned. Inventory.contains alone sends the bot to re-buy its own sword. */
 const owns = (item: string): boolean => Inventory.contains(item) || Equipment.contains(item);
+
+/**
+ * Fetch spending money only when a leg is about to spend it. This module runs
+ * with no standing coin float, because the float is topped back up on every
+ * provisioning loop and would put a bank trip between every purchase.
+ */
+export async function ensureCoins(need: number, log: (m: string) => void): Promise<boolean> {
+    if (Inventory.count('Coins') >= need) {
+        return true;
+    }
+    if (!(await openBankLeg('no bank to draw spending money from', FALADOR_BANK, log))) {
+        return false;
+    }
+    await Bank.withdrawX('Coins', Math.max(need, 2000));
+    actions.closeModal();
+    return Inventory.count('Coins') >= need;
+}
 
 export async function buyLoadout(log: (m: string) => void): Promise<boolean> {
     for (const entry of KIT) {

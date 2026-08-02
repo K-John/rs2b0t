@@ -575,6 +575,9 @@ export const dragonslayer: QuestModule = {
         ...SUPPLY_TOOLS
     ],
     sustain: { foods: ['Shark', 'Lobster', 'Swordfish', 'Tuna', 'Salmon', 'Trout'], eatBelowHp: 0.65 },
+    // No standing coin float. Every leg that spends fetches its own money, and a
+    // balance the engine restores each loop puts a bank trip between purchases.
+    coinFloat: 0,
     readProgress: readDragonProgress,
     gather: SUPPLY_GATHERS,
     decide

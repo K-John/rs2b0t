@@ -216,7 +216,10 @@ export class QuestEngine implements Task {
         }
         if (!this.provisioned.has(id)) {
             const plan = planProvisioning(module.record.items, snap.inv, this.lastBankCounts);
-            const coinFloat = coinFloatWithdraw(snap.inv, this.lastBankCounts, COIN_FLOAT);
+            // A quest that fetches coins at the point of sale wants no float at
+            // all: this runs every loop while anything is still outstanding, so
+            // a standing balance is restored after every single purchase.
+            const coinFloat = coinFloatWithdraw(snap.inv, this.lastBankCounts, module.coinFloat ?? COIN_FLOAT);
             const foodItem = this.host.foodItem();
             const packFood = foodItem ? (snap.inv.get(foodItem.toLowerCase()) ?? 0) : 0;
             const foodFloat = (module.food && foodItem)
