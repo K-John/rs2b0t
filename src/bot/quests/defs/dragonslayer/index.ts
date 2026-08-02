@@ -143,9 +143,10 @@ async function oracleChest(log: (m: string) => void): Promise<boolean> {
         if (!(await walk(DS_LOC.ORACLE_DOOR_STAND, log, 0)) || !(await mazeSceneLoaded())) {
             return false;
         }
+        // Once it has been through, the door opens for nothing. Try it either
+        // way rather than refusing on a charm the door already ate.
         if (!ORACLE_DOOR_ITEMS.every(id => Inventory.countById(id) > 0)) {
-            log('missing one of the four charms the door wants');
-            return false;
+            log('not carrying all four charms — the door may already be open to me');
         }
         const door = Locs.query().name('Door').where(l => {
             const t = l.tile();
@@ -188,13 +189,17 @@ async function combineMap(log: (m: string) => void): Promise<boolean> {
 const inShipHold = (t: { x: number; z: number } | null | undefined): boolean =>
     !!t && t.x >= 3040 && t.x <= 3055 && t.z >= 9630 && t.z <= 9650;
 
-/** Boards the ship and drops into the hold. Both hops are scripted teleports. */
-async function goBelowDecks(log: (m: string) => void): Promise<boolean> {
+/**
+ * Boards the ship and drops into the hold. Both hops are scripted teleports, so
+ * neither is on the navigation graph; the gangplank only reaches the deck, and
+ * the caller wants the hold, so boarding falls straight through to the ladder.
+ */
+async function goBelowDecks(log: (m: string) => void, boarded = false): Promise<boolean> {
     const here = Game.tile();
     if (inShipHold(here)) {
         return true;
     }
-    if (here && here.level >= 1 && here.x >= 3044 && here.x <= 3052 && here.z >= 3204 && here.z <= 3212) {
+    if (onDeck(here)) {
         const ladder = Locs.query().name('Ladder').action('Climb-down').within(6).nearest();
         if (!ladder) {
             log('no ladder down on deck yet');
@@ -205,6 +210,9 @@ async function goBelowDecks(log: (m: string) => void): Promise<boolean> {
             return false;
         }
         return Execution.delayUntil(() => inShipHold(Game.tile()), 8000);
+    }
+    if (boarded) {
+        return false;
     }
     if (!(await walk(DS_LOC.GANGPLANK_STAND, log, 0)) || !(await mazeSceneLoaded())) {
         return false;
@@ -218,7 +226,11 @@ async function goBelowDecks(log: (m: string) => void): Promise<boolean> {
     if (!(await plank.interact('Cross'))) {
         return false;
     }
-    return Execution.delayUntil(() => (Game.tile()?.level ?? 0) >= 1, 8000);
+    if (!(await Execution.delayUntil(() => onDeck(Game.tile()), 8000))) {
+        return false;
+    }
+    await mazeSceneLoaded();
+    return goBelowDecks(log, true);
 }
 
 /** Three planks, four nails each, driven in with a hammer. */
@@ -227,11 +239,19 @@ async function repairShip(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     await mazeSceneLoaded();
-    const hole = Locs.query().name('Hole').within(8).nearest();
+    const findHole = () => Locs.query().name('Hole').within(8).nearest();
+    // The hold is reached by a scripted teleport, and locs read blank for about
+    // a tick after any level change. Walking is not an option down here — none
+    // of the ship is on the navigation graph — so wait the snapshot out.
+    let hole = findHole();
+    if (!hole) {
+        await Execution.delayTicks(2);
+        hole = findHole();
+    }
     const plank = Inventory.items().find(i => i.id === DS_ID.PLANK);
     if (!hole) {
-        log('no hole in reach — walking along the hull');
-        return walk(DS_LOC.SHIP_HOLE, log, 2);
+        log('no hole in the hold yet');
+        return false;
     }
     if (!plank) {
         log('out of planks with the hull still open');
@@ -297,8 +317,13 @@ async function leaveShip(log: (m: string) => void): Promise<boolean> {
 const inElvargLair = (t: { x: number; z: number } | null | undefined): boolean =>
     !!t && t.x >= 2847 && t.x <= 2863 && t.z >= 9628 && t.z <= 9646;
 
-/** Crandor's surface only connects to the lair through the rock opening. */
-async function reachElvarg(log: (m: string) => void): Promise<boolean> {
+/**
+ * Crandor's surface only connects to the lair through the rock opening, and the
+ * gate past it is locked until the ship has sailed. Neither hop is on the
+ * navigation graph, so the descent falls straight through to the gate rather
+ * than reporting success from the wrong side of it.
+ */
+async function reachElvarg(log: (m: string) => void, descended = false): Promise<boolean> {
     const here = Game.tile();
     if (!here) {
         return false;
@@ -307,6 +332,9 @@ async function reachElvarg(log: (m: string) => void): Promise<boolean> {
         return true;
     }
     if (here.z < 9000) {
+        if (descended) {
+            return false;
+        }
         if (!(await walk(DS_LOC.CRANDOR_ROCK, log, 1)) || !(await mazeSceneLoaded())) {
             return false;
         }
@@ -319,7 +347,11 @@ async function reachElvarg(log: (m: string) => void): Promise<boolean> {
         if (!(await opening.interact('Climb-down'))) {
             return false;
         }
-        return Execution.delayUntil(() => (Game.tile()?.z ?? 0) >= 9000, 8000);
+        if (!(await Execution.delayUntil(() => (Game.tile()?.z ?? 0) >= 9000, 8000))) {
+            return false;
+        }
+        await mazeSceneLoaded();
+        return reachElvarg(log, true);
     }
     if (!(await walk(DS_LOC.ELVARG_GATE_STAND, log, 0)) || !(await mazeSceneLoaded())) {
         return false;
@@ -441,10 +473,16 @@ export function decide(snap: QuestSnapshot): QuestStep {
             if (!anywhere(snap, DS_ID.MAP_MELZAR)) {
                 return custom("Melzar's Maze", log => maze.step(log));
             }
-            if (!hasFlag(snap.progress, 'asked-oracle') && !anywhere(snap, DS_ID.MAP_ORACLE)) {
-                return { kind: 'talk', stop: ORACLE };
-            }
             if (!anywhere(snap, DS_ID.MAP_ORACLE)) {
+                // Asking her sets dragon_oracle to 2, which is what prints the
+                // rhyme; going through her door sets it to 3, which stops
+                // printing it. The journal flag therefore goes out again the
+                // moment the door is used, and cannot gate this on its own.
+                // Holding all four charms is the honest test: the door eats them.
+                const holdsCharms = ORACLE_DOOR_ITEMS.every(id => (snap.invIds?.get(id) ?? 0) > 0);
+                if (holdsCharms && !hasFlag(snap.progress, 'asked-oracle')) {
+                    return { kind: 'talk', stop: ORACLE };
+                }
                 return custom('the chest under Ice Mountain', oracleChest);
             }
             if (!anywhere(snap, DS_ID.MAP_WORMBRAIN)) {
@@ -491,6 +529,9 @@ export const dragonslayer: QuestModule = {
     tools: [
         'coins', 'maze key', 'key', 'map part', 'crandor map', 'plank', 'nails', 'hammer',
         'dragonfire shield', "wizard's mind bomb", 'unfired bowl', 'lobster pot', 'silk',
+        // Food too: the maze, Crandor and the lair are all one-way, and a trip
+        // back to a bank to re-stock is not always available from inside them.
+        'shark', 'lobster', 'swordfish', 'tuna', 'salmon', 'trout',
         ...SUPPLY_TOOLS
     ],
     sustain: { foods: ['Shark', 'Lobster', 'Swordfish', 'Tuna', 'Salmon', 'Trout'], eatBelowHp: 0.65 },

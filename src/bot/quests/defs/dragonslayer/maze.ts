@@ -78,12 +78,18 @@ const KEY_IDS: readonly number[] = [
     DS_ID.BLUE_KEY, DS_ID.MAGENTA_KEY, DS_ID.GREEN_KEY
 ];
 
-/** True while standing anywhere inside the maze, on any of its four floors. */
+/**
+ * True while standing anywhere inside the maze, on any of its four floors.
+ *
+ * The east bound stops at 2940 deliberately: the front door stands on 2941, and
+ * that tile is the doorstep *outside*. Including it makes "am I still in the
+ * maze?" true the moment the bot lets itself out, and it walks straight back in.
+ */
 export function inMaze(t: { x: number; z: number; level: number } | null | undefined): boolean {
     if (!t) {
         return false;
     }
-    const upstairs = t.x >= 2920 && t.x <= 2945 && t.z >= 3236 && t.z <= 3262;
+    const upstairs = t.x >= 2920 && t.x <= 2940 && t.z >= 3236 && t.z <= 3262;
     const basement = t.x >= 2915 && t.x <= 2945 && t.z >= 9630 && t.z <= 9665;
     return upstairs || basement;
 }
