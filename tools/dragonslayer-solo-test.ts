@@ -123,11 +123,28 @@ try {
         console.log(`gave ${pair}`);
     }
 
-    // Last, and after every relog: login recounts qp from completed quests.
-    if (!(await cheatQuiet(page, `setvar qp ${questPoints}`))) {
-        fail('could not set qp');
+    // Quest points cannot be cheated into place: %qp is recounted from completed
+    // quests by ~update_questpoints, which ~send_quest_progress calls the moment
+    // the Guild master starts Dragon Slayer. A setvar therefore survives right up
+    // until the quest begins and then collapses to the real figure, and the bot
+    // is dropped mid-run for failing its own entry requirement.
+    //
+    // So earn them instead: complete everything, then put Dragon Slayer back to
+    // not-started. The recount is genuine from then on.
+    if (questPoints > 0) {
+        if (!(await cheatQuiet(page, '~completequests'))) {
+            fail('could not complete quests for the point gate');
+        }
+        if (!(await cheatQuiet(page, 'setvar dragonquest 0'))) {
+            fail('could not reset dragonquest');
+        }
+        await relog(page, user);
     }
-    console.log(`qp=${await getServerVarQuiet(page, 'qp')}`);
+    const earned = await getServerVarQuiet(page, 'qp');
+    console.log(`qp=${earned} (earned, survives the recount)`);
+    if ((earned ?? 0) < 32) {
+        fail(`only ${earned} quest points — the Champions' Guild needs 32`);
+    }
 
     if (tele) {
         if (!(await cheatQuiet(page, `tele ${tele}`))) {
