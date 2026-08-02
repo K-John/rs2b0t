@@ -275,22 +275,27 @@ export const QUESTS: QuestRecord[] = [
         id: 'dragon', name: 'Dragon Slayer', questPoints: 2,
         requirements: { minQuestPoints: 32 },
         items: [
-            // 10k buys Wormbrain's map piece, 2k buys the ship, and the rest covers
-            // the shopping below — provisioning re-checks this every loop while any
-            // item is still outstanding, so anything short of the full bill sends
-            // the bot back to the bank after each purchase.
-            { name: 'Coins', qty: 22000, kind: 'mustHave' },
+            // Deliberately 1, not the quest's real 12k bill. Provisioning re-checks
+            // every mustHave each loop while anything is outstanding, so a coin
+            // requirement of any size sends the bot back to the bank after every
+            // single purchase — a Dwarven Mine round trip to collect one coin, in
+            // the run that found this. The float covers the shopping; the module
+            // withdraws Wormbrain's 10k and the ship's 2k when it needs them.
+            { name: 'Coins', qty: 1, kind: 'mustHave' },
             // Melee kit is deliberately NOT listed here. Every free-to-play shop
             // that sells it stocks exactly one, so a second run in the same world
             // finds the shelf empty and a required item with no supply parks the
             // quest forever. The module buys what it can and fights on regardless.
+            // Nails first, and it is not cosmetic: six steel bars means six iron
+            // and twelve coal in the pack at once, and there is no room for that
+            // behind the rest of the list. Provisioning works down this in order.
+            { name: 'Nails', qty: 12, kind: 'acquirable' },
             { name: 'Dragonfire shield', qty: 1, kind: 'acquirable' },
             { name: "Wizard's mind bomb", qty: 1, kind: 'acquirable' },
             { name: 'Silk', qty: 1, kind: 'acquirable' },
             { name: 'Lobster pot', qty: 1, kind: 'acquirable' },
             { name: 'Unfired bowl', qty: 1, kind: 'acquirable' },
             { name: 'Plank', qty: 3, kind: 'acquirable' },
-            { name: 'Nails', qty: 12, kind: 'acquirable' },
             { name: 'Hammer', qty: 1, kind: 'acquirable' }
         ]
     },

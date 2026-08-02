@@ -1,6 +1,9 @@
+import { actions } from '../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../api/Execution.js';
 import { Game } from '../../../api/Game.js';
+import { Bank } from '../../../api/hud/Bank.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
+import { Equipment } from '../../../api/hud/Equipment.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Shop } from '../../../api/hud/Shop.js';
 import { GroundItems } from '../../../api/queries/GroundItems.js';
@@ -8,7 +11,11 @@ import { Locs } from '../../../api/queries/Locs.js';
 import { Traversal } from '../../../api/Traversal.js';
 import Tile from '../../../api/Tile.js';
 import { talkThrough } from '../../exec/primitives.js';
+import { openBankLeg } from '../../exec/steps.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
+
+/** The quest's bank, repeated here to keep supplies free of a cycle back to index. */
+const FALADOR_BANK = new Tile(3013, 3355, 0);
 
 /**
  * Where Dragon Slayer's shopping list actually comes from.
@@ -39,10 +46,15 @@ export const SUPPLY = {
 
 export const SUPPLY_LOC = {
     FOUNTAIN: new Tile(2949, 3381, 0),
-    /** Everything the mining legs need is in one corner of the Dwarven Mine. */
+    /**
+     * Everything the mining legs need is in the Dwarven Mine. The iron and coal
+     * anchors sit in the mine's dense southern seams — five iron and thirteen
+     * coal inside one radius — because the three-rock outcrop by the ladder
+     * cannot keep up with six bars' worth and leaves the leg waiting on respawns.
+     */
     CLAY_ROCKS: new Tile(3029, 9809, 0),
-    IRON_ROCKS: new Tile(3033, 9825, 0),
-    COAL_ROCKS: new Tile(3038, 9799, 0),
+    IRON_ROCKS: new Tile(3040, 9773, 0),
+    COAL_ROCKS: new Tile(3042, 9760, 0),
     ANVIL: new Tile(3012, 9812, 0),
     FURNACE: new Tile(2974, 3369, 0),
     POTTERS_WHEEL: new Tile(3087, 3410, 0),
@@ -107,8 +119,16 @@ async function mineFor(rockIds: readonly number[], item: string, want: number, a
         log('no pickaxe in the pack');
         return false;
     }
+    // A full pack does not refuse the Mine — the rock simply never yields, which
+    // reads exactly like a rock that is out of ore.
+    if (Inventory.isFull()) {
+        log(`pack is full — no room for ${item}`);
+        return false;
+    }
     const ids = new Set(rockIds);
-    const rock = () => Locs.query().where(l => ids.has(l.id)).action('Mine').within(8).nearest();
+    // Wide enough to cross a seam: a mined rock is a different loc until it
+    // respawns, so a tight radius parks the leg on its own leftovers.
+    const rock = () => Locs.query().where(l => ids.has(l.id)).action('Mine').within(14).nearest();
     if (!rock()) {
         if (!(await walk(at, log, 2)) || !(await sceneLoaded())) {
             return false;
@@ -116,7 +136,8 @@ async function mineFor(rockIds: readonly number[], item: string, want: number, a
     }
     const target = rock();
     if (!target) {
-        log(`no ${item} rocks in reach`);
+        log(`no ${item} rocks in reach — waiting on a respawn`);
+        await Execution.delayTicks(5);
         return false;
     }
     const before = Inventory.count(item);
@@ -164,10 +185,13 @@ async function makeUnfiredBowl(log: (m: string) => void): Promise<boolean> {
         if (!(await clay.useOn(wheel))) {
             return false;
         }
-        if (!(await Execution.delayUntil(() => ChatDialog.isMainMakePanel(), 6000))) {
+        // skill_multi3 is if_openchat — a chat make menu, not the main skill
+        // panel the anvil puts up. They are different interfaces entirely.
+        if (!(await Execution.delayUntil(() => ChatDialog.isMakeMenu(), 6000))) {
+            log('the wheel did not offer anything to make');
             return false;
         }
-        if (!(await ChatDialog.makeFromPanel('Bowl'))) {
+        if (!(await ChatDialog.make('Bowl'))) {
             return false;
         }
         return Execution.delayUntil(() => Inventory.contains('Unfired bowl'), 10_000);
@@ -220,10 +244,11 @@ async function makeUnfiredBowl(log: (m: string) => void): Promise<boolean> {
  * coal per bar at the Falador furnace, then the Dwarven Mine anvil.
  */
 async function smithNails(need: number, log: (m: string) => void): Promise<boolean> {
-    const bars = Math.ceil(need / 2);
-    if (Inventory.count('Nails') >= need) {
+    // `need` is the shortfall, not the total. Two nails to a bar.
+    if (need <= 0) {
         return true;
     }
+    const bars = Math.ceil(need / 2);
     if (Inventory.count(SUPPLY_ITEM.STEEL_BAR) > 0) {
         if (!(await walk(SUPPLY_LOC.ANVIL, log, 1)) || !(await sceneLoaded())) {
             return false;
@@ -282,9 +307,15 @@ async function smithNails(need: number, log: (m: string) => void): Promise<boole
 /** Spawns already emptied this trip, so the walk moves on instead of circling. */
 const plankTried = new Set<string>();
 
-/** Walks the Graveyard of Shadows picking up the plank spawns. */
+/**
+ * Walks the Graveyard of Shadows picking up the plank spawns.
+ *
+ * `need` is the SHORTFALL the engine still wants, not the total — comparing it
+ * against the whole pack reads "2 held, 1 short" as satisfied and the third
+ * plank never gets fetched.
+ */
 async function grabPlanks(need: number, log: (m: string) => void): Promise<boolean> {
-    if (Inventory.count('Plank') >= need) {
+    if (need <= 0) {
         plankTried.clear();
         return true;
     }
@@ -357,20 +388,31 @@ const KIT: readonly { item: string; shop: { npc: string; anchor: Tile }; estGp: 
 
 const kitTried = new Set<string>();
 
+/** Worn is owned. Inventory.contains alone sends the bot to re-buy its own sword. */
+const owns = (item: string): boolean => Inventory.contains(item) || Equipment.contains(item);
+
 export async function buyLoadout(log: (m: string) => void): Promise<boolean> {
     for (const entry of KIT) {
-        if (kitTried.has(entry.item) || Inventory.contains(entry.item)) {
+        if (kitTried.has(entry.item) || owns(entry.item)) {
             continue;
         }
         kitTried.add(entry.item);
-        log(`shopping for a ${entry.item}`);
+        log(`shopping for ${entry.item}`);
+        // The coin float is sized for the small buys; this kit is thousands.
+        if (Inventory.count('Coins') < entry.estGp) {
+            if (!(await openBankLeg('no bank to draw kit money from', FALADOR_BANK, log))) {
+                return true;
+            }
+            await Bank.withdrawX('Coins', entry.estGp);
+            actions.closeModal();
+        }
         if (!(await walk(entry.shop.anchor, log, 3)) || !(await Shop.open(entry.shop.npc))) {
             log(`${entry.shop.npc} would not trade — going without`);
             return true;
         }
         await Shop.buy(entry.item, 1);
         await Shop.close();
-        if (!Inventory.contains(entry.item)) {
+        if (!owns(entry.item)) {
             log(`${entry.item} out of stock — going without`);
         }
         return true;
@@ -380,4 +422,4 @@ export async function buyLoadout(log: (m: string) => void): Promise<boolean> {
 
 /** True once every kit shop has been visited (or written off) this run. */
 export const loadoutSettled = (): boolean =>
-    KIT.every(e => kitTried.has(e.item) || Inventory.contains(e.item));
+    KIT.every(e => kitTried.has(e.item) || owns(e.item));

@@ -412,6 +412,19 @@ function anywhere(snap: QuestSnapshot, id: number): boolean {
 
 const MAP_PIECES = [DS_ID.MAP_MELZAR, DS_ID.MAP_WORMBRAIN, DS_ID.MAP_ORACLE];
 
+/**
+ * The two big spends are Wormbrain's 10k and Klarense's 2k, and both must be in
+ * the pack before the dialogue opens. Fetching them here, once each, is what
+ * lets the record ask for a single coin — see the comment on that requirement.
+ */
+function coinsShort(snap: QuestSnapshot, price: number): QuestStep | null {
+    const held = snap.inv.get('coins') ?? 0;
+    if (held >= price) {
+        return null;
+    }
+    return { kind: 'withdraw', items: [{ name: 'Coins', qty: price + 1000 - held }], bank: FALADOR_BANK };
+}
+
 /** Carried melee kit goes on before the maze, not once a demon is already hitting. */
 function wearKit(snap: QuestSnapshot): QuestStep | null {
     for (const item of SUPPLY_LOADOUT) {
@@ -490,9 +503,17 @@ export function decide(snap: QuestSnapshot): QuestStep {
                 return custom('the chest under Ice Mountain', oracleChest);
             }
             if (!anywhere(snap, DS_ID.MAP_WORMBRAIN)) {
+                const short = coinsShort(snap, WORMBRAIN_PRICE);
+                if (short) {
+                    return short;
+                }
                 return custom('buy the map piece from Wormbrain', buyMapFromWormbrain);
             }
             return custom('join the map pieces', combineMap);
+        }
+        const forShip = coinsShort(snap, SHIP_PRICE);
+        if (forShip) {
+            return forShip;
         }
         return { kind: 'talk', stop: KLARENSE };
     }
@@ -529,7 +550,9 @@ export const dragonslayer: QuestModule = {
     record: QUESTS.find(r => r.id === 'dragon')!,
     bank: FALADOR_BANK,
     grind: ['Giant rat', 'Ghost', 'Skeleton', 'Zombie', 'Melzar the mad', 'Lesser demon', 'Elvarg'],
-    food: 12,
+    // Six, not twelve: the nails leg needs eighteen free slots for ore, and a
+    // full pack makes mining a silent no-op rather than an error.
+    food: 6,
     tools: [
         'coins', 'maze key', 'key', 'map part', 'crandor map', 'plank', 'nails', 'hammer',
         'dragonfire shield', "wizard's mind bomb", 'unfired bowl', 'lobster pot', 'silk',
