@@ -131,6 +131,12 @@ try {
     //
     // So earn them instead: complete everything, then put Dragon Slayer back to
     // not-started. The recount is genuine from then on.
+    // KNOWN INCOMPLETE. ~completequests opens two choice dialogs first — a gang
+    // for Shield of Arrav and a side for Temple of Ikov — and nothing here
+    // answers them, so it completes nothing and this check fails fast with
+    // "only 0 quest points" rather than dying forty minutes into the quest.
+    // Finish it by answering both dialogs, or by setvar-ing enough individual
+    // quest varps to complete that ~count_questpoints returns 32 on its own.
     if (questPoints > 0) {
         if (!(await cheatQuiet(page, '~completequests'))) {
             fail('could not complete quests for the point gate');
