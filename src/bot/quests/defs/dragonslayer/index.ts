@@ -28,7 +28,14 @@ const OZIACH_FIRST: NpcStop = {
         "The guildmaster of the Champions' Guild told me.",
         'So how am I meant to prove that?',
         'A dragon, that sounds like fun!',
-        'And will I need anything to defeat this dragon?'
+        'And will I need anything to defeat this dragon?',
+        // The varp flips to stage 2 partway through, so the briefing menu can
+        // appear before this step ends.
+        'So where can I find this dragon?',
+        'Where is the first piece of the map?',
+        'Where is the second piece of the map?',
+        'Where is the third piece of the map?',
+        'Where can I get an antidragon shield?'
     ]
 };
 const OZIACH: NpcStop = {
@@ -94,10 +101,7 @@ async function briefOziach(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     log('getting the full briefing from Oziach');
-    if (!(await talkThrough(OZIACH.npc, OZIACH_BRIEFING, log))) {
-        return false;
-    }
-    return heldById(DS_ID.MAZE_KEY);
+    return talkThrough(OZIACH.npc, OZIACH_BRIEFING, log);
 }
 
 const walk = (to: Tile, log: (m: string) => void, radius = 2): Promise<boolean> =>
