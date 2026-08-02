@@ -7,6 +7,11 @@ export const DS_NPC = {
     DUKE: new Tile(3212, 3220, 1),
     ORACLE: new Tile(3015, 3504, 0),
     WORMBRAIN: new Tile(3014, 3186, 0),
+    /**
+     * Outside his cell. The bars are `blockrange=no`, so the talk lands from
+     * here on line of sight alone; no tile beside him is reachable.
+     */
+    WORMBRAIN_STAND: new Tile(3012, 3186, 0),
     KLARENSE: new Tile(3047, 3204, 0),
     NED: new Tile(3100, 3258, 0),
     MELZAR: new Tile(2929, 9649, 0),
@@ -27,13 +32,20 @@ export const DS_LOC = {
     GREEN_DOOR: new Tile(2936, 9655, 0),
     MAZE_CHEST: new Tile(2935, 9657, 0),
     ORACLE_DOOR: new Tile(3051, 9840, 0),
+    /** West of the magic door; opening it teleports you through to 3051. */
+    ORACLE_DOOR_STAND: new Tile(3050, 9840, 0),
     ORACLE_CHEST: new Tile(3057, 9841, 0),
+    /** The chest is forceapproach=north, and its own tile is blocked. */
+    ORACLE_CHEST_STAND: new Tile(3057, 9842, 0),
     GANGPLANK: new Tile(3047, 3205, 1),
+    /** Dockside, at ground level: the gangplank itself sits a level above. */
+    GANGPLANK_STAND: new Tile(3047, 3204, 0),
     SHIP_LADDER: new Tile(3049, 3208, 1),
     SHIP_HOLE: new Tile(3047, 9639, 1),
     CRANDOR_ROCK: new Tile(2833, 3255, 0),
     CRANDOR_SECRET_DOOR: new Tile(2836, 9600, 0),
-    ELVARG_GATE: new Tile(2847, 9636, 0)
+    ELVARG_GATE: new Tile(2847, 9636, 0),
+    ELVARG_GATE_STAND: new Tile(2846, 9637, 0)
 } as const;
 
 /**

@@ -70,6 +70,13 @@ export function parseDragonJournal(lines: readonly string[] | string): QuestProg
     return stage === undefined ? undefined : { stage, flags: readFlags(text) };
 }
 
+/**
+ * The journal modal does not always open — a leftover dialogue, a level change,
+ * a tick where the tab has not refreshed. A failed read is not evidence the
+ * quest went backwards, so the last good one stands in until the next success.
+ */
+let lastGood: QuestProgress | undefined;
+
 export async function readDragonProgress(): Promise<QuestProgress | undefined> {
     const status = Quests.status(DRAGON_QUEST);
     if (status === 'complete') return { stage: DRAGON_STAGE.COMPLETE, flags: new Set() };
@@ -81,5 +88,8 @@ export async function readDragonProgress(): Promise<QuestProgress | undefined> {
         actions.closeModal();
         await Execution.delayTicks(1);
     }
-    return progress;
+    if (progress) {
+        lastGood = progress;
+    }
+    return progress ?? lastGood;
 }

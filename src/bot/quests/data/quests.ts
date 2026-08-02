@@ -275,15 +275,23 @@ export const QUESTS: QuestRecord[] = [
         id: 'dragon', name: 'Dragon Slayer', questPoints: 2,
         requirements: { minQuestPoints: 32 },
         items: [
-            { name: 'Coins', qty: 10000, kind: 'mustHave' },
-            { name: "Wizard's mind bomb", qty: 1, kind: 'mustHave' },
-            { name: 'Silk', qty: 1, kind: 'mustHave' },
-            { name: 'Lobster pot', qty: 1, kind: 'mustHave' },
-            { name: 'Unfired bowl', qty: 1, kind: 'mustHave' },
-            { name: 'Plank', qty: 3, kind: 'mustHave' },
-            { name: 'Nails', qty: 12, kind: 'mustHave' },
-            { name: 'Hammer', qty: 1, kind: 'mustHave' },
-            { name: 'Dragonfire shield', qty: 1, kind: 'acquirable' }
+            // 10k buys Wormbrain's map piece and 2k buys the ship; the rest of the
+            // list the module sources itself, because nothing in free-to-play sells
+            // planks, nails or an unfired bowl.
+            { name: 'Coins', qty: 13000, kind: 'mustHave' },
+            { name: "Wizard's mind bomb", qty: 1, kind: 'acquirable' },
+            { name: 'Silk', qty: 1, kind: 'acquirable' },
+            { name: 'Lobster pot', qty: 1, kind: 'acquirable' },
+            { name: 'Unfired bowl', qty: 1, kind: 'acquirable' },
+            { name: 'Plank', qty: 3, kind: 'acquirable' },
+            { name: 'Nails', qty: 12, kind: 'acquirable' },
+            { name: 'Hammer', qty: 1, kind: 'acquirable' },
+            { name: 'Dragonfire shield', qty: 1, kind: 'acquirable' },
+            // Melzar's lesser demon and Elvarg are both level 80+. Max stats with
+            // bare fists is a very long fight; these are the best melee kit a
+            // free-to-play shop will sell.
+            { name: 'Adamant longsword', qty: 1, kind: 'acquirable' },
+            { name: 'Adamant full helm', qty: 1, kind: 'acquirable' }
         ]
     },
     {
