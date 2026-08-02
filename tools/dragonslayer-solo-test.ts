@@ -51,6 +51,23 @@ const VARS: Record<string, string> = {
 const FALADOR_BANK = { x: 3013, z: 3355, level: 0 };
 const COINS_ID = 995;
 
+/**
+ * Quests to mark complete so ~count_questpoints returns 36 on its own, which is
+ * what gets the bot through the Champions' Guild door. Each pair is the varp and
+ * its own `_complete` value; the points they are worth are in the comments.
+ */
+const EARNED_QP: readonly [string, number][] = [
+    ['arthur', 7],       // Merlin's Crystal, 6
+    ['goblinquest', 6],  // Goblin Diplomacy, 5
+    ['rjquest', 100],    // Romeo & Juliet, 5
+    ['haunted', 3],      // Ernest the Chicken, 4
+    ['druidquest', 4],   // Druidic Ritual, 4
+    ['princequest', 110],// Prince Ali Rescue, 3
+    ['demonstart', 30],  // Demon Slayer, 3
+    ['vampire', 3],      // Vampire Slayer, 3
+    ['spy', 4]           // Black Knights' Fortress, 3
+];
+
 interface SoloSnapshot {
     pos: { x: number; z: number; level: number } | null;
     status: string;
@@ -131,18 +148,16 @@ try {
     //
     // So earn them instead: complete everything, then put Dragon Slayer back to
     // not-started. The recount is genuine from then on.
-    // KNOWN INCOMPLETE. ~completequests opens two choice dialogs first — a gang
-    // for Shield of Arrav and a side for Temple of Ikov — and nothing here
-    // answers them, so it completes nothing and this check fails fast with
-    // "only 0 quest points" rather than dying forty minutes into the quest.
-    // Finish it by answering both dialogs, or by setvar-ing enough individual
-    // quest varps to complete that ~count_questpoints returns 32 on its own.
+    // Marked complete one varp at a time rather than with ~completequests: that
+    // debugproc opens two choice dialogs first — a gang for Shield of Arrav and
+    // a side for Temple of Ikov — which nothing here answers, so it completes
+    // nothing at all. These nine are worth 36 between them and leave Dragon
+    // Slayer itself untouched.
     if (questPoints > 0) {
-        if (!(await cheatQuiet(page, '~completequests'))) {
-            fail('could not complete quests for the point gate');
-        }
-        if (!(await cheatQuiet(page, 'setvar dragonquest 0'))) {
-            fail('could not reset dragonquest');
+        for (const [varp, value] of EARNED_QP) {
+            if (!(await cheatQuiet(page, `setvar ${varp} ${value}`))) {
+                fail(`could not complete ${varp} for the point gate`);
+            }
         }
         await relog(page, user);
     }

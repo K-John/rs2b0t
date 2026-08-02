@@ -79,27 +79,40 @@ const NED_ABOARD: NpcStop = {
 const ORACLE_DOOR_ITEMS = [DS_ID.MIND_BOMB, DS_ID.UNFIRED_BOWL, DS_ID.LOBSTER_POT, DS_ID.SILK];
 
 const FIND_DRAGON = 'So where can I find this dragon?';
+const FAREWELL = "Ok I'll try and get everything together.";
+
 /**
- * One dialogue covers the whole briefing: each answer drops its own question
- * from the menu, so the next preferred line down is the next branch. Asking as
- * a plain talk step instead re-opens the dialogue per branch, and the repeated
- * step reads to the engine as no progress.
+ * One question per visit, then leave.
+ *
+ * Oziach's menus re-offer questions that have already been answered — asking
+ * about the second map piece hands back a menu still containing the first — so
+ * a prefer list holding several of them never runs out of matches. The dialogue
+ * cycles, never closes, and the journal cannot be read while it is up, so the
+ * briefing appears to make no progress at all. Observed live: three hours on his
+ * doorstep at stage 2.
+ *
+ * Each of these needs its own visit, and the farewell has to be reachable from
+ * whatever menu the answer leaves behind.
  */
-const OZIACH_BRIEFING = [
-    FIND_DRAGON,
+const OZIACH_QUESTIONS: readonly string[] = [
     'Where is the first piece of the map?',
     'Where is the second piece of the map?',
     'Where is the third piece of the map?',
-    'Where can I get an antidragon shield?',
-    "Ok I'll try and get everything together."
+    'Where can I get an antidragon shield?'
 ];
+
+let briefingAsked = 0;
 
 async function briefOziach(log: (m: string) => void): Promise<boolean> {
     if (!(await gotoNpc(OZIACH, [], log))) {
         return false;
     }
-    log('getting the full briefing from Oziach');
-    return talkThrough(OZIACH.npc, OZIACH_BRIEFING, log);
+    const question = OZIACH_QUESTIONS[briefingAsked % OZIACH_QUESTIONS.length];
+    briefingAsked++;
+    log(`asking Oziach: ${question}`);
+    // FIND_DRAGON only to reach the submenu the map questions live in; the
+    // farewell last so the dialogue always has a way to end.
+    return talkThrough(OZIACH.npc, [question, FIND_DRAGON, FAREWELL], log);
 }
 
 const walk = (to: Tile, log: (m: string) => void, radius = 2): Promise<boolean> =>
