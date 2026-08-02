@@ -282,27 +282,23 @@ export const QUESTS: QuestRecord[] = [
             // the run that found this. The float covers the shopping; the module
             // withdraws Wormbrain's 10k and the ship's 2k when it needs them.
             { name: 'Coins', qty: 1, kind: 'mustHave' },
-            // Melee kit is deliberately NOT listed here. Every free-to-play shop
-            // that sells it stocks exactly one, so a second run in the same world
-            // finds the shelf empty and a required item with no supply parks the
-            // quest forever. The module buys what it can and fights on regardless.
-            // Order matters, and it is not cosmetic. Provisioning works down this
-            // list, so the hammer has to come before the nails it smiths them
-            // with — an anvil without one does nothing at all and reports no
-            // error — and the nails have to come before everything else, because
-            // six steel bars means six iron and twelve coal in the pack at once
-            // and there is no room for that behind the rest of the list.
-            { name: 'Hammer', qty: 1, kind: 'acquirable' },
-            { name: 'Nails', qty: 12, kind: 'acquirable' },
-            // The shield is deliberately absent: the Duke only offers it once
-            // Oziach's briefing has set dragon_shield, so provisioning — which
-            // runs before the quest is even started — can never obtain it. The
-            // module asks him at the stage where he will actually answer.
-            { name: "Wizard's mind bomb", qty: 1, kind: 'acquirable' },
-            { name: 'Silk', qty: 1, kind: 'acquirable' },
-            { name: 'Lobster pot', qty: 1, kind: 'acquirable' },
-            { name: 'Unfired bowl', qty: 1, kind: 'acquirable' },
-            { name: 'Plank', qty: 3, kind: 'acquirable' }
+            // Ordered as a geographic sweep, because provisioning walks this list
+            // in order and the bot otherwise crosses Asgarnia between each item:
+            // Port Sarim, then Falador, then Varrock, then the wilderness.
+            //
+            // Nails are deliberately NOT here. Six steel bars is eighteen slots of
+            // ore, which will not fit behind the rest of the shopping, so that leg
+            // runs from decide() once provisioning is done — late enough to bank
+            // the shopping first without the engine withdrawing it straight back.
+            //
+            // Melee kit is not here either: what the player fights in is their
+            // own business, and the quest takes the account as it finds it.
+            { name: 'Lobster pot', qty: 1, kind: 'acquirable' },   // Gerrant, Port Sarim
+            { name: 'Hammer', qty: 1, kind: 'acquirable' },        // Falador general store
+            { name: "Wizard's mind bomb", qty: 1, kind: 'acquirable' }, // Rising Sun, Falador
+            { name: 'Unfired bowl', qty: 1, kind: 'acquirable' },  // jug + fountain + Varrock clay
+            { name: 'Silk', qty: 1, kind: 'acquirable' },          // Thessalia, Varrock
+            { name: 'Plank', qty: 3, kind: 'acquirable' }          // Graveyard of Shadows
         ]
     },
     {

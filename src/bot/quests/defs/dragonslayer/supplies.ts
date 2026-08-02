@@ -3,7 +3,6 @@ import { Execution } from '../../../api/Execution.js';
 import { Game } from '../../../api/Game.js';
 import { Bank } from '../../../api/hud/Bank.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
-import { Equipment } from '../../../api/hud/Equipment.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Shop } from '../../../api/hud/Shop.js';
 import { GroundItems } from '../../../api/queries/GroundItems.js';
@@ -37,22 +36,19 @@ export const SUPPLY = {
     /** The Rising Sun barmaid pours a mind bomb for 2gp; no shop interface. */
     BARMAID: { npc: 'Barmaid', anchor: new Tile(2957, 3371, 0) },
     /** Pickaxes, in the Dwarven Mine itself. */
-    NURMOF: { npc: 'Nurmof', anchor: new Tile(2998, 9844, 0) },
-    /** Varrock sword shop: the best one-handed blade a free shop sells. */
-    SWORD_SHOP: { npc: 'Shop keeper', anchor: new Tile(3203, 3397, 0) },
-    /** Peksa's helmet shop, a short walk from the Barbarian Village wheel. */
-    PEKSA: { npc: 'Peksa', anchor: new Tile(3076, 3429, 0) }
+    NURMOF: { npc: 'Nurmof', anchor: new Tile(2998, 9844, 0) }
 } as const;
 
 export const SUPPLY_LOC = {
     FOUNTAIN: new Tile(2949, 3381, 0),
     /**
-     * Everything the mining legs need is in the Dwarven Mine. The iron and coal
+     * Clay comes from the Varrock mine — it is on the shopping sweep, beside
+     * Thessalia. Iron and coal come from the Dwarven Mine. Those two
      * anchors sit in the mine's dense southern seams — five iron and thirteen
      * coal inside one radius — because the three-rock outcrop by the ladder
      * cannot keep up with six bars' worth and leaves the leg waiting on respawns.
      */
-    CLAY_ROCKS: new Tile(3029, 9809, 0),
+    CLAY_ROCKS: new Tile(3181, 3373, 0),
     IRON_ROCKS: new Tile(3040, 9773, 0),
     COAL_ROCKS: new Tile(3042, 9760, 0),
     ANVIL: new Tile(3012, 9812, 0),
@@ -92,6 +88,23 @@ const sceneLoaded = (): Promise<boolean> =>
 
 const buy = (item: string, qty: number, shop: { npc: string; anchor: Tile }, estGp: number): QuestStep =>
     ({ kind: 'buy', item, qty, shop: { npc: shop.npc, anchor: shop.anchor }, estGp });
+
+/**
+ * Fetch spending money only when a leg is about to spend it. This module runs
+ * with no standing coin float, because the float is topped back up on every
+ * provisioning loop and would put a bank trip between every purchase.
+ */
+export async function ensureCoins(need: number, log: (m: string) => void): Promise<boolean> {
+    if (Inventory.count('Coins') >= need) {
+        return true;
+    }
+    if (!(await openBankLeg('no bank to draw spending money from', FALADOR_BANK, log))) {
+        return false;
+    }
+    await Bank.withdrawX('Coins', Math.max(need, 2000));
+    actions.closeModal();
+    return Inventory.count('Coins') >= need;
+}
 
 /** The barmaid sells through dialogue, so the generic buy step cannot see her. */
 async function buyMindBomb(log: (m: string) => void): Promise<boolean> {
@@ -246,13 +259,15 @@ async function makeUnfiredBowl(log: (m: string) => void): Promise<boolean> {
  * Nails are two to a steel bar, and nothing sells steel bars: one iron and two
  * coal per bar at the Falador furnace, then the Dwarven Mine anvil.
  */
-async function smithNails(need: number, log: (m: string) => void): Promise<boolean> {
+export async function smithNails(need: number, log: (m: string) => void): Promise<boolean> {
     // `need` is the shortfall, not the total. Two nails to a bar.
     if (need <= 0) {
         return true;
     }
     const bars = Math.ceil(need / 2);
     const ore = (): number => Inventory.count(SUPPLY_ITEM.IRON_ORE);
+    const KEEP = ['coins', 'pickaxe', 'hammer', 'iron ore', 'coal', 'steel bar', 'nails',
+        'shark', 'lobster', 'swordfish', 'tuna', 'salmon', 'trout'];
     const coal = (): number => Inventory.count(SUPPLY_ITEM.COAL);
     const steel = (): number => Inventory.count(SUPPLY_ITEM.STEEL_BAR);
 
@@ -260,6 +275,18 @@ async function smithNails(need: number, log: (m: string) => void): Promise<boole
     // the other way round the leg smelts one bar, walks to the anvil for two
     // nails, and walks back — six round trips across half of Asgarnia.
     if (steel() === 0 && (ore() < bars || coal() < bars * 2)) {
+        // Six bars is eighteen slots of ore. The rest of the quest's shopping is
+        // already bought by now, so it goes in the bank to make room and comes
+        // back out when the ship needs it.
+        if (Inventory.items().some(i => i.name !== null && !KEEP.some(k => i.name!.toLowerCase().includes(k)))) {
+            log('banking the shopping to make room for ore');
+            if (!(await openBankLeg('no bank to clear the pack at', FALADOR_BANK, log))) {
+                return false;
+            }
+            await Bank.depositAllMatching((name) => !KEEP.some(k => name.toLowerCase().includes(k)));
+            actions.closeModal();
+            return false;
+        }
         if (!(await ensurePickaxe(log))) {
             return false;
         }
@@ -342,13 +369,6 @@ async function grabPlanks(need: number, log: (m: string) => void): Promise<boole
         plankTried.clear();
         return true;
     }
-    // This leg is the one that goes into the wilderness, and provisioning runs
-    // before the module's own steps get a look in — so the kit is bought here
-    // rather than after, when it would be too late to matter.
-    if (!loadoutSettled()) {
-        await buyLoadout(log);
-        return false;
-    }
     const loose = GroundItems.query().name('Plank').within(14).nearest();
     if (loose) {
         const before = Inventory.count('Plank');
@@ -392,74 +412,7 @@ export const SUPPLY_GATHERS: Record<string, (snap: QuestSnapshot, need: number) 
     'lobster pot': () => buy('Lobster pot', 1, SUPPLY.GERRANT, 200),
     "wizard's mind bomb": () => custom('buy a mind bomb at the Rising Sun', buyMindBomb),
     'unfired bowl': () => custom('make an unfired bowl', makeUnfiredBowl),
-    nails: (_snap, need) => custom(`smith ${need} nails`, log => smithNails(need, log)),
     plank: (_snap, need) => custom(`fetch ${need} planks`, log => grabPlanks(need, log))
 };
 
-/** Worn before anything in the maze or the lair is attacked. */
-export const SUPPLY_LOADOUT: readonly string[] = ['Adamant longsword', 'Adamant full helm'];
 
-/**
- * Best melee kit a free shop sells, each stocked one at a time — so this is a
- * single attempt per run, not a requirement. Max stats can take Elvarg bare
- * handed; it is just slower, and slower beats parked.
- */
-const KIT: readonly { item: string; shop: { npc: string; anchor: Tile }; estGp: number }[] = [
-    { item: 'Adamant longsword', shop: SUPPLY.SWORD_SHOP, estGp: 4500 },
-    { item: 'Adamant full helm', shop: SUPPLY.PEKSA, estGp: 5000 }
-];
-
-const kitTried = new Set<string>();
-
-/** Worn is owned. Inventory.contains alone sends the bot to re-buy its own sword. */
-const owns = (item: string): boolean => Inventory.contains(item) || Equipment.contains(item);
-
-/**
- * Fetch spending money only when a leg is about to spend it. This module runs
- * with no standing coin float, because the float is topped back up on every
- * provisioning loop and would put a bank trip between every purchase.
- */
-export async function ensureCoins(need: number, log: (m: string) => void): Promise<boolean> {
-    if (Inventory.count('Coins') >= need) {
-        return true;
-    }
-    if (!(await openBankLeg('no bank to draw spending money from', FALADOR_BANK, log))) {
-        return false;
-    }
-    await Bank.withdrawX('Coins', Math.max(need, 2000));
-    actions.closeModal();
-    return Inventory.count('Coins') >= need;
-}
-
-export async function buyLoadout(log: (m: string) => void): Promise<boolean> {
-    for (const entry of KIT) {
-        if (kitTried.has(entry.item) || owns(entry.item)) {
-            continue;
-        }
-        kitTried.add(entry.item);
-        log(`shopping for ${entry.item}`);
-        // The coin float is sized for the small buys; this kit is thousands.
-        if (Inventory.count('Coins') < entry.estGp) {
-            if (!(await openBankLeg('no bank to draw kit money from', FALADOR_BANK, log))) {
-                return true;
-            }
-            await Bank.withdrawX('Coins', entry.estGp);
-            actions.closeModal();
-        }
-        if (!(await walk(entry.shop.anchor, log, 3)) || !(await Shop.open(entry.shop.npc))) {
-            log(`${entry.shop.npc} would not trade — going without`);
-            return true;
-        }
-        await Shop.buy(entry.item, 1);
-        await Shop.close();
-        if (!owns(entry.item)) {
-            log(`${entry.item} out of stock — going without`);
-        }
-        return true;
-    }
-    return true;
-}
-
-/** True once every kit shop has been visited (or written off) this run. */
-export const loadoutSettled = (): boolean =>
-    KIT.every(e => kitTried.has(e.item) || owns(e.item));

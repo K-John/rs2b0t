@@ -249,6 +249,61 @@ export async function talkThrough(npcName: string, prefer: string[], log: (m: st
 }
 
 /**
+ * Ask each question once, then leave.
+ *
+ * Some menus re-offer questions that have already been answered — Oziach hands
+ * back a menu still containing the map piece you just asked about — so an
+ * ordinary prefer list never runs out of matches, the dialogue never closes, and
+ * anything waiting on it (a journal read, say) waits forever. Each line in `ask`
+ * is taken at most once; when none are left, `exit` ends the conversation.
+ * @see docs/QUESTS.md#exec-primitives
+ */
+export async function talkAsking(
+    npcName: string,
+    ask: readonly string[],
+    exit: string,
+    log: (m: string) => void
+): Promise<boolean> {
+    if (!(await openDialogue(npcName, log))) {
+        return false;
+    }
+    const matches = (option: string, want: string): boolean => option.toLowerCase().includes(want.toLowerCase());
+    const asked = new Set<string>();
+    for (let i = 0; i < 120; i++) {
+        if (EventSignal.pending()) {
+            return false;
+        }
+        if (ChatDialog.canContinue()) {
+            await ChatDialog.continue();
+            await Execution.delayTicks(1);
+            continue;
+        }
+        const opts = ChatDialog.options();
+        if (opts.length > 0) {
+            const want = ask.find(q => !asked.has(q) && opts.some(o => matches(o, q)));
+            const pick = want
+                ? opts.find(o => matches(o, want))
+                : opts.find(o => matches(o, exit));
+            if (!pick) {
+                log(`nothing left to ask and no way out of [${opts.join(' | ')}]`);
+                return false;
+            }
+            if (want) {
+                asked.add(want);
+            }
+            await ChatDialog.chooseOption(pick);
+            await Execution.delayTicks(2);
+            continue;
+        }
+        if (!ChatDialog.isOpen()) {
+            break;
+        }
+        await Execution.delayTicks(1);
+    }
+    return !ChatDialog.isOpen();
+}
+
+/**
  * Like `talkThrough`, but abandons the dialogue instead of guessing when no
  * preferred option matches. Use it wherever the unmatched option is harmful —
  * several ogres offer "I have come to kill you" as the alternative.

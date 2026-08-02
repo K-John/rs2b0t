@@ -9,11 +9,11 @@ import Tile from '../../../api/Tile.js';
 import { hasFlag } from '../../engine/types.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { QUESTS } from '../../data/quests.js';
-import { gotoNpc, talkThrough, type NpcStop } from '../../exec/primitives.js';
+import { gotoNpc, talkAsking, talkThrough, type NpcStop } from '../../exec/primitives.js';
 import { DS_ID, DS_ITEM, DS_LOC, DS_NPC, SHIP_PRICE, WORMBRAIN_PRICE } from './areas.js';
 import { DRAGON_STAGE, readDragonProgress } from './journal.js';
 import { MazeRun, heldById, inMaze, leaveMaze, lootChest, mazeSceneLoaded } from './maze.js';
-import { SUPPLY_GATHERS, SUPPLY_LOADOUT, SUPPLY_TOOLS, buyLoadout, loadoutSettled } from './supplies.js';
+import { SUPPLY_GATHERS, SUPPLY_TOOLS, smithNails } from './supplies.js';
 
 const FALADOR_BANK = new Tile(3013, 3355, 0);
 
@@ -39,14 +39,8 @@ const OZIACH_FIRST: NpcStop = {
         'Where can I get an antidragon shield?'
     ]
 };
-const OZIACH: NpcStop = {
-    npc: 'Oziach', anchor: DS_NPC.OZIACH, leash: 6,
-    prefer: [
-        'So where can I find this dragon?',
-        'Where can I get an antidragon shield?',
-        "Ok I'll try and get everything together."
-    ]
-};
+/** Only the walk; talkAsking drives what he is actually asked. */
+const OZIACH: NpcStop = { npc: 'Oziach', anchor: DS_NPC.OZIACH, leash: 6, prefer: [] };
 const DUKE: NpcStop = {
     npc: 'Duke Horacio', anchor: DS_NPC.DUKE, leash: 6,
     prefer: ["I seek a shield that will protect me from the dragon's breath."]
@@ -67,14 +61,12 @@ const NED_HIRE: NpcStop = {
         'So are you going to take me to Crandor Island now then?'
     ]
 };
-const NED_MAP: NpcStop = {
-    npc: 'Ned', anchor: DS_NPC.NED, leash: 6,
-    prefer: ['So are you going to take me to Crandor Island now then?']
-};
 const NED_ABOARD: NpcStop = {
     npc: 'Ned', anchor: DS_NPC.NED_ABOARD, leash: 8,
     prefer: ['Yep lets go!']
 };
+
+const NAILS_NEEDED = 12;
 
 const ORACLE_DOOR_ITEMS = [DS_ID.MIND_BOMB, DS_ID.UNFIRED_BOWL, DS_ID.LOBSTER_POT, DS_ID.SILK];
 
@@ -82,37 +74,27 @@ const FIND_DRAGON = 'So where can I find this dragon?';
 const FAREWELL = "Ok I'll try and get everything together.";
 
 /**
- * One question per visit, then leave.
+ * The whole briefing in one conversation.
  *
- * Oziach's menus re-offer questions that have already been answered — asking
- * about the second map piece hands back a menu still containing the first — so
- * a prefer list holding several of them never runs out of matches. The dialogue
- * cycles, never closes, and the journal cannot be read while it is up, so the
- * briefing appears to make no progress at all. Observed live: three hours on his
- * doorstep at stage 2.
- *
- * Each of these needs its own visit, and the farewell has to be reachable from
- * whatever menu the answer leaves behind.
+ * His menus re-offer questions already answered, so this has to be driven by a
+ * primitive that takes each line at most once — an ordinary prefer list cycles
+ * between the map pieces forever. FIND_DRAGON is in the list only because the
+ * three piece questions live in the submenu it opens.
  */
-const OZIACH_QUESTIONS: readonly string[] = [
+const OZIACH_BRIEFING: readonly string[] = [
+    FIND_DRAGON,
     'Where is the first piece of the map?',
     'Where is the second piece of the map?',
     'Where is the third piece of the map?',
     'Where can I get an antidragon shield?'
 ];
 
-let briefingAsked = 0;
-
 async function briefOziach(log: (m: string) => void): Promise<boolean> {
     if (!(await gotoNpc(OZIACH, [], log))) {
         return false;
     }
-    const question = OZIACH_QUESTIONS[briefingAsked % OZIACH_QUESTIONS.length];
-    briefingAsked++;
-    log(`asking Oziach: ${question}`);
-    // FIND_DRAGON only to reach the submenu the map questions live in; the
-    // farewell last so the dialogue always has a way to end.
-    return talkThrough(OZIACH.npc, [question, FIND_DRAGON, FAREWELL], log);
+    log('getting the briefing from Oziach');
+    return talkAsking(OZIACH.npc, OZIACH_BRIEFING, FAREWELL, log);
 }
 
 const walk = (to: Tile, log: (m: string) => void, radius = 2): Promise<boolean> =>
@@ -438,16 +420,6 @@ function coinsShort(snap: QuestSnapshot, price: number): QuestStep | null {
     return { kind: 'withdraw', items: [{ name: 'Coins', qty: price + 1000 - held }], bank: FALADOR_BANK };
 }
 
-/** Carried melee kit goes on before the maze, not once a demon is already hitting. */
-function wearKit(snap: QuestSnapshot): QuestStep | null {
-    for (const item of SUPPLY_LOADOUT) {
-        const key = item.toLowerCase();
-        if (!snap.worn.has(key) && (snap.inv.get(key) ?? 0) > 0) {
-            return { kind: 'equip', item };
-        }
-    }
-    return null;
-}
 
 /** A piece left in the bank reads to the journal as never found; fetch it back. */
 function bankedPieces(snap: QuestSnapshot): { name: string; qty: number; id: number }[] {
@@ -487,13 +459,12 @@ export function decide(snap: QuestSnapshot): QuestStep {
         if (!hasFlag(snap.progress, 'has-shield') && !anywhere(snap, DS_ID.SHIELD)) {
             return { kind: 'talk', stop: DUKE };
         }
-        // Buy the melee kit before the maze, once, and never block on it.
-        if (!loadoutSettled()) {
-            return custom('buy melee kit', buyLoadout);
-        }
-        const kit = wearKit(snap);
-        if (kit) {
-            return kit;
+        // Last of the shopping, and out here rather than in the record so it can
+        // bank the rest of the pack first — eighteen slots of ore will not fit
+        // behind it. Skipped entirely when the nails are already in the bank.
+        const nails = (snap.invIds?.get(DS_ID.NAILS) ?? 0) + (snap.bankIds?.get(DS_ID.NAILS) ?? 0);
+        if (nails < NAILS_NEEDED) {
+            return custom(`smith ${NAILS_NEEDED - nails} nails`, log => smithNails(NAILS_NEEDED - nails, log));
         }
         const banked = bankedPieces(snap);
         if (banked.length > 0 && !heldById(DS_ID.MAP)) {
@@ -532,6 +503,14 @@ export function decide(snap: QuestSnapshot): QuestStep {
     }
 
     if (stage === DRAGON_STAGE.BOUGHT_SHIP) {
+        const short = [
+            { id: DS_ID.NAILS, name: DS_ITEM.NAILS, qty: NAILS_NEEDED },
+            { id: DS_ID.PLANK, name: DS_ITEM.PLANK, qty: 3 },
+            { id: DS_ID.HAMMER, name: DS_ITEM.HAMMER, qty: 1 }
+        ].filter(w => (snap.invIds?.get(w.id) ?? 0) < w.qty && (snap.bankIds?.get(w.id) ?? 0) > 0);
+        if (short.length > 0 && !aboard(snap.tile)) {
+            return { kind: 'withdraw', items: short.map(w => ({ name: w.name, qty: w.qty, id: w.id })), bank: FALADOR_BANK };
+        }
         // Hiring Ned leaves no journal trace, so it is done first and the repair
         // is what the journal can actually confirm.
         if (!hasFlag(snap.progress, 'ship-repaired')) {
@@ -583,4 +562,4 @@ export const dragonslayer: QuestModule = {
     decide
 };
 
-export { SHIP_PRICE, WORMBRAIN_PRICE, inMaze, NED_MAP };
+export { SHIP_PRICE, WORMBRAIN_PRICE, inMaze };
