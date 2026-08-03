@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import { DS_ID } from '#/bot/quests/defs/dragonslayer/areas.js';
+import { DS_ID, DS_LOC } from '#/bot/quests/defs/dragonslayer/areas.js';
 import { MAZE_LEGS, MAZE_NPC, doorCrossed, inMaze, legFromPosition } from '#/bot/quests/defs/dragonslayer/maze.js';
 import { OZIACH_GOALS } from '#/bot/quests/defs/dragonslayer/index.js';
 
@@ -87,8 +87,41 @@ describe("Melzar's Maze route", () => {
         expect(MAZE_LEGS[legFromPosition({ x: 2929, z: 3250, level: 1 })]).toMatchObject({ kind: 'kill', npcId: MAZE_NPC.GHOST });
         expect(MAZE_LEGS[legFromPosition({ x: 2925, z: 3251, level: 2 })]).toMatchObject({ kind: 'kill', npcId: MAZE_NPC.SKELETON });
         expect(MAZE_LEGS[legFromPosition({ x: 2932, z: 9641, level: 0 })]).toMatchObject({ kind: 'kill', npcId: MAZE_NPC.ZOMBIE });
+        // Every floor and cellar test above only means anything inside the maze.
+        // The Dwarven Mine anvil, where the nails leg ends, is z=9813: read as
+        // "the maze basement" it sent the run to a zombie two dungeons away and
+        // the walker spent the rest of the run failing to path there.
+        expect(legFromPosition({ x: 3012, z: 9813, level: 0 })).toBe(0);
+        // Duke Horacio's floor of Lumbridge castle, where the shield leg ends.
+        expect(legFromPosition({ x: 3212, z: 3220, level: 1 })).toBe(0);
+        // The rune essence mine, which is nowhere at all.
+        expect(legFromPosition({ x: 2911, z: 4832, level: 0 })).toBe(0);
         // The dead end the second-floor descent drops into, not the entrance hall.
         expect(MAZE_LEGS[legFromPosition({ x: 2936, z: 3240, level: 0 })]).toMatchObject({ kind: 'climb', op: 'Climb-down' });
+    });
+});
+
+describe('the Crandor secret wall', () => {
+    test('is one loc, on the Crandor row, reached from a stand one tile south', () => {
+        // m44_150.jm2 spawns it at (2836,9600) angle 3 (south) and nowhere else.
+        // A wall has no second loc on its far side, so both directions have to
+        // click this tile; addressing the Karamja stand as if it were the door
+        // finds nothing in the scene and the way back in never opens.
+        expect(DS_LOC.CRANDOR_SECRET_DOOR).toMatchObject({ x: 2836, z: 9600, level: 0 });
+        expect(DS_LOC.SECRET_WALL_KARAMJA_STAND.x).toBe(DS_LOC.CRANDOR_SECRET_DOOR.x);
+        expect(DS_LOC.SECRET_WALL_KARAMJA_STAND.level).toBe(DS_LOC.CRANDOR_SECRET_DOOR.level);
+        // door_open(loc_south, wall_straight) is (0,-1): the swing, and the
+        // Karamja stand, are both one tile south of the wall.
+        expect(DS_LOC.CRANDOR_SECRET_DOOR.z - DS_LOC.SECRET_WALL_KARAMJA_STAND.z).toBe(1);
+    });
+
+    test('the lair gate is taken from the lair column, which is the side that opens', () => {
+        // Both leaves spawn at angle 0 (west) on x=2847, so check_axis_locactive
+        // reads that column as "entering" and the lock — stage != sailed, not
+        // entering — only ever guards the way in. Standing a tile west of it is
+        // how a finished run would find itself shut in with the corpse.
+        expect(DS_LOC.ELVARG_GATE_INSIDE.x).toBe(DS_LOC.ELVARG_GATE.x);
+        expect(DS_LOC.ELVARG_GATE_STAND.x).toBe(DS_LOC.ELVARG_GATE.x - 1);
     });
 });
 

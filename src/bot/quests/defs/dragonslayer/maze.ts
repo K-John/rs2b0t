@@ -99,6 +99,13 @@ export function inMaze(t: { x: number; z: number; level: number } | null | undef
  * up an interrupted run; within a run the index is carried forward.
  */
 export function legFromPosition(t: { x: number; z: number; level: number }): number {
+    // Every test below reads a floor or a cellar as a place in this route, and
+    // none of them mean anything outside the building. Unguarded, the Dwarven
+    // Mine anvil (z=9813) is "the maze basement" and the run resumes at a zombie
+    // it has no path to.
+    if (!inMaze(t)) {
+        return 0;
+    }
     if (t.z >= 9600) {
         return 12;
     }

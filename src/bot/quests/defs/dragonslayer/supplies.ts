@@ -11,10 +11,8 @@ import { Traversal } from '../../../api/Traversal.js';
 import Tile from '../../../api/Tile.js';
 import { talkThrough } from '../../exec/primitives.js';
 import { openBankLeg } from '../../exec/steps.js';
+import { QuestFood } from '../../food.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
-
-/** The quest's bank, repeated here to keep supplies free of a cycle back to index. */
-const FALADOR_BANK = new Tile(3013, 3355, 0);
 
 /**
  * Where Dragon Slayer's shopping list actually comes from.
@@ -98,7 +96,7 @@ export async function ensureCoins(need: number, log: (m: string) => void): Promi
     if (Inventory.count('Coins') >= need) {
         return true;
     }
-    if (!(await openBankLeg('no bank to draw spending money from', FALADOR_BANK, log))) {
+    if (!(await openBankLeg('no bank to draw spending money from', undefined, log))) {
         return false;
     }
     await Bank.withdrawX('Coins', Math.max(need, 2000));
@@ -110,6 +108,13 @@ export async function ensureCoins(need: number, log: (m: string) => void): Promi
 async function buyMindBomb(log: (m: string) => void): Promise<boolean> {
     if (!(await ensureCoins(10, log))) {
         log('no coins for a mind bomb');
+        return false;
+    }
+    // Checked again here and not just on the snapshot: she takes the money
+    // whatever the pack looks like, and a bomb bought into a full one is poured
+    // onto the floor of the pub.
+    if (Inventory.isFull()) {
+        log('pack is full — she would pour the mind bomb onto the floor');
         return false;
     }
     if (!(await walk(SUPPLY.BARMAID.anchor, log, 2))) {
@@ -300,9 +305,12 @@ export async function smithNails(need: number, log: (m: string) => void): Promis
     }
     const bars = Math.ceil(need / 2);
     const ore = (): number => Inventory.count(SUPPLY_ITEM.IRON_ORE);
-    // 'maze key' earns its slot: it is the one item whose absence decide() reads
-    // as "the briefing never happened", which sends the bot back to Oziach.
-    const KEEP = ['coins', 'pickaxe', 'hammer', 'maze key', 'iron ore', 'coal', 'steel bar', 'nails',
+    // Three of these earn their slot by what banking them would cost: the maze
+    // key is what decide() reads as "the briefing never happened", the map is
+    // what Ned is waiting for, and the shield is the one thing that cannot be
+    // fetched back once the ship has sailed.
+    const KEEP = ['coins', 'pickaxe', 'hammer', 'maze key', 'crandor map', 'map part', 'dragonfire shield',
+        'iron ore', 'coal', 'steel bar', 'nails',
         'shark', 'lobster', 'swordfish', 'tuna', 'salmon', 'trout'];
     const coal = (): number => Inventory.count(SUPPLY_ITEM.COAL);
     const steel = (): number => Inventory.count(SUPPLY_ITEM.STEEL_BAR);
@@ -316,7 +324,7 @@ export async function smithNails(need: number, log: (m: string) => void): Promis
         // back out when the ship needs it.
         if (Inventory.items().some(i => i.name !== null && !KEEP.some(k => i.name!.toLowerCase().includes(k)))) {
             log('banking the shopping to make room for ore');
-            if (!(await openBankLeg('no bank to clear the pack at', FALADOR_BANK, log))) {
+            if (!(await openBankLeg('no bank to clear the pack at', undefined, log))) {
                 return false;
             }
             const spare = Inventory.items()
@@ -343,18 +351,29 @@ export async function smithNails(need: number, log: (m: string) => void): Promis
         if (!(await walk(SUPPLY_LOC.FURNACE, log, 1)) || !(await sceneLoaded())) {
             return false;
         }
-        const furnace = Locs.query().name('Furnace').within(5).nearest();
-        const held = Inventory.first(SUPPLY_ITEM.IRON_ORE);
-        if (!furnace || !held) {
+        // The furnace's own Smelt op is the one that opens the quantity panel.
+        // An ore *used on* the furnace takes the oplocu branch instead, which is
+        // smelt_ore_single: one bar, no menu, and another walk in for the next.
+        const smelter = Locs.query().name('Furnace').action('Smelt').within(5).nearest();
+        const furnace = smelter ?? Locs.query().name('Furnace').within(5).nearest();
+        if (!furnace) {
             log('no furnace in reach');
             return false;
         }
         log(`smelting ${Math.min(ore(), Math.floor(coal() / 2))} steel bars`);
-        if (!(await held.useOn(furnace))) {
-            return false;
+        if (smelter) {
+            if (!(await smelter.interact('Smelt'))) {
+                return false;
+            }
+        } else {
+            const held = Inventory.first(SUPPLY_ITEM.IRON_ORE);
+            if (!held || !(await held.useOn(furnace))) {
+                return false;
+            }
         }
         if (!(await Execution.delayUntil(() => ChatDialog.isMakeMenu(), 6000))) {
-            return false;
+            // A furnace with no Smelt op answers with a single bar and no menu.
+            return steel() > 0;
         }
         if (!(await ChatDialog.make('Steel'))) {
             return false;
@@ -448,14 +467,43 @@ async function grabPlanks(need: number, log: (m: string) => void): Promise<boole
 const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep =>
     ({ kind: 'custom', name, run });
 
+/**
+ * What the shopping is allowed to carry. The mining load is deliberately absent:
+ * eighteen slots of ore is what fills the pack, and `smithNails` reads its ore
+ * out of the inventory, so banking it costs a re-mine and nothing else.
+ */
+const SHOPPING_KEEP: readonly string[] = [
+    'coins', 'maze key', 'pickaxe', 'hammer', 'lobster pot', "wizard's mind bomb",
+    'unfired bowl', 'silk', 'plank', 'jug', 'clay'
+];
+
+/**
+ * A purchase into a full pack is not refused. `inv_add` drops the overflow at
+ * the player's feet, the coins are already gone, and the leg's own "did it
+ * arrive in the pack" check can never pass — which is an unbounded loop that
+ * pays for a new item every lap. Every acquisition here goes through this.
+ */
+function makeRoom(snap: QuestSnapshot, slots = 1): QuestStep | null {
+    if (snap.freeSlots === undefined || snap.freeSlots >= slots) {
+        return null;
+    }
+    const food = QuestFood.name?.toLowerCase();
+    const keep = food ? [...SHOPPING_KEEP, food] : [...SHOPPING_KEEP];
+    const spare = [...snap.inv.keys()].some(name => !keep.some(k => name.includes(k)));
+    return spare
+        ? { kind: 'deposit', keep }
+        : { kind: 'wait', reason: `no room for ${slots} more item${slots === 1 ? '' : 's'} and nothing spare to bank` };
+}
+
 /** Wired into the quest module's `gather` map, keyed by item display name. */
 export const SUPPLY_GATHERS: Record<string, (snap: QuestSnapshot, need: number) => QuestStep> = {
-    hammer: () => buy('Hammer', 1, SUPPLY.GENERAL_STORE, 100),
-    silk: () => buy('Silk', 1, SUPPLY.THESSALIA, 200),
-    'lobster pot': () => buy('Lobster pot', 1, SUPPLY.GERRANT, 200),
-    "wizard's mind bomb": () => custom('buy a mind bomb at the Rising Sun', buyMindBomb),
-    'unfired bowl': () => custom('make an unfired bowl', makeUnfiredBowl),
-    plank: (_snap, need) => custom(`fetch ${need} planks`, log => grabPlanks(need, log))
+    hammer: snap => makeRoom(snap) ?? buy('Hammer', 1, SUPPLY.GENERAL_STORE, 100),
+    silk: snap => makeRoom(snap) ?? buy('Silk', 1, SUPPLY.THESSALIA, 200),
+    'lobster pot': snap => makeRoom(snap) ?? buy('Lobster pot', 1, SUPPLY.GERRANT, 200),
+    "wizard's mind bomb": snap => makeRoom(snap) ?? custom('buy a mind bomb at the Rising Sun', buyMindBomb),
+    // A jug, then water, then clay, then the bowl: one free slot carries the lot.
+    'unfired bowl': snap => makeRoom(snap) ?? custom('make an unfired bowl', makeUnfiredBowl),
+    plank: (snap, need) => makeRoom(snap, need) ?? custom(`fetch ${need} planks`, log => grabPlanks(need, log))
 };
 
 
