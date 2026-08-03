@@ -31,9 +31,14 @@ export interface LootFilter {
     lootSet: ReadonlySet<string>;
     bankCommon: boolean;
     solveClues: boolean;
+    buryBones?: boolean;
+    boneName?: string;
 }
 
-/** Clues ignore lootSet so unchecking a loot box cannot disable clue solving. */
+/**
+ * Clues and burial bones ignore lootSet — unchecking a loot box must not
+ * silently disable clue solving or leave the bones you asked to bury.
+ */
 export function wantsGroundItem(item: { id: number; name: string | null }, f: LootFilter): boolean {
     if (f.solveClues && isClueLike(item.id)) {
         return true;
@@ -42,7 +47,11 @@ export function wantsGroundItem(item: { id: number; name: string | null }, f: Lo
     if (name.length === 0) {
         return false;
     }
-    return f.lootSet.has(name.toLowerCase()) || (f.bankCommon && matchesCommonBankLoot(name, item.id));
+    const n = name.toLowerCase();
+    if (f.buryBones === true && f.boneName !== undefined && n === f.boneName.toLowerCase()) {
+        return true;
+    }
+    return f.lootSet.has(n) || (f.bankCommon && matchesCommonBankLoot(name, item.id));
 }
 
 export type SlotAction = 'eat' | 'drop' | 'none';

@@ -95,6 +95,15 @@ describe('wantsGroundItem', () => {
     test('an unnamed ground item is never taken', () => {
         expect(wantsGroundItem({ id: 4242, name: null }, filter())).toBe(false);
     });
+    test('burying forces bones to be looted even when unchecked', () => {
+        const noBones = filter({ lootSet: new Set(['dragonhide']) });
+        expect(wantsGroundItem({ id: 536, name: 'Dragon bones' }, noBones)).toBe(false);
+        expect(wantsGroundItem({ id: 536, name: 'Dragon bones' }, { ...noBones, buryBones: true, boneName: 'Dragon bones' })).toBe(true);
+    });
+    test('burying does not drag in bones the bot was not told to bury', () => {
+        const burying = filter({ lootSet: new Set<string>(), bankCommon: false });
+        expect(wantsGroundItem({ id: 526, name: 'Bones' }, { ...burying, buryBones: true, boneName: 'Dragon bones' })).toBe(false);
+    });
 });
 
 describe('slotFreeingAction', () => {

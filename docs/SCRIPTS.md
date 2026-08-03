@@ -263,6 +263,7 @@ Tags: `wilderness`, `dragons`, `hides`
 | `spade` | string | `"Spade"` | Spade item (dig clues) |
 | `escape` | string | `"Flee to bank"` | Escape mode — one of: Flee to bank, Teleport to Varrock |
 | `loot` | string[] | `["Adamant full helm","Adamantite ore","Chaos talisman","Coins","Dragon bones","Dragon spear","Dragonhide","Fire rune","Half of a key","Herb","Law rune","Mithril axe","Mithril kiteshield","Mithril spear","Nature rune","Nature talisman","Rune dagger","Rune javelin","Rune spear","Shield left half","Steel battleaxe","Steel platelegs","Uncut diamond","Uncut emerald","Uncut ruby","Uncut sapphire","Water rune"]` | Loot to pick up (drop table) — one of: Adamant full helm, Adamantite ore, Bass, Chaos talisman, Coins, Dragon bones, Dragon spear, Dragonhide, Fire rune, Half of a key, Herb, Law rune, Mithril axe, Mithril kiteshield, Mithril spear, Nature rune, Nature talisman, Rune dagger, Rune javelin, Rune spear, Shield left half, Steel battleaxe, Steel platelegs, Uncut diamond, Uncut emerald, Uncut ruby, Uncut sapphire, Water rune |
+| `buryBones` | boolean | `false` | Bury dragon bones |
 | `bankCommonJunk` | boolean | `true` | Also grab shared gems/junk |
 | `anchorTile` | tile | `{"x":3096,"z":3814,"level":0}` | Dragon field tile |
 | `bankTile` | tile | `{"x":3094,"z":3493,"level":0}` | Bank stand tile (Edgeville) |

@@ -49,6 +49,7 @@ const SHOW_MELEE = { key: 'combatStyle', anyOf: ['melee'] };
 
 const DROPS: string[] = DROP_DB[TARGET] ?? [];
 const DEFAULT_LOOT = DROPS.filter(n => n.toLowerCase() !== 'bass');
+const BONE_NAME = 'Dragon bones';
 
 export const SETTINGS: SettingsSchema = {
     combatStyle: { type: 'string', default: 'melee', options: ['melee', 'mage'], label: 'Combat style', help: 'range is unavailable — a bow blocks the anti-dragon shield slot' },
@@ -70,6 +71,7 @@ export const SETTINGS: SettingsSchema = {
 
     escape: { type: 'string', default: 'Flee to bank', options: ['Flee to bank', 'Teleport to Varrock'], label: 'Escape mode', group: 'Wilderness', help: 'Teleport brings Varrock runes and runs south to level 20 to cast (teleports are blocked above level 20 wilderness)' },
     loot: { type: 'string[]', default: DEFAULT_LOOT, options: DROPS, label: 'Loot to pick up (drop table)', group: 'Banking & loot', help: 'Dragon bones + Dragonhide + the rest of the green dragon table; everything picked up is banked.' },
+    buryBones: { type: 'boolean', default: false, label: 'Bury dragon bones', group: 'Banking & loot', help: `bury ${BONE_NAME} for Prayer xp instead of banking them (always looted when on) — they are the most valuable drop, so this trades gold for xp` },
     bankCommonJunk: { type: 'boolean', default: true, label: 'Also grab shared gems/junk', group: 'Banking & loot' },
     anchorTile: { type: 'tile', default: DEFAULT_ANCHOR, label: 'Dragon field tile', group: 'Location' },
     bankTile: { type: 'tile', default: DEFAULT_BANK, label: 'Bank stand tile (Edgeville)', group: 'Location' },
@@ -92,6 +94,7 @@ let TELE_ESCAPE = false;
 let ANCHOR = DEFAULT_ANCHOR;
 let BANK_TILE = DEFAULT_BANK;
 let FOOD_RESERVE = 4;
+let BURY_BONES = false;
 let SOLVE_CLUES = true;
 let SPADE_NAME = 'Spade';
 let VERBOSE = false;
@@ -133,7 +136,7 @@ function hasVarrockRunes(): boolean {
 }
 function findLoot() {
     return GroundItems.query()
-        .where(g => wantsGroundItem({ id: g.id, name: g.name ?? null }, { lootSet: LOOT_SET, bankCommon: BANK_COMMON, solveClues: SOLVE_CLUES }))
+        .where(g => wantsGroundItem({ id: g.id, name: g.name ?? null }, { lootSet: LOOT_SET, bankCommon: BANK_COMMON, solveClues: SOLVE_CLUES, buryBones: BURY_BONES, boneName: BONE_NAME }))
         .within(FIELD_RADIUS)
         .nearest();
 }
@@ -461,6 +464,44 @@ async function withdrawTo(name: string, target: number): Promise<number> {
     return Inventory.count(name) - start;
 }
 
+class BuryBones implements Task {
+    private fails = 0;
+    private retryAt = 0;
+    constructor(private bot: GreenDragon) {}
+    validate(): boolean {
+        return BURY_BONES && Date.now() >= this.retryAt && Inventory.contains(BONE_NAME);
+    }
+    async execute(): Promise<void> {
+        const bones = Inventory.first(BONE_NAME);
+        if (!bones) {
+            return;
+        }
+        this.bot.setStatus(`burying ${BONE_NAME}`);
+        const before = Inventory.used();
+        if (!(await bones.interact('Bury'))) {
+            this.bot.log(`no Bury op on ${BONE_NAME}? ops=[${bones.actions().join(', ')}]`);
+            this.noteFail();
+            await Execution.delayTicks(2);
+            return;
+        }
+        if (await Execution.delayUntil(() => Inventory.used() < before, 3000)) {
+            this.bot.countBurial();
+            this.bot.vlog(`buried ${BONE_NAME} (${this.bot.burials()} total)`);
+            this.fails = 0;
+            return;
+        }
+        this.noteFail();
+    }
+    /** Never let a stuck burial starve the trail / bank tasks below it. */
+    private noteFail(): void {
+        if (++this.fails >= ASSERT_BATCH) {
+            this.fails = 0;
+            this.retryAt = Date.now() + ASSERT_RETRY_MS;
+            this.bot.log(`could not bury ${BONE_NAME} — pausing burial for ${ASSERT_RETRY_MS / 1000}s`);
+        }
+    }
+}
+
 class FreeSlot implements Task {
     constructor(private bot: GreenDragon) {}
     validate(): boolean {
@@ -595,6 +636,7 @@ export default class GreenDragon extends TaskBot {
     private bankEmpty = false;
     private cluesSolved = 0;
     private slotsFreed = 0;
+    private buried = 0;
     private lastTask = '';
     private holdReturnUntil = 0;
     private solveClue: SolveClue | undefined;
@@ -620,6 +662,7 @@ export default class GreenDragon extends TaskBot {
         ANCHOR = this.settings.tile('anchorTile', DEFAULT_ANCHOR);
         BANK_TILE = this.settings.tile('bankTile', DEFAULT_BANK);
         FOOD_RESERVE = this.settings.num('foodReserve', 4);
+        BURY_BONES = this.settings.bool('buryBones', false);
         SOLVE_CLUES = this.settings.bool('solveClues', true);
         SPADE_NAME = this.settings.str('spade', 'Spade');
         VERBOSE = this.settings.str('logDetail', 'Normal') === 'Verbose';
@@ -642,7 +685,7 @@ export default class GreenDragon extends TaskBot {
             enabled: () => SOLVE_CLUES
         });
 
-        this.log(`GreenDragon — style ${STYLE} w/ ${WEAPON} + ${SHIELD}${STYLE === 'mage' ? ` (${SPELL})` : ''}, food '${FOOD_NAME}' (reserve ${FOOD_RESERVE}), escape '${TELE_ESCAPE ? 'Varrock tele' : 'flee to bank'}', clues ${SOLVE_CLUES ? 'on' : 'off'}, field ${ANCHOR}, bank ${BANK_TILE}`);
+        this.log(`GreenDragon — style ${STYLE} w/ ${WEAPON} + ${SHIELD}${STYLE === 'mage' ? ` (${SPELL})` : ''}, food '${FOOD_NAME}' (reserve ${FOOD_RESERVE}), escape '${TELE_ESCAPE ? 'Varrock tele' : 'flee to bank'}', clues ${SOLVE_CLUES ? 'on' : 'off'}${BURY_BONES ? `, burying ${BONE_NAME}` : ''}, field ${ANCHOR}, bank ${BANK_TILE}`);
         this.vlog(`verbose logging on — loot set [${[...LOOT_SET].join(', ')}], common junk ${BANK_COMMON ? 'on' : 'off'}`);
 
         const traced = (name: string, task: Task): Task => new Traced(this, name, task);
@@ -663,6 +706,9 @@ export default class GreenDragon extends TaskBot {
             traced('GearEquip', new GearEquip(this)),
             traced('SetAttackStyle', new SetAttackStyle(this)),
             traced('ArmAutocast', new ArmAutocast(this)),
+            // Above SolveClue: a trail's bank prep would otherwise deposit the
+            // bones we were told to bury.
+            traced('BuryBones', new BuryBones(this)),
             traced('SolveClue', this.solveClue),
             traced('FreeSlot', new FreeSlot(this)),
             traced('BankRun', new BankRun(this)),
@@ -703,6 +749,12 @@ export default class GreenDragon extends TaskBot {
     countSlotFreed(): void {
         this.slotsFreed++;
     }
+    countBurial(): void {
+        this.buried++;
+    }
+    burials(): number {
+        return this.buried;
+    }
     countKill(): void {
         this.killsTotal++;
     }
@@ -735,6 +787,9 @@ export default class GreenDragon extends TaskBot {
         p.row(`Kills: ${this.killsTotal}`, `Looted: ${this.looted}`);
         p.row(`Shield: ${Equipment.contains(SHIELD) ? 'on' : 'OFF!'}`, `Bank trips: ${this.bankTrips}`);
         p.row(`Food: ${foodCount()} (keep ${FOOD_RESERVE})`, `Slots freed: ${this.slotsFreed}`);
+        if (BURY_BONES) {
+            p.row(`Buried: ${this.buried}`, `Prayer: ${Skills.level('prayer')}`);
+        }
         if (SOLVE_CLUES) {
             p.row(`Clues: ${this.cluesSolved}`, `Clue: ${this.solveClue?.clueStatus() ?? 'idle'}`);
         }

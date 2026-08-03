@@ -33,6 +33,7 @@ const SCIMITAR = 1333;
 const SHIELD = 1540;
 const SPADE = 952;
 const HARD_CLUE = 2723; // trail_clue_hard_sextant001
+const DRAGON_BONES = 536;
 
 interface Api {
     __rs2b0t: {
@@ -43,7 +44,7 @@ interface Api {
             isFull(): boolean;
         };
         Equipment: { contains(name: string): boolean };
-        Skills: { level(name: string): number; effective(name: string): number };
+        Skills: { level(name: string): number; effective(name: string): number; xp(name: string): number };
         reader: {
             worldTile(): { x: number; z: number; level: number } | null;
             groundItems(): { id: number; name: string | null }[];
@@ -112,6 +113,21 @@ async function give(page: Page, debugName: string, id: number, count: number): P
 
 /** The direct input driver works outside a script run, so gear/drops need no bot. */
 async function itemOp(page: Page, id: number, op: string): Promise<void> {
+    const present = await page
+        .waitForFunction(itemId => (globalThis as never as Api).__rs2b0t.Inventory.items().some(i => i.id === itemId), id, { timeout: 15_000 })
+        .then(() => true)
+        .catch(() => false);
+    if (!present) {
+        const seen = await page.evaluate(() => {
+            const g = (globalThis as never as Api).__rs2b0t;
+            return {
+                api: g.Inventory.items().map(i => `${i.name}#${i.id}`),
+                reader: g.reader.inventory().map(i => `${i.name}#${i.id}`),
+                worn: ['Rune scimitar', 'Dragonfire shield'].filter(n => g.Equipment.contains(n))
+            };
+        });
+        fail(`item #${id} never showed up in the pack to '${op}'; ${JSON.stringify(seen)}`);
+    }
     const sent = await page.evaluate(
         ([itemId, action]) => {
             const item = (globalThis as never as Api).__rs2b0t.Inventory.items().find(i => i.id === itemId);
@@ -278,11 +294,13 @@ async function caseRegainControl(page: Page, user: string): Promise<void> {
     await prepare(page, user, ANCHOR);
     await setSettings(page, 'GreenDragon', { solveClues: false, logDetail: 'Verbose' });
 
+    // Gear first, bulk food after — fewer inventory updates in flight between
+    // the two equips, which is where a stale snapshot loses the shield.
     await give(page, 'rune_scimitar', SCIMITAR, 1);
     await give(page, 'antidragonbreathshield', SHIELD, 1);
-    await give(page, 'lobster', LOBSTER, 14);
     await itemOp(page, SCIMITAR, 'Wield');
     await itemOp(page, SHIELD, 'Wear');
+    await give(page, 'lobster', LOBSTER, 14);
     const geared = await page.evaluate(() => {
         const e = (globalThis as never as Api).__rs2b0t.Equipment;
         return e.contains('Rune scimitar') && e.contains('Dragonfire shield');
@@ -326,15 +344,73 @@ async function caseRegainControl(page: Page, user: string): Promise<void> {
     console.log(`PASS — walked itself back to the field (at ${JSON.stringify(await tile(page))})`);
 }
 
+async function caseBuryBones(page: Page, user: string): Promise<void> {
+    await prepare(page, user, QUIET_FIELD);
+    // Bones deliberately left OUT of the loot list: burying must force them to
+    // be looted and buried anyway.
+    await setSettings(page, 'GreenDragon', {
+        solveClues: false,
+        buryBones: true,
+        logDetail: 'Verbose',
+        loot: 'Dragonhide',
+        anchorTile: `${QUIET_FIELD.x},${QUIET_FIELD.z},0`
+    });
+
+    await give(page, 'rune_scimitar', SCIMITAR, 1);
+    await give(page, 'antidragonbreathshield', SHIELD, 1);
+    await give(page, 'lobster', LOBSTER, 5);
+    await itemOp(page, SCIMITAR, 'Wield');
+    await itemOp(page, SHIELD, 'Wear');
+
+    // One bone in the pack, one on the ground — proves burying AND the forced pickup.
+    await give(page, 'dragon_bones', DRAGON_BONES, 2);
+    await itemOp(page, DRAGON_BONES, 'Drop');
+    const dropped = await page
+        .waitForFunction(id => (globalThis as never as Api).__rs2b0t.reader.groundItems().some(g => g.id === id), DRAGON_BONES, { timeout: 8000 })
+        .then(() => true)
+        .catch(() => false);
+    if (!dropped) {
+        fail('could not put a set of Dragon bones on the ground');
+    }
+    const prayerBefore = await page.evaluate(() => (globalThis as never as Api).__rs2b0t.Skills.xp('prayer'));
+    console.log(`seeded: 1 Dragon bones held + 1 on the ground, prayer xp ${prayerBefore}, bones NOT in the loot list`);
+
+    await startBot(page);
+    console.log('GreenDragon started (bury on)');
+
+    // 1. buries what it is holding — Prayer xp is the proof, not the slot count
+    const gainedXp = await page
+        .waitForFunction(before => (globalThis as never as Api).__rs2b0t.Skills.xp('prayer') > before, prayerBefore, { timeout: 120_000 })
+        .then(() => true)
+        .catch(() => false);
+    await dump(page, 'after the burial leg');
+    if (!gainedXp) {
+        fail('never buried the Dragon bones it was holding — no Prayer xp gained');
+    }
+    console.log(`PASS 1/2 — buried held bones (prayer xp ${prayerBefore} -> ${await page.evaluate(() => (globalThis as never as Api).__rs2b0t.Skills.xp('prayer'))})`);
+
+    // 2. picks the ground set up despite bones being absent from the loot list
+    const clearedGround = await page
+        .waitForFunction(id => !(globalThis as never as Api).__rs2b0t.reader.groundItems().some(g => g.id === id), DRAGON_BONES, { timeout: 120_000 })
+        .then(() => true)
+        .catch(() => false);
+    await dump(page, 'after the forced-pickup leg');
+    if (!clearedGround) {
+        fail('left the Dragon bones on the ground — burying must force them into the loot filter');
+    }
+    console.log('PASS 2/2 — looted bones that were not in the loot list, because burying is on');
+}
+
 const browser = await launchBrowser();
 const stamp = Date.now().toString(36).slice(-5);
 let failed = false;
-for (const [name, run] of [
-    ['clue hand-over', caseClueHandover],
-    ['regain control', caseRegainControl]
+for (const [name, tag, run] of [
+    ['clue hand-over', 'c', caseClueHandover],
+    ['regain control', 'r', caseRegainControl],
+    ['bury bones', 'b', caseBuryBones]
 ] as const) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-    const user = `gd${name === 'clue hand-over' ? 'c' : 'r'}${stamp}`;
+    const user = `gd${tag}${stamp}`;
     console.log(`\n=== case: ${name} (${user}) ===`);
     try {
         await run(page, user);
