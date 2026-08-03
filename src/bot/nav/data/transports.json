@@ -1,4 +1,6 @@
 [
+    {"from":{"x":2856,"z":3167,"level":0},"to":{"x":2856,"z":9567,"level":0},"locName":"Rocks","action":"Climb-down","kind":"dungeon"},
+    {"from":{"x":2856,"z":9570,"level":0},"to":{"x":2856,"z":3166,"level":0},"locName":"Climbing rope","action":"Climb","kind":"dungeon"},
     {"from":{"x":3205,"z":3209,"level":0},"to":{"x":3205,"z":3209,"level":1},"locName":"Staircase","action":"Climb-up","kind":"stair"},
     {"from":{"x":3205,"z":3209,"level":1},"to":{"x":3205,"z":3209,"level":2},"locName":"Staircase","action":"Climb-up","kind":"stair"},
     {"from":{"x":3205,"z":3209,"level":1},"to":{"x":3205,"z":3209,"level":0},"locName":"Staircase","action":"Climb-down","kind":"stair"},
