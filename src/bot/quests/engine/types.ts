@@ -74,11 +74,23 @@ export interface QuestSustain {
 export interface QuestModule {
     record: QuestRecord;
     hops?: LadderHop[];
-    bank?: Tile;
+    /**
+     * The bank this quest uses. Most quests sit in one town and naming its bank
+     * is both shorter and more predictable than working it out. `'nearest'` is
+     * for the ones that do not — a quest spread across four kingdoms pays for a
+     * pinned bank on every single leg.
+     */
+    bank?: Tile | 'nearest';
     grind?: string[];
     food?: number;
     gather?: Record<string, (snap: QuestSnapshot, need: number) => QuestStep>;
     tools?: string[];
+    /**
+     * Walked when the quest is finished, before the retreat to a bank, for the
+     * quests that end somewhere the navigator cannot leave on its own. Return
+     * true once the character is somewhere a bank walk can start from.
+     */
+    exit?: (log: (m: string) => void) => Promise<boolean>;
     /** The module owns all banking/loadout decisions, including restarts in bankless areas. */
     ownsInventory?: boolean;
     /** Read an exact quest stage from client-visible state. Async journals are supported. */
