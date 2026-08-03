@@ -54,6 +54,29 @@ export function wantsGroundItem(item: { id: number; name: string | null }, f: Lo
     return f.lootSet.has(n) || (f.bankCommon && matchesCommonBankLoot(name, item.id));
 }
 
+/** Chebyshev radius around the bank stand that counts as "the flee finished". */
+export const AT_BANK_RADIUS = 8;
+
+export interface EscapeState {
+    threat: boolean;
+    hpFraction: number;
+    panicHp: number;
+    hasFood: boolean;
+    atBank: boolean;
+}
+
+/**
+ * A flee ENDS at the bank. Low hp and no food stay true after arriving, so
+ * re-validating there re-walks a zero-tile path forever and wedges the bot on
+ * the spot — restocking is the bank run's job, which sits below this task.
+ */
+export function escapeNeeded(s: EscapeState): boolean {
+    if (s.threat) {
+        return true;
+    }
+    return !s.atBank && s.hpFraction < s.panicHp && !s.hasFood;
+}
+
 /**
  * A pack full of food is not a reason to bank — food is a resource the bot
  * spends, and slot-freeing turns it into room. Only a pack we can no longer

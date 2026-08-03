@@ -13,7 +13,7 @@ import { Inventory } from '#/bot/api/hud/Inventory.js';
 import { ClueExecutor } from '#/bot/clues/ClueExecutor.js';
 import { CASKET_IDS, CLUE_DB } from '#/bot/clues/data/cluedb.js';
 import { ensureCoordTools, hasAllTrio, hasCoordClueHeld } from '#/bot/clues/AcquireTools.js';
-import { trailKit } from '#/bot/clues/data/toolAcquire.js';
+import { SPADE_NAME, trailKit } from '#/bot/clues/data/toolAcquire.js';
 import { COORD_TOOL_SLOTS, trailFoodTarget, weaponNeeded } from '#/bot/clues/packPlan.js';
 import { isTeleportItem, teleportRunes } from '#/bot/clues/teleportKit.js';
 
@@ -43,7 +43,6 @@ export interface SolveClueHost {
     isFood(name: string): boolean;
     foodName(): string;
     foodWithdraw(): number;
-    spadeName(): string;
     weaponName?(): string;
     enabled?(): boolean;
     /** Hard-clue dig guardians are fought under Protect from Magic. */
@@ -137,7 +136,6 @@ export class SolveClue implements Task {
                 protectedNames.add(it.name.toLowerCase());
             }
         }
-        const spade = this.host.spadeName().toLowerCase();
         const weapon = (this.host.weaponName?.() ?? '').toLowerCase();
         const coordItems = new Set(['sextant', 'watch', 'chart']);
         const scrollId = heldClueScrollId();
@@ -150,12 +148,12 @@ export class SolveClue implements Task {
             // grind-sized load, which fills the pack and starves the trail kit.
             // It goes to the bank here and comes back capped below.
             return protectedNames.has(n) || n.includes('clue') || n.includes('casket')
-                || n === spade || n === 'coins' || coordItems.has(n) || rowItemNames.has(n) || (weapon !== '' && n === weapon)
+                || n === SPADE_NAME.toLowerCase() || n === 'coins' || coordItems.has(n) || rowItemNames.has(n) || (weapon !== '' && n === weapon)
                 || (keepTeleports && isTeleportItem(name));
         };
         await Bank.depositAllMatching(name => !isKeep(name), m => this.host.log(`[clue] deposit: ${m}`));
 
-        for (const item of trailKit(scrollId, this.host.spadeName())) {
+        for (const item of trailKit(scrollId)) {
             if (!Inventory.first(item)) {
                 await Bank.withdraw(item, 'Withdraw-1');
                 if (!(await Execution.delayUntil(() => Inventory.first(item) !== null, 2500))) {

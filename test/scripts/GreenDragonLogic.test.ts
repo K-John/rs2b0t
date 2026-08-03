@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import {
+    escapeNeeded,
     inWilderness,
     isClueLike,
     isGrindForeign,
@@ -105,6 +106,27 @@ describe('wantsGroundItem', () => {
     test('burying does not drag in bones the bot was not told to bury', () => {
         const burying = filter({ lootSet: new Set<string>(), bankCommon: false });
         expect(wantsGroundItem({ id: 526, name: 'Bones' }, { ...burying, buryBones: true, boneName: 'Dragon bones' })).toBe(false);
+    });
+});
+
+describe('escapeNeeded', () => {
+    const esc = (over: Partial<Parameters<typeof escapeNeeded>[0]> = {}) => ({
+        threat: false, hpFraction: 0.1, panicHp: 0.3, hasFood: false, atBank: false, ...over
+    });
+    test('flees when starving and hurt out in the field', () => {
+        expect(escapeNeeded(esc())).toBe(true);
+    });
+    test('stops once it reaches the bank — otherwise it re-walks forever', () => {
+        expect(escapeNeeded(esc({ atBank: true }))).toBe(false);
+    });
+    test('a threat still overrides, even at the bank', () => {
+        expect(escapeNeeded(esc({ threat: true, atBank: true }))).toBe(true);
+    });
+    test('food in the pack means eat, not flee', () => {
+        expect(escapeNeeded(esc({ hasFood: true }))).toBe(false);
+    });
+    test('healthy and foodless is not a panic', () => {
+        expect(escapeNeeded(esc({ hpFraction: 0.9 }))).toBe(false);
     });
 });
 

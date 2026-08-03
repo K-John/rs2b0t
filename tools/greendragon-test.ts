@@ -147,6 +147,25 @@ async function itemOp(page: Page, id: number, op: string): Promise<void> {
     await page.waitForTimeout(1200);
 }
 
+
+/** Wield/Wear and CONFIRM it landed — a single send flakes under engine load. */
+async function equip(page: Page, id: number, op: string, wornName: string): Promise<void> {
+    for (let attempt = 0; attempt < 4; attempt++) {
+        if (await page.evaluate(n => (globalThis as never as Api).__rs2b0t.Equipment.contains(n), wornName)) {
+            return;
+        }
+        await itemOp(page, id, op);
+        const on = await page
+            .waitForFunction(n => (globalThis as never as Api).__rs2b0t.Equipment.contains(n), wornName, { timeout: 6000 })
+            .then(() => true)
+            .catch(() => false);
+        if (on) {
+            return;
+        }
+    }
+    fail(`could not equip '${wornName}' (#${id}) after 4 attempts`);
+}
+
 async function startBot(page: Page): Promise<void> {
     await page.evaluate(() => {
         const g = globalThis as never as Api;
@@ -190,15 +209,8 @@ async function caseClueHandover(page: Page, user: string): Promise<void> {
     await give(page, 'rune_scimitar', SCIMITAR, 1);
     await give(page, 'antidragonbreathshield', SHIELD, 1);
     await give(page, 'spade', SPADE, 1);
-    await itemOp(page, SCIMITAR, 'Wield');
-    await itemOp(page, SHIELD, 'Wear');
-    const geared = await page.evaluate(() => {
-        const e = (globalThis as never as Api).__rs2b0t.Equipment;
-        return e.contains('Rune scimitar') && e.contains('Dragonfire shield');
-    });
-    if (!geared) {
-        fail('could not gear up before the run');
-    }
+    await equip(page, SCIMITAR, 'Wield', 'Rune scimitar');
+    await equip(page, SHIELD, 'Wear', 'Dragonfire shield');
 
     // Clue onto the ground, then fill every remaining slot with lobsters.
     await give(page, 'trail_clue_hard_sextant001', HARD_CLUE, 1);
@@ -330,16 +342,9 @@ async function caseRegainControl(page: Page, user: string): Promise<void> {
     // the two equips, which is where a stale snapshot loses the shield.
     await give(page, 'rune_scimitar', SCIMITAR, 1);
     await give(page, 'antidragonbreathshield', SHIELD, 1);
-    await itemOp(page, SCIMITAR, 'Wield');
-    await itemOp(page, SHIELD, 'Wear');
+    await equip(page, SCIMITAR, 'Wield', 'Rune scimitar');
+    await equip(page, SHIELD, 'Wear', 'Dragonfire shield');
     await give(page, 'lobster', LOBSTER, 14);
-    const geared = await page.evaluate(() => {
-        const e = (globalThis as never as Api).__rs2b0t.Equipment;
-        return e.contains('Rune scimitar') && e.contains('Dragonfire shield');
-    });
-    if (!geared) {
-        fail('could not gear up before the run');
-    }
 
     // Strand it off the field BEFORE starting: teleporting a running bot races
     // its in-flight walk and it drifts before the assertion can read a position.
@@ -391,8 +396,8 @@ async function caseBuryBones(page: Page, user: string): Promise<void> {
     await give(page, 'rune_scimitar', SCIMITAR, 1);
     await give(page, 'antidragonbreathshield', SHIELD, 1);
     await give(page, 'lobster', LOBSTER, 5);
-    await itemOp(page, SCIMITAR, 'Wield');
-    await itemOp(page, SHIELD, 'Wear');
+    await equip(page, SCIMITAR, 'Wield', 'Rune scimitar');
+    await equip(page, SHIELD, 'Wear', 'Dragonfire shield');
 
     // One bone in the pack, one on the ground — proves burying AND the forced pickup.
     await give(page, 'dragon_bones', DRAGON_BONES, 2);
@@ -451,6 +456,88 @@ async function caseDepositControl(page: Page, user: string): Promise<void> {
     console.log('CONTROL PASS — depositAllMatching does work for the ordinary bank run');
 }
 
+
+/**
+ * Fleeing used to WEDGE at the bank: low hp and no food stay true after
+ * arriving, so Escape re-walked a zero-tile path and logged forever while
+ * BankRun sat below it. It must now bank, restock, heal, and go back to work.
+ */
+async function caseFleeAndRecover(page: Page, user: string): Promise<void> {
+    await prepare(page, user, ANCHOR);
+    await setSettings(page, 'GreenDragon', { solveClues: false, logDetail: 'Verbose', foodWithdraw: 10 });
+    await give(page, 'rune_scimitar', SCIMITAR, 1);
+    await give(page, 'antidragonbreathshield', SHIELD, 1);
+    await equip(page, SCIMITAR, 'Wield', 'Rune scimitar');
+    await equip(page, SHIELD, 'Wear', 'Dragonfire shield');
+    await cheatQuiet(page, '~bank_f2p', 2500);
+
+    // No food at all, and one hit point: the exact panic state from the report.
+    await cheatQuiet(page, '~1hp', 1500);
+    const start = await page.evaluate(() => {
+        const g = (globalThis as never as Api).__rs2b0t;
+        return { hp: g.Skills.effective('hitpoints'), food: g.Inventory.count('Lobster') };
+    });
+    if (start.hp > 5 || start.food > 0) {
+        fail(`expected 1hp and no food, got hp=${start.hp} food=${start.food}`);
+    }
+    console.log(`stranded in the field at ${start.hp}hp with no food`);
+
+    await startBot(page);
+    console.log('GreenDragon started (panic state)');
+
+    const recovered = await page
+        .waitForFunction(
+            () => {
+                const g = (globalThis as never as Api).__rs2b0t;
+                return g.Inventory.count('Lobster') > 0 && g.Skills.effective('hitpoints') >= g.Skills.level('hitpoints');
+            },
+            undefined,
+            { timeout: 420_000 }
+        )
+        .then(() => true)
+        .catch(() => false);
+    await dump(page, 'after the flee-and-recover leg', 30);
+    if (!recovered) {
+        fail('never restocked food and healed at the bank — the flee wedged');
+    }
+    const heal = await page.evaluate(() => {
+        const g = (globalThis as never as Api).__rs2b0t;
+        return { hp: g.Skills.effective('hitpoints'), food: g.Inventory.count('Lobster') };
+    });
+    console.log(`PASS 1/2 — banked, withdrew ${heal.food} Lobster and healed to ${heal.hp}hp`);
+    // The heal must come from the bank run itself, not from the Eat task after
+    // the walk home has already begun at panic hp. Waited for, not sampled:
+    // hp hits full mid-loop, a beat before the line that reports it.
+    const healedAtBank = await page
+        .waitForFunction(
+            () => ((globalThis as never as Api).rs2b0t.runner.ctx?.log ?? []).some(l => /healed to (9[0-9]|100)% hp/.test(l.msg)),
+            undefined,
+            { timeout: 30_000 }
+        )
+        .then(() => true)
+        .catch(() => false);
+    if (!healedAtBank) {
+        fail('bank run did not eat back to full before leaving — it walked home on panic hp');
+    }
+
+    const backToWork = await page
+        .waitForFunction(
+            ([ax, az, radius]) => {
+                const t = (globalThis as never as Api).__rs2b0t.reader.worldTile();
+                return t !== null && Math.max(Math.abs(t.x - ax), Math.abs(t.z - az)) <= radius;
+            },
+            [ANCHOR.x, ANCHOR.z, FIELD_RADIUS + 6] as const,
+            { timeout: 420_000 }
+        )
+        .then(() => true)
+        .catch(() => false);
+    await dump(page, 'after the return-to-work leg', 20);
+    if (!backToWork) {
+        fail('recovered at the bank but never went back to the dragons');
+    }
+    console.log('PASS 2/2 — walked back to the field and resumed');
+}
+
 const browser = await launchBrowser();
 const stamp = Date.now().toString(36).slice(-5);
 let failed = false;
@@ -460,7 +547,8 @@ for (const [name, tag, run] of ([
     ['clue hand-over', 'c', caseClueHandover],
     ['regain control', 'r', caseRegainControl],
     ['bury bones', 'b', caseBuryBones],
-    ['deposit control', 'd', caseDepositControl]
+    ['deposit control', 'd', caseDepositControl],
+    ['flee recover', 'f', caseFleeAndRecover]
 ] as const).filter(([n]) => only === '' || n.includes(only))) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     const user = `gd${tag}${stamp}`;

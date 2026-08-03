@@ -94,12 +94,11 @@ export function isDisposableGatherJunk(name: string | null | undefined, id: numb
     if (n.length === 0) {
         return false;
     }
-    // Misc event / world leftovers that are not gear and not a gather product.
+    // Event / world leftovers that are not gear and not a gather product.
+    // Every name here is verified against the content's obj configs — entries
+    // for objs this revision does not have match nothing and only mislead.
     return (
         n === 'flier'
-        || n === 'spin ticket'
-        || n === 'security book'
-        || n.includes('discount certificate')
         || n === 'half a meat pie'
         || n === 'half a redberry pie'
         || n === 'half an apple pie'

@@ -25,7 +25,7 @@ import { Npcs, type Npc } from '../api/queries/Npcs.js';
 import { Players } from '../api/queries/Players.js';
 import { Traversal } from '../api/Traversal.js';
 import { SolveClue } from '../clues/SolveClue.js';
-import { RETURN_HOLD_MS, isGrindForeign, packForcesBank, slotFreeingAction, threatApplies, wantsGroundItem, type SlotAction } from './GreenDragonLogic.js';
+import { AT_BANK_RADIUS, RETURN_HOLD_MS, escapeNeeded, isGrindForeign, packForcesBank, slotFreeingAction, threatApplies, wantsGroundItem, type SlotAction } from './GreenDragonLogic.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 
@@ -67,7 +67,6 @@ export const SETTINGS: SettingsSchema = {
     foodReserve: { type: 'number', default: 4, min: 0, max: 27, label: 'Food kept back from slot-freeing', group: 'Food & healing', help: 'a full pack spends food to make room for loot instead of banking — never below this many' },
 
     solveClues: { type: 'boolean', default: true, label: 'Solve clue drops', group: 'Clues', help: 'green dragons drop hard clues — the trail runs out of the wilderness and back' },
-    spade: { type: 'string', default: 'Spade', label: 'Spade item (dig clues)', group: 'Clues' },
 
     escape: { type: 'string', default: 'Flee to bank', options: ['Flee to bank', 'Teleport to Varrock'], label: 'Escape mode', group: 'Wilderness', help: 'Teleport brings Varrock runes and runs south to level 20 to cast (teleports are blocked above level 20 wilderness)' },
     loot: { type: 'string[]', default: DEFAULT_LOOT, options: DROPS, label: 'Loot to pick up (drop table)', group: 'Banking & loot', help: 'Dragon bones + Dragonhide + the rest of the green dragon table; everything picked up is banked.' },
@@ -96,7 +95,6 @@ let BANK_TILE = DEFAULT_BANK;
 let FOOD_RESERVE = 4;
 let BURY_BONES = false;
 let SOLVE_CLUES = true;
-let SPADE_NAME = 'Spade';
 let VERBOSE = false;
 
 function wieldedNames(): string[] {
@@ -166,6 +164,11 @@ function foreignKit(): string[] {
         .map(i => i.name ?? '?');
 }
 
+/** Out of the consumables the grind runs on — only the bank fixes this. */
+function needsResupply(bot: GreenDragon): boolean {
+    return (!hasFood() && !bot.bankKnownEmpty()) || (needStyleSupplies() && !bot.supplyKnownEmpty());
+}
+
 function slotDecision(): { action: SlotAction; drop: ReturnType<typeof findLoot> } {
     const drop = findLoot();
     const action = slotFreeingAction({
@@ -204,7 +207,7 @@ async function eatOnce(bot: GreenDragon): Promise<boolean> {
 async function freeSlotForLoot(bot: GreenDragon): Promise<boolean> {
     const { action, drop } = slotDecision();
     const want = drop?.name ?? 'loot';
-    bot.vlog(`slot check: pack ${Inventory.used()} used / ${Inventory.free()} free, ${FOOD_NAME} x${foodCount()} (reserve ${FOOD_RESERVE}), hp ${Math.round(hpFrac() * 100)}%, ground '${want}' -> ${action}`);
+    bot.vlogChange('slot', `slot check: pack ${Inventory.used()} used / ${Inventory.free()} free, ${FOOD_NAME} x${foodCount()} (reserve ${FOOD_RESERVE}), hp ${Math.round(hpFrac() * 100)}%, ground '${want}' -> ${action}`);
     if (action === 'none') {
         return false;
     }
@@ -338,10 +341,15 @@ class ArmAutocast implements Task {
     }
 }
 
+function atBank(): boolean {
+    const here = Game.tile();
+    return here !== null && BANK_TILE.distanceTo(here) <= AT_BANK_RADIUS;
+}
+
 class Escape implements Task {
     constructor(private bot: GreenDragon) {}
     validate(): boolean {
-        return nearbyThreat() || (hpFrac() < PANIC_HP && !hasFood());
+        return escapeNeeded({ threat: nearbyThreat(), hpFraction: hpFrac(), panicHp: PANIC_HP, hasFood: hasFood(), atBank: atBank() });
     }
     async execute(): Promise<void> {
         if (nearbyThreat()) {
@@ -374,10 +382,7 @@ class BankRun implements Task {
         if (nearbyThreat()) {
             return false;
         }
-        if (needStyleSupplies() && !this.bot.supplyKnownEmpty()) {
-            return true;
-        }
-        if (!hasFood() && !this.bot.bankKnownEmpty()) {
+        if (needsResupply(this.bot)) {
             return true;
         }
         const foreign = foreignKit();
@@ -409,6 +414,61 @@ async function bankRoutine(bot: GreenDragon): Promise<void> {
     await Bank.depositAllMatching(depositAllExcept(keepNames()), m => bot.log(`  ${m}`));
 
     bot.setStatus(`withdrawing ${FOOD_NAME}`);
+    await withdrawFood(bot);
+    bot.noteBankEmpty(foodCount() === 0);
+    if (foodCount() === 0) {
+        bot.log(`WARNING: no '${FOOD_NAME}' in the bank — deposit food to resume eating.`);
+    }
+
+    await withdrawStyleSupplies(bot);
+
+    // Heal before leaving, then top the food back up: eating spends the very
+    // load we just withdrew, and walking back on panic hp just forces another
+    // trip (or a death on the way in).
+    if (await eatToFull(bot)) {
+        if (await Bank.openNearest('Bank booth', 'Use-quickly', m => bot.log(`  ${m}`))) {
+            await withdrawFood(bot);
+        }
+    }
+    bot.countBankTrip();
+    bot.setStatus('restocked — walking back to the dragons');
+    await Traversal.walkResilient(ANCHOR, { radius: 4, attempts: 6, timeoutMs: 300_000, log: m => bot.log(`  ${m}`) });
+}
+
+/**
+ * Heal up before walking back. Returning to the dragons on the hp that forced
+ * the trip just forces another one — or a death on the way in.
+ */
+async function eatToFull(bot: GreenDragon): Promise<boolean> {
+    if (hpFrac() >= 1 || !hasFood()) {
+        return false;
+    }
+    // The open bank swaps the backpack for its deposit view, whose ops are
+    // Deposit-* — there is no Eat to click until the modal is shut.
+    if (Bank.isOpen()) {
+        await Bank.close().catch(() => undefined);
+        await Execution.delayUntil(() => !Bank.isOpen(), 3000);
+    }
+    bot.setStatus('eating back to full before returning');
+    bot.log(`healing up before the walk back (${Math.round(hpFrac() * 100)}% hp, ${foodCount()} ${FOOD_NAME})`);
+    let ate = false;
+    // Eating has a cooldown, so a single failed bite is normal — only give up
+    // after several in a row, or the heal stops one lobster in.
+    let misses = 0;
+    for (let guard = 0; guard < 40 && hpFrac() < 1 && foodCount() > 0 && misses < 3; guard++) {
+        if (await eatOnce(bot)) {
+            ate = true;
+            misses = 0;
+        } else {
+            misses++;
+            await Execution.delayTicks(2);
+        }
+    }
+    bot.log(`healed to ${Math.round(hpFrac() * 100)}% hp (${foodCount()} ${FOOD_NAME} left)`);
+    return ate;
+}
+
+async function withdrawFood(bot: GreenDragon): Promise<void> {
     for (let guard = 0; guard < 12 && foodCount() < FOOD_WITHDRAW && !Inventory.isFull(); guard++) {
         const before = foodCount();
         const need = FOOD_WITHDRAW - before;
@@ -417,15 +477,7 @@ async function bankRoutine(bot: GreenDragon): Promise<void> {
             break;
         }
     }
-    bot.noteBankEmpty(foodCount() === 0);
-    if (foodCount() === 0) {
-        bot.log(`WARNING: no '${FOOD_NAME}' in the bank — deposit food to resume eating.`);
-    }
-
-    await withdrawStyleSupplies(bot);
-    bot.countBankTrip();
-    bot.setStatus('restocked — walking back to the dragons');
-    await Traversal.walkResilient(ANCHOR, { radius: 4, attempts: 6, timeoutMs: 300_000, log: m => bot.log(`  ${m}`) });
+    bot.vlog(`food after withdrawal: ${foodCount()}/${FOOD_WITHDRAW}`);
 }
 
 async function withdrawStyleSupplies(bot: GreenDragon): Promise<void> {
@@ -543,7 +595,7 @@ class LootCorpse implements Task {
             return false;
         }
         if (Inventory.isFull()) {
-            this.bot.vlog('loot on the ground but the pack is full and no slot could be freed — banking');
+            this.bot.vlogChange('lootskip', 'loot on the ground but the pack is full and no slot could be freed — banking');
             return false;
         }
         return true;
@@ -607,6 +659,12 @@ class Fight implements Task {
             if (EventSignal.pending() || this.bot.died || ChatDialog.canContinue() || nearbyThreat()) {
                 return;
             }
+            // Hand back to the loop so BankRun can restock — this inner cycle
+            // owns the bot for up to two minutes, long enough to die foodless.
+            if (needsResupply(this.bot)) {
+                this.bot.vlog('out of supplies mid-fight — yielding to the bank run');
+                return;
+            }
             if (hpFrac() < EAT_HP && hasFood()) {
                 await eatOnce(this.bot);
                 continue;
@@ -659,6 +717,7 @@ export default class GreenDragon extends TaskBot {
     private slotsFreed = 0;
     private buried = 0;
     private lastTask = '';
+    private readonly lastVlog = new Map<string, string>();
     private holdReturnUntil = 0;
     private solveClue: SolveClue | undefined;
 
@@ -685,7 +744,6 @@ export default class GreenDragon extends TaskBot {
         FOOD_RESERVE = this.settings.num('foodReserve', 4);
         BURY_BONES = this.settings.bool('buryBones', false);
         SOLVE_CLUES = this.settings.bool('solveClues', true);
-        SPADE_NAME = this.settings.str('spade', 'Spade');
         VERBOSE = this.settings.str('logDetail', 'Normal') === 'Verbose';
 
         this.on('chat.message', e => { if (/oh dear.*you are dead/i.test(e.text)) { this.died = true; } });
@@ -701,7 +759,6 @@ export default class GreenDragon extends TaskBot {
             isFood: n => isFoodItem(n, FOOD_NAME),
             foodName: () => FOOD_NAME,
             foodWithdraw: () => FOOD_WITHDRAW,
-            spadeName: () => SPADE_NAME,
             weaponName: () => WEAPON,
             enabled: () => SOLVE_CLUES
         });
@@ -754,6 +811,14 @@ export default class GreenDragon extends TaskBot {
         if (VERBOSE) {
             this.log(msg);
         }
+    }
+    /** Verbose, but only when the message actually changes — hot loops repeat. */
+    vlogChange(key: string, msg: string): void {
+        if (this.lastVlog.get(key) === msg) {
+            return;
+        }
+        this.lastVlog.set(key, msg);
+        this.vlog(msg);
     }
     noteTask(name: string): void {
         if (name !== this.lastTask) {

@@ -260,7 +260,6 @@ Tags: `wilderness`, `dragons`, `hides`
 | `panicHp` | number (1–98) | `30` | Escape below HP% |
 | `foodReserve` | number (0–27) | `4` | Food kept back from slot-freeing |
 | `solveClues` | boolean | `true` | Solve clue drops |
-| `spade` | string | `"Spade"` | Spade item (dig clues) |
 | `escape` | string | `"Flee to bank"` | Escape mode — one of: Flee to bank, Teleport to Varrock |
 | `loot` | string[] | `["Adamant full helm","Adamantite ore","Chaos talisman","Coins","Dragon bones","Dragon spear","Dragonhide","Fire rune","Half of a key","Herb","Law rune","Mithril axe","Mithril kiteshield","Mithril spear","Nature rune","Nature talisman","Rune dagger","Rune javelin","Rune spear","Shield left half","Steel battleaxe","Steel platelegs","Uncut diamond","Uncut emerald","Uncut ruby","Uncut sapphire","Water rune"]` | Loot to pick up (drop table) — one of: Adamant full helm, Adamantite ore, Bass, Chaos talisman, Coins, Dragon bones, Dragon spear, Dragonhide, Fire rune, Half of a key, Herb, Law rune, Mithril axe, Mithril kiteshield, Mithril spear, Nature rune, Nature talisman, Rune dagger, Rune javelin, Rune spear, Shield left half, Steel battleaxe, Steel platelegs, Uncut diamond, Uncut emerald, Uncut ruby, Uncut sapphire, Water rune |
 | `buryBones` | boolean | `false` | Bury dragon bones |
@@ -353,7 +352,6 @@ Tags: `rellekka`, `keys`, `afk`
 | `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
 | `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs/caskets |
 | `solveClues` | boolean | `true` | Solve easy clues |
-| `spade` | string | `"Spade"` | Spade item (dig clues) |
 
 ## Cooking
 
@@ -798,7 +796,6 @@ Tags: `clues`, `banking`, `utility`
 | `food` | string | `""` | Food item name |
 | `foodWithdraw` | number (1–27) | `8` | Food to withdraw |
 | `eatAtHp` | number (1–99) | `50` | Eat below HP% |
-| `spade` | string | `"Spade"` | Spade item (dig clues) |
 | `restorePrayer` | boolean | `true` | Top up prayer between trails |
 | `useTeleports` | boolean | `true` | Use teleports |
 
