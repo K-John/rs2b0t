@@ -1,0 +1,360 @@
+// Live GreenDragon proof against a local engine.
+//
+// Two independent cases, each on its own account:
+//   1. clue hand-over — a hard clue on the ground with a pack full of lobsters.
+//      The bot must spend food for the slot (not walk to Edgeville), take the
+//      clue by obj id, hand control to SolveClue, leave the wilderness and open
+//      a bank to start the trail.
+//   2. regain control — with clues off, teleported off the field, the bot must
+//      walk itself back. This is the task that returns control after a trail;
+//      it is proven on a short hop rather than a whole trail, which is slow and
+//      flakes on the known nav-island destinations.
+//
+//   bun tools/greendragon-test.ts [http://localhost:8888]
+import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, setSettings } from './lib/harness.js';
+import type { Page } from 'playwright-core';
+
+const base = process.argv[2] ?? 'http://localhost:8888';
+
+const ANCHOR = { x: 3096, z: 3814 };
+/**
+ * Quiet low wilderness for the slot-freeing case. Standing in the real dragon
+ * field makes the run non-deterministic: dragon damage lets the hp-driven Eat
+ * task (which outranks FreeSlot) free the slot incidentally, so FreeSlot never
+ * gets to decide and the assertion flakes. Undamaged, the decision is always
+ * 'drop', and every path under test still runs.
+ */
+const QUIET_FIELD = { x: 3096, z: 3560 };
+const WILDY_MIN_Z = 3520;
+const FIELD_RADIUS = 22;
+
+const LOBSTER = 379;
+const SCIMITAR = 1333;
+const SHIELD = 1540;
+const SPADE = 952;
+const HARD_CLUE = 2723; // trail_clue_hard_sextant001
+
+interface Api {
+    __rs2b0t: {
+        Inventory: {
+            items(): { id: number; name: string | null; count: number; interact(op: string): boolean | Promise<boolean> }[];
+            count(name: string): number;
+            used(): number;
+            isFull(): boolean;
+        };
+        Equipment: { contains(name: string): boolean };
+        Skills: { level(name: string): number; effective(name: string): number };
+        reader: {
+            worldTile(): { x: number; z: number; level: number } | null;
+            groundItems(): { id: number; name: string | null }[];
+            inventory(): { id: number; name: string | null; count: number }[];
+        };
+    };
+    rs2b0t: {
+        client: { ingame: boolean };
+        runner: { state: string; start(meta: unknown): void; stop(): void; ctx: { log: { msg: string }[] } | null };
+        registry: { get(name: string): unknown };
+        reader: { chat(count: number): { text: string }[] };
+    };
+}
+
+const tile = (page: Page) => page.evaluate(() => (globalThis as never as Api).__rs2b0t.reader.worldTile());
+const invIds = (page: Page) => page.evaluate(() => (globalThis as never as Api).__rs2b0t.reader.inventory().map(i => i.id));
+const logLines = (page: Page) => page.evaluate(() => ((globalThis as never as Api).rs2b0t.runner.ctx?.log ?? []).map(l => l.msg));
+
+async function dump(page: Page, label: string, tailCount = 20): Promise<void> {
+    const lines = await logLines(page);
+    const state = await page
+        .evaluate(() => {
+            const g = (globalThis as never as Api).__rs2b0t;
+            const t = g.reader.worldTile();
+            return {
+                at: t ? `${t.x},${t.z},${t.level}` : 'none',
+                hp: `${g.Skills.effective('hitpoints')}/${g.Skills.level('hitpoints')}`,
+                pack: `${g.Inventory.used()}/28`,
+                lobsters: g.Inventory.count('Lobster'),
+                shield: g.Equipment.contains('Dragonfire shield'),
+                clue: g.reader.inventory().some(i => i.id === 2723),
+                ground: g.reader.groundItems().length,
+                runner: (globalThis as never as Api).rs2b0t.runner.state,
+                ingame: (globalThis as never as Api).rs2b0t.client.ingame
+            };
+        })
+        .catch(() => null);
+    console.log(`--- ${label} --- ${state ? JSON.stringify(state) : 'state unavailable'}`);
+    console.log(`  (log has ${lines.length} lines)`);
+    for (const l of lines.slice(-tailCount)) {
+        console.log(`  ${l}`);
+    }
+    const chat = await page.evaluate(() => (globalThis as never as Api).rs2b0t.reader.chat(12).map(c => c.text)).catch(() => []);
+    for (const c of chat) {
+        console.log(`  chat| ${c}`);
+    }
+}
+
+/** ::give, then confirm the item actually landed — only some debugnames work. */
+async function give(page: Page, debugName: string, id: number, count: number): Promise<void> {
+    const before = (await invIds(page)).filter(i => i === id).length;
+    await cheatQuiet(page, `give ${debugName} ${count}`, 1200);
+    const ok = await page
+        .waitForFunction(
+            ([itemId, want]) => (globalThis as never as Api).__rs2b0t.reader.inventory().filter(i => i.id === itemId).length >= want,
+            [id, before + count] as const,
+            { timeout: 5000 }
+        )
+        .then(() => true)
+        .catch(() => false);
+    if (!ok) {
+        const inv = await page.evaluate(() => (globalThis as never as Api).__rs2b0t.reader.inventory().map(i => `${i.name}#${i.id}x${i.count}`));
+        fail(`::give ${debugName} x${count} did not land; inventory=${JSON.stringify(inv)}`);
+    }
+}
+
+/** The direct input driver works outside a script run, so gear/drops need no bot. */
+async function itemOp(page: Page, id: number, op: string): Promise<void> {
+    const sent = await page.evaluate(
+        ([itemId, action]) => {
+            const item = (globalThis as never as Api).__rs2b0t.Inventory.items().find(i => i.id === itemId);
+            return item ? Boolean(item.interact(action)) : false;
+        },
+        [id, op] as const
+    );
+    if (!sent) {
+        fail(`could not send '${op}' to item #${id}`);
+    }
+    await page.waitForTimeout(1200);
+}
+
+async function startBot(page: Page): Promise<void> {
+    await page.evaluate(() => {
+        const g = globalThis as never as Api;
+        const meta = g.rs2b0t.registry.get('GreenDragon');
+        if (!meta) {
+            throw new Error('GreenDragon is not registered');
+        }
+        g.rs2b0t.runner.start(meta);
+    });
+}
+
+async function prepare(page: Page, user: string, at: { x: number; z: number }): Promise<void> {
+    page.on('pageerror', e => console.log(`pageerror: ${e}`));
+    await page.goto(`${base}/bot.html`);
+    await boot(page);
+    if (!(await login(page, user))) {
+        fail(`login failed for ${user}`);
+    }
+    await bringUpOffIsland(page, { user });
+    for (const stat of ['attack', 'strength', 'defence', 'hitpoints']) {
+        await cheatQuiet(page, `setstat ${stat} 99`, 800);
+    }
+    await cheatQuiet(page, `tele 0,${at.x >> 6},${at.z >> 6},${at.x & 63},${at.z & 63}`, 3500);
+    const landed = await tile(page);
+    if (!landed || Math.max(Math.abs(landed.x - at.x), Math.abs(landed.z - at.z)) > 4) {
+        fail(`tele to ${at.x},${at.z} landed at ${landed ? `${landed.x},${landed.z}` : 'nowhere'}`);
+    }
+    console.log(`${user}: ingame at (${landed.x},${landed.z})`);
+}
+
+async function caseClueHandover(page: Page, user: string): Promise<void> {
+    await prepare(page, user, QUIET_FIELD);
+    await setSettings(page, 'GreenDragon', {
+        solveClues: true,
+        logDetail: 'Verbose',
+        foodReserve: 4,
+        anchorTile: `${QUIET_FIELD.x},${QUIET_FIELD.z},0`
+    });
+
+    await give(page, 'rune_scimitar', SCIMITAR, 1);
+    await give(page, 'antidragonbreathshield', SHIELD, 1);
+    await give(page, 'spade', SPADE, 1);
+    await itemOp(page, SCIMITAR, 'Wield');
+    await itemOp(page, SHIELD, 'Wear');
+    const geared = await page.evaluate(() => {
+        const e = (globalThis as never as Api).__rs2b0t.Equipment;
+        return e.contains('Rune scimitar') && e.contains('Dragonfire shield');
+    });
+    if (!geared) {
+        fail('could not gear up before the run');
+    }
+
+    // Clue onto the ground, then fill every remaining slot with lobsters.
+    await give(page, 'trail_clue_hard_sextant001', HARD_CLUE, 1);
+    await itemOp(page, HARD_CLUE, 'Drop');
+    const onGround = await page
+        .waitForFunction(id => (globalThis as never as Api).__rs2b0t.reader.groundItems().some(g => g.id === id), HARD_CLUE, { timeout: 8000 })
+        .then(() => true)
+        .catch(() => false);
+    if (!onGround) {
+        fail('the hard clue never appeared on the ground');
+    }
+    await give(page, 'lobster', LOBSTER, 27);
+
+    const setup = await page.evaluate(() => {
+        const inv = (globalThis as never as Api).__rs2b0t;
+        return { used: inv.Inventory.used(), full: inv.Inventory.isFull(), lobsters: inv.Inventory.count('Lobster') };
+    });
+    if (!setup.full) {
+        fail(`expected a full pack before starting, got ${setup.used}/28 (${setup.lobsters} lobsters)`);
+    }
+    if ((await invIds(page)).includes(HARD_CLUE)) {
+        fail('the clue is still in the pack — it must start on the ground');
+    }
+    console.log(`seeded: pack FULL (${setup.lobsters} lobsters), hard clue #${HARD_CLUE} on the ground`);
+
+    await startBot(page);
+    console.log('GreenDragon started (clues on)');
+
+    // 1. spends food for the slot instead of walking to the bank
+    const freed = await page
+        .waitForFunction(
+            () => ((globalThis as never as Api).rs2b0t.runner.ctx?.log ?? []).some(l => l.msg.includes('to make room for')),
+            undefined,
+            { timeout: 120_000 }
+        )
+        .then(() => true)
+        .catch(() => false);
+    if (!freed) {
+        await dump(page, 'slot-freeing never decided');
+        fail('never freed a pack slot for loot — it banked instead (the bug under test)');
+    }
+    // The decision logs before the eat/drop lands, so wait for the effect.
+    const spent = await page
+        .waitForFunction(() => (globalThis as never as Api).__rs2b0t.Inventory.count('Lobster') < 27, undefined, { timeout: 30_000 })
+        .then(() => true)
+        .catch(() => false);
+    await dump(page, 'after the slot-freeing leg');
+    if (!spent) {
+        fail('decided to free a slot but no food was ever actually spent');
+    }
+    const stillInField = await tile(page);
+    if (!stillInField || stillInField.z < WILDY_MIN_Z) {
+        fail(`left the wilderness to make pack room at ${JSON.stringify(stillInField)} — should have eaten or dropped on the spot`);
+    }
+    const afterFree = await page.evaluate(() => (globalThis as never as Api).__rs2b0t.Inventory.count('Lobster'));
+    console.log(`PASS 1/4 — freed a slot in the field (lobsters 27 -> ${afterFree}, still at z=${stillInField.z})`);
+
+    // 2. takes the clue off the ground, matched by obj id
+    const took = await page
+        .waitForFunction(id => (globalThis as never as Api).__rs2b0t.reader.inventory().some(i => i.id === id), HARD_CLUE, { timeout: 120_000 })
+        .then(() => true)
+        .catch(() => false);
+    await dump(page, 'after the clue pickup leg');
+    if (!took) {
+        fail('never picked the hard clue up off the ground');
+    }
+    console.log('PASS 2/4 — picked the hard clue up by obj id');
+
+    // 3. hands control to SolveClue and walks out of the wilderness
+    const leftWildy = await page
+        .waitForFunction(minZ => {
+            const t = (globalThis as never as Api).__rs2b0t.reader.worldTile();
+            return t !== null && t.z < minZ;
+        }, WILDY_MIN_Z, { timeout: 600_000 })
+        .then(() => true)
+        .catch(() => false);
+    await dump(page, 'after the hand-over leg', 30);
+    if (!leftWildy) {
+        fail('never left the wilderness with the clue — Escape most likely dragged it back to the field');
+    }
+    console.log(`PASS 3/4 — handed over to SolveClue and left the wilderness (at ${JSON.stringify(await tile(page))})`);
+
+    // 4. the trail itself starts (SolveClue logs its own banking / solving legs)
+    const trailStarted = await page
+        .waitForFunction(
+            () => ((globalThis as never as Api).rs2b0t.runner.ctx?.log ?? []).some(l => l.msg.includes('[clue]')),
+            undefined,
+            { timeout: 300_000 }
+        )
+        .then(() => true)
+        .catch(() => false);
+    await dump(page, 'after the trail-start leg', 30);
+    if (!trailStarted) {
+        fail('SolveClue never logged a trail leg');
+    }
+    console.log('PASS 4/4 — clue trail started');
+}
+
+async function caseRegainControl(page: Page, user: string): Promise<void> {
+    await prepare(page, user, ANCHOR);
+    await setSettings(page, 'GreenDragon', { solveClues: false, logDetail: 'Verbose' });
+
+    await give(page, 'rune_scimitar', SCIMITAR, 1);
+    await give(page, 'antidragonbreathshield', SHIELD, 1);
+    await give(page, 'lobster', LOBSTER, 14);
+    await itemOp(page, SCIMITAR, 'Wield');
+    await itemOp(page, SHIELD, 'Wear');
+    const geared = await page.evaluate(() => {
+        const e = (globalThis as never as Api).__rs2b0t.Equipment;
+        return e.contains('Rune scimitar') && e.contains('Dragonfire shield');
+    });
+    if (!geared) {
+        fail('could not gear up before the run');
+    }
+
+    // Strand it off the field BEFORE starting: teleporting a running bot races
+    // its in-flight walk and it drifts before the assertion can read a position.
+    const away = { x: ANCHOR.x, z: 3745 };
+    await cheatQuiet(page, `tele 0,${away.x >> 6},${away.z >> 6},${away.x & 63},${away.z & 63}`, 4000);
+    const at = await tile(page);
+    if (!at || Math.max(Math.abs(at.x - away.x), Math.abs(at.z - away.z)) > 4) {
+        fail(`tele away from the field landed at ${JSON.stringify(at)}`);
+    }
+    const offBy = Math.max(Math.abs(at.x - ANCHOR.x), Math.abs(at.z - ANCHOR.z));
+    if (offBy <= FIELD_RADIUS + 6) {
+        fail(`stranded only ${offBy} tiles from the anchor — inside the return threshold, the test would prove nothing`);
+    }
+    console.log(`stranded ${offBy} tiles off the field at (${at.x},${at.z})`);
+
+    await startBot(page);
+    console.log('GreenDragon started (clues off), off the field');
+
+    const returned = await page
+        .waitForFunction(
+            ([ax, az, radius]) => {
+                const t = (globalThis as never as Api).__rs2b0t.reader.worldTile();
+                return t !== null && Math.max(Math.abs(t.x - ax), Math.abs(t.z - az)) <= radius;
+            },
+            [ANCHOR.x, ANCHOR.z, FIELD_RADIUS + 6] as const,
+            { timeout: 420_000 }
+        )
+        .then(() => true)
+        .catch(() => false);
+    await dump(page, 'after the return leg', 25);
+    if (!returned) {
+        fail('never walked back to the dragon field — nothing regains control after a detour');
+    }
+    console.log(`PASS — walked itself back to the field (at ${JSON.stringify(await tile(page))})`);
+}
+
+const browser = await launchBrowser();
+const stamp = Date.now().toString(36).slice(-5);
+let failed = false;
+for (const [name, run] of [
+    ['clue hand-over', caseClueHandover],
+    ['regain control', caseRegainControl]
+] as const) {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    const user = `gd${name === 'clue hand-over' ? 'c' : 'r'}${stamp}`;
+    console.log(`\n=== case: ${name} (${user}) ===`);
+    try {
+        await run(page, user);
+        console.log(`=== case: ${name} PASSED ===`);
+    } catch (e) {
+        failed = true;
+        console.log(`=== case: ${name} FAILED — ${e instanceof Error ? e.message : String(e)} ===`);
+    } finally {
+        await page.evaluate(() => {
+            try {
+                (globalThis as never as Api).rs2b0t.runner.stop();
+            } catch {
+                // already stopped
+            }
+        }).catch(() => undefined);
+        await page.close();
+    }
+}
+await browser.close();
+if (failed) {
+    process.exit(1);
+}
+console.log('\nall GreenDragon cases passed');

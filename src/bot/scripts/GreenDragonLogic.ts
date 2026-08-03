@@ -1,0 +1,73 @@
+import { matchesCommonBankLoot } from '../api/bankRules.js';
+import { CASKET_IDS, CLUE_DB } from '../clues/data/cluedb.js';
+
+/** First wilderness row north of the Edgeville ditch. */
+export const WILDY_MIN_Z = 3520;
+
+/** Hold before walking back after a threat-driven escape. */
+export const RETURN_HOLD_MS = 60_000;
+
+export function inWilderness(z: number): boolean {
+    return z > WILDY_MIN_Z;
+}
+
+/**
+ * Players only count as a threat above the ditch. A clue trail walks through
+ * Varrock and Falador, and treating those crowds as PKers aborts every trail.
+ */
+export function threatApplies(z: number | null, playersNear: number): boolean {
+    return z !== null && playersNear > 0 && inWilderness(z);
+}
+
+/**
+ * Matched by id, not name: every hard trail is a distinct obj all displaying as
+ * "Clue scroll".
+ */
+export function isClueLike(id: number): boolean {
+    return CLUE_DB[id] !== undefined || CASKET_IDS[id] !== undefined;
+}
+
+export interface LootFilter {
+    lootSet: ReadonlySet<string>;
+    bankCommon: boolean;
+    solveClues: boolean;
+}
+
+/** Clues ignore lootSet so unchecking a loot box cannot disable clue solving. */
+export function wantsGroundItem(item: { id: number; name: string | null }, f: LootFilter): boolean {
+    if (f.solveClues && isClueLike(item.id)) {
+        return true;
+    }
+    const name = item.name ?? '';
+    if (name.length === 0) {
+        return false;
+    }
+    return f.lootSet.has(name.toLowerCase()) || (f.bankCommon && matchesCommonBankLoot(name, item.id));
+}
+
+export type SlotAction = 'eat' | 'drop' | 'none';
+
+export interface SlotFreeingState {
+    packFull: boolean;
+    lootPresent: boolean;
+    foodCount: number;
+    foodReserve: number;
+    hpFraction: number;
+    /** Loot merges into a stack already held, so no slot is needed. */
+    lootStacksIntoPack: boolean;
+}
+
+/**
+ * Trade a food slot for a loot slot instead of walking to the bank. Eating wins
+ * whenever the heal is not wasted; at full hp the food is dropped. Never digs
+ * into the reserve — below it the caller falls through to its bank run.
+ */
+export function slotFreeingAction(s: SlotFreeingState): SlotAction {
+    if (!s.packFull || !s.lootPresent || s.lootStacksIntoPack) {
+        return 'none';
+    }
+    if (s.foodCount <= s.foodReserve) {
+        return 'none';
+    }
+    return s.hpFraction < 1 ? 'eat' : 'drop';
+}

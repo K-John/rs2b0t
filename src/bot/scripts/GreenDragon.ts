@@ -17,13 +17,15 @@ import { castsAvailable, runeWithdrawList } from '../api/combat/CombatStyleLogic
 import { SPELL_DB } from '../api/combat/data/spelldb.js';
 import { DROP_DB } from '../api/combat/data/dropdb.js';
 import { MELEE_WEAPONS, STAFFS } from '../api/combat/equipment.js';
-import { FOOD_OPTIONS, foodForms, foodCount as foodCountIn } from '../api/combat/food.js';
+import { FOOD_OPTIONS, foodForms, isFoodItem, foodCount as foodCountIn } from '../api/combat/food.js';
 import { combatKeepNames } from '../api/combat/keepList.js';
-import { depositAllExcept, matchesCommonBankLoot } from '../api/Banking.js';
+import { depositAllExcept } from '../api/Banking.js';
 import { GroundItems } from '../api/queries/GroundItems.js';
 import { Npcs, type Npc } from '../api/queries/Npcs.js';
 import { Players } from '../api/queries/Players.js';
 import { Traversal } from '../api/Traversal.js';
+import { SolveClue } from '../clues/SolveClue.js';
+import { RETURN_HOLD_MS, slotFreeingAction, threatApplies, wantsGroundItem, type SlotAction } from './GreenDragonLogic.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 
@@ -61,12 +63,17 @@ export const SETTINGS: SettingsSchema = {
     foodWithdraw: { type: 'number', default: 20, min: 1, max: 27, label: 'Food to withdraw per bank run', group: 'Food & healing' },
     eatHp: { type: 'number', default: 50, min: 1, max: 99, label: 'Eat below HP%', group: 'Food & healing' },
     panicHp: { type: 'number', default: 30, min: 1, max: 98, label: 'Escape below HP%', group: 'Food & healing', help: 'when out of food and this low, escape to the bank' },
+    foodReserve: { type: 'number', default: 4, min: 0, max: 27, label: 'Food kept back from slot-freeing', group: 'Food & healing', help: 'a full pack spends food to make room for loot instead of banking — never below this many' },
+
+    solveClues: { type: 'boolean', default: true, label: 'Solve clue drops', group: 'Clues', help: 'green dragons drop hard clues — the trail runs out of the wilderness and back' },
+    spade: { type: 'string', default: 'Spade', label: 'Spade item (dig clues)', group: 'Clues' },
 
     escape: { type: 'string', default: 'Flee to bank', options: ['Flee to bank', 'Teleport to Varrock'], label: 'Escape mode', group: 'Wilderness', help: 'Teleport brings Varrock runes and runs south to level 20 to cast (teleports are blocked above level 20 wilderness)' },
     loot: { type: 'string[]', default: DEFAULT_LOOT, options: DROPS, label: 'Loot to pick up (drop table)', group: 'Banking & loot', help: 'Dragon bones + Dragonhide + the rest of the green dragon table; everything picked up is banked.' },
     bankCommonJunk: { type: 'boolean', default: true, label: 'Also grab shared gems/junk', group: 'Banking & loot' },
     anchorTile: { type: 'tile', default: DEFAULT_ANCHOR, label: 'Dragon field tile', group: 'Location' },
-    bankTile: { type: 'tile', default: DEFAULT_BANK, label: 'Bank stand tile (Edgeville)', group: 'Location' }
+    bankTile: { type: 'tile', default: DEFAULT_BANK, label: 'Bank stand tile (Edgeville)', group: 'Location' },
+    logDetail: { type: 'string', default: 'Normal', options: ['Normal', 'Verbose'], label: 'Log detail', group: 'Diagnostics', help: 'Verbose adds task-switch and decision traces (pack census, loot skips, slot freeing, escape reasons)' }
 };
 
 let STYLE: 'melee' | 'mage' = 'melee';
@@ -84,6 +91,10 @@ let BANK_COMMON = true;
 let TELE_ESCAPE = false;
 let ANCHOR = DEFAULT_ANCHOR;
 let BANK_TILE = DEFAULT_BANK;
+let FOOD_RESERVE = 4;
+let SOLVE_CLUES = true;
+let SPADE_NAME = 'Spade';
+let VERBOSE = false;
 
 function wieldedNames(): string[] {
     return Equipment.items().map(i => i.name ?? '');
@@ -109,20 +120,44 @@ function inField(tile: Tile): boolean {
 function fieldDragons(): Npc[] {
     return Npcs.query().name(TARGET).where(n => inField(n.tile()) && !n.targetsAnotherPlayer()).results();
 }
+/**
+ * Players only count above the ditch. A clue trail walks through Varrock and
+ * Falador, and treating those crowds as PKers aborts the trail on every pass.
+ */
 function nearbyThreat(): boolean {
-    return Players.query().where(p => p.index !== LOCAL_PLAYER_SLOT && p.distance() <= THREAT_RADIUS).results().length > 0;
+    const near = Players.query().where(p => p.index !== LOCAL_PLAYER_SLOT && p.distance() <= THREAT_RADIUS).results().length;
+    return threatApplies(Game.tile()?.z ?? null, near);
 }
 function hasVarrockRunes(): boolean {
     return VARROCK_TELE_RUNES.every(r => Inventory.count(r.rune) >= r.count);
 }
 function findLoot() {
     return GroundItems.query()
-        .where(g => {
-            const name = (g.name ?? '').toLowerCase();
-            return LOOT_SET.has(name) || (BANK_COMMON && matchesCommonBankLoot(g.name ?? '', g.id));
-        })
+        .where(g => wantsGroundItem({ id: g.id, name: g.name ?? null }, { lootSet: LOOT_SET, bankCommon: BANK_COMMON, solveClues: SOLVE_CLUES }))
         .within(FIELD_RADIUS)
         .nearest();
+}
+
+/** Loot merging into a stack already held needs no slot. */
+function lootStacksIntoPack(name: string | null): boolean {
+    if (name === null || name.length === 0) {
+        return false;
+    }
+    const held = Inventory.first(name);
+    return held !== null && held.count > 1;
+}
+
+function slotDecision(): { action: SlotAction; drop: ReturnType<typeof findLoot> } {
+    const drop = findLoot();
+    const action = slotFreeingAction({
+        packFull: Inventory.isFull(),
+        lootPresent: drop !== null,
+        foodCount: foodCount(),
+        foodReserve: FOOD_RESERVE,
+        hpFraction: hpFrac(),
+        lootStacksIntoPack: lootStacksIntoPack(drop?.name ?? null)
+    });
+    return { action, drop };
 }
 function keepNames(): string[] {
     const extra = [SHIELD];
@@ -141,6 +176,43 @@ async function eatOnce(bot: GreenDragon): Promise<boolean> {
     const before = Skills.effective('hitpoints');
     await food.interact('Eat');
     return Execution.delayUntil(() => Skills.effective('hitpoints') > before, 3000);
+}
+
+/**
+ * Trade a food slot for a loot slot rather than walking to Edgeville. Eat while
+ * the heal still counts, drop at full hp. Returns true when a slot came free.
+ */
+async function freeSlotForLoot(bot: GreenDragon): Promise<boolean> {
+    const { action, drop } = slotDecision();
+    const want = drop?.name ?? 'loot';
+    bot.vlog(`slot check: pack ${Inventory.used()} used / ${Inventory.free()} free, ${FOOD_NAME} x${foodCount()} (reserve ${FOOD_RESERVE}), hp ${Math.round(hpFrac() * 100)}%, ground '${want}' -> ${action}`);
+    if (action === 'none') {
+        return false;
+    }
+
+    if (action === 'eat') {
+        bot.log(`pack full — eating ${FOOD_NAME} to make room for ${want}`);
+        if (!(await eatOnce(bot))) {
+            return false;
+        }
+        bot.countSlotFreed();
+        return true;
+    }
+
+    const food = Inventory.items().find(i => isFoodItem(i.name, FOOD_NAME));
+    if (!food) {
+        return false;
+    }
+    bot.setStatus(`dropping ${food.name} for pack space`);
+    bot.log(`pack full at full hp — dropping ${food.name} to make room for ${want}`);
+    const before = Inventory.used();
+    await food.interact('Drop');
+    if (await Execution.delayUntil(() => Inventory.used() < before, 3000)) {
+        bot.countSlotFreed();
+        return true;
+    }
+    bot.log(`dropping ${food.name} did not free a slot`);
+    return false;
 }
 
 async function lootOnce(bot: GreenDragon): Promise<boolean> {
@@ -253,6 +325,9 @@ class Escape implements Task {
         return nearbyThreat() || (hpFrac() < PANIC_HP && !hasFood());
     }
     async execute(): Promise<void> {
+        if (nearbyThreat()) {
+            this.bot.holdReturn(RETURN_HOLD_MS);
+        }
         if (TELE_ESCAPE && hasVarrockRunes()) {
             const me = Game.tile();
             if (me && me.z > TELE_SAFE_Z) {
@@ -386,13 +461,74 @@ async function withdrawTo(name: string, target: number): Promise<number> {
     return Inventory.count(name) - start;
 }
 
+class FreeSlot implements Task {
+    constructor(private bot: GreenDragon) {}
+    validate(): boolean {
+        return !nearbyThreat() && slotDecision().action !== 'none';
+    }
+    async execute(): Promise<void> {
+        await freeSlotForLoot(this.bot);
+    }
+}
+
 class LootCorpse implements Task {
     constructor(private bot: GreenDragon) {}
     validate(): boolean {
-        return !nearbyThreat() && !Inventory.isFull() && findLoot() !== null;
+        if (nearbyThreat()) {
+            return false;
+        }
+        if (findLoot() === null) {
+            return false;
+        }
+        if (Inventory.isFull()) {
+            this.bot.vlog('loot on the ground but the pack is full and no slot could be freed — banking');
+            return false;
+        }
+        return true;
     }
     async execute(): Promise<void> {
         await lootOnce(this.bot);
+    }
+}
+
+/**
+ * Regains control after a clue trail ends wherever the last step left us.
+ * Held off briefly after a threat escape so it does not walk straight back into
+ * the player that caused it.
+ */
+class ReturnToField implements Task {
+    constructor(private bot: GreenDragon) {}
+    validate(): boolean {
+        const here = Game.tile();
+        if (here === null || Game.inCombat() || ANCHOR.distanceTo(here) <= FIELD_RADIUS + 6) {
+            return false;
+        }
+        const hold = this.bot.returnHoldRemaining();
+        if (hold > 0) {
+            this.bot.vlog(`away from the field but holding ${Math.ceil(hold / 1000)}s after an escape`);
+            return false;
+        }
+        return true;
+    }
+    async execute(): Promise<void> {
+        this.bot.setStatus('returning to the dragon field');
+        this.bot.log(`returning to the field at ${ANCHOR}`);
+        await Traversal.walkResilient(ANCHOR, { radius: 4, attempts: 6, timeoutMs: 300_000, log: m => this.bot.log(`  ${m}`) });
+    }
+}
+
+/** Names the winning task so Verbose can trace control flow, hand-overs included. */
+class Traced implements Task {
+    constructor(private readonly bot: GreenDragon, private readonly name: string, private readonly inner: Task) {}
+    async validate(): Promise<boolean> {
+        const ok = await this.inner.validate();
+        if (ok) {
+            this.bot.noteTask(this.name);
+        }
+        return ok;
+    }
+    execute(): void | Promise<void> {
+        return this.inner.execute();
     }
 }
 
@@ -422,9 +558,15 @@ class Fight implements Task {
                 this.bot.log(`green dragon down — ${this.bot.kills()} kills`);
                 this.targetIdx = null;
             }
-            if (!Inventory.isFull() && findLoot() !== null) {
-                await lootOnce(this.bot);
-                continue;
+            if (findLoot() !== null) {
+                // Inline, not a sibling task — a 600ms task hop per item loses drops.
+                if (Inventory.isFull() && (await freeSlotForLoot(this.bot))) {
+                    continue;
+                }
+                if (!Inventory.isFull()) {
+                    await lootOnce(this.bot);
+                    continue;
+                }
             }
             if (Game.inCombat()) {
                 await Execution.delayTicks(2);
@@ -434,6 +576,7 @@ class Fight implements Task {
             if (!dragon) {
                 return;
             }
+            this.bot.vlog(`attacking green dragon #${dragon.index} at ${dragon.distance()} tiles`);
             await dragon.interact('Attack');
             this.targetIdx = dragon.index;
             await Execution.delayUntil(() => Game.inCombat() || fieldDragons().length === 0, 4000);
@@ -450,6 +593,11 @@ export default class GreenDragon extends TaskBot {
     private bankTrips = 0;
     private supplyEmpty = false;
     private bankEmpty = false;
+    private cluesSolved = 0;
+    private slotsFreed = 0;
+    private lastTask = '';
+    private holdReturnUntil = 0;
+    private solveClue: SolveClue | undefined;
 
     died = false;
 
@@ -471,27 +619,56 @@ export default class GreenDragon extends TaskBot {
         TELE_ESCAPE = this.settings.str('escape', 'Flee to bank') === 'Teleport to Varrock';
         ANCHOR = this.settings.tile('anchorTile', DEFAULT_ANCHOR);
         BANK_TILE = this.settings.tile('bankTile', DEFAULT_BANK);
+        FOOD_RESERVE = this.settings.num('foodReserve', 4);
+        SOLVE_CLUES = this.settings.bool('solveClues', true);
+        SPADE_NAME = this.settings.str('spade', 'Spade');
+        VERBOSE = this.settings.str('logDetail', 'Normal') === 'Verbose';
 
         this.on('chat.message', e => { if (/oh dear.*you are dead/i.test(e.text)) { this.died = true; } });
 
-        this.log(`GreenDragon — style ${STYLE} w/ ${WEAPON} + ${SHIELD}${STYLE === 'mage' ? ` (${SPELL})` : ''}, food '${FOOD_NAME}', escape '${TELE_ESCAPE ? 'Varrock tele' : 'flee to bank'}', field ${ANCHOR}, bank ${BANK_TILE}`);
+        this.solveClue = new SolveClue({
+            log: m => this.log(m),
+            setStatus: s => {
+                if (s === 'clue solved') {
+                    this.cluesSolved++;
+                }
+                this.setStatus(s);
+            },
+            isFood: n => isFoodItem(n, FOOD_NAME),
+            foodName: () => FOOD_NAME,
+            foodWithdraw: () => FOOD_WITHDRAW,
+            spadeName: () => SPADE_NAME,
+            weaponName: () => WEAPON,
+            enabled: () => SOLVE_CLUES
+        });
 
+        this.log(`GreenDragon — style ${STYLE} w/ ${WEAPON} + ${SHIELD}${STYLE === 'mage' ? ` (${SPELL})` : ''}, food '${FOOD_NAME}' (reserve ${FOOD_RESERVE}), escape '${TELE_ESCAPE ? 'Varrock tele' : 'flee to bank'}', clues ${SOLVE_CLUES ? 'on' : 'off'}, field ${ANCHOR}, bank ${BANK_TILE}`);
+        this.vlog(`verbose logging on — loot set [${[...LOOT_SET].join(', ')}], common junk ${BANK_COMMON ? 'on' : 'off'}`);
+
+        const traced = (name: string, task: Task): Task => new Traced(this, name, task);
         this.add(
-            new ContinueDialog(),
-            new DeathRecovery(this, {
+            traced('ContinueDialog', new ContinueDialog()),
+            traced('DeathRecovery', new DeathRecovery(this, {
                 anchor: BANK_TILE,
                 radius: 6,
-                onDeath: () => { this.setStatus('died — recovering'); this.log('died! recovering'); },
+                onDeath: () => {
+                    this.setStatus('died — recovering');
+                    this.solveClue?.noteDeath();
+                    this.log('died! recovering');
+                },
                 onRecovered: () => { this.died = false; }
-            }),
-            new Escape(this),
-            new Eat(this),
-            new GearEquip(this),
-            new SetAttackStyle(this),
-            new ArmAutocast(this),
-            new BankRun(this),
-            new LootCorpse(this),
-            new Fight(this)
+            })),
+            traced('Escape', new Escape(this)),
+            traced('Eat', new Eat(this)),
+            traced('GearEquip', new GearEquip(this)),
+            traced('SetAttackStyle', new SetAttackStyle(this)),
+            traced('ArmAutocast', new ArmAutocast(this)),
+            traced('SolveClue', this.solveClue),
+            traced('FreeSlot', new FreeSlot(this)),
+            traced('BankRun', new BankRun(this)),
+            traced('LootCorpse', new LootCorpse(this)),
+            traced('Fight', new Fight(this)),
+            traced('ReturnToField', new ReturnToField(this))
         );
     }
 
@@ -504,6 +681,27 @@ export default class GreenDragon extends TaskBot {
 
     setStatus(s: string): void {
         this.status = s;
+    }
+    /** Suppressed unless logDetail is Verbose, so the log ring keeps what matters. */
+    vlog(msg: string): void {
+        if (VERBOSE) {
+            this.log(msg);
+        }
+    }
+    noteTask(name: string): void {
+        if (name !== this.lastTask) {
+            this.lastTask = name;
+            this.vlog(`-> ${name}`);
+        }
+    }
+    holdReturn(ms: number): void {
+        this.holdReturnUntil = Date.now() + ms;
+    }
+    returnHoldRemaining(): number {
+        return Math.max(0, this.holdReturnUntil - Date.now());
+    }
+    countSlotFreed(): void {
+        this.slotsFreed++;
     }
     countKill(): void {
         this.killsTotal++;
@@ -536,6 +734,10 @@ export default class GreenDragon extends TaskBot {
         p.row(`Style: ${STYLE}`, `HP: ${Math.round(hpFrac() * 100)}%`);
         p.row(`Kills: ${this.killsTotal}`, `Looted: ${this.looted}`);
         p.row(`Shield: ${Equipment.contains(SHIELD) ? 'on' : 'OFF!'}`, `Bank trips: ${this.bankTrips}`);
+        p.row(`Food: ${foodCount()} (keep ${FOOD_RESERVE})`, `Slots freed: ${this.slotsFreed}`);
+        if (SOLVE_CLUES) {
+            p.row(`Clues: ${this.cluesSolved}`, `Clue: ${this.solveClue?.clueStatus() ?? 'idle'}`);
+        }
         p.gap();
         ScriptRunner.paintControls(p);
         p.end();
