@@ -20,6 +20,7 @@ import { KILL_ANCHORS } from '#/bot/clues/data/killAnchors.js';
 import { ensureSpade, ensureCoordTools } from '#/bot/clues/AcquireTools.js';
 import { fightGuardian } from '#/bot/clues/Guardian.js';
 import { PuzzleBox } from '#/bot/clues/PuzzleBox.js';
+import { casketRewardSlots } from '#/bot/clues/packPlan.js';
 import type { ClueRow, ClueStep } from '#/bot/clues/types.js';
 import type { NavPoint } from '#/bot/nav/PathFinder.js';
 import { talkThrough } from '#/bot/quests/exec/primitives.js';
@@ -172,6 +173,33 @@ async function drainChat(): Promise<void> {
     }
 }
 
+/**
+ * A casket rolls its reward into a side inv and then moves it in one slot at a
+ * time — anything that does not fit lands on the floor. Eat food to clear the
+ * space first; nothing else in a trail pack is safe to shed.
+ */
+async function makeRoomForReward(casketObj: string, log: (m: string) => void): Promise<void> {
+    const want = casketRewardSlots(casketObj);
+    if (Inventory.free() >= want) {
+        return;
+    }
+    log(`casket needs ${want} free slots, pack has ${Inventory.free()} — eating to make room`);
+    for (let guard = 0; guard < 28 && Inventory.free() < want; guard++) {
+        const edible = Inventory.items().find(i => i.actions().some(a => a.toLowerCase() === 'eat'));
+        if (!edible) {
+            break;
+        }
+        const before = Inventory.used();
+        await edible.interact('Eat');
+        if (!(await Execution.delayUntil(() => Inventory.used() < before, 3000))) {
+            break;
+        }
+    }
+    if (Inventory.free() < want) {
+        log(`WARNING: only ${Inventory.free()}/${want} slots free and nothing left to eat — part of the reward will drop to the ground`);
+    }
+}
+
 async function answerChallengeIfOpen(step: ClueStep, log: (m: string) => void): Promise<boolean> {
     if (step.type !== 'talk' || !reader.countDialogOpen()) {
         return false;
@@ -298,6 +326,7 @@ async function dispatch(step: ClueStep, log: (m: string) => void): Promise<void>
         case 'open-casket': {
             const casket = Inventory.items().find(i => i.id === step.casketId);
             if (casket) {
+                await makeRoomForReward(step.casketObj, log);
                 await casket.interact('Open');
             }
             return;

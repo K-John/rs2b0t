@@ -2,6 +2,8 @@ import { describe, expect, test } from 'bun:test';
 import {
     inWilderness,
     isClueLike,
+    isGrindForeign,
+    packForcesBank,
     slotFreeingAction,
     threatApplies,
     wantsGroundItem,
@@ -103,6 +105,46 @@ describe('wantsGroundItem', () => {
     test('burying does not drag in bones the bot was not told to bury', () => {
         const burying = filter({ lootSet: new Set<string>(), bankCommon: false });
         expect(wantsGroundItem({ id: 526, name: 'Bones' }, { ...burying, buryBones: true, boneName: 'Dragon bones' })).toBe(false);
+    });
+});
+
+describe('packForcesBank', () => {
+    test('a pack full of food is NOT a reason to bank — it gets eaten', () => {
+        expect(packForcesBank(true, 25, 4)).toBe(false);
+    });
+    test('banks once the food is down to the reserve and cannot free a slot', () => {
+        expect(packForcesBank(true, 4, 4)).toBe(true);
+        expect(packForcesBank(true, 0, 4)).toBe(true);
+    });
+    test('a pack with room never forces a bank', () => {
+        expect(packForcesBank(false, 0, 4)).toBe(false);
+    });
+});
+
+describe('isGrindForeign', () => {
+    const ctx = {
+        keep: new Set(['lobster', 'rune scimitar', 'dragonfire shield']),
+        loot: filter()
+    };
+    test('trail kit left over from a clue is foreign', () => {
+        for (const n of ['Spade', 'Sextant', 'Watch', 'Chart']) {
+            expect(isGrindForeign({ id: 9001, name: n }, ctx)).toBe(true);
+        }
+    });
+    test('grind gear and food are not foreign', () => {
+        expect(isGrindForeign({ id: 1333, name: 'Rune scimitar' }, ctx)).toBe(false);
+        expect(isGrindForeign({ id: 379, name: 'Lobster' }, ctx)).toBe(false);
+    });
+    test('intended loot is not foreign', () => {
+        expect(isGrindForeign({ id: 536, name: 'Dragon bones' }, ctx)).toBe(false);
+        expect(isGrindForeign({ id: 1623, name: 'Uncut sapphire' }, ctx)).toBe(false);
+    });
+    test('a clue is never foreign — SolveClue owns it', () => {
+        expect(isGrindForeign({ id: HARD_CLUE, name: 'Clue scroll' }, ctx)).toBe(false);
+        expect(isGrindForeign({ id: HARD_CASKET, name: 'Casket' }, ctx)).toBe(false);
+    });
+    test('an unnamed item is never foreign', () => {
+        expect(isGrindForeign({ id: 9001, name: null }, ctx)).toBe(false);
     });
 });
 

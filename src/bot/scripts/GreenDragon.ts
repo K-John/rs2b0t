@@ -25,7 +25,7 @@ import { Npcs, type Npc } from '../api/queries/Npcs.js';
 import { Players } from '../api/queries/Players.js';
 import { Traversal } from '../api/Traversal.js';
 import { SolveClue } from '../clues/SolveClue.js';
-import { RETURN_HOLD_MS, slotFreeingAction, threatApplies, wantsGroundItem, type SlotAction } from './GreenDragonLogic.js';
+import { RETURN_HOLD_MS, isGrindForeign, packForcesBank, slotFreeingAction, threatApplies, wantsGroundItem, type SlotAction } from './GreenDragonLogic.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 
@@ -136,7 +136,7 @@ function hasVarrockRunes(): boolean {
 }
 function findLoot() {
     return GroundItems.query()
-        .where(g => wantsGroundItem({ id: g.id, name: g.name ?? null }, { lootSet: LOOT_SET, bankCommon: BANK_COMMON, solveClues: SOLVE_CLUES, buryBones: BURY_BONES, boneName: BONE_NAME }))
+        .where(g => wantsGroundItem({ id: g.id, name: g.name ?? null }, lootFilter()))
         .within(FIELD_RADIUS)
         .nearest();
 }
@@ -148,6 +148,22 @@ function lootStacksIntoPack(name: string | null): boolean {
     }
     const held = Inventory.first(name);
     return held !== null && held.count > 1;
+}
+
+function lootFilter() {
+    return { lootSet: LOOT_SET, bankCommon: BANK_COMMON, solveClues: SOLVE_CLUES, buryBones: BURY_BONES, boneName: BONE_NAME };
+}
+
+/**
+ * Trail leftovers (spade, sextant, watch, chart, god page, stray runes) that a
+ * finished clue leaves behind. Going back to the dragons with them wastes slots.
+ */
+function foreignKit(): string[] {
+    const keep = new Set(keepNames().map(s => s.toLowerCase()));
+    const filter = lootFilter();
+    return Inventory.items()
+        .filter(i => isGrindForeign({ id: i.id, name: i.name ?? null }, { keep, loot: filter }))
+        .map(i => i.name ?? '?');
 }
 
 function slotDecision(): { action: SlotAction; drop: ReturnType<typeof findLoot> } {
@@ -364,7 +380,12 @@ class BankRun implements Task {
         if (!hasFood() && !this.bot.bankKnownEmpty()) {
             return true;
         }
-        return Inventory.isFull();
+        const foreign = foreignKit();
+        if (foreign.length > 0) {
+            this.bot.vlog(`holding trail leftovers [${foreign.join(', ')}] — banking to restock the grind kit`);
+            return true;
+        }
+        return packForcesBank(Inventory.isFull(), foodCount(), FOOD_RESERVE);
     }
     async execute(): Promise<void> {
         if (EventSignal.pending()) {

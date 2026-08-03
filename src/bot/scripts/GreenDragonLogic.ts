@@ -54,6 +54,31 @@ export function wantsGroundItem(item: { id: number; name: string | null }, f: Lo
     return f.lootSet.has(n) || (f.bankCommon && matchesCommonBankLoot(name, item.id));
 }
 
+/**
+ * A pack full of food is not a reason to bank — food is a resource the bot
+ * spends, and slot-freeing turns it into room. Only a pack we can no longer
+ * free ourselves forces the trip.
+ */
+export function packForcesBank(packFull: boolean, foodCount: number, foodReserve: number): boolean {
+    return packFull && foodCount <= foodReserve;
+}
+
+/**
+ * Items that are neither grind kit nor intended loot — a trail's spade,
+ * sextant, watch, chart, god page or stray runes. Carrying them back to the
+ * dragons wastes slots, so holding any forces a bank-and-restock.
+ */
+export function isGrindForeign(item: { id: number; name: string | null }, ctx: { keep: ReadonlySet<string>; loot: LootFilter }): boolean {
+    const name = item.name ?? '';
+    if (name.length === 0 || isClueLike(item.id)) {
+        return false;
+    }
+    if (ctx.keep.has(name.toLowerCase())) {
+        return false;
+    }
+    return !wantsGroundItem(item, ctx.loot);
+}
+
 export type SlotAction = 'eat' | 'drop' | 'none';
 
 export interface SlotFreeingState {

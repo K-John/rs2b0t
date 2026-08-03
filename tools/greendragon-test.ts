@@ -29,11 +29,16 @@ const WILDY_MIN_Z = 3520;
 const FIELD_RADIUS = 22;
 
 const LOBSTER = 379;
+// bank_f2p maxes out lobster/swordfish, and a max-int bank stack REFUSES further
+// deposits — so the trail-prep case seeds a food that cheat does not stock.
+const TUNA = 361;
 const SCIMITAR = 1333;
 const SHIELD = 1540;
 const SPADE = 952;
 const HARD_CLUE = 2723; // trail_clue_hard_sextant001
 const DRAGON_BONES = 536;
+/** Mirrors TRAIL_FOOD_CAP in src/bot/clues/packPlan.ts. */
+const TRAIL_FOOD_CAP = 10;
 
 interface Api {
     __rs2b0t: {
@@ -41,6 +46,7 @@ interface Api {
             items(): { id: number; name: string | null; count: number; interact(op: string): boolean | Promise<boolean> }[];
             count(name: string): number;
             used(): number;
+            free(): number;
             isFull(): boolean;
         };
         Equipment: { contains(name: string): boolean };
@@ -177,6 +183,7 @@ async function caseClueHandover(page: Page, user: string): Promise<void> {
         solveClues: true,
         logDetail: 'Verbose',
         foodReserve: 4,
+        food: 'Tuna',
         anchorTile: `${QUIET_FIELD.x},${QUIET_FIELD.z},0`
     });
 
@@ -203,19 +210,23 @@ async function caseClueHandover(page: Page, user: string): Promise<void> {
     if (!onGround) {
         fail('the hard clue never appeared on the ground');
     }
-    await give(page, 'lobster', LOBSTER, 27);
+    await give(page, 'tuna', TUNA, 27);
+    // A stocked bank is what makes the trail-prep assertion meaningful: with an
+    // empty one there is nothing for the prep to withdraw and no rune to starve.
+    await cheatQuiet(page, '~bank_f2p', 2500);
+    console.log(`after ~bank_f2p, chat: ${JSON.stringify(await page.evaluate(() => (globalThis as never as Api).rs2b0t.reader.chat(4).map(c => c.text)))}`);
 
     const setup = await page.evaluate(() => {
         const inv = (globalThis as never as Api).__rs2b0t;
-        return { used: inv.Inventory.used(), full: inv.Inventory.isFull(), lobsters: inv.Inventory.count('Lobster') };
+        return { used: inv.Inventory.used(), full: inv.Inventory.isFull(), lobsters: inv.Inventory.count('Tuna') };
     });
     if (!setup.full) {
-        fail(`expected a full pack before starting, got ${setup.used}/28 (${setup.lobsters} lobsters)`);
+        fail(`expected a full pack before starting, got ${setup.used}/28 (${setup.lobsters} tuna)`);
     }
     if ((await invIds(page)).includes(HARD_CLUE)) {
         fail('the clue is still in the pack — it must start on the ground');
     }
-    console.log(`seeded: pack FULL (${setup.lobsters} lobsters), hard clue #${HARD_CLUE} on the ground`);
+    console.log(`seeded: pack FULL (${setup.lobsters} tuna), hard clue #${HARD_CLUE} on the ground`);
 
     await startBot(page);
     console.log('GreenDragon started (clues on)');
@@ -235,7 +246,7 @@ async function caseClueHandover(page: Page, user: string): Promise<void> {
     }
     // The decision logs before the eat/drop lands, so wait for the effect.
     const spent = await page
-        .waitForFunction(() => (globalThis as never as Api).__rs2b0t.Inventory.count('Lobster') < 27, undefined, { timeout: 30_000 })
+        .waitForFunction(() => (globalThis as never as Api).__rs2b0t.Inventory.count('Tuna') < 27, undefined, { timeout: 30_000 })
         .then(() => true)
         .catch(() => false);
     await dump(page, 'after the slot-freeing leg');
@@ -246,8 +257,8 @@ async function caseClueHandover(page: Page, user: string): Promise<void> {
     if (!stillInField || stillInField.z < WILDY_MIN_Z) {
         fail(`left the wilderness to make pack room at ${JSON.stringify(stillInField)} — should have eaten or dropped on the spot`);
     }
-    const afterFree = await page.evaluate(() => (globalThis as never as Api).__rs2b0t.Inventory.count('Lobster'));
-    console.log(`PASS 1/4 — freed a slot in the field (lobsters 27 -> ${afterFree}, still at z=${stillInField.z})`);
+    const afterFree = await page.evaluate(() => (globalThis as never as Api).__rs2b0t.Inventory.count('Tuna'));
+    console.log(`PASS 1/4 — freed a slot in the field (tuna 27 -> ${afterFree}, still at z=${stillInField.z})`);
 
     // 2. takes the clue off the ground, matched by obj id
     const took = await page
@@ -274,20 +285,41 @@ async function caseClueHandover(page: Page, user: string): Promise<void> {
     }
     console.log(`PASS 3/4 — handed over to SolveClue and left the wilderness (at ${JSON.stringify(await tile(page))})`);
 
-    // 4. the trail itself starts (SolveClue logs its own banking / solving legs)
-    const trailStarted = await page
+    // 4. the trail pack is actually viable: runes aboard, food trimmed to trail
+    //    size, and no duplicate of the weapon already worn
+    const prepped = await page
         .waitForFunction(
-            () => ((globalThis as never as Api).rs2b0t.runner.ctx?.log ?? []).some(l => l.msg.includes('[clue]')),
+            () => ((globalThis as never as Api).rs2b0t.runner.ctx?.log ?? []).some(l => l.msg.includes('[clue] trail pack:')),
             undefined,
             { timeout: 300_000 }
         )
         .then(() => true)
         .catch(() => false);
-    await dump(page, 'after the trail-start leg', 30);
-    if (!trailStarted) {
-        fail('SolveClue never logged a trail leg');
+    await dump(page, 'after the trail-prep leg', 30);
+    if (!prepped) {
+        fail('SolveClue never finished prepping the trail pack');
     }
-    console.log('PASS 4/4 — clue trail started');
+    const pack = await page.evaluate(() => {
+        const g = (globalThis as never as Api).__rs2b0t;
+        return {
+            food: g.Inventory.count('Tuna'),
+            runes: ['Air rune', 'Earth rune', 'Fire rune', 'Law rune', 'Water rune'].filter(n => g.Inventory.count(n) > 0),
+            weaponInPack: g.Inventory.count('Rune scimitar'),
+            weaponWorn: g.Equipment.contains('Rune scimitar'),
+            free: g.Inventory.free()
+        };
+    });
+    console.log(`trail pack: ${JSON.stringify(pack)}`);
+    if (pack.runes.length < 5) {
+        fail(`only ${pack.runes.length}/5 teleport runes aboard (${pack.runes.join(', ') || 'none'}) — food crowded them out`);
+    }
+    if (pack.food > TRAIL_FOOD_CAP) {
+        fail(`carried ${pack.food} Tuna on a trail — should be trimmed to ${TRAIL_FOOD_CAP}`);
+    }
+    if (pack.weaponWorn && pack.weaponInPack > 0) {
+        fail(`withdrew ${pack.weaponInPack} spare Rune scimitar while already wearing one`);
+    }
+    console.log(`PASS 4/4 — viable trail pack (${pack.runes.length}/5 runes, ${pack.food} food, no spare weapon)`);
 }
 
 async function caseRegainControl(page: Page, user: string): Promise<void> {
@@ -401,14 +433,35 @@ async function caseBuryBones(page: Page, user: string): Promise<void> {
     console.log('PASS 2/2 — looted bones that were not in the loot list, because burying is on');
 }
 
+
+async function caseDepositControl(page: Page, user: string): Promise<void> {
+    await prepare(page, user, { x: 3094, z: 3493 });
+    await setSettings(page, 'GreenDragon', { solveClues: false, logDetail: 'Verbose', bankTile: '3094,3493,0', anchorTile: '3094,3493,0' });
+    await give(page, 'dragon_bones', DRAGON_BONES, 27);
+    const before = await page.evaluate(() => (globalThis as never as Api).__rs2b0t.Inventory.used());
+    console.log(`control: pack ${before}/28 of non-keep junk at the Edgeville bank`);
+    await startBot(page);
+    const shrank = await page
+        .waitForFunction(b => (globalThis as never as Api).__rs2b0t.Inventory.used() < b, before, { timeout: 120_000 })
+        .then(() => true).catch(() => false);
+    await dump(page, 'deposit control', 25);
+    if (!shrank) {
+        fail('CONTROL: GreenDragon own bank run also deposited nothing -> Bank.depositAllMatching is broken generally');
+    }
+    console.log('CONTROL PASS — depositAllMatching does work for the ordinary bank run');
+}
+
 const browser = await launchBrowser();
 const stamp = Date.now().toString(36).slice(-5);
 let failed = false;
-for (const [name, tag, run] of [
+// GD_CASE=clue|regain|bury runs a single case while iterating.
+const only = process.env.GD_CASE ?? '';
+for (const [name, tag, run] of ([
     ['clue hand-over', 'c', caseClueHandover],
     ['regain control', 'r', caseRegainControl],
-    ['bury bones', 'b', caseBuryBones]
-] as const) {
+    ['bury bones', 'b', caseBuryBones],
+    ['deposit control', 'd', caseDepositControl]
+] as const).filter(([n]) => only === '' || n.includes(only))) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     const user = `gd${tag}${stamp}`;
     console.log(`\n=== case: ${name} (${user}) ===`);
