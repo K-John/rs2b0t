@@ -105,5 +105,11 @@ export interface QuestModule {
      * provisioning loop, so a standing balance means a bank trip per purchase.
      */
     coinFloat?: number;
+    /**
+     * Optional one-shot advisory when this module becomes the active runner.
+     * Use for “live harness only proved X stats” warnings — not hard gates.
+     * Return null when the account looks fine.
+     */
+    warnReadiness?: () => string | null;
     decide(snap: QuestSnapshot): QuestStep;
 }

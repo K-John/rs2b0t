@@ -5,7 +5,7 @@
 
 # Bundled scripts
 
-The client ships **43 scripts** across 19 categories. They double as worked
+The client ships **45 scripts** across 19 categories. They double as worked
 examples of the [scripting API](API.md) — the source for each is under
 [`src/bot/scripts/`](../src/bot/scripts/).
 
@@ -14,13 +14,13 @@ Settings listed here are the parameters the panel exposes before you start a scr
 ## Contents
 
 - [Agility](#agility) — 3
-- [Combat](#combat) — 9
+- [Combat](#combat) — 10
 - [Cooking](#cooking) — 1
 - [Crafting](#crafting) — 5
 - [Firemaking](#firemaking) — 1
 - [Fishing](#fishing) — 1
 - [Fletching](#fletching) — 2
-- [Herblore](#herblore) — 1
+- [Herblore](#herblore) — 2
 - [Mining](#mining) — 3
 - [Money making](#money-making) — 2
 - [Navigation](#navigation) — 1
@@ -141,20 +141,17 @@ Tags: `combat`, `clues`, `banking`, `afk`
 
 ### ChaosDruidKiller
 
-Kills Chaos druids in the Edgeville dungeon, loots herbs/law runes, banks them
+Kills Chaos druids — Edgeville dungeon, the picklocked Chaos Druid Tower (46 Thieving), or Yanille dungeon Chaos druid warriors past the 40 Agility ledge — loots Herb/Law/Nature rune drops, banks them
 
-Tags: `wilderness`, `edgeville`, `herbs`, `banking`
+Tags: `wilderness`, `edgeville`, `ardougne`, `yanille`, `herbs`, `banking`
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
-| `loot` | string | `"herb, law rune"` | Loot (name contains, comma-sep) |
-| `leashRadius` | number (3–20) | `8` | Leash radius (tiles) |
-| `fightHpGate` | number (0–100) | `40` | Stop fighting below HP% |
-| `restUntilHp` | number (0–100) | `65` | Rest until HP% |
-| `bankStrategy` | string | `"Off"` | Periodic bank — one of: Off, Loot count, Time, Either |
-| `bankEveryItems` | number (1–27) | `15` | Bank at N loot items |
-| `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
-| `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs/caskets |
+| `location` | string | `"Edgeville Dungeon"` | Location — one of: Edgeville Dungeon, Chaos Druid Tower, Yanille Dungeon |
+| `food` | string | `"Lobster"` | Food — one of: Lobster, Swordfish, Tuna, Salmon, Trout, Pike, Bass, Herring, Sardine, Anchovies, Shrimps, Cooked meat, Cooked chicken, Bread, Stew, Cake, Chocolate cake, Plain pizza, Meat pizza, Anchovy pizza, Pineapple pizza, Redberry pie, Meat pie, Apple pie |
+| `foodWithdraw` | number (1–27) | `12` | Food per trip |
+| `eatAtHp` | number (1–99) | `55` | Eat below HP% |
+| `panicHp` | number (1–98) | `35` | Bank below HP% (no food) |
 
 ### ChickenKiller
 
@@ -170,7 +167,13 @@ Tags: `lumbridge`, `bones`, `feathers`, `afk`
 | `targetName` | string | `"Chicken"` | Target NPC name |
 | `lootMatch` | string | `"bones"` | Loot name match (\| = OR) |
 | `buryBones` | boolean | `true` | Bury bones? |
-| `combatStyle` | string | `"strength"` | Combat style — one of: attack, strength, controlled, defence |
+| `combatStyle` | string | `"melee"` | Combat style — one of: melee, mage, range |
+| `meleeStyle` | string | `"strength"` | Melee style — one of: attack, strength, controlled, defence |
+| `spell` | string | `"Wind Strike"` | Autocast spell — one of: Wind Strike, Water Strike, Earth Strike, Fire Strike, Wind Bolt, Water Bolt, Earth Bolt, Fire Bolt, Wind Blast, Water Blast, Earth Blast, Fire Blast, Wind Wave, Water Wave, Earth Wave, Fire Wave |
+| `runesWithdraw` | number (1–1000) | `100` | Casts of runes per bank trip |
+| `rangeStyle` | string | `"rapid"` | Ranged style — one of: accurate, rapid, longrange |
+| `ammo` | string | `"Bronze arrow"` | Ammo (kept + bank withdraw) |
+| `ammoWithdraw` | number (1–5000) | `200` | Ammo per bank trip |
 | `bankStrategy` | string | `"Off"` | Periodic bank — one of: Off, Loot count, Time, Either |
 | `bankEveryItems` | number (1–27) | `15` | Bank at N loot items |
 | `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
@@ -192,7 +195,13 @@ Tags: `lumbridge`, `falador`, `cowhide`, `bones`, `banking`, `afk`
 | `targetName` | string | `"Cow"` | Target NPC name |
 | `lootMatch` | string | `"cow hide\|bones"` | Loot name match (\| = OR) |
 | `buryBones` | boolean | `false` | Bury bones? |
-| `combatStyle` | string | `"strength"` | Combat style — one of: attack, strength, controlled, defence |
+| `combatStyle` | string | `"melee"` | Combat style — one of: melee, mage, range |
+| `meleeStyle` | string | `"strength"` | Melee style — one of: attack, strength, controlled, defence |
+| `spell` | string | `"Wind Strike"` | Autocast spell — one of: Wind Strike, Water Strike, Earth Strike, Fire Strike, Wind Bolt, Water Bolt, Earth Bolt, Fire Bolt, Wind Blast, Water Blast, Earth Blast, Fire Blast, Wind Wave, Water Wave, Earth Wave, Fire Wave |
+| `runesWithdraw` | number (1–1000) | `100` | Casts of runes per bank trip |
+| `rangeStyle` | string | `"rapid"` | Ranged style — one of: accurate, rapid, longrange |
+| `ammo` | string | `"Bronze arrow"` | Ammo (kept + bank withdraw) |
+| `ammoWithdraw` | number (1–5000) | `200` | Ammo per bank trip |
 | `bankStrategy` | string | `"Off"` | Periodic bank — one of: Off, Loot count, Time, Either |
 | `bankEveryItems` | number (1–27) | `15` | Bank at N loot items |
 | `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
@@ -254,6 +263,24 @@ Tags: `wilderness`, `dragons`, `hides`
 | `bankCommonJunk` | boolean | `true` | Also grab shared gems/junk |
 | `anchorTile` | tile | `{"x":3096,"z":3814,"level":0}` | Dragon field tile |
 | `bankTile` | tile | `{"x":3094,"z":3493,"level":0}` | Bank stand tile (Edgeville) |
+
+### HillGiant
+
+Edgeville dungeon hill giants — fetches the brass key if the bank has none, unlocks the hut, and banks limpwurt roots and big bones at Varrock East
+
+Tags: `combat`, `giants`, `edgeville`, `varrock`, `banking`, `looting`
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| `meleeStyle` | string | `"strength"` | Melee style — one of: attack, strength, controlled, defence |
+| `weapon` | string | `""` | Weapon to wield |
+| `food` | string | `"Trout"` | Food — one of: Lobster, Swordfish, Tuna, Salmon, Trout, Pike, Bass, Herring, Sardine, Anchovies, Shrimps, Cooked meat, Cooked chicken, Bread, Stew, Cake, Chocolate cake, Plain pizza, Meat pizza, Anchovy pizza, Pineapple pizza, Redberry pie, Meat pie, Apple pie |
+| `foodWithdraw` | number (1–27) | `12` | Food per trip |
+| `eatAtHp` | number (1–99) | `50` | Eat below HP% |
+| `loot` | string[] | `["Limpwurt root","Big bones"]` | Loot to pick up — one of: Beer, Big bones, Body talisman, Chaos rune, Chaos talisman, Coins, Cosmic rune, Death rune, Dragon spear, Fire rune, Half of a key, Herb, Iron arrow, Iron dagger, Iron full helm, Iron kiteshield, Law rune, Limpwurt root, Mind rune, Nature rune, Nature talisman, Rune javelin, Rune spear, Shield left half, Steel arrow, Steel longsword, Uncut diamond, Uncut emerald, Uncut ruby, Uncut sapphire, Water rune |
+| `bankCommonJunk` | boolean | `true` | Also grab shared gems/junk |
+| `buryBones` | boolean | `false` | Bury big bones |
+| `lootSlots` | number (1–27) | `14` | Bank after this many loot slots |
 
 ### MossGiant
 
@@ -451,6 +478,8 @@ Tags: `gathering`, `drop`, `banking`, `cooking`
 | `burntPolicy` | string | `"Drop"` | Burnt fish — one of: Drop, Bank |
 | `bankRawBeforeCook` | number (1–) | `56` | Bank N raw before cook |
 | `afterCookCycle` | string | `"Stop"` | After cook cycle — one of: Stop, Continue |
+| `muleMode` | string | `"Off"` | Mule mode — one of: Off, Gatherer, Mule, Cooker, Supplier |
+| `mulePartner` | string | `""` | Mule partner name(s) |
 | `toolAcquire` | string | `"Off"` | Acquire tools — one of: Off, Buy / repair |
 | `forgetfulBank` | boolean | `false` | Forgetful bank exits |
 
@@ -489,6 +518,20 @@ Infinite Herblore grind at the fungus-covered cavern wall under the Karamja jung
 
 Tags: `herblore`, `karamja`, `members`, `afk`
 
+### VialFiller
+
+Falador vial-filling loop — banks empty vials, fills them one by one at the fountain, and can restock from Jatix in Taverley every Nth trip
+
+Tags: `falador`, `vials`, `water`, `banking`, `afk`
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| `bank` | string | `"Falador West"` | Which Falador bank — one of: Falador West, Falador East |
+| `buyVials` | boolean | `false` | Buy vials at Jatix? |
+| `buyEveryRuns` | number (1–50) | `5` | Shop run every N trips |
+| `buyQty` | number (1–28) | `27` | Empty vials to buy |
+| `coinsPerTrip` | number (1–100000) | `1000` | Coins to top up to |
+
 ## Mining
 
 ### CoalTrucks
@@ -499,13 +542,14 @@ Tags: `mining`, `coal`, `seers`, `banking`
 
 ### EssMiner
 
-Rune essence loop — Aubury teleport, one-click mine to a full pack, portal back, bank at Varrock East. Needs Rune Mysteries + a usable pickaxe (picks your best by default)
+Rune essence loop — Aubury teleport, one-click mine to a full pack, portal back, bank at Varrock East. Needs Rune Mysteries; uses your best pickaxe and buys the exact best usable tier from Nurmof when banked coins cover it
 
 Tags: `varrock`, `mining`, `banking`, `afk`
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
 | `pickaxe` | string | `"Best available"` | Pickaxe — one of: Best available, Rune, Adamant, Mithril, Steel, Iron, Bronze |
+| `purgePackOnStart` | boolean | `true` | Bank junk on start |
 
 ### Miner
 
@@ -519,6 +563,8 @@ Tags: `gathering`, `banking`, `drop`
 | `leashRadius` | number (2–64) | `10` | Leash radius (tiles) |
 | `location` | string | `"Auto"` | Location / full inventory — one of: Auto, Southwest Varrock Mine, Southeast Varrock Mine, Rimmington Mine, Dwarven Mine, Fight Arena Mine, Al Kharid Mine, Mining Guild, Crafting Guild, Coal Trucks, Barbarian Village, North Brimhaven Mine, Shilo Village, West Lumbridge Swamp Mine, Grand Tree Mine, Desert Mining Camp, Lava Maze Runite Mine, Heroes Guild, Legends Guild Iron (west), Legends Guild Iron (east), None |
 | `tickManip` | string | `"Off"` | Tick manip — one of: Off |
+| `muleMode` | string | `"Off"` | Mule mode — one of: Off, Gatherer, Mule, Cooker, Supplier |
+| `mulePartner` | string | `""` | Mule partner name(s) |
 | `toolAcquire` | string | `"Off"` | Acquire tools — one of: Off, Buy / repair |
 | `forgetfulBank` | boolean | `false` | Forgetful bank exits |
 
@@ -547,7 +593,7 @@ Tags: `shopping`, `banking`, `worldwalker`
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
-| `buyItems` | string[] | `["Adamant arrow","Adamant arrowtips","Air rune","Body rune","Bronze arrow","Bronze arrowtips","Chaos rune","Cosmic rune","Death rune","Earth rune","Feather","Fire rune","Iron arrow","Iron arrowtips","Law rune","Mind rune","Mithril arrow","Mithril arrowtips","Nature rune","Rune arrow","Rune arrowtips","Soul rune","Steel arrow","Steel arrowtips","Water rune"]` | Items to buy — one of: Adamant arrow, Adamant arrowtips, Air rune, Body rune, Bronze arrow, Bronze arrowtips, Chaos rune, Cosmic rune, Death rune, Earth rune, Feather, Fire rune, Iron arrow, Iron arrowtips, Law rune, Mind rune, Mithril arrow, Mithril arrowtips, Nature rune, Rune arrow, Rune arrowtips, Soul rune, Steel arrow, Steel arrowtips, Water rune |
+| `buyItems` | string[] | `["Adamant arrow","Adamant arrowtips","Air rune","Body rune","Bronze arrow","Bronze arrowtips","Chaos rune","Cosmic rune","Death rune","Earth rune","Eye of newt","Feather","Fire rune","Iron arrow","Iron arrowtips","Law rune","Mind rune","Mithril arrow","Mithril arrowtips","Nature rune","Rune arrow","Rune arrowtips","Soul rune","Steel arrow","Steel arrowtips","Vial","Water rune"]` | Items to buy — one of: Adamant arrow, Adamant arrowtips, Air rune, Body rune, Bronze arrow, Bronze arrowtips, Chaos rune, Cosmic rune, Death rune, Earth rune, Eye of newt, Feather, Fire rune, Iron arrow, Iron arrowtips, Law rune, Mind rune, Mithril arrow, Mithril arrowtips, Nature rune, Rune arrow, Rune arrowtips, Soul rune, Steel arrow, Steel arrowtips, Vial, Water rune |
 | `gpBufferPct` | number (0–100) | `25` | Gp buffer % |
 | `maxGpPerLeg` | number (1000–) | `100000` | Max gp per withdrawal |
 | `stopFloorGp` | number (0–) | `5000` | Stop below bank gp |
@@ -590,7 +636,7 @@ Tags: `quest`, `queue`, `aio`
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
-| `quests` | string[] | `[]` | Quest queue (empty = all) — one of: Rune Mysteries Quest, Doric's Quest, Sheep Shearer, The Restless Ghost, Cook's Assistant, Witch's Potion, Romeo & Juliet, Prince Ali Rescue, Waterfall Quest, Goblin Diplomacy, Demon Slayer, Witch's House, Merlin's Crystal, Priest in Peril, Black Knight's Fortress, Druidic Ritual, Lost City, The Tourist Trap, Watch Tower, Vampire Slayer, Jungle Potion, Shilo Village |
+| `quests` | string[] | `[]` | Quest queue (empty = all) — one of: Rune Mysteries Quest, Doric's Quest, Sheep Shearer, The Restless Ghost, Cook's Assistant, Witch's Potion, Romeo & Juliet, Prince Ali Rescue, Waterfall Quest, Goblin Diplomacy, Demon Slayer, Witch's House, Merlin's Crystal, Priest in Peril, Black Knight's Fortress, Druidic Ritual, Lost City, The Tourist Trap, Watch Tower, Vampire Slayer, Jungle Potion, Shilo Village, Elemental Workshop, Dragon Slayer |
 | `food` | string | `"Trout"` | Food item |
 | `eatAtHp` | number (1–99) | `50` | Eat below HP% |
 
@@ -773,6 +819,8 @@ Tags: `gathering`, `banking`, `drop`, `firemaking`
 | `tickManip` | string | `"Off"` | Tick manip — one of: Off |
 | `burnMode` | string | `"Off"` | Burn mode — one of: Off, Chop then burn |
 | `fireSpot` | string | `"Auto"` | Fire spot — one of: Auto, Varrock East, Varrock West, Draynor, Seers |
+| `muleMode` | string | `"Off"` | Mule mode — one of: Off, Gatherer, Mule, Cooker, Supplier |
+| `mulePartner` | string | `""` | Mule partner name(s) |
 | `toolAcquire` | string | `"Off"` | Acquire tools — one of: Off, Buy / repair |
 | `forgetfulBank` | boolean | `false` | Forgetful bank exits |
 

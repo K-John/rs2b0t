@@ -508,7 +508,8 @@ Shop.close(): Promise<void>
 ## Trade
 
 Player-to-player trade. Both sides must "Trade with" each other, then accept
-offer + confirm.
+offer + confirm. Any movement or combat closes the modal — own the loop with a
+dedicated task while `Trade.active()`.
 
 ```ts
 Trade.active(): boolean
@@ -524,13 +525,81 @@ Trade.accept(): Promise<boolean>
 Trade.decline(): Promise<void>
 ```
 
+### Partner trade policy (`api/mule/PartnerTrade`)
+
+Pure helpers shared by GatheringBot mule modes, FlaxRunner, and NatureCrafter:
+
+```ts
+parsePartnerList(raw: string): string[]
+isConfiguredPartner(name, partners): boolean
+decideReceiverOfferScreen({ partnerHeader, partners, myOfferSlots, theirProductCount })
+decideGiverOfferScreen(myOfferSlots): 'offer' | 'accept' | 'wait'
+parseMuleMode(raw): 'off' | 'gatherer' | 'mule' | 'cooker' | 'supplier'
+muleGathererHandoffActive / muleReceiverActive / muleCookerActive / muleSupplierActive
+```
+
+GatheringBot `muleMode` + `mulePartner`:
+
+| Mode | Role |
+| --- | --- |
+| Gatherer | Full haul → trade at camp meet (no bank) |
+| Mule | Accept → **bank** (demo for ore/logs; replace with a processor script) |
+| Cooker | Accept **raw fish** → cook at camp range → bank cooked (`burntPolicy`) |
+| Supplier | Withdraw raw from bank when N ready → trade at meet (pairs with Cooker) |
+
+### Cooking ranges (`api/CookingRanges`)
+
+Map-pack catalog of `debugname=range` ovens + curated surfaces for fishing camps:
+
+```ts
+COOKING_RANGE_LOCS          // all Range SW tiles from Server maps
+nearestCookingRange(origin, maxCheb?)
+cookSurfaceForFishCamp(name, role?) // role: 'pier' | 'bank'
+resolveFishCampCookSurface(name, spot, maxCheb?, role?)
+FISH_CAMP_COOK_PLANS        // pier + optional bank surface per camp
+```
+
+**Pier vs bank role:** cook-then-bank uses the pier surface (short walk with raw);
+bank-raw-then-cook prefers a surface near the bank when one is curated (e.g. Seers
+village range).
+
+**Two-step path:** a surface may set `approach` then `stand`. FishCook walks
+`approach` first (e.g. exterior of Sinclair Large door), then `stand` next to the
+Range — so pathfinding enters the building before aiming at the interior oven.
+
+### Entity query helpers
+
+```ts
+Locs.query().name('…').withinOf(tile, radius).nearest()
+Locs.query().… .nearestPreferLocal(preferRadius)  // local cluster first
+```
+
+See also `api/TargetPick` (`pickNearestPreferLocal`) and `api/GatherCamp` (membership disks).
+
 ## Quests
 
 ```ts
 Quests.all(): { name: string; status: QuestStatus }[]
 Quests.status(name: string): QuestStatus   // 'notStarted' | 'inProgress' | 'complete' | 'unknown'
-Quests.points(): number
+Quests.journal(name: string): Promise<string[]>  // opens the quest log modal
+Quests.points(): number                    // transmitted varp qp (101)
 ```
+
+**What these actually read.** Full rationale: [Quest state](QUESTS.md#quest-state).
+
+| Call | Source | Cost |
+|---|---|---|
+| `status` / `all` | Quest-tab **text colour** (`IF_SETCOLOUR`: red / yellow / green) | free — no modal |
+| `points` | `reader.varp(101)` (`qp`, `transmit=yes`) | free |
+| `journal` | Clicks the quest name, waits for main modal, reads scroll text | **opens the log** |
+
+Mid-quest stage integers and bitfields live in Content as `scope=perm` varps
+**without** `transmit=yes` (e.g. `cookquest`, `elemental_workshop_bits`). They
+never arrive in `client.var[]`, so `reader.varp` stays `0` and must not be used
+as progress. Yellow colour only means “in progress” — it does not encode which
+stage. Prefer inventory / game messages / scene oracles; open `journal` only when
+stage text is the sole discriminator. A future bit-level API needs Content to
+set `transmit=yes` on those varps first — it is not a missing client field.
 
 ---
 

@@ -77,6 +77,8 @@ export class QuestEngine implements Task {
     private readonly retreatTries = new Map<string, number>();
     private readonly deposited = new Set<string>();
     private readonly blocked = new Map<string, string[]>();
+    /** Modules that have already emitted {@link QuestModule.warnReadiness}. */
+    private readonly readinessWarned = new Set<string>();
 
     private lastBankCounts = new Map<string, number>();
     private lastBankIdCounts = new Map<number, number>();
@@ -173,6 +175,13 @@ export class QuestEngine implements Task {
             this.block(id, ['internal: no module']);
             this.runningId = null;
             return;
+        }
+        if (!this.readinessWarned.has(id) && module.warnReadiness) {
+            this.readinessWarned.add(id);
+            const note = module.warnReadiness();
+            if (note) {
+                this.host.log(`${module.record.name}: ${note}`);
+            }
         }
         const progress = await module.readProgress?.();
         const stage = progress ? progress.stage : await module.readStage?.();

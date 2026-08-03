@@ -1,5 +1,5 @@
 import { expect, test, describe } from 'bun:test';
-import { specialCrossingAt, pickChoice, meetsRequirement, matchesUseItem, SPECIAL_CROSSINGS } from '../../../src/bot/nav/data/specialCrossings.js';
+import { specialCrossingAt, specialCrossingForTransport, pickChoice, meetsRequirement, matchesUseItem, SPECIAL_CROSSINGS } from '../../../src/bot/nav/data/specialCrossings.js';
 
 describe('specialCrossingAt', () => {
     test('matches both Al Kharid toll gate tiles', () => {
@@ -41,6 +41,49 @@ describe('specialCrossingAt', () => {
         expect(specialCrossingAt(2461, 3385, 0)).toBeNull();
     });
 
+    test('Mort Myre Ulizius gate: Drezel unlockQuest detour for Nature Spirit (#115)', () => {
+        const a = specialCrossingAt(3443, 3458, 0);
+        const b = specialCrossingAt(3444, 3458, 0);
+        expect(a?.label).toBe('Mort Myre gate (Ulizius)');
+        expect(b?.label).toBe('Mort Myre gate (Ulizius)');
+        expect(a?.locName).toBe('Gate');
+        expect(a?.action).toBe('Open');
+        // Gate Open itself has no dialog once NS is started; unlock is a Drezel detour.
+        expect(a?.dialogue).toBeUndefined();
+        expect(a?.reopenAfterDialogue).toBeUndefined();
+        expect(a?.unlockQuest?.quest).toBe('Nature Spirit');
+        expect(a?.unlockQuest?.requireComplete).toBe('Priest in Peril');
+        expect(a?.unlockQuest?.npc).toBe('Drezel');
+        expect(a?.unlockQuest?.stand).toEqual({ x: 3439, z: 9895, level: 0 });
+        // Drezel grants 3 meat pie + 3 apple pie (unstackable) on accept.
+        expect(a?.unlockQuest?.freeSlots).toBe(6);
+        expect(
+            pickChoice(
+                [
+                    "Well, I'm going to look around a bit more.",
+                    'Is there anything else interesting to do around here?'
+                ],
+                a!.unlockQuest!.dialogue.choose
+            )
+        ).toBe('Is there anything else interesting to do around here?');
+        expect(
+            pickChoice(
+                ["Sorry, not interested...", 'Well, what is it, I may be able to help?'],
+                a!.unlockQuest!.dialogue.choose
+            )
+        ).toBe('Well, what is it, I may be able to help?');
+        expect(
+            pickChoice(
+                ["Yes, I'll go and look for him.", "Sorry, I don't think I can help."],
+                a!.unlockQuest!.dialogue.choose
+            )
+        ).toBe("Yes, I'll go and look for him.");
+        expect(
+            pickChoice(["Yes, I'm sure.", "Who is this Filliman?"], a!.unlockQuest!.dialogue.choose)
+        ).toBe("Yes, I'm sure.");
+        expect(b?.unlockQuest?.quest).toBe('Nature Spirit');
+    });
+
     test('every crossing carries the fields the executor reads', () => {
         for (const c of SPECIAL_CROSSINGS) {
             expect(c.locName.length).toBeGreaterThan(0);
@@ -67,5 +110,55 @@ describe('meetsRequirement', () => {
         expect(meetsRequirement(9, { item: 'Coins', count: 10 })).toBe(false);
         expect(meetsRequirement(10, { item: 'Coins', count: 10 })).toBe(true);
         expect(meetsRequirement(11, { item: 'Coins', count: 10 })).toBe(true);
+    });
+});
+
+describe('specialCrossingForTransport', () => {
+    test('Femi enter: exact loc tile falls back to approach stand special', () => {
+        const transport = { locX: 2459, locZ: 3383 };
+        const approach = { x: 2461, z: 3382, level: 0 };
+        const sc = specialCrossingForTransport(transport, approach);
+        expect(sc?.label).toBe('Gnome Stronghold gate (Femi boxes)');
+    });
+
+    test('Femi leave approach is not a special crossing', () => {
+        const transport = { locX: 2459, locZ: 3383 };
+        const approach = { x: 2461, z: 3385, level: 0 };
+        expect(specialCrossingForTransport(transport, approach)).toBeNull();
+    });
+
+    test('Port Sarim→Musa ship: approach L0 + step L1 resolves special (not approach-only)', () => {
+        // PathFinder stores ship loc at from stand (L0 edge origin); special is keyed at L1.
+        const transport = { locX: 3027, locZ: 3218 };
+        const approach = { x: 3027, z: 3218, level: 0 };
+        const step = { x: 2956, z: 3143, level: 1 };
+        expect(specialCrossingForTransport(transport, approach)).toBeNull();
+        const sc = specialCrossingForTransport(transport, approach, step);
+        expect(sc?.label).toBe('Port Sarim->Musa ship');
+        expect(sc?.npc).toBe('Seaman Thresnor');
+    });
+
+    test('Ardougne→Brimhaven ship: approach L0 + step L1 resolves special', () => {
+        const transport = { locX: 2683, locZ: 3272 };
+        const approach = { x: 2683, z: 3272, level: 0 };
+        const step = { x: 2775, z: 3234, level: 1 };
+        const sc = specialCrossingForTransport(transport, approach, step);
+        expect(sc?.label).toBe('Ardougne->Brimhaven ship');
+        expect(sc?.npc).toBe('Captain Barnaby');
+    });
+
+    test('return ships Musa/Brimhaven also resolve with dual levels', () => {
+        const musa = specialCrossingForTransport(
+            { locX: 2955, locZ: 3146 },
+            { x: 2955, z: 3146, level: 0 },
+            { x: 3032, z: 3217, level: 1 }
+        );
+        expect(musa?.label).toBe('Musa->Port Sarim ship');
+        const brim = specialCrossingForTransport(
+            { locX: 2772, locZ: 3234 },
+            { x: 2772, z: 3234, level: 0 },
+            { x: 2683, z: 3268, level: 1 }
+        );
+        expect(brim?.label).toBe('Brimhaven->Ardougne ship');
     });
 });

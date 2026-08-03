@@ -41,7 +41,9 @@ import TutorialBot from './TutorialBot.js';
 import WalkToBot, { WALKTO_SETTINGS } from './WalkToBot.js';
 import WildyAgility, { WILDY_AGILITY_SETTINGS } from './WildyAgility.js';
 import SmelterBot, { SETTINGS as SMELTER_SETTINGS } from './SmelterBot.js';
+import HillGiant, { HILL_GIANT_SETTINGS } from './HillGiant.js';
 import TannerBot, { TANNER_SETTINGS } from './TannerBot.js';
+import VialFiller, { VIAL_FILLER_SETTINGS } from './VialFiller.js';
 import LeatherCrafter, { CRAFTER_SETTINGS } from './LeatherCrafter.js';
 import Firemaker, { FIREMAKER_SETTINGS } from './Firemaker.js';
 import SmithingBot, { SETTINGS as SMITHING_SETTINGS } from './SmithingBot.js';
@@ -105,9 +107,9 @@ ScriptRegistry.register({
 
 ScriptRegistry.register({
     name: 'ChaosDruidKiller',
-    description: 'Kills Chaos druids in the Edgeville dungeon, loots herbs/law runes, banks them',
+    description: 'Kills Chaos druids — Edgeville dungeon, the picklocked Chaos Druid Tower (46 Thieving), or Yanille dungeon Chaos druid warriors past the 40 Agility ledge — loots Herb/Law/Nature rune drops, banks them',
     category: 'Combat',
-    tags: ['wilderness', 'edgeville', 'herbs', 'banking'],
+    tags: ['wilderness', 'edgeville', 'ardougne', 'yanille', 'herbs', 'banking'],
     settingsSchema: CHAOSDRUID_SETTINGS,
     create: () => new ChaosDruidKiller()
 });
@@ -235,6 +237,8 @@ ScriptRegistry.register({
             group: 'Tick manip',
             help: TICK_MANIP_UNSHIPPED_HELP
         },
+        muleMode: GATHERING_SETTINGS.muleMode,
+        mulePartner: GATHERING_SETTINGS.mulePartner,
         toolAcquire: TOOL_ACQUIRE_SETTING,
         forgetfulBank: FORGETFUL_BANK_SETTING
     },
@@ -243,7 +247,7 @@ ScriptRegistry.register({
 
 ScriptRegistry.register({
     name: 'EssMiner',
-    description: 'Rune essence loop — Aubury teleport, one-click mine to a full pack, portal back, bank at Varrock East. Needs Rune Mysteries + a usable pickaxe (picks your best by default)',
+    description: 'Rune essence loop — Aubury teleport, one-click mine to a full pack, portal back, bank at Varrock East. Needs Rune Mysteries; uses your best pickaxe and buys the exact best usable tier from Nurmof when banked coins cover it',
     category: 'Mining',
     tags: ['varrock', 'mining', 'banking', 'afk'],
     settingsSchema: ESSMINER_SETTINGS,
@@ -391,6 +395,8 @@ ScriptRegistry.register({
             help:
                 'Shown only for Bank raw then cook. Stop = end the script after one cook cycle of the accumulated batch. Continue = keep fishing/banking/cooking in increments of N.'
         },
+        muleMode: GATHERING_SETTINGS.muleMode,
+        mulePartner: GATHERING_SETTINGS.mulePartner,
         toolAcquire: TOOL_ACQUIRE_SETTING,
         forgetfulBank: FORGETFUL_BANK_SETTING
     },
@@ -556,6 +562,24 @@ ScriptRegistry.register({
     tags: ['alkharid', 'leather', 'dragonhide', 'banking', 'afk'],
     settingsSchema: TANNER_SETTINGS,
     create: () => new TannerBot()
+});
+
+ScriptRegistry.register({
+    name: 'HillGiant',
+    description: 'Edgeville dungeon hill giants — fetches the brass key if the bank has none, unlocks the hut, and banks limpwurt roots and big bones at Varrock East',
+    category: 'Combat',
+    tags: ['combat', 'giants', 'edgeville', 'varrock', 'banking', 'looting'],
+    settingsSchema: HILL_GIANT_SETTINGS,
+    create: () => new HillGiant()
+});
+
+ScriptRegistry.register({
+    name: 'VialFiller',
+    description: 'Falador vial-filling loop — banks empty vials, fills them one by one at the fountain, and can restock from Jatix in Taverley every Nth trip',
+    category: 'Herblore',
+    tags: ['falador', 'vials', 'water', 'banking', 'afk'],
+    settingsSchema: VIAL_FILLER_SETTINGS,
+    create: () => new VialFiller()
 });
 
 ScriptRegistry.register({
