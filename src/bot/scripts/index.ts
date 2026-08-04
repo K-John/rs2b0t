@@ -61,13 +61,25 @@ import RoguesPurse from './RoguesPurse.js';
 import ShopBuyout, { SHOPBUYOUT_SETTINGS } from './ShopBuyout.js';
 import FlaxRunner, { SETTINGS as FLAXRUNNER_SETTINGS } from './FlaxRunner.js';
 import { ShopRunner, SHOPRUNNER_SETTINGS } from './ShopRunner.js';
+import AIOTeleport, { SETTINGS as AIOTELEPORT_SETTINGS } from './AIOTeleport.js';
 
+// First register = panel default when no script is remembered (BotPanel → list()[0]).
+// Keep TutorialBot first so new accounts land on onboarding, not AIO Teleport.
 ScriptRegistry.register({
     name: 'TutorialBot',
     description: 'Completes Tutorial Island unassisted (no cheats)',
     category: 'Tutorial',
     tags: ['tutorial', 'onboarding'],
     create: () => new TutorialBot()
+});
+
+ScriptRegistry.register({
+    name: 'AIO Teleport',
+    description: 'Automated teleportation with intelligent banking and safety features',
+    category: 'Magic',
+    tags: ['teleport', 'magic', 'banking', 'aio'],
+    settingsSchema: AIOTELEPORT_SETTINGS,
+    create: () => new AIOTeleport()
 });
 
 ScriptRegistry.register({
@@ -98,7 +110,7 @@ ScriptRegistry.register({
 
 ScriptRegistry.register({
     name: 'CowKiller',
-    description: 'Walks to Lumbridge or south-Falador cows, loots hides + bones, and supports Al Kharid toll banking',
+    description: 'Walks to the Lumbridge, north-west Lumbridge, or south-Falador cow fields, loots hides + bones, and supports Al Kharid toll banking',
     category: 'Combat',
     tags: ['lumbridge', 'falador', 'cowhide', 'bones', 'banking', 'afk'],
     settingsSchema: COWKILLER_SETTINGS,
@@ -264,7 +276,7 @@ ScriptRegistry.register({
 
 ScriptRegistry.register({
     name: 'RuneCrafter',
-    description: 'AIO Runecrafting (Air/Earth) — Solo banks its own essence and crafts at the altar; Runner ferries bank essence to a Mule Recipient by trade; Mule Recipient camps the ruins, takes every essence trade and crafts between trades',
+    description: 'AIO Runecrafting (Air/Earth) — Solo banks its own essence and crafts at the altar; a Runner needs its own talisman and carries a full 26-essence load into the altar; the Mule Recipient camps next to the altar, never leaves, and crafts between the deliveries runners bring it',
     category: 'Runecrafting',
     tags: ['runecrafting', 'banking', 'trade', 'runner', 'mule', 'afk'],
     settingsSchema: RUNECRAFTER_SETTINGS,

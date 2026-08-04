@@ -48,19 +48,193 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
     { x: 3268, z: 3227, level: 0, locName: 'Gate', action: 'Open', requires: { item: 'Coins', count: 10 }, dialogue: { choose: ['Yes, ok.'] }, label: 'Al Kharid toll gate' },
     { x: 3268, z: 3228, level: 0, locName: 'Gate', action: 'Open', requires: { item: 'Coins', count: 10 }, dialogue: { choose: ['Yes, ok.'] }, label: 'Al Kharid toll gate' },
 
+    // Plague City (#366) — East Ardougne garden mud → sewer → pipe → West Ardougne manhole.
+    // Complete quest: dig soft mud (spade), climb mud pile out; pipe needs Gas mask worn.
+    {
+        x: 2566,
+        z: 3331,
+        level: 0,
+        locName: 'Mud patch',
+        action: 'Dig',
+        useItem: { id: 952, name: 'Spade' },
+        requires: { item: 'Spade', count: 1 },
+        toTile: { x: 2562, z: 9737, level: 0 },
+        arrivalRadius: 2,
+        label: 'Plague City mud dig → sewer (#366)'
+    },
+    {
+        x: 2562,
+        z: 9737,
+        level: 0,
+        locName: 'Mud pile',
+        action: 'Climb',
+        toTile: { x: 2566, z: 3331, level: 0 },
+        arrivalRadius: 2,
+        label: 'Plague City mud pile → garden (#366)'
+    },
+    {
+        x: 2530,
+        z: 9701,
+        level: 0,
+        locName: 'Sewer pipe',
+        action: 'Search',
+        toTile: { x: 2529, z: 3304, level: 0 },
+        arrivalRadius: 2,
+        label: 'Plague City sewer pipe → West Ardougne (#366)'
+    },
+    {
+        x: 2529,
+        z: 3303,
+        level: 0,
+        locName: 'Manhole',
+        action: 'Climb-down',
+        toTile: { x: 2530, z: 9703, level: 0 },
+        arrivalRadius: 2,
+        label: 'West Ardougne manhole → sewer (#366)'
+    },
+
+    // Gu'Tanoth chasm (#364 dig 3546) — two separate Jump-From rocks, one per side.
+    //
+    // Content (quest_itwatchtower.rs2), verified against maps/m39_47.jm2:
+    //   tanothjump1 (loc 2830) @ (2530,3026) south — Agility 25, then ogre_guard4
+    //     within 8 tiles demands 20gp; p_teleport(0_39_47_34_21) = (2530,3029).
+    //   tanothjump2 (loc 2831) @ (2531,3029) north — no skill, no toll, no dialogue;
+    //     p_teleport(0_39_47_35_18) = (2531,3026). "I'm glad that was easier on the
+    //     way back!" The return really is ungated (#398).
+    //
+    // x/z here is the **stand tile**, not the loc: both rocks are shape 10 and block
+    // walking, so the stand is the adjacent tile, and it must equal the transport
+    // edge's `from` or the skill-gated-crossing invariant cannot prune the edge.
+    // Each landing is the opposite rock's stand, so the pair is a closed round trip.
+    {
+        x: 2531,
+        z: 3026,
+        level: 0,
+        locName: 'Rock',
+        action: 'Jump-From',
+        requires: { item: 'Coins', count: 20 },
+        requiresSkill: { name: 'agility', level: 25 },
+        dialogue: { choose: ["Okay, I'll pay it."] },
+        toTile: { x: 2530, z: 3029, level: 0 },
+        arrivalRadius: 2,
+        label: "Gu'Tanoth chasm jump in (#364)"
+    },
+    {
+        x: 2530,
+        z: 3029,
+        level: 0,
+        locName: 'Rock',
+        action: 'Jump-From',
+        toTile: { x: 2531, z: 3026, level: 0 },
+        arrivalRadius: 2,
+        label: "Gu'Tanoth chasm jump out (#364)"
+    },
+    // Toban camp (#364 dig 3548) — cave enter / ladder leave.
+    {
+        x: 2499,
+        z: 2988,
+        level: 0,
+        locName: 'Cave entrance',
+        action: 'Enter',
+        toTile: { x: 2576, z: 3029, level: 0 },
+        arrivalRadius: 3,
+        label: "Toban cave enter (#364)"
+    },
+    {
+        x: 2575,
+        z: 3029,
+        level: 0,
+        locName: 'Ladder',
+        action: 'Climb-down',
+        toTile: { x: 2500, z: 2988, level: 0 },
+        arrivalRadius: 2,
+        label: "Toban ladder leave (#364)"
+    },
+
     { x: 2568, z: 9893, level: 0, locName: 'Door', action: 'Open', useItem: { id: 298, name: 'A key' }, label: 'Baxtorian keyed door' },
 
+    // edgeville_dungeon.rs2 brasskeydoor — Open only answers "The door is locked";
+    // the key has to be USED on it (oplocu), in both directions, and the unlock walks
+    // you through. Without a key the graph must route around the hut (#421, #423).
+    { x: 3115, z: 3450, level: 0, locName: 'Door', action: 'Open', useItem: { id: 983, name: 'Brass key' }, requires: { item: 'Brass key', count: 1 }, label: 'Hill giant hut brass key door' },
+
+    // Baxtorian Falls approach (#369 / #320) — same stands as FireGiantLogic:
+    //   Board Log raft @ ~2510,3493 → crash mound 2512,3481
+    //   Walk south to throw stand 2512,3477 (in THROW_ZONE z 3476–3481)
+    //   Rope on Rock @ 2512,3468 → PastRock (~2513,3468, r≤3)
+    //   Walk south to 2512,3466, Rope on Dead tree → ledge 2511,3463
+    // One Rope, not consumed. Barrel exit already in transports.json.
+    {
+        x: 2509,
+        z: 3493,
+        level: 0,
+        locName: 'Log raft',
+        action: 'Board',
+        toTile: { x: 2512, z: 3481, level: 0 },
+        arrivalRadius: 2,
+        label: 'Baxtorian log raft (#369)'
+    },
+    {
+        x: 2512,
+        z: 3468,
+        level: 0,
+        locName: 'Rock',
+        action: 'Swim to',
+        useItem: { id: 954, name: 'Rope' },
+        requires: { item: 'Rope', count: 1 },
+        toTile: { x: 2513, z: 3468, level: 0 },
+        arrivalRadius: 3, // FireGiant PastRock = cheb(POST_ROCK) ≤ 3
+        label: 'Baxtorian rope → rock (#369)'
+    },
+    {
+        x: 2512,
+        z: 3465,
+        level: 0,
+        locName: 'Dead tree',
+        action: 'Climb',
+        useItem: { id: 954, name: 'Rope' },
+        requires: { item: 'Rope', count: 1 },
+        toTile: { x: 2511, z: 3463, level: 0 },
+        arrivalRadius: 1,
+        label: 'Baxtorian rope → ledge (#369)'
+    },
+
     { x: 3027, z: 3218, level: 1, npc: 'Seaman Thresnor', locName: 'Seaman Thresnor', action: 'Pay-fare', requires: { item: 'Coins', count: 30 }, dialogue: { choose: ['Yes please.'] }, toTile: { x: 2956, z: 3143, level: 1 }, label: 'Port Sarim->Musa ship' },
-    { x: 2955, z: 3146, level: 1, npc: 'Customs officer', locName: 'Customs officer', action: 'Pay-fare', requires: { item: 'Coins', count: 30 }, dialogue: { choose: ['Can I journey on this ship?', 'Search away, I have nothing to hide.', 'Ok.'] }, toTile: { x: 3032, z: 3217, level: 1 }, label: 'Musa->Port Sarim ship' },
+    // Customs officer is ONE npc type; content branches on coordx(npc_coord) < 2815
+    // (customs_officer.rs2). Key each reverse ship by pier stand + toTile — never type alone (#404).
+    {
+        x: 2955,
+        z: 3146,
+        level: 1,
+        npc: 'Customs officer',
+        locName: 'Customs officer',
+        action: 'Pay-fare',
+        requires: { item: 'Coins', count: 30 },
+        dialogue: { choose: ['Can I journey on this ship?', 'Search away, I have nothing to hide.', 'Ok.'] },
+        toTile: { x: 3032, z: 3217, level: 1 },
+        label: 'Musa->Port Sarim ship' // npc x ~2953–2955 ≥ 2815 → Port Sarim
+    },
 
     { x: 2683, z: 3272, level: 1, npc: 'Captain Barnaby', locName: 'Captain Barnaby', action: 'Pay-fare', requires: { item: 'Coins', count: 30 }, dialogue: { choose: ['Yes please.'] }, toTile: { x: 2775, z: 3234, level: 1 }, label: 'Ardougne->Brimhaven ship' },
-    { x: 2772, z: 3234, level: 1, npc: 'Customs officer', locName: 'Customs officer', action: 'Pay-fare', requires: { item: 'Coins', count: 30 }, dialogue: { choose: ['Can I journey on this ship?', 'Search away, I have nothing to hide.', 'Ok.'] }, toTile: { x: 2683, z: 3268, level: 1 }, label: 'Brimhaven->Ardougne ship' },
+    {
+        x: 2772,
+        z: 3234,
+        level: 1,
+        npc: 'Customs officer',
+        locName: 'Customs officer',
+        action: 'Pay-fare',
+        requires: { item: 'Coins', count: 30 },
+        dialogue: { choose: ['Can I journey on this ship?', 'Search away, I have nothing to hide.', 'Ok.'] },
+        toTile: { x: 2683, z: 3268, level: 1 },
+        label: 'Brimhaven->Ardougne ship' // npc x ~2772–2773 < 2815 → Ardougne
+    },
 
     { x: 2461, z: 3382, level: 0, locName: 'Gate', action: 'Open', dialogue: { choose: ['OK then'] }, reopenAfterDialogue: true, label: 'Gnome Stronghold gate (Femi boxes)' },
 
-    // Heading south into the desert costs a Shantay pass and, the first time,
-    // a disclaimer prompt. Coming back north is free, which is why only this
-    // direction needs an entry. (shantay_pass.rs2)
+    // Shantay pass (shantay_pass.rs2): one loc, direction from coordz vs loc.
+    // Southbound (player north of loc) consumes a pass + disclaimer; northbound free.
+    // transports.json already has dual directed edges; only south needs specialCrossing
+    // for plan-time item + dialog (#403 / #371).
     {
         x: 3304,
         z: 3118,

@@ -23,13 +23,23 @@ import {
     type SpecialCrossing
 } from '../data/specialCrossings.js';
 import { DirectNavigator } from '../DirectNavigator.js';
-import { isOnFarSide } from '../followMath.js';
+import { chebyshev, isOnFarSide } from '../followMath.js';
 import type { TransportInfo } from '../PathFinder.js';
 import { findTransportLoc } from './transportLoc.js';
 
 const DIALOGUE_STEPS = 24;
+/** Rope throws / forcewalks (Baxtorian rock: forcewalk + throw + swim) need many ticks. */
+const USE_ITEM_STEPS = 80;
 const SHIP_DIALOGUE_STEPS = 40;
 const GATE_REOPENS = 2;
+
+function isNearTile(
+    me: { x: number; z: number; level: number },
+    dest: { x: number; z: number; level: number },
+    rad: number
+): boolean {
+    return me.level === dest.level && chebyshev(me, dest) <= rad;
+}
 
 export interface PathStepTile extends WorldTile {
     transport?: TransportInfo;
@@ -104,7 +114,7 @@ export async function handleSpecialCrossing(
         const rad = sc.arrivalRadius ?? 3;
         const arrived = (): boolean => {
             const me = reader.worldTile();
-            return me !== null && sc.toTile !== undefined && me.level === sc.toTile.level && isNear(me, sc.toTile, rad);
+            return me !== null && sc.toTile !== undefined && isNearTile(me, sc.toTile, rad);
         };
         for (let i = 0; i < SHIP_DIALOGUE_STEPS && !arrived(); i++) {
             const pick = pickChoice(ChatDialog.options(), sc.dialogue.choose);
@@ -131,22 +141,29 @@ export async function handleSpecialCrossing(
                 ? sc.action
                 : 'Talk-to';
         const tryActs = preferred === 'Talk-to' ? (['Talk-to'] as const) : ([preferred, 'Talk-to'] as const);
+        // Key on specialCrossing stand tile, not type alone — one NPC type can serve
+        // multiple routes (Customs officer: coordx(npc) < 2815 → Ardougne, else Port Sarim).
+        // Global nearest() would be fine while piers are far apart, but prefer the instance
+        // at this pier so a wrong officer can never steal the hop (#404).
+        const stand = { x: sc.x, z: sc.z, level: sc.level };
         let interacted = false;
         for (const act of tryActs) {
-            const npc = Npcs.query().name(sc.npc).action(act).nearest();
+            const npc =
+                Npcs.query().name(sc.npc).action(act).withinOf(stand, 10).nearest()
+                ?? Npcs.query().name(sc.npc).action(act).within(12).nearest();
             if (npc && (await npc.interact(act))) {
                 interacted = true;
                 break;
             }
         }
         if (!interacted) {
-            log(`${sc.label}: '${sc.npc}' not interactable (${preferred})`);
+            log(`${sc.label}: '${sc.npc}' not interactable (${preferred}) near (${sc.x},${sc.z})`);
             return false;
         }
         const rad = sc.arrivalRadius ?? 2;
         const arrived = (): boolean => {
             const me = reader.worldTile();
-            return me !== null && sc.toTile !== undefined && me.level === sc.toTile.level && isNear(me, sc.toTile, rad);
+            return me !== null && sc.toTile !== undefined && isNearTile(me, sc.toTile, rad);
         };
         let mapClicked = false;
         for (let i = 0; i < SHIP_DIALOGUE_STEPS && !arrived(); i++) {
@@ -183,7 +200,15 @@ export async function handleSpecialCrossing(
         return false;
     }
 
-    const crossed = (): boolean => isOnFarSide(reader.worldTile(), approach, step);
+    const crossed = (): boolean => {
+        // useItem hops (rope on rock/tree) land on toTile via animation, not a door far-side.
+        if (sc.toTile) {
+            const me = reader.worldTile();
+            const rad = sc.arrivalRadius ?? 2;
+            return me !== null && isNearTile(me, sc.toTile, rad);
+        }
+        return isOnFarSide(reader.worldTile(), approach, step);
+    };
     // Already-open gate (Close leaf only): do not fail "not found" — walk through.
     if (/^open$/i.test(sc.action) && !sc.useItem) {
         const shutProbe = findTransportLoc({
@@ -208,9 +233,29 @@ export async function handleSpecialCrossing(
             }
         }
     }
+    // Plague City sewer pipe: content requires a worn gas mask after the quest.
+    if (/sewer pipe|plague city/i.test(sc.label) && /pipe/i.test(sc.locName)) {
+        if (!Equipment.contains('Gas mask')) {
+            if (!(await Equipment.equip('Gas mask'))) {
+                log(`${sc.label}: need Gas mask worn — skipping`);
+                return false;
+            }
+        }
+    }
+
     const maxOpens = sc.reopenAfterDialogue ? GATE_REOPENS : 1;
     for (let open = 0; open < maxOpens && !crossed(); open++) {
-        const loc = findTransportLoc({ locName: sc.locName, action: sc.action, locX: sc.x, locZ: sc.z });
+        // useItem (e.g. rope on Rock) must not require a menu action that is not
+        // the use-with target — content often only exposes Swim-to / no Climb.
+        const loc = sc.useItem
+            ? Locs.query()
+                .name(sc.locName)
+                .where(l => {
+                    const t = l.tile();
+                    return Math.max(Math.abs(t.x - sc.x), Math.abs(t.z - sc.z)) <= 3;
+                })
+                .nearest()
+            : findTransportLoc({ locName: sc.locName, action: sc.action, locX: sc.x, locZ: sc.z });
         if (!loc) {
             // Open leaf mid-loop: succeed if we can pass rather than repath-fail.
             if (
@@ -224,20 +269,73 @@ export async function handleSpecialCrossing(
             return false;
         }
         if (sc.useItem) {
-            const item = Inventory.items().find(candidate => matchesUseItem(candidate, sc.useItem!));
+            // FireGiant: walk to exact throw/tree stand before rope (content aplocu range
+            // is ~10; from raft landing "I can't reach that!" / bad shot).
+            if (/Baxtorian rope → rock/i.test(sc.label)) {
+                const stand = { x: 2512, z: 3477, level: 0 };
+                const atStand = await walkTo(stand, {
+                    radius: 0,
+                    timeoutMs: 60_000,
+                    log: m => log(`  ${m}`)
+                });
+                if (!atStand) {
+                    log(`${sc.label}: could not reach rope-throw stand (2512,3477)`);
+                    return false;
+                }
+            } else if (/Baxtorian rope → ledge/i.test(sc.label)) {
+                const stand = { x: 2512, z: 3466, level: 0 };
+                const atStand = await walkTo(stand, {
+                    radius: 0,
+                    timeoutMs: 60_000,
+                    log: m => log(`  ${m}`)
+                });
+                if (!atStand) {
+                    log(`${sc.label}: could not reach dead-tree stand (2512,3466)`);
+                    return false;
+                }
+            }
+            // Prefer id match, then name (give/cheat labels vs pack id).
+            const item =
+                Inventory.items().find(candidate => matchesUseItem(candidate, sc.useItem!))
+                ?? Inventory.first(sc.useItem.name);
             if (!item) {
                 log(`${sc.label}: need ${sc.useItem.name} (id ${sc.useItem.id}) — skipping`);
                 return false;
             }
-            if (!(await item.useOn(loc))) {
+            // Re-resolve loc after walking into range (scene may have lagged).
+            const useLoc =
+                Locs.query()
+                    .name(sc.locName)
+                    .where(l => {
+                        const t = l.tile();
+                        return Math.max(Math.abs(t.x - sc.x), Math.abs(t.z - sc.z)) <= 3;
+                    })
+                    .nearest() ?? loc;
+            if (!(await item.useOn(useLoc))) {
                 log(`${sc.label}: could not use ${sc.useItem.name} on ${sc.locName}`);
                 return false;
             }
-        } else if (!loc.interact(sc.action)) {
+            // Baxtorian rock/tree: forcewalk + throw + swim/tele takes many ticks
+            // (FireGiant waits ~12s for PastRock / AtLedge).
+            if (sc.toTile) {
+                const rad = sc.arrivalRadius ?? 2;
+                const landed = await Execution.delayUntil(() => {
+                    const me = reader.worldTile();
+                    return me !== null && isNearTile(me, sc.toTile!, rad);
+                }, 14_000);
+                if (landed) {
+                    log(`${sc.label}: crossed`);
+                    return true;
+                }
+                log(`${sc.label}: use-item hop did not land at toTile — repathing`);
+                return false;
+            }
+        } else if (!(await loc.interact(sc.action))) {
             log(`${sc.label}: '${sc.action}' not offered (ops: ${loc.actions().join(', ')})`);
             return false;
         }
-        for (let i = 0; i < DIALOGUE_STEPS && !crossed(); i++) {
+        const waitSteps = DIALOGUE_STEPS;
+        for (let i = 0; i < waitSteps && !crossed(); i++) {
             const pick = sc.dialogue ? pickChoice(ChatDialog.options(), sc.dialogue.choose) : null;
             if (pick) {
                 await ChatDialog.chooseOption(pick);
@@ -246,6 +344,14 @@ export async function handleSpecialCrossing(
             } else {
                 await Execution.delayTicks(1);
             }
+        }
+        // Non-useItem tele hops (pipe, manhole, mud Climb, cave Enter, Jump-From).
+        if (sc.toTile && !sc.useItem && !crossed()) {
+            const rad = sc.arrivalRadius ?? 2;
+            await Execution.delayUntil(() => {
+                const me = reader.worldTile();
+                return me !== null && isNearTile(me, sc.toTile!, rad);
+            }, 14_000);
         }
     }
     if (crossed()) {

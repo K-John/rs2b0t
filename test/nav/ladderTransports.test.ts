@@ -37,6 +37,32 @@ describe('ladder transport data', () => {
         expect(samePlaneLadders.every(edge => edge.kind === 'dungeon')).toBe(true);
     });
 
+    test('binds Entrana ship gangplanks for deck disembark (#368)', () => {
+        const offEntrana = transportEdges.find(e => e.debugName === 'ship_from_entrana_off');
+        const onEntrana = transportEdges.find(e => e.debugName === 'ship_from_entrana_on');
+        const offSarim = transportEdges.find(e => e.debugName === 'ship_to_entrana_off');
+        const onSarim = transportEdges.find(e => e.debugName === 'ship_to_entrana_on');
+
+        expect(offEntrana).toMatchObject({
+            locId: 2415,
+            locX: 2834,
+            locZ: 3333,
+            action: 'Cross',
+            kind: 'gangplank',
+            from: { x: 2834, z: 3331, level: 1 },
+            to: { x: 2834, z: 3335, level: 0 }
+        });
+        expect(onEntrana).toMatchObject({ locId: 2414, kind: 'gangplank' });
+        expect(offSarim).toMatchObject({
+            locId: 2413,
+            locX: 3048,
+            locZ: 3232,
+            from: { x: 3048, z: 3231, level: 1 },
+            to: { x: 3048, z: 3234, level: 0 }
+        });
+        expect(onSarim).toMatchObject({ locId: 2412, kind: 'gangplank' });
+    });
+
     test('binds each Mage Arena web crossing to the web between its stand tiles', () => {
         const web = (fromX: number, toX: number): TransportEdgeData | undefined => transportEdges.find(edge =>
             edge.from.x === fromX && edge.from.z === 3957 && edge.to.x === toX && edge.to.z === 3957
@@ -46,6 +72,28 @@ describe('ladder transport data', () => {
         expect(web(3094, 3096)?.locX).toBe(3095);
         expect(web(3094, 3092)?.locX).toBe(3093);
         expect(web(3092, 3094)?.locX).toBe(3093);
+    });
+
+    test('binds west Varrock sewer web (#370) N-S across the centrepiece tile', () => {
+        const web = (fromZ: number, toZ: number): TransportEdgeData | undefined => transportEdges.find(edge =>
+            edge.from.x === 3210 && edge.from.z === fromZ && edge.to.x === 3210 && edge.to.z === toZ
+            && edge.debugName === 'bigweb_slashable'
+        );
+
+        expect(web(9897, 9899)).toMatchObject({
+            locId: 733,
+            locX: 3210,
+            locZ: 9898,
+            action: 'Slash',
+            kind: 'door'
+        });
+        expect(web(9899, 9897)).toMatchObject({
+            locId: 733,
+            locX: 3210,
+            locZ: 9898,
+            action: 'Slash',
+            kind: 'door'
+        });
     });
 
     test('binds clustered outdoor stair reverses to their outdoor top locs', () => {

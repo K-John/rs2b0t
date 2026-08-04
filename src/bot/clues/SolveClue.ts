@@ -16,6 +16,10 @@ import { ensureCoordTools, hasAllTrio, hasCoordClueHeld } from '#/bot/clues/Acqu
 import { SPADE_NAME, trailKit } from '#/bot/clues/data/toolAcquire.js';
 import { COORD_TOOL_SLOTS, trailFoodTarget, weaponNeeded } from '#/bot/clues/packPlan.js';
 import { isTeleportItem, teleportRunes } from '#/bot/clues/teleportKit.js';
+import {
+    ENTRANA_RESTRICTED_GEAR_RE,
+    namesHaveEntranaRestrictedGear
+} from '#/bot/nav/exec/specialCrossing.js';
 
 const BANK_NAME = 'Bank booth';
 const BANK_OP = 'Use-quickly';
@@ -35,6 +39,22 @@ export function heldClueLikeId(): number | null {
 function heldClueScrollId(): number | null {
     const it = Inventory.items().find(i => CLUE_DB[i.id] !== undefined);
     return it ? it.id : null;
+}
+
+/** Hard riddle drawers on Entrana (issue #368) — boat refuses weapons/armour. */
+function isEntranaClueCoord(c: { x: number; z: number; level: number } | undefined): boolean {
+    if (!c || c.level !== 0) {
+        return false;
+    }
+    return c.x >= 2802 && c.x <= 2878 && c.z >= 3329 && c.z <= 3393;
+}
+
+function heldClueNeedsEntranaStrip(): boolean {
+    const id = heldClueScrollId();
+    if (id === null) {
+        return false;
+    }
+    return isEntranaClueCoord(CLUE_DB[id]?.coord);
 }
 
 export interface SolveClueHost {
@@ -125,6 +145,20 @@ export class SolveClue implements Task {
             this.host.log('[clue] walk to the bank failed — will retry');
             return false;
         }
+
+        const scrollId = heldClueScrollId();
+        const entranaStrip = heldClueNeedsEntranaStrip();
+        if (entranaStrip) {
+            this.host.log('[clue] Entrana destination — banking weapons/armour (monk search)');
+            // Unequip before bank open — side-view swaps inventory ops to Deposit-*.
+            for (const worn of Equipment.items()) {
+                const n = worn.name ?? '';
+                if (n !== '' && ENTRANA_RESTRICTED_GEAR_RE.test(n)) {
+                    await Equipment.unequip(n);
+                }
+            }
+        }
+
         if (!(await Bank.openNearest(BANK_NAME, BANK_OP, m => this.host.log(`  ${m}`)))) {
             this.host.log('[clue] could not open the bank — will retry');
             return false;
@@ -138,22 +172,32 @@ export class SolveClue implements Task {
         }
         const weapon = (this.host.weaponName?.() ?? '').toLowerCase();
         const coordItems = new Set(['sextant', 'watch', 'chart']);
-        const scrollId = heldClueScrollId();
         const rowItems = scrollId !== null ? (CLUE_DB[scrollId]?.items ?? []) : [];
         const rowItemNames = new Set(rowItems.map(n => n.toLowerCase()));
         const keepTeleports = this.host.useTeleports?.() ?? true;
+        // Southbound Shantay Pass is baked but consumes a pass (#371). Keep/withdraw
+        // one so desert digs (3552/3554) can plan the requires-gated edge.
+        const SHANTAY_PASS = 'Shantay pass';
         const isKeep = (name: string): boolean => {
             const n = name.toLowerCase();
+            if (entranaStrip && ENTRANA_RESTRICTED_GEAR_RE.test(name)) {
+                return false;
+            }
             // Food is deliberately NOT kept: a bot arriving from a grind holds a
             // grind-sized load, which fills the pack and starves the trail kit.
             // It goes to the bank here and comes back capped below.
             return protectedNames.has(n) || n.includes('clue') || n.includes('casket')
-                || n === SPADE_NAME.toLowerCase() || n === 'coins' || coordItems.has(n) || rowItemNames.has(n) || (weapon !== '' && n === weapon)
+                || n === SPADE_NAME.toLowerCase() || n === 'coins' || n === SHANTAY_PASS.toLowerCase()
+                || coordItems.has(n) || rowItemNames.has(n)
+                || (!entranaStrip && weapon !== '' && n === weapon)
                 || (keepTeleports && isTeleportItem(name));
         };
         await Bank.depositAllMatching(name => !isKeep(name), m => this.host.log(`[clue] deposit: ${m}`));
 
         for (const item of trailKit(scrollId)) {
+            if (entranaStrip && ENTRANA_RESTRICTED_GEAR_RE.test(item)) {
+                continue;
+            }
             if (!Inventory.first(item)) {
                 await Bank.withdraw(item, 'Withdraw-1');
                 if (!(await Execution.delayUntil(() => Inventory.first(item) !== null, 2500))) {
@@ -163,14 +207,34 @@ export class SolveClue implements Task {
         }
 
         const weaponName = this.host.weaponName?.() ?? '';
-        if (weaponNeeded(weaponName, Inventory.first(weaponName) !== null, Equipment.contains(weaponName))) {
+        if (
+            !entranaStrip
+            && weaponNeeded(weaponName, Inventory.first(weaponName) !== null, Equipment.contains(weaponName))
+        ) {
             await Bank.withdraw(weaponName, 'Withdraw-1');
             await Execution.delayUntil(() => Inventory.first(weaponName) !== null, 2500);
+        }
+
+        if (entranaStrip && namesHaveEntranaRestrictedGear([
+            ...Inventory.items().map(i => i.name ?? ''),
+            ...Equipment.items().map(i => i.name ?? '')
+        ])) {
+            this.host.log('[clue] still holding Entrana-banned gear after bank prep — will retry');
+            await Bank.close();
+            return false;
         }
 
         const coinsShort = CLUE_COINS - Inventory.count('Coins');
         if (coinsShort > 0 && !(await Bank.withdrawX('Coins', coinsShort))) {
             this.host.log('[clue] no Coins in the bank — toll-gate routes will detour');
+        }
+
+        if (Inventory.count(SHANTAY_PASS) < 1) {
+            if (!(await Bank.withdraw(SHANTAY_PASS, 'Withdraw-1'))) {
+                this.host.log('[clue] no Shantay pass in the bank — Kharidian desert digs will stay closed (#371)');
+            } else if (!(await Execution.delayUntil(() => Inventory.count(SHANTAY_PASS) >= 1, 2500))) {
+                this.host.log('[clue] Shantay pass withdraw did not land');
+            }
         }
 
         const scrollIsCoord = scrollId !== null && CLUE_DB[scrollId]?.needsSextant === true;

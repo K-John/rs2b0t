@@ -9,6 +9,7 @@
  */
 
 import type { TransportEdgeData } from '../PathFinder.js';
+import { essenceExitEdges } from './essenceExit.js';
 import { parseLcCoord } from './lcCoord.js';
 import { REQ } from './transportQuestReqs.js';
 import type { NavPoint, TransportRequires } from './types.js';
@@ -137,19 +138,24 @@ export function spiritTreeEdges(): TransportEdgeData[] {
  */
 export function gliderEdges(): TransportEdgeData[] {
     const hub = GLIDER_PAD.taQuirPriw;
-    const pads: { id: string; to: NavPoint }[] = [
+    /** Pads with a return hop in `~calc_glidervar` (gnome_glider.rs2). */
+    const roundTripPads: { id: string; to: NavPoint }[] = [
         { id: 'gandius', to: GLIDER_PAD.gandius },
         { id: 'sindarpos', to: GLIDER_PAD.sindarpos },
-        { id: 'lemanto_andra', to: GLIDER_PAD.lemantoAndra },
         { id: 'kar_hewo', to: GLIDER_PAD.karHewo }
     ];
     // Glider pads open once Grand Tree is finished (content checks complete for free flight).
     const req: TransportRequires = { ...REQ.grandTreeComplete };
     const out: TransportEdgeData[] = [];
-    for (const p of pads) {
+    for (const p of roundTripPads) {
         out.push(edge(hub, p.to, 'Gnome pilot', 'Talk-to', 'ship', `glider_hub_to_${p.id}`, req));
         out.push(edge(p.to, hub, 'Gnome pilot', 'Talk-to', 'ship', `glider_${p.id}_to_hub`, req));
     }
+    // Lemanto Andra (Digsite): hub → pad only. `~calc_glidervar` has no reverse pair;
+    // `~calc_gliderstart` never treats the digsite zone as an origin. One-way sink.
+    out.push(
+        edge(hub, GLIDER_PAD.lemantoAndra, 'Gnome pilot', 'Talk-to', 'ship', 'glider_hub_to_lemanto_andra', req)
+    );
     return out;
 }
 
@@ -223,20 +229,16 @@ export function shiloCartEdges(): TransportEdgeData[] {
 
 /**
  * Rune Mysteries complete → essence mine via wizard Teleport.
- * Landing is random in-content; we plan to a representative pad + acceptAnyLanding.
  *
- * Recorded but disabled: the mine is exit-only in the graph. essence_mine.rs2
- * keeps the entry NPC in %exit_essence_mine_coord and the exit portal telejumps
- * back to it, so entry-then-portal returns you where you started. transports.json
- * bakes that portal as a fixed Sedridor landing — true only for a Sedridor entry —
- * so enabling these hands A* a cost-20 wormhole from any of five wizards to the
- * Wizards' Tower basement. Live it teleports in, lands back at the entry NPC, and
- * re-plans the same teleport forever. Bots that want the mine drive the NPC
- * themselves; only the exit belongs in the graph.
+ * Content (`essence_mine.rs2`): landing is `random(enum essence_mine_teleports)` over
+ * **22** tiles across mapsquare 45_75, then `map_findsquare(..., 0, 1, lineofsight)`.
+ * That is not a static destination — blacklisted from the path graph (#388). Scripts
+ * that need the mine own the wizard hop (specialCrossings Talk-to for execution).
+ *
+ * `essenceEntrySetsReturn` is kept on the audit rows so docs/tests know which
+ * wizard sets which session return; it is not plan-usable while blacklisted.
+ * Exit edges stay routable and require the matching `essenceExitReturn` (#377).
  */
-const ESSENCE_ENTRY_DISABLED =
-    'Exit portal returns to the entry NPC (%exit_essence_mine_coord), so entry + portal is a no-op round trip, not a shortcut.';
-
 export function essenceEntryEdges(): TransportEdgeData[] {
     const f2p: TransportRequires = { ...REQ.runeMysteriesComplete };
     const membersReq: TransportRequires = {
@@ -244,22 +246,31 @@ export function essenceEntryEdges(): TransportEdgeData[] {
         ...REQ.runeMysteriesComplete
     };
     const mine = ESSENCE_MINE_PAD;
+    const bl = {
+        blacklist: true as const,
+        blacklistReason:
+            'Essence mine entry: landing is random(enum essence_mine_teleports) over 22 pads + map_findsquare r=1 (content essence_mine.rs2) — not a static destination. Scripts own entry.'
+    };
     const mk = (
         from: NavPoint,
         npc: string,
         debug: string,
-        requires: TransportRequires
+        requires: TransportRequires,
+        returnId: string
     ): TransportEdgeData => ({
-        ...edge(from, mine, npc, 'Teleport', 'portal', debug, requires),
-        disabledReason: ESSENCE_ENTRY_DISABLED
+        ...edge(from, mine, npc, 'Teleport', 'portal', debug, {
+            ...requires,
+            essenceEntrySetsReturn: returnId
+        }),
+        ...bl
     });
 
     return [
-        mk(ESSENCE_RETURN.aubury, 'Aubury', 'ess_entry_aubury', f2p),
-        mk(ESSENCE_RETURN.sedridor, 'Sedridor', 'ess_entry_sedridor', f2p),
-        mk(ESSENCE_RETURN.distentor, 'Wizard Distentor', 'ess_entry_distentor', membersReq),
-        mk(ESSENCE_RETURN.cromperty, 'Wizard Cromperty', 'ess_entry_cromperty', membersReq),
-        mk(ESSENCE_RETURN.brimstail, 'Brimstail', 'ess_entry_brimstail', membersReq)
+        mk(ESSENCE_RETURN.aubury, 'Aubury', 'ess_entry_aubury', f2p, 'aubury'),
+        mk(ESSENCE_RETURN.sedridor, 'Sedridor', 'ess_entry_sedridor', f2p, 'sedridor'),
+        mk(ESSENCE_RETURN.distentor, 'Wizard Distentor', 'ess_entry_distentor', membersReq, 'distentor'),
+        mk(ESSENCE_RETURN.cromperty, 'Wizard Cromperty', 'ess_entry_cromperty', membersReq, 'cromperty'),
+        mk(ESSENCE_RETURN.brimstail, 'Brimstail', 'ess_entry_brimstail', membersReq, 'brimstail')
     ];
 }
 
@@ -285,6 +296,53 @@ export function wildyLeverEdges(): TransportEdgeData[] {
             'lever_wild_to_ardougne',
             members
         )
+    ];
+}
+
+/**
+ * Mage Arena outdoor barrier (`magearena_scan`, loc 2880, map m48_61).
+ *
+ * Content (`mage_arena.rs2`): one placement pair; direction from player vs loc.
+ * - **Inbound** (north → south): needs `%magearena >= complete` + no armour/weapons
+ *   (`~can_enter_mage_arena`). Miniquest is not on the quest list — plan uses
+ *   members + `forbidEntranaRestricted` (same gear heuristic as Entrana); incomplete
+ *   miniquest still fails at the loc.
+ * - **Outbound** (south → north): free tele to north of loc.
+ *
+ * Dual directed edges so pathfind cannot pin a single approach and drop a side (#403).
+ */
+export function mageArenaBarrierEdges(): TransportEdgeData[] {
+    // Placements: 0_48_61_33_49 + 0_48_61_34_49 → (3105|3106, 3953).
+    const locX = 3105;
+    const locZ = 3953;
+    const north = { x: 3105, z: 3954, level: 0 };
+    const south = { x: 3105, z: 3952, level: 0 };
+    const inbound: TransportRequires = {
+        members: true,
+        forbidEntranaRestricted: true
+    };
+    const outbound: TransportRequires = { members: true };
+    const mk = (
+        from: NavPoint,
+        to: NavPoint,
+        debug: string,
+        requires: TransportRequires
+    ): TransportEdgeData => ({
+        from: { ...from },
+        to: { ...to },
+        locName: 'Mystic portal',
+        action: 'Walk-through',
+        kind: 'gate',
+        locId: 2880,
+        locX,
+        locZ,
+        debugName: debug,
+        options: ['Walk-through'],
+        requires
+    });
+    return [
+        mk(north, south, 'magearena_scan_in', inbound),
+        mk(south, north, 'magearena_scan_out', outbound)
     ];
 }
 
@@ -331,7 +389,11 @@ export function curatedTravelEdges(): TransportEdgeData[] {
         ...entranaFerryEdges(),
         ...shiloCartEdges(),
         ...essenceEntryEdges(),
+        // Session multiloc: portal × return, gated by WorldState.essenceExitReturn.
+        // Replaces the four hard-coded Sedridor-only rows formerly in transports.json.
+        ...essenceExitEdges(),
         ...wildyLeverEdges(),
+        ...mageArenaBarrierEdges(),
         ...agilityShortcutEdges()
     ];
 }
@@ -348,6 +410,8 @@ export const TRAVEL_FAMILIES = [
     'jewellery_teleport',
     'wildy_lever',
     'essence_entry',
+    'essence_exit',
+    'mage_arena_barrier',
     'agility_shortcut'
 ] as const;
 

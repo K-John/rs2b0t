@@ -30,18 +30,29 @@ export const PACK_UNREACHABLE: Record<number, string> = {
     3560: 'Isafdar: Sticks [Pass] @ (2200,3169) — requires Underground Pass/Regicide',
     3562: 'Isafdar: Sticks [Pass] @ (2181,3209) — requires Underground Pass/Regicide',
     3564: 'elf camp: Dense forest [Enter] @ (2231,3248) / Log balance @ (2197,3237) — requires Regicide',
-    3546: "Gu'Tanoth: ogre guard gates (ogre_guard.rs2, %gutanoth_gold) — requires Watch Tower",
-    3548: "Gu'Tanoth: ogre guard gates (ogre_guard.rs2, %gutanoth_gold) — requires Watch Tower",
-    3522: 'West Ardougne: squeeze the sewer pipe with a rope tied to its grill (sewerpipe.rs2) — requires Plague City',
-    2815: 'Crandor: reached by the quest ship — requires Dragon Slayer',
-    3526: 'Trollheim/Death Plateau: death_climbingrocks need climbing boots worn — requires Death Plateau',
-    3528: 'Trollheim/Death Plateau: death_climbingrocks need climbing boots worn — requires Death Plateau',
+    // 3546/3548: "Gu'Tanoth Toban camp: cave/ladder baked — hill access may need Watch Tower",
+    // (ogre gates / Watch Tower path) to reach the stands from the mainland.
+    3546: "Gu'Tanoth ledge: chasm Jump-From baked — need 25 Agility + 20gp; hill access may need Watch Tower",
+    3548: "Gu'Tanoth Toban camp: cave/ladder baked — hill access may need Watch Tower",
+    3522: 'West Ardougne: baked sewer pipe path — requires Plague City complete and Gas mask worn',
+    2815: 'Crandor: baked secret wall + rock/rope — requires Dragon Slayer complete',
+    // Corrected against Content @ 088ca5e (#365). The previous note named
+    // death_climbingrocks / Death Plateau; both are wrong. death_climbingrocks_top
+    // (3722) / _bottom (3723) sit at (2880..2881, 3594..3595) — the Death Plateau,
+    // ~80 tiles south of these digs and not on the route. The crossings that
+    // actually border them are in quest_troll.rs2:
+    //   troll_mountain_shortcut_climbingrocks1/2 (3803/3804) @ (2885,3683+3684)
+    //     and (2887..2888,3661) — Agility 15 only. No quest, no boots.
+    //   troll_climbingrocks (3748) @ (2910,3686+3687) — Agility 15 AND
+    //     %troll_quest >= ^troll_started (Troll Stronghold *started*, not Death
+    //     Plateau). Climbing boots are demanded only when coordz(coord) = 3611,
+    //     i.e. from the far southern approach, not from these tiles.
+    // So the shortcut rocks look bakeable today behind Agility 15 alone.
+    3526: 'Trollheim: troll_mountain_shortcut_climbingrocks1/2 @ (2885,3683) not baked — Agility 15, no quest gate',
+    3528: 'Trollheim: troll_mountain_shortcut_climbingrocks1/2 @ (2885,3683) not baked — Agility 15, no quest gate',
 
     // ---- KIT: an item or skill, no quest -----------------------------------
-    // riddle027's own text is the gate: "When no weapons are at hand".
-    3579: 'Entrana: monk boat from Port Sarim, refused while carrying ANY weapon or armour (has_entrana_restricted_items) — needs a ship edge and a bank-the-gear step',
-    2811: 'Baxtorian Falls ledge: rope crossing — clue already carries items:["Rope"], the ledge hop is not baked',
-    2790: 'west Varrock sewer: slashable Web @ (3210,9898) needs a wielded slash weapon — nav does not model webs',
+    // 2811 Baxtorian rope baked (#369); 2790 sewer web baked (#370); 3579 Entrana ferry+planks (#368).
     3532: 'Kharazi jungle: boundary is cut tile-by-tile with a machete (jungle_tree.rs2) — a traversal mode, not one edge',
     3534: 'Kharazi jungle: boundary is cut tile-by-tile with a machete (jungle_tree.rs2) — a traversal mode, not one edge',
     3536: 'Kharazi jungle: boundary is cut tile-by-tile with a machete (jungle_tree.rs2) — a traversal mode, not one edge',
