@@ -97,8 +97,18 @@ describe('redberry pie chain', () => {
     });
 
     test('withdraws a banked pie dish instead of walking to Varrock', () => {
-        const step = pie(snap([[KS_ID.POT_OF_FLOUR, 1]], { bankIds: [[KS_ID.PIE_DISH, 1]] }));
+        const step = pie(snap([[KS_ID.BUCKET_OF_WATER, 1]], { bankIds: [[KS_ID.PIE_DISH, 1]] }));
         expect(withdrawn(step)).toContain(KS_ID.PIE_DISH);
+    });
+
+    test('does the whole water leg before leaving for Port Sarim', () => {
+        // The bucket and the sink are Varrock errands and the flour, berries and
+        // range are Port Sarim ones. Interleaving them cost a 360-tile round
+        // trip back for the bucket between the berries and the cook.
+        const empty = pie(snap());
+        expect(empty).toMatchObject({ kind: 'buy', item: 'Bucket' });
+        const withBucket = pie(snap([[KS_ID.BUCKET, 1]]));
+        expect(withBucket).toMatchObject({ kind: 'custom', name: 'fill the bucket' });
     });
 
     test('buys flour at Wydin when the dish and water are in hand', () => {

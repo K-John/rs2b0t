@@ -71,10 +71,11 @@ export function kit(snap: QuestSnapshot, food?: FoodWant | null): QuestStep | nu
     return snap.bankKnown ? withdraw(items) : scanBank;
 }
 
+/** The palace-kitchen sink, two tiles from the pie-dish spawn. */
 async function fillBucket(log: (m: string) => void): Promise<boolean> {
     return useOnLoc(
         KS_ID.BUCKET,
-        { name: 'Fountain', near: KS_TILE.FOUNTAIN },
+        { name: 'Sink', near: KS_TILE.KITCHEN_SINK },
         [],
         () => Inventory.countById(KS_ID.BUCKET_OF_WATER) > 0,
         log
@@ -130,6 +131,12 @@ async function emptyBurntPie(log: (m: string) => void): Promise<boolean> {
 const buy = (item: string, shop: { npc: string; anchor: typeof KS_TILE.WYDIN }): QuestStep =>
     ({ kind: 'buy', item, qty: 1, shop, estGp: SHOP_GP });
 
+/** The only non-members source is the Varrock palace kitchen ground spawn. */
+export const pieDish = (snap: QuestSnapshot): QuestStep =>
+    bankedId(snap, KS_ID.PIE_DISH) > 0
+        ? withdraw([{ name: KS_NAME.PIE_DISH, qty: 1, id: KS_ID.PIE_DISH }])
+        : { kind: 'grabGround', item: KS_NAME.PIE_DISH, anchor: KS_TILE.PIE_DISH_SPAWN, waitIfMissing: true };
+
 const combine = (item: string, target: string, product: string): QuestStep =>
     ({ kind: 'useOn', item, targetKind: 'item', target, anchor: KS_TILE.WYDIN, product });
 
@@ -161,26 +168,28 @@ export function pie(snap: QuestSnapshot): QuestStep {
             ? combine(KS_NAME.REDBERRIES, KS_NAME.PIE_SHELL, KS_NAME.UNCOOKED_PIE)
             : buy(KS_NAME.REDBERRIES, WYDIN);
     }
-    // The dish comes before the dough: its only non-members source is a ground
-    // spawn in Varrock, and mixing first carries dough all the way there.
-    if (heldId(snap, KS_ID.PIE_DISH) === 0) {
-        return bankedId(snap, KS_ID.PIE_DISH) > 0
-            ? withdraw([{ name: KS_NAME.PIE_DISH, qty: 1, id: KS_ID.PIE_DISH }])
-            : { kind: 'grabGround', item: KS_NAME.PIE_DISH, anchor: KS_TILE.PIE_DISH_SPAWN, waitIfMissing: true };
-    }
     if (heldId(snap, KS_ID.PASTRY_DOUGH) > 0) {
-        return combine(KS_NAME.PASTRY_DOUGH, KS_NAME.PIE_DISH, KS_NAME.PIE_SHELL);
+        return heldId(snap, KS_ID.PIE_DISH) > 0
+            ? combine(KS_NAME.PASTRY_DOUGH, KS_NAME.PIE_DISH, KS_NAME.PIE_SHELL)
+            : pieDish(snap);
+    }
+    // Everything water-side is a Varrock errand and everything else is a Port
+    // Sarim one, so the bucket and the sink come first and the town is left
+    // once. Buying the bucket in Port Sarim's reach instead cost a 360-tile
+    // round trip back to Falador between the berries and the range.
+    if (heldId(snap, KS_ID.BUCKET_OF_WATER) === 0) {
+        return heldId(snap, KS_ID.BUCKET) > 0
+            ? { kind: 'custom', name: 'fill the bucket', run: fillBucket }
+            : buy(KS_NAME.BUCKET, GENERAL_STORE);
+    }
+    if (heldId(snap, KS_ID.PIE_DISH) === 0) {
+        return pieDish(snap);
     }
     if (heldId(snap, KS_ID.POT_OF_FLOUR) === 0) {
         return buy(KS_NAME.POT_OF_FLOUR, WYDIN);
     }
     if (heldId(snap, KS_ID.REDBERRIES) === 0) {
         return buy(KS_NAME.REDBERRIES, WYDIN);
-    }
-    if (heldId(snap, KS_ID.BUCKET_OF_WATER) === 0) {
-        return heldId(snap, KS_ID.BUCKET) > 0
-            ? { kind: 'custom', name: 'fill the bucket', run: fillBucket }
-            : buy(KS_NAME.BUCKET, GENERAL_STORE);
     }
     return { kind: 'custom', name: 'mix pastry dough', run: mixDough };
 }

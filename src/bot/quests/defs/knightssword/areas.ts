@@ -53,11 +53,12 @@ export const KS_NAME = {
 
 export const KS_TILE = {
     FALADOR_BANK: new Tile(2946, 3369, 0),
-    FOUNTAIN: new Tile(2949, 3381, 0),
-    GENERAL_STORE: new Tile(2957, 3386, 0),
     FURNACE: new Tile(2975, 3368, 0),
     VYVIN_ROOM: new Tile(2984, 3337, 2),
+    GENERAL_STORE: new Tile(3218, 3415, 0),
     PIE_DISH_SPAWN: new Tile(3222, 3494, 0),
+    /** Two tiles from the pie-dish spawn, in the same palace kitchen. */
+    KITCHEN_SINK: new Tile(3224, 3494, 0),
     WYDIN: new Tile(3014, 3204, 0),
     RANGE: new Tile(3019, 3237, 0),
     IRON_ROCKS: new Tile(2972, 3239, 0),
@@ -106,4 +107,6 @@ export const THURGO: NpcStop = {
 };
 
 export const WYDIN = { npc: 'Wydin', anchor: KS_TILE.WYDIN };
+
+/** Varrock's, not Falador's — the bucket is wanted on the Reldo leg. */
 export const GENERAL_STORE = { npc: 'Shop keeper', anchor: KS_TILE.GENERAL_STORE };
