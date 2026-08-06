@@ -529,7 +529,7 @@ Family Crest added four more, and the first two generalise past this quest:
   and a death there drops it. The top-up has to be conditional on something still being
   unbought, or it and the deposit take turns undoing each other.
 
-The Knight's Sword added five, and the first two are engine behaviours rather than
+The Knight's Sword added eight, and the first three are engine behaviours rather than
 quest facts:
 
 - **`record.items` is provisioned before `decide()` ever runs.** The engine's
@@ -544,6 +544,10 @@ quest facts:
   walks back to a booth after every single purchase — the top-up and the purchase take
   turns undoing each other. Withdraw a large float when the pack drops under a low-water
   mark, and keep each `estGp` far below it.
+- **`mineRock` ignores its `qty`.** It mines exactly one ore per invocation and
+  `decide()` is asked again, so a module that wants a batch has to count it. "Smelt as
+  soon as any ore is held" walked the 130 tiles between the Rimmington rocks and the
+  Falador furnace eight times for one batch of bars.
 - **A loc with no ops at all is a use-on target.** The Range carries no `op1`; cooking
   is `[oplocu,_cooking_oven]`. `Locs.query().name('Range').action('Cook')` therefore
   matches nothing, and the step fails in a way that reads as "the range is not in the
