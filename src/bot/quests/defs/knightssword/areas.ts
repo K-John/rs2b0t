@@ -64,6 +64,8 @@ export const KS_TILE = {
      * Standing anywhere else has every op silently dropped.
      */
     VYVIN_ROOM: new Tile(2985, 3335, 2),
+    /** Far enough to vacate both approaches and let Sir Vyvin wander off them. */
+    VYVIN_RETREAT: new Tile(2980, 3340, 2),
     GENERAL_STORE: new Tile(3218, 3415, 0),
     PIE_DISH_SPAWN: new Tile(3222, 3494, 0),
     /** Two tiles from the pie-dish spawn, in the same palace kitchen. */
@@ -74,6 +76,16 @@ export const KS_TILE = {
     PICKAXE_SPAWN: new Tile(2963, 3216, 0),
     LADDER_BOTTOM: new Tile(3008, 9551, 0)
 } as const;
+
+/**
+ * The cupboard spans (2984,3336)-(2985,3336) and only its south side is legal,
+ * so these two tiles are the whole approach. Standing on the one further from
+ * Sir Vyvin is often the difference between a refused search and a taken one.
+ */
+export const VYVIN_APPROACHES: readonly Tile[] = [
+    new Tile(2985, 3335, 2),
+    new Tile(2984, 3335, 2)
+];
 
 export const BLURITE_ROCKS: readonly Tile[] = [
     new Tile(3049, 9566, 0),

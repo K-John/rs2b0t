@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
-import { shouldWaitOut, vyvinTooClose } from '#/bot/quests/defs/knightssword/portrait.js';
+import { bestApproach, shouldWaitOut, vyvinTooClose } from '#/bot/quests/defs/knightssword/portrait.js';
+import { VYVIN_APPROACHES } from '#/bot/quests/defs/knightssword/areas.js';
 
 const CUPBOARD_STAND = { x: 2985, z: 3335, level: 2 };
 const VYVIN_SPAWN = { x: 2983, z: 3335, level: 2 };
@@ -58,5 +59,40 @@ describe('the guard is a hint, not a gate', () => {
 
     test('never waits when he is already clear', () => {
         expect(shouldWaitOut(0, CUPBOARD_STAND, VYVIN_SPAWN)).toBe(false);
+    });
+});
+
+describe('picking the approach tile', () => {
+    const at = (x: number, z: number) => ({ x, z, level: 2 });
+
+    test('both legal approaches are south of the cupboard', () => {
+        // The cupboard spans (2984,3336)-(2985,3336) and only its south side is
+        // legal, so these two tiles are the entire approach.
+        expect(VYVIN_APPROACHES.map(t => `${t.x},${t.z},${t.level}`))
+            .toEqual(['2985,3335,2', '2984,3335,2']);
+    });
+
+    test('stands on the tile further from Sir Vyvin', () => {
+        // He is west, so the east approach is 3 away and the west one is 1.
+        expect(bestApproach(VYVIN_APPROACHES, at(2982, 3335))).toMatchObject({ x: 2985, z: 3335 });
+        // Mirrored: he is east, so the west approach wins.
+        expect(bestApproach(VYVIN_APPROACHES, at(2987, 3335))).toMatchObject({ x: 2984, z: 3335 });
+    });
+
+    test('picking the far tile actually clears the guard when he is off to one side', () => {
+        const vyvin = at(2982, 3335);
+        const chosen = bestApproach(VYVIN_APPROACHES, vyvin);
+        expect(vyvinTooClose(chosen, vyvin)).toBe(false);
+    });
+
+    test('directly south blocks both, which is what the retreat is for', () => {
+        const vyvin = at(2984, 3334);
+        for (const tile of VYVIN_APPROACHES) {
+            expect(vyvinTooClose(tile, vyvin)).toBe(true);
+        }
+    });
+
+    test('falls back to a stable tile when he is not in the scene', () => {
+        expect(bestApproach(VYVIN_APPROACHES, null)).toMatchObject({ x: 2985, z: 3335 });
     });
 });

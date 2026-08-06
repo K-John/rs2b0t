@@ -6,14 +6,14 @@ import { gunzipSync } from 'fflate';
 import doors from '#/bot/nav/data/doors.json';
 import stairs from '#/bot/nav/data/stairEdges.json';
 import transports from '#/bot/nav/data/transports.json';
-import { PathFinder, type DoorEdgeData, type NavPoint } from '#/bot/nav/PathFinder.js';
+import { PathFinder, type DoorEdgeData, type NavPoint, type TransportEdgeData } from '#/bot/nav/PathFinder.js';
 
 let bytes: Uint8Array = new Uint8Array(fs.readFileSync('out/collision.lcnav.gz'));
 if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
     bytes = gunzipSync(bytes);
 }
 const finder = new PathFinder(bytes);
-finder.addEdges(doors as DoorEdgeData[], transports, stairs);
+finder.addEdges(doors as DoorEdgeData[], transports as TransportEdgeData[], stairs as TransportEdgeData[]);
 
 const RELDO: NavPoint = { x: 3209, z: 3495, level: 0 };
 

@@ -8,7 +8,7 @@ import { Inventory } from '../../../api/hud/Inventory.js';
 import { Locs } from '../../../api/queries/Locs.js';
 import { Npcs } from '../../../api/queries/Npcs.js';
 import { locNear, settleScene } from '../../exec/prompts.js';
-import { KS_ID, KS_TILE } from './areas.js';
+import { KS_ID, KS_TILE, VYVIN_APPROACHES } from './areas.js';
 
 /**
  * `~vyvin_distracted` is `npc_find(coord, sir_vyvin, 1, 0)` against the player's
@@ -26,6 +26,9 @@ const ATTEMPTS = 60;
  */
 const MAX_SKIPS = 4;
 
+/** Consecutive refused searches before vacating the approach entirely. */
+const REFUSALS_BEFORE_RETREAT = 3;
+
 export function vyvinTooClose(here: WorldTile | null, vyvin: WorldTile | null): boolean {
     if (!here || !vyvin) {
         return false;
@@ -36,6 +39,18 @@ export function vyvinTooClose(here: WorldTile | null, vyvin: WorldTile | null): 
 /** Bounded by construction: after `MAX_SKIPS` passes the search happens regardless. */
 export function shouldWaitOut(skips: number, here: WorldTile | null, vyvin: WorldTile | null): boolean {
     return skips < MAX_SKIPS && vyvinTooClose(here, vyvin);
+}
+
+/**
+ * Both approaches sit south of the cupboard, so when Sir Vyvin stands directly
+ * south neither is clear and only time helps. Off to one side, though, the
+ * far tile is clear and the near one is not — so always take the far one.
+ */
+export function bestApproach(approaches: readonly Tile[], vyvin: WorldTile | null): Tile {
+    if (!vyvin) {
+        return approaches[0];
+    }
+    return [...approaches].sort((a, b) => b.distanceTo(vyvin) - a.distanceTo(vyvin))[0];
 }
 
 function vyvinTile(): WorldTile | null {
@@ -67,8 +82,9 @@ async function dismissRefusal(): Promise<void> {
 }
 
 /**
- * `vyvincupboardshut` is `forceapproach=east`, so the stand is west of it. Open
- * turns it into `vyvincupboardopen`, which is the one that Searches.
+ * `vyvincupboardshut` is `forceapproach=east` at rotation 1, so the only legal
+ * approach is its south side. Open turns it into `vyvincupboardopen`, which is
+ * the one that Searches.
  *
  * The oracle is whether the portrait lands, not whether Vyvin looks far enough
  * away: his position is read a tick before the click and re-evaluated
@@ -84,7 +100,23 @@ export async function fetchPortrait(log: (m: string) => void): Promise<boolean> 
     }
     await settleScene();
     let skips = 0;
+    let refusals = 0;
     for (let i = 0; i < ATTEMPTS; i++) {
+        // He wanders on a timer and can camp the tile south of the cupboard,
+        // where both approaches are within his one-tile reach. Vacating the
+        // whole approach gives him somewhere to go; standing on it does not.
+        if (refusals >= REFUSALS_BEFORE_RETREAT) {
+            refusals = 0;
+            log('stepping away to give Sir Vyvin room to wander');
+            await Traversal.walkResilient(KS_TILE.VYVIN_RETREAT, { radius: 1, attempts: 2, timeoutMs: 90_000, log });
+            await Execution.delayTicks(10);
+        }
+        const stand = bestApproach(VYVIN_APPROACHES, vyvinTile());
+        const here = Game.tile();
+        if (!here || stand.distanceTo(here) !== 0 || here.level !== stand.level) {
+            await Traversal.walkResilient(stand, { radius: 0, attempts: 3, timeoutMs: 90_000, log });
+            await settleScene();
+        }
         if (Inventory.countById(KS_ID.PORTRAIT) > 0) {
             return true;
         }
@@ -111,6 +143,7 @@ export async function fetchPortrait(log: (m: string) => void): Promise<boolean> 
         if (await Execution.delayUntil(() => Inventory.countById(KS_ID.PORTRAIT) > 0, 5000)) {
             return true;
         }
+        refusals++;
         log(`Sir Vyvin was watching — ${describe(i)}`);
         await Execution.delayTicks(4);
     }
