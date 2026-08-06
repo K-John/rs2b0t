@@ -529,6 +529,40 @@ Family Crest added four more, and the first two generalise past this quest:
   and a death there drops it. The top-up has to be conditional on something still being
   unbought, or it and the deposit take turns undoing each other.
 
+The Knight's Sword added five, and the first two are engine behaviours rather than
+quest facts:
+
+- **`record.items` is provisioned before `decide()` ever runs.** The engine's
+  provisioning block withdraws or *gathers* every listed item up front, and only adds
+  the quest to `provisioned` once `plan.satisfied`. A module that means to acquire
+  things at the stage that needs them — the resumable shape — has to set
+  `ownsInventory: true`, which is the switch that skips both the spillover deposit and
+  the provisioning block. The cost is that the engine then withdraws neither the coin
+  float nor the food, so the module owns both.
+- **A coin float has to be a threshold, not a target.** `buy` withdraws exactly
+  `estGp` whenever the pack holds less, so a module that tops up to an exact balance
+  walks back to a booth after every single purchase — the top-up and the purchase take
+  turns undoing each other. Withdraw a large float when the pack drops under a low-water
+  mark, and keep each `estGp` far below it.
+- **A loc with no ops at all is a use-on target.** The Range carries no `op1`; cooking
+  is `[oplocu,_cooking_oven]`. `Locs.query().name('Range').action('Cook')` therefore
+  matches nothing, and the step fails in a way that reads as "the range is not in the
+  scene". Read the `.loc` config before filtering by an op you assumed exists — the
+  Fountain is the same shape, and the Furnace (`op2=Smelt`) is not.
+- **A pinned bank is only worth it for a quest that stays in one town.** Bank contents
+  are global, so naming a booth changes nothing except the walk. Pinning Falador sent
+  the bot from Draynor across two towns for a coin float with a booth underfoot; this
+  quest touches four towns and wants `'nearest'`.
+- **A guard can be proximity rather than a timer.** `~vyvin_distracted` is
+  `npc_find(coord, sir_vyvin, 1, 0)` against the *player's* coord, and Sir Vyvin spawns
+  one diagonal tile from the cupboard he is guarding — so the answer is to stand still
+  and wait for him to wander, not to retry faster. `npc_find` takes a square radius, so
+  the test is Chebyshev; Euclidean would call a diagonal neighbour 1.41 away and let a
+  search through that the server refuses.
+- **When a recipe can fail, count the product and not the input.** `smelting.rs2` loses
+  half of every iron batch, so a loop driven by ore consumed thinks it succeeded. Eight
+  ore for two bars, re-derived from the bar count, and a short batch is a no-op.
+
 ## See also
 
 - [Manual index](README.md)

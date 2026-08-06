@@ -254,7 +254,10 @@ export function ironBarsAt(snap: QuestSnapshot, miningLevel: number): QuestStep 
     if (banked > 0) {
         return withdraw([{ name: KS_NAME.IRON_BAR, qty: Math.min(2 - held, banked), id: KS_ID.IRON_BAR }]);
     }
-    if (heldId(snap, KS_ID.IRON_ORE) > 0) {
+    // `mineRock` ignores its qty and mines exactly one ore per invocation, so the
+    // batch has to be counted here — smelting on the first ore would walk the
+    // 130 tiles between Rimmington and the furnace eight times over.
+    if (heldId(snap, KS_ID.IRON_ORE) >= ORE_PER_TRIP) {
         return { kind: 'custom', name: 'smelt iron bars', run: smeltIron };
     }
     return pickaxeAt(snap, miningLevel)

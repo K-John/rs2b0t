@@ -222,9 +222,18 @@ describe('iron bar chain', () => {
         });
     });
 
-    test('smelts once ore is in the pack', () => {
+    test('smelts once the whole batch is mined', () => {
         const step = ironBarsAt(withPick([[KS_ID.IRON_ORE, ORE_PER_TRIP]]), MAX_MINING);
         expect(step).toMatchObject({ kind: 'custom', name: 'smelt iron bars' });
+    });
+
+    test('keeps mining on a part-built batch', () => {
+        // mineRock ignores its qty and mines exactly one ore per invocation, so
+        // smelting on the first ore would walk Rimmington -> furnace eight times.
+        for (const ore of [1, ORE_PER_TRIP - 1]) {
+            expect(ironBarsAt(withPick([[KS_ID.IRON_ORE, ore]]), MAX_MINING))
+                .toMatchObject({ kind: 'mineRock', rock: 'Iron' });
+        }
     });
 
     test('one bar and no ore goes back to the rocks', () => {
