@@ -144,7 +144,10 @@ export async function fetchPortrait(log: (m: string) => void): Promise<boolean> 
             return true;
         }
         refusals++;
-        log(`Sir Vyvin was watching — ${describe(i)}`);
+        // Only blame Vyvin when he is actually in range; a search can also just
+        // not land yet, and mislabelling that sends the next reader hunting him.
+        const blocked = vyvinTooClose(Game.tile(), vyvinTile());
+        log(`${blocked ? 'Sir Vyvin was watching' : 'search did not land'} — ${describe(i)}`);
         await Execution.delayTicks(4);
     }
     log('never got a clear look at the cupboard');
