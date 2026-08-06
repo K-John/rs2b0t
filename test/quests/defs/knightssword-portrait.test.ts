@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import { vyvinTooClose } from '#/bot/quests/defs/knightssword/portrait.js';
+import { shouldWaitOut, vyvinTooClose } from '#/bot/quests/defs/knightssword/portrait.js';
 
 const CUPBOARD_STAND = { x: 2983, z: 3337, level: 2 };
 const VYVIN_SPAWN = { x: 2983, z: 3335, level: 2 };
@@ -38,5 +38,25 @@ describe('Sir Vyvin proximity guard', () => {
     test('an absent Vyvin never blocks', () => {
         expect(vyvinTooClose(CUPBOARD_STAND, null)).toBe(false);
         expect(vyvinTooClose(null, VYVIN_SPAWN)).toBe(false);
+    });
+});
+
+describe('the guard is a hint, not a gate', () => {
+    const adjacent = { x: CUPBOARD_STAND.x, z: CUPBOARD_STAND.z + 1, level: 2 };
+
+    test('waits out an adjacent Vyvin for a few passes', () => {
+        expect(shouldWaitOut(0, CUPBOARD_STAND, adjacent)).toBe(true);
+    });
+
+    test('but searches anyway once the skips run out', () => {
+        // Sir Vyvin has wanderrange=8 in a room barely wider than that, so he is
+        // adjacent most of the time. Treating proximity as a blocker spun every
+        // pass without ever clicking, and the quest parked without one attempt.
+        const forced = Array.from({ length: 40 }, (_, i) => shouldWaitOut(i, CUPBOARD_STAND, adjacent));
+        expect(forced.some(wait => !wait)).toBe(true);
+    });
+
+    test('never waits when he is already clear', () => {
+        expect(shouldWaitOut(0, CUPBOARD_STAND, VYVIN_SPAWN)).toBe(false);
     });
 });
