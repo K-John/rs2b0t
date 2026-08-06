@@ -5,6 +5,7 @@ import Tile from '../../../api/Tile.js';
 import { Traversal } from '../../../api/Traversal.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
+import { Locs } from '../../../api/queries/Locs.js';
 import { Npcs } from '../../../api/queries/Npcs.js';
 import { locNear, settleScene } from '../../exec/prompts.js';
 import { KS_ID, KS_TILE } from './areas.js';
@@ -39,6 +40,22 @@ export function shouldWaitOut(skips: number, here: WorldTile | null, vyvin: Worl
 
 function vyvinTile(): WorldTile | null {
     return Npcs.query().name('Sir Vyvin').nearest()?.tile() ?? null;
+}
+
+/**
+ * Only ever logged on a refusal, and the varying text matters: the engine
+ * dedupes identical sub-log lines within a step, so a fixed message would hide
+ * every repeat. A silent cupboard stuck at 2271 is what an illegal approach
+ * looks like, and this line is how that gets diagnosed.
+ */
+function describe(pass: number): string {
+    const here = Game.tile();
+    const vyvin = vyvinTile();
+    const cupboards = Locs.query().name('Cupboard').within(8).results()
+        .map(c => `${c.tile().x},${c.tile().z}:${c.id}:${c.actions().filter(Boolean).join('/')}`);
+    return `pass ${pass} me=${here ? `${here.x},${here.z},${here.level}` : '?'}`
+        + ` vyvin=${vyvin ? `${vyvin.x},${vyvin.z}` : 'absent'}`
+        + ` cupboards=[${cupboards.join(' ')}]`;
 }
 
 /** A caught search leaves a mesbox up; it must go before the next click. */
@@ -94,7 +111,7 @@ export async function fetchPortrait(log: (m: string) => void): Promise<boolean> 
         if (await Execution.delayUntil(() => Inventory.countById(KS_ID.PORTRAIT) > 0, 5000)) {
             return true;
         }
-        log('Sir Vyvin was watching — waiting for him to move off');
+        log(`Sir Vyvin was watching — ${describe(i)}`);
         await Execution.delayTicks(4);
     }
     log('never got a clear look at the cupboard');
