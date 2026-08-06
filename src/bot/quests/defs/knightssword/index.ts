@@ -118,7 +118,9 @@ export const knightssword: QuestModule = {
         'iron ore', 'iron bar', 'blurite ore', 'portrait', 'blurite sword'
     ],
     ownsInventory: true,
-    sustain: { foods: QuestFood.name ? [QuestFood.name] : [], eatBelowHp: 0.55 },
+    // Literals, not QuestFood.name: this object is built at import, when the
+    // setting still holds its default. The host merges the configured food in.
+    sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.6 },
     readProgress: readKnightsSwordProgress,
     decide
 };

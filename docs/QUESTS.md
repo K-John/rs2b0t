@@ -553,12 +553,16 @@ quest facts:
   are global, so naming a booth changes nothing except the walk. Pinning Falador sent
   the bot from Draynor across two towns for a coin float with a booth underfoot; this
   quest touches four towns and wants `'nearest'`.
-- **A guard can be proximity rather than a timer.** `~vyvin_distracted` is
-  `npc_find(coord, sir_vyvin, 1, 0)` against the *player's* coord, and Sir Vyvin spawns
-  one diagonal tile from the cupboard he is guarding — so the answer is to stand still
-  and wait for him to wander, not to retry faster. `npc_find` takes a square radius, so
-  the test is Chebyshev; Euclidean would call a diagonal neighbour 1.41 away and let a
-  search through that the server refuses.
+- **Reproducing a server-side guard client-side turns it into a wedge.**
+  `~vyvin_distracted` is `npc_find(coord, sir_vyvin, 1, 0)`, so the obvious move is to
+  check Vyvin's distance and only search when he is clear. Sir Vyvin has
+  `wanderrange=8` in a room barely wider than that: he is adjacent most of the time, and
+  the bot spun every pass without once clicking. His position is read a tick before the
+  click and re-evaluated server-side *after* the walk anyway, so the client's copy of the
+  rule is never the rule. Act and read the result — the portrait landing is the only
+  honest oracle — and keep the proximity test as a **bounded** hint that saves a wasted
+  click. Any check that can refuse forever needs a counter that eventually stops
+  refusing.
 - **When a recipe can fail, count the product and not the input.** `smelting.rs2` loses
   half of every iron batch, so a loop driven by ore consumed thinks it succeeded. Eight
   ore for two bars, re-derived from the bar count, and a short batch is a no-op.
