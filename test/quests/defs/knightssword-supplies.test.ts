@@ -150,6 +150,13 @@ describe('redberry pie chain', () => {
         expect(step).toMatchObject({ kind: 'custom', name: 'cook the redberry pie' });
     });
 
+    test('empties a burnt pie instead of fetching another dish', () => {
+        // The dish is trapped inside the ruined pie, so re-deriving the chain
+        // would walk all the way back to the Varrock spawn for a new one.
+        const step = pie(snap([[KS_ID.BURNT_PIE, 1]]));
+        expect(step).toMatchObject({ kind: 'custom', name: 'empty the burnt dish' });
+    });
+
     test('a held pie ends the chain', () => {
         expect(pie(snap([[KS_ID.REDBERRY_PIE, 1]])).kind).toBe('wait');
     });

@@ -40,8 +40,7 @@ function swordStep(snap: QuestSnapshot): QuestStep | null {
     if (bankedId(snap, KS_ID.BLURITE_SWORD) > 0) {
         return {
             kind: 'withdraw',
-            items: [{ name: KS_NAME.BLURITE_SWORD, qty: 1, id: KS_ID.BLURITE_SWORD }],
-            bank: KS_TILE.FALADOR_BANK
+            items: [{ name: KS_NAME.BLURITE_SWORD, qty: 1, id: KS_ID.BLURITE_SWORD }]
         };
     }
     return null;
@@ -108,7 +107,9 @@ export const decide = (snap: QuestSnapshot): QuestStep => decideAt(snap, Skills.
 
 export const knightssword: QuestModule = {
     record: QUESTS.find(r => r.id === 'squire')!,
-    bank: KS_TILE.FALADOR_BANK,
+    // Four towns, and bank contents are global — pinning one booth buys nothing
+    // and costs a kingdom-crossing on every leg that touches it.
+    bank: 'nearest',
     // `coins` is not optional for a quest that buys anything: without it the
     // spillover deposit banks the float and every purchase parks on "need gp".
     tools: [

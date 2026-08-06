@@ -197,7 +197,7 @@ describe('the module', () => {
         expect(knightssword.tools).toContain('coins');
     });
 
-    test('pins the Falador bank', () => {
-        expect(knightssword.bank).toMatchObject({ x: 2946, z: 3369 });
+    test('pins no bank, because the quest crosses four towns', () => {
+        expect(knightssword.bank).toBe('nearest');
     });
 });

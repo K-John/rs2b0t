@@ -40,10 +40,15 @@ export function bankedId(snap: QuestSnapshot, id: number): number {
 }
 
 function withdraw(items: { name: string; qty: number; id?: number }[]): QuestStep {
-    return { kind: 'withdraw', items, bank: KS_TILE.FALADOR_BANK };
+    return { kind: 'withdraw', items };
 }
 
-const scanBank: QuestStep = { kind: 'scanBank', bank: KS_TILE.FALADOR_BANK };
+/**
+ * No pinned bank. The quest runs across Falador, Varrock, Port Sarim and
+ * Rimmington, and bank contents are global — only the walk differs — so naming
+ * one booth costs a kingdom-crossing on every leg that touches it.
+ */
+const scanBank: QuestStep = { kind: 'scanBank' };
 
 /**
  * `ownsInventory` opts this quest out of the engine's coin and food withdrawal,
@@ -94,28 +99,32 @@ async function mixDough(log: (m: string) => void): Promise<boolean> {
     );
 }
 
+/**
+ * The Range carries no ops at all — cooking is `[oplocu,_cooking_oven]`, a
+ * use-on, the same shape as filling the bucket. A fire will not do:
+ * cooking_generic_redberry_pie answers "You need a proper oven to cook that."
+ */
 async function cookPie(log: (m: string) => void): Promise<boolean> {
-    if (Inventory.countById(KS_ID.REDBERRY_PIE) > 0) {
+    return useOnLoc(
+        KS_ID.UNCOOKED_PIE,
+        { name: 'Range', near: KS_TILE.RANGE },
+        [],
+        () => Inventory.countById(KS_ID.REDBERRY_PIE) > 0
+            || Inventory.countById(KS_ID.BURNT_PIE) > 0,
+        log
+    );
+}
+
+async function emptyBurntPie(log: (m: string) => void): Promise<boolean> {
+    const burnt = Inventory.first(KS_NAME.BURNT_PIE);
+    if (!burnt) {
         return true;
     }
-    if (!(await Traversal.walkResilient(KS_TILE.RANGE, { radius: 2, attempts: 4, timeoutMs: 240_000, log }))) {
+    log('the pie burnt — recovering the dish');
+    if (!(await burnt.interact('Empty Dish'))) {
         return false;
     }
-    // A fire will not do: cooking_generic_redberry_pie answers "You need a
-    // proper oven to cook that."
-    const range = Locs.query().name('Range').action('Cook').within(10).nearest();
-    if (!range) {
-        log('no Range in reach of the Port Sarim stand');
-        return false;
-    }
-    const uncooked = Inventory.first(KS_NAME.UNCOOKED_PIE);
-    if (!uncooked || !(await uncooked.useOn(range))) {
-        return false;
-    }
-    if (await Execution.delayUntil(() => ChatDialog.isMakeMenu(), 6000)) {
-        await ChatDialog.makeOne(KS_NAME.REDBERRY_PIE);
-    }
-    return Execution.delayUntil(() => Inventory.countById(KS_ID.REDBERRY_PIE) > 0, 30_000);
+    return Execution.delayUntil(() => Inventory.countById(KS_ID.PIE_DISH) > 0, 8000);
 }
 
 const buy = (item: string, shop: { npc: string; anchor: typeof KS_TILE.WYDIN }): QuestStep =>
@@ -138,6 +147,11 @@ export function pie(snap: QuestSnapshot): QuestStep {
     }
     if (bankedId(snap, KS_ID.REDBERRY_PIE) > 0) {
         return withdraw([{ name: KS_NAME.REDBERRY_PIE, qty: 1, id: KS_ID.REDBERRY_PIE }]);
+    }
+    // A burn holds the dish hostage inside the ruined pie; emptying it is a
+    // free op, where re-deriving would walk all the way back to Varrock.
+    if (heldId(snap, KS_ID.BURNT_PIE) > 0) {
+        return { kind: 'custom', name: 'empty the burnt dish', run: emptyBurntPie };
     }
     if (heldId(snap, KS_ID.UNCOOKED_PIE) > 0) {
         return { kind: 'custom', name: 'cook the redberry pie', run: cookPie };
