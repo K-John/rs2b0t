@@ -553,6 +553,16 @@ quest facts:
   are global, so naming a booth changes nothing except the walk. Pinning Falador sent
   the bot from Draynor across two towns for a coin float with a booth underfoot; this
   quest touches four towns and wants `'nearest'`.
+- **`forceapproach` names the only side that works, and it rotates with the loc.**
+  The packer starts the flags all-blocked and *clears* the named bit
+  (`forceapproach=east` → `0b1111 & ~0b0010`), so east is the sole legal approach, not
+  the forbidden one. The flags then rotate with the loc's placement: Sir Vyvin's
+  cupboard is at rotation 1, so its "east" is **south** in world space, and true east
+  is not even a pathable tile. Standing anywhere else has every op **silently dropped**
+  — no refusal, no message, no movement, just a loc that never changes state. The
+  symptom is indistinguishable from a missing loc, so read the `.loc` config and the
+  placement rotation before believing anything else. (The Al Kharid furnace is the same
+  shape: `forceapproach=east`, stand south.)
 - **Reproducing a server-side guard client-side turns it into a wedge.**
   `~vyvin_distracted` is `npc_find(coord, sir_vyvin, 1, 0)`, so the obvious move is to
   check Vyvin's distance and only search when he is clear. Sir Vyvin has

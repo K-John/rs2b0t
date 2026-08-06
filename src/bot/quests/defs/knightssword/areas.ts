@@ -55,12 +55,15 @@ export const KS_TILE = {
     FALADOR_BANK: new Tile(2946, 3369, 0),
     FURNACE: new Tile(2975, 3368, 0),
     /**
-     * West of the cupboard, which is 2 tiles long and covers (2984,3336-3337) —
-     * both unwalkable. West is also the only side `forceapproach=east` allows,
-     * and it sits exactly 2 from Sir Vyvin's spawn, so an unmoved Vyvin does not
-     * block the first search.
+     * South of the cupboard, which spans (2984,3336)-(2985,3336).
+     *
+     * `forceapproach` is all-blocked with the named side cleared, so
+     * `forceapproach=east` means east is the *only* approach — and the flags
+     * rotate with the loc, which is placed at rotation 1. East in the loc's own
+     * frame is south in world space; true east (2986,3336) is not even pathable.
+     * Standing anywhere else has every op silently dropped.
      */
-    VYVIN_ROOM: new Tile(2983, 3337, 2),
+    VYVIN_ROOM: new Tile(2985, 3335, 2),
     GENERAL_STORE: new Tile(3218, 3415, 0),
     PIE_DISH_SPAWN: new Tile(3222, 3494, 0),
     /** Two tiles from the pie-dish spawn, in the same palace kitchen. */

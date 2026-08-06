@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 
 import { shouldWaitOut, vyvinTooClose } from '#/bot/quests/defs/knightssword/portrait.js';
 
-const CUPBOARD_STAND = { x: 2983, z: 3337, level: 2 };
+const CUPBOARD_STAND = { x: 2985, z: 3335, level: 2 };
 const VYVIN_SPAWN = { x: 2983, z: 3335, level: 2 };
 
 describe('Sir Vyvin proximity guard', () => {
