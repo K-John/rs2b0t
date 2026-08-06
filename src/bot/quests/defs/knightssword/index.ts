@@ -2,11 +2,11 @@ import { Skills } from '../../../api/hud/Skills.js';
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { QuestFood } from '../../food.js';
-import { KS_ID, KS_NAME, KS_STAGE, KS_TILE, RELDO, SQUIRE, THURGO } from './areas.js';
+import { KS_ID, KS_NAME, KS_STAGE, RELDO, SQUIRE, THURGO } from './areas.js';
 import { mineBlurite } from './dungeon.js';
 import { readKnightsSwordProgress } from './journal.js';
 import { fetchPortrait } from './portrait.js';
-import { bankedId, heldId, ironBarsAt, kit, pie } from './supplies.js';
+import { bankedId, heldId, ironBarsAt, kit, pie, pieDish } from './supplies.js';
 
 const FOOD_TARGET = 14;
 const FOOD_LOW = 5;
@@ -82,8 +82,9 @@ export function decideAt(snap: QuestSnapshot, miningLevel: number): QuestStep {
         case KS_STAGE.STARTED:
             // The dish's only non-members source is a ground spawn thirteen tiles
             // from the librarian, so it rides this leg rather than its own trip.
+            // Routed through supplies so both callers agree where a dish comes from.
             if (heldId(snap, KS_ID.PIE_DISH) === 0 && bankedId(snap, KS_ID.PIE_DISH) === 0) {
-                return { kind: 'grabGround', item: KS_NAME.PIE_DISH, anchor: KS_TILE.PIE_DISH_SPAWN, waitIfMissing: true };
+                return pieDish(snap);
             }
             return talk(RELDO);
         case KS_STAGE.SPOKEN_RELDO:
