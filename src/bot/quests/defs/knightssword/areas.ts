@@ -54,7 +54,13 @@ export const KS_NAME = {
 export const KS_TILE = {
     FALADOR_BANK: new Tile(2946, 3369, 0),
     FURNACE: new Tile(2975, 3368, 0),
-    VYVIN_ROOM: new Tile(2984, 3337, 2),
+    /**
+     * West of the cupboard, which is 2 tiles long and covers (2984,3336-3337) —
+     * both unwalkable. West is also the only side `forceapproach=east` allows,
+     * and it sits exactly 2 from Sir Vyvin's spawn, so an unmoved Vyvin does not
+     * block the first search.
+     */
+    VYVIN_ROOM: new Tile(2983, 3337, 2),
     GENERAL_STORE: new Tile(3218, 3415, 0),
     PIE_DISH_SPAWN: new Tile(3222, 3494, 0),
     /** Two tiles from the pie-dish spawn, in the same palace kitchen. */

@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 
 import { vyvinTooClose } from '#/bot/quests/defs/knightssword/portrait.js';
 
-const CUPBOARD_STAND = { x: 2984, z: 3337, level: 2 };
+const CUPBOARD_STAND = { x: 2983, z: 3337, level: 2 };
 const VYVIN_SPAWN = { x: 2983, z: 3335, level: 2 };
 
 describe('Sir Vyvin proximity guard', () => {
@@ -26,7 +26,8 @@ describe('Sir Vyvin proximity guard', () => {
         // npc_find takes a square radius, so a diagonal neighbour is as close as
         // an orthogonal one. Euclidean distance would call (1,1) 1.41 and let it
         // through.
-        expect(vyvinTooClose(CUPBOARD_STAND, { x: 2985, z: 3338, level: 2 })).toBe(true);
+        const diagonal = { x: CUPBOARD_STAND.x + 1, z: CUPBOARD_STAND.z + 1, level: 2 };
+        expect(vyvinTooClose(CUPBOARD_STAND, diagonal)).toBe(true);
     });
 
     test('his spawn tile is already clear of the stand', () => {
