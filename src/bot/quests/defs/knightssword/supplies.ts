@@ -1,8 +1,10 @@
 import { Execution } from '../../../api/Execution.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
+import { Skills } from '../../../api/hud/Skills.js';
 import { Locs } from '../../../api/queries/Locs.js';
 import { Traversal } from '../../../api/Traversal.js';
+import { DORIC_PICKAXES } from '../doric.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { isUnderground } from '../../exec/primitives.js';
 import { driveUntil, useOnLoc } from '../../exec/prompts.js';
@@ -168,3 +170,83 @@ export function pie(snap: QuestSnapshot): QuestStep {
     }
     return { kind: 'custom', name: 'mix pastry dough', run: mixDough };
 }
+
+/**
+ * smelting.rs2 loses half of every batch — "The ore is too impure and you fail
+ * to refine it." Eight ore leaves a 9-in-256 chance of not clearing two bars,
+ * and a short batch is a no-op because the loop re-derives from the bar count.
+ */
+export const ORE_PER_TRIP = 8;
+
+type Pickaxe = (typeof DORIC_PICKAXES)[number];
+
+const pickHeld = (snap: QuestSnapshot, p: Pickaxe): boolean =>
+    heldId(snap, p.id) > 0 || (snap.wornIds?.has(p.id) ?? false);
+
+/** Best-first, so the strongest pickaxe the level allows wins. */
+function bestPick(level: number, has: (p: Pickaxe) => boolean): Pickaxe | null {
+    return DORIC_PICKAXES.find(p => level >= p.level && has(p)) ?? null;
+}
+
+export function pickaxeAt(snap: QuestSnapshot, miningLevel: number): QuestStep | null {
+    if (bestPick(miningLevel, p => pickHeld(snap, p))) {
+        return null;
+    }
+    if (!snap.bankKnown) {
+        return scanBank;
+    }
+    const banked = bestPick(miningLevel, p => bankedId(snap, p.id) > 0);
+    if (banked) {
+        return withdraw([{ name: banked.name, qty: 1, id: banked.id }]);
+    }
+    return { kind: 'grabGround', item: 'Bronze pickaxe', anchor: KS_TILE.PICKAXE_SPAWN, waitIfMissing: true };
+}
+
+async function smeltIron(log: (m: string) => void): Promise<boolean> {
+    if (!(await Traversal.walkResilient(KS_TILE.FURNACE, { radius: 2, attempts: 4, timeoutMs: 300_000, log }))) {
+        return false;
+    }
+    const before = Inventory.countById(KS_ID.IRON_BAR);
+    const furnace = Locs.query().name('Furnace').action('Smelt').within(8).nearest();
+    if (!furnace || !(await furnace.interact('Smelt'))) {
+        log('the Falador furnace did not answer');
+        return false;
+    }
+    if (!(await Execution.delayUntil(() => ChatDialog.isMakeMenu(), 8000))) {
+        log('the smelting menu never opened');
+        return false;
+    }
+    if (!(await ChatDialog.makeX('Iron', ORE_PER_TRIP))) {
+        log(`no 'Iron' in the smelt menu: [${ChatDialog.makeProducts().join(', ')}]`);
+        return false;
+    }
+    await Execution.delayUntil(() => Inventory.countById(KS_ID.IRON_ORE) === 0, 120_000);
+    return Inventory.countById(KS_ID.IRON_BAR) > before;
+}
+
+/**
+ * Nothing sells iron bars — Drogo's Mining Emporium stocks zero and the only
+ * ground spawn is deep in the Wilderness — so they are smelted.
+ */
+export function ironBarsAt(snap: QuestSnapshot, miningLevel: number): QuestStep {
+    const held = heldId(snap, KS_ID.IRON_BAR);
+    if (held >= 2) {
+        return { kind: 'wait', reason: 'two iron bars already held' };
+    }
+    if (!snap.bankKnown) {
+        return scanBank;
+    }
+    const banked = bankedId(snap, KS_ID.IRON_BAR);
+    if (banked > 0) {
+        return withdraw([{ name: KS_NAME.IRON_BAR, qty: Math.min(2 - held, banked), id: KS_ID.IRON_BAR }]);
+    }
+    if (heldId(snap, KS_ID.IRON_ORE) > 0) {
+        return { kind: 'custom', name: 'smelt iron bars', run: smeltIron };
+    }
+    return pickaxeAt(snap, miningLevel)
+        ?? { kind: 'mineRock', rock: 'Iron', item: KS_NAME.IRON_ORE, qty: ORE_PER_TRIP, anchor: KS_TILE.IRON_ROCKS };
+}
+
+export const pickaxe = (snap: QuestSnapshot): QuestStep | null => pickaxeAt(snap, Skills.level('mining'));
+
+export const ironBars = (snap: QuestSnapshot): QuestStep => ironBarsAt(snap, Skills.level('mining'));

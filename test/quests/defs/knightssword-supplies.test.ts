@@ -1,10 +1,20 @@
 import { describe, expect, test } from 'bun:test';
 
 import { KS_ID } from '#/bot/quests/defs/knightssword/areas.js';
-import { COIN_LOW, kit, pie } from '#/bot/quests/defs/knightssword/supplies.js';
+import {
+    COIN_LOW,
+    ORE_PER_TRIP,
+    ironBarsAt,
+    kit,
+    pickaxeAt,
+    pie
+} from '#/bot/quests/defs/knightssword/supplies.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/quests/engine/types.js';
 
 const COINS = 995;
+const BRONZE_PICKAXE = 1265;
+const RUNE_PICKAXE = 1275;
+const MAX_MINING = 70;
 
 export function snap(invIds: [number, number][] = [], options: {
     bankIds?: [number, number][];
@@ -142,5 +152,85 @@ describe('redberry pie chain', () => {
 
     test('a held pie ends the chain', () => {
         expect(pie(snap([[KS_ID.REDBERRY_PIE, 1]])).kind).toBe('wait');
+    });
+});
+
+describe('pickaxe sourcing', () => {
+    test('nothing to do when a usable one is already held', () => {
+        expect(pickaxeAt(snap([[BRONZE_PICKAXE, 1]]), MAX_MINING)).toBeNull();
+    });
+
+    test('a worn pickaxe counts as held', () => {
+        const worn = { ...snap(), wornIds: new Set([BRONZE_PICKAXE]) };
+        expect(pickaxeAt(worn, MAX_MINING)).toBeNull();
+    });
+
+    test('scans an unknown bank before walking to a spawn', () => {
+        expect(pickaxeAt(snap([], { bankKnown: false }), MAX_MINING)?.kind).toBe('scanBank');
+    });
+
+    test('withdraws the best banked pickaxe the level allows', () => {
+        const step = pickaxeAt(snap([], { bankIds: [[BRONZE_PICKAXE, 1], [RUNE_PICKAXE, 1]] }), MAX_MINING);
+        expect(withdrawn(step!)).toContain(RUNE_PICKAXE);
+    });
+
+    test('ignores a banked pickaxe the level cannot swing', () => {
+        // Rune needs 41 mining; withdrawing it at the quest floor of 10 is a
+        // wasted bank trip and an unusable tool.
+        const step = pickaxeAt(snap([], { bankIds: [[RUNE_PICKAXE, 1]] }), 10);
+        expect(step).toMatchObject({ kind: 'grabGround', item: 'Bronze pickaxe' });
+    });
+
+    test('falls back to the Rimmington spawn with an empty bank', () => {
+        expect(pickaxeAt(snap(), MAX_MINING)).toMatchObject({ kind: 'grabGround', item: 'Bronze pickaxe' });
+    });
+});
+
+describe('iron bar chain', () => {
+    const withPick = (extra: [number, number][] = []) => snap([[BRONZE_PICKAXE, 1], ...extra]);
+
+    test('scans an unknown bank first', () => {
+        expect(ironBarsAt(snap([], { bankKnown: false }), MAX_MINING).kind).toBe('scanBank');
+    });
+
+    test('withdraws banked bars rather than smelting', () => {
+        const step = ironBarsAt(snap([], { bankIds: [[KS_ID.IRON_BAR, 2]] }), MAX_MINING);
+        expect(withdrawn(step)).toContain(KS_ID.IRON_BAR);
+    });
+
+    test('withdraws only the shortfall', () => {
+        const step = ironBarsAt(snap([[KS_ID.IRON_BAR, 1]], { bankIds: [[KS_ID.IRON_BAR, 5]] }), MAX_MINING);
+        expect(step.kind === 'withdraw' && step.items[0].qty).toBe(1);
+    });
+
+    test('sources a pickaxe before heading for the rocks', () => {
+        expect(ironBarsAt(snap(), MAX_MINING)).toMatchObject({ kind: 'grabGround', item: 'Bronze pickaxe' });
+    });
+
+    test('mines a batch of ore once a pickaxe is held', () => {
+        expect(ironBarsAt(withPick(), MAX_MINING)).toMatchObject({
+            kind: 'mineRock',
+            rock: 'Iron',
+            qty: ORE_PER_TRIP
+        });
+    });
+
+    test('smelts once ore is in the pack', () => {
+        const step = ironBarsAt(withPick([[KS_ID.IRON_ORE, ORE_PER_TRIP]]), MAX_MINING);
+        expect(step).toMatchObject({ kind: 'custom', name: 'smelt iron bars' });
+    });
+
+    test('one bar and no ore goes back to the rocks', () => {
+        // Iron fails to refine half the time, so the loop counts bars, never ore.
+        expect(ironBarsAt(withPick([[KS_ID.IRON_BAR, 1]]), MAX_MINING)).toMatchObject({ kind: 'mineRock' });
+    });
+
+    test('two bars ends the chain', () => {
+        expect(ironBarsAt(withPick([[KS_ID.IRON_BAR, 2]]), MAX_MINING).kind).toBe('wait');
+    });
+
+    test('the batch covers two bars with room to spare', () => {
+        // P(fewer than 2 successes in 8 coin flips) = 9/256.
+        expect(ORE_PER_TRIP).toBeGreaterThanOrEqual(8);
     });
 });
