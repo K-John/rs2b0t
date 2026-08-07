@@ -286,6 +286,41 @@ in the game stocks cooked bass or shrimp, and the Ardougne gem merchant restocks
 a single ruby every 60k ticks. Everything else (moulds, antipoison, blast runes,
 a pickaxe) is bought live.
 
+**Horror from the Deep — stage-scoped harness**
+
+[`tools/horror-deep-216-live.ts`](../tools/horror-deep-216-live.ts), same shape,
+also members-only:
+
+```sh
+HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 10 --minutes 210        # end to end
+HEADED=1 bun tools/horror-deep-216-live.ts --stage 4 --until 5 --seedkit --minutes 25 # the strange wall
+HEADED=1 bun tools/horror-deep-216-live.ts --stage 1 --barcrawl 0 \
+  --bits horrorbridgeleft,horrorbridgeright --minutes 120                            # the barcrawl
+```
+
+Three things it does that the Family Crest one does not:
+
+- **Deploys `navworker.js` as well as `botclient.js`.** The transport graph is
+  compiled into the nav worker, which is its own entrypoint, so a run that
+  deploys only the client walks on the old edges — and the symptom is a flat
+  `no path to (…): unreachable` for a route the offline probe likes.
+- **Seeds every `deephorror` sub-bit that the stage implies.** The bridge, the
+  key and the three lamp repairs are separate bits of one varp, so a bare
+  `setvar horrorquest 4` describes a state the quest cannot reach.
+- **`--seedkit` hands over the dungeon load** so a run can iterate on the wall or
+  the fight without the twenty-minute Varrock round trip. It is a debugging
+  shortcut: leave it off for anything that claims the quest works, or the item
+  sourcing is never exercised.
+
+Two more tools sit alongside it.
+[`tools/horror-journal-dump.ts`](../tools/horror-journal-dump.ts) prints the
+quest journal verbatim at each stage — `~quest_journal` word-wraps the page and
+re-emits the active colour tags on every line it produces, so needles have to be
+written against what the client receives, not against the `.rs2`.
+[`tools/nav/horror-probe.ts`](../tools/nav/horror-probe.ts) checks every tile the
+module names against a flood from the mainland, and lists the sealed pockets
+deliberately so a map change fails loudly instead of quietly.
+
 Next lower probe (update `EW_PROVEN_COMBAT_FLOOR` only if green):
 
 ```sh
