@@ -11,6 +11,7 @@ import { Npcs, type Npc } from '../../../api/queries/Npcs.js';
 import { driveDialog } from '../../exec/primitives.js';
 import { settleScene } from '../../exec/prompts.js';
 import { HD_ID, HD_TILE } from './areas.js';
+import { meleeReady, meleeWeaponName } from './supplies.js';
 
 const MAGIC_TAB = 6;
 
@@ -32,8 +33,20 @@ export const FORM_ELEMENT: Record<number, 'Wind' | 'Water' | 'Earth' | 'Fire'> =
     1354: 'Earth'
 };
 
-/** Ranged and melee forms: nothing in this loadout can hurt them. */
-export const IMMUNE_FORMS = new Set([1355, 1356]);
+/**
+ * The two forms no spell can touch, from `npc.dat`: `horror_dagganoth_ranged`
+ * (1355) and `horror_dagganoth_melee` (1356). Named for the style they are
+ * *weak* to, the same way the elemental forms are.
+ *
+ * 1356 is only immune to a magic-only loadout. With a melee weapon wielded it is
+ * a fight like any other, which is thirty ticks of the cycle spent killing her
+ * instead of praying through.
+ */
+export const RANGED_FORM = 1355;
+export const MELEE_FORM = 1356;
+
+/** Nothing in this loadout carries a bow, so the ranged form is always immune. */
+export const IMMUNE_FORMS = new Set([RANGED_FORM, MELEE_FORM]);
 
 export const MOTHER_IDS = [1348, 1349, 1350, 1351, 1352, 1353, 1354, 1355, 1356];
 
@@ -158,6 +171,13 @@ interface FightPlan {
     target: () => Npc | null;
     /** The element its current form takes damage from, or null while immune. */
     element: (npc: Npc) => string | null;
+    /**
+     * True while this form should be hit with the wielded weapon instead of a
+     * spell. Melee is one op that keeps swinging on its own, so it is issued
+     * once per form and only re-issued when the fight drops out of combat —
+     * re-clicking every tick would spend the tick's one action re-targeting.
+     */
+    melee?: (npc: Npc) => boolean;
     won: () => boolean;
     /** Ticks to wait after re-summoning before looking again. */
     summonDelay: number;
@@ -206,10 +226,12 @@ async function fightLoop(plan: FightPlan, log: (m: string) => void): Promise<boo
     let lastCast = -CAST_TICKS;
     let reported = -1;
     let handedOver = false;
+    let swings = 0;
+    let meleeing = -1;
     try {
         for (let i = 0; i < plan.guard; i++) {
             if (plan.won()) {
-                log(`the ${plan.what} is dead (${casts} casts, ${prayers.arms} prayer re-arms)`);
+                log(`the ${plan.what} is dead (${casts} casts, ${swings} melee attacks, ${prayers.arms} prayer re-arms)`);
                 if (plan.handover) {
                     await new Protection(plan.handover).hold();
                     handedOver = true;
@@ -233,7 +255,7 @@ async function fightLoop(plan: FightPlan, log: (m: string) => void): Promise<boo
             if (now - reported >= 40) {
                 reported = now;
                 log(`${plan.what}: form ${target.id} hp=${Skills.effective('hitpoints')}/${Skills.level('hitpoints')}`
-                    + ` prayer=${prayers.active()} (${Prayer.points()}) casts=${casts}`);
+                    + ` prayer=${prayers.active()} (${Prayer.points()}) casts=${casts} swings=${swings}`);
             }
             if (prayers.usable && !prayers.up() && Prayer.points() > 0) {
                 await prayers.hold();
@@ -243,6 +265,24 @@ async function fightLoop(plan: FightPlan, log: (m: string) => void): Promise<boo
                 await Sustain.run();
                 continue;
             }
+            if (plan.melee?.(target)) {
+                // Already swinging at this form: the op stands, so spend the
+                // tick on nothing rather than re-targeting the same npc.
+                if (target.index === meleeing && Game.inCombat()) {
+                    await Execution.delayTicks(1);
+                    continue;
+                }
+                if (await target.interact('Attack')) {
+                    meleeing = target.index;
+                    swings++;
+                } else if (++refused >= 5) {
+                    log(`could not attack form ${target.id} — the weapon is not wielded`);
+                    return false;
+                }
+                await Execution.delayTicks(1);
+                continue;
+            }
+            meleeing = -1;
             const element = plan.element(target);
             if (element && now - lastCast >= CAST_TICKS) {
                 if (await Game.castOnNpc(element, target)) {
@@ -275,10 +315,16 @@ export async function fightJunior(log: (m: string) => void): Promise<boolean> {
         log(`magic ${magic} cannot cast any combat spell`);
         return false;
     }
-    // It takes damage from anything, and the mother rising is what says it died.
+    // It takes damage from anything, so a wielded weapon is strictly better than
+    // a spell: no cast delay, no runes, and the 5-tick cast rate does not cap it.
+    const melee = meleeReady();
+    log(melee
+        ? `meleeing the junior with the ${meleeWeaponName()}`
+        : `no melee weapon wielded — casting Wind ${tier} at the junior`);
     return fightLoop({
         what: 'dagannoth junior',
         target: junior,
+        melee: () => melee,
         element: () => `Wind ${tier}`,
         won: () => mother() !== null,
         summonDelay: 6,
@@ -304,9 +350,14 @@ export async function fightMother(log: (m: string) => void): Promise<boolean> {
         log(`magic ${magic} cannot cast any combat spell`);
         return false;
     }
+    const melee = meleeReady();
+    log(melee
+        ? `meleeing form ${MELEE_FORM} with the ${meleeWeaponName()}; form ${RANGED_FORM} still has to be prayed through`
+        : `no melee weapon wielded — forms ${MELEE_FORM} and ${RANGED_FORM} will be prayed through`);
     return fightLoop({
         what: 'Dagannoth mother',
         target: mother,
+        melee: npc => melee && npc.id === MELEE_FORM,
         element: npc => {
             const form = FORM_ELEMENT[npc.id];
             if (!form && !IMMUNE_FORMS.has(npc.id)) {

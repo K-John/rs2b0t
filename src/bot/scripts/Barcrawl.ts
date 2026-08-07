@@ -1,4 +1,3 @@
-import { actions } from '../adapter/ClientAdapter.js';
 import { LoopingBot } from '../api/Bot.js';
 import { Execution } from '../api/Execution.js';
 import { Game } from '../api/Game.js';
@@ -9,6 +8,7 @@ import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { openBankLeg } from '../quests/exec/steps.js';
 import { BARCRAWL_CARD, BARCRAWL_GP, BARS, COINS } from '../barcrawl/BarcrawlLogic.js';
 import { ensureBarcrawl, readCard } from '../barcrawl/RunBarcrawl.js';
+import { Modals } from '../api/hud/Modals.js';
 
 /**
  * Alfred Grimhand's Barcrawl, standalone.
@@ -86,7 +86,7 @@ export default class Barcrawl extends LoopingBot {
         await Bank.setNoteMode(false);
         // Four tours' worth: the walk back to a booth costs more than the coins.
         await Bank.withdrawX(COINS, BARCRAWL_GP * 4);
-        actions.closeModal();
+        await Modals.close();
         return Inventory.count(COINS) >= BARCRAWL_GP;
     }
 

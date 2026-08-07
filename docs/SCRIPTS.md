@@ -665,6 +665,8 @@ Tags: `quest`, `queue`, `aio`
 |---|---|---|---|
 | `quests` | string[] | `[]` | Quest queue (empty = all) — one of: Rune Mysteries Quest, Doric's Quest, The Knight's Sword, Sheep Shearer, The Restless Ghost, Cook's Assistant, Witch's Potion, Romeo & Juliet, Prince Ali Rescue, Waterfall Quest, Goblin Diplomacy, Demon Slayer, Witch's House, Merlin's Crystal, Priest in Peril, Black Knight's Fortress, Druidic Ritual, Lost City, The Tourist Trap, Watch Tower, Vampire Slayer, Jungle Potion, Shilo Village, Elemental Workshop, Death Plateau, Troll Stronghold, Family Crest, Horror from the Deep, Dragon Slayer |
 | `food` | string | `"Trout"` | Food item |
+| `meleeWeapon` | string | `"Rune scimitar"` | Melee weapon |
+| `verbose` | boolean | `true` | Verbose step log |
 
 ### Barcrawl
 

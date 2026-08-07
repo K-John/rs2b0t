@@ -1,10 +1,11 @@
-import { actions, reader } from '../adapter/ClientAdapter.js';
+import { reader } from '../adapter/ClientAdapter.js';
 import { Execution } from '../api/Execution.js';
 import { Game } from '../api/Game.js';
 import { Reach } from '../api/Reach.js';
 import { Traversal } from '../api/Traversal.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
 import { Inventory } from '../api/hud/Inventory.js';
+import { Modals } from '../api/hud/Modals.js';
 import { Npcs, type Npc } from '../api/queries/Npcs.js';
 import { GameMessages } from '../events/gameMessages.js';
 import { driveUntil } from '../quests/exec/prompts.js';
@@ -29,7 +30,7 @@ import {
  * dialogue driver can see it and every other modal read comes back empty while
  * it is up — it has to be closed again, exactly like a quest journal.
  */
-export async function readCard(): Promise<BarcrawlProgress | null> {
+export async function readCard(log?: (m: string) => void): Promise<BarcrawlProgress | null> {
     const card = Inventory.first(BARCRAWL_CARD);
     if (!card) {
         return null;
@@ -37,22 +38,39 @@ export async function readCard(): Promise<BarcrawlProgress | null> {
     const before = reader.modals().main;
     const mark = GameMessages.mark();
     if (!(await card.interact('Read'))) {
+        log?.('the card refused its Read op');
         return null;
     }
-    const opened = await Execution.delayUntil(() => {
+    // The modal id arrives in `if_openmain`; each line of the scroll arrives in
+    // its own `if_settext`, and component text persists in the interface list
+    // between modals. Sampling on the tick the id changes therefore reads an
+    // empty scroll — or the previous read's. Settle a tick, then wait for text
+    // that actually parses as the card rather than for the id alone.
+    const idChanged = await Execution.delayUntil(() => {
         const main = reader.modals().main;
         return main !== -1 && main !== before;
     }, 5000);
-    if (!opened) {
-        // `opheld1,barcrawl_card` stops opening the scroll once every bar is
-        // signed — "You are too drunk to be able to read the barcrawl card" is
-        // the *finished* state, not a failed read, and taking it for a failure
-        // leaves the tour looping at the tenth bar forever.
-        return GameMessages.sawSince(mark, TOO_DRUNK) ? { remaining: [], done: true } : null;
+    let parsed: BarcrawlProgress | null = null;
+    if (idChanged) {
+        await Execution.delayTicks(1);
+        await Execution.delayUntil(() => parseCard(reader.mainModalTexts()) !== null, 5000);
+        parsed = parseCard(reader.mainModalTexts());
+        await Modals.closeIfOpen();
     }
-    const parsed = parseCard(reader.mainModalTexts());
-    actions.closeModal();
-    return parsed;
+    if (parsed) {
+        return parsed;
+    }
+    // `opheld1,barcrawl_card` stops opening the scroll once every bar is
+    // signed — "You are too drunk to be able to read the barcrawl card" is
+    // the *finished* state, not a failed read, and taking it for a failure
+    // leaves the tour looping at the tenth bar forever.
+    if (GameMessages.sawSince(mark, TOO_DRUNK)) {
+        return { remaining: [], done: true };
+    }
+    log?.(idChanged
+        ? 'the card scroll opened but never rendered a parseable line'
+        : 'the card scroll never opened, and no "too drunk" message came back');
+    return null;
 }
 
 /** Every bartender in the game renders "Bartender", so they are found by id. */
@@ -89,7 +107,7 @@ async function drinkAt(bar: Bar, log: (m: string) => void): Promise<boolean> {
     await driveUntil(() => Inventory.count(COINS) < beforeCoins, BAR_PREFER, log, 20_000);
     for (let attempt = 0; attempt < 3; attempt++) {
         await Execution.delayTicks(5);
-        const after = await readCard();
+        const after = await readCard(m => log(`  read ${attempt + 1}/3: ${m}`));
         if (after !== null && !after.remaining.some(b => b.line === bar.line)) {
             log(`signed at the ${bar.line}`);
             return true;
@@ -112,9 +130,11 @@ const GIVE_UP = 3;
 export async function runBarcrawl(log: (m: string) => void, onProgress?: Progress): Promise<boolean> {
     let missed = 0;
     for (let pass = 0; pass < BARS.length * 2; pass++) {
-        const progress = await readCard();
+        const progress = await readCard(m => log(`  ${m}`));
         if (!progress) {
-            log('no barcrawl card in the pack to read');
+            log(Inventory.count(BARCRAWL_CARD) === 0
+                ? 'no barcrawl card in the pack to read'
+                : 'holding a barcrawl card but could not read it — stopping rather than re-walking the tour');
             return false;
         }
         onProgress?.(BARS.length - progress.remaining.length, BARS.length);

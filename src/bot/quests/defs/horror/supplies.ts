@@ -1,10 +1,12 @@
 import { Execution } from '../../../api/Execution.js';
 import Tile from '../../../api/Tile.js';
 import { Traversal } from '../../../api/Traversal.js';
+import { Equipment } from '../../../api/hud/Equipment.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Skills } from '../../../api/hud/Skills.js';
 import { Locs } from '../../../api/queries/Locs.js';
 import { QuestFood } from '../../food.js';
+import { QuestGear } from '../../gear.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { useOnLoc } from '../../exec/prompts.js';
 import { smithNails } from '../dragonslayer/supplies.js';
@@ -376,6 +378,10 @@ export function dungeonKit(snap: QuestSnapshot, needLight: boolean): QuestStep |
     if (runes) {
         return runes;
     }
+    const melee = meleeWeapon(snap);
+    if (melee) {
+        return melee;
+    }
     if (needLight && heldId(snap, HD_ID.SWAMP_TAR) === 0) {
         return swampTar(snap);
     }
@@ -383,6 +389,80 @@ export function dungeonKit(snap: QuestSnapshot, needLight: boolean): QuestStep |
         return moltenGlass(snap);
     }
     return null;
+}
+
+/**
+ * The player's melee weapon: bank only, and optional.
+ *
+ * Nothing in the game sells a rune scimitar — Zeke's Superior Scimitars stops at
+ * mithril — so this is whatever the account already owns, named by the
+ * `meleeWeapon` setting. Absent from the bank, unwieldable, or blank, the
+ * fights fall back to the magic-only loadout they used before, which still wins;
+ * the melee form is simply prayed through instead of killed.
+ */
+let meleeGaveUp = false;
+
+/** Attempts before the weapon is written off — an unwieldable one never lands. */
+const WIELD_TRIES = 3;
+let wieldTries = 0;
+
+export function meleeWeaponName(): string | null {
+    const name = QuestGear.meleeWeapon?.trim();
+    return name && name.length > 0 ? name : null;
+}
+
+/** True once the weapon is on — the only state the fight loops care about. */
+export function meleeReady(): boolean {
+    const name = meleeWeaponName();
+    return name !== null && Equipment.contains(name);
+}
+
+async function wieldMelee(name: string, log: (m: string) => void): Promise<boolean> {
+    if (Equipment.contains(name)) {
+        return true;
+    }
+    if (await Equipment.equip(name)) {
+        log(`wielded the ${name}`);
+        wieldTries = 0;
+        return true;
+    }
+    // Silent refusal is the norm here: an attack level short of the weapon's
+    // requirement is not a message, just a wield that does not happen.
+    if (++wieldTries >= WIELD_TRIES) {
+        meleeGaveUp = true;
+        log(`could not wield the ${name} after ${WIELD_TRIES} tries `
+            + `(attack ${Skills.level('attack')}) — falling back to the magic-only fight`);
+    }
+    return false;
+}
+
+/** Reset between runs so a fixed loadout is not written off for the whole session. */
+export function resetMeleeWeapon(): void {
+    meleeGaveUp = false;
+    wieldTries = 0;
+}
+
+export function meleeWeapon(snap: QuestSnapshot): QuestStep | null {
+    const name = meleeWeaponName();
+    if (!name || meleeGaveUp) {
+        return null;
+    }
+    const key = name.toLowerCase();
+    if (snap.worn.has(key)) {
+        return null;
+    }
+    if ((snap.inv.get(key) ?? 0) > 0) {
+        return { kind: 'custom', name: `wield the ${name}`, run: log => wieldMelee(name, log) };
+    }
+    if (!snap.bankKnown) {
+        return scanBank;
+    }
+    if ((snap.bank?.get(key) ?? 0) <= 0) {
+        // Not a fault: the magic loadout wins the quest on its own.
+        meleeGaveUp = true;
+        return null;
+    }
+    return withdraw([{ name, qty: 1 }]);
 }
 
 /**

@@ -119,7 +119,11 @@ const VARROCK_EAST_BANK = { x: 3253, z: 3420, level: 0 };
 function bankSeed(): BankSeedItem[] {
     const seed: BankSeedItem[] = [
         { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
-        { debugName: args.food.toLowerCase().replace(/ /g, '_'), displayName: args.food, qty: 60 }
+        { debugName: args.food.toLowerCase().replace(/ /g, '_'), displayName: args.food, qty: 60 },
+        // Nothing in the game sells a rune scimitar, so the bank is the only
+        // source the quest has. Seeded unconditionally: without it the melee
+        // form of the mother is prayed through and the branch never runs.
+        { debugName: 'rune_scimitar', displayName: 'Rune scimitar', qty: 1 }
     ];
     // Law is the one rune the module will not shop for — only the Magic Guild
     // and the Mage Arena stock it — so `--teleports` has to bank it or the
@@ -144,7 +148,7 @@ function bankSeed(): BankSeedItem[] {
 /** Debug shortcut for `--seedkit`: engine debugnames and counts. */
 const DUNGEON_SEED: readonly [string, number][] = [
     ['tinderbox', 1], ['swamp_tar', 1], ['molten_glass', 1],
-    ['bronze_dagger', 1], ['bronze_arrow', 5],
+    ['bronze_dagger', 1], ['bronze_arrow', 5], ['rune_scimitar', 1],
     ['airrune', 300], ['waterrune', 200], ['earthrune', 200],
     ['firerune', 250], ['deathrune', 150], ['chaosrune', 150]
 ];
