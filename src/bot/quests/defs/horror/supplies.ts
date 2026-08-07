@@ -39,15 +39,36 @@ export const NAILS_NEEDED = 8;
  * fight takes, plus the one of each element the strange wall swallows. Asking
  * for more is not free — a purchase larger than Aubury's stock is filled a rune
  * at a time as he restocks, and the bot stands at the counter for it.
+ *
+ * The air stack carries a second job when nav teleports are on: every standard
+ * hop spends three of them and Camelot spends five, and this quest takes about
+ * thirty hops. The headroom is there so routing never eats the fight's supply.
  */
 const RUNES: readonly { id: number; name: string; qty: number }[] = [
-    { id: HD_ID.AIR_RUNE, name: HD_ITEM.AIR_RUNE, qty: 250 },
-    { id: HD_ID.WATER_RUNE, name: HD_ITEM.WATER_RUNE, qty: 100 },
-    { id: HD_ID.EARTH_RUNE, name: HD_ITEM.EARTH_RUNE, qty: 100 },
-    { id: HD_ID.FIRE_RUNE, name: HD_ITEM.FIRE_RUNE, qty: 120 },
+    { id: HD_ID.AIR_RUNE, name: HD_ITEM.AIR_RUNE, qty: 350 },
+    { id: HD_ID.WATER_RUNE, name: HD_ITEM.WATER_RUNE, qty: 120 },
+    { id: HD_ID.EARTH_RUNE, name: HD_ITEM.EARTH_RUNE, qty: 120 },
+    { id: HD_ID.FIRE_RUNE, name: HD_ITEM.FIRE_RUNE, qty: 130 },
     { id: HD_ID.DEATH_RUNE, name: HD_ITEM.DEATH_RUNE, qty: 80 },
     { id: HD_ID.CHAOS_RUNE, name: HD_ITEM.CHAOS_RUNE, qty: 80 }
 ];
+
+/**
+ * Law runes, and how many hops they buy.
+ *
+ * Law is the limiting rune at one or two a teleport; the elemental halves come
+ * out of {@link RUNES}, which Aubury sells and this quest already buys. Sixty is
+ * roughly double a full run's hop count.
+ *
+ * It is bank-only on purpose: the Magic Guild and the Mage Arena are the only
+ * two shops that stock it, and the Guild wants 66 magic — seven above what this
+ * quest proves. A bank without law is the ordinary case, not a fault, and the
+ * answer to it is the walk the quest already did.
+ */
+const LAW_RUNES = 60;
+
+/** Below this the kit is topped up, so a part-spent stack does not trigger a trip. */
+const LAW_LOW = Math.ceil(LAW_RUNES / 3);
 
 export function heldId(snap: QuestSnapshot, id: number): number {
     return snap.invIds?.get(id) ?? 0;
@@ -276,6 +297,47 @@ function swampTar(snap: QuestSnapshot): QuestStep {
 }
 
 /**
+ * The whole rune kit — law from the bank, the elements from Aubury.
+ *
+ * Split out of {@link dungeonKit} because when nav teleports are on it is worth
+ * a Varrock counter *before* the barcrawl rather than after it: the tour is a
+ * ten-bar lap of the map, and a hop is only planned when the live pack can pay
+ * for it. Same shop, same quantities, earlier.
+ *
+ * Law belongs here and emphatically **not** in {@link kit}, which runs on every
+ * decide tick. `smithNails` banks the pack to make room for ore and law is not
+ * on its keep-list, so a per-tick law top-up and the nails leg deposit each
+ * other's work forever: `smith 8 nails` → `withdraw Law rune×60` → `smith 8
+ * nails`, parked at the Varrock booth until the engine gives up. Drawing it
+ * here means it is drawn once, after the last leg that empties the pack.
+ */
+export function runeKit(snap: QuestSnapshot, teleports = Traversal.teleportsEnabled()): QuestStep | null {
+    if (teleports && heldId(snap, HD_ID.LAW_RUNE) < LAW_LOW) {
+        // An unread bank is not an empty bank: `bankIds` is blank until a booth
+        // has been opened, so answering "no law banked" here would quietly leave
+        // the toggle doing nothing for the whole quest.
+        if (!snap.bankKnown) {
+            return scanBank;
+        }
+        const banked = bankedId(snap, HD_ID.LAW_RUNE);
+        if (banked > 0) {
+            return withdraw([{
+                name: HD_ITEM.LAW_RUNE, qty: Math.min(LAW_RUNES, banked), id: HD_ID.LAW_RUNE
+            }]);
+        }
+    }
+    for (const rune of RUNES) {
+        // Half is the top-up mark: buying the last hundred of a stack after every
+        // splash would walk the bot back to Varrock mid-quest.
+        if (heldId(snap, rune.id) < rune.qty / 2) {
+            return fromBank(snap, rune.id, rune.name, rune.qty)
+                ?? buy(rune.name, rune.qty - heldId(snap, rune.id), RUNE_SHOP, 20_000);
+        }
+    }
+    return null;
+}
+
+/**
  * The one shortfall worth acting on, or null when the load is complete. Ordered
  * so the two Varrock shops and the two ground-spawn errands each happen once.
  *
@@ -300,16 +362,9 @@ export function dungeonKit(snap: QuestSnapshot, needLight: boolean): QuestStep |
     if (heldId(snap, HD_ID.ARROW) === 0) {
         return source(snap, HD_ID.ARROW, HD_ITEM.ARROW, 5, ARCHERY_SHOP, 100);
     }
-    for (const rune of RUNES) {
-        // Half is the top-up mark: buying the last hundred of a stack after every
-        // splash would walk the bot back to Varrock mid-quest.
-        if (heldId(snap, rune.id) < rune.qty / 2) {
-            const banked = fromBank(snap, rune.id, rune.name, rune.qty);
-            if (banked) {
-                return banked;
-            }
-            return buy(rune.name, rune.qty - heldId(snap, rune.id), RUNE_SHOP, 20_000);
-        }
+    const runes = runeKit(snap);
+    if (runes) {
+        return runes;
     }
     if (needLight && heldId(snap, HD_ID.SWAMP_TAR) === 0) {
         return swampTar(snap);

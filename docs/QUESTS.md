@@ -629,6 +629,33 @@ Horror from the Deep added six, and the first two are not quest facts at all:
   tick after that. `driveChoice` returns the moment nothing is open — which is the gap
   between the two — leaving the choice on screen and the step waiting for a message that
   never comes. `driveUntil(expect, ['Yes'], …)` keeps answering until the goal lands.
+- **Turning teleports on is a provisioning change, not a routing one.** A* only injects
+  a hop the *live pack* can pay for, so flipping Global `navTeleports` against an empty
+  rune pouch changes nothing at all — the log even says `tele=true` while the bot walks
+  the whole quest. What made it real was buying the rune stack the dungeon needs anyway
+  at the Varrock counter the nails leg already ends at, **before** the barcrawl instead
+  of after it: 45 minutes end to end against 68 walking, 16 hops, and a ten-bar tour that
+  fell from 927s to 622s.
+- **Which teleports exist is a question about quests, not about magic.** Max stats buy
+  four of them — Varrock, Lumbridge, Falador and Camelot. Ardougne needs Plague City and
+  Watchtower needs Watch Tower, so the two legs that would gain most, the Yanille/sand-pit
+  glass chain and the southern bars, gain nothing and stay walks. Check the catalog's
+  `requires.quests` before promising a route.
+- **Law is the rune you cannot shop for, and it must not ride the per-tick float.** Only
+  the Mage Arena and the Magic Guild stock it and the Guild wants 66 magic — seven above
+  what this quest proves — so it comes from the bank or not at all. Drawing it in the
+  coin-and-food top-up, which runs on *every* decide tick, deadlocks against `smithNails`:
+  that leg banks the pack to make room for ore, law is not on its keep-list, and the two
+  undo each other forever — `smith 8 nails` → `withdraw Law rune×60` → `smith 8 nails`,
+  parked at the booth until the engine gives up. Anything the pack-emptying legs will
+  deposit belongs in the one-shot kit, drawn after them.
+- **A prerequisite with its own name belongs outside the quest that found it.** Alfred
+  Grimhand's Barcrawl is what opens the Barbarian Outpost gate, and Horror needs it only
+  because Gunnjorn is behind that gate. It lives in [`src/bot/barcrawl/`](../src/bot/barcrawl/)
+  — `BarcrawlLogic.ts` for the ten bars and the card parse, `RunBarcrawl.ts` for the
+  driver — with a `Barcrawl` script that runs the tour on its own and a quest branch that
+  calls the same `ensureBarcrawl`. The quest keeps only the coin `QuestStep`, because that
+  is the one part the engine has to bank for.
 - **The oracle can stop answering exactly when it succeeds.** The barcrawl card renders
   one green/red line per bar — until all ten are green, at which point `opheld1` swaps
   the scroll for "You are too drunk to be able to read the barcrawl card". Reading that

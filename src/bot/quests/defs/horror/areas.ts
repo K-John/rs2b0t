@@ -30,6 +30,7 @@ export const HD_ID = {
     FIRE_RUNE: 554,
     CHAOS_RUNE: 562,
     DEATH_RUNE: 560,
+    LAW_RUNE: 563,
     DAGGER: 1205,
     ARROW: 882,
     BUCKET: 1925,
@@ -56,6 +57,7 @@ export const HD_ITEM = {
     FIRE_RUNE: 'Fire rune',
     CHAOS_RUNE: 'Chaos rune',
     DEATH_RUNE: 'Death rune',
+    LAW_RUNE: 'Law rune',
     DAGGER: 'Bronze dagger',
     ARROW: 'Bronze arrow',
     BUCKET: 'Bucket',
@@ -128,7 +130,6 @@ export const HD_TILE = {
     OUTPOST_PIPE_NORTH: new Tile(2552, 3561, 0),
     OUTPOST_PIPE_SOUTH: new Tile(2552, 3558, 0),
     GUNNJORN: new Tile(2540, 3548, 0),
-    OUTPOST_GUARD: new Tile(2544, 3572, 0),
     /** Four `woodplank` ground spawns north-east of the outpost. */
     PLANK_SPAWNS: [
         new Tile(2552, 3574, 0),
@@ -179,30 +180,6 @@ export const GENERAL_SHOP = { npc: 'Shop keeper', anchor: HD_TILE.VARROCK_GENERA
  * `line` is the fragment of the card's own scroll for that bar, which is the
  * only readable progress there is — `%barcrawl` is not on the wire.
  */
-export interface Bar {
-    id: number;
-    npc: string;
-    tile: Tile;
-    line: string;
-    /** Asking price of that bar's barcrawl drink. */
-    gp: number;
-}
-
-export const BARS: readonly Bar[] = [
-    { id: 734, npc: 'Bartender', tile: new Tile(3045, 3258, 0), line: 'rusty anchor', gp: 8 },
-    { id: 736, npc: 'Barmaid', tile: new Tile(2957, 3371, 0), line: 'rising sun', gp: 70 },
-    { id: 733, npc: 'Bartender', tile: new Tile(3226, 3400, 0), line: 'bluemoon', gp: 50 },
-    { id: 731, npc: 'Bartender', tile: new Tile(3276, 3488, 0), line: 'jolly boar', gp: 10 },
-    { id: 737, npc: 'Bartender', tile: new Tile(2690, 3494, 0), line: 'foresters arms', gp: 18 },
-    { id: 738, npc: 'Bartender', tile: new Tile(2575, 3321, 0), line: 'flying horse', gp: 8 },
-    { id: 739, npc: 'Bartender', tile: new Tile(2556, 3079, 0), line: 'dragon inn', gp: 12 },
-    { id: 848, npc: 'Blurberry', tile: new Tile(2480, 3490, 1), line: "blurberry's bar", gp: 10 },
-    { id: 568, npc: 'Zambo', tile: new Tile(2924, 3143, 0), line: 'karamja spirits', gp: 7 },
-    { id: 735, npc: 'Bartender', tile: new Tile(2796, 3155, 0), line: "dead man's chest", gp: 15 }
-];
-
-export const BARBARIAN_GUARD_ID = 384;
-
 export const LARRISSA: NpcStop = {
     npc: 'Larrissa',
     anchor: HD_TILE.LARRISSA,
@@ -231,16 +208,3 @@ export const JOSSIK: NpcStop = {
     prefer: []
 };
 
-/**
- * The gate guard hands out the barcrawl card, and only down the "I am in fact a
- * barbarian" branch — the honest answer ends the conversation with nothing.
- */
-export const OUTPOST_GUARD: NpcStop = {
-    npc: 'Barbarian guard',
-    anchor: HD_TILE.OUTPOST_GUARD,
-    leash: 8,
-    prefer: [
-        'I want to come through this gate.',
-        'Looks can be deceiving, I am in fact a barbarian.'
-    ]
-};

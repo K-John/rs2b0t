@@ -296,9 +296,10 @@ HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 10 --minutes 210   
 HEADED=1 bun tools/horror-deep-216-live.ts --stage 4 --until 5 --seedkit --minutes 25 # the strange wall
 HEADED=1 bun tools/horror-deep-216-live.ts --stage 1 --barcrawl 0 \
   --bits horrorbridgeleft,horrorbridgeright --minutes 120                            # the barcrawl
+HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 10 --teleports          # end to end, hops on
 ```
 
-Three things it does that the Family Crest one does not:
+Four things it does that the Family Crest one does not:
 
 - **Deploys `navworker.js` as well as `botclient.js`.** The transport graph is
   compiled into the nav worker, which is its own entrypoint, so a run that
@@ -311,6 +312,25 @@ Three things it does that the Family Crest one does not:
   the fight without the twenty-minute Varrock round trip. It is a debugging
   shortcut: leave it off for anything that claims the quest works, or the item
   sourcing is never exercised.
+- **`--teleports` turns the Global `navTeleports` setting on *and banks law
+  runes*.** Both halves are load-bearing. The nav layer only injects a hop the
+  live inventory can pay for, and law is the one rune the module will not shop
+  for — the Magic Guild and the Mage Arena are the only two shops that stock it
+  — so flipping the toggle against a bank without law measures the walking run
+  again under a different name.
+
+Measured end to end at `--tick 200`: **68 minutes walking, 45 with `--teleports`**
+(16 hops — Camelot ×11, Varrock ×3, Falador, Lumbridge — and no parks).
+
+**Pin `--tick` when you are comparing two runs.** The default is 300ms and the
+end-to-end baseline was measured at `--tick 200`; a run at the default is 1.5×
+slower per tick, so any wall-clock comparison against it measures the flag. Two
+runs at 300ms also wedged on the very first step, with Larrissa one tile away
+and every `Talk-to` refused in silence — the nav probe rules out geometry (all
+the tiles around her are mutually reachable at cost 1) and the engine's own
+recovery named a leftover **main** modal, which refuses dialogue exactly like
+this. The poll line now prints `MAIN-MODAL=<id>` whenever one is open, so the
+next occurrence names the interface instead of having to be inferred.
 
 Two more tools sit alongside it.
 [`tools/horror-journal-dump.ts`](../tools/horror-journal-dump.ts) prints the

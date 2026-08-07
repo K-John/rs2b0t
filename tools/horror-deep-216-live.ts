@@ -5,6 +5,7 @@
  *   HEADED=1 bun tools/horror-deep-216-live.ts --stage 4 --until 10 --minutes 60
  *   HEADED=1 bun tools/horror-deep-216-live.ts --stage 1 --barcrawl 0 --minutes 90
  *   HEADED=1 bun tools/horror-deep-216-live.ts --stage 1 --bits horrorbridgeleft,horrorbridgeright
+ *   HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 10 --teleports
  *
  * `--stage N` sets `%horrorquest` and relogs: `update_questlist` only recolours
  * the journal entry at login, and the module reads the tab rather than the varp.
@@ -29,6 +30,7 @@ import { launchBrowser } from './lib/harness.js';
 import {
     cheatQuiet,
     clearChatDialogs,
+    clearMainModal,
     getServerVarQuiet,
     mainlandAccount,
     maxmeAndClearDialogs,
@@ -53,6 +55,8 @@ interface Args {
     seedKit: boolean;
     /** Extra `deephorror` varbits to seed, on top of the stage's own. */
     bits: string[];
+    /** Turn Global `navTeleports` on and bank the law runes the hops need. */
+    teleports: boolean;
     deploy: boolean;
 }
 
@@ -68,12 +72,14 @@ function parse(argv: string[]): Args {
         barcrawl: -1,
         seedKit: false,
         bits: [],
+        teleports: false,
         deploy: true
     };
     for (let i = 0; i < argv.length; i++) {
         const flag = argv[i];
         if (flag === '--no-deploy') { out.deploy = false; continue; }
         if (flag === '--seedkit') { out.seedKit = true; continue; }
+        if (flag === '--teleports') { out.teleports = true; continue; }
         const value = argv[++i];
         if (value === undefined) { break; }
         if (flag === '--base') { out.base = value; }
@@ -106,10 +112,17 @@ const VARROCK_EAST_BANK = { x: 3253, z: 3420, level: 0 };
  * quest withdraws a name the bank has never heard of.
  */
 function bankSeed(): BankSeedItem[] {
-    return [
+    const seed: BankSeedItem[] = [
         { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
         { debugName: args.food.toLowerCase().replace(/ /g, '_'), displayName: args.food, qty: 60 }
     ];
+    // Law is the one rune the module will not shop for — only the Magic Guild
+    // and the Mage Arena stock it — so `--teleports` has to bank it or the
+    // toggle changes nothing and the run walks exactly as before.
+    if (args.teleports) {
+        seed.push({ debugName: 'lawrune', displayName: 'Law rune', qty: 500 });
+    }
+    return seed;
 }
 
 /** Debug shortcut for `--seedkit`: engine debugnames and counts. */
@@ -150,6 +163,7 @@ interface Snapshot {
     status: string;
     qp: number;
     runner: string;
+    modal: { main: number; chat: number };
     logs: { time: number; level: string; msg: string }[];
 }
 
@@ -157,7 +171,10 @@ async function snapshot(page: Page): Promise<Snapshot> {
     return page.evaluate(quest => {
         const g = globalThis as never as {
             __rs2b0t: {
-                reader: { worldTile(): { x: number; z: number; level: number } | null };
+                reader: {
+                    worldTile(): { x: number; z: number; level: number } | null;
+                    modals(): { main: number; chat: number };
+                };
                 Quests: { status(n: string): string; points(): number };
             };
             rs2b0t: { runner: { state: string; ctx?: { log?: { time: number; level: string; msg: string }[] } } };
@@ -168,6 +185,10 @@ async function snapshot(page: Page): Promise<Snapshot> {
             status: g.__rs2b0t.Quests.status(quest),
             qp: g.__rs2b0t.Quests.points(),
             runner: g.rs2b0t.runner.state,
+            // A main modal nobody closed refuses every talk in silence, so the
+            // poll reports it rather than leaving a stall looking like a bad
+            // decide().
+            modal: g.__rs2b0t.reader.modals(),
             logs: ring.slice(-80).map(l => ({ time: l.time, level: l.level, msg: l.msg }))
         };
     }, QUEST);
@@ -224,6 +245,11 @@ try {
     await cheatQuiet(page, `speed ${args.tickMs}`);
     console.log(`tick rate: ${args.tickMs}ms`);
 
+    if (args.teleports) {
+        await page.evaluate(() => sessionStorage.setItem('rs2b0t:set:Global:navTeleports', 'true'));
+        console.log('nav teleports: on');
+    }
+
     await maxmeAndClearDialogs(page);
 
     const seed = bankSeed();
@@ -271,6 +297,9 @@ try {
 
     await page.evaluate(() => sessionStorage.setItem('rs2b0t:set:AIOQuester:quests', 'horror'));
     await page.evaluate(f => sessionStorage.setItem('rs2b0t:set:AIOQuester:food', f), args.food);
+    // A scroll left in the main slot silently refuses every talk the quest
+    // issues, and the run reads as a broken decide() instead.
+    await clearMainModal(page);
     await startScript(page, 'AIOQuester');
     console.log(`started AIOQuester — watching for horrorquest >= ${args.until}`);
 
@@ -285,6 +314,7 @@ try {
         console.log(
             `  t=${t}s pos=${last.pos ? `${last.pos.x},${last.pos.z},${last.pos.level}` : '?'}`
             + ` horrorquest=${stage} journal=${last.status} qp=${last.qp} runner=${last.runner}`
+            + (last.modal.main === -1 ? '' : ` MAIN-MODAL=${last.modal.main}`)
         );
         for (const l of last.logs) {
             if (l.time > lastLogTime) { console.log(`      · [${l.level}] ${l.msg}`); }

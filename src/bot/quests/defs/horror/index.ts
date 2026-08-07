@@ -5,7 +5,8 @@ import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
 import { talkThrough } from '../../exec/primitives.js';
 import { GENERAL_SHOP, GUNNJORN, HD_ID, HD_ITEM, HD_STAGE, HD_TILE, LARRISSA } from './areas.js';
-import { barcrawlFunds, ensureBarcrawl } from './barcrawl.js';
+import { ensureBarcrawl } from '../../../barcrawl/RunBarcrawl.js';
+import { barcrawlFunds } from './barcrawl.js';
 import { exitAfterQuest, inCavern, openWallAndDescend } from './dungeon.js';
 import { fightJunior, fightMother } from './fight.js';
 import { HD_FLAG, readHorrorProgress } from './journal.js';
@@ -13,8 +14,8 @@ import {
     climbToLight, descendToBasement, enterLighthouse, inBasement, inQuestLighthouse, repairBridge, repairLight
 } from './lighthouse.js';
 import {
-    bankedId, dungeonKit, foodWant, heldId, HORROR_TOOLS, kit, NAILS_NEEDED, nails, PLANKS_NEEDED, planks, sealedArea,
-    warnHorrorReadiness
+    bankedId, dungeonKit, foodWant, heldId, HORROR_TOOLS, kit, NAILS_NEEDED, nails, PLANKS_NEEDED,
+    planks, runeKit, sealedArea, warnHorrorReadiness
 } from './supplies.js';
 
 const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep =>
@@ -59,6 +60,21 @@ function beforeTheDoor(snap: QuestSnapshot): QuestStep {
         // room for ore, and a plank banked mid-leg is a plank fetched twice.
         if (heldId(snap, HD_ID.NAILS) < NAILS_NEEDED) {
             return nails(snap);
+        }
+        // Runes here when hops are on: the nails leg ends at a Varrock anvil and
+        // Aubury is the next street, so the stack the dungeon needs anyway costs
+        // no extra walking — and every leg after this one (planks at the
+        // outpost, the causeway, the ten-bar tour) can then plan a teleport,
+        // which A* only does when the live pack can pay for it.
+        //
+        // Strictly *after* the nails, never before: that leg banks the pack to
+        // make room for four iron and eight coal, and six rune stacks in it is
+        // six fewer slots and a "no room for Coal" dead stop.
+        if (Traversal.teleportsEnabled()) {
+            const runes = runeKit(snap);
+            if (runes) {
+                return runes;
+            }
         }
         if (heldId(snap, HD_ID.PLANK) < PLANKS_NEEDED) {
             return planks(snap);

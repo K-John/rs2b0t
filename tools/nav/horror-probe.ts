@@ -12,7 +12,8 @@ import doorsJson from '../../src/bot/nav/data/doors.json';
 import transportsJson from '../../src/bot/nav/data/transports.json';
 import stairsJson from '../../src/bot/nav/data/stairEdges.json';
 import { PathFinder, type DoorEdgeData, type NavPoint } from '../../src/bot/nav/PathFinder.js';
-import { BARS, HD_TILE } from '../../src/bot/quests/defs/horror/areas.js';
+import { BARS } from '../../src/bot/barcrawl/BarcrawlLogic.js';
+import { HD_TILE } from '../../src/bot/quests/defs/horror/areas.js';
 
 let bytes: Uint8Array = new Uint8Array(fs.readFileSync('out/collision.lcnav.gz'));
 if (bytes[0] === 0x1f && bytes[1] === 0x8b) bytes = gunzipSync(bytes);

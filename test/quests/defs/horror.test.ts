@@ -4,7 +4,7 @@ import { HD_ID, HD_STAGE } from '#/bot/quests/defs/horror/areas.js';
 import { decide, horror } from '#/bot/quests/defs/horror/index.js';
 import { FORM_ELEMENT, IMMUNE_FORMS, MOTHER_IDS, spellTier } from '#/bot/quests/defs/horror/fight.js';
 import { HD_FLAG } from '#/bot/quests/defs/horror/journal.js';
-import { NAILS_NEEDED, PLANKS_NEEDED } from '#/bot/quests/defs/horror/supplies.js';
+import { kit, NAILS_NEEDED, PLANKS_NEEDED, runeKit } from '#/bot/quests/defs/horror/supplies.js';
 import { QUEST_DEFS } from '#/bot/quests/defs/index.js';
 import { QuestFood } from '#/bot/quests/food.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/quests/engine/types.js';
@@ -255,5 +255,43 @@ describe('Dagannoth mother forms', () => {
         expect(spellTier(13)).toBe('strike');
         // Below Fire Strike four of her six forms cannot be answered at all.
         expect(spellTier(12)).toBeNull();
+    });
+});
+
+describe('Horror from the Deep — teleport kit', () => {
+    const bankedLaw: [number, number][] = [[HD_ID.LAW_RUNE, 500]];
+
+    const lawIn = (s: QuestStep | null): boolean =>
+        s !== null && s.kind === 'withdraw' && s.items.some(i => i.id === HD_ID.LAW_RUNE);
+
+    test('draws law when nav teleports are on and the bank has them', () => {
+        // A* only injects a hop the *live inventory* can pay for, so the whole
+        // difference between "can plan a Camelot hop" and "does" is this fetch.
+        expect(lawIn(runeKit(snap({ bankIds: bankedLaw }), true))).toBe(true);
+    });
+
+    test('does not ask for law when the toggle is off', () => {
+        expect(lawIn(runeKit(snap({ bankIds: bankedLaw }), false))).toBe(false);
+    });
+
+    test('walks rather than detouring when the bank has no law', () => {
+        // Only the Magic Guild (66 magic) and the Mage Arena stock it, so an
+        // empty bank is the ordinary case — and the answer is the walk.
+        expect(lawIn(runeKit(snap({ bankIds: [[HD_ID.LAW_RUNE, 0]] }), true))).toBe(false);
+    });
+
+    test('leaves a part-spent stack alone', () => {
+        const s = runeKit(snap({ invIds: [[HD_ID.LAW_RUNE, 40]], bankIds: bankedLaw }), true);
+        expect(lawIn(s)).toBe(false);
+    });
+
+    test('scans the bank before deciding law is not there', () => {
+        expect(runeKit(snap({ bankKnown: false }), true)?.kind).toBe('scanBank');
+    });
+
+    test('never rides the coin trip — that loop parks the quest', () => {
+        // `smithNails` banks the pack for ore and law is not on its keep-list, so
+        // a per-tick law top-up and the nails leg undo each other forever.
+        expect(kit(snap({ bankIds: bankedLaw }), null)).toBeNull();
     });
 });
