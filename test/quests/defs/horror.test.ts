@@ -82,8 +82,20 @@ describe('Horror from the Deep decide()', () => {
         expect(step({ journal: 'complete', stage: HD_STAGE.COMPLETE }).kind).toBe('done');
     });
 
-    test('starts by talking to Larrissa', () => {
-        expect(talkTo(step())).toBe('Larrissa');
+    test('gathers the bridge kit before starting the quest', () => {
+        // Larrissa is at the lighthouse and every tool for the bridge she asks
+        // about is in Varrock, so talking first buys a second crossing of the
+        // map for nothing. Nothing in the kit is quest-gated.
+        expect(step().kind).not.toBe('talk');
+    });
+
+    test('talks to Larrissa the moment the kit is in hand', () => {
+        // The ordinary account already owns this — every step of the kit reads
+        // the bank first — so the common case is one walk to the lighthouse.
+        const stocked = step({
+            invIds: [[HD_ID.HAMMER, 1], [HD_ID.NAILS, NAILS_NEEDED], [HD_ID.PLANK, PLANKS_NEEDED]]
+        });
+        expect(talkTo(stocked)).toBe('Larrissa');
     });
 
     test('tops the pack up with food before anything else', () => {
@@ -293,5 +305,59 @@ describe('Horror from the Deep — teleport kit', () => {
         // `smithNails` banks the pack for ore and law is not on its keep-list, so
         // a per-tick law top-up and the nails leg undo each other forever.
         expect(kit(snap({ bankIds: bankedLaw }), null)).toBeNull();
+    });
+});
+
+describe('Horror from the Deep — teleport kit on a resumed run', () => {
+    // The barcrawl is the leg hops pay for, and a resume that starts past the
+    // bridge used to skip rune provisioning entirely and walk all ten bars.
+    const bridged = {
+        stage: HD_STAGE.STARTED,
+        flags: [HD_FLAG.BRIDGE],
+        bankIds: [[HD_ID.LAW_RUNE, 500]] as [number, number][]
+    };
+
+    test('provisions runes before the tour when the bridge is already repaired', () => {
+        const s = runeKit(snap(bridged), true);
+        expect(s !== null && s.kind === 'withdraw' && s.items.some(i => i.id === HD_ID.LAW_RUNE)).toBe(true);
+    });
+
+    test('still reaches the barcrawl once the kit is aboard', () => {
+        const stocked = snap({
+            ...bridged,
+            invIds: [[HD_ID.LAW_RUNE, 60], [HD_ID.AIR_RUNE, 350], [HD_ID.WATER_RUNE, 120],
+                [HD_ID.EARTH_RUNE, 120], [HD_ID.FIRE_RUNE, 130], [HD_ID.DEATH_RUNE, 80],
+                [HD_ID.CHAOS_RUNE, 80], [HD_ID.COINS, 20_000]] as [number, number][]
+        });
+        expect(runeKit(stocked, true)).toBeNull();
+    });
+});
+
+describe('Horror from the Deep — an account that already owns the kit', () => {
+    // Most players will have sourced a hammer and eight nails long before this
+    // quest, so the prep branch has to read the bank rather than the shop —
+    // otherwise the common case pays for a second hammer and re-smiths nails.
+    const banked: [number, number][] = [
+        [HD_ID.HAMMER, 1], [HD_ID.NAILS, 50], [HD_ID.PLANK, 10]
+    ];
+
+    test('withdraws the hammer instead of buying one', () => {
+        const s = step({ invIds: [[HD_ID.HAMMER, 0]], bankIds: banked });
+        expect(s.kind).toBe('withdraw');
+        expect(s.kind === 'withdraw' && s.items[0]?.id).toBe(HD_ID.HAMMER);
+    });
+
+    test('withdraws nails instead of mining and smithing them', () => {
+        const s = step({ invIds: [[HD_ID.HAMMER, 1]], bankIds: banked });
+        expect(s.kind).toBe('withdraw');
+        expect(s.kind === 'withdraw' && s.items[0]?.id).toBe(HD_ID.NAILS);
+    });
+
+    test('takes only the planks it is short of', () => {
+        const s = step({
+            invIds: [[HD_ID.HAMMER, 1], [HD_ID.NAILS, NAILS_NEEDED], [HD_ID.PLANK, 1]],
+            bankIds: banked
+        });
+        expect(s.kind === 'withdraw' && s.items[0]?.qty).toBe(PLANKS_NEEDED - 1);
     });
 });

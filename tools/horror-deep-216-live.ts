@@ -6,6 +6,7 @@
  *   HEADED=1 bun tools/horror-deep-216-live.ts --stage 1 --barcrawl 0 --minutes 90
  *   HEADED=1 bun tools/horror-deep-216-live.ts --stage 1 --bits horrorbridgeleft,horrorbridgeright
  *   HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 10 --teleports
+ *   HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 2 --stocked --teleports
  *
  * `--stage N` sets `%horrorquest` and relogs: `update_questlist` only recolours
  * the journal entry at login, and the module reads the tab rather than the varp.
@@ -57,6 +58,8 @@ interface Args {
     bits: string[];
     /** Turn Global `navTeleports` on and bank the law runes the hops need. */
     teleports: boolean;
+    /** Bank the bridge kit, as an established account would already have it. */
+    stocked: boolean;
     deploy: boolean;
 }
 
@@ -73,6 +76,7 @@ function parse(argv: string[]): Args {
         seedKit: false,
         bits: [],
         teleports: false,
+        stocked: false,
         deploy: true
     };
     for (let i = 0; i < argv.length; i++) {
@@ -80,6 +84,7 @@ function parse(argv: string[]): Args {
         if (flag === '--no-deploy') { out.deploy = false; continue; }
         if (flag === '--seedkit') { out.seedKit = true; continue; }
         if (flag === '--teleports') { out.teleports = true; continue; }
+        if (flag === '--stocked') { out.stocked = true; continue; }
         const value = argv[++i];
         if (value === undefined) { break; }
         if (flag === '--base') { out.base = value; }
@@ -121,6 +126,17 @@ function bankSeed(): BankSeedItem[] {
     // toggle changes nothing and the run walks exactly as before.
     if (args.teleports) {
         seed.push({ debugName: 'lawrune', displayName: 'Law rune', qty: 500 });
+    }
+    // The common case, and the one a from-scratch run never exercises: an
+    // account that has owned a hammer and a pile of nails for years. Every step
+    // of the bridge kit reads the bank first, so this should collapse thirteen
+    // minutes of shopping, mining and smithing into one withdrawal.
+    if (args.stocked) {
+        seed.push(
+            { debugName: 'hammer', displayName: 'Hammer', qty: 1 },
+            { debugName: 'nails', displayName: 'Nails', qty: 50 },
+            { debugName: 'woodplank', displayName: 'Plank', qty: 10 }
+        );
     }
     return seed;
 }

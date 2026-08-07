@@ -161,6 +161,16 @@ export function kit(snap: QuestSnapshot, food?: FoodWant | null): QuestStep | nu
     return snap.bankKnown ? withdraw(items) : scanBank;
 }
 
+/**
+ * The bridge hammer — bank before shop, like everything else here.
+ *
+ * A hammer is the item an established account is most likely to already own,
+ * and a bare `buy` walks past a bankful of them to pay for another.
+ */
+export function hammer(snap: QuestSnapshot): QuestStep {
+    return source(snap, HD_ID.HAMMER, HD_ITEM.HAMMER, 1, GENERAL_SHOP, 100);
+}
+
 /** Four `woodplank` spawns sit north-east of the Barbarian Outpost gate. */
 export function planks(snap: QuestSnapshot): QuestStep {
     const held = heldId(snap, HD_ID.PLANK);
