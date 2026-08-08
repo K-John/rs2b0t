@@ -15,6 +15,7 @@ import {
     tickManipUiOptions
 } from './TickManipLogic.js';
 import { ROCK_OPTIONS } from '../api/MiningRocks.js';
+import { MINER_FOOD_SETTINGS } from './MinerLogic.js';
 import EdgevilleMonkeyBars, { EDGEVILLE_MONKEYBARS_SETTINGS } from './EdgevilleMonkeyBars.js';
 import { ScriptRegistry } from '../runtime/ScriptRegistry.js';
 import AgilityBot from './AgilityBot.js';
@@ -65,6 +66,7 @@ import FlaxRunner, { SETTINGS as FLAXRUNNER_SETTINGS } from './FlaxRunner.js';
 import { ShopRunner, SHOPRUNNER_SETTINGS } from './ShopRunner.js';
 import AIOTeleport, { SETTINGS as AIOTELEPORT_SETTINGS } from './AIOTeleport.js';
 import Barcrawl from './Barcrawl.js';
+import DuelArena, { DUEL_ARENA_SETTINGS } from './DuelArena.js';
 
 // First register = panel default when no script is remembered (BotPanel → list()[0]).
 // Keep TutorialBot first so new accounts land on onboarding, not AIO Teleport.
@@ -117,6 +119,15 @@ ScriptRegistry.register({
     tags: ['lumbridge', 'bones', 'feathers', 'afk'],
     settingsSchema: CHICKEN_SETTINGS,
     create: () => new ChickenKiller()
+});
+
+ScriptRegistry.register({
+    name: 'Duel Arena Combat Trainer',
+    description: 'Walks to the Al Kharid Duel Arena, pairs with other players, accepts both no-stake screens, fights with melee, and alternates Attack/Strength toward configured target levels',
+    category: 'Combat',
+    tags: ['duel arena', 'pvp', 'attack', 'strength', 'multibox'],
+    settingsSchema: DUEL_ARENA_SETTINGS,
+    create: () => new DuelArena()
 });
 
 ScriptRegistry.register({
@@ -231,7 +242,7 @@ ScriptRegistry.register({
 ScriptRegistry.register({
     name: 'Miner',
     description:
-        'Mines the selected rock types, then banks the ore at the nearest bank or drops it (power-mining). Needs a pickaxe (best available is restocked from the bank when Full inventory is Auto). Optional Buy/repair acquires picks from Nurmof (and repairs broken picks).',
+        'Mines the selected rock types, then banks the ore at the nearest bank or drops it (power-mining). Optional trip food is eaten when its full heal fits or to turn food slots into more ore slots. Needs a pickaxe (best available is restocked from the bank when Full inventory is Auto). Optional Buy/repair acquires picks from Nurmof (and repairs broken picks).',
     category: 'Mining',
     tags: ['gathering', 'banking', 'drop'],
     settingsSchema: {
@@ -250,8 +261,9 @@ ScriptRegistry.register({
             options: MINING_LOCATION_OPTIONS,
             label: 'Location / full inventory',
             help:
-                'Mine camp + full-pack behaviour. Auto = if you start in the same 64×64 map square as a known mine camp, snap to the nearest such camp and bank there; otherwise freeform (start-tile leash + nearest bank). Named camps pin spot + bank. None = power-mine (drop ore; bank only for missing tools).'
+                'Mine camp + full-pack behaviour. Auto = if you start in the same 64×64 map square as a known mine camp, snap to the nearest such camp and bank there; otherwise freeform (start-tile leash + nearest bank). Named camps pin spot + bank. None = power-mine (drop ore; configured food still restocks from the nearest bank).'
         },
+        ...MINER_FOOD_SETTINGS,
         tickManip: {
             type: 'string',
             default: 'Off',
@@ -263,7 +275,10 @@ ScriptRegistry.register({
         muleMode: GATHERING_SETTINGS.muleMode,
         mulePartner: GATHERING_SETTINGS.mulePartner,
         toolAcquire: TOOL_ACQUIRE_SETTING,
-        forgetfulBank: FORGETFUL_BANK_SETTING
+        forgetfulBank: FORGETFUL_BANK_SETTING,
+        // Required for harness / live control of start purge (default true).
+        purgePackOnStart: GATHERING_SETTINGS.purgePackOnStart,
+        packJunk: GATHERING_SETTINGS.packJunk
     },
     create: () => new GatheringBot()
 });
@@ -421,7 +436,10 @@ ScriptRegistry.register({
         muleMode: GATHERING_SETTINGS.muleMode,
         mulePartner: GATHERING_SETTINGS.mulePartner,
         toolAcquire: TOOL_ACQUIRE_SETTING,
-        forgetfulBank: FORGETFUL_BANK_SETTING
+        forgetfulBank: FORGETFUL_BANK_SETTING,
+        // Required so harness can set purgePackOnStart=false for cook seed packs.
+        purgePackOnStart: GATHERING_SETTINGS.purgePackOnStart,
+        packJunk: GATHERING_SETTINGS.packJunk
     },
     create: () => new GatheringBot()
 });

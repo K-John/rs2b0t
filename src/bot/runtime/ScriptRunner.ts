@@ -32,14 +32,75 @@ function scheduleNextLoop(ctx: ScriptContext, cadence: LoopCadence): void {
 }
 
 /**
- * Logged out (or mid scene load) the adapter serves stale or empty state, so a
- * script reading it draws wrong conclusions — a stale tile, a blank inventory.
- * Scripts only ever run behind this gate. With no client attached at all
- * (unit tests) there is no game state to protect and the gate stays out of
- * the way.
+ * Why the script loop must hold (adapter serves stale/empty state).
+ * Null = safe to run. Detached (unit tests) has no client to protect.
+ *
+ * Scene state 2 is the live playable scene — mid-load (teleport, login rebuild,
+ * hop) is not "logged out" even though we pause the loop the same way.
  */
-function ingameOrDetached(): boolean {
-    return !reader.attached() || (reader.ingame() && reader.sceneState() === 2 && reader.worldTile() !== null);
+type LoopHoldReason = 'logged-out' | 'scene-load' | 'no-tile' | 'stats-load';
+
+function loopHoldReason(): LoopHoldReason | null {
+    if (!reader.attached()) {
+        return null;
+    }
+    if (!reader.ingame()) {
+        return 'logged-out';
+    }
+    if (reader.sceneState() !== 2) {
+        return 'scene-load';
+    }
+    if (reader.worldTile() === null) {
+        return 'no-tile';
+    }
+    if (!reader.statsReady()) {
+        return 'stats-load';
+    }
+    return null;
+}
+
+export function loopReadyOrDetached(): boolean {
+    return loopHoldReason() === null;
+}
+
+function holdWarnMessage(reason: LoopHoldReason): string {
+    switch (reason) {
+        case 'logged-out':
+            return 'logged out — holding the loop until back ingame';
+        case 'scene-load':
+            return `scene loading (state ${reader.sceneState()}) — holding the loop until the scene is ready`;
+        case 'no-tile':
+            return 'scene ready but no local tile yet — holding the loop';
+        case 'stats-load':
+            return 'scene ready but stats are still loading — holding the loop';
+    }
+}
+
+function holdResumeMessage(reason: LoopHoldReason, heldMs: number): string {
+    const secs = Math.round(heldMs / 1000);
+    switch (reason) {
+        case 'logged-out':
+            return `back ingame after ${secs}s — resuming the loop`;
+        case 'scene-load':
+            return `scene ready after ${secs}s — resuming the loop`;
+        case 'no-tile':
+            return `local tile available after ${secs}s — resuming the loop`;
+        case 'stats-load':
+            return `stats ready after ${secs}s — resuming the loop`;
+    }
+}
+
+/** Never let a blank reason read as "the script just stopped for no reason". */
+export function stopReasonOf(reason: string): string {
+    return reason.trim() || 'no reason given by the caller (bug — please report)';
+}
+
+/** One-line summary of how a finished run ended, for the next run's log. */
+export function endEpitaph(ctx: ScriptContext): string {
+    if (ctx.state === 'crashed') {
+        return `crashed: ${ctx.crashError?.message ?? 'unknown error'}`;
+    }
+    return `ended (${ctx.state}) — ${ctx.stopReason ?? 'no reason recorded'}`;
 }
 
 class ScriptRunnerImpl {
@@ -48,7 +109,11 @@ class ScriptRunnerImpl {
     meta: ScriptMeta | null = null;
 
     private changeListeners = new Set<() => void>();
-    private loggedOutSince = 0;
+    /** onStart has returned and established any baselines consumed by onPaint. */
+    private startupComplete = false;
+    /** Wall-clock start of the current loop hold (logout / scene load / no tile). */
+    private holdSince = 0;
+    private holdReason: LoopHoldReason | null = null;
 
     constructor() {
         Scheduler.launchLoop = ctx => this.launchIteration(ctx);
@@ -66,7 +131,7 @@ class ScriptRunnerImpl {
                 this.pause();
             }
         } else if (clicked === 'stop') {
-            this.stop();
+            this.stop('Stop button (paint overlay)');
         }
     }
 
@@ -74,11 +139,25 @@ class ScriptRunnerImpl {
         return this.ctx?.state ?? 'idle';
     }
 
+    /** The bot that may safely paint this frame, or null while startup/state is incomplete. */
+    get paintBot(): AbstractBot | null {
+        const state = this.ctx?.state;
+        if (
+            !this.startupComplete ||
+            (state !== 'running' && state !== 'paused') ||
+            !loopReadyOrDetached()
+        ) {
+            return null;
+        }
+        return this.bot;
+    }
+
     start(meta: ScriptMeta): void {
         if (this.ctx && (this.ctx.state === 'running' || this.ctx.state === 'paused' || this.ctx.state === 'stopping')) {
             throw new Error(`'${this.meta?.name}' is still ${this.ctx.state}`);
         }
 
+        const previous = this.ctx ? { name: this.meta?.name ?? '?', epitaph: endEpitaph(this.ctx) } : null;
         const ctx = new ScriptContext();
         const bot = meta.create();
         bot.bindLog(msg => ctx.addLog('info', msg));
@@ -89,20 +168,43 @@ class ScriptRunnerImpl {
         this.ctx = ctx;
         this.bot = bot;
         this.meta = meta;
+        this.startupComplete = false;
         Scheduler.active = ctx;
 
         ActionRouter.beginRun((level, msg) => ctx.addLog(level, msg));
 
+        // A restart (StallGuard) throws away the old context along with its log —
+        // the only place the reason the previous run ended was recorded, which is
+        // why a restarted script looked like it stopped for nothing. Carry it over.
+        if (previous) {
+            ctx.addLog('info', `previous run of '${previous.name}' ${previous.epitaph}`);
+        }
         ctx.addLog('info', `${meta.name} started (input: ${ActionRouter.driver.mode})`);
         this.fireChange();
 
-        this.loggedOutSince = 0;
+        this.holdSince = 0;
+        this.holdReason = null;
         ctx.loopInFlight = true;
         (async () => {
-            if (!ingameOrDetached()) {
-                ctx.addLog('warn', 'not ingame — waiting for login before the script reads game state (auto-login kicks in if credentials are saved)');
-                await Execution.delayUntil(ingameOrDetached, 0);
-                ctx.addLog('info', 'ingame — starting');
+            if (!loopReadyOrDetached()) {
+                const reason = loopHoldReason() ?? 'logged-out';
+                if (reason === 'logged-out') {
+                    ctx.addLog(
+                        'warn',
+                        'not ingame — waiting for login before the script reads game state (auto-login kicks in if credentials are saved)'
+                    );
+                } else {
+                    ctx.addLog('warn', holdWarnMessage(reason));
+                }
+                await Execution.delayUntil(loopReadyOrDetached, 0);
+                ctx.addLog(
+                    'info',
+                    reason === 'logged-out'
+                        ? 'ingame — starting'
+                        : reason === 'stats-load'
+                            ? 'stats ready — starting'
+                            : 'scene ready — starting'
+                );
             }
             await bot.onStart?.();
         })()
@@ -119,6 +221,7 @@ class ScriptRunnerImpl {
                 if (RecoveryHints.pendingRecovery) {
                     RecoveryHints.clear();
                 }
+                this.startupComplete = true;
                 ctx.nextLoopAt = 0;
                 ctx.progress();
             })
@@ -157,7 +260,12 @@ class ScriptRunnerImpl {
         this.fireChange();
     }
 
-    stop(): void {
+    /**
+     * `reason` is mandatory so no caller can end a run without leaving a starting
+     * point for debugging. It is echoed on both the stopping and stopped lines and
+     * carried into the next run's log by {@link start}.
+     */
+    stop(reason: string): void {
         const ctx = this.ctx;
         if (!ctx || ctx.state === 'stopped' || ctx.state === 'crashed') {
             return;
@@ -167,8 +275,9 @@ class ScriptRunnerImpl {
             return;
         }
 
+        ctx.stopReason = stopReasonOf(reason);
         ctx.state = 'stopping';
-        ctx.addLog('info', 'stopping...');
+        ctx.addLog('info', `stopping — ${ctx.stopReason}`);
         this.fireChange();
         ctx.abortWaiters();
 
@@ -188,20 +297,26 @@ class ScriptRunnerImpl {
             return;
         }
 
-        if (!ingameOrDetached()) {
-            if (this.loggedOutSince === 0) {
-                this.loggedOutSince = performance.now();
-                ctx.addLog('warn', 'logged out — holding the loop until back ingame');
+        const hold = loopHoldReason();
+        if (hold !== null) {
+            if (this.holdSince === 0 || this.holdReason !== hold) {
+                this.holdSince = performance.now();
+                this.holdReason = hold;
+                ctx.addLog('warn', holdWarnMessage(hold));
             }
             // deliberate wait, not a stall: keep StallGuard from churn-restarting
             ctx.progress();
-            // Wall-clock poll while logged out — no server ticks arrive.
+            // Wall-clock poll while paused — server ticks may not advance mid scene load.
             scheduleNextLoop(ctx, { kind: 'time', ms: 600 });
             return;
         }
-        if (this.loggedOutSince > 0) {
-            ctx.addLog('info', `back ingame after ${Math.round((performance.now() - this.loggedOutSince) / 1000)}s — resuming the loop`);
-            this.loggedOutSince = 0;
+        if (this.holdSince > 0 && this.holdReason !== null) {
+            ctx.addLog(
+                'info',
+                holdResumeMessage(this.holdReason, performance.now() - this.holdSince)
+            );
+            this.holdSince = 0;
+            this.holdReason = null;
         }
 
         const takeover = Supervisor.intercept(ctx, bot);
@@ -230,8 +345,8 @@ class ScriptRunnerImpl {
                 const cadence = takeover
                     ? ({ kind: 'server-tick', ticks: 1 } satisfies LoopCadence)
                     : typeof delay === 'number'
-                      ? resolveLoopCadence(delay, null)
-                      : resolveLoopCadence(bot.loopDelay, bot.loopCadence);
+                        ? resolveLoopCadence(delay, null)
+                        : resolveLoopCadence(bot.loopDelay, bot.loopCadence);
                 scheduleNextLoop(ctx, cadence);
             })
             .catch(err => this.settleFailure(ctx, err));
@@ -256,11 +371,16 @@ class ScriptRunnerImpl {
 
     private finishStop(ctx: ScriptContext): void {
         ctx.state = 'stopped';
-        ctx.addLog('info', 'stopped');
+        ctx.stopReason ??= stopReasonOf('');
+        ctx.addLog('info', `stopped — ${ctx.stopReason}`);
+        // Also to the console: the panel only shows the *current* context's log,
+        // so a restart would otherwise erase why the last run ended.
+        console.log(`[rs2b0t] ${this.meta?.name ?? 'script'} stopped — ${ctx.stopReason}`);
         this.teardown(ctx);
     }
 
     private teardown(ctx: ScriptContext): void {
+        this.startupComplete = false;
         try {
             this.bot?.onStop?.();
         } catch (err) {

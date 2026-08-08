@@ -79,8 +79,14 @@ const PROGRESS_WINDOW = 26;
 const CORRIDOR = 3;
 const STALL_REACH_STEPS = 256;
 const TRIGGER_REACH_STEPS = 256;
-const STUCK_ITERS = 12;
+/**
+ * Idle ticks before clearing an unreachable walk-click target (re-pick only —
+ * does not run stall recovery). Keeps scene-load blips from thrashing clicks.
+ */
+const UNREACH_CLICK_IDLE_TICKS = 3;
 const MAX_REPATHS = 5;
+/** Skip another follow attempt if less than this remains on the overall budget. */
+const MIN_FOLLOW_REMAINING_MS = 3_000;
 const PATH_REQUEST_TIMEOUT_MS = 30_000;
 const TRANSPORT_WAIT_MS = 8000;
 const SCENE_STEP_MS = 8000;
@@ -238,7 +244,8 @@ class WalkExecutorImpl {
             // does not re-pick a failed tele (#339).
             this.sessionSuppressedTeleports.clear();
         }
-        const deadline = performance.now() + timeoutMs;
+        const walkStartedAt = performance.now();
+        const deadline = walkStartedAt + timeoutMs;
         this.lastOutcome = null;
         this.resetAvoids();
         RouteState.reset();
@@ -298,6 +305,18 @@ class WalkExecutorImpl {
                     return true;
                 }
 
+                // Shared overall deadline across repaths (caller timeoutMs). Each
+                // follow uses remaining time only — never extends past deadline.
+                const remaining = deadline - performance.now();
+                if (remaining < MIN_FOLLOW_REMAINING_MS) {
+                    log(
+                        `walk timed out (budget ${Math.round(timeoutMs / 1000)}s, ` +
+                            `elapsed ${Math.round((performance.now() - walkStartedAt) / 1000)}s, ` +
+                            `repath ${repaths}, remaining ${Math.max(0, Math.round(remaining / 1000))}s)`
+                    );
+                    this.lastOutcome = 'failed';
+                    return false;
+                }
                 const result = await this.followPath(tiles, dest, radius, deadline, log);
                 if (result === 'arrived') {
                     this.lastOutcome = 'arrived';
@@ -312,6 +331,11 @@ class WalkExecutorImpl {
                     return true;
                 }
                 if (result === 'failed') {
+                    // followPath failed = its deadline (overall) hit.
+                    log(
+                        `walk timed out (budget ${Math.round(timeoutMs / 1000)}s, ` +
+                            `elapsed ${Math.round((performance.now() - walkStartedAt) / 1000)}s, repath ${repaths})`
+                    );
                     this.lastOutcome = 'failed';
                     return false;
                 }
@@ -320,6 +344,7 @@ class WalkExecutorImpl {
                     this.lastOutcome = 'interrupted';
                     return false;
                 }
+                // result === 'repath' — continue loop with remaining overall budget
             }
             log(`giving up after ${MAX_REPATHS} repaths`);
             this.lastOutcome = 'failed';
@@ -761,7 +786,6 @@ class WalkExecutorImpl {
         let clicks = 0;
         let warnedCombat = false;
         let lastTile: WorldTile | null = null;
-        let stillIters = 0;
         /** GameMessages watermark after the last *successful* walk click. */
         let walkClickMark: number | null = null;
         /** Player tile when that walk was issued — CANT_REACH only counts if still here. */
@@ -858,17 +882,12 @@ class WalkExecutorImpl {
             this.maybeFacePathCamera(me, tiles, pathIdx);
 
             const moved = !lastTile || me.x !== lastTile.x || me.z !== lastTile.z || me.level !== lastTile.level;
-            stillIters = moved ? 0 : stillIters + 1;
             if (moved) {
                 lastMoveTick = BotHost.tickCount;
             }
             lastTile = me;
 
             const idleTicks = BotHost.tickCount - lastMoveTick;
-            const hardStuck =
-                !moved
-                && (stillIters >= STUCK_ITERS
-                    || (clickIdx !== -1 && !Reachability.canReach(tiles[clickIdx]!, { maxSteps: STALL_REACH_STEPS })));
 
             // Next hop = first transport at or after pathIdx (pathIdx can sit ON the hop
             // tile after locateOnPath; scanning from pathIdx+1 would skip it forever).
@@ -912,7 +931,26 @@ class WalkExecutorImpl {
                 }
             }
 
-            if (idleTicks >= follow.stallTicks || hardStuck) {
+            // Unreachable walk-click: re-pick only. Do NOT run stall recovery early —
+            // live smokes spammed "stall recovery (2 ticks idle)" when canReach failed
+            // on the mid-path click long before the 9-tick stickiness stall.
+            if (
+                clickIdx !== -1
+                && !moved
+                && idleTicks >= UNREACH_CLICK_IDLE_TICKS
+                && !Reachability.canReach(tiles[clickIdx]!, { maxSteps: STALL_REACH_STEPS })
+            ) {
+                log(
+                    `walk click idx ${clickIdx} unreachable after ${idleTicks} idle ticks — re-picking`
+                );
+                clickIdx = -1;
+                walkClickMark = null;
+                walkClickAt = null;
+                PathPublish.setClientSegment(null);
+            }
+
+            // Stall recovery / repath only after the stickiness idle budget (default 9).
+            if (idleTicks >= follow.stallTicks) {
                 if (stallRetries === 0) {
                     const limit = nextCrossingIdx !== -1 ? nextCrossingIdx - 1 : tiles.length - 1;
                     const recover = findForwardRecoveryIndex(tiles, me, pathIdx, clickable, {
@@ -924,7 +962,7 @@ class WalkExecutorImpl {
                         const local = reader.toLocal(tiles[recover]!.x, tiles[recover]!.z);
                         if (local) {
                             log(
-                                `stall recovery (${idleTicks} ticks idle) → path idx ${recover} (${tiles[recover]!.x},${tiles[recover]!.z})`
+                                `stall recovery (${idleTicks} ticks idle, stall=${follow.stallTicks}) → path idx ${recover} (${tiles[recover]!.x},${tiles[recover]!.z})`
                             );
                             const mark = GameMessages.mark();
                             if (ActionRouter.driver.walk(local.lx, local.lz)) {
@@ -934,6 +972,7 @@ class WalkExecutorImpl {
                                 clickIdx = recover;
                                 clicks++;
                                 stallRetries = 1;
+                                // Give the recovery click a full stall window to produce movement.
                                 lastMoveTick = BotHost.tickCount;
                                 this.publishPath(tiles, pathIdx, clickIdx);
                                 await Execution.delayTicks(2);
@@ -943,14 +982,17 @@ class WalkExecutorImpl {
                             return 'repath';
                         }
                     }
-                    stallRetries = 1;
-                    clickIdx = -1;
-                    lastMoveTick = BotHost.tickCount;
+                    // No recovery tile — repath now (do not burn another stall window).
+                    log(
+                        `stall with no recovery tile after ${idleTicks} idle ticks (stall=${follow.stallTicks}) — repathing`
+                    );
+                    return 'repath';
                 } else if (reader.inCombat()) {
                     if (!warnedCombat) {
                         warnedCombat = true;
                         log('under attack — holding course');
                     }
+                    // Hold stall clock so combat idle does not immediately repath.
                     stallRetries = 0;
                     clickIdx = -1;
                     lastMoveTick = BotHost.tickCount;
@@ -1055,7 +1097,10 @@ class WalkExecutorImpl {
                 if (chosen !== -1) {
                     clickIdx = chosen;
                     clicks++;
-                    lastMoveTick = BotHost.tickCount;
+                    // Do NOT reset lastMoveTick on click — only real tile movement
+                    // (and hop landings / stall-recovery clicks) clear the stall clock.
+                    // Resetting here + unreach re-picks starved the 9-tick stall and
+                    // left walks thrashing until wall-clock "walk timed out".
                     this.publishPath(tiles, pathIdx, clickIdx);
                 } else {
                     walkClickMark = null;
@@ -1105,7 +1150,10 @@ class WalkExecutorImpl {
             await Execution.delayTicks(2);
         }
 
-        log('walk timed out');
+        log(
+            `walk timed out (follow deadline, pathIdx=${pathIdx}, clicks=${clicks}, ` +
+                `idle=${BotHost.tickCount - lastMoveTick}t, stall=${follow.stallTicks})`
+        );
         return 'failed';
     }
 

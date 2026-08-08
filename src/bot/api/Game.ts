@@ -2,13 +2,27 @@ import { actions, reader, type WorldTile } from '../adapter/ClientAdapter.js';
 import { BotHost } from '../BotHost.js';
 import { ActionRouter } from '../input/ActionRouter.js';
 import { Execution } from './Execution.js';
-import { CombatStyleController, type CombatStyleResolution, type MeleeCombatStyle } from './CombatStyle.js';
+import { CombatStyleController, type CombatModeLabel, type CombatStyleResolution, type MeleeCombatStyle } from './CombatStyle.js';
 import { resolveTeleport, resolveTeleportComponent } from './Teleport.js';
 import type { Npc } from './entities/index.js';
 
 const COM_MODE_VARP = 43;
 const RUN_VARP = 173;
 const MAGIC_TAB = 6;
+
+/** option_nodef. Inverted: 0 = auto-retaliate on. */
+export const RETALIATE_VARP = 172;
+
+export function retaliateOnFromVarp(value: number): boolean {
+    return value === 0;
+}
+
+/** The engine encodes a player face target as slot + 32768. */
+export const PLAYER_FACE_BASE = 32768;
+
+export function facingPlayer(faceEntity: number): boolean {
+    return faceEntity >= PLAYER_FACE_BASE;
+}
 
 function offeredCombatModes() {
     const root = reader.sideTabInterface(0);
@@ -91,6 +105,16 @@ export const Game = {
         return reader.inCombat();
     },
 
+    autoRetaliateOn(): boolean {
+        return retaliateOnFromVarp(reader.varp(RETALIATE_VARP));
+    },
+
+    // Our target is a player only if we attacked one or auto-retaliate did; the
+    // grind never attacks players.
+    attackedByPlayer(): boolean {
+        return facingPlayer(reader.selfFaceEntity());
+    },
+
     animating(): boolean {
         return reader.selfAnim() !== -1;
     },
@@ -101,6 +125,15 @@ export const Game = {
 
     combatMode(): number {
         return reader.varp(COM_MODE_VARP);
+    },
+
+    /**
+     * The combat-tab style buttons this weapon offers, in on-screen order
+     * (top-to-bottom, left-to-right). Null until the combat tab has loaded.
+     * Index into this to pick a style without guessing what the weapon calls it.
+     */
+    combatStyles(): readonly CombatModeLabel[] | null {
+        return offeredCombatModes();
     },
 
     combatStyleResolution(style: MeleeCombatStyle): CombatStyleResolution | null {

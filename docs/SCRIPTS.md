@@ -5,7 +5,7 @@
 
 # Bundled scripts
 
-The client ships **49 scripts** across 20 categories. They double as worked
+The client ships **50 scripts** across 20 categories. They double as worked
 examples of the [scripting API](API.md) — the source for each is under
 [`src/bot/scripts/`](../src/bot/scripts/).
 
@@ -14,7 +14,7 @@ Settings listed here are the parameters the panel exposes before you start a scr
 ## Contents
 
 - [Agility](#agility) — 4
-- [Combat](#combat) — 10
+- [Combat](#combat) — 11
 - [Cooking](#cooking) — 1
 - [Crafting](#crafting) — 5
 - [Firemaking](#firemaking) — 1
@@ -137,6 +137,7 @@ Tags: `combat`, `clues`, `banking`, `afk`
 | `foodWithdraw` | number (0–27) | `10` | Food to carry |
 | `panicHp` | number (0–100) | `25` | Panic below HP% (no food) |
 | `loot` | string[] | `["clue scroll","uncut sapphire","uncut emerald","uncut ruby","uncut diamond","half of a key","chaos talisman","nature talisman"]` | Loot item names (contains) |
+| `buryBones` | boolean | `false` | Bury regular bones |
 | `solveClues` | boolean | `true` | Solve clue drops |
 | `banking` | string | `"Auto"` | Banking — one of: Auto, None |
 | `bankAtLootSlots` | number (1–27) | `12` | Bank at loot slots |
@@ -152,6 +153,7 @@ Tags: `wilderness`, `edgeville`, `ardougne`, `yanille`, `herbs`, `banking`
 |---|---|---|---|
 | `location` | string | `"Edgeville Dungeon"` | Location — one of: Edgeville Dungeon, Chaos Druid Tower, Yanille Dungeon |
 | `food` | string | `"Lobster"` | Food — one of: Lobster, Swordfish, Tuna, Salmon, Trout, Pike, Bass, Herring, Sardine, Anchovies, Shrimps, Cooked meat, Cooked chicken, Bread, Stew, Cake, Chocolate cake, Plain pizza, Meat pizza, Anchovy pizza, Pineapple pizza, Redberry pie, Meat pie, Apple pie |
+| `combatStyleIndex` | string | `"1"` | Combat style — one of: 0 — first button, 1 — second button, 2 — third button, 3 — fourth button |
 | `foodWithdraw` | number (1–27) | `12` | Food per trip |
 | `panicHp` | number (1–98) | `35` | Bank below HP% (no food) |
 
@@ -208,6 +210,17 @@ Tags: `lumbridge`, `falador`, `cowhide`, `bones`, `banking`, `afk`
 | `bankEveryItems` | number (1–27) | `15` | Bank at N loot items |
 | `bankEveryMinutes` | number (1–120) | `10` | Bank every N minutes |
 | `bankCommonJunk` | boolean | `true` | Also bank gems/fruit/beer/kebabs/caskets |
+
+### Duel Arena Combat Trainer
+
+Walks to the Al Kharid Duel Arena, pairs with other players, accepts both no-stake screens, fights with melee, and alternates Attack/Strength toward configured target levels
+
+Tags: `duel arena`, `pvp`, `attack`, `strength`, `multibox`
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| `targetAttack` | number (1–99) | `99` | Target Attack level |
+| `targetStrength` | number (1–99) | `99` | Target Strength level |
 
 ### FireGiant
 
@@ -482,6 +495,8 @@ Tags: `gathering`, `drop`, `banking`, `cooking`
 | `mulePartner` | string | `""` | Mule partner name(s) |
 | `toolAcquire` | string | `"Off"` | Acquire tools — one of: Off, Buy / repair |
 | `forgetfulBank` | boolean | `false` | Forgetful bank exits |
+| `purgePackOnStart` | boolean | `true` | Bank junk on start |
+| `packJunk` | string | `"Bank"` | Event junk while gathering — one of: Bank, Drop, Off |
 
 ## Fletching
 
@@ -580,7 +595,7 @@ Tags: `varrock`, `mining`, `banking`, `afk`
 
 ### Miner
 
-Mines the selected rock types, then banks the ore at the nearest bank or drops it (power-mining). Needs a pickaxe (best available is restocked from the bank when Full inventory is Auto). Optional Buy/repair acquires picks from Nurmof (and repairs broken picks).
+Mines the selected rock types, then banks the ore at the nearest bank or drops it (power-mining). Optional trip food is eaten when its full heal fits or to turn food slots into more ore slots. Needs a pickaxe (best available is restocked from the bank when Full inventory is Auto). Optional Buy/repair acquires picks from Nurmof (and repairs broken picks).
 
 Tags: `gathering`, `banking`, `drop`
 
@@ -588,12 +603,16 @@ Tags: `gathering`, `banking`, `drop`
 |---|---|---|---|
 | `rocks` | string[] | `["Iron"]` | Rock types — one of: Clay, Copper, Tin, Iron, Silver, Coal, Gold, Mithril, Adamantite, Runite |
 | `leashRadius` | number (2–64) | `10` | Leash radius (tiles) |
-| `location` | string | `"Auto"` | Location / full inventory — one of: Auto, Southwest Varrock Mine, Southeast Varrock Mine, Rimmington Mine, Dwarven Mine, Fight Arena Mine, Al Kharid Mine, Mining Guild, Crafting Guild, Coal Trucks, Barbarian Village, North Brimhaven Mine, Shilo Village, West Lumbridge Swamp Mine, Grand Tree Mine, Desert Mining Camp, Lava Maze Runite Mine, Heroes Guild, South-east Ardougne Mine, Legends Guild Iron (west), Legends Guild Iron (east), None |
+| `location` | string | `"Auto"` | Location / full inventory — one of: Auto, Al Kharid Mine, Barbarian Village, Coal Trucks, Crafting Guild, Desert Mining Camp, Dwarven Mine, Fight Arena Mine, Grand Tree Mine, Heroes Guild, Lava Maze Runite Mine, Legends Guild Iron (east), Legends Guild Iron (west), Mining Guild, North Brimhaven Mine, Rimmington Mine, Shilo Village, South-east Ardougne Mine, Southeast Varrock Mine, Southwest Varrock Mine, West Lumbridge Swamp Mine, Wilderness Hobgoblin Mine, None |
+| `food` | string | `"Lobster"` | Food — one of: Lobster, Swordfish, Tuna, Salmon, Trout, Pike, Bass, Herring, Sardine, Anchovies, Shrimps, Cooked meat, Cooked chicken, Bread, Stew, Cake, Chocolate cake, Plain pizza, Meat pizza, Anchovy pizza, Pineapple pizza, Redberry pie, Meat pie, Apple pie |
+| `foodWithdraw` | number (0–27) | `0` | Food to withdraw |
 | `tickManip` | string | `"Off"` | Tick manip — one of: Off |
 | `muleMode` | string | `"Off"` | Mule mode — one of: Off, Gatherer, Mule, Cooker, Supplier |
 | `mulePartner` | string | `""` | Mule partner name(s) |
 | `toolAcquire` | string | `"Off"` | Acquire tools — one of: Off, Buy / repair |
 | `forgetfulBank` | boolean | `false` | Forgetful bank exits |
+| `purgePackOnStart` | boolean | `true` | Bank junk on start |
+| `packJunk` | string | `"Bank"` | Event junk while gathering — one of: Bank, Drop, Off |
 
 ## Money making
 
@@ -766,7 +785,6 @@ Tags: `ardougne`, `thieving`, `banking`, `clues`, `afk`
 | Setting | Type | Default | Notes |
 |---|---|---|---|
 | `guardResponse` | string | `"Flee"` | Guard response — one of: Flee, Fight |
-| `bankCommonJunk` | boolean | `true` | Bank common junk too |
 | `solveClues` | boolean | `true` | Solve clue drops |
 
 ### ArdyThiever
@@ -852,6 +870,8 @@ Tags: `gathering`, `banking`, `drop`, `firemaking`
 | `mulePartner` | string | `""` | Mule partner name(s) |
 | `toolAcquire` | string | `"Off"` | Acquire tools — one of: Off, Buy / repair |
 | `forgetfulBank` | boolean | `false` | Forgetful bank exits |
+| `purgePackOnStart` | boolean | `true` | Bank junk on start |
+| `packJunk` | string | `"Bank"` | Event junk while gathering — one of: Bank, Drop, Off |
 
 ## See also
 

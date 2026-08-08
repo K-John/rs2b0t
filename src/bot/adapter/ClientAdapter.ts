@@ -13,10 +13,63 @@ import { ClientProt } from '#/io/ClientProt.js';
 import { SELF_TEST, type RawClient } from './RawClient.js';
 
 const SCENE_SIZE = 104;
+
+// locs() sweeps 104x104 tiles x 4 typecodes and allocates one snapshot per hit --
+// measured 1.4-1.7ms and 586-2289 objects per call. Predicates in script waiters
+// call it at frame rate, so without memoisation the same unchanged scene is rebuilt
+// ~24x/sec per bot. The scene only changes on a zone packet, and the snapshots carry
+// a player-relative distance, so the memo is keyed on the scene and the player tile
+// and dropped whenever the server says a loc changed.
+let locCache: LocSnapshot[] | null = null;
+let locCacheKey = '';
+
+/** Called when a zone packet lands; the next locs() rebuilds from the live scene. */
+export function invalidateLocSnapshots(): void {
+    locCache = null;
+}
+
+/**
+ * Releases the attached client. Reads then degrade to empty via the `raw?.` guards
+ * rather than dereferencing a half-dead client.
+ */
+export function detach(): void {
+    raw = null;
+    invalidateLocSnapshots();
+}
 const SCRATCH_SLOT = 499;
 
 let raw: RawClient | null = null;
 let packetListener: ((ptype: number) => void) | null = null;
+
+/** Whether the login snapshot has populated every skill exposed by this client. */
+export function activeStatsReady(baseLevels: ArrayLike<number>): boolean {
+    for (let i = 0; i < Skill.count; i++) {
+        if (Skill.used[i] && (baseLevels[i] ?? 0) <= 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/** Whether every active stat was received during this exact login session. */
+export function currentLoginStatsReady(
+    baseLevels: ArrayLike<number>,
+    seenGenerations: ArrayLike<number>,
+    sessionGeneration: number
+): boolean {
+    if (sessionGeneration <= 0) {
+        return false;
+    }
+    for (let i = 0; i < Skill.count; i++) {
+        if (
+            Skill.used[i] &&
+            ((baseLevels[i] ?? 0) <= 0 || seenGenerations[i] !== sessionGeneration)
+        ) {
+            return false;
+        }
+    }
+    return true;
+}
 
 /**
  * Object/NPC vertical extent for hulls. RS model space: minY = max(-vertexY)
@@ -155,6 +208,9 @@ export interface SelectButtonLabel {
 export function attach(client: unknown): string[] {
     const missing = SELF_TEST.filter(name => !(name in (client as Record<string, unknown>)));
     raw = client as RawClient;
+    // A new client is a new scene. Without this the memo outlives the client that
+    // filled it and a relogin would read the previous session's locs.
+    invalidateLocSnapshots();
 
     if (!missing.includes('tcpIn')) {
         const orig = raw.tcpIn;
@@ -279,6 +335,10 @@ export const reader = {
         return raw?.localPlayer?.primaryAnim ?? -1;
     },
 
+    selfChat(): string | null {
+        return raw?.localPlayer?.chatMessage ?? null;
+    },
+
     energy(): number {
         return raw?.runenergy ?? 0;
     },
@@ -308,6 +368,15 @@ export const reader = {
 
     skillUsed(index: number): boolean {
         return Skill.used[index] ?? false;
+    },
+
+    /** True once this login's stat snapshot is safe for script baselines. */
+    statsReady(): boolean {
+        return raw !== null && currentLoginStatsReady(
+            raw.statBaseLevel,
+            raw.statSeenGeneration,
+            raw.statSessionGeneration
+        );
     },
 
     stat(index: number): StatSnapshot {
@@ -542,14 +611,14 @@ export const reader = {
         }
 
         const h0 = hits[0]!;
-        let sceneX = h0.sceneX;
-        let sceneZ = h0.sceneZ;
+        const sceneX = h0.sceneX;
+        const sceneZ = h0.sceneZ;
         let halfW = h0.halfW;
         let halfL = h0.halfL;
         let topH = 128;
-        let resolvedId = h0.resolvedId ?? opts.id;
+        const resolvedId = h0.resolvedId ?? opts.id;
         const modelSrc = h0.modelSrc;
-        let usedSceneFootprint = h0.usedSceneFootprint;
+        const usedSceneFootprint = h0.usedSceneFootprint;
         const wallAngle1 = h0.wallAngle1;
 
         try {
@@ -671,6 +740,10 @@ export const reader = {
         return raw?.selfSlot ?? -1;
     },
 
+    selfFaceEntity(): number {
+        return raw?.localPlayer?.faceEntity ?? -1;
+    },
+
     players(): PlayerSnapshot[] {
         const out: PlayerSnapshot[] = [];
         if (!raw || !raw.localPlayer) {
@@ -714,6 +787,13 @@ export const reader = {
         const px = raw.mapBuildBaseX + (raw.localPlayer.x >> 7);
         const pz = raw.mapBuildBaseZ + (raw.localPlayer.z >> 7);
 
+        // Distance is baked into each snapshot, so the player tile is part of the key
+        // rather than a reason to skip caching: a standing bot hits the memo every frame.
+        const key = `${level}:${px}:${pz}:${raw.mapBuildBaseX}:${raw.mapBuildBaseZ}`;
+        if (locCache !== null && locCacheKey === key) {
+            return locCache;
+        }
+
         for (let lx = 0; lx < SCENE_SIZE; lx++) {
             for (let lz = 0; lz < SCENE_SIZE; lz++) {
                 const typecodes = [raw.world.wallType(level, lx, lz), raw.world.sceneType(level, lx, lz), raw.world.gdType(level, lx, lz), raw.world.decorType(level, lz, lx)];
@@ -740,6 +820,8 @@ export const reader = {
             }
         }
 
+        locCache = out;
+        locCacheKey = key;
         return out;
     },
 
@@ -949,25 +1031,8 @@ export const reader = {
             return cachedRetaliateControls;
         }
 
-        for (const root of IfType.list) {
-            if (!root?.children) {
-                continue;
-            }
-            const hasRetaliate = root.children.some(c => IfType.list[c]?.text === 'Auto retaliate');
-            if (!hasRetaliate || root.children.length <= 7) {
-                continue;
-            }
-
-            const off = root.children[6];
-            const on = root.children[7];
-            if (IfType.list[on]?.buttonType !== undefined && IfType.list[off] !== undefined) {
-                cachedRetaliateControls = { onComId: on, offComId: off };
-                return cachedRetaliateControls;
-            }
-            break;
-        }
-
-        return null;
+        cachedRetaliateControls = readRetaliateControls();
+        return cachedRetaliateControls;
     },
 
     toWorld(lx: number, lz: number): WorldTile | null {
@@ -1440,6 +1505,30 @@ function walkComponents(rootComId: number): IfType[] {
     }
 
     return out;
+}
+
+// player_controls.rs2: controls:com_2 toggles retaliate on, com_3 off. com_6/com_7
+// have no if_button handler, so the old indices sent presses the server discarded.
+export function readRetaliateControls(): { onComId: number; offComId: number } | null {
+    for (const root of IfType.list) {
+        if (!root?.children) {
+            continue;
+        }
+
+        const hasRetaliate = root.children.some(c => IfType.list[c]?.text === 'Auto retaliate');
+        if (!hasRetaliate || root.children.length <= 3) {
+            continue;
+        }
+
+        const on = root.children[2];
+        const off = root.children[3];
+        if (IfType.list[on]?.buttonType !== undefined && IfType.list[off] !== undefined) {
+            return { onComId: on, offComId: off };
+        }
+        break;
+    }
+
+    return null;
 }
 
 /** Read each select button together with the style text rendered beside it. */
