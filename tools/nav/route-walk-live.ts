@@ -25,6 +25,16 @@ interface Route {
 }
 
 const ROUTES: Route[] = [
+    // Door / stair dense — the cases the stall ladder exists for. Endpoints from
+    // tools/nav/script-routes.hardest.json (hop-ranked).
+    { name: 'varrock-bank-L1→camelot-tower-L2', from: { x: 3250, z: 3419, level: 1 }, to: { x: 2749, z: 3495, level: 2 }, radius: 4, budgetMs: 300_000 },
+    { name: 'varrock-bank-L1→draynor-manor-L2', from: { x: 3250, z: 3419, level: 1 }, to: { x: 3106, z: 3368, level: 2 }, radius: 4, budgetMs: 240_000 },
+    { name: 'fishing-guild-L1→grand-tree-bank-L1', from: { x: 2574, z: 3325, level: 1 }, to: { x: 2449, z: 3482, level: 1 }, radius: 4, budgetMs: 300_000 },
+    { name: 'falador-house-L1→rimmington-house-L1', from: { x: 3036, z: 3347, level: 1 }, to: { x: 2970, z: 3215, level: 1 }, radius: 4, budgetMs: 300_000 },
+    { name: 'draynor-bank→fishing-guild-shop', from: { x: 3092, z: 3243, level: 0 }, to: { x: 2596, z: 3399, level: 0 }, radius: 4, budgetMs: 300_000 },
+    { name: 'varrock-bank-L1→fishing-guild-L1', from: { x: 3250, z: 3419, level: 1 }, to: { x: 2574, z: 3325, level: 1 }, radius: 4, budgetMs: 300_000 },
+    { name: 'falador-house-L1→portsarim-house-L1', from: { x: 3040, z: 3364, level: 1 }, to: { x: 3015, z: 3205, level: 1 }, radius: 4, budgetMs: 300_000 },
+    { name: 'duel-arena-bank→shantay-bank', from: { x: 3382, z: 3269, level: 0 }, to: { x: 3309, z: 3120, level: 0 }, radius: 4, budgetMs: 240_000 },
     { name: 'edgeville-bank→varrock-west-bank', from: { x: 3094, z: 3491, level: 0 }, to: { x: 3185, z: 3436, level: 0 } },
     { name: 'edgeville→varrock-castle-L2', from: { x: 3094, z: 3491, level: 0 }, to: { x: 3213, z: 3474, level: 2 } },
     { name: 'edgeville→draynor-manor-L1', from: { x: 3094, z: 3491, level: 0 }, to: { x: 3108, z: 3364, level: 1 } },
