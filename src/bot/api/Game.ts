@@ -10,6 +10,13 @@ const COM_MODE_VARP = 43;
 const RUN_VARP = 173;
 const MAGIC_TAB = 6;
 
+/** option_nodef. Inverted: 0 = auto-retaliate on. */
+export const RETALIATE_VARP = 172;
+
+export function retaliateOnFromVarp(value: number): boolean {
+    return value === 0;
+}
+
 function offeredCombatModes() {
     const root = reader.sideTabInterface(0);
     return root === -1 ? null : reader.selectButtonLabelsByVarp(root, COM_MODE_VARP);
@@ -89,6 +96,10 @@ export const Game = {
 
     inCombat(): boolean {
         return reader.inCombat();
+    },
+
+    autoRetaliateOn(): boolean {
+        return retaliateOnFromVarp(reader.varp(RETALIATE_VARP));
     },
 
     animating(): boolean {
