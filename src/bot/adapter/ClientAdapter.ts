@@ -671,6 +671,10 @@ export const reader = {
         return raw?.selfSlot ?? -1;
     },
 
+    selfFaceEntity(): number {
+        return raw?.localPlayer?.faceEntity ?? -1;
+    },
+
     players(): PlayerSnapshot[] {
         const out: PlayerSnapshot[] = [];
         if (!raw || !raw.localPlayer) {
