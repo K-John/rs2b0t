@@ -25,7 +25,7 @@ import { Npcs, type Npc } from '../api/queries/Npcs.js';
 import { Players } from '../api/queries/Players.js';
 import { Traversal } from '../api/Traversal.js';
 import { SolveClue } from '../clues/SolveClue.js';
-import { AT_BANK_RADIUS, RETURN_HOLD_MS, escapeNeeded, isGrindForeign, packForcesBank, slotFreeingAction, threatApplies, wantsGroundItem, type SlotAction } from './GreenDragonLogic.js';
+import { AT_BANK_RADIUS, RETURN_HOLD_MS, escapeNeeded, gearCandidates, isGrindForeign, packForcesBank, slotFreeingAction, threatApplies, wantsGroundItem, type SlotAction } from './GreenDragonLogic.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 
@@ -96,6 +96,8 @@ let FOOD_RESERVE = 4;
 let BURY_BONES = false;
 let SOLVE_CLUES = true;
 let VERBOSE = false;
+/** Everything worn when the script started — kept at the bank and put back on. */
+let TRACKED_GEAR: string[] = [];
 
 function wieldedNames(): string[] {
     return Equipment.items().map(i => i.name ?? '');
@@ -195,7 +197,7 @@ function slotDecision(): { action: SlotAction; drop: ReturnType<typeof findLoot>
     return { action, drop };
 }
 function keepNames(): string[] {
-    const extra = [SHIELD];
+    const extra = gearCandidates('', SHIELD, TRACKED_GEAR);
     if (TELE_ESCAPE) {
         extra.push(...VARROCK_TELE_RUNES.map(r => r.rune));
     }
@@ -293,11 +295,17 @@ class GearEquip implements Task {
     private need(name: string): boolean {
         return name !== '' && !Equipment.contains(name) && Inventory.first(name) !== null;
     }
+    private missing(): string | null {
+        return gearCandidates(WEAPON, SHIELD, TRACKED_GEAR).find(n => this.need(n)) ?? null;
+    }
     validate(): boolean {
-        return this.fails < 5 && (this.need(WEAPON) || this.need(SHIELD));
+        return this.fails < 5 && this.missing() !== null;
     }
     async execute(): Promise<void> {
-        const item = this.need(WEAPON) ? WEAPON : SHIELD;
+        const item = this.missing();
+        if (item === null) {
+            return;
+        }
         this.bot.setStatus(`equipping ${item}`);
         if (await Equipment.equip(item)) {
             this.bot.log(`equipped ${item}`);
@@ -758,6 +766,7 @@ export default class GreenDragon extends TaskBot {
         BURY_BONES = this.settings.bool('buryBones', false);
         SOLVE_CLUES = this.settings.bool('solveClues', true);
         VERBOSE = this.settings.str('logDetail', 'Normal') === 'Verbose';
+        TRACKED_GEAR = Equipment.items().map(i => i.name ?? '').filter(n => n.length > 0);
 
         this.on('chat.message', e => { if (/oh dear.*you are dead/i.test(e.text)) { this.died = true; } });
 
