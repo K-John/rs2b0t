@@ -213,6 +213,16 @@ export const DOOR_AVOID_STRIKES = 2;
  */
 export const DOOR_SESSION_STRIKES = 3;
 
+/**
+ * Only openable barriers may be banned for the run. A gangplank or a ladder that
+ * "refuses" is usually a scene that has not caught up, and banning it can strand
+ * the walker somewhere with one exit — live, three missed `Gangplank` frames on
+ * the Karamja ship left a bot marooned on the deck.
+ */
+export function barrierBannable(kind: string | undefined, locName: string | undefined): boolean {
+    return kind === 'door' || kind === 'gate' || /\b(door|gate)\b/i.test(locName ?? '');
+}
+
 /** Records a failed crossing and returns the running strike count. */
 export function noteFailedDoor(
     step: PathStepTile,

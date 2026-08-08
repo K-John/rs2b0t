@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
 import {
+    barrierBannable,
     DOOR_AVOID_STRIKES,
     DOOR_SESSION_STRIKES,
     noteFailedDoor,
@@ -97,5 +98,25 @@ describe('failed door strikes escalate past one walk', () => {
 
     test('the session threshold is past the per-walk one, or it never fires', () => {
         expect(DOOR_SESSION_STRIKES).toBeGreaterThan(DOOR_AVOID_STRIKES);
+    });
+});
+
+/**
+ * Only openable barriers may be banned for the run. A `Gangplank` that "refuses"
+ * three times is a scene that has not caught up, and banning it marooned a bot
+ * on the Karamja ship deck with no other exit.
+ */
+describe('what may be banned for the run', () => {
+    test('doors and gates', () => {
+        expect(barrierBannable('door', 'Door')).toBe(true);
+        expect(barrierBannable('gate', 'Gate')).toBe(true);
+        expect(barrierBannable(undefined, 'Large door')).toBe(true);
+    });
+
+    test('never a boarding plank, ladder or ship', () => {
+        expect(barrierBannable('gangplank', 'Gangplank')).toBe(false);
+        expect(barrierBannable('stair', 'Ladder')).toBe(false);
+        expect(barrierBannable('ship', 'Ship')).toBe(false);
+        expect(barrierBannable('shortcut', 'Balancing ledge')).toBe(false);
     });
 });

@@ -45,6 +45,7 @@ import { expandWaypoints as expandWaypointsDense, localBfsPath } from './pathExp
 import { DEFAULT_DISTANCE_BEFORE_TELEPORT } from './policy.js';
 import { SettingsStore } from '../runtime/Settings.js';
 import {
+    barrierBannable,
     crossMultiTileDoor,
     DOOR_SESSION_STRIKES,
     isOpenableBarrier,
@@ -91,6 +92,8 @@ const MIN_FOLLOW_REMAINING_MS = 3_000;
 const PATH_REQUEST_TIMEOUT_MS = 30_000;
 const TRANSPORT_WAIT_MS = 8000;
 const SCENE_STEP_MS = 8000;
+/** Walking the last tiles onto a hop's planned approach after a server can't-reach. */
+const APPROACH_STEP_MS = 4000;
 const REACH_CHECK_STEPS = 1200;
 
 export interface WalkOptions {
@@ -764,7 +767,12 @@ class WalkExecutorImpl {
     private noteDoorRefusal(hop: PathStep, log: (msg: string) => void): void {
         const strikes = noteFailedDoor(hop, this.doorStrikes, this.avoidDoors);
         const t = hop.transport;
-        if (t && strikes >= DOOR_SESSION_STRIKES && !this.sessionBlacklistDoors.has(`${t.locX}|${t.locZ}`)) {
+        if (
+            t
+            && strikes >= DOOR_SESSION_STRIKES
+            && barrierBannable(t.kind, t.locName)
+            && !this.sessionBlacklistDoors.has(`${t.locX}|${t.locZ}`)
+        ) {
             log(
                 `'${t.locName}' at (${t.locX},${t.locZ}) refused ${strikes} crossings — routing around it for the rest of the run`
             );
@@ -1278,6 +1286,31 @@ class WalkExecutorImpl {
                 return false;
             }
             if (cantReach()) {
+                const here = reader.worldTile();
+                const atApproach =
+                    here !== null
+                    && here.level === approach.level
+                    && here.x === approach.x
+                    && here.z === approach.z;
+                if (!atApproach && attempt === 0) {
+                    // The server ran its own path search and gave up from where we
+                    // stand. The planned approach is the tile the pack says this hop
+                    // works from, so stand on it and try once more — a stair fires
+                    // from up to the trigger radius away and clicks from wherever it
+                    // happens to be, which is how a staircase two tiles behind a wall
+                    // reads as an unreachable destination.
+                    log(
+                        `server can't reach ${transport.locName} from (${here?.x},${here?.z}) — stepping onto the planned approach (${approach.x},${approach.z})`
+                    );
+                    DirectNavigator.walk(approach);
+                    await Execution.delayUntil(() => {
+                        const p = reader.worldTile();
+                        return (
+                            p !== null && p.x === approach.x && p.z === approach.z && p.level === approach.level
+                        );
+                    }, APPROACH_STEP_MS);
+                    continue;
+                }
                 log(`server says can't reach ${transport.locName} at (${transport.locX},${transport.locZ}) — repathing`);
                 return false;
             }
