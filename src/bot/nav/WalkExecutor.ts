@@ -24,7 +24,7 @@ import {
     selectClientWalkTarget,
     starvedTerminalIndex
 } from './followMath.js';
-import { resolvePathFollowConfig, type PathFollowOverrides } from './pathFollowPolicy.js';
+import { PATH_CORRIDOR, resolvePathFollowConfig, type PathFollowOverrides } from './pathFollowPolicy.js';
 import { BotHost } from '../BotHost.js';
 import { classifyReason } from './walkLadder.js';
 import { isArrived } from './arrival.js';
@@ -35,7 +35,7 @@ import { formatHops } from './hops.js';
 import { executeTeleportHop } from './teleportExecute.js';
 import { missingItemsForPath, pathHasTeleport, planBankLeg } from './bankPlan.js';
 import { virtualizeWithItems } from './virtualState.js';
-import { findForwardRecoveryIndex } from './routeRecovery.js';
+import { findForwardRecoveryIndex, stallPhase } from './routeRecovery.js';
 import { RouteState } from './routeState.js';
 import { EssenceSession } from './essenceSession.js';
 import { PathPublish, formatHopLabel } from './pathPublish.js';
@@ -76,7 +76,7 @@ const TARGET_JITTER = 4;
 const ARRIVE_RADIUS = 4;
 const PROGRESS_WINDOW = 26;
 // Path-index snap only. Deviation repath uses pathFollowPolicy (default 10).
-const CORRIDOR = 3;
+const CORRIDOR = PATH_CORRIDOR;
 const STALL_REACH_STEPS = 256;
 const TRIGGER_REACH_STEPS = 256;
 /**
@@ -951,43 +951,45 @@ class WalkExecutorImpl {
 
             // Stall recovery / repath only after the stickiness idle budget (default 9).
             if (idleTicks >= follow.stallTicks) {
-                if (stallRetries === 0) {
-                    const limit = nextCrossingIdx !== -1 ? nextCrossingIdx - 1 : tiles.length - 1;
-                    const recover = findForwardRecoveryIndex(tiles, me, pathIdx, clickable, {
-                        corridor: CORRIDOR,
-                        window: PROGRESS_WINDOW + 20,
-                        limitIdx: limit
-                    });
-                    if (recover !== -1) {
-                        const local = reader.toLocal(tiles[recover]!.x, tiles[recover]!.z);
-                        if (local) {
-                            log(
-                                `stall recovery (${idleTicks} ticks idle, stall=${follow.stallTicks}) → path idx ${recover} (${tiles[recover]!.x},${tiles[recover]!.z})`
-                            );
-                            const mark = GameMessages.mark();
-                            if (ActionRouter.driver.walk(local.lx, local.lz)) {
-                                walkClickMark = mark;
-                                walkClickAt = { x: me.x, z: me.z, level: me.level };
-                                this.publishClientWalkSegment(me, tiles[recover]!);
-                                clickIdx = recover;
-                                clicks++;
-                                stallRetries = 1;
-                                // Give the recovery click a full stall window to produce movement.
-                                lastMoveTick = BotHost.tickCount;
-                                this.publishPath(tiles, pathIdx, clickIdx);
-                                await Execution.delayTicks(2);
-                                continue;
-                            }
-                            log('stall recovery walk rejected by client — repathing');
-                            return 'repath';
+                const recoverLimit = nextCrossingIdx !== -1 ? nextCrossingIdx - 1 : tiles.length - 1;
+                const recover =
+                    stallRetries === 0
+                        ? findForwardRecoveryIndex(tiles, me, pathIdx, clickable, {
+                            corridor: CORRIDOR,
+                            window: PROGRESS_WINDOW + 20,
+                            limitIdx: recoverLimit
+                        })
+                        : -1;
+                // No forward tile to click means we are already standing at the next
+                // hop's approach — the door/stair case. Escalate in this same pass
+                // rather than replanning the identical route until the walk fails.
+                const phase = stallPhase({ stallRetries, recoverIdx: recover, inCombat: reader.inCombat() });
+                if (phase === 'recover') {
+                    const local = reader.toLocal(tiles[recover]!.x, tiles[recover]!.z);
+                    if (local) {
+                        log(
+                            `stall recovery (${idleTicks} ticks idle, stall=${follow.stallTicks}) → path idx ${recover} (${tiles[recover]!.x},${tiles[recover]!.z})`
+                        );
+                        const mark = GameMessages.mark();
+                        if (ActionRouter.driver.walk(local.lx, local.lz)) {
+                            walkClickMark = mark;
+                            walkClickAt = { x: me.x, z: me.z, level: me.level };
+                            this.publishClientWalkSegment(me, tiles[recover]!);
+                            clickIdx = recover;
+                            clicks++;
+                            stallRetries = 1;
+                            // Give the recovery click a full stall window to produce movement.
+                            lastMoveTick = BotHost.tickCount;
+                            this.publishPath(tiles, pathIdx, clickIdx);
+                            await Execution.delayTicks(2);
+                            continue;
                         }
+                        log('stall recovery walk rejected by client — repathing');
+                        return 'repath';
                     }
-                    // No recovery tile — repath now (do not burn another stall window).
-                    log(
-                        `stall with no recovery tile after ${idleTicks} idle ticks (stall=${follow.stallTicks}) — repathing`
-                    );
-                    return 'repath';
-                } else if (reader.inCombat()) {
+                    // Recovery tile is off-scene — spend the retry and escalate next pass.
+                    stallRetries = 1;
+                } else if (phase === 'combat') {
                     if (!warnedCombat) {
                         warnedCombat = true;
                         log('under attack — holding course');
