@@ -46,6 +46,7 @@ import { DEFAULT_DISTANCE_BEFORE_TELEPORT } from './policy.js';
 import { SettingsStore } from '../runtime/Settings.js';
 import {
     crossMultiTileDoor,
+    DOOR_SESSION_STRIKES,
     isOpenableBarrier,
     isOpenBarrierLeaf,
     noteFailedDoor,
@@ -743,7 +744,7 @@ class WalkExecutorImpl {
     }
 
     private resetAvoids(): void {
-        this.doorStrikes.clear();
+        // Strikes deliberately survive the walk — see DOOR_SESSION_STRIKES.
         this.avoidDoors = [];
         this.refreshSpecialCrossingAvoids();
     }
@@ -752,6 +753,23 @@ class WalkExecutorImpl {
     blacklistDoor(x: number, z: number): void {
         this.sessionBlacklistDoors.add(`${x}|${z}`);
         this.avoidDoors.push({ x, z });
+    }
+
+    /**
+     * A crossing was attempted and the player is still on the near side. Past
+     * {@link DOOR_SESSION_STRIKES} the placement is shut for good as far as this
+     * run is concerned — otherwise the next ladder pass plans straight back
+     * through it and the walk never terminates.
+     */
+    private noteDoorRefusal(hop: PathStep, log: (msg: string) => void): void {
+        const strikes = noteFailedDoor(hop, this.doorStrikes, this.avoidDoors);
+        const t = hop.transport;
+        if (t && strikes >= DOOR_SESSION_STRIKES && !this.sessionBlacklistDoors.has(`${t.locX}|${t.locZ}`)) {
+            log(
+                `'${t.locName}' at (${t.locX},${t.locZ}) refused ${strikes} crossings — routing around it for the rest of the run`
+            );
+            this.blacklistDoor(t.locX, t.locZ);
+        }
     }
 
     async probeDest(dest: WorldTile, maxExpansions: number): Promise<{ ok: boolean; terminal: WorldTile | null }> {
@@ -926,7 +944,7 @@ class WalkExecutorImpl {
                         lastTile = null;
                         continue;
                     }
-                    noteFailedDoor(hop, this.doorStrikes, this.avoidDoors);
+                    this.noteDoorRefusal(hop, log);
                     return 'repath';
                 }
             }
@@ -1138,7 +1156,7 @@ class WalkExecutorImpl {
                                 lastTile = null;
                                 continue;
                             }
-                            noteFailedDoor(hop, this.doorStrikes, this.avoidDoors);
+                            this.noteDoorRefusal(hop, log);
                             return 'repath';
                         }
                     }
@@ -1274,7 +1292,7 @@ class WalkExecutorImpl {
      * do not import the split module.
      */
     tryNearbyDoor(log: (msg: string) => void): Promise<boolean> {
-        return tryNearbyDoor(log);
+        return tryNearbyDoor(log, null, this.sessionBlacklistDoors);
     }
 }
 
