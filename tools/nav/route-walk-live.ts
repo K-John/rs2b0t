@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import type { Page } from 'playwright-core';
 
 import { launchBrowser, parseArgs } from '../lib/harness.js';
-import { cheatQuiet, mainlandAccount, maxmeAndClearDialogs, teleTo } from '../tutorial/harness.js';
+import { cheatQuiet, mainlandAccount, maxmeAndClearDialogs, relog, teleTo } from '../tutorial/harness.js';
 
 type Tile = { x: number; z: number; level: number };
 
@@ -36,7 +36,11 @@ const ROUTES: Route[] = [
     { name: 'falador→taverley(gate)', from: { x: 2946, z: 3368, level: 0 }, to: { x: 2885, z: 3449, level: 0 } },
     { name: 'varrock→seers-bank', from: { x: 3185, z: 3436, level: 0 }, to: { x: 2725, z: 3491, level: 0 }, budgetMs: 400_000 },
     { name: 'portsarim→karamja(ship)', from: { x: 3027, z: 3222, level: 0 }, to: { x: 2925, z: 3176, level: 0 }, budgetMs: 240_000 },
-    { name: 'varrock→barb-village-basement', from: { x: 3185, z: 3436, level: 0 }, to: { x: 3081, z: 9955, level: 0 } }
+    { name: 'varrock→barb-village-basement', from: { x: 3185, z: 3436, level: 0 }, to: { x: 3081, z: 9955, level: 0 } },
+    // Quest-gated: every route into Morytania crosses the Paterdomus tunnel and the
+    // Salve barrier. Without Priest in Peril this must fail fast; with it (CHEATS=~cq,
+    // which also takes barrier access) it must walk through.
+    { name: 'varrock→canifis(priest-in-peril)', from: { x: 3253, z: 3420, level: 0 }, to: { x: 3499, z: 3506, level: 0 }, radius: 6, budgetMs: 420_000 }
 ];
 
 const { base } = parseArgs(process.argv.slice(2), { base: process.env.BASE ?? 'http://localhost:8890' });
@@ -44,6 +48,8 @@ const OUT = process.argv.includes('--out') ? process.argv[process.argv.indexOf('
 const ONLY = process.env.ROUTES ? new Set(process.env.ROUTES.split(',').map(Number)) : null;
 const SPEED = process.env.SPEED ? Number(process.env.SPEED) : null;
 const DEFAULT_BUDGET_MS = Number(process.env.BUDGET_MS ?? 180_000);
+/** Extra cheats to send after login, comma separated — e.g. CHEATS=~cq for every quest. */
+const CHEATS = (process.env.CHEATS ?? '').split(',').map(c => c.trim()).filter(Boolean);
 
 type Abi = {
     __rs2b0t: {
@@ -153,6 +159,16 @@ try {
     await cheatQuiet(page, '~maxme');
     await maxmeAndClearDialogs(page);
     await cheatQuiet(page, 'give coins 5000');
+    if (CHEATS.length > 0) {
+        for (const c of CHEATS) {
+            console.log(`cheat: ${c}`);
+            await cheatQuiet(page, c, 2000);
+        }
+        // The quest tab only recolours from the login payload, so a setvar seed is
+        // invisible to Quests.status (and therefore to WorldState) until a relog.
+        await relog(page, user);
+        await maxmeAndClearDialogs(page);
+    }
     if (SPEED !== null) {
         await cheatQuiet(page, `speed ${SPEED}`);
     }
