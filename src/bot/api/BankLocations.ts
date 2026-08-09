@@ -1,4 +1,5 @@
 import type { WorldTile } from '../adapter/ClientAdapter.js';
+import { SettingsStore } from '../runtime/Settings.js';
 import { Quests } from './hud/Quests.js';
 import { Skills } from './hud/Skills.js';
 import Tile from './Tile.js';
@@ -6,6 +7,15 @@ import Tile from './Tile.js';
 export interface BankRequirement {
     skill?: { name: string; level: number };
     quest?: string;
+    /**
+     * A Global setting that must be true before this bank is offered at all.
+     *
+     * For banks whose *approach* is the hazard rather than the bank: the Mage
+     * Arena bank is only reached by walking to level-52 Wilderness and talking
+     * to Kolodion, so an Ardougne script must never pick it up by being a few
+     * tiles closer. Off by default; a Wilderness bot opts in.
+     */
+    setting?: string;
 }
 
 export interface BankObjectAccess {
@@ -18,6 +28,18 @@ export interface BankObjectAccess {
 }
 
 /**
+ * A bank opened by talking to someone rather than by clicking a booth. Gundai
+ * in the Mage Arena is the only one: `[opnpc1,magearena_banker]` chats, offers
+ * two choices, and only then runs `@openbank`.
+ */
+export interface BankNpcAccess {
+    name: string;
+    op: string;
+    /** The dialogue option that actually opens the bank. */
+    choose: string;
+}
+
+/**
  * A bank, its stand tile, and how to open it.
  * @see docs/API.md#bank
  */
@@ -26,7 +48,20 @@ export interface BankLocation {
     tile: Tile;
     requires?: BankRequirement;
     access?: BankObjectAccess;
+    npcAccess?: BankNpcAccess;
+    /**
+     * Where you have to get to on foot, when that is not the bank tile itself.
+     *
+     * The Mage Arena chamber is a separate map region at z=4716; ranking it by
+     * its own coord makes it look ~800 tiles away from the Wilderness entrance
+     * it is actually reached from, so it would never be chosen. Distance is
+     * measured here instead.
+     */
+    approach?: Tile;
 }
+
+/** Global setting key gating the Mage Arena bank. @see BankRequirement.setting */
+export const USE_MAGE_BANK = 'useMageBank';
 
 /**
  * Every known bank. Some stands are sealed collision islands, so reaching one
@@ -50,6 +85,17 @@ export const BANK_LOCATIONS: BankLocation[] = [
     { name: 'Shilo Village', tile: new Tile(2852, 2954, 0), requires: { quest: 'Shilo Village' } },
     { name: 'Fishing Guild', tile: new Tile(2586, 3420, 0), requires: { skill: { name: 'fishing', level: 68 } } },
     { name: 'Shantay Pass', tile: new Tile(3309, 3120, 0) },
+    // mage_arena.constant ^mage_arena_finish_coord = 0_39_73_44_44. Gundai banks
+    // here; getting in means level-52 Wilderness and Kolodion, so it stays behind
+    // its setting rather than competing on distance.
+    {
+        name: 'Mage Arena',
+        tile: new Tile(2540, 4716, 0),
+        requires: { setting: USE_MAGE_BANK },
+        // ^mage_arena_start_coord = 0_48_61_33_30 — Kolodion, ~level 52 Wilderness.
+        approach: new Tile(3105, 3934, 0),
+        npcAccess: { name: 'Gundai', op: 'Talk-to', choose: "I'd like to access my bank account" }
+    },
     // Grand Tree 1F bank booths (SE of trunk ladder). Open without Grand Tree quest.
     // Stand in front of the south booth row; mine still requires the quest.
     { name: 'Grand Tree', tile: new Tile(2449, 3482, 1) },
@@ -75,6 +121,11 @@ export function bankDistance(from: WorldTile, bank: WorldTile): number {
     return Math.hypot(dx, dz);
 }
 
+/** The tile a bank is actually walked to — its approach when it has one. */
+export function approachOf(bank: BankLocation): Tile {
+    return bank.approach ?? bank.tile;
+}
+
 /**
  * Every bank this account can use, nearest first by straight line.
  *
@@ -90,7 +141,7 @@ export function bankDistance(from: WorldTile, bank: WorldTile): number {
 export function nearestBanks(from: WorldTile): BankLocation[] {
     return BANK_LOCATIONS
         .filter(bank => meetsRequirement(bank))
-        .sort((a, b) => bankDistance(from, a.tile) - bankDistance(from, b.tile));
+        .sort((a, b) => bankDistance(from, approachOf(a)) - bankDistance(from, approachOf(b)));
 }
 
 export function nearestUsableBank(from: WorldTile, usable: (bank: BankLocation) => boolean): BankLocation | null {
@@ -100,7 +151,7 @@ export function nearestUsableBank(from: WorldTile, usable: (bank: BankLocation) 
         if (!usable(bank)) {
             continue;
         }
-        const d = bankDistance(from, bank.tile);
+        const d = bankDistance(from, approachOf(bank));
         if (d < bestD) {
             bestD = d;
             best = bank;
@@ -123,6 +174,9 @@ function meetsRequirement(bank: BankLocation): boolean {
         return false;
     }
     if (req.quest && Quests.status(req.quest) !== 'complete') {
+        return false;
+    }
+    if (req.setting && !SettingsStore.globalBag().bool(req.setting, false)) {
         return false;
     }
     return true;
