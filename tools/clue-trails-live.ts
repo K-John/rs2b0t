@@ -71,12 +71,13 @@ const TIER_CLUES = Object.keys(CLUE_DB)
 const CLUE_IDS = new Set(Object.keys(CLUE_DB).map(Number));
 const CASKETS = new Set(Object.keys(CASKET_IDS).map(Number));
 
-type Ended = 'solved' | 'died' | 'timeout';
+type Ended = 'solved' | 'abandoned' | 'died' | 'timeout';
 interface Round {
     n: number;
     seedId: number;
     seedObj: string;
     ended: Ended;
+    reason: string | null;
     seconds: number;
     legs: number;
     deathsDuring: number;
@@ -127,6 +128,33 @@ const holdsTrailItem = (page: Page): Promise<boolean> =>
         ids => (globalThis as never as Api).rs2b0t.reader.inventory().some(i => (ids as number[]).includes(i.id)),
         [...CLUE_IDS, ...CASKETS]
     );
+
+/**
+ * Empty the pack of clues and caskets before seeding the next trail.
+ *
+ * The engine allows only one clue scroll at a time, so `::give` on top of a clue
+ * the last round left behind (a death drops some items, a timeout drops none)
+ * either no-ops or leaves a state the solver cannot read. Drop first, then seed.
+ */
+async function clearTrailItems(page: Page): Promise<void> {
+    for (let guard = 0; guard < 30; guard++) {
+        const dropped = await page.evaluate(
+            ids => {
+                const it = (globalThis as never as Api).__rs2b0t.Inventory.items().find(i => (ids as number[]).includes(i.id));
+                if (!it) {
+                    return false;
+                }
+                it.interact('Drop');
+                return true;
+            },
+            [...CLUE_IDS, ...CASKETS]
+        );
+        if (!dropped) {
+            return;
+        }
+        await page.waitForTimeout(700);
+    }
+}
 
 async function give(page: Page, debugName: string, id: number, count = 1): Promise<boolean> {
     await cheatQuiet(page, `give ${debugName} ${count}`, 900);
@@ -299,6 +327,7 @@ async function main(): Promise<void> {
             const seedId = TIER_CLUES[n % TIER_CLUES.length];
             const seedObj = CLUE_DB[seedId].obj;
             console.log(`\n${'─'.repeat(72)}\ntrail ${n + 1}/${TRAILS} — seeding ${seedId} ${seedObj}\n${'─'.repeat(72)}`);
+            await clearTrailItems(page);
             if (!(await give(page, seedObj, seedId))) {
                 fail(`could not seed ${seedObj}`);
             }
@@ -306,6 +335,7 @@ async function main(): Promise<void> {
             const t0 = Date.now();
             const deathsAtStart = deaths;
             let ended: Ended = 'timeout';
+            let reason: string | null = null;
             let legs = 0;
 
             while (Date.now() - t0 < TRAIL_BUDGET_MS) {
@@ -316,8 +346,19 @@ async function main(): Promise<void> {
                     if (l.startsWith('[clue] leg ')) {
                         legs++;
                     }
+                    // The solver gives up but leaves the clue in the pack, so the
+                    // "no trail item held" test never fires — without this the round
+                    // sits out its whole budget for a decision already made.
+                    const m = /\[clue\] abandoning [^:]*: (.+)$/.exec(l);
+                    if (m && reason === null) {
+                        reason = m[1];
+                    }
                 }
                 seenLines = lines.length;
+                if (reason !== null) {
+                    ended = 'abandoned';
+                    break;
+                }
 
                 const open = await bankRows(page);
                 if (open) {
@@ -351,11 +392,12 @@ async function main(): Promise<void> {
                 seedId,
                 seedObj,
                 ended,
+                reason,
                 seconds: Math.round((Date.now() - t0) / 1000),
                 legs,
                 deathsDuring: deaths - deathsAtStart
             });
-            console.log(`   => ${ended.toUpperCase()} in ${rounds[rounds.length - 1].seconds}s (${legs} legs)`);
+            console.log(`   => ${ended.toUpperCase()} in ${rounds[rounds.length - 1].seconds}s (${legs} legs)${reason ? ` — ${reason}` : ''}`);
 
             if (!existsSync('out')) {
                 mkdirSync('out', { recursive: true });
@@ -372,7 +414,12 @@ async function main(): Promise<void> {
         console.log(`\n${'='.repeat(72)}\n${TIER.toUpperCase()} TRAILS — ${rounds.length} run\n${'='.repeat(72)}`);
         console.log(`solved   ${solved}/${rounds.length}`);
         console.log(`died     ${died} trail(s), ${deaths} death(s) total`);
+        console.log(`abandoned ${rounds.filter(r => r.ended === 'abandoned').length}`);
         console.log(`timeout  ${rounds.filter(r => r.ended === 'timeout').length}`);
+        const why = rounds.filter(r => r.reason).map(r => `  ${r.seedObj}: ${r.reason}`);
+        if (why.length > 0) {
+            console.log(`\nabandon reasons:\n${why.join('\n')}`);
+        }
         console.log(`elapsed  ${Math.round((Date.now() - startedAt) / 60_000)}m`);
         if (loot.length > 0) {
             console.log('\nloot banked:');
