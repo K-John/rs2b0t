@@ -18,6 +18,9 @@ const CLOSE_IN_RADIUS = 1;
 const WALK_TIMEOUT_MS = 20_000;
 // spade.rs2 refuses a guardian that is not ours with this message.
 const NOT_YOURS = /not after you/i;
+// Dying respawns us in Lumbridge, which empties the scene of the guardian —
+// indistinguishable from killing it unless the death itself is read.
+const DIED = /oh dear.*you are dead/i;
 
 export interface GuardianOutcome {
     fought: boolean;
@@ -89,11 +92,17 @@ export async function fightGuardian(name: string, log: (m: string) => void): Pro
     }
 
     let killed = false;
+    let died = false;
+    const fightMark = GameMessages.mark();
     try {
         const deadline = Date.now() + FIGHT_MS;
         while (Date.now() < deadline) {
             await Sustain.run();
 
+            if (GameMessages.sawSince(fightMark, DIED)) {
+                died = true;
+                break;
+            }
             const target = findGuardian(name);
             if (!target) {
                 killed = true;
@@ -123,7 +132,7 @@ export async function fightGuardian(name: string, log: (m: string) => void): Pro
             // remaining budget, not FIGHT_MS again — a slow kill used to be able
             // to run twice the deadline.
             await sustainUntil(
-                () => findGuardian(name) === null || !Game.inCombat(),
+                () => findGuardian(name) === null || !Game.inCombat() || GameMessages.sawSince(fightMark, DIED),
                 Math.max(0, deadline - Date.now())
             );
         }
@@ -133,6 +142,10 @@ export async function fightGuardian(name: string, log: (m: string) => void): Pro
         }
     }
 
+    if (died) {
+        log(`died to the ${name} — the dig is unguarded until it respawns`);
+        return { fought: true, killed: false };
+    }
     log(killed ? `${name} killed` : `${name} still standing after ${Math.round(FIGHT_MS / 1000)}s`);
     return { fought: true, killed };
 }

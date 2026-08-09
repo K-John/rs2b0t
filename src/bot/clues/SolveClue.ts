@@ -5,7 +5,9 @@ import { nearestAltar } from '#/bot/api/Altars.js';
 import { nearestBank } from '#/bot/api/BankLocations.js';
 import type { Task } from '#/bot/api/Bot.js';
 import { Prayer } from '#/bot/api/Prayer.js';
+import { Sustain } from '#/bot/api/Sustain.js';
 import { Traversal } from '#/bot/api/Traversal.js';
+import { foodHealAmount, shouldEatToUseFood } from '#/bot/api/combat/food.js';
 import { Locs } from '#/bot/api/queries/Locs.js';
 import { Bank } from '#/bot/api/hud/Bank.js';
 import { Equipment } from '#/bot/api/hud/Equipment.js';
@@ -30,6 +32,7 @@ const ALTAR_OP = 'Pray-at';
 const ALTAR_RADIUS = 2;
 const ALTAR_WALK_MS = 180_000;
 const ALTAR_RESTORE_MS = 6000;
+const EAT_WAIT_MS = 3000;
 // Enough runes for a few hops per trail without crowding the pack.
 const TELEPORT_CASTS = 4;
 
@@ -104,7 +107,38 @@ export class SolveClue implements Task {
         return id !== null && id !== this.abandonedClueId;
     }
 
+    /**
+     * Eat one bite when the pack can afford it. Trail upkeep is owned here, not
+     * left to the host: a whole trail runs inside this one task call, so a host's
+     * own Eat task never gets a turn between legs, and every `Sustain.run()` the
+     * executor pumps is a no-op unless a hook is installed. GreenDragon never
+     * installed one, so it fought hard-clue guardians — level-65 mages that keep
+     * hitting through Protect from Magic — on a full pack of lobsters without
+     * touching a single one.
+     */
+    private async eatIfHurt(): Promise<void> {
+        const food = Inventory.items().filter(i => this.host.isFood(i.name ?? ''));
+        const maxHp = Skills.level('hitpoints');
+        const hp = Skills.effective('hitpoints');
+        if (!shouldEatToUseFood({ hp, maxHp, heal: foodHealAmount(this.host.foodName()), foodCount: food.length })) {
+            return;
+        }
+        this.host.log(`[clue] eating ${food[0].name} (${hp}/${maxHp} hp)`);
+        await food[0].interact('Eat');
+        await Execution.delayUntil(() => Skills.effective('hitpoints') > hp, EAT_WAIT_MS);
+    }
+
     async execute(): Promise<void> {
+        const hostUpkeep = Sustain.hook;
+        Sustain.set(() => this.eatIfHurt());
+        try {
+            await this.runTrail();
+        } finally {
+            Sustain.set(hostUpkeep);
+        }
+    }
+
+    private async runTrail(): Promise<void> {
         if (heldClueScrollId() !== null && !this.bankedThisSolve) {
             if (!(await this.bankFirst())) {
                 return;
