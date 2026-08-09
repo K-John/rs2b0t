@@ -10,10 +10,10 @@ export interface BankRequirement {
     /**
      * A Global setting that must be true before this bank is offered at all.
      *
-     * For banks whose *approach* is the hazard rather than the bank: the Mage
-     * Arena bank is only reached by walking to level-52 Wilderness and talking
-     * to Kolodion, so an Ardougne script must never pick it up by being a few
-     * tiles closer. Off by default; a Wilderness bot opts in.
+     * For banks whose *approach* is the hazard rather than the bank: Gundai's
+     * cellar is reached by slashing into ~level 55 Wilderness, so an Ardougne
+     * script must never pick it up by being a few tiles closer. Off by default;
+     * a Wilderness bot opts in.
      */
     setting?: string;
 }
@@ -50,12 +50,12 @@ export interface BankLocation {
     access?: BankObjectAccess;
     npcAccess?: BankNpcAccess;
     /**
-     * Where you have to get to on foot, when that is not the bank tile itself.
+     * Where the surface route to this bank starts, for distance ranking only.
+     * Callers still walk to `tile`; the nav graph knows how to get there.
      *
-     * The Mage Arena chamber is a separate map region at z=4716; ranking it by
-     * its own coord makes it look ~800 tiles away from the Wilderness entrance
-     * it is actually reached from, so it would never be chosen. Distance is
-     * measured here instead.
+     * Ranking is straight-line, so a bank in its own map region reads as absurdly
+     * far: Gundai's cellar sits at z=4714 and scores ~800 tiles from the ladder
+     * you actually reach it by, which would keep it from ever being chosen.
      */
     approach?: Tile;
 }
@@ -85,15 +85,16 @@ export const BANK_LOCATIONS: BankLocation[] = [
     { name: 'Shilo Village', tile: new Tile(2852, 2954, 0), requires: { quest: 'Shilo Village' } },
     { name: 'Fishing Guild', tile: new Tile(2586, 3420, 0), requires: { skill: { name: 'fishing', level: 68 } } },
     { name: 'Shantay Pass', tile: new Tile(3309, 3120, 0) },
-    // mage_arena.constant ^mage_arena_finish_coord = 0_39_73_44_44. Gundai banks
-    // here; getting in means level-52 Wilderness and Kolodion, so it stays behind
-    // its setting rather than competing on distance.
+    // Gundai's cellar, where magearena_ladder_to_cellar lands. Nothing to do with
+    // Kolodion's arena teleport: you slash the two bigweb_slashable webs along
+    // z=3957 and climb down at (3091,3958) — all three already baked as edges.
+    // Still gated: that is ~level 55 Wilderness and the webs need a wielded slash
+    // weapon, so it must not win on distance for a script working elsewhere.
     {
         name: 'Mage Arena',
-        tile: new Tile(2540, 4716, 0),
+        tile: new Tile(2542, 4714, 0),
         requires: { setting: USE_MAGE_BANK },
-        // ^mage_arena_start_coord = 0_48_61_33_30 — Kolodion, ~level 52 Wilderness.
-        approach: new Tile(3105, 3934, 0),
+        approach: new Tile(3091, 3958, 0),
         npcAccess: { name: 'Gundai', op: 'Talk-to', choose: "I'd like to access my bank account" }
     },
     // Grand Tree 1F bank booths (SE of trunk ladder). Open without Grand Tree quest.

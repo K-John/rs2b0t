@@ -164,11 +164,12 @@ export const GLOBAL_SETTINGS_CORE: SettingsSchema = {
         default: false,
         label: 'Allow the Mage Arena bank',
         help:
-            'Off (default): never bank at the Mage Arena, so nothing routes through '
-            + 'the Wilderness to reach it. Reaching it means walking to level-52 '
-            + 'Wilderness and going in past Kolodion, so a script that only meant to '
-            + 'stay around Ardougne must not pick it up for being a few tiles nearer. '
-            + 'Turn on for bots that already work up there.'
+            'Off (default): never bank at Gundai, so nothing routes through the '
+            + 'Wilderness to reach it. Getting there means slashing two webs at '
+            + 'level ~55 Wilderness and climbing down, so it needs a wielded slash '
+            + 'weapon and a script that only meant to stay around Ardougne must not '
+            + 'pick it up for being a few tiles nearer. Turn on for bots already '
+            + 'working up there.'
     },
     runAuto: {
         type: 'boolean',
