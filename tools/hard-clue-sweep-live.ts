@@ -50,7 +50,11 @@ const LEVEL = 70;
 
 /** Guarded digs and puzzle boxes are slow; past this it is a real failure. */
 const CLUE_BUDGET_MS = Number(process.env.CLUE_BUDGET_MS ?? 480_000);
-const POLL_MS = 1000;
+/** Tight, because the swap has to beat the bot opening the casket it was just given. */
+const POLL_MS = 400;
+
+/** Every clue and casket id, so the pack can be reduced to exactly one of them. */
+const TRAIL_IDS = [...Object.keys(CLUE_DB).map(Number), ...Object.keys(CASKET_IDS).map(Number)];
 
 const HARD = Object.keys(CLUE_DB)
     .map(Number)
@@ -103,27 +107,42 @@ async function give(page: Page, debugName: string, id: number, count = 1): Promi
         .catch(() => false);
 }
 
-/** Drop every clue and casket, so the next spawn is the only one identifiable. */
-async function clearTrailItems(page: Page): Promise<void> {
-    for (let guard = 0; guard < 30; guard++) {
+/**
+ * Leave exactly one trail item in the pack: the clue we want solved next.
+ *
+ * Deliberately does NOT stop the script. `ClueExecutor` only reports a trail
+ * `done` when the pack holds no clue and no casket, and that is what resets
+ * `bankedThisSolve` — so stopping between clues, or letting the pack ever go
+ * empty, buys a fresh bank trip every single clue. Swapping underneath a running
+ * executor keeps one continuous trail, and the walk starts from wherever the
+ * last clue finished, which is the whole point of the sweep.
+ *
+ * Give first, then drop the leftovers: the pack must never be clue-less.
+ */
+async function swapToClue(page: Page, id: number): Promise<boolean> {
+    if (!(await holds(page, id)) && !(await give(page, CLUE_DB[id].obj, id))) {
+        return false;
+    }
+    for (let guard = 0; guard < 40; guard++) {
         const dropped = await page.evaluate(
-            ids => {
-                const it = (globalThis as never as Api).__rs2b0t.Inventory.items().find(i => ids.includes(i.id)) as
-                    | { interact(a: string): unknown }
-                    | undefined;
+            ([ids, keep]) => {
+                const it = (globalThis as never as Api).__rs2b0t.Inventory.items().find(
+                    i => i.id !== keep && (ids as number[]).includes(i.id)
+                ) as { interact(a: string): unknown } | undefined;
                 if (!it) {
                     return false;
                 }
                 it.interact('Drop');
                 return true;
             },
-            [...Object.keys(CLUE_DB).map(Number), ...Object.keys(CASKET_IDS).map(Number)]
+            [TRAIL_IDS, id] as const
         );
         if (!dropped) {
-            return;
+            return true;
         }
-        await page.waitForTimeout(700);
+        await page.waitForTimeout(600);
     }
+    return true;
 }
 
 async function startBot(page: Page): Promise<void> {
@@ -155,9 +174,7 @@ async function runClue(page: Page, id: number, index: number, startedAt: number)
     console.log(`[${index + 1}/${HARD.length}] ${id} ${describe(id)}`);
     console.log('─'.repeat(78));
 
-    await stopScript(page);
-    await clearTrailItems(page);
-    if (!(await give(page, row.obj, id))) {
+    if (!(await swapToClue(page, id))) {
         return {
             id, obj: row.obj, type: row.type, coord: row.coord ?? null,
             guarded: Boolean(row.guardian), puzzle: Boolean(row.puzzle),
@@ -166,7 +183,6 @@ async function runClue(page: Page, id: number, index: number, startedAt: number)
         };
     }
     const from = await tile(page);
-    await startBot(page);
 
     let seenLines = (await logLines(page)).length;
     const t0 = Date.now();
@@ -289,7 +305,19 @@ async function main(): Promise<void> {
             restorePrayer: true,
             useTeleports: teleports
         });
+        // Nav/routing overlay: the planned path, the transports it routes through,
+        // the click it actually sent, and the client's own walk trail beside it.
+        await setSettings(page, 'Global', {
+            showNavPath: true,
+            navPathShowText: true,
+            navPathSceneExpand: true,
+            navPathClientSegment: true,
+            navCameraFollow: true
+        });
         console.log(`sweeping ${HARD.length - startIndex} hard clues from ${HARD[startIndex]}, teleports ${teleports ? 'on' : 'off'}, budget ${Math.round(CLUE_BUDGET_MS / 1000)}s each`);
+
+        // Started once, and never stopped between clues — see swapToClue().
+        await startBot(page);
 
         const limit = Number(process.env.LIMIT ?? 0);
         const end = limit > 0 ? Math.min(HARD.length, startIndex + limit) : HARD.length;

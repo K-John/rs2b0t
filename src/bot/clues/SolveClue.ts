@@ -79,6 +79,9 @@ export interface SolveClueHost {
 export class SolveClue implements Task {
     private bankedThisSolve = false;
 
+    /** One restock trip per dry spell — cleared as soon as food is held again. */
+    private triedFoodRestock = false;
+
     private abandonedClueId: number | null = null;
 
     /** What the Entrana monk search made us bank, so the trail can give it back. */
@@ -156,8 +159,35 @@ export class SolveClue implements Task {
         }
     }
 
+    /**
+     * A trail banks once at the start and never again, so a long one runs dry and
+     * then walks the rest of the way — often through the Wilderness — with nothing
+     * to eat. Upkeep was never the problem: `Sustain` is pumped on every walk pass
+     * and the hook is installed for the whole trail, but an empty pack has no bite
+     * to take. Go back for more instead.
+     *
+     * Bounded: one restock trip per dry spell, so an empty bank cannot put the bot
+     * in a bank-walk loop.
+     */
+    private needsFood(): boolean {
+        if ((this.host.foodName() ?? '') === '') {
+            return false;
+        }
+        const held = Inventory.items().some(i => this.host.isFood(i.name ?? ''));
+        if (held) {
+            this.triedFoodRestock = false;
+            return false;
+        }
+        return !this.triedFoodRestock;
+    }
+
     private async runTrail(): Promise<void> {
-        if (heldClueScrollId() !== null && !this.bankedThisSolve) {
+        const restock = this.bankedThisSolve && this.needsFood();
+        if (heldClueScrollId() !== null && (!this.bankedThisSolve || restock)) {
+            if (restock) {
+                this.triedFoodRestock = true;
+                this.host.log(`[clue] out of ${this.host.foodName()} mid-trail — banking to restock`);
+            }
             if (!(await this.bankFirst())) {
                 return;
             }

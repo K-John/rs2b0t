@@ -6,10 +6,13 @@ import { Sustain } from '#/bot/api/Sustain.js';
 import { Skills } from '#/bot/api/hud/Skills.js';
 import { ClueExecutor } from '#/bot/clues/ClueExecutor.js';
 import { SolveClue, type SolveClueHost } from '#/bot/clues/SolveClue.js';
+import { CLUE_DB } from '#/bot/clues/data/cluedb.js';
 import { stubProps } from '../lib/stubSingletons.js';
 
 const LOBSTER = 'Lobster';
 const MAX_HP = 70;
+/** Any real clue scroll — the bank check only runs while one is held. */
+const HELD_CLUE = Number(Object.keys(CLUE_DB)[0]);
 
 let hp: number;
 let eaten: number;
@@ -130,6 +133,44 @@ describe('trail upkeep', () => {
         // And the wait is tick-bounded: a bite the server drops must be re-sent
         // next tick, not waited out for five while Sustain.running blanks upkeep.
         expect(confirmBudgets.every(t => t <= 2)).toBe(true);
+    });
+
+    // A trail banked once and never again, so a long one ran dry and then walked
+    // the Wilderness with nothing to eat. Upkeep was fine — the pack was empty.
+    test('an empty pack sends the bot back to the bank, once per dry spell', async () => {
+        const banks: number[] = [];
+        const solve = stubProps(ClueExecutor, { solveHeldClue: async (): Promise<'abandon'> => 'abandon' });
+        const task = new SolveClue(host()) as unknown as {
+            bankedThisSolve: boolean;
+            bankFirst(): Promise<boolean>;
+            execute(): Promise<void>;
+        };
+        task.bankFirst = async (): Promise<boolean> => {
+            banks.push(inv.length);
+            return true;
+        };
+        // The bank check only runs while a clue scroll is actually held.
+        const CLUE = { id: HELD_CLUE, name: 'Clue scroll' };
+        try {
+            task.bankedThisSolve = true;
+            inv = [CLUE];
+            await task.execute();
+            expect(banks.length).toBe(1);
+            // Still empty (the stub bank stocked nothing): do not loop back forever.
+            task.bankedThisSolve = true;
+            await task.execute();
+            expect(banks.length).toBe(1);
+            // Food back in the pack clears the latch, so the next dry spell counts.
+            inv = [CLUE, { id: 1, name: LOBSTER }];
+            task.bankedThisSolve = true;
+            await task.execute();
+            inv = [CLUE];
+            task.bankedThisSolve = true;
+            await task.execute();
+            expect(banks.length).toBe(2);
+        } finally {
+            solve();
+        }
     });
 
     test('full health eats nothing', async () => {
