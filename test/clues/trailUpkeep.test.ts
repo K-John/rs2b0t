@@ -15,9 +15,17 @@ let hp: number;
 let eaten: number;
 let inv: { id: number; name: string }[];
 let logs: string[];
+/** Damage the guardian lands in the same tick the food heals. */
+let incoming: number;
 
+/** What each post-eat wait resolved to — false means it burned its whole budget. */
+let confirmations: boolean[];
 const restoreExec = stubProps(Execution, {
-    delayUntil: async (fn: () => boolean): Promise<boolean> => fn(),
+    delayUntil: async (fn: () => boolean): Promise<boolean> => {
+        const ok = fn();
+        confirmations.push(ok);
+        return ok;
+    },
     delayTicks: async (): Promise<void> => {}
 });
 const restoreSkills = stubProps(Skills, {
@@ -34,7 +42,7 @@ const stubInventory = {
             interact: async (): Promise<boolean> => {
                 eaten++;
                 inv = inv.filter(x => x !== i);
-                hp = Math.min(MAX_HP, hp + 12);
+                hp = Math.max(0, Math.min(MAX_HP, hp + 12) - incoming);
                 return true;
             }
         }))
@@ -63,6 +71,8 @@ beforeEach(() => {
     eaten = 0;
     inv = [1, 2, 3].map(id => ({ id, name: LOBSTER }));
     logs = [];
+    confirmations = [];
+    incoming = 0;
     Sustain.set(null);
 });
 
@@ -89,6 +99,30 @@ describe('trail upkeep', () => {
         expect(ateMidTrail).toBe(1);
         expect(hp).toBe(42);
         expect(logs.some(l => l.includes('eating Lobster'))).toBe(true);
+    });
+
+    // The regression: the post-eat wait watched only for hp to rise. A guardian's
+    // hit lands in the same tick as the heal, so hp ends up below where it started,
+    // the wait burns its whole 3s budget, and Sustain.running blanks every pump in
+    // that window — no bites at all while the damage is heaviest.
+    test('a bite that damage cancels out still confirms, so the next pump can eat', async () => {
+        incoming = 20;
+        const restoreSolve = stubProps(ClueExecutor, {
+            solveHeldClue: async (): Promise<'done'> => {
+                hp = 44;
+                await Sustain.run();
+                await Sustain.run();
+                await Sustain.run();
+                return 'done';
+            }
+        });
+        try {
+            await new SolveClue(host()).execute();
+        } finally {
+            restoreSolve();
+        }
+        expect(eaten).toBe(3);
+        expect(confirmations).toEqual([true, true, true]);
     });
 
     test('full health eats nothing', async () => {

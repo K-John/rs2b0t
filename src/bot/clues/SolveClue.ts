@@ -117,7 +117,9 @@ export class SolveClue implements Task {
      * touching a single one.
      */
     private async eatIfHurt(): Promise<void> {
-        const food = Inventory.items().filter(i => this.host.isFood(i.name ?? ''));
+        const held = (): { name: string | null; interact(a: string): boolean | Promise<boolean> }[] =>
+            Inventory.items().filter(i => this.host.isFood(i.name ?? ''));
+        const food = held();
         const maxHp = Skills.level('hitpoints');
         const hp = Skills.effective('hitpoints');
         if (!shouldEatToUseFood({ hp, maxHp, heal: foodHealAmount(this.host.foodName()), foodCount: food.length })) {
@@ -125,7 +127,19 @@ export class SolveClue implements Task {
         }
         this.host.log(`[clue] eating ${food[0].name} (${hp}/${maxHp} hp)`);
         await food[0].interact('Eat');
-        await Execution.delayUntil(() => Skills.effective('hitpoints') > hp, EAT_WAIT_MS);
+        // Confirm on the bite leaving the pack, not on hp rising. A guardian's hit
+        // lands in the same tick as the heal, so hp routinely ends up *below* where
+        // it started and an hp-only check waits out its whole budget — and because
+        // Sustain.running is set for the duration, that is a total eating blackout
+        // exactly while damage is heaviest. Measured: 3s of no bites at 8/70 hp
+        // with seven lobsters in the pack.
+        const landed = await Execution.delayUntil(
+            () => held().length < food.length || Skills.effective('hitpoints') > hp,
+            EAT_WAIT_MS
+        );
+        if (!landed) {
+            this.host.log(`[clue] the bite never left the pack (${held().length} left) — op dropped`);
+        }
     }
 
     async execute(): Promise<void> {

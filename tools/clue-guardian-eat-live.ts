@@ -204,7 +204,7 @@ async function main(): Promise<void> {
         const trace: { t: number; hp: number; food: number; guardian: unknown }[] = [];
 
         while (Date.now() < deadline) {
-            await page.waitForTimeout(1000);
+            await page.waitForTimeout(fightSeen ? 250 : 1000);
             const lines = await logLines(page);
             const now = await hp(page);
             const up = await guardianUp(page);
