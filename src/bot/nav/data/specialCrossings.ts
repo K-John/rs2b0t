@@ -693,8 +693,12 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         dialogue: {
             choose: ["Yes I'm brave.", "Yes please, don't show this message again."]
         },
+        // ^ardougne_to_wilderness_coord, but the pull is observed landing on
+        // 3928. Keep the constant (the edge landing must match it or
+        // specialCrossingForTransport drops this crossing outright) and widen
+        // the arrival radius to cover both tiles.
         toTile: { x: 3154, z: 3924, level: 0 },
-        arrivalRadius: 3,
+        arrivalRadius: 6,
         label: 'Ardougne → deep wilderness lever'
     },
     {
