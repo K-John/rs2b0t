@@ -29,7 +29,6 @@ const DIG = { x: 3055, z: 3696, level: 0 } as const;
 /** Edgeville: the trail's own bank stop, so the run starts on top of it. */
 const START = { x: 3094, z: 3493, level: 0 } as const;
 
-const LOBSTER = 379;
 const SCIMITAR = 1333;
 const SPADE = 952;
 const TRIO: [string, number, string][] = [
@@ -175,7 +174,11 @@ async function main(): Promise<void> {
         for (const [debugName, id] of TRIO) {
             await give(page, debugName, id, 1);
         }
-        await give(page, 'lobster', LOBSTER, 10);
+        // No lobsters in the pack on purpose. `~bank_f2p` stocks a *max-int*
+        // lobster stack, and a maxed stack refuses further deposits — the trail
+        // prep does not keep food, so seeded lobsters get offered to that stack
+        // and the bank stop spends 64s failing to hand them over. The prep
+        // withdraws its own food anyway ("taking 10 Lobster for the trail").
         await give(page, CLUE_OBJ, CLUE_ID, 1);
 
         await setSettings(page, 'ClueSolver', {
@@ -195,50 +198,64 @@ async function main(): Promise<void> {
         });
         console.log(`ClueSolver started — walking to the dig at (${DIG.x},${DIG.z})`);
 
-        const deadline = Date.now() + BUDGET_MS;
+        const started = Date.now();
+        const deadline = started + BUDGET_MS;
         let hitApplied = false;
         let fightSeen = false;
         let fightStart = Date.now();
         let minHp = await hp(page);
         let lastReport = 0;
+        let seenLines = (await logLines(page)).length;
+        let lastRow = '';
         const trace: { t: number; hp: number; food: number; guardian: unknown }[] = [];
+        const stamp = (): string => `+${((Date.now() - started) / 1000).toFixed(1)}s`.padStart(8);
 
         while (Date.now() < deadline) {
-            await page.waitForTimeout(fightSeen ? 250 : 1000);
+            await page.waitForTimeout(fightSeen ? 200 : 1000);
             const lines = await logLines(page);
             const now = await hp(page);
             const up = await guardianUp(page);
 
+            // Interleave the bot's own log with the world state, so a bite and the
+            // tick it landed (or did not) sit next to each other.
+            for (const l of lines.slice(seenLines)) {
+                console.log(`${stamp()}  ${l}`);
+            }
+            seenLines = lines.length;
+
             if (up && !fightSeen) {
                 fightSeen = true;
                 fightStart = Date.now();
-                console.log('>> Zamorak Wizard is up — fight starting');
+                console.log(`\n${'='.repeat(64)}\n>> ${GUARDIAN} IS UP — WATCH NOW\n   hp | food | wizard\n${'='.repeat(64)}`);
             }
             if (up && !hitApplied && SCRIPTED_HIT > 0) {
                 await cheatQuiet(page, `~hit ${SCRIPTED_HIT}`, 300);
                 hitApplied = true;
-                console.log(`>> scripted ${SCRIPTED_HIT} damage so the fight is guaranteed to need food`);
+                console.log(`${stamp()}  >> scripted ${SCRIPTED_HIT} damage`);
             }
             if (fightSeen) {
-                trace.push({
-                    t: Math.round((Date.now() - fightStart) / 1000),
-                    hp: now,
-                    food: await foodLeft(page),
-                    guardian: await guardianState(page)
-                });
+                const food = await foodLeft(page);
+                const g = await guardianState(page);
+                trace.push({ t: Math.round((Date.now() - fightStart) / 1000), hp: now, food, guardian: g });
+                // Only on change: a 200ms poll on a 600ms tick triples every row.
+                const row = `${String(now).padStart(3)} | ${String(food).padStart(4)} | ${g ? g.hp : '-'}`;
+                if (row !== lastRow) {
+                    lastRow = row;
+                    console.log(`${stamp()}  ${row}`);
+                }
             }
             if (fightSeen && now > 0) {
                 minHp = Math.min(minHp, now);
             }
             if (await died(page)) {
                 proof.died = true;
-                console.log('!! the bot DIED — the fight was not survived');
+                console.log(`${stamp()}  !! the bot DIED — the fight was not survived`);
                 break;
             }
-            if (Date.now() - lastReport > 15_000) {
+            if (!fightSeen && Date.now() - lastReport > 15_000) {
                 lastReport = Date.now();
                 const tile = await page.evaluate(() => (globalThis as never as Api).__rs2b0t.Game.tile());
-                console.log(`  t+${Math.round((Date.now() - (deadline - BUDGET_MS)) / 1000)}s hp=${now} guardian=${up} at ${JSON.stringify(tile)} | ${lines[lines.length - 1] ?? ''}`);
+                console.log(`${stamp()}  walking… hp=${now} at ${JSON.stringify(tile)}`);
             }
             // Guardian.ts's own verdict, not an NPC-snapshot read: `all()` blanks
             // for a tick now and then, and a blank list is not a dead wizard.

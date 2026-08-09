@@ -18,12 +18,15 @@ let logs: string[];
 /** Damage the guardian lands in the same tick the food heals. */
 let incoming: number;
 
-/** What each post-eat wait resolved to — false means it burned its whole budget. */
+/** What each post-eat wait resolved to, and how many ticks it was allowed. */
 let confirmations: boolean[];
+let confirmBudgets: number[];
 const restoreExec = stubProps(Execution, {
-    delayUntil: async (fn: () => boolean): Promise<boolean> => {
+    delayUntil: async (fn: () => boolean): Promise<boolean> => fn(),
+    delayUntilTicks: async (fn: () => boolean, maxTicks: number): Promise<boolean> => {
         const ok = fn();
         confirmations.push(ok);
+        confirmBudgets.push(maxTicks);
         return ok;
     },
     delayTicks: async (): Promise<void> => {}
@@ -72,6 +75,7 @@ beforeEach(() => {
     inv = [1, 2, 3].map(id => ({ id, name: LOBSTER }));
     logs = [];
     confirmations = [];
+    confirmBudgets = [];
     incoming = 0;
     Sustain.set(null);
 });
@@ -123,6 +127,9 @@ describe('trail upkeep', () => {
         }
         expect(eaten).toBe(3);
         expect(confirmations).toEqual([true, true, true]);
+        // And the wait is tick-bounded: a bite the server drops must be re-sent
+        // next tick, not waited out for five while Sustain.running blanks upkeep.
+        expect(confirmBudgets.every(t => t <= 2)).toBe(true);
     });
 
     test('full health eats nothing', async () => {

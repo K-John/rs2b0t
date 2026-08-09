@@ -32,7 +32,7 @@ const ALTAR_OP = 'Pray-at';
 const ALTAR_RADIUS = 2;
 const ALTAR_WALK_MS = 180_000;
 const ALTAR_RESTORE_MS = 6000;
-const EAT_WAIT_MS = 3000;
+const EAT_CONFIRM_TICKS = 2;
 // Enough runes for a few hops per trail without crowding the pack.
 const TELEPORT_CASTS = 4;
 
@@ -133,12 +133,16 @@ export class SolveClue implements Task {
         // Sustain.running is set for the duration, that is a total eating blackout
         // exactly while damage is heaviest. Measured: 3s of no bites at 8/70 hp
         // with seven lobsters in the pack.
-        const landed = await Execution.delayUntil(
+        // Two ticks, not five. A bite that lands confirms on the next tick; one
+        // the server dropped must be re-sent, and every tick spent waiting is a
+        // tick `Sustain.running` blanks every other pump. At three seconds that
+        // was a four-tick blackout measured taking a guardian from 45 hp to 2.
+        const landed = await Execution.delayUntilTicks(
             () => held().length < food.length || Skills.effective('hitpoints') > hp,
-            EAT_WAIT_MS
+            EAT_CONFIRM_TICKS
         );
         if (!landed) {
-            this.host.log(`[clue] the bite never left the pack (${held().length} left) — op dropped`);
+            this.host.log(`[clue] the bite never left the pack (${held().length} left) — re-sending`);
         }
     }
 
