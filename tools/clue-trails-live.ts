@@ -49,6 +49,20 @@ const STATS = [
 const LEVEL = 70;
 const SEED_BATCHES = 6;
 const SEED_COINS = 50_000;
+/**
+ * Spell-teleport runes (SPELL_TELEPORTS: Air x5, Fire/Law/Earth/Water x2 per
+ * cast, stocked at TELEPORT_CASTS=4). Stackable, so one bank slot each. Without
+ * these the prep finds nothing to withdraw and every leg walks regardless of the
+ * setting. Jewellery is deliberately absent: the trail keeps a glory/ring it
+ * already carries but never withdraws one, so banking it would do nothing.
+ */
+const SEED_RUNES: [string, number][] = [
+    ['airrune', 1000],
+    ['firerune', 500],
+    ['lawrune', 500],
+    ['earthrune', 500],
+    ['waterrune', 500]
+];
 
 const TIER_CLUES = Object.keys(CLUE_DB)
     .map(Number)
@@ -163,6 +177,12 @@ async function seedBank(page: Page): Promise<BankRow[] | null> {
     }
 
     await cheatQuiet(page, `give coins ${SEED_COINS}`, 900);
+    for (const [name, count] of SEED_RUNES) {
+        await cheatQuiet(page, `give ${name} ${count}`, 700);
+    }
+    await page
+        .waitForFunction(() => (globalThis as never as Api).__rs2b0t.Inventory.used() === 0, undefined, { timeout: 20_000 })
+        .catch(() => undefined);
     for (let batch = 0; batch < SEED_BATCHES; batch++) {
         await cheatQuiet(page, 'give lobster 27', 900);
         await page
@@ -171,7 +191,9 @@ async function seedBank(page: Page): Promise<BankRow[] | null> {
     }
     const stocked = await page.evaluate(() => ({
         lobster: (globalThis as never as Api).__rs2b0t.Bank.count('Lobster'),
-        coins: (globalThis as never as Api).__rs2b0t.Bank.count('Coins')
+        coins: (globalThis as never as Api).__rs2b0t.Bank.count('Coins'),
+        law: (globalThis as never as Api).__rs2b0t.Bank.count('Law rune'),
+        air: (globalThis as never as Api).__rs2b0t.Bank.count('Air rune')
     }));
     // Baseline taken here, where the bank is provably open — the per-trail poll
     // only catches a bank stop by luck, and a missed baseline means no loot line.
@@ -187,7 +209,7 @@ async function seedBank(page: Page): Promise<BankRow[] | null> {
     if (stocked.lobster <= 0) {
         fail(`bank seeding deposited no Lobster (coins ${stocked.coins}) — the run would starve`);
     }
-    console.log(`bank seeded: ${stocked.lobster} Lobster, ${stocked.coins} coins`);
+    console.log(`bank seeded: ${stocked.lobster} Lobster, ${stocked.coins} coins, ${stocked.law} Law / ${stocked.air} Air rune`);
     return baseline;
 }
 
@@ -264,7 +286,8 @@ async function main(): Promise<void> {
             food: 'Lobster',
             foodWithdraw: 20,
             restorePrayer: true,
-            useTeleports: process.env.TELEPORTS === '1'
+            // On by default now the runes are banked; TELEPORTS=0 forces every leg walked.
+            useTeleports: process.env.TELEPORTS !== '0'
         });
         await setSettings(page, 'Global', { showNavPath: true, navPathShowText: true });
         await startSolver(page);
