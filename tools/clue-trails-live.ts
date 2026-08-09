@@ -1,0 +1,371 @@
+/**
+ * Run N complete treasure trails back to back and score the result.
+ *
+ * One trail per round: seed a clue of the chosen tier, let ClueSolver run the
+ * whole natural chain to the casket and bank the loot, then start the next. A
+ * death ends the round too — it is counted, not hidden, and the next trail
+ * starts from wherever the bot respawned.
+ *
+ *   HEADED=1 SLOWMO=0 bun tools/clue-trails-live.ts
+ *   TIER=medium TRAILS=5 bun tools/clue-trails-live.ts
+ *
+ * The bank is stocked with a few loads of food and some coins — deliberately
+ * NOT `~bank_f2p`, whose max-int stacks refuse further deposits and hang the
+ * trail's own bank stop on a deposit that can never land.
+ *
+ * Proof: out/clue-trails.json, rewritten after every trail.
+ */
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import type { Page } from 'playwright-core';
+import { CASKET_IDS, CLUE_DB } from '#/bot/clues/data/cluedb.js';
+import { HARNESS_VIEWPORT, boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, parseArgs, setSettings } from './lib/harness.js';
+
+const { base } = parseArgs(process.argv.slice(2), { base: 'http://localhost:8888' });
+const user = process.env.USER_NAME ?? `trail${Date.now() % 100000}`;
+
+const TIER = (process.env.TIER ?? 'hard').toLowerCase();
+if (!['easy', 'medium', 'hard'].includes(TIER)) {
+    fail(`TIER must be easy, medium or hard (got '${TIER}')`);
+}
+const TRAILS = Number(process.env.TRAILS ?? 20);
+/** A whole trail is several legs; hard trails cross the map more than once. */
+const TRAIL_BUDGET_MS = Number(process.env.TRAIL_BUDGET_MS ?? 900_000);
+const POLL_MS = 1000;
+
+/** Edgeville — a bank to start beside. */
+const START = { x: 3094, z: 3493, level: 0 } as const;
+const SCIMITAR = 1333;
+const SPADE = 952;
+const TRIO: [string, number][] = [
+    ['trail_sextant', 2574],
+    ['trail_watch', 2575],
+    ['trail_chart', 2576]
+];
+const STATS = [
+    'attack', 'strength', 'defence', 'ranged', 'magic', 'hitpoints', 'prayer',
+    'crafting', 'mining', 'smithing', 'fishing', 'cooking', 'firemaking',
+    'woodcutting', 'runecraft', 'herblore', 'agility', 'thieving', 'fletching'
+];
+const LEVEL = 70;
+const SEED_BATCHES = 6;
+const SEED_COINS = 50_000;
+
+const TIER_CLUES = Object.keys(CLUE_DB)
+    .map(Number)
+    .filter(id => CLUE_DB[id].obj.includes(TIER))
+    .sort((a, b) => a - b);
+const CLUE_IDS = new Set(Object.keys(CLUE_DB).map(Number));
+const CASKETS = new Set(Object.keys(CASKET_IDS).map(Number));
+
+type Ended = 'solved' | 'died' | 'timeout';
+interface Round {
+    n: number;
+    seedId: number;
+    seedObj: string;
+    ended: Ended;
+    seconds: number;
+    legs: number;
+    deathsDuring: number;
+}
+
+type BankRow = { name: string; count: number };
+type Api = {
+    rs2b0t: {
+        registry: { get(n: string): unknown };
+        runner: { state: string; ctx: { log: { msg: string }[] } | null; start(m: unknown): void; stop(reason: string): void };
+        reader: { inventory(): { id: number }[]; chat(n: number): { text: string }[] };
+    };
+    __rs2b0t: {
+        Game: { tile(): { x: number; z: number; level: number } | null };
+        Skills: { level(n: string): number };
+        Equipment: { contains(n: string): boolean };
+        Execution: { delayTicks(n: number): Promise<void> };
+        Inventory: { used(): number; items(): { id: number; interact(a: string): unknown }[] };
+        Bank: {
+            isOpen(): boolean;
+            items(): { name: string | null; count: number }[];
+            openNearestAccess(a: { name: string; op: string }, log?: (m: string) => void): Promise<boolean>;
+            depositInventory(): Promise<void>;
+            close(): Promise<boolean>;
+            count(n: string): number;
+        };
+        LoopingBot: new () => { loop(): unknown; log(m: string): void };
+        registerScript(m: { name: string; create(): unknown }): unknown;
+    };
+    __seed?: { open: boolean; stop: boolean; done: boolean; note: string };
+};
+
+const logLines = (page: Page): Promise<string[]> =>
+    page.evaluate(() => ((globalThis as never as Api).rs2b0t.runner.ctx?.log ?? []).map(l => l.msg));
+
+const deathCount = (page: Page): Promise<number> =>
+    page.evaluate(() => (globalThis as never as Api).rs2b0t.reader.chat(200).filter(c => /oh dear.*you are dead/i.test(c.text)).length);
+
+/** Bank rows are only readable while the modal is open; sample opportunistically. */
+const bankRows = (page: Page): Promise<BankRow[] | null> =>
+    page.evaluate(() => {
+        const b = (globalThis as never as Api).__rs2b0t.Bank;
+        return b.isOpen() ? b.items().map(i => ({ name: i.name ?? '?', count: i.count })) : null;
+    });
+
+const holdsTrailItem = (page: Page): Promise<boolean> =>
+    page.evaluate(
+        ids => (globalThis as never as Api).rs2b0t.reader.inventory().some(i => (ids as number[]).includes(i.id)),
+        [...CLUE_IDS, ...CASKETS]
+    );
+
+async function give(page: Page, debugName: string, id: number, count = 1): Promise<boolean> {
+    await cheatQuiet(page, `give ${debugName} ${count}`, 900);
+    return page
+        .waitForFunction(i => (globalThis as never as Api).rs2b0t.reader.inventory().some(x => x.id === i), id, { timeout: 6000 })
+        .then(() => true)
+        .catch(() => false);
+}
+
+/** Deposit a few loads by hand so the bank looks like a player's, not a preset's. */
+async function seedBank(page: Page): Promise<BankRow[] | null> {
+    await cheatQuiet(page, '~clearbank', 1500);
+    await page.evaluate(() => {
+        const g = globalThis as never as Api;
+        const api = g.__rs2b0t;
+        g.__seed = { open: false, stop: false, done: false, note: '' };
+        class Seeder extends api.LoopingBot {
+            override async loop(): Promise<void> {
+                try {
+                    g.__seed!.open = await api.Bank.openNearestAccess({ name: 'Bank booth', op: 'Use-quickly' }, m => this.log(m));
+                    if (!g.__seed!.open) {
+                        g.__seed!.note = 'could not open the Edgeville booth';
+                        return;
+                    }
+                    while (!g.__seed!.stop) {
+                        if (api.Inventory.used() > 0) {
+                            await api.Bank.depositInventory();
+                        }
+                        await api.Execution.delayTicks(2);
+                    }
+                    await api.Bank.close();
+                } finally {
+                    g.__seed!.done = true;
+                    g.rs2b0t.runner.stop('seed complete');
+                }
+            }
+        }
+        g.rs2b0t.runner.start(api.registerScript({ name: 'ClueTrailSeedBank', create: () => new Seeder() }));
+    });
+
+    const opened = await page
+        .waitForFunction(() => (globalThis as never as Api).__seed?.open === true, undefined, { timeout: 40_000 })
+        .then(() => true)
+        .catch(() => false);
+    if (!opened) {
+        const note = await page.evaluate(() => (globalThis as never as Api).__seed?.note ?? 'timed out');
+        fail(`bank seeding could not open the bank: ${note}`);
+    }
+
+    await cheatQuiet(page, `give coins ${SEED_COINS}`, 900);
+    for (let batch = 0; batch < SEED_BATCHES; batch++) {
+        await cheatQuiet(page, 'give lobster 27', 900);
+        await page
+            .waitForFunction(() => (globalThis as never as Api).__rs2b0t.Inventory.used() === 0, undefined, { timeout: 20_000 })
+            .catch(() => undefined);
+    }
+    const stocked = await page.evaluate(() => ({
+        lobster: (globalThis as never as Api).__rs2b0t.Bank.count('Lobster'),
+        coins: (globalThis as never as Api).__rs2b0t.Bank.count('Coins')
+    }));
+    // Baseline taken here, where the bank is provably open — the per-trail poll
+    // only catches a bank stop by luck, and a missed baseline means no loot line.
+    const baseline = await bankRows(page);
+    await page.evaluate(() => {
+        const s = (globalThis as never as Api).__seed;
+        if (s) {
+            s.stop = true;
+        }
+    });
+    await page.waitForFunction(() => (globalThis as never as Api).__seed?.done === true, undefined, { timeout: 20_000 }).catch(() => undefined);
+
+    if (stocked.lobster <= 0) {
+        fail(`bank seeding deposited no Lobster (coins ${stocked.coins}) — the run would starve`);
+    }
+    console.log(`bank seeded: ${stocked.lobster} Lobster, ${stocked.coins} coins`);
+    return baseline;
+}
+
+async function startSolver(page: Page): Promise<void> {
+    await page.evaluate(() => {
+        const g = globalThis as never as Api;
+        const meta = g.rs2b0t.registry.get('ClueSolver');
+        if (!meta) {
+            throw new Error('ClueSolver is not registered');
+        }
+        g.rs2b0t.runner.start(meta);
+    });
+    await page.waitForTimeout(600);
+}
+
+function diffBank(first: BankRow[] | null, last: BankRow[] | null): BankRow[] {
+    if (!first || !last) {
+        return [];
+    }
+    const before = new Map(first.map(r => [r.name, r.count]));
+    return last
+        .map(r => ({ name: r.name, count: r.count - (before.get(r.name) ?? 0) }))
+        .filter(r => r.count > 0)
+        .sort((a, b) => b.count - a.count);
+}
+
+async function main(): Promise<void> {
+    const browser = await launchBrowser({ swiftshader: !process.env.HEADED });
+    const context = await browser.newContext({ viewport: HARNESS_VIEWPORT });
+    const page = await context.newPage();
+    page.on('pageerror', e => console.log(`pageerror: ${e}`));
+
+    const rounds: Round[] = [];
+    let firstBank: BankRow[] | null = null;
+    let lastBank: BankRow[] | null = null;
+    const startedAt = Date.now();
+
+    try {
+        await page.goto(`${base}/bot.html`);
+        await boot(page);
+        if (!(await login(page, user))) {
+            fail(`login failed for ${user}`);
+        }
+        await bringUpOffIsland(page, { user });
+
+        for (const s of STATS) {
+            await cheatQuiet(page, `setstat ${s} ${LEVEL}`, 250);
+        }
+        const stats = await page.evaluate(
+            names => Object.fromEntries(names.map(n => [n, (globalThis as never as Api).__rs2b0t.Skills.level(n)])),
+            STATS
+        );
+        if (Object.values(stats).some(v => v !== LEVEL)) {
+            fail(`stats not all ${LEVEL}: ${JSON.stringify(stats)}`);
+        }
+        console.log(`${LEVEL} across the board (prayer included) — ${TRAILS} ${TIER} trails`);
+
+        await cheatQuiet(page, `tele 0,${START.x >> 6},${START.z >> 6},${START.x & 63},${START.z & 63}`, 3500);
+        await give(page, 'rune_scimitar', SCIMITAR);
+        for (let i = 0; i < 4 && !(await page.evaluate(() => (globalThis as never as Api).__rs2b0t.Equipment.contains('Rune scimitar'))); i++) {
+            await page.evaluate(id => {
+                const it = (globalThis as never as Api).__rs2b0t.Inventory.items().find(x => x.id === id);
+                it?.interact('Wield');
+            }, SCIMITAR);
+            await page.waitForTimeout(1000);
+        }
+        firstBank = await seedBank(page);
+        await give(page, 'spade', SPADE);
+        for (const [debugName, id] of TRIO) {
+            await give(page, debugName, id);
+        }
+
+        await setSettings(page, 'ClueSolver', {
+            food: 'Lobster',
+            foodWithdraw: 20,
+            restorePrayer: true,
+            useTeleports: process.env.TELEPORTS === '1'
+        });
+        await setSettings(page, 'Global', { showNavPath: true, navPathShowText: true });
+        await startSolver(page);
+
+        let deaths = await deathCount(page);
+        let seenLines = (await logLines(page)).length;
+
+        for (let n = 0; n < TRAILS; n++) {
+            const seedId = TIER_CLUES[n % TIER_CLUES.length];
+            const seedObj = CLUE_DB[seedId].obj;
+            console.log(`\n${'─'.repeat(72)}\ntrail ${n + 1}/${TRAILS} — seeding ${seedId} ${seedObj}\n${'─'.repeat(72)}`);
+            if (!(await give(page, seedObj, seedId))) {
+                fail(`could not seed ${seedObj}`);
+            }
+
+            const t0 = Date.now();
+            const deathsAtStart = deaths;
+            let ended: Ended = 'timeout';
+            let legs = 0;
+
+            while (Date.now() - t0 < TRAIL_BUDGET_MS) {
+                await page.waitForTimeout(POLL_MS);
+                const lines = await logLines(page);
+                for (const l of lines.slice(seenLines)) {
+                    console.log(`   ${l}`);
+                    if (l.startsWith('[clue] leg ')) {
+                        legs++;
+                    }
+                }
+                seenLines = lines.length;
+
+                const open = await bankRows(page);
+                if (open) {
+                    lastBank = open;
+                    firstBank ??= open;
+                }
+
+                const now = await deathCount(page);
+                if (now > deaths) {
+                    deaths = now;
+                    ended = 'died';
+                    break;
+                }
+                if (!(await holdsTrailItem(page))) {
+                    ended = 'solved';
+                    break;
+                }
+            }
+
+            // Give the solver a moment to bank the reward before the next seed.
+            if (ended === 'solved') {
+                await page.waitForTimeout(4000);
+                const open = await bankRows(page);
+                if (open) {
+                    lastBank = open;
+                }
+            }
+
+            rounds.push({
+                n: n + 1,
+                seedId,
+                seedObj,
+                ended,
+                seconds: Math.round((Date.now() - t0) / 1000),
+                legs,
+                deathsDuring: deaths - deathsAtStart
+            });
+            console.log(`   => ${ended.toUpperCase()} in ${rounds[rounds.length - 1].seconds}s (${legs} legs)`);
+
+            if (!existsSync('out')) {
+                mkdirSync('out', { recursive: true });
+            }
+            writeFileSync(
+                'out/clue-trails.json',
+                JSON.stringify({ user, base, tier: TIER, startedAt, rounds, deaths, loot: diffBank(firstBank, lastBank) }, null, 2)
+            );
+        }
+
+        const solved = rounds.filter(r => r.ended === 'solved').length;
+        const died = rounds.filter(r => r.ended === 'died').length;
+        const loot = diffBank(firstBank, lastBank);
+        console.log(`\n${'='.repeat(72)}\n${TIER.toUpperCase()} TRAILS — ${rounds.length} run\n${'='.repeat(72)}`);
+        console.log(`solved   ${solved}/${rounds.length}`);
+        console.log(`died     ${died} trail(s), ${deaths} death(s) total`);
+        console.log(`timeout  ${rounds.filter(r => r.ended === 'timeout').length}`);
+        console.log(`elapsed  ${Math.round((Date.now() - startedAt) / 60_000)}m`);
+        if (loot.length > 0) {
+            console.log('\nloot banked:');
+            for (const l of loot.slice(0, 25)) {
+                console.log(`  ${String(l.count).padStart(6)}  ${l.name}`);
+            }
+        } else {
+            console.log('\nloot banked: none observed (bank never sampled while open)');
+        }
+        console.log('\nproof: out/clue-trails.json');
+    } finally {
+        await page.evaluate(() => (globalThis as never as Api).rs2b0t.runner.stop('harness end')).catch(() => undefined);
+        if (!process.env.HEADED) {
+            await browser.close();
+        }
+    }
+}
+
+await main();
