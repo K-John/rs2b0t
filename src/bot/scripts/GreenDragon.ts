@@ -387,29 +387,6 @@ class SetAttackStyle implements Task {
     }
 }
 
-/**
- * Arm the spec bar whenever energy allows and we are actually fighting.
- *
- * One-shot per special: the bar sets %sa_attack, the next hit spends it and the
- * server clears the flag, so this re-arms rather than setting a mode once.
- */
-class SpecialAttack implements Task {
-    private specs = 0;
-    constructor(private bot: GreenDragon) {}
-    validate(): boolean {
-        if (!USE_SPECIAL || STYLE !== 'melee' || !Game.inCombat() || Special.armed()) {
-            return false;
-        }
-        return Equipment.contains(WEAPON) && Special.ready(WEAPON);
-    }
-    async execute(): Promise<void> {
-        if (await Special.arm()) {
-            this.specs++;
-            this.bot.vlog(`special armed (${this.specs} used, ${Special.energy()}/${SA_MAX_ENERGY} energy left)`);
-        }
-    }
-}
-
 class ArmAutocast implements Task {
     private fails = 0;
     private retryAt = 0;
@@ -783,6 +760,15 @@ class Fight implements Task {
                     continue;
                 }
             }
+            // Inline, not a sibling task: this cycle owns the bot for the whole
+            // kill, so a SpecialAttack task above Fight was never evaluated while
+            // in combat and never fired at all — energy just sat at full.
+            if (USE_SPECIAL && !Special.armed() && Special.ready(WEAPON) && Equipment.contains(WEAPON)) {
+                if (await Special.arm()) {
+                    this.bot.countSpecial();
+                    this.bot.vlog(`special armed (${Special.energy()}/${SA_MAX_ENERGY} energy left)`);
+                }
+            }
             if (Game.inCombat()) {
                 await Execution.delayTicks(2);
                 continue;
@@ -810,6 +796,8 @@ export default class GreenDragon extends TaskBot {
     private bankEmpty = false;
     private cluesSolved = 0;
     private slotsFreed = 0;
+
+    private specials = 0;
     private buried = 0;
 
     private readonly startedAt = Date.now();
@@ -894,7 +882,6 @@ export default class GreenDragon extends TaskBot {
             traced('GearEquip', new GearEquip(this)),
             traced('SetAttackStyle', new SetAttackStyle(this)),
             traced('ArmAutocast', new ArmAutocast(this)),
-            traced('SpecialAttack', new SpecialAttack(this)),
             // Above SolveClue: a trail's bank prep would otherwise deposit the
             // bones we were told to bury.
             traced('BuryBones', new BuryBones(this)),
@@ -958,6 +945,9 @@ export default class GreenDragon extends TaskBot {
     kills(): number {
         return this.killsTotal;
     }
+    countSpecial(): void {
+        this.specials++;
+    }
     countLoot(name?: string): void {
         this.looted++;
         if (name) {
@@ -998,7 +988,7 @@ export default class GreenDragon extends TaskBot {
             const kph = mins > 0.5 ? Math.round((this.killsTotal / mins) * 60) : 0;
             p.row(`Runtime: ${fmtDuration(mins)}`, `Kills: ${this.killsTotal}`, `Kills/hr: ${mins > 0.5 ? kph : '—'}`);
             p.row(`Style: ${STYLE}`, `Food: ${foodCount()}`, `Trips: ${this.bankTrips}`);
-            p.row(`Shield: ${Equipment.contains(SHIELD) ? 'on' : 'OFF!'}`, `Spec: ${USE_SPECIAL ? `${Math.round(Special.energy() / 10)}%` : 'off'}`, `Freed: ${this.slotsFreed}`);
+            p.row(`Shield: ${Equipment.contains(SHIELD) ? 'on' : 'OFF!'}`, `Spec: ${USE_SPECIAL ? `${Math.round(Special.energy() / 10)}% (${this.specials})` : 'off'}`, `Freed: ${this.slotsFreed}`);
             p.bar('HP', hpFrac());
         } else if (tab === 'Melee' || tab === 'Support') {
             // Prayer is always shown on Support even at zero gain: seeing it sit
