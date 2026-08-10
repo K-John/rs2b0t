@@ -8,7 +8,10 @@ import { Sustain } from '../api/Sustain.js';
 import { Traversal } from '../api/Traversal.js';
 import { Paint } from '../api/hud/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
+import { Bank } from '../api/hud/Bank.js';
+import { depositAllExcept } from '../api/bankRules.js';
 import { Inventory } from '../api/hud/Inventory.js';
+import { SPADE_NAME, TRIO } from '../clues/data/toolAcquire.js';
 import { Skills } from '../api/hud/Skills.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { ClueExecutor, tilesTo } from '../clues/ClueExecutor.js';
@@ -86,13 +89,24 @@ export default class ClueSolver extends TaskBot {
                 const bank = nearestBank(here);
                 if (!bank) {
                     this.log('[clue] no known bank on this level to return to — idling here');
-                } else if (Math.max(Math.abs(bank.tile.x - here.x), Math.abs(bank.tile.z - here.z)) > 3) {
+                    this.returnToBank = false;
+                    this.setStatus('waiting for a clue');
+                    return;
+                }
+                if (Math.max(Math.abs(bank.tile.x - here.x), Math.abs(bank.tile.z - here.z)) > 3) {
                     this.setStatus(`returning to the ${bank.name} bank`);
                     this.log(`[clue] trail done — returning to the ${bank.name} bank (${bank.tile})`);
                     if (!(await Traversal.walkResilient(bank.tile, { radius: 3, attempts: 6, timeoutMs: 300_000, log: m => this.log(`  ${m}`) }))) {
                         this.log('[clue] walk to the bank failed — idling here');
+                        this.returnToBank = false;
+                        this.setStatus('waiting for a clue');
+                        return;
                     }
                 }
+                // Walking there was never the job — the casket reward has to go in.
+                // Without this the bot stands on the booth holding the whole trail's
+                // loot until the next trail's prep happens to deposit it.
+                await this.depositTrailLoot();
                 this.returnToBank = false;
                 this.setStatus('waiting for a clue');
             }
@@ -104,6 +118,30 @@ export default class ClueSolver extends TaskBot {
 
     setStatus(s: string): void {
         this.status = s;
+    }
+
+    /** Bank the casket reward, keeping only what the next trail runs on. */
+    private async depositTrailLoot(): Promise<void> {
+        if (!(await Bank.openNearestAccess({ name: 'Bank booth', op: 'Use-quickly' }, m => this.log(`  ${m}`)))) {
+            this.log('[clue] could not open the bank to store the reward');
+            return;
+        }
+        const keep = [
+            this.settings.str('food', ''),
+            this.settings.str('weapon', ''),
+            SPADE_NAME,
+            ...TRIO,
+            'Coins',
+            'Air rune',
+            'Water rune',
+            'Earth rune',
+            'Fire rune',
+            'Law rune'
+        ].filter(n => n !== '');
+        const before = Inventory.used();
+        await Bank.depositAllMatching(depositAllExcept(keep), m => this.log(`  ${m}`));
+        this.log(`[clue] banked the reward (${before} → ${Inventory.used()} slots used)`);
+        await Bank.close();
     }
 
     override onPaint(ctx: CanvasRenderingContext2D): void {

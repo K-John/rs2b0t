@@ -64,6 +64,10 @@ const SEED_RUNES: [string, number][] = [
     ['waterrune', 500]
 ];
 
+/** SEED=<clueId> pins every round to one clue — for reproducing a single stall. */
+const SEED_ONLY = Number(process.env.SEED ?? 0);
+/** How long to let the solver walk back and bank the casket before the next trail. */
+const BANK_WAIT_MS = Number(process.env.BANK_WAIT_MS ?? 180_000);
 const TIER_CLUES = Object.keys(CLUE_DB)
     .map(Number)
     .filter(id => CLUE_DB[id].obj.includes(TIER))
@@ -249,6 +253,31 @@ async function seedBank(page: Page): Promise<BankRow[] | null> {
     return baseline;
 }
 
+/** Open the bank deliberately and read it — the poll misses a two-tick modal. */
+async function snapshotBank(page: Page): Promise<BankRow[] | null> {
+    await page.evaluate(() => (globalThis as never as Api).rs2b0t.runner.stop('harness: closing snapshot'));
+    await page.waitForTimeout(1200);
+    await page.evaluate(() => {
+        const g = globalThis as never as Api;
+        const api = g.__rs2b0t;
+        g.__seed = { open: false, stop: false, done: false, note: '' };
+        class Snap extends api.LoopingBot {
+            override async loop(): Promise<void> {
+                try {
+                    g.__seed!.open = await api.Bank.openNearestAccess({ name: 'Bank booth', op: 'Use-quickly' }, m => this.log(m));
+                } finally {
+                    g.__seed!.done = true;
+                }
+            }
+        }
+        g.rs2b0t.runner.start(api.registerScript({ name: 'ClueTrailBankSnapshot', create: () => new Snap() }));
+    });
+    await page.waitForFunction(() => (globalThis as never as Api).__seed?.done === true, undefined, { timeout: 120_000 }).catch(() => undefined);
+    const rows = await bankRows(page);
+    await page.evaluate(() => (globalThis as never as Api).rs2b0t.runner.stop('harness: snapshot done')).catch(() => undefined);
+    return rows;
+}
+
 async function startSolver(page: Page): Promise<void> {
     await page.evaluate(() => {
         const g = globalThis as never as Api;
@@ -332,7 +361,9 @@ async function main(): Promise<void> {
         let seenLines = (await logLines(page)).length;
 
         for (let n = 0; n < TRAILS; n++) {
-            const seedId = TIER_CLUES[n % TIER_CLUES.length];
+            // Random rather than round-robin: a fixed sequence keeps re-running the
+            // same handful of starts, and a trail is meant to begin anywhere.
+            const seedId = SEED_ONLY > 0 ? SEED_ONLY : TIER_CLUES[Math.floor(Math.random() * TIER_CLUES.length)];
             const seedObj = CLUE_DB[seedId].obj;
             console.log(`\n${'─'.repeat(72)}\ntrail ${n + 1}/${TRAILS} — seeding ${seedId} ${seedObj}\n${'─'.repeat(72)}`);
             // A dead runner is silent, and every later round would just time out
@@ -399,13 +430,29 @@ async function main(): Promise<void> {
                 }
             }
 
-            // Give the solver a moment to bank the reward before the next seed.
+            // The trail is not finished until the loot is in the bank: ClueSolver
+            // walks back on its own after a solve, so wait for that trip rather
+            // than seeding the next clue on top of a full pack of reward.
             if (ended === 'solved') {
-                await page.waitForTimeout(4000);
-                const open = await bankRows(page);
-                if (open) {
-                    lastBank = open;
+                const bankedAt = Date.now();
+                let banked = false;
+                while (Date.now() - bankedAt < BANK_WAIT_MS) {
+                    await page.waitForTimeout(POLL_MS);
+                    const lines = await logLines(page);
+                    for (const l of lines.slice(seenLines)) {
+                        console.log(`   ${l}`);
+                    }
+                    seenLines = lines.length;
+                    const open = await bankRows(page);
+                    if (open) {
+                        lastBank = open;
+                    }
+                    if (lines.some(l => l.includes('banked the reward'))) {
+                        banked = true;
+                        break;
+                    }
                 }
+                console.log(banked ? '   loot banked' : `   !! never banked within ${Math.round(BANK_WAIT_MS / 1000)}s`);
             }
 
             rounds.push({
@@ -437,6 +484,8 @@ async function main(): Promise<void> {
                 JSON.stringify({ user, base, tier: TIER, startedAt, rounds, deaths, loot: diffBank(firstBank, lastBank) }, null, 2)
             );
         }
+
+        lastBank = (await snapshotBank(page)) ?? lastBank;
 
         const solved = rounds.filter(r => r.ended === 'solved').length;
         const died = rounds.filter(r => r.ended === 'died').length;
