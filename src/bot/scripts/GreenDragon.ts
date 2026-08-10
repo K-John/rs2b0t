@@ -17,6 +17,7 @@ import { castsAvailable, runeWithdrawList } from '../api/combat/CombatStyleLogic
 import { SPELL_DB } from '../api/combat/data/spelldb.js';
 import { DROP_DB } from '../api/combat/data/dropdb.js';
 import { MELEE_WEAPONS, STAFFS } from '../api/combat/equipment.js';
+import { SA_MAX_ENERGY, Special } from '../api/combat/Special.js';
 import { FOOD_OPTIONS, foodForms, isFoodItem, foodCount as foodCountIn, foodHealAmount, shouldEatToUseFood } from '../api/combat/food.js';
 import { combatKeepNames } from '../api/combat/keepList.js';
 import { depositAllExcept } from '../api/Banking.js';
@@ -52,6 +53,7 @@ const BONE_NAME = 'Dragon bones';
 export const SETTINGS: SettingsSchema = {
     combatStyle: { type: 'string', default: 'melee', options: ['melee', 'mage'], label: 'Combat style', help: 'range is unavailable — a bow blocks the anti-dragon shield slot' },
     meleeStyle: { type: 'string', default: 'strength', options: COMBAT_STYLE_OPTIONS, label: 'Melee style', group: 'Combat', showIf: SHOW_MELEE },
+    useSpecial: { type: 'boolean', default: true, label: 'Use special attacks', group: 'Combat', showIf: SHOW_MELEE, help: 'arms the spec bar whenever energy allows and the wielded weapon has one (dragon dagger, dragon longsword, …); does nothing with a weapon that has no special' },
     weapon: { type: 'string', default: 'Rune scimitar', options: MELEE_WEAPONS, label: 'Weapon', group: 'Combat', showIf: SHOW_MELEE, help: '1-handed (keeps the shield slot free), withdrawn from bank when missing' },
     staff: { type: 'string', default: 'Staff of fire', options: STAFFS, label: 'Staff', group: 'Combat', showIf: SHOW_MAGE },
     spell: { type: 'string', default: 'Fire Strike', options: Object.keys(SPELL_DB), label: 'Autocast spell', group: 'Combat', showIf: SHOW_MAGE },
@@ -77,6 +79,7 @@ export const SETTINGS: SettingsSchema = {
 
 let STYLE: 'melee' | 'mage' = 'melee';
 let MELEE_STYLE: MeleeCombatStyle = 'strength';
+let USE_SPECIAL = true;
 let WEAPON = '';
 let SHIELD = 'Dragonfire shield';
 let SPELL = 'Fire Strike';
@@ -344,6 +347,29 @@ class SetAttackStyle implements Task {
             this.fails = 0;
             this.retryAt = Date.now() + ASSERT_RETRY_MS;
             this.bot.log(`could not set the melee attack style — retrying in ${ASSERT_RETRY_MS / 1000}s`);
+        }
+    }
+}
+
+/**
+ * Arm the spec bar whenever energy allows and we are actually fighting.
+ *
+ * One-shot per special: the bar sets %sa_attack, the next hit spends it and the
+ * server clears the flag, so this re-arms rather than setting a mode once.
+ */
+class SpecialAttack implements Task {
+    private specs = 0;
+    constructor(private bot: GreenDragon) {}
+    validate(): boolean {
+        if (!USE_SPECIAL || STYLE !== 'melee' || !Game.inCombat() || Special.armed()) {
+            return false;
+        }
+        return Equipment.contains(WEAPON) && Special.ready(WEAPON);
+    }
+    async execute(): Promise<void> {
+        if (await Special.arm()) {
+            this.specs++;
+            this.bot.vlog(`special armed (${this.specs} used, ${Special.energy()}/${SA_MAX_ENERGY} energy left)`);
         }
     }
 }
@@ -764,6 +790,7 @@ export default class GreenDragon extends TaskBot {
         SPELL = this.settings.str('spell', 'Fire Strike');
         WEAPON = STYLE === 'mage' ? this.settings.str('staff', 'Staff of fire') : this.settings.str('weapon', 'Rune scimitar');
         SHIELD = this.settings.str('shield', 'Dragonfire shield');
+        USE_SPECIAL = this.settings.bool('useSpecial', true);
         FOOD_NAME = this.settings.str('food', 'Lobster');
 
         PANIC_HP = this.settings.num('panicHp', 30) / 100;
@@ -823,6 +850,7 @@ export default class GreenDragon extends TaskBot {
             traced('GearEquip', new GearEquip(this)),
             traced('SetAttackStyle', new SetAttackStyle(this)),
             traced('ArmAutocast', new ArmAutocast(this)),
+            traced('SpecialAttack', new SpecialAttack(this)),
             // Above SolveClue: a trail's bank prep would otherwise deposit the
             // bones we were told to bury.
             traced('BuryBones', new BuryBones(this)),
