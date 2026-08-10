@@ -110,6 +110,9 @@ type Api = {
     __seed?: { open: boolean; stop: boolean; done: boolean; note: string };
 };
 
+const runnerState = (page: Page): Promise<string> =>
+    page.evaluate(() => (globalThis as never as Api).rs2b0t.runner.state);
+
 const logLines = (page: Page): Promise<string[]> =>
     page.evaluate(() => ((globalThis as never as Api).rs2b0t.runner.ctx?.log ?? []).map(l => l.msg));
 
@@ -327,6 +330,13 @@ async function main(): Promise<void> {
             const seedId = TIER_CLUES[n % TIER_CLUES.length];
             const seedObj = CLUE_DB[seedId].obj;
             console.log(`\n${'─'.repeat(72)}\ntrail ${n + 1}/${TRAILS} — seeding ${seedId} ${seedObj}\n${'─'.repeat(72)}`);
+            // A dead runner is silent, and every later round would just time out
+            // against a script that is not running. Say so, and put it back.
+            const before = await runnerState(page);
+            if (before !== 'running') {
+                console.log(`   !! solver was '${before}' — restarting it`);
+                await startSolver(page);
+            }
             await clearTrailItems(page);
             if (!(await give(page, seedObj, seedId))) {
                 fail(`could not seed ${seedObj}`);
@@ -355,6 +365,12 @@ async function main(): Promise<void> {
                     }
                 }
                 seenLines = lines.length;
+
+                const state = await runnerState(page);
+                if (state !== 'running') {
+                    console.log(`   !! solver stopped mid-trail (state '${state}')`);
+                    reason = `solver stopped (${state})`;
+                }
                 if (reason !== null) {
                     ended = 'abandoned';
                     break;
