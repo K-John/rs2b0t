@@ -13,6 +13,8 @@ import { Equipment } from '../api/hud/Equipment.js';
 import { Inventory } from '../api/hud/Inventory.js';
 import { Skills } from '../api/hud/Skills.js';
 import { Paint } from '../api/hud/Paint.js';
+import { fmtDuration, fmtXpHr, paintSkillShort } from '../api/hud/paintLogic.js';
+import { etaHours, levelProgress } from '../api/hud/levelProgress.js';
 import { COMBAT_STYLE_OPTIONS, parseCombatStyle, type MeleeCombatStyle } from '../api/CombatStyle.js';
 import { Autocast } from '../api/combat/Autocast.js';
 import { castsAvailable, runeWithdrawList } from '../api/combat/CombatStyleLogic.js';
@@ -83,6 +85,9 @@ export const SETTINGS: SettingsSchema = {
 let STYLE: 'melee' | 'mage' = 'melee';
 let MELEE_STYLE: MeleeCombatStyle = 'strength';
 let USE_SPECIAL = true;
+
+/** Skills a dragon grind actually moves, for the Levels tab. */
+const GRIND_SKILLS = ['attack', 'strength', 'defence', 'hitpoints', 'ranged', 'magic', 'prayer'];
 let WEAPON = '';
 let SHIELD = 'Dragonfire shield';
 let SPELL = 'Fire Strike';
@@ -92,6 +97,8 @@ let PANIC_HP = 0.3;
 let RUNES_WITHDRAW = 150;
 let FOOD_WITHDRAW = 20;
 let LOOT_SET = new Set<string>();
+/** DROP_DB names it plainly 'Dragonhide' — the headline drop for the rate line. */
+const HIDE_NAME = 'Dragonhide';
 let BANK_COMMON = true;
 let TELE_ESCAPE = false;
 let ANCHOR = DEFAULT_ANCHOR;
@@ -282,7 +289,7 @@ async function lootOnce(bot: GreenDragon): Promise<boolean> {
     const before = Inventory.used();
     await drop.interact('Take');
     if (await Execution.delayUntil(() => Inventory.used() > before, 4000)) {
-        bot.countLoot();
+        bot.countLoot(drop.name ?? undefined);
         bot.log(`looted ${drop.name}`);
         return true;
     }
@@ -796,6 +803,13 @@ export default class GreenDragon extends TaskBot {
     private cluesSolved = 0;
     private slotsFreed = 0;
     private buried = 0;
+
+    private readonly startedAt = Date.now();
+
+    private xpAtStart = new Map<string, number>();
+
+    /** What has actually been picked up, for the scrollable loot tab. */
+    private readonly lootCounts = new Map<string, number>();
     private lastTask = '';
     private readonly lastVlog = new Map<string, string>();
     private holdReturnUntil = 0;
@@ -812,6 +826,7 @@ export default class GreenDragon extends TaskBot {
         WEAPON = STYLE === 'mage' ? this.settings.str('staff', 'Staff of fire') : this.settings.str('weapon', 'Rune scimitar');
         SHIELD = this.settings.str('shield', 'Dragonfire shield');
         USE_SPECIAL = this.settings.bool('useSpecial', true);
+        this.xpAtStart = new Map(GRIND_SKILLS.map(sk => [sk, Skills.xp(sk)]));
         FOOD_NAME = this.settings.str('food', 'Lobster');
 
         PANIC_HP = this.settings.num('panicHp', 30) / 100;
@@ -935,8 +950,11 @@ export default class GreenDragon extends TaskBot {
     kills(): number {
         return this.killsTotal;
     }
-    countLoot(): void {
+    countLoot(name?: string): void {
         this.looted++;
+        if (name) {
+            this.lootCounts.set(name, (this.lootCounts.get(name) ?? 0) + 1);
+        }
     }
     countBankTrip(): void {
         this.bankTrips++;
@@ -961,21 +979,41 @@ export default class GreenDragon extends TaskBot {
         // Clues get their own tab rather than one summary row: a trail can walk
         // most of the map, and the leg/travel detail is the only way to see it is
         // making progress. Same block ClueSolver paints.
-        const tab = SOLVE_CLUES ? p.tabs('gd', ['Grind', 'Clue']) : 'Grind';
-        if (tab === 'Clue') {
+        const mins = (Date.now() - this.startedAt) / 60_000;
+        const names = ['Grind', 'Levels', 'Loot'];
+        if (SOLVE_CLUES) {
+            names.push('Clue');
+        }
+        const tab = p.tabs('gd', names);
+
+        if (tab === 'Grind') {
+            const kph = mins > 0.5 ? Math.round((this.killsTotal / mins) * 60) : 0;
+            p.row(`Runtime: ${fmtDuration(mins)}`, `Kills: ${this.killsTotal}`, `Kills/hr: ${mins > 0.5 ? kph : '—'}`);
+            p.row(`Style: ${STYLE}`, `Food: ${foodCount()}`, `Trips: ${this.bankTrips}`);
+            p.row(`Shield: ${Equipment.contains(SHIELD) ? 'on' : 'OFF!'}`, `Spec: ${USE_SPECIAL ? `${Math.round(Special.energy() / 10)}%` : 'off'}`, `Freed: ${this.slotsFreed}`);
+            p.bar('HP', hpFrac());
+        } else if (tab === 'Levels') {
+            for (const sk of GRIND_SKILLS) {
+                const gained = Skills.xp(sk) - (this.xpAtStart.get(sk) ?? Skills.xp(sk));
+                if (gained <= 0 && sk !== 'hitpoints') {
+                    continue;
+                }
+                const prog = levelProgress(Skills.level(sk), Skills.xp(sk));
+                const rate = mins > 0.5 ? (gained / mins) * 60 : 0;
+                const eta = etaHours(prog.remaining, rate);
+                p.bar(`${paintSkillShort(sk)} ${prog.level}`, prog.fraction);
+                p.row(`${fmtXpHr(gained, mins)}/hr`, `${prog.remaining.toLocaleString()} to go`, eta === null ? 'eta —' : `eta ${fmtDuration(eta * 60)}`);
+            }
+        } else if (tab === 'Loot') {
+            const hides = this.lootCounts.get(HIDE_NAME) ?? 0;
+            p.row(`Looted: ${this.looted}`, `Hides: ${hides}`, `Hides/hr: ${mins > 0.5 ? Math.round((hides / mins) * 60) : '—'}`);
+            const rows = [...this.lootCounts.entries()]
+                .sort((a, b) => b[1] - a[1])
+                .map(([name, n]) => `${String(n).padStart(4)}  ${name}`);
+            p.list('gdloot', rows, 6);
+        } else {
             p.row(`Solved: ${this.cluesSolved}`, `Status: ${this.solveClue?.clueStatus() ?? 'idle'}`);
             paintClueProgress(p, 'no clue in progress — grinding');
-        } else {
-            p.row(`Style: ${STYLE}`, `HP: ${Math.round(hpFrac() * 100)}%`);
-            p.row(`Kills: ${this.killsTotal}`, `Looted: ${this.looted}`);
-            p.row(`Shield: ${Equipment.contains(SHIELD) ? 'on' : 'OFF!'}`, `Bank trips: ${this.bankTrips}`);
-            p.row(`Food: ${foodCount()} (keep ${FOOD_RESERVE})`, `Slots freed: ${this.slotsFreed}`);
-            if (BURY_BONES) {
-                p.row(`Buried: ${this.buried}`, `Prayer: ${Skills.level('prayer')}`);
-            }
-            if (SOLVE_CLUES) {
-                p.row(`Clues: ${this.cluesSolved}`, `Clue: ${this.solveClue?.clueStatus() ?? 'idle'}`);
-            }
         }
         p.gap();
         ScriptRunner.paintControls(p);
