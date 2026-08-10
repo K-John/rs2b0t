@@ -86,8 +86,16 @@ let STYLE: 'melee' | 'mage' = 'melee';
 let MELEE_STYLE: MeleeCombatStyle = 'strength';
 let USE_SPECIAL = true;
 
-/** Skills a dragon grind actually moves, for the Levels tab. */
-const GRIND_SKILLS = ['attack', 'strength', 'defence', 'hitpoints', 'ranged', 'magic', 'prayer'];
+/**
+ * Skills a dragon grind moves, split across two tabs.
+ *
+ * Each one costs a bar plus a rate row (~32px) and the panel only has ~112px
+ * under the title and tabs, so three per tab is the honest budget — cramming all
+ * seven into one tab silently pushed prayer off the bottom.
+ */
+const MELEE_SKILLS = ['attack', 'strength', 'defence'];
+const SUPPORT_SKILLS = ['hitpoints', 'ranged', 'magic', 'prayer'];
+const GRIND_SKILLS = [...MELEE_SKILLS, ...SUPPORT_SKILLS];
 let WEAPON = '';
 let SHIELD = 'Dragonfire shield';
 let SPELL = 'Fire Strike';
@@ -980,7 +988,7 @@ export default class GreenDragon extends TaskBot {
         // most of the map, and the leg/travel detail is the only way to see it is
         // making progress. Same block ClueSolver paints.
         const mins = (Date.now() - this.startedAt) / 60_000;
-        const names = ['Grind', 'Levels', 'Loot'];
+        const names = ['Grind', 'Melee', 'Support', 'Loot'];
         if (SOLVE_CLUES) {
             names.push('Clue');
         }
@@ -992,12 +1000,18 @@ export default class GreenDragon extends TaskBot {
             p.row(`Style: ${STYLE}`, `Food: ${foodCount()}`, `Trips: ${this.bankTrips}`);
             p.row(`Shield: ${Equipment.contains(SHIELD) ? 'on' : 'OFF!'}`, `Spec: ${USE_SPECIAL ? `${Math.round(Special.energy() / 10)}%` : 'off'}`, `Freed: ${this.slotsFreed}`);
             p.bar('HP', hpFrac());
-        } else if (tab === 'Levels') {
-            for (const sk of GRIND_SKILLS) {
+        } else if (tab === 'Melee' || tab === 'Support') {
+            // Prayer is always shown on Support even at zero gain: seeing it sit
+            // still is the point when bone burying is meant to be running.
+            const always = new Set(['hitpoints', 'prayer']);
+            const shown = (tab === 'Melee' ? MELEE_SKILLS : SUPPORT_SKILLS).filter(
+                sk => always.has(sk) || Skills.xp(sk) - (this.xpAtStart.get(sk) ?? Skills.xp(sk)) > 0
+            );
+            if (shown.length === 0) {
+                p.text('no experience yet', '#8a919a');
+            }
+            for (const sk of shown) {
                 const gained = Skills.xp(sk) - (this.xpAtStart.get(sk) ?? Skills.xp(sk));
-                if (gained <= 0 && sk !== 'hitpoints') {
-                    continue;
-                }
                 const prog = levelProgress(Skills.level(sk), Skills.xp(sk));
                 const rate = mins > 0.5 ? (gained / mins) * 60 : 0;
                 const eta = etaHours(prog.remaining, rate);
