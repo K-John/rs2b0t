@@ -1,3 +1,5 @@
+import { reader } from '../adapter/ClientAdapter.js';
+import { BotHost } from '../BotHost.js';
 import { TaskBot, type Task } from '../api/Bot.js';
 import { EventSignal } from '../api/EventSignal.js';
 import { Execution } from '../api/Execution.js';
@@ -18,6 +20,7 @@ import { SPELL_DB } from '../api/combat/data/spelldb.js';
 import { DROP_DB } from '../api/combat/data/dropdb.js';
 import { MELEE_WEAPONS, STAFFS } from '../api/combat/equipment.js';
 import { SA_MAX_ENERGY, Special } from '../api/combat/Special.js';
+import { AttackClock, URGENT_HP_FRACTION, shouldHoldEat } from '../api/combat/eatTiming.js';
 import { FOOD_OPTIONS, foodForms, isFoodItem, foodCount as foodCountIn, foodHealAmount, shouldEatToUseFood } from '../api/combat/food.js';
 import { combatKeepNames } from '../api/combat/keepList.js';
 import { depositAllExcept } from '../api/Banking.js';
@@ -219,6 +222,9 @@ function keepNames(): string[] {
     return combatKeepNames({ food: FOOD_NAME, style: STYLE, spell: SPELL, extra });
 }
 
+/** Shared by the Eat task and slot-freeing so both respect the swing. */
+const attackClock = new AttackClock();
+
 async function eatOnce(bot: GreenDragon): Promise<boolean> {
     const food = Inventory.items().find(i => foodForms(FOOD_NAME).includes((i.name ?? '').toLowerCase()));
     if (!food) {
@@ -299,7 +305,22 @@ class Eat implements Task {
     validate(): boolean {
         return needEat();
     }
+
+    /**
+     * Eating spends the tick it lands on, so landing it on the swing costs an
+     * attack. Hold that one tick and take the meal in the cooldown instead —
+     * unless health is low enough that waiting is the greater risk.
+     */
     async execute(): Promise<void> {
+        attackClock.observe(reader.selfAnim(), BotHost.tickCount);
+        const hold = Game.inCombat() && shouldHoldEat({
+            attackedThisTick: attackClock.attackedThisTick(BotHost.tickCount),
+            hpFraction: hpFrac(),
+            urgentAt: URGENT_HP_FRACTION
+        });
+        if (hold) {
+            await Execution.delayTicks(1);
+        }
         await eatOnce(this.bot);
     }
 }
