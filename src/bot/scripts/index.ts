@@ -1,7 +1,7 @@
 import { AGILITY_SETTINGS } from './AgilityBot.js';
 import { FISHING_LOCATION_OPTIONS } from '../api/FishingLocations.js';
 import { FISHING_METHOD_OPTIONS } from '../api/FishingMethods.js';
-import { MINING_LOCATION_OPTIONS } from '../api/MiningLocations.js';
+import { MINING_LOCATION_OPTION_LABELS, MINING_LOCATION_OPTIONS } from '../api/MiningLocations.js';
 import {
     AFTER_COOK_OPTIONS,
     BURNT_POLICY_OPTIONS,
@@ -54,6 +54,7 @@ import DartFletcher, { DART_FLETCHER_SETTINGS } from './DartFletcher.js';
 import BoneBurier, { BONE_BURIER_SETTINGS } from './BoneBurier.js';
 import FlaxPicker, { SETTINGS as FLAXPICKER_SETTINGS } from './FlaxPicker.js';
 import FlaxSpinner, { SETTINGS as FLAXSPINNER_SETTINGS } from './FlaxSpinner.js';
+import GemCutter, { GEM_CUTTER_SETTINGS } from './GemCutter.js';
 import EssMiner, { SETTINGS as ESSMINER_SETTINGS } from './EssMiner.js';
 import CoalTrucks from './CoalTrucks.js';
 import RuneCrafter, { SETTINGS as RUNECRAFTER_SETTINGS } from './RuneCrafter.js';
@@ -61,6 +62,7 @@ import NatureCrafter, { SETTINGS as NATURECRAFTER_SETTINGS } from './NatureCraft
 import MuleCrafter, { SETTINGS as MULECRAFTER_SETTINGS } from './MuleCrafter.js';
 import RoguesPurse from './RoguesPurse.js';
 import HerbloreSecondaries, { HERBLORE_SECONDARIES_SETTINGS } from './HerbloreSecondaries.js';
+import HerbCleaner, { HERB_CLEANER_SETTINGS } from './HerbCleaner.js';
 import ShopBuyout, { SHOPBUYOUT_SETTINGS } from './ShopBuyout.js';
 import FlaxRunner, { SETTINGS as FLAXRUNNER_SETTINGS } from './FlaxRunner.js';
 import { ShopRunner, SHOPRUNNER_SETTINGS } from './ShopRunner.js';
@@ -123,9 +125,9 @@ ScriptRegistry.register({
 
 ScriptRegistry.register({
     name: 'Duel Arena Combat Trainer',
-    description: 'Walks to the Al Kharid Duel Arena, pairs with other players, accepts both no-stake screens, fights with melee, and alternates Attack/Strength toward configured target levels',
+    description: 'Walks to the Al Kharid Duel Arena, pairs with other players, accepts both no-stake screens, fights with melee, and trains Attack/Strength plus opt-in Defence toward configured target levels',
     category: 'Combat',
-    tags: ['duel arena', 'pvp', 'attack', 'strength', 'multibox'],
+    tags: ['duel arena', 'pvp', 'attack', 'strength', 'defence', 'multibox'],
     settingsSchema: DUEL_ARENA_SETTINGS,
     create: () => new DuelArena()
 });
@@ -259,9 +261,10 @@ ScriptRegistry.register({
             type: 'string',
             default: 'Auto',
             options: MINING_LOCATION_OPTIONS,
+            optionLabels: MINING_LOCATION_OPTION_LABELS,
             label: 'Location / full inventory',
             help:
-                'Mine camp + full-pack behaviour. Auto = if you start in the same 64×64 map square as a known mine camp, snap to the nearest such camp and bank there; otherwise freeform (start-tile leash + nearest bank). Named camps pin spot + bank. None = power-mine (drop ore; configured food still restocks from the nearest bank).'
+                'Mine camp + full-pack behaviour. Auto = if you start in the same 64×64 map square as a known mine camp, snap to the nearest such camp and bank there; otherwise freeform (start-tile leash + nearest bank). Named camps pin spot + bank. Camps with aggressive NPCs show a recommended combat level (2× highest aggro + 1). None = power-mine (drop ore; configured food still restocks from the nearest bank).'
         },
         ...MINER_FOOD_SETTINGS,
         tickManip: {
@@ -490,6 +493,16 @@ ScriptRegistry.register({
 });
 
 ScriptRegistry.register({
+    name: 'HerbCleaner',
+    description:
+        'Banks at the nearest bank, withdraws unidentified herbs, cleans (identifies) every one your Herblore level allows — lowest-level first — deposits the cleaned herbs, and repeats. Leave all herbs unchecked to clean everything you can; check specific herbs to restrict the run to a subset. Each bank cycle deposits everything from your pack, so start with nothing valuable carried',
+    category: 'Herblore',
+    tags: ['herblore', 'identify', 'clean', 'banking', 'members'],
+    settingsSchema: HERB_CLEANER_SETTINGS,
+    create: () => new HerbCleaner()
+});
+
+ScriptRegistry.register({
     name: 'BoneBurier',
     description: 'Bank-standing Prayer trainer — withdraws full loads of an exact bone name and buries them until the bank is empty',
     category: 'Prayer',
@@ -532,6 +545,16 @@ ScriptRegistry.register({
     tags: ['seers', 'crafting', 'banking', 'afk'],
     settingsSchema: FLAXSPINNER_SETTINGS,
     create: () => new FlaxSpinner()
+});
+
+ScriptRegistry.register({
+    name: 'GemCutter',
+    description:
+        'Banks at the nearest bank, withdraws uncut gems and a chisel, cuts every gem your Crafting level allows — lowest-level first — deposits the cut gems (and crushed gems), and repeats. Leave all gems unchecked to cut everything you can; check specific gems to restrict the run to a subset. Each bank cycle deposits everything from your pack, so start with nothing valuable carried',
+    category: 'Crafting',
+    tags: ['crafting', 'gems', 'banking', 'members'],
+    settingsSchema: GEM_CUTTER_SETTINGS,
+    create: () => new GemCutter()
 });
 
 ScriptRegistry.register({
@@ -609,7 +632,7 @@ ScriptRegistry.register({
 
 ScriptRegistry.register({
     name: 'WalkTo',
-    description: 'Walks to a chosen destination and stops — Lumbridge, Varrock, Falador, Ardougne, Rellekka, Taverley (centre); Draynor, Al Kharid, Edgeville, Seers, Yanille (bank); or a custom tile',
+    description: 'Walks to a chosen destination and stops — Lumbridge, Varrock, Falador, Ardougne, Rellekka, Taverley (centre); Draynor, Al Kharid, Edgeville, Seers, Catherby, Yanille (bank); or a custom tile',
     category: 'Navigation',
     tags: ['navigation', 'utility', 'web-walk'],
     settingsSchema: WALKTO_SETTINGS,
