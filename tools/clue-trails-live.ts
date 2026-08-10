@@ -81,6 +81,8 @@ interface Round {
     seconds: number;
     legs: number;
     deathsDuring: number;
+    /** Where it gave up — a stuck round is only diagnosable with a tile. */
+    endedAt: { x: number; z: number; level: number } | null;
 }
 
 type BankRow = { name: string; count: number };
@@ -109,6 +111,9 @@ type Api = {
     };
     __seed?: { open: boolean; stop: boolean; done: boolean; note: string };
 };
+
+const tile = (page: Page): Promise<{ x: number; z: number; level: number } | null> =>
+    page.evaluate(() => (globalThis as never as Api).__rs2b0t.Game.tile());
 
 const runnerState = (page: Page): Promise<string> =>
     page.evaluate(() => (globalThis as never as Api).rs2b0t.runner.state);
@@ -411,9 +416,18 @@ async function main(): Promise<void> {
                 reason,
                 seconds: Math.round((Date.now() - t0) / 1000),
                 legs,
-                deathsDuring: deaths - deathsAtStart
+                deathsDuring: deaths - deathsAtStart,
+                endedAt: await tile(page)
             });
-            console.log(`   => ${ended.toUpperCase()} in ${rounds[rounds.length - 1].seconds}s (${legs} legs)${reason ? ` — ${reason}` : ''}`);
+            const last = rounds[rounds.length - 1];
+            console.log(`   => ${ended.toUpperCase()} in ${last.seconds}s (${legs} legs)${reason ? ` — ${reason}` : ''}`);
+            if (ended === 'timeout' || ended === 'died') {
+                const recent = (await logLines(page)).slice(-6);
+                console.log(`      stuck at ${JSON.stringify(last.endedAt)}`);
+                for (const l of recent) {
+                    console.log(`      | ${l}`);
+                }
+            }
 
             if (!existsSync('out')) {
                 mkdirSync('out', { recursive: true });
