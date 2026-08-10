@@ -24,6 +24,7 @@ import { GroundItems } from '../api/queries/GroundItems.js';
 import { Npcs, type Npc } from '../api/queries/Npcs.js';
 import { Traversal } from '../api/Traversal.js';
 import { SolveClue } from '../clues/SolveClue.js';
+import { paintClueProgress } from '../clues/cluePaint.js';
 import { AT_BANK_RADIUS, RETURN_HOLD_MS, escapeNeeded, gearCandidates, gearToKeep, isGrindForeign, packForcesBank, slotFreeingAction, underPlayerAttack, wantsGroundItem, type SlotAction } from './GreenDragonLogic.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
@@ -907,15 +908,25 @@ export default class GreenDragon extends TaskBot {
     override onPaint(ctx: CanvasRenderingContext2D): void {
         const p = Paint.begin(ctx, { dock: 'chatbox', accent: '#6fbf73' });
         p.title(`GreenDragon — ${this.status}`);
-        p.row(`Style: ${STYLE}`, `HP: ${Math.round(hpFrac() * 100)}%`);
-        p.row(`Kills: ${this.killsTotal}`, `Looted: ${this.looted}`);
-        p.row(`Shield: ${Equipment.contains(SHIELD) ? 'on' : 'OFF!'}`, `Bank trips: ${this.bankTrips}`);
-        p.row(`Food: ${foodCount()} (keep ${FOOD_RESERVE})`, `Slots freed: ${this.slotsFreed}`);
-        if (BURY_BONES) {
-            p.row(`Buried: ${this.buried}`, `Prayer: ${Skills.level('prayer')}`);
-        }
-        if (SOLVE_CLUES) {
-            p.row(`Clues: ${this.cluesSolved}`, `Clue: ${this.solveClue?.clueStatus() ?? 'idle'}`);
+
+        // Clues get their own tab rather than one summary row: a trail can walk
+        // most of the map, and the leg/travel detail is the only way to see it is
+        // making progress. Same block ClueSolver paints.
+        const tab = SOLVE_CLUES ? p.tabs('gd', ['Grind', 'Clue']) : 'Grind';
+        if (tab === 'Clue') {
+            p.row(`Solved: ${this.cluesSolved}`, `Status: ${this.solveClue?.clueStatus() ?? 'idle'}`);
+            paintClueProgress(p, 'no clue in progress — grinding');
+        } else {
+            p.row(`Style: ${STYLE}`, `HP: ${Math.round(hpFrac() * 100)}%`);
+            p.row(`Kills: ${this.killsTotal}`, `Looted: ${this.looted}`);
+            p.row(`Shield: ${Equipment.contains(SHIELD) ? 'on' : 'OFF!'}`, `Bank trips: ${this.bankTrips}`);
+            p.row(`Food: ${foodCount()} (keep ${FOOD_RESERVE})`, `Slots freed: ${this.slotsFreed}`);
+            if (BURY_BONES) {
+                p.row(`Buried: ${this.buried}`, `Prayer: ${Skills.level('prayer')}`);
+            }
+            if (SOLVE_CLUES) {
+                p.row(`Clues: ${this.cluesSolved}`, `Clue: ${this.solveClue?.clueStatus() ?? 'idle'}`);
+            }
         }
         p.gap();
         ScriptRunner.paintControls(p);

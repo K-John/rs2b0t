@@ -14,7 +14,8 @@ import { Inventory } from '../api/hud/Inventory.js';
 import { SPADE_NAME, TRIO } from '../clues/data/toolAcquire.js';
 import { Skills } from '../api/hud/Skills.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
-import { ClueExecutor, tilesTo } from '../clues/ClueExecutor.js';
+import { ClueExecutor } from '../clues/ClueExecutor.js';
+import { paintClueProgress } from '../clues/cluePaint.js';
 import { SolveClue, heldClueLikeId } from '../clues/SolveClue.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 
@@ -145,7 +146,6 @@ export default class ClueSolver extends TaskBot {
     }
 
     override onPaint(ctx: CanvasRenderingContext2D): void {
-        const cur = ClueExecutor.current;
         const held = heldClueLikeId();
         const p = Paint.begin(ctx, { dock: 'chatbox', accent: '#e8c35b' });
         p.title(`ClueSolver — ${held === null && !this.returnToBank ? 'waiting for a clue' : this.status}`);
@@ -154,17 +154,8 @@ export default class ClueSolver extends TaskBot {
         if (tab === 'Overview') {
             p.row(`Solved: ${this.solved}`, `Held clue: ${held ?? 'none'}`);
             p.text(`Status: ${this.solveClue?.clueStatus() ?? 'idle'}`);
-        } else if (cur) {
-            p.text(`${cur.name} — leg ${cur.leg}${cur.attempt > 1 ? ` (try ${cur.attempt})` : ''}`);
-            p.text(cur.step, '#8a919a');
-            const left = tilesTo(cur.target);
-            if (cur.target && left !== null) {
-                // Full bar means standing on it; it fills as the gap closes.
-                p.bar('Travel', cur.startDist > 0 ? 1 - left / cur.startDist : 1);
-                p.text(`${left} tiles to (${cur.target.x},${cur.target.z},${cur.target.level})`, '#8a919a');
-            }
         } else {
-            p.text('no clue in progress', '#8a919a');
+            paintClueProgress(p);
         }
 
         p.gap();
