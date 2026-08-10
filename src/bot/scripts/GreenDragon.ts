@@ -23,6 +23,7 @@ import { DROP_DB } from '../api/combat/data/dropdb.js';
 import { MELEE_WEAPONS, STAFFS } from '../api/combat/equipment.js';
 import { SA_MAX_ENERGY, Special } from '../api/combat/Special.js';
 import { AttackClock, URGENT_HP_FRACTION, shouldHoldEat } from '../api/combat/eatTiming.js';
+import { buryOneInFight } from '../api/combat/fightUpkeep.js';
 import { FOOD_OPTIONS, foodForms, isFoodItem, foodCount as foodCountIn, foodHealAmount, shouldEatToUseFood } from '../api/combat/food.js';
 import { combatKeepNames } from '../api/combat/keepList.js';
 import { depositAllExcept } from '../api/Banking.js';
@@ -239,29 +240,6 @@ function keepNames(): string[] {
 
 /** Shared by the Eat task and slot-freeing so both respect the swing. */
 const attackClock = new AttackClock();
-
-/** True on the tick our swing animation began — see eatTiming. */
-function attackedThisTickNow(): boolean {
-    attackClock.observe(reader.selfAnim(), BotHost.tickCount);
-    return attackClock.attackedThisTick(BotHost.tickCount);
-}
-
-async function buryOnce(bot: GreenDragon): Promise<boolean> {
-    const bones = Inventory.first(BONE_NAME);
-    if (!bones) {
-        return false;
-    }
-    const before = Inventory.used();
-    if (!(await bones.interact('Bury'))) {
-        return false;
-    }
-    if (!(await Execution.delayUntilTicks(() => Inventory.used() < before, 3))) {
-        return false;
-    }
-    bot.countBurial();
-    bot.vlog(`buried ${BONE_NAME} (${bot.burials()} total)`);
-    return true;
-}
 
 async function eatOnce(bot: GreenDragon): Promise<boolean> {
     const food = Inventory.items().find(i => foodForms(FOOD_NAME).includes((i.name ?? '').toLowerCase()));
@@ -797,8 +775,9 @@ class Fight implements Task {
                 // swing cooldown rather than on the swing. As a sibling task this
                 // only ran when Fight yielded, which is why it looked like the bot
                 // buried at random moments instead of steadily.
-                if (BURY_BONES && Inventory.contains(BONE_NAME) && !attackedThisTickNow()) {
-                    await buryOnce(this.bot);
+                if (BURY_BONES && (await buryOneInFight(BONE_NAME))) {
+                    this.bot.countBurial();
+                    this.bot.vlog(`buried ${BONE_NAME} (${this.bot.burials()} total)`);
                 }
                 await Execution.delayTicks(2);
                 continue;
