@@ -32,6 +32,9 @@ export function transportLocValid(transport: TransportInfo, level = 0): boolean 
     return locRefValid(ref, scene);
 }
 
+/** How far off a long hop may land. Short hops must be exact — see below. */
+const LANDING_TOLERANCE = 3;
+
 export function matchesTransportLanding(
     transport: TransportInfo,
     expectedLevel: number,
@@ -41,8 +44,19 @@ export function matchesTransportLanding(
     if (!current) {
         return false;
     }
-    if (transport.toTile && current.level === expectedLevel && chebyshev(current, transport.toTile) <= 3) {
-        return true;
+    if (transport.toTile && current.level === expectedLevel && chebyshev(current, transport.toTile) <= LANDING_TOLERANCE) {
+        if (before === null || current.level !== before.level) {
+            return true;
+        }
+        // A landing tolerance must never exceed the crossing's own span. The
+        // Death Plateau stile moves you three tiles and the troll climbing rocks
+        // two, so "within 3" covered the near side and every frame of the
+        // animation in between: the executor called it crossed, repathed, and
+        // planned the same hop again. Short hops land exactly or not at all.
+        const span = chebyshev(before, transport.toTile);
+        return span <= LANDING_TOLERANCE
+            ? chebyshev(current, transport.toTile) === 0
+            : chebyshev(current, transport.toTile) < chebyshev(current, before);
     }
     return (
         transport.acceptAnyLanding === true
