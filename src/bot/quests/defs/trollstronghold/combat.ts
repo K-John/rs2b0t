@@ -1,3 +1,4 @@
+import { EventSignal } from '../../../api/EventSignal.js';
 import { Execution } from '../../../api/Execution.js';
 import { Game } from '../../../api/Game.js';
 import { Prayer } from '../../../api/Prayer.js';
@@ -98,6 +99,13 @@ export async function fight(plan: FightPlan, log: (m: string) => void): Promise<
             if (plan.won()) {
                 log(`${plan.what}: done (${swings} attacks, ${prayers.arms} prayer re-arms)`);
                 return true;
+            }
+            // A random event has to be answered by the host, and this loop owns
+            // the tick budget until it returns. Hand it back rather than swing
+            // through a genie for the next four hundred ticks.
+            if (EventSignal.pending()) {
+                log(`${plan.what}: yielding to a random event`);
+                return false;
             }
             const now = Game.tick();
             if (now === lastTick) {

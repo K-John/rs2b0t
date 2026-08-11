@@ -11,7 +11,7 @@ import { Npcs } from '../../../api/queries/Npcs.js';
 import { Traversal } from '../../../api/Traversal.js';
 import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
-import { talkThrough } from '../../exec/primitives.js';
+import { talkChoosingBy } from '../../exec/primitives.js';
 import { QuestFood } from '../../food.js';
 import { QuestGear } from '../../gear.js';
 import {
@@ -25,6 +25,7 @@ import {
     FOOD_TARGET,
     ITEM,
     TENZING_BOOTS,
+    TENZING_DONE_RULES,
     TILE,
     committed,
     trollZone,
@@ -83,10 +84,24 @@ const GEAR_SLOTS: readonly { slot: string; kinds: readonly string[] }[] = [
     { slot: 'shield', kinds: ['kiteshield', 'sq shield'] }
 ];
 
+/**
+ * Gear the server refused to wield this session.
+ *
+ * Not every rune item is wearable by a character with the levels for it — a rune
+ * platebody also wants Dragon Slayer — and the refusal is silent: `equip` just
+ * returns false. Without this the plan re-picks the same platebody on every
+ * decide() tick and the run spends its whole budget failing one step. Learned
+ * facts about the account, not quest progress, so they live outside decide().
+ */
+const unwearable = new Set<string>();
+
 function bestInBank(snap: QuestSnapshot, kinds: readonly string[]): string | null {
     for (const tier of TIERS) {
         for (const kind of kinds) {
             const name = `${tier} ${kind}`;
+            if (unwearable.has(name)) {
+                continue;
+            }
             if (banked(snap, name) > 0 || held(snap, name)) {
                 // Display casing: every log line and step label carries this name.
                 return name[0]!.toUpperCase() + name.slice(1);
@@ -94,6 +109,11 @@ function bestInBank(snap: QuestSnapshot, kinds: readonly string[]): string | nul
         }
     }
     return null;
+}
+
+/** Test seam: forget what this session learned about unwearable gear. */
+export function resetUnwearable(): void {
+    unwearable.clear();
 }
 
 function wearingSlot(snap: QuestSnapshot, kinds: readonly string[]): boolean {
@@ -109,6 +129,8 @@ function wearingSlot(snap: QuestSnapshot, kinds: readonly string[]): boolean {
 function plannedGear(snap: QuestSnapshot): string[] {
     const out: string[] = [];
     const configured = QuestGear.meleeWeapon?.trim();
+    const usable = (name: string | null | undefined): boolean =>
+        Boolean(name) && !unwearable.has(name!.toLowerCase());
     for (const { slot, kinds } of GEAR_SLOTS) {
         if (wearingSlot(snap, kinds)) {
             continue;
@@ -116,8 +138,8 @@ function plannedGear(snap: QuestSnapshot): string[] {
         if (slot === 'shield' && out.some(n => n.endsWith('2h sword'))) {
             continue;
         }
-        const pick = slot === 'weapon' && configured && (banked(snap, configured) > 0 || held(snap, configured))
-            ? configured
+        const pick = slot === 'weapon' && usable(configured) && (banked(snap, configured!) > 0 || held(snap, configured!))
+            ? configured!
             : bestInBank(snap, kinds);
         if (pick) {
             out.push(pick);
@@ -142,6 +164,27 @@ function scanBank(): QuestStep {
     return { kind: 'scanBank', bank: FALADOR_WEST_BANK };
 }
 
+/**
+ * Wear it, or stop planning it. `Equipment.equip` returning false is the only
+ * signal the server gives for "you may not wield that", and the step is only
+ * ever re-derived from the same snapshot — so a plain equip step retries the
+ * refusal until the run's budget is gone. Shedding it is progress.
+ */
+function wearOrShed(name: string): QuestStep {
+    return {
+        kind: 'custom',
+        name: `wear ${name}`,
+        run: async log => {
+            if (Equipment.contains(name) || (await Equipment.equip(name))) {
+                return true;
+            }
+            log(`cannot wear ${name} — level or quest requirement; banking it and moving on`);
+            unwearable.add(name.toLowerCase());
+            return true;
+        }
+    };
+}
+
 function withdraw(items: { name: string; qty: number }[]): QuestStep {
     return { kind: 'withdraw', items, bank: FALADOR_WEST_BANK };
 }
@@ -158,7 +201,17 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
     // Past the stile a bank trip means climbing back down the secret way. Only a
     // spent pack or missing boots is worth that; anything less rides on.
     if (committed(zone) && bootsReady && foodHeld(snap) >= FOOD_FLOOR) {
-        return worn(snap, ITEM.CLIMBING_BOOTS) ? null : { kind: 'equip', item: ITEM.CLIMBING_BOOTS };
+        if (!worn(snap, ITEM.CLIMBING_BOOTS)) {
+            return { kind: 'equip', item: ITEM.CLIMBING_BOOTS };
+        }
+        // Wearing what is already in the pack costs nothing; only the bank is
+        // out of reach up here.
+        for (const name of plannedGear(snap)) {
+            if (held(snap, name)) {
+                return wearOrShed(name);
+            }
+        }
+        return null;
     }
 
     if (!snap.bankKnown) {
@@ -170,15 +223,41 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
         return { kind: 'deposit', keep, bank: FALADOR_WEST_BANK, exactKeep: true };
     }
 
-    if (heldCount(snap, ITEM.COINS) < COIN_FLOAT && banked(snap, ITEM.COINS) > 0) {
+    // Coins are for exactly one purchase. Restoring a standing float would put a
+    // bank trip after the boots are bought, for twelve gp of change.
+    const needsBootMoney = !bootsReady && banked(snap, ITEM.CLIMBING_BOOTS) === 0;
+    if (needsBootMoney && heldCount(snap, ITEM.COINS) < COIN_FLOAT && banked(snap, ITEM.COINS) > 0) {
         const want = Math.min(COIN_FLOAT - heldCount(snap, ITEM.COINS), banked(snap, ITEM.COINS));
         return withdraw([{ name: ITEM.COINS, qty: want }]);
     }
 
-    if (!bootsReady) {
-        if (banked(snap, ITEM.CLIMBING_BOOTS) > 0) {
-            return withdraw([{ name: ITEM.CLIMBING_BOOTS, qty: 1 }]);
+    // Everything the bank can supply comes out in one visit, gear included —
+    // Tenzing is a forty-tile detour west and the bank is east, so a shopping
+    // trip wedged between two withdrawals walks the same ground three times.
+    const fromBank: { name: string; qty: number }[] = [];
+    if (!bootsReady && banked(snap, ITEM.CLIMBING_BOOTS) > 0) {
+        fromBank.push({ name: ITEM.CLIMBING_BOOTS, qty: 1 });
+    }
+    for (const name of plannedGear(snap)) {
+        if (!held(snap, name)) {
+            fromBank.push({ name, qty: 1 });
         }
+    }
+    const have = foodHeld(snap);
+    if (have < FOOD_TARGET) {
+        for (const name of foodNames()) {
+            const available = banked(snap, name);
+            if (available > 0) {
+                fromBank.push({ name, qty: Math.min(FOOD_TARGET - have, available) });
+                break;
+            }
+        }
+    }
+    if (fromBank.length > 0) {
+        return withdraw(fromBank);
+    }
+
+    if (!bootsReady) {
         if (heldCount(snap, ITEM.COINS) < BOOT_COST) {
             return { kind: 'wait', reason: `need ${BOOT_COST} gp for Climbing boots — bank has none` };
         }
@@ -187,27 +266,15 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
     if (!worn(snap, ITEM.CLIMBING_BOOTS)) {
         return { kind: 'equip', item: ITEM.CLIMBING_BOOTS };
     }
-
     for (const name of plannedGear(snap)) {
-        if (!held(snap, name)) {
-            return withdraw([{ name, qty: 1 }]);
-        }
-        return { kind: 'equip', item: name };
-    }
-
-    const have = foodHeld(snap);
-    if (have < FOOD_TARGET) {
-        for (const name of foodNames()) {
-            const available = banked(snap, name);
-            if (available > 0) {
-                return withdraw([{ name, qty: Math.min(FOOD_TARGET - have, available) }]);
-            }
-        }
-        if (have === 0) {
-            return { kind: 'wait', reason: `no combat food in the bank (tried ${foodNames().join(', ')})` };
+        if (held(snap, name)) {
+            return wearOrShed(name);
         }
     }
 
+    if (foodHeld(snap) === 0) {
+        return { kind: 'wait', reason: `no combat food in the bank (tried ${foodNames().join(', ')})` };
+    }
     if (!wearingSlot(snap, GEAR_SLOTS[0]!.kinds)) {
         return { kind: 'wait', reason: 'no melee weapon in the bank — set the quest gear name or bank one' };
     }
@@ -236,11 +303,13 @@ async function buyBoots(log: (m: string) => void): Promise<boolean> {
         log(`need ${BOOT_COST} coins for Climbing boots`);
         return false;
     }
-    if (!(await walkTo(TILE.TENZING, 4, log))) {
+    // One, not four: Tenzing is inside his hut, and any wider radius is
+    // satisfied standing on the doorstep with the shut door still in the way.
+    if (!(await walkTo(TILE.TENZING, 1, log))) {
         return false;
     }
     const before = Inventory.count(ITEM.CLIMBING_BOOTS);
-    if (!(await talkThrough(TENZING_BOOTS.npc, TENZING_BOOTS.prefer, log))) {
+    if (!(await talkChoosingBy(TENZING_BOOTS.npc, TENZING_DONE_RULES, TENZING_BOOTS.prefer, log))) {
         return false;
     }
     return Execution.delayUntil(() => Inventory.count(ITEM.CLIMBING_BOOTS) > before, 8000);
@@ -481,6 +550,12 @@ export function decide(snap: QuestSnapshot): QuestStep {
             : custom('kill a Troll General for the Prison key', huntGeneral);
     }
     if (stage === TROLL_STAGE.ENTERED_PRISON) {
+        // A resume can land here from anywhere — a death sends the character to
+        // Lumbridge, and the prison is unreachable without the boots on.
+        const prep = prepare(snap, zone);
+        if (prep) {
+            return prep;
+        }
         const freedEadgar = hasFlag(snap.progress, TROLL_FLAG.FREED_EADGAR);
         return custom(
             freedEadgar ? 'free Godric from his cell' : 'free Mad Eadgar and Godric from their cells',

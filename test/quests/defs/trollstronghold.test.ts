@@ -264,6 +264,18 @@ describe('Troll Stronghold loadout', () => {
         expect(step.kind === 'wait' && step.reason).toContain('no combat food');
     });
 
+    test('wearing gear is a step that can give up, not a plain equip that retries forever', () => {
+        // A rune platebody also wants Dragon Slayer; the server just refuses, and
+        // a `kind: equip` step re-derived from the same snapshot never stops.
+        const step = decide(snap({
+            stage: TROLL_STAGE.STARTED,
+            inv: [WEAPON, ...COINS],
+            worn: [ITEM.CLIMBING_BOOTS]
+        }));
+        expect(step.kind).toBe('custom');
+        expect(customName(step)).toBe(`wear ${WEAPON}`);
+    });
+
     test('does not walk back down the mountain for a pack that is merely low', () => {
         const step = decide(ready({
             stage: TROLL_STAGE.STARTED,

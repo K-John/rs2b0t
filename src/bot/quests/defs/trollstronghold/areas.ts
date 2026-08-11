@@ -115,9 +115,11 @@ export const DUNSTAN_FINISH: NpcStop = {
 };
 
 /**
- * Tenzing's post-quest shop is a dialogue, not a shop interface, and it loops
- * back to the same five options until something ends it — hence the trailing
- * "Nothing, thanks!".
+ * Tenzing's post-quest shop is a dialogue, not a shop interface, and it loops:
+ * after every purchase he asks "Was there anything else?" and re-offers the
+ * same five options. A plain preference list matches "Can I buy some Climbing
+ * boots?" again and buys until the pack is full, so the exit is driven off what
+ * he just said rather than off the options.
  */
 export const TENZING_BOOTS: NpcStop = {
     npc: 'Tenzing',
@@ -125,3 +127,7 @@ export const TENZING_BOOTS: NpcStop = {
     leash: 6,
     prefer: ['Can I buy some Climbing boots?', 'OK, sounds good.', 'Nothing, thanks!']
 };
+
+export const TENZING_DONE_RULES = [
+    { whenLine: 'was there anything else', choose: 'Nothing, thanks!' }
+] as const;
