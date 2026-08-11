@@ -8,6 +8,7 @@ import {
     consumableOptions,
     searchItems,
     shieldDisabled,
+    recordByName,
     slotOptions,
     SLOT_LAYOUT,
     SUPPLY_ROWS,
@@ -436,15 +437,8 @@ export class LoadoutPanel {
 const ICON_FILL_MS = 500;
 const ICON_FILL_TRIES = 12;
 
-/** Every wearable record, for resolving a stored name back to its id. */
-function slotOptionsAll(): ItemRecord[] {
-    return SLOT_LAYOUT.flat()
-        .filter((s): s is Slot => s !== null)
-        .flatMap(slot => slotOptions(slot));
-}
-
 function iconUrlFor(name: string): string | null {
-    const record = [...slotOptionsAll(), ...consumableOptions()].find(r => r.name === name);
+    const record = recordByName(name);
     return record ? itemIconDataUrl(record.id) : null;
 }
 
