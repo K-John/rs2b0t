@@ -26,7 +26,7 @@ pure Lost City or 2004scape projects and is not maintained for those targets.
 | [Map tile picker](MAP-PICKER.md) | Pick on Map: display modes, then [reference](reference/map-picker.md) and [baking](how-to/bake-the-basemap.md) |
 | [Quests](QUESTS.md) | the quest engine, quest modules, exec primitives, provisioning |
 | [Clue scrolls](CLUES.md) | the clue database, step kinds, tool acquisition, tracing |
-| [MultiBox](MULTIBOX.md) | the wall: slots, profiles, login coordination, telemetry |
+| [MultiBox](MULTIBOX.md) | the wall, then [reference](reference/multibox.md), [telemetry honesty](decisions/multibox-telemetry-honesty.md) and [diagnosis](how-to/diagnose-multibox.md) |
 | [Bundled scripts](SCRIPTS.md) | catalog of the shipped bots and their settings (generated) |
 | [Testing](TESTING.md) | unit tests, the live-harness ABI, the end-to-end smoke |
 | [Dev and deploy](DEV.md) | build targets, the three run modes, the hosting pipeline |

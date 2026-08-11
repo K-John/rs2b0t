@@ -130,4 +130,4 @@ the signature of synchronous blocking, or of awaiting a promise that is not an
 - [Import fences](../reference/import-fences.md)
 - [Scripting API](../API.md) — the surface built on this
 - [World-walking](../NAV.md) — the largest subsystem built on the adapter
-- [MultiBox](../MULTIBOX.md#slots-and-iframes) — many clients in one tab
+- [MultiBox](../reference/multibox.md#slots) — many clients in one tab

@@ -16,7 +16,7 @@ Tracked markdown inventory against `.claude/rules/documentation.md`. Rewrite in 
 | 9 | `README.md` | 149 | mixed | how-to (quick start), explanation (how it connects), derivable (project structure) | `README.md` (root, exempt); delete Project structure | ✅ |
 | 10 | `docs/ARCHITECTURE.md` | 164 | explanation | reference (the fences) | `docs/decisions/architecture.md` + `docs/reference/import-fences.md` | ✅ |
 | 11 | `docs/nav/TRANSPORTS-2004.md` | 228 | reference | explanation (non-goals, architecture), how-to (operator commands) | `docs/reference/transports-2004.md` + `docs/decisions/transport-scope.md` + `docs/how-to/verify-transports.md` | ✅ |
-| 12 | `docs/MULTIBOX.md` | 261 | reference | explanation (honesty rules), how-to (diagnostics) | `docs/reference/multibox.md` + `docs/decisions/multibox-telemetry-honesty.md` + `docs/how-to/diagnose-multibox.md` | ☐ |
+| 12 | `docs/MULTIBOX.md` | 261 | reference | explanation (honesty rules), how-to (diagnostics) | `docs/reference/multibox.md` + `docs/decisions/multibox-telemetry-honesty.md` + `docs/how-to/diagnose-multibox.md` | ✅ |
 | 13 | `docs/RUNNING.md` | 279 | how-to | reference (ports, ports table) | `docs/how-to/run-locally.md` + `docs/reference/ports.md` | ☐ |
 | 14 | `docs/CLUES.md` | 315 | reference | how-to (tracing, audit harness), explanation (yielding) | `docs/reference/clues.md` + `docs/how-to/trace-a-clue-failure.md` + `docs/decisions/clue-host-yielding.md` | ☐ |
 | 15 | `docs/DEV.md` | 338 | how-to | reference (build targets), maintainer-only | `docs/how-to/dev-and-deploy.md` + `docs/reference/build-targets.md` + `docs/how-to/maintainer-infra.md` | ☐ |

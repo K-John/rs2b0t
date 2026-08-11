@@ -22,7 +22,7 @@ The rs2b0t bot client has **three canonical run modes**, one command each.
 
 The multibox rail reports bot count, CPU, RAM, and bot traffic. What those readings
 mean — and the rule that no missing metric is ever replaced by a guess or a zero —
-is documented in [MultiBox](MULTIBOX.md#resource-telemetry). This section covers the
+is documented in [MultiBox](reference/multibox.md#resource-telemetry). This section covers the
 viewers that produce them and the launcher that supervises both.
 
 ```bash
