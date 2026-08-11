@@ -724,7 +724,7 @@ Resolution: explicit force-off → explicit force-on → Global (default off).
 When teles are on, `distanceBeforeTeleport` defaults to **0** so A* cost decides. Short
 city hops stay pure walk. Full behaviour, jewellery limits, and bank-plan rules:
 [Nav teleports](NAV.md#nav-teleports). Transport matrix:
-[`docs/nav/TRANSPORTS-2004.md`](nav/TRANSPORTS-2004.md).
+[transport reference](reference/transports-2004.md).
 
 **Essence mine (session multiloc):** multi-entry, **same-origin exit only**. Exit
 portals share one loc type but telejump to the wizard you entered with

@@ -422,7 +422,7 @@ do not require that (overlay projection is enough for interact targeting).
 
 **2004 travel + gates:** spirit/glider/Entrana/cart/essence/levers/agi
 (`travelCatalog.ts`); quest seeds (`transportQuestReqs.ts`); guild skill doors + mining ladder
-(`specialRequires.ts`). Matrix: [docs/nav/TRANSPORTS-2004.md](nav/TRANSPORTS-2004.md).
+(`specialRequires.ts`). Matrix: [transport reference](reference/transports-2004.md).
 
 **Essence mine multiloc (litmus):** multi-entry, **same-origin exit only**. Entering
 via a wizard sets the session return; every exit portal telejumps to that return — not
@@ -442,7 +442,7 @@ tiles (wrong doorway / same loc type).
 
 **Code map:** `src/bot/nav/` — `PathFinder`, `WalkExecutor`, `exec/`, `data/`, plus
 teleport catalog, travel catalog, WorldState helpers, bank plan. Transport matrix:
-[docs/nav/TRANSPORTS-2004.md](nav/TRANSPORTS-2004.md).
+[transport reference](reference/transports-2004.md).
 
 ## Path camera
 

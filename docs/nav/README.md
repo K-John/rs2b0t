@@ -28,7 +28,9 @@ Full write-up: [NAV.md § Nav teleports](../NAV.md#nav-teleports).
 | | |
 |---|---|
 | Product manual | [NAV.md](../NAV.md) |
-| 2004 transport coverage | [TRANSPORTS-2004.md](./TRANSPORTS-2004.md) |
+| 2004 transport coverage | [transports-2004.md](../reference/transports-2004.md) |
+| What counts as a transport | [transport-scope.md](../decisions/transport-scope.md) |
+| Verify transport coverage | [verify-transports.md](../how-to/verify-transports.md) |
 | Why paint and walk diverge | [client-vs-pack-path.md](../decisions/client-vs-pack-path.md) |
 | Compare pack and client paint | [compare-path-paint.md](../how-to/compare-path-paint.md) |
 | Code | `src/bot/nav/` |
