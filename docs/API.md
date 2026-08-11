@@ -526,7 +526,7 @@ Prayer.clear(): Promise<void>           // turn off everything that is draining
 ```
 
 [`nearestAltar`](../src/bot/api/Altars.ts) finds somewhere to restore them.
-[Clue trails](CLUES.md#prayer-between-trails) use both to fight hard-clue dig
+[Clue trails](reference/clues-mechanics.md#prayer-between-trails) use both to fight hard-clue dig
 guardians under Protect from Magic.
 
 ## ChatDialog
