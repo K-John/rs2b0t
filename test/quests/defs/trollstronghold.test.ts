@@ -222,7 +222,7 @@ describe('Troll Stronghold loadout', () => {
             stage: TROLL_STAGE.STARTED,
             inv: [ITEM.CLIMBING_BOOTS, ...COINS]
         }));
-        expect(step.kind === 'equip' && step.item).toBe(ITEM.CLIMBING_BOOTS);
+        expect(customName(step)).toBe(`wear ${ITEM.CLIMBING_BOOTS}`);
     });
 
     test('withdraws the configured melee weapon when nothing is wielded', () => {

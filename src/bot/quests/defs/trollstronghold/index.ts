@@ -185,6 +185,21 @@ function wearOrShed(name: string): QuestStep {
     };
 }
 
+/**
+ * The boots are not optional, so a refusal is a dead end rather than something
+ * to shed and route around — `opheld2,death_climbingboots` only lets them on
+ * once Death Plateau is genuinely complete. Say so and park instead of retrying.
+ */
+function wearBoots(): QuestStep {
+    if (unwearable.has(ITEM.CLIMBING_BOOTS.toLowerCase())) {
+        return {
+            kind: 'wait',
+            reason: 'the server will not let these Climbing boots on — Death Plateau is not actually complete'
+        };
+    }
+    return wearOrShed(ITEM.CLIMBING_BOOTS);
+}
+
 function withdraw(items: { name: string; qty: number }[]): QuestStep {
     return { kind: 'withdraw', items, bank: FALADOR_WEST_BANK };
 }
@@ -202,7 +217,7 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
     // spent pack or missing boots is worth that; anything less rides on.
     if (committed(zone) && bootsReady && foodHeld(snap) >= FOOD_FLOOR) {
         if (!worn(snap, ITEM.CLIMBING_BOOTS)) {
-            return { kind: 'equip', item: ITEM.CLIMBING_BOOTS };
+            return wearBoots();
         }
         // Wearing what is already in the pack costs nothing; only the bank is
         // out of reach up here.
@@ -264,7 +279,7 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
         return { kind: 'custom', name: 'buy Climbing boots from Tenzing (12gp)', run: buyBoots };
     }
     if (!worn(snap, ITEM.CLIMBING_BOOTS)) {
-        return { kind: 'equip', item: ITEM.CLIMBING_BOOTS };
+        return wearBoots();
     }
     for (const name of plannedGear(snap)) {
         if (held(snap, name)) {
