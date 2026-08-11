@@ -11,6 +11,7 @@ import { ChatDialog } from './ChatDialog.js';
 import { backpackCapacity, backpackSnapshots } from './Inventory.js';
 
 export { withdrawOp } from './bankOps.js';
+import { withdrawOp } from './bankOps.js';
 
 function backpackFull(): boolean {
     const size = backpackCapacity();
@@ -98,8 +99,7 @@ export const Bank = {
             .filter(item => item.name?.toLowerCase() === wanted)
             .reduce((sum, item) => sum + item.count, 0);
         const item = reader.bankItems().find(i => i.name?.toLowerCase() === wanted);
-        const xOp = item?.ops.find((o): o is string => o !== null && /withdraw[\s-]*x/i.test(o));
-        if (!item || !xOp) {
+        if (!item) {
             return false;
         }
         const before = invCount();
@@ -108,6 +108,19 @@ export const Bank = {
             return false;
         }
         const target = before + Math.min(count, available);
+        const landed = (): boolean => invCount() >= target || (invCount() > before && backpackFull());
+
+        // One of something is a single click. The X flow costs a dialog
+        // round-trip on top, which a loadout of six single items pays six times.
+        const oneOp = count === 1 ? withdrawOp(item.ops, '1') : null;
+        if (oneOp !== null) {
+            return (await clickInvButton(reader.bankItems(), name, oneOp))
+                && Execution.delayUntil(landed, 4000);
+        }
+        const xOp = item.ops.find((o): o is string => o !== null && /withdraw[\s-]*x/i.test(o));
+        if (!xOp) {
+            return false;
+        }
         if (!(await clickInvButton(reader.bankItems(), name, xOp))) {
             return false;
         }
@@ -117,10 +130,7 @@ export const Bank = {
         if (!actions.answerCountDialog(count)) {
             return false;
         }
-        return Execution.delayUntil(
-            () => invCount() >= target || (invCount() > before && backpackFull()),
-            4000
-        );
+        return Execution.delayUntil(landed, 4000);
     },
 
     async withdrawXById(id: number, count: number): Promise<boolean> {

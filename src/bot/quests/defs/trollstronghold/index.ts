@@ -83,15 +83,71 @@ export function resetUnwearable(): void {
     unwearable.clear();
 }
 
+const TIERS = ['rune', 'adamant', 'mithril', 'black', 'steel', 'iron', 'bronze'] as const;
+
+const GEAR_SLOTS: readonly { slot: string; kinds: readonly string[] }[] = [
+    // Troll General slash defence is 60 against 35 for stab and crush, so a
+    // longsword out-damages the same tier of scimitar here.
+    { slot: 'weapon', kinds: ['2h sword', 'longsword', 'scimitar', 'battleaxe', 'warhammer', 'mace', 'sword'] },
+    { slot: 'body', kinds: ['platebody', 'chainbody'] },
+    { slot: 'legs', kinds: ['platelegs', 'plateskirt'] },
+    { slot: 'helm', kinds: ['full helm', 'med helm'] },
+    { slot: 'shield', kinds: ['kiteshield', 'sq shield'] }
+];
+
+function bestInBank(snap: QuestSnapshot, kinds: readonly string[]): string | null {
+    for (const tier of TIERS) {
+        for (const kind of kinds) {
+            const name = `${tier} ${kind}`;
+            if (unwearable.has(name)) {
+                continue;
+            }
+            if (banked(snap, name) > 0 || held(snap, name)) {
+                // Display casing: every log line and step label carries this name.
+                return name[0]!.toUpperCase() + name.slice(1);
+            }
+        }
+    }
+    return null;
+}
+
+function wearingSlot(snap: QuestSnapshot, kinds: readonly string[]): boolean {
+    for (const name of snap.worn) {
+        if (kinds.some(kind => name.endsWith(kind))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** The best each slot can do out of the bank — what ran before loadouts existed. */
+function scavengedGear(snap: QuestSnapshot): string[] {
+    const out: string[] = [];
+    for (const { slot, kinds } of GEAR_SLOTS) {
+        if (wearingSlot(snap, kinds) || (slot === 'shield' && out.some(n => n.endsWith('2h sword')))) {
+            continue;
+        }
+        const pick = bestInBank(snap, kinds);
+        if (pick) {
+            out.push(pick);
+        }
+    }
+    return out;
+}
+
 /**
  * The gear the player declared, minus what is already on and minus anything the
- * server has refused this session. Nothing here infers a tier from levels or
- * from what happens to be in the bank — that guessing is what the loadout
- * replaces.
+ * server has refused this session.
+ *
+ * A declared loadout is taken literally — no tier is inferred from levels or
+ * from what happens to be in the bank, because that guessing is what the loadout
+ * replaces. Declare nothing and the old scavenging runs instead, so an account
+ * that has never opened the Loadouts panel still gets kitted out.
  */
 function plannedGear(snap: QuestSnapshot): string[] {
-    return gearOf(QuestLoadout.current)
-        .filter(name => !unwearable.has(name.toLowerCase()) && !worn(snap, name));
+    const declared = gearOf(QuestLoadout.current);
+    const names = declared.length > 0 ? declared : scavengedGear(snap);
+    return names.filter(name => !unwearable.has(name.toLowerCase()) && !worn(snap, name));
 }
 
 /** Doses held, across every strength. */
@@ -117,25 +173,34 @@ function scanBank(): QuestStep {
 }
 
 /**
- * Wear it, or stop planning it. `Equipment.equip` returning false is the only
- * signal the server gives for "you may not wield that", and the step is only
- * ever re-derived from the same snapshot — so a plain equip step retries the
- * refusal until the run's budget is gone. Shedding it is progress.
+ * Wear the kit, or stop planning it. `Equipment.equip` returning false is the
+ * only signal the server gives for "you may not wield that", and the step is
+ * only ever re-derived from the same snapshot — so a plain equip step retries
+ * the refusal until the run's budget is gone. Shedding it is progress.
+ *
+ * The whole kit goes on in one step. Returning a step per piece put a task
+ * hand-off and a fresh snapshot between each one, so a five-piece loadout stood
+ * at the bank for five round trips; `equip` already waits for each item to land,
+ * so looping here is paced by the server rather than by the scheduler.
  */
-function wearOrShed(name: string): QuestStep {
+function wearAll(names: readonly string[]): QuestStep {
     return {
         kind: 'custom',
-        name: `wear ${name}`,
+        name: `wear ${names.join(', ')}`,
         run: async log => {
-            if (Equipment.contains(name) || (await Equipment.equip(name))) {
-                return true;
+            for (const name of names) {
+                if (Equipment.contains(name) || (await Equipment.equip(name))) {
+                    continue;
+                }
+                log(`cannot wear ${name} — level or quest requirement; banking it and moving on`);
+                unwearable.add(name.toLowerCase());
             }
-            log(`cannot wear ${name} — level or quest requirement; banking it and moving on`);
-            unwearable.add(name.toLowerCase());
             return true;
         }
     };
 }
+
+const wearOrShed = (name: string): QuestStep => wearAll([name]);
 
 /**
  * The boots are not optional, so a refusal is a dead end rather than something
@@ -173,16 +238,11 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
         }
         // Wearing what is already in the pack costs nothing; only the bank is
         // out of reach up here.
-        for (const name of plannedGear(snap)) {
-            if (held(snap, name)) {
-                return wearOrShed(name);
-            }
+        const carried = plannedGear(snap).filter(name => held(snap, name));
+        if (carried.length > 0) {
+            return wearAll(carried);
         }
         return null;
-    }
-
-    if (gearOf(QuestLoadout.current).length === 0) {
-        return { kind: 'wait', reason: 'no loadout defined — set one up in the Loadouts panel' };
     }
 
     if (!snap.bankKnown) {
@@ -194,18 +254,19 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
         return { kind: 'deposit', keep, bank: FALADOR_WEST_BANK, exactKeep: true };
     }
 
-    // Coins are for exactly one purchase. Restoring a standing float would put a
-    // bank trip after the boots are bought, for twelve gp of change.
-    const needsBootMoney = !bootsReady && banked(snap, ITEM.CLIMBING_BOOTS) === 0;
-    if (needsBootMoney && heldCount(snap, ITEM.COINS) < COIN_FLOAT && banked(snap, ITEM.COINS) > 0) {
-        const want = Math.min(COIN_FLOAT - heldCount(snap, ITEM.COINS), banked(snap, ITEM.COINS));
-        return withdraw([{ name: ITEM.COINS, qty: want }]);
-    }
-
     // Everything the bank can supply comes out in one visit, gear included —
     // Tenzing is a forty-tile detour west and the bank is east, so a shopping
     // trip wedged between two withdrawals walks the same ground three times.
     const fromBank: { name: string; qty: number }[] = [];
+    // Coins are for exactly one purchase. Restoring a standing float would put a
+    // bank trip after the boots are bought, for twelve gp of change.
+    const needsBootMoney = !bootsReady && banked(snap, ITEM.CLIMBING_BOOTS) === 0;
+    if (needsBootMoney && heldCount(snap, ITEM.COINS) < COIN_FLOAT && banked(snap, ITEM.COINS) > 0) {
+        fromBank.push({
+            name: ITEM.COINS,
+            qty: Math.min(COIN_FLOAT - heldCount(snap, ITEM.COINS), banked(snap, ITEM.COINS))
+        });
+    }
     if (!bootsReady && banked(snap, ITEM.CLIMBING_BOOTS) > 0) {
         fromBank.push({ name: ITEM.CLIMBING_BOOTS, qty: 1 });
     }
@@ -254,10 +315,9 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
     // Wear it here, at the bank, rather than carrying it to Tenzing and back:
     // the kit comes off the pack the moment it goes on, and the walk west is
     // forty tiles of holding gear for no reason.
-    for (const name of plannedGear(snap)) {
-        if (held(snap, name)) {
-            return wearOrShed(name);
-        }
+    const toWear = plannedGear(snap).filter(name => held(snap, name));
+    if (toWear.length > 0) {
+        return wearAll(toWear);
     }
 
     if (!bootsReady) {
@@ -277,6 +337,9 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
     const weapon = weaponOf(QuestLoadout.current);
     if (weapon !== null && missing.some(name => name.toLowerCase() === weapon.toLowerCase())) {
         return { kind: 'wait', reason: `loadout weapon '${weapon}' is not in the bank` };
+    }
+    if (!wearingSlot(snap, GEAR_SLOTS[0]!.kinds)) {
+        return { kind: 'wait', reason: 'no melee weapon — put one in your loadout, or bank one' };
     }
     return null;
 }

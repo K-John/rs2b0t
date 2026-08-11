@@ -245,15 +245,30 @@ describe('Troll Stronghold loadout', () => {
         expect(step.kind === 'withdraw' && step.items[0]?.name).toBe(WEAPON);
     });
 
-    test('waits, naming the panel, when no loadout is defined', () => {
+    // An account that has never opened the Loadouts panel still has to run.
+    test('with no loadout it scavenges the best the bank holds', () => {
         QuestLoadout.current = null;
         const step = decide(snap({
             stage: TROLL_STAGE.STARTED,
             inv: COINS,
             worn: [ITEM.CLIMBING_BOOTS],
+            bank: ['Lobster', 'Rune scimitar', 'Mithril scimitar', 'Rune chainbody']
+        }));
+        const names = step.kind === 'withdraw' ? step.items.map(i => i.name) : [];
+        expect(names).toContain('Rune scimitar');
+        expect(names).toContain('Rune chainbody');
+        expect(names).not.toContain('Mithril scimitar');
+    });
+
+    test('with no loadout and an empty bank it says so instead of parking silently', () => {
+        QuestLoadout.current = null;
+        const step = decide(snap({
+            stage: TROLL_STAGE.STARTED,
+            inv: [...COINS, ...FOOD],
+            worn: [ITEM.CLIMBING_BOOTS],
             bank: Array(40).fill('Lobster') as string[]
         }));
-        expect(step.kind === 'wait' && step.reason).toContain('Loadouts panel');
+        expect(step.kind === 'wait' && step.reason).toContain('no melee weapon');
     });
 
     test('withdraws every piece of loadout gear it is not already wearing', () => {
@@ -270,6 +285,41 @@ describe('Troll Stronghold loadout', () => {
         }));
         expect(step.kind === 'withdraw' && step.items.map(i => i.name).sort())
             .toEqual(['Lobster', 'Rune chainbody', WEAPON]);
+    });
+
+    // One step per piece put a task hand-off and a fresh snapshot between each,
+    // so the character stood at the bank equipping one item at a time.
+    test('wears the whole kit in a single step', () => {
+        QuestLoadout.current = {
+            name: 'quest',
+            worn: { righthand: WEAPON, torso: 'Rune chainbody', legs: 'Rune platelegs' },
+            carry: []
+        };
+        const step = decide(snap({
+            stage: TROLL_STAGE.STARTED,
+            inv: [...COINS, ...FOOD, WEAPON, 'Rune chainbody', 'Rune platelegs'],
+            worn: [ITEM.CLIMBING_BOOTS],
+            bank: []
+        }));
+        const name = customName(step);
+        expect(name).toContain(WEAPON);
+        expect(name).toContain('Rune chainbody');
+        expect(name).toContain('Rune platelegs');
+    });
+
+    // Boot money used to be its own withdraw step: a second bank open, close and
+    // decide() round trip for one stack of coins.
+    test('boot money rides the same bank visit as the gear', () => {
+        QuestLoadout.current = { name: 'quest', worn: { righthand: WEAPON }, carry: [] };
+        const step = decide(snap({
+            stage: TROLL_STAGE.STARTED,
+            inv: [],
+            worn: [],
+            bank: [WEAPON, ...COINS, ...Array(40).fill('Lobster')] as string[]
+        }));
+        const names = step.kind === 'withdraw' ? step.items.map(i => i.name) : [];
+        expect(names).toContain(ITEM.COINS);
+        expect(names).toContain(WEAPON);
     });
 
     test('withdraws two prayer potions when the bank has them', () => {
