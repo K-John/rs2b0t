@@ -19,7 +19,7 @@ From the wall console:
 Every bot times its own main-thread cost bucketed by phase, so the breakdown names which
 bot to look at. Aggregate loop counts only tell you the wall is busy.
 
-## Name the function, not just the bot
+## Name the function, not only the bot
 
 The retained series stops at the bot. To go further:
 

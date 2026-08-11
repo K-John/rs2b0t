@@ -18,7 +18,7 @@ Three engine behaviours bit this quest hard enough to be worth stating once:
   `param=owned_shop` in the engine's `.npc` config, and `Shop.open()` matches the display
   name. Read the owner out of the configs; a guide will not tell you.
 - **A tool that is merely absent produces no refusal.** Mining without a pickaxe is not
-  an error — the rock simply does not respond, and the step retries until the watchdog
+  an error — the rock does not respond at all, and the step retries until the watchdog
   parks it. Anything a step needs but does not consume has to be sourced explicitly.
 
 Shilo Village added three more, each of which cost a live run:

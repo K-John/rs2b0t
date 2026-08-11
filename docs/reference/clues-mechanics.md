@@ -82,7 +82,7 @@ generated [`data/puzzlePieces.ts`](../../src/bot/clues/data/puzzlePieces.ts).
 
 [`puzzleLogic.ts`](../../src/bot/clues/puzzleLogic.ts) is pure and does the thinking.
 It solves in batches — row 0, column 0, row 1, column 1, then the final 3×3 —
-running a small breadth-first search per batch over the positions of just that
+running a small breadth-first search per batch over the positions of only that
 batch's pieces plus the gap. Batching the awkward cases (a row's last two) lets the
 search *discover* the rotation that frees them rather than hard-coding an escape
 sequence, and every batch's state space stays in the thousands.
@@ -107,7 +107,7 @@ its own definition rather than against anything the client rendered.
 Guardians are fought under Protect from Magic, so the pre-trail bank stop tops
 prayer up: if it is below full, the solver walks to the nearest altar from
 [`Altars.ts`](../../src/bot/api/Altars.ts) and prays. Low prayer never blocks a trail —
-the fight simply runs without the protection prayer.
+the fight runs without the protection prayer.
 
 ## Teleports
 
@@ -132,7 +132,7 @@ Camelot is castable). The router already refused those spells; the bank stop was
 provisioning for them anyway. Unusable runes are no longer kit, so the deposit
 sweeps them, and the pack log names the destinations it can really cast.
 
-Missing runes are not an error: the router simply walks instead. Turn the whole
+Missing runes are not an error: the router walks instead. Turn the whole
 thing off with the `useTeleports` setting.
 
 ## See also

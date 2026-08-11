@@ -18,7 +18,7 @@ fall out of that, and both were found the hard way:
 - **A stand tile next to an unwalkable loc is not automatically reachable.**
   [`tools/nav/probe-tile.ts`](../../tools/nav/probe-tile.ts) pathfinds to every tile a quest
   module names, from each of its regions, and is worth running before any live attempt.
-  Note that `findPath` snapping to within five tiles is a weaker claim than
+  `findPath` snapping to within five tiles is a weaker claim than
   `walkResilient(radius: 2)` actually arriving — a wide blocker whose only open side faces
   away satisfies the first and never the second.
 - **A flood over the baked graph merges components the player cannot really connect.**

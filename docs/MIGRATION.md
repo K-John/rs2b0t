@@ -2,11 +2,13 @@
 
 # Doc migration
 
-Tracked markdown inventory against `.claude/rules/documentation.md`. Rewrite in table order, one commit per file.
+Tracked markdown inventory against `.claude/rules/documentation.md`. **Migration complete** — every row is done except `docs/SCRIPTS.md`, which is generated.
+
+Every hand-written page is now one type and under the 150-line cap. Delete this file once `SCRIPTS.md` is resolved.
 
 | # | Path | Lines | Mostly | Types mixed in | Target(s) | Done |
 |---|---|---|---|---|---|---|
-| 2 | `docs/README.md` | 39 | reference (index) | — | `docs/README.md` (index, exempt from split) | ☐ |
+| 2 | `docs/README.md` | 39 | reference (index) | — | `docs/README.md` (index, exempt from split) | ✅ |
 | 3 | `templates/script-template/README.md` | 50 | how-to | reference (what the example does) | `templates/script-template/README.md` | ✅ |
 | 4 | `desktop/README.md` | 51 | how-to | reference (Notes) | `desktop/README.md` | ✅ |
 | 5 | `docs/nav/README.md` | 55 | how-to | reference (index) | `docs/nav/README.md` | ✅ |
@@ -24,7 +26,7 @@ Tracked markdown inventory against `.claude/rules/documentation.md`. Rewrite in 
 | 17 | `docs/QUESTS.md` | 675 | reference | explanation (why not varps), how-to (adding a quest) | `docs/reference/quests.md` + `docs/how-to/add-a-quest.md` + `docs/decisions/quest-state-not-varps.md` | ✅ |
 | 18 | `docs/NAV.md` | 747 | reference | explanation (corridor snap, starvation), how-to (route corpus, stress) | `docs/reference/nav-*.md` (pack, pathfinding, doors, crossings, teleports) + `docs/decisions/corridor-snap.md` + `docs/how-to/run-route-corpus.md` | ✅ |
 | 19 | `docs/API.md` | 1123 | reference | how-to (getting started) | `docs/reference/api-{bots,entities,items,skills,dialogue,movement,quests,events}.md` + `docs/how-to/write-a-bot.md` | ✅ |
-| 20 | `docs/SCRIPTS.md` | 907 | reference | — | **DO NOT EDIT — generated** | ☐ |
+| 20 | `docs/SCRIPTS.md` | 907 | reference | — | **DO NOT EDIT — generated** | ⚠️ generator |
 
 Total: 19 tracked files, 6192 lines. 13 are over the 150-line cap.
 

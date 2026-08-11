@@ -52,7 +52,7 @@ Scenarios (filter by id or tag: `mining` / `fishing` / `wc` / `acquire` / `path`
 
 Tags: `mining` / `fishing` / `wc` / `mule` / `local` / `acquire` / `path` / `endgame` / `freeform`.
 
-**Location / leash (product behaviour, not just the harness):**
+**Location / leash (product behaviour, not only the harness):**
 
 - **Named camps** pin the **home** tile to the camp spot and floor **membership**
   (ReturnToAnchor / rock disk) to **64** (overridable per camp via `campRadius`).

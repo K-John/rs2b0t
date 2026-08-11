@@ -36,7 +36,7 @@ quest facts:
   the forbidden one. The flags then rotate with the loc's placement: Sir Vyvin's
   cupboard is at rotation 1, so its "east" is **south** in world space, and true east
   is not even a pathable tile. Standing anywhere else has every op **silently dropped**
-  — no refusal, no message, no movement, just a loc that never changes state. The
+  — no refusal, no message, no movement, only a loc that never changes state. The
   symptom is indistinguishable from a missing loc, so read the `.loc` config and the
   placement rotation before believing anything else. (The Al Kharid furnace is the same
   shape: `forceapproach=east`, stand south.)

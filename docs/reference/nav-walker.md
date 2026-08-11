@@ -54,7 +54,7 @@ race a door's re-shut. Status is explicit: `'done' | 'retry' | 'unreachable'`.
 For a **loc** that server verdict is the whole story, and Reach runs no client-side
 search. An **NPC** is different: the server only says "I can't reach that!" once its
 own path search dead-ends, and a target that keeps wandering postpones that
-indefinitely — clicking a farmer shut in the next room just walks you to the door and
+indefinitely — clicking a farmer shut in the next room walks you to the door and
 leaves you there, silently, forever. So the NPC paths (`npcDialog`, and `entityOp`
 under `openWhenUnreachable`) probe the scene themselves and open the door on their own
 verdict. A wrong probe is harmless: it falls through to the ordinary click.
@@ -66,7 +66,7 @@ the bot opening doors it never needed.
 
 `Reach.npcDialog` searches the whole scene and lets the server walk the player to the
 target, so it follows an NPC that wanders. A leash-limited approach loop cannot — a
-patrolling NPC simply walks out of range and the interaction is abandoned.
+patrolling NPC walks out of range and the interaction is abandoned.
 
 ## When it gets stuck
 

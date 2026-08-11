@@ -114,7 +114,7 @@ Family Crest added four more, and the first two generalise past this quest:
   search returns several tiles the demon provably cannot reach. The east alcove is one,
   and it sits three tiles from poison spiders with `wanderrange=10`, so the bot is safe
   from the demon and chewed on the whole fight. The south end of the chamber is eleven
-  away, past their limit. Read the neighbours' `wanderrange` / `maxrange`, not just the
+  away, past their limit. Read the neighbours' `wanderrange` / `maxrange`, not only the
   target's footprint.
 - **Auto-retaliate is what breaks a safespot.** Anything that hits you — a spider,
   a stray skeleton — draws a swing back, and the swing walks the character off the

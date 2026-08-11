@@ -58,7 +58,7 @@ type PathOutcome =
 
 A `Waypoint` may carry a `TransportInfo`, which is how a door, stair, or ship
 crossing is represented mid-path. `avoidDoors` lets a caller re-path around a barrier
-that just refused to open.
+that has refused to open.
 
 [`DirectNavigator`](../../src/bot/nav/DirectNavigator.ts) is the script-facing wrapper —
 see [Movement](../reference/api-movement.md).

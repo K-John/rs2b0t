@@ -17,7 +17,7 @@ The deeper reason the logic is testable at all is that the pure parts are
 deliberately separated from the driving parts — [`followMath.ts`](../../src/bot/nav/followMath.ts)
 from `WalkExecutor`, a quest's [`decide()`](../reference/quest-engine.md#quest-state) from the engine
 that executes it. Those pure functions are the specification, and their tests are the
-place to encode a bug you just fixed.
+place to encode a bug you have fixed.
 
 **A note on module mocks.** `mock.module` is global in Bun and **permanent for the
 process** — there is no unmock — so a mock leaks into every file that runs after it.
