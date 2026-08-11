@@ -207,6 +207,16 @@ describe('Troll Stronghold loadout', () => {
         expect(step.kind === 'withdraw' && step.items[0]?.name).toBe(ITEM.CLIMBING_BOOTS);
     });
 
+    test('wears the gear it just withdrew before walking off to Tenzing', () => {
+        // Boots still to buy, so the Tenzing trip is pending — the kit should go
+        // on here at the bank rather than be carried across the walk.
+        const step = decide(snap({
+            stage: TROLL_STAGE.STARTED,
+            inv: [WEAPON, ...COINS, ...FOOD]
+        }));
+        expect(customName(step)).toBe(`wear ${WEAPON}`);
+    });
+
     test('buys boots from Tenzing when the bank has none', () => {
         const step = decide(snap({ stage: TROLL_STAGE.STARTED, inv: COINS }));
         expect(customName(step)).toContain('Tenzing');

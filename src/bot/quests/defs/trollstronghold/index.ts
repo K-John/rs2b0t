@@ -251,6 +251,15 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
         return withdraw(fromBank);
     }
 
+    // Wear it here, at the bank, rather than carrying it to Tenzing and back:
+    // the kit comes off the pack the moment it goes on, and the walk west is
+    // forty tiles of holding gear for no reason.
+    for (const name of plannedGear(snap)) {
+        if (held(snap, name)) {
+            return wearOrShed(name);
+        }
+    }
+
     if (!bootsReady) {
         if (heldCount(snap, ITEM.COINS) < BOOT_COST) {
             return { kind: 'wait', reason: `need ${BOOT_COST} gp for Climbing boots — bank has none` };
@@ -259,11 +268,6 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
     }
     if (!worn(snap, ITEM.CLIMBING_BOOTS)) {
         return wearBoots();
-    }
-    for (const name of plannedGear(snap)) {
-        if (held(snap, name)) {
-            return wearOrShed(name);
-        }
     }
 
     if (foodHeld(snap) === 0) {

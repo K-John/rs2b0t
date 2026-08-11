@@ -333,7 +333,11 @@ try {
             + ` troll=${stage} journal=${last.status} qp=${last.qp} runner=${last.runner}`
         );
         for (const l of last.logs) {
-            if (l.time > lastLogTime) { console.log(`      · [${l.level}] ${l.msg}`); }
+            // Relative stamps: the gaps are where the run actually spends time.
+            if (l.time > lastLogTime) {
+                const at = ((l.time - t0) / 1000).toFixed(1).padStart(6);
+                console.log(`      ·${at}s [${l.level}] ${l.msg}`);
+            }
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
