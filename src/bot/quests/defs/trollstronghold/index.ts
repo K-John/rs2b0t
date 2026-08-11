@@ -13,7 +13,8 @@ import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
 import { talkChoosingBy } from '../../exec/primitives.js';
 import { QuestFood } from '../../food.js';
-import { QuestGear } from '../../gear.js';
+import { QuestLoadout } from '../../gear.js';
+import { gearOf, weaponOf } from '../../../items/loadoutPlan.js';
 import {
     BOOT_COST,
     COIN_FLOAT,
@@ -67,85 +68,28 @@ function foodHeld(snap: QuestSnapshot): number {
 // ---------------------------------------------------------------------------
 
 /**
- * Supplies are bank-only, by design: nothing within reach of Burthorpe sells
- * enough food or armour to kit out a level-113 fight, so guessing at a shop is
- * a long walk to a stocked-out counter. The one purchase is the boots, and only
- * Tenzing sells those.
- */
-const TIERS = ['rune', 'adamant', 'mithril', 'black', 'steel', 'iron', 'bronze'] as const;
-
-const GEAR_SLOTS: readonly { slot: string; kinds: readonly string[] }[] = [
-    // Troll General slash defence is 60 against 35 for stab and crush, so a
-    // longsword out-damages the same tier of scimitar here.
-    { slot: 'weapon', kinds: ['2h sword', 'longsword', 'scimitar', 'battleaxe', 'warhammer', 'mace', 'sword'] },
-    { slot: 'body', kinds: ['platebody', 'chainbody'] },
-    { slot: 'legs', kinds: ['platelegs', 'plateskirt'] },
-    { slot: 'helm', kinds: ['full helm', 'med helm'] },
-    { slot: 'shield', kinds: ['kiteshield', 'sq shield'] }
-];
-
-/**
  * Gear the server refused to wield this session.
  *
- * Not every rune item is wearable by a character with the levels for it — a rune
- * platebody also wants Dragon Slayer — and the refusal is silent: `equip` just
- * returns false. Without this the plan re-picks the same platebody on every
- * decide() tick and the run spends its whole budget failing one step. Learned
- * facts about the account, not quest progress, so they live outside decide().
+ * A player can name something they cannot wear, and the refusal is silent —
+ * `equip` just returns false. Without this the plan re-picks it on every
+ * decide() tick and the run spends its budget failing one step.
  */
 const unwearable = new Set<string>();
-
-function bestInBank(snap: QuestSnapshot, kinds: readonly string[]): string | null {
-    for (const tier of TIERS) {
-        for (const kind of kinds) {
-            const name = `${tier} ${kind}`;
-            if (unwearable.has(name)) {
-                continue;
-            }
-            if (banked(snap, name) > 0 || held(snap, name)) {
-                // Display casing: every log line and step label carries this name.
-                return name[0]!.toUpperCase() + name.slice(1);
-            }
-        }
-    }
-    return null;
-}
 
 /** Test seam: forget what this session learned about unwearable gear. */
 export function resetUnwearable(): void {
     unwearable.clear();
 }
 
-function wearingSlot(snap: QuestSnapshot, kinds: readonly string[]): boolean {
-    for (const name of snap.worn) {
-        if (kinds.some(kind => name.endsWith(kind))) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/** The gear this run intends to wear — withdrawn, then equipped, never banked. */
+/**
+ * The gear the player declared, minus what is already on and minus anything the
+ * server has refused this session. Nothing here infers a tier from levels or
+ * from what happens to be in the bank — that guessing is what the loadout
+ * replaces.
+ */
 function plannedGear(snap: QuestSnapshot): string[] {
-    const out: string[] = [];
-    const configured = QuestGear.meleeWeapon?.trim();
-    const usable = (name: string | null | undefined): boolean =>
-        Boolean(name) && !unwearable.has(name!.toLowerCase());
-    for (const { slot, kinds } of GEAR_SLOTS) {
-        if (wearingSlot(snap, kinds)) {
-            continue;
-        }
-        if (slot === 'shield' && out.some(n => n.endsWith('2h sword'))) {
-            continue;
-        }
-        const pick = slot === 'weapon' && usable(configured) && (banked(snap, configured!) > 0 || held(snap, configured!))
-            ? configured!
-            : bestInBank(snap, kinds);
-        if (pick) {
-            out.push(pick);
-        }
-    }
-    return out;
+    return gearOf(QuestLoadout.current)
+        .filter(name => !unwearable.has(name.toLowerCase()) && !worn(snap, name));
 }
 
 function keepSet(snap: QuestSnapshot): string[] {
@@ -229,6 +173,10 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
         return null;
     }
 
+    if (gearOf(QuestLoadout.current).length === 0) {
+        return { kind: 'wait', reason: 'no loadout defined — set one up in the Loadouts panel' };
+    }
+
     if (!snap.bankKnown) {
         return scanBank();
     }
@@ -253,9 +201,17 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
     if (!bootsReady && banked(snap, ITEM.CLIMBING_BOOTS) > 0) {
         fromBank.push({ name: ITEM.CLIMBING_BOOTS, qty: 1 });
     }
+    // Only ever withdraw what the bank actually holds: a loadout names what the
+    // player wants, which is not a promise that it is in the bank.
+    const missing: string[] = [];
     for (const name of plannedGear(snap)) {
-        if (!held(snap, name)) {
+        if (held(snap, name)) {
+            continue;
+        }
+        if (banked(snap, name) > 0) {
             fromBank.push({ name, qty: 1 });
+        } else {
+            missing.push(name);
         }
     }
     const have = foodHeld(snap);
@@ -290,8 +246,10 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
     if (foodHeld(snap) === 0) {
         return { kind: 'wait', reason: `no combat food in the bank (tried ${foodNames().join(', ')})` };
     }
-    if (!wearingSlot(snap, GEAR_SLOTS[0]!.kinds)) {
-        return { kind: 'wait', reason: 'no melee weapon in the bank — set the quest gear name or bank one' };
+    // Missing armour is survivable; a missing weapon is not worth walking up for.
+    const weapon = weaponOf(QuestLoadout.current);
+    if (weapon !== null && missing.some(name => name.toLowerCase() === weapon.toLowerCase())) {
+        return { kind: 'wait', reason: `loadout weapon '${weapon}' is not in the bank` };
     }
     return null;
 }

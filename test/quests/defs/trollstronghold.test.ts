@@ -12,7 +12,7 @@ import {
     trollstronghold
 } from '#/bot/quests/defs/trollstronghold/index.js';
 import { QuestFood } from '#/bot/quests/food.js';
-import { QuestGear } from '#/bot/quests/gear.js';
+import { QuestLoadout } from '#/bot/quests/gear.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/quests/engine/types.js';
 
 const BURTHORPE: WorldTile = { x: 2896, z: 3528, level: 0 };
@@ -81,7 +81,7 @@ function customName(step: QuestStep): string | null {
 
 beforeEach(() => {
     QuestFood.name = 'Lobster';
-    QuestGear.meleeWeapon = WEAPON;
+    QuestLoadout.current = { name: 'quest', worn: { righthand: WEAPON }, carry: [{ item: 'Lobster', qty: 16 }] };
 });
 
 describe('Troll Stronghold journal stage parsing', () => {
@@ -225,7 +225,7 @@ describe('Troll Stronghold loadout', () => {
         expect(customName(step)).toBe(`wear ${ITEM.CLIMBING_BOOTS}`);
     });
 
-    test('withdraws the configured melee weapon when nothing is wielded', () => {
+    test('withdraws the loadout weapon when nothing is wielded', () => {
         const step = decide(snap({
             stage: TROLL_STAGE.STARTED,
             inv: COINS,
@@ -235,14 +235,31 @@ describe('Troll Stronghold loadout', () => {
         expect(step.kind === 'withdraw' && step.items[0]?.name).toBe(WEAPON);
     });
 
-    test('falls back to the best melee weapon the bank actually holds', () => {
+    test('waits, naming the panel, when no loadout is defined', () => {
+        QuestLoadout.current = null;
         const step = decide(snap({
             stage: TROLL_STAGE.STARTED,
             inv: COINS,
             worn: [ITEM.CLIMBING_BOOTS],
-            bank: ['Mithril longsword', 'Adamant longsword']
+            bank: Array(40).fill('Lobster') as string[]
         }));
-        expect(step.kind === 'withdraw' && step.items[0]?.name).toBe('Adamant longsword');
+        expect(step.kind === 'wait' && step.reason).toContain('Loadouts panel');
+    });
+
+    test('withdraws every piece of loadout gear it is not already wearing', () => {
+        QuestLoadout.current = {
+            name: 'quest',
+            worn: { righthand: WEAPON, torso: 'Rune chainbody' },
+            carry: [{ item: 'Lobster', qty: 16 }]
+        };
+        const step = decide(snap({
+            stage: TROLL_STAGE.STARTED,
+            inv: COINS,
+            worn: [ITEM.CLIMBING_BOOTS],
+            bank: [WEAPON, 'Rune chainbody', ...Array(40).fill('Lobster')] as string[]
+        }));
+        expect(step.kind === 'withdraw' && step.items.map(i => i.name).sort())
+            .toEqual(['Lobster', 'Rune chainbody', WEAPON]);
     });
 
     test('withdraws food up to the target', () => {

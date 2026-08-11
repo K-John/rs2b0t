@@ -6,7 +6,8 @@ import { Inventory } from '../../../api/hud/Inventory.js';
 import { Skills } from '../../../api/hud/Skills.js';
 import { Locs } from '../../../api/queries/Locs.js';
 import { QuestFood } from '../../food.js';
-import { QuestGear } from '../../gear.js';
+import { QuestLoadout } from '../../gear.js';
+import { weaponOf } from '../../../items/loadoutPlan.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { useOnLoc } from '../../exec/prompts.js';
 import { smithNails } from '../dragonslayer/supplies.js';
@@ -395,8 +396,8 @@ export function dungeonKit(snap: QuestSnapshot, needLight: boolean): QuestStep |
  * The player's melee weapon: bank only, and optional.
  *
  * Nothing in the game sells a rune scimitar — Zeke's Superior Scimitars stops at
- * mithril — so this is whatever the account already owns, named by the
- * `meleeWeapon` setting. Absent from the bank, unwieldable, or blank, the
+ * mithril — so this is whatever the player put in their loadout's weapon slot.
+ * Absent from the bank, unwieldable, or blank, the
  * fights fall back to the magic-only loadout they used before, which still wins;
  * the melee form is simply prayed through instead of killed.
  */
@@ -407,7 +408,7 @@ const WIELD_TRIES = 3;
 let wieldTries = 0;
 
 export function meleeWeaponName(): string | null {
-    const name = QuestGear.meleeWeapon?.trim();
+    const name = weaponOf(QuestLoadout.current)?.trim();
     return name && name.length > 0 ? name : null;
 }
 

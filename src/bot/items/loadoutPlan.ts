@@ -25,6 +25,11 @@ export function suppliesOf(loadout: Loadout | null): CarryEntry[] {
     return [...(loadout?.carry ?? [])];
 }
 
+/** The declared weapon, for the fights that need to know they have one. */
+export function weaponOf(loadout: Loadout | null): string | null {
+    return loadout?.worn.righthand ?? null;
+}
+
 /** What this script should eat, from its own loadout setting. */
 export function scriptFood(bag: SettingsBag): string {
     return foodOf(selectedLoadout(bag));

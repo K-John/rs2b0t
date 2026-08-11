@@ -1,9 +1,10 @@
+import type { Loadout } from '../items/loadouts.js';
+
 /**
- * Player-supplied gear names, set from the script settings at startup.
+ * The loadout the host selected, for quest modules to wear.
  *
- * A melee weapon cannot be shopped for the way the rest of a quest loadout can:
- * nothing in the game sells a rune scimitar, and Zeke's Superior Scimitars tops
- * out at mithril. So the name is a parameter and the bank is the only source —
- * whatever the player already owns and can wield.
+ * Modules have no settings bag of their own, so AIOQuester resolves the
+ * selection once at startup and parks it here — the same shape as QuestFood.
+ * Nothing infers gear: what the player declared is what gets worn.
  */
-export const QuestGear = { meleeWeapon: 'Rune scimitar' as string | null };
+export const QuestLoadout = { current: null as Loadout | null };
