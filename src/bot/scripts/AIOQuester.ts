@@ -41,7 +41,6 @@ const ICON: Record<QueueStatus, string> = {
     UNKNOWN: '?'
 };
 
-/** General quest food when the loadout names none. */
 const FALLBACK_FOOD = 'Trout';
 
 export const AIO_SETTINGS: SettingsSchema = {

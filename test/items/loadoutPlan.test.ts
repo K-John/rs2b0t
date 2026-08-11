@@ -84,8 +84,6 @@ describe('scriptFood', () => {
         expect(scriptFood(new SettingsBag({}), 'Trout')).toBe('Trout');
     });
 
-    // Opening the Loadouts panel and closing it leaves an empty loadout behind.
-    // That must not silently re-default every script's food.
     test('an empty saved loadout is not a choice', () => {
         Loadouts.save([{ name: 'loadout', worn: {}, carry: [] }]);
         expect(scriptFood(new SettingsBag({}), 'Trout')).toBe('Trout');

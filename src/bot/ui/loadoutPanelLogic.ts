@@ -26,7 +26,7 @@ export const SUPPLY_ROWS: readonly SupplyRow[] = [
     { label: 'Super defence', hint: 'super defence' }
 ];
 
-/** Name → record, built once. A linear scan per rendered row is 200 scans a click. */
+/** Built once; a scan per rendered row is 200 a click. */
 const byName = new Map<string, ItemRecord>();
 
 export function recordByName(name: string): ItemRecord | null {

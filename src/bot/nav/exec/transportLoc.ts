@@ -48,11 +48,8 @@ export function matchesTransportLanding(
         if (before === null || current.level !== before.level) {
             return true;
         }
-        // A landing tolerance must never exceed the crossing's own span. The
-        // Death Plateau stile moves you three tiles and the troll climbing rocks
-        // two, so "within 3" covered the near side and every frame of the
-        // animation in between: the executor called it crossed, repathed, and
-        // planned the same hop again. Short hops land exactly or not at all.
+        // Tolerance must not exceed the crossing's own span, or the near side
+        // and every frame of the animation read as crossed.
         const span = chebyshev(before, transport.toTile);
         return span <= LANDING_TOLERANCE
             ? chebyshev(current, transport.toTile) === 0

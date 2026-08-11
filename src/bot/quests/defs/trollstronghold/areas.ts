@@ -18,7 +18,7 @@ export const FOOD_TARGET = 16;
 /** Below this the loadout is spent and the module walks back down for more. */
 export const FOOD_FLOOR = 4;
 
-/** Best dose first — two of whatever the bank has. */
+/** Best dose first. */
 export const PRAYER_POTIONS = [
     'Prayer potion(4)',
     'Prayer potion(3)',
@@ -26,10 +26,8 @@ export const PRAYER_POTIONS = [
     'Prayer potion(1)'
 ] as const;
 
-/** Enough to hold Protect from Melee through Dad and a level-113 general. */
 export const PRAYER_POTION_TARGET = 2;
 
-/** Sip below this fraction of the prayer bar. */
 export const PRAYER_SIP_AT = 0.5;
 
 export const COMBAT_FOODS = [

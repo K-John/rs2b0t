@@ -108,15 +108,11 @@ export async function protectedWalk(
     }
 }
 
-/** Below half the bar, with a dose in the pack. A zero-prayer character never sips. */
 export function needsSip(points: number, max: number): boolean {
     return max > 0 && points < max * PRAYER_SIP_AT;
 }
 
-/**
- * Drink one dose. Returns false when there is nothing to drink, so the caller
- * can spend the tick on something else rather than retrying an empty pack.
- */
+/** False when there is nothing to drink, so the caller can spend the tick elsewhere. */
 async function sipPrayer(log: (m: string) => void): Promise<boolean> {
     const pot = Inventory.items().find(i => {
         const name = (i.name ?? '').toLowerCase();
@@ -208,8 +204,7 @@ export async function fight(plan: FightPlan, log: (m: string) => void): Promise<
                 await drainDialogue(plan.dialogue, plan.onDialogue, log);
                 continue;
             }
-            // Sip before praying: a dose is what buys the next stretch of
-            // protection, and the prayer cannot be re-armed on an empty bar.
+            // Sip first: prayer cannot be re-armed on an empty bar.
             if (prayers.usable && needsSip(Prayer.points(), Prayer.max()) && (await sipPrayer(log))) {
                 continue;
             }

@@ -19,7 +19,6 @@ import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
 const MONKEYBARS_APPROACH = new Tile(3121, 9964, 0);
 const MIN_AGILITY = 15; // required to swing across the monkey bars
 
-/** What this eats when the loadout names no food. */
 const FALLBACK_FOOD = 'Lobster';
 
 const RESTOCK_DUNGEON = 'Dungeon ladder (out of food)';

@@ -208,8 +208,6 @@ describe('Troll Stronghold loadout', () => {
     });
 
     test('wears the gear it just withdrew before walking off to Tenzing', () => {
-        // Boots still to buy, so the Tenzing trip is pending — the kit should go
-        // on here at the bank rather than be carried across the walk.
         const step = decide(snap({
             stage: TROLL_STAGE.STARTED,
             inv: [WEAPON, ...COINS, ...FOOD]
@@ -245,7 +243,6 @@ describe('Troll Stronghold loadout', () => {
         expect(step.kind === 'withdraw' && step.items[0]?.name).toBe(WEAPON);
     });
 
-    // An account that has never opened the Loadouts panel still has to run.
     test('with no loadout it scavenges the best the bank holds', () => {
         QuestLoadout.current = null;
         const step = decide(snap({
@@ -287,8 +284,6 @@ describe('Troll Stronghold loadout', () => {
             .toEqual(['Lobster', 'Rune chainbody', WEAPON]);
     });
 
-    // One step per piece put a task hand-off and a fresh snapshot between each,
-    // so the character stood at the bank equipping one item at a time.
     test('wears the whole kit in a single step', () => {
         QuestLoadout.current = {
             name: 'quest',
@@ -307,8 +302,6 @@ describe('Troll Stronghold loadout', () => {
         expect(name).toContain('Rune platelegs');
     });
 
-    // Boot money used to be its own withdraw step: a second bank open, close and
-    // decide() round trip for one stack of coins.
     test('boot money rides the same bank visit as the gear', () => {
         QuestLoadout.current = { name: 'quest', worn: { righthand: WEAPON }, carry: [] };
         const step = decide(snap({

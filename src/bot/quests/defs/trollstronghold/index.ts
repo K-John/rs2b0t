@@ -69,16 +69,10 @@ function foodHeld(snap: QuestSnapshot): number {
 // Loadout
 // ---------------------------------------------------------------------------
 
-/**
- * Gear the server refused to wield this session.
- *
- * A player can name something they cannot wear, and the refusal is silent —
- * `equip` just returns false. Without this the plan re-picks it on every
- * decide() tick and the run spends its budget failing one step.
- */
+/** Refusals are silent — `equip` just returns false — so a re-picked item burns the run. */
 const unwearable = new Set<string>();
 
-/** Test seam: forget what this session learned about unwearable gear. */
+/** Test seam. */
 export function resetUnwearable(): void {
     unwearable.clear();
 }
@@ -120,7 +114,7 @@ function wearingSlot(snap: QuestSnapshot, kinds: readonly string[]): boolean {
     return false;
 }
 
-/** The best each slot can do out of the bank — what ran before loadouts existed. */
+/** What ran before loadouts existed. */
 function scavengedGear(snap: QuestSnapshot): string[] {
     const out: string[] = [];
     for (const { slot, kinds } of GEAR_SLOTS) {
@@ -135,22 +129,13 @@ function scavengedGear(snap: QuestSnapshot): string[] {
     return out;
 }
 
-/**
- * The gear the player declared, minus what is already on and minus anything the
- * server has refused this session.
- *
- * A declared loadout is taken literally — no tier is inferred from levels or
- * from what happens to be in the bank, because that guessing is what the loadout
- * replaces. Declare nothing and the old scavenging runs instead, so an account
- * that has never opened the Loadouts panel still gets kitted out.
- */
+/** A declared loadout is taken literally; declaring nothing falls back to scavenging. */
 function plannedGear(snap: QuestSnapshot): string[] {
     const declared = gearOf(QuestLoadout.current);
     const names = declared.length > 0 ? declared : scavengedGear(snap);
     return names.filter(name => !unwearable.has(name.toLowerCase()) && !worn(snap, name));
 }
 
-/** Doses held, across every strength. */
 function potionsHeld(snap: QuestSnapshot): number {
     return PRAYER_POTIONS.reduce((total, name) => total + heldCount(snap, name), 0);
 }
@@ -173,15 +158,8 @@ function scanBank(): QuestStep {
 }
 
 /**
- * Wear the kit, or stop planning it. `Equipment.equip` returning false is the
- * only signal the server gives for "you may not wield that", and the step is
- * only ever re-derived from the same snapshot — so a plain equip step retries
- * the refusal until the run's budget is gone. Shedding it is progress.
- *
- * The whole kit goes on in one step. Returning a step per piece put a task
- * hand-off and a fresh snapshot between each one, so a five-piece loadout stood
- * at the bank for five round trips; `equip` already waits for each item to land,
- * so looping here is paced by the server rather than by the scheduler.
+ * The whole kit in one step — a step per piece pays a task hand-off each, and
+ * `equip` already waits for the item to land. Refusals are shed, not retried.
  */
 function wearAll(names: readonly string[]): QuestStep {
     return {
@@ -236,8 +214,7 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
         if (!worn(snap, ITEM.CLIMBING_BOOTS)) {
             return wearBoots();
         }
-        // Wearing what is already in the pack costs nothing; only the bank is
-        // out of reach up here.
+        // Only the bank is out of reach up here.
         const carried = plannedGear(snap).filter(name => held(snap, name));
         if (carried.length > 0) {
             return wearAll(carried);
@@ -254,12 +231,9 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
         return { kind: 'deposit', keep, bank: FALADOR_WEST_BANK, exactKeep: true };
     }
 
-    // Everything the bank can supply comes out in one visit, gear included —
-    // Tenzing is a forty-tile detour west and the bank is east, so a shopping
-    // trip wedged between two withdrawals walks the same ground three times.
+    // One visit: Tenzing is forty tiles west and the bank is east.
     const fromBank: { name: string; qty: number }[] = [];
-    // Coins are for exactly one purchase. Restoring a standing float would put a
-    // bank trip after the boots are bought, for twelve gp of change.
+    // Exactly one purchase — a standing float would mean a bank trip for 12gp of change.
     const needsBootMoney = !bootsReady && banked(snap, ITEM.CLIMBING_BOOTS) === 0;
     if (needsBootMoney && heldCount(snap, ITEM.COINS) < COIN_FLOAT && banked(snap, ITEM.COINS) > 0) {
         fromBank.push({
@@ -270,8 +244,7 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
     if (!bootsReady && banked(snap, ITEM.CLIMBING_BOOTS) > 0) {
         fromBank.push({ name: ITEM.CLIMBING_BOOTS, qty: 1 });
     }
-    // Only ever withdraw what the bank actually holds: a loadout names what the
-    // player wants, which is not a promise that it is in the bank.
+    // A loadout names what the player wants, not what the bank has.
     const missing: string[] = [];
     for (const name of plannedGear(snap)) {
         if (held(snap, name)) {
@@ -283,8 +256,7 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
             missing.push(name);
         }
     }
-    // Optional: prayer is what makes Dad and a level-113 general a formality, but
-    // the quest is winnable on food alone, so a bank with none is not a blocker.
+    // Optional — the quest is winnable on food alone.
     let wantPotions = PRAYER_POTION_TARGET - potionsHeld(snap);
     for (const name of PRAYER_POTIONS) {
         if (wantPotions <= 0) {
@@ -312,9 +284,7 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
         return withdraw(fromBank);
     }
 
-    // Wear it here, at the bank, rather than carrying it to Tenzing and back:
-    // the kit comes off the pack the moment it goes on, and the walk west is
-    // forty tiles of holding gear for no reason.
+    // Wear it here; the detour to Tenzing is forty tiles of carrying it.
     const toWear = plannedGear(snap).filter(name => held(snap, name));
     if (toWear.length > 0) {
         return wearAll(toWear);

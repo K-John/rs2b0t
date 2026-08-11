@@ -70,8 +70,7 @@ export default class ParamsModal {
             showGlobalExtra?: boolean;
         }
     ): void {
-        // Loadout names are player data, so the dropdown is filled at open time
-        // rather than baked into the schema at module load.
+        // Loadout names are player data, not a schema constant.
         for (const def of Object.values(schema)) {
             if (def.optionsFrom === 'loadouts') {
                 def.options = Loadouts.names();

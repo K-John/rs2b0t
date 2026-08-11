@@ -9,13 +9,9 @@ import { reader } from '../adapter/ClientAdapter.js';
  * meaning transparent.
  */
 /**
- * Encoded icons, by item id.
- *
- * `toDataURL` is a PNG encode — about 1ms each. The picker draws up to two
- * hundred rows and every click re-renders, so uncached this costs the better
- * part of a game tick per click, and it gets worse the more items the client
- * has seen. Failures are deliberately not cached: a sprite the client has not
- * streamed yet must be retried, which is what fills icons in later.
+ * Encoded icons by id — `toDataURL` is a ~1ms PNG encode and the picker
+ * re-renders up to 200 rows a click. Failures are not cached: a sprite the
+ * client has not streamed yet must be retried.
  */
 const encoded = new Map<number, string>();
 

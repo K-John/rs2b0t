@@ -397,16 +397,14 @@ export function dungeonKit(snap: QuestSnapshot, needLight: boolean): QuestStep |
  *
  * Nothing in the game sells a rune scimitar — Zeke's Superior Scimitars stops at
  * mithril — so this is whatever the player put in their loadout's weapon slot.
- * Absent from the bank, unwieldable, or blank, the
- * fights fall back to the magic-only loadout they used before, which still wins;
- * the melee form is simply prayed through instead of killed.
+ * Absent, unwieldable or blank, the fights fall back to magic only, which still
+ * wins; the melee form is prayed through instead of killed.
  */
 let meleeGaveUp = false;
 
-/** Attempts before the weapon is written off — an unwieldable one never lands. */
-/** Wielded when the loadout names no weapon — nothing sells one, so it is bank-only either way. */
 const FALLBACK_WEAPON = 'Rune scimitar';
 
+/** Attempts before the weapon is written off — an unwieldable one never lands. */
 const WIELD_TRIES = 3;
 let wieldTries = 0;
 

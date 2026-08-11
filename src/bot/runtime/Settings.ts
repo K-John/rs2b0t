@@ -20,10 +20,7 @@ export interface SettingDef {
     showIf?: { key: string; anyOf: string[] };
     /** Render a freeform string as an HTML colour picker + hex field. */
     color?: boolean;
-    /**
-     * Options are player data, not a fixed list, so ParamsModal refreshes them
-     * from the named source each time it opens.
-     */
+    /** Player data, so ParamsModal refreshes them from the named source at open. */
     optionsFrom?: 'loadouts';
 }
 

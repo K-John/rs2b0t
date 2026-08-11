@@ -2,12 +2,6 @@ import { describe, expect, test } from 'bun:test';
 import type { TransportInfo } from '#/bot/nav/PathFinder.js';
 import { matchesTransportLanding } from '#/bot/nav/exec/transportLoc.js';
 
-/**
- * The Death Plateau stile moves you three tiles; the troll climbing rocks move
- * two. Both are shorter than the three-tile landing tolerance, so mid-animation
- * on the near side used to read as "landed" — the executor declared the
- * crossing done, repathed, and planned the same crossing again.
- */
 const stile: TransportInfo = {
     locName: 'Stile',
     action: 'Climb-over',
