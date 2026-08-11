@@ -11,7 +11,7 @@ Tracked markdown inventory against `.claude/rules/documentation.md`. Rewrite in 
 | 4 | `desktop/README.md` | 51 | how-to | reference (Notes) | `desktop/README.md` | ✅ |
 | 5 | `docs/nav/README.md` | 55 | how-to | reference (index) | `docs/nav/README.md` | ✅ |
 | 6 | `docs/MAP-PICKER.md` | 59 | how-to | reference (Settings) | `docs/how-to/map-picker.md` + `docs/reference/map-picker-settings.md` | ✅ |
-| 7 | `docs/nav/CLIENT-PATH-ALIGN.md` | 96 | explanation | how-to (harnesses), backlog (Follow-ups) | `docs/decisions/client-vs-pack-path.md` + `docs/how-to/compare-path-paint.md`; **FLAG: Follow-ups → issues** | ☐ |
+| 7 | `docs/nav/CLIENT-PATH-ALIGN.md` | 96 | explanation | how-to (harnesses), backlog (Follow-ups) | `docs/decisions/client-vs-pack-path.md` + `docs/how-to/compare-path-paint.md`; **FLAG: Follow-ups → issues** | ✅ |
 | 8 | `docs/LOCS.md` | 143 | explanation | reference | **FLAG: external pasted reference, not authored here** | ☐ |
 | 9 | `README.md` | 149 | mixed | how-to (quick start), explanation (how it connects), derivable (project structure) | `README.md` (root, exempt); delete Project structure | ☐ |
 | 10 | `docs/ARCHITECTURE.md` | 164 | explanation | reference (the fences) | `docs/decisions/architecture.md` + `docs/reference/import-fences.md` | ☐ |

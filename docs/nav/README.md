@@ -29,7 +29,8 @@ Full write-up: [NAV.md § Nav teleports](../NAV.md#nav-teleports).
 |---|---|
 | Product manual | [NAV.md](../NAV.md) |
 | 2004 transport coverage | [TRANSPORTS-2004.md](./TRANSPORTS-2004.md) |
-| Client path vs pack paint | [CLIENT-PATH-ALIGN.md](./CLIENT-PATH-ALIGN.md) |
+| Why paint and walk diverge | [client-vs-pack-path.md](../decisions/client-vs-pack-path.md) |
+| Compare pack and client paint | [compare-path-paint.md](../how-to/compare-path-paint.md) |
 | Code | `src/bot/nav/` |
 | Unit tests | `bun test test/nav/` |
 | Pack corpus | `bun --preload ./test/setup-dom.ts tools/nav/script-route-corpus.ts` |
