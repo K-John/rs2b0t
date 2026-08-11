@@ -112,7 +112,7 @@ each follow tick and [`PathCameraFollow`](../../src/bot/nav/cameraFollow.ts) eas
 orbit yaw on the **client frame loop** (not once per walk tick), so turns feel like
 a human holding left/right rather than stepping.
 
-- Yaw uses client units `0–2047` (same as [`Game.cameraYaw`](../API.md#camera-client-only)).
+- Yaw uses client units `0–2047` (same as [`Game.cameraYaw`](../reference/api-game.md#camera-client-only)).
 - Lookahead stops at **transport boundaries** (level change, same-plane dungeon
   jumps such as z ± 6400, or a transport waypoint) so the camera aims at the local
   ladder/object, not the remote landing.

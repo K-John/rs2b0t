@@ -21,7 +21,7 @@ pure Lost City or 2004scape projects and is not maintained for those targets.
 |---|---|
 | [Running locally](RUNNING.md) | [the whole path from a cold clone](how-to/run-locally.md), and [ports](reference/ports.md) |
 | [Architecture](ARCHITECTURE.md) | the layers and the ABI boundary, then [design](decisions/architecture.md) and [fences](reference/import-fences.md) |
-| [Scripting API](API.md) | the complete `@rs2b0t/api` surface, with examples |
+| [Scripting API](API.md) | the surface, split by subsystem; start with [write a bot](how-to/write-a-bot.md) |
 | [World-walking](NAV.md) | [pack](reference/nav-pack.md), [pathfinding](reference/nav-pathfinding.md), [doors](reference/nav-doors.md), [teleports](reference/nav-teleports.md), [walker](reference/nav-walker.md) |
 | [Map tile picker](MAP-PICKER.md) | Pick on Map: display modes, then [reference](reference/map-picker.md) and [baking](how-to/bake-the-basemap.md) |
 | [Quests](QUESTS.md) | [engine](reference/quest-engine.md), [primitives](reference/quest-primitives.md), [eligibility](reference/quest-eligibility.md), [adding one](how-to/add-a-quest.md) |

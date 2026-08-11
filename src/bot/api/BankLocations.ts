@@ -41,7 +41,7 @@ export interface BankNpcAccess {
 
 /**
  * A bank, its stand tile, and how to open it.
- * @see docs/API.md#bank
+ * @see docs/reference/api-items.md#bank
  */
 export interface BankLocation {
     name: string;

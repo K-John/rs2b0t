@@ -57,7 +57,7 @@ Two consequences worth knowing:
 - **Actions are fire-and-forget.** `menuAction` returns `false` only when there is no
   client or you are not in-game — never because the action failed. A bot must verify
   outcomes against game state, which is why
-  [`Execution.delayUntil`](../API.md#execution) exists and why the API docs insist on
+  [`Execution.delayUntil`](../reference/api-bots.md#execution) exists and why the API docs insist on
   it.
 - There is no mouse. Nothing in the bot path moves a cursor or synthesises events.
 
@@ -101,7 +101,7 @@ credentials. The wall passes `?box=<account>` when it spawns each iframe.
 
 ## Frame-gap insurance
 
-Bots sleep through [`Execution`](../API.md#execution), never `setTimeout`. Those waits
+Bots sleep through [`Execution`](../reference/api-bots.md#execution), never `setTimeout`. Those waits
 are settled by [`src/bot/runtime/Scheduler.ts`](../../src/bot/runtime/Scheduler.ts),
 which is driven by the client's frame callback — so bot time is *game* time, and a
 paused client cannot let a wait expire early.

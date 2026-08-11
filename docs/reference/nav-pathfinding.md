@@ -61,7 +61,7 @@ crossing is represented mid-path. `avoidDoors` lets a caller re-path around a ba
 that just refused to open.
 
 [`DirectNavigator`](../../src/bot/nav/DirectNavigator.ts) is the script-facing wrapper —
-see [Movement](../API.md#movement).
+see [Movement](../reference/api-movement.md).
 
 ## Following a path
 

@@ -4,7 +4,7 @@ import { Scheduler } from '../runtime/Scheduler.js';
 /**
  * The only legal way to sleep. Waits are settled from the client's frame
  * callback, so they follow game time and unwind cleanly on Stop.
- * @see docs/API.md#execution
+ * @see docs/reference/api-bots.md#execution
  * @see docs/decisions/architecture.md#frame-gap-insurance
  */
 export const Execution = {

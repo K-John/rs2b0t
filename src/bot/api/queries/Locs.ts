@@ -8,7 +8,7 @@ import EntityQuery from './Query.js';
  *
  * Uses snapshot-first filtering so name/action/within do not allocate a Loc for
  * every piece of scenery in the scene.
- * @see docs/API.md#entities--queries
+ * @see docs/reference/api-entities.md
  * @see docs/decisions/level-change-lag.md
  */
 export const Locs = {

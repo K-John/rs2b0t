@@ -5,7 +5,7 @@ import { Execution } from '../Execution.js';
 /**
  * Chat modals: dialogue pages, option lists, and make-x menus. Server-driven
  * chains must be driven to completion.
- * @see docs/API.md#chatdialog
+ * @see docs/reference/api-dialogue.md
  * @see docs/reference/quest-primitives.md
  */
 export const ChatDialog = {

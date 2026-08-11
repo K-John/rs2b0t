@@ -18,7 +18,7 @@ const COLOUR_COMPLETE = 0x00f800;
  * list colour (3-way), total QP, inventory, and journal text only after this
  * API opens the log modal.
  * @see docs/reference/quest-engine.md#what-the-client-can-see
- * @see docs/API.md#quests
+ * @see docs/reference/api-quests.md
  */
 export const Quests = {
     /** Every quest-list row: display name + colour-derived status. */

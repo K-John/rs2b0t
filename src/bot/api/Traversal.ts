@@ -61,7 +61,7 @@ export const NAV_WITH_TELES = {
 /**
  * World-scale movement over the baked collision pack and the door/transport
  * graph.
- * @see docs/API.md#movement
+ * @see docs/reference/api-movement.md
  * @see docs/NAV.md
  */
 export const Traversal = {
