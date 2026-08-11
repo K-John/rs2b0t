@@ -137,10 +137,7 @@ const BANK_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
     { debugName: 'lobster', displayName: 'Lobster', qty: 60 },
     { debugName: 'rune_scimitar', displayName: 'Rune scimitar', qty: 1 },
-    // Rune platebody also wants Dragon Slayer, so this pair proves the shed:
-    // the bot must refuse it and fall back to the adamant one.
-    { debugName: 'rune_platebody', displayName: 'Rune platebody', qty: 1 },
-    { debugName: 'adamant_platebody', displayName: 'Adamant platebody', qty: 1 },
+    { debugName: 'rune_chainbody', displayName: 'Rune chainbody', qty: 1 },
     { debugName: 'rune_platelegs', displayName: 'Rune platelegs', qty: 1 },
     { debugName: 'rune_full_helm', displayName: 'Rune full helm', qty: 1 },
     { debugName: 'rune_kiteshield', displayName: 'Rune kiteshield', qty: 1 }
@@ -291,8 +288,24 @@ try {
         console.log('nav path paint: on');
     }
 
+    // Gear is declared, never inferred — the quest wears whatever this says.
+    await page.evaluate(() => {
+        const g = globalThis as never as { __rs2b0t: { Loadouts: { save(l: unknown[]): void } } };
+        g.__rs2b0t.Loadouts.save([{
+            name: 'quest',
+            worn: {
+                righthand: 'Rune scimitar',
+                torso: 'Rune chainbody',
+                legs: 'Rune platelegs',
+                hat: 'Rune full helm',
+                lefthand: 'Rune kiteshield'
+            },
+            carry: [{ item: 'Lobster', qty: 16 }]
+        }]);
+    });
+    console.log('seeded the quest loadout');
+
     await page.evaluate(() => sessionStorage.setItem('rs2b0t:set:AIOQuester:quests', 'troll'));
-    await page.evaluate(f => sessionStorage.setItem('rs2b0t:set:AIOQuester:food', f), args.food);
     await startScript(page, 'AIOQuester');
     console.log(`started AIOQuester — watching for troll_quest >= ${args.until}`);
 

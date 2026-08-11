@@ -204,6 +204,7 @@ import {
     liveResetMordredBrief
 } from '../quests/defs/merlinscrystal.js';
 import { defineBot, registerScript } from './defineBot.js';
+import { Loadouts } from '../items/loadoutStore.js';
 
 export const API_VERSION = 1;
 
@@ -266,6 +267,7 @@ export function installAbi(): void {
         nearestUsableBank,
         Shop,
         Skills,
+        Loadouts,
         ChatDialog,
         Quests,
         Trade,
