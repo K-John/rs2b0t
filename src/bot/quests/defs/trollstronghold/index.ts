@@ -324,9 +324,10 @@ async function buyBoots(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     const before = Inventory.count(ITEM.CLIMBING_BOOTS);
-    if (!(await talkChoosingBy(TENZING_BOOTS.npc, TENZING_DONE_RULES, TENZING_BOOTS.prefer, log))) {
-        return false;
-    }
+    // Classify on the boots, not on the dialogue. Tenzing's shop loop leaves an
+    // objbox up often enough that `talkChoosingBy` reports failure for a talk
+    // that already handed the boots over, and the retry then walks the leg twice.
+    await talkChoosingBy(TENZING_BOOTS.npc, TENZING_DONE_RULES, TENZING_BOOTS.prefer, log);
     return Execution.delayUntil(() => Inventory.count(ITEM.CLIMBING_BOOTS) > before, 8000);
 }
 
