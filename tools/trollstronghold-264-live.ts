@@ -2,6 +2,7 @@
  * Live Troll Stronghold harness (#264), stage-scoped or end-to-end.
  *
  *   HEADED=1 bun tools/trollstronghold-264-live.ts --stage 0 --minutes 90
+ *   HEADED=1 bun tools/trollstronghold-264-live.ts --stage 0 --paint    # draw the route
  *   HEADED=1 bun tools/trollstronghold-264-live.ts --stage 20 --until 30 --minutes 45
  *   HEADED=1 bun tools/trollstronghold-264-live.ts --stage 30 --at 2852,10105,0 --pack --minutes 25
  *
@@ -21,6 +22,7 @@ import { homedir } from 'node:os';
 import type { Page } from 'playwright-core';
 
 import { launchBrowser } from './lib/harness.js';
+import { applyNavPaintSettings } from './lib/navLiveHarness.js';
 import {
     cheatQuiet,
     clearChatDialogs,
@@ -50,6 +52,7 @@ interface Args {
     food: string;
     at: Tile | null;
     pack: boolean;
+    paint: boolean;
     deploy: boolean;
 }
 
@@ -73,12 +76,14 @@ function parse(argv: string[]): Args {
         food: 'Lobster',
         at: null,
         pack: false,
+        paint: false,
         deploy: true
     };
     for (let i = 0; i < argv.length; i++) {
         const flag = argv[i];
         if (flag === '--no-deploy') { out.deploy = false; continue; }
         if (flag === '--pack') { out.pack = true; continue; }
+        if (flag === '--paint') { out.paint = true; continue; }
         const value = argv[++i];
         if (value === undefined) { break; }
         if (flag === '--base') { out.base = value; }
@@ -270,6 +275,21 @@ try {
         }
     }
     console.log(`start tile → ${start.x},${start.z},${start.level}`);
+
+    if (args.paint) {
+        // Global settings bag: the planned route in red, the client's own leg in
+        // cyan, with hop labels. Worth having on for any headed watch.
+        await applyNavPaintSettings(page, {
+            paint: true,
+            cameraFollow: true,
+            sceneExpand: true,
+            clientSeg: true,
+            clientColor: 'cyan',
+            pathColor: 'red',
+            teleports: false
+        });
+        console.log('nav path paint: on');
+    }
 
     await page.evaluate(() => sessionStorage.setItem('rs2b0t:set:AIOQuester:quests', 'troll'));
     await page.evaluate(f => sessionStorage.setItem('rs2b0t:set:AIOQuester:food', f), args.food);
