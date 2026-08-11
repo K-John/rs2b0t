@@ -18,10 +18,10 @@ Requires repositories not published alongside this one.
   state, or clear dialogs first.
 - Local player saves: harnesses leave `*.sav` under the engine `data/players/main/`.
   Wipe harness junk with `bash tools/cleanup-test-accounts.sh` (dry-run default;
-  see [Testing](../TESTING.md#live-harnesses)).
+  see [Testing](../how-to/write-a-harness.md)).
 
 The headless harness ABI and the end-to-end smoke are documented in
-[Testing](../TESTING.md#live-harnesses).
+[Testing](../how-to/write-a-harness.md).
 
 ### Hosting the single client (prod)
 

@@ -315,7 +315,7 @@ Elemental Workshop reference constants
 | `EW_FAILED_COMBAT` | Known red (40/40/25/40 died on Water elemental) |
 | `EW_PROBE_COMBAT` | Next lower search (45/45/30/45) |
 
-Harness recipes and bank seeding: [Testing](TESTING.md#seeding-inventory-vs-bank).
+Harness recipes and bank seeding: [Testing](reference/seeding-test-accounts.md).
 
 ## Adding a quest
 

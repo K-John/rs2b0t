@@ -610,7 +610,7 @@ the JSON proof.
 relogin is ~seconds, not a minute-long unclean hold.
 
 Fresh accounts leave `*.sav` on an always-on local engine. Clean with
-`bash tools/cleanup-test-accounts.sh` (dry-run default; see [TESTING.md](TESTING.md#live-harnesses)).
+`bash tools/cleanup-test-accounts.sh` (dry-run default; see [TESTING.md](how-to/write-a-harness.md)).
 Stagger concurrent suite boots so logins do not share one title-loop race.
 
 **Live HARD:** `tools/nav-script-routes-live.ts` with `HARD=1` reads
