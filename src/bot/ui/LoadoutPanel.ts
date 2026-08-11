@@ -40,15 +40,17 @@ const SLOT_LABEL: Record<Slot, string> = {
 export class LoadoutPanel {
     readonly root = el('div', 'rs2b0t-loadout-panel');
 
-    constructor() {
-        this.root.style.display = 'none';
-    }
-
     private selected: string | null = null;
     private picker: Target | null = null;
     private query = '';
     /** Supply row label → the item that row holds. See {@link supplyRow}. */
     private readonly supplyItem = new Map<string, string>();
+    private iconTries = 0;
+    private iconTimer: ReturnType<typeof setTimeout> | null = null;
+
+    constructor() {
+        this.root.style.display = 'none';
+    }
 
     open(): void {
         this.root.style.display = '';
@@ -63,6 +65,55 @@ export class LoadoutPanel {
     close(): void {
         this.root.style.display = 'none';
         this.picker = null;
+        this.stopIconFill();
+    }
+
+    /**
+     * The client streams item models on demand, so `getSprite` returns null
+     * until the one you asked about has arrived — a freshly-logged-in client
+     * has no icon for anything it has not seen. Rather than re-render (which
+     * would blow away the search box mid-type), patch the icons in place, a
+     * few times, then give up and leave the names showing.
+     */
+    private scheduleIconFill(): void {
+        this.stopIconFill();
+        if (this.iconTries >= ICON_FILL_TRIES) {
+            return;
+        }
+        this.iconTimer = setTimeout(() => {
+            this.iconTries++;
+            if (this.fillIcons() > 0) {
+                this.scheduleIconFill();
+            }
+        }, ICON_FILL_MS);
+    }
+
+    private stopIconFill(): void {
+        if (this.iconTimer !== null) {
+            clearTimeout(this.iconTimer);
+            this.iconTimer = null;
+        }
+    }
+
+    /** Returns how many faces are still waiting on a sprite. */
+    fillIcons(): number {
+        let missing = 0;
+        for (const face of Array.from(this.root.querySelectorAll('[data-icon-for]'))) {
+            const name = face.getAttribute('data-icon-for')!;
+            if (face.querySelector('img')) {
+                continue;
+            }
+            const url = iconUrlFor(name);
+            if (url === null) {
+                missing++;
+                continue;
+            }
+            const img = el('img', 'rs2b0t-loadout-icon');
+            img.src = url;
+            img.alt = name;
+            face.replaceChildren(img);
+        }
+        return missing;
     }
 
     /**
@@ -108,6 +159,9 @@ export class LoadoutPanel {
         this.root.appendChild(body);
         if (this.picker) {
             this.root.appendChild(this.pickerList(this.picker));
+        }
+        if (this.fillIcons() > 0) {
+            this.scheduleIconFill();
         }
     }
 
@@ -220,11 +274,11 @@ export class LoadoutPanel {
         return cell;
     }
 
-    /** Icon when the cache has one, the name when it does not. */
+    /** Icon when the cache has one, the name until it does. */
     private itemFace(name: string): HTMLElement {
         const face = el('span', 'rs2b0t-loadout-face');
-        const record = [...slotOptionsAll(), ...consumableOptions()].find(r => r.name === name);
-        const url = record ? itemIconDataUrl(record.id) : null;
+        face.dataset.iconFor = name;
+        const url = iconUrlFor(name);
         if (url) {
             const img = el('img', 'rs2b0t-loadout-icon');
             img.src = url;
@@ -316,13 +370,7 @@ export class LoadoutPanel {
     private pickerRow(record: ItemRecord, target: Target): HTMLElement {
         const row = el('div', 'rs2b0t-loadout-result');
         row.dataset.item = record.name;
-        const url = itemIconDataUrl(record.id);
-        if (url) {
-            const img = el('img', 'rs2b0t-loadout-icon');
-            img.src = url;
-            img.alt = record.name;
-            row.appendChild(img);
-        }
+        row.appendChild(this.itemFace(record.name));
         const name = el('span', 'rs2b0t-loadout-result-name');
         name.textContent = record.name;
         row.appendChild(name);
@@ -346,11 +394,19 @@ export class LoadoutPanel {
     }
 }
 
-/** Every wearable record, for resolving a stored name back to its icon. */
+const ICON_FILL_MS = 500;
+const ICON_FILL_TRIES = 12;
+
+/** Every wearable record, for resolving a stored name back to its id. */
 function slotOptionsAll(): ItemRecord[] {
     return SLOT_LAYOUT.flat()
         .filter((s): s is Slot => s !== null)
         .flatMap(slot => slotOptions(slot));
+}
+
+function iconUrlFor(name: string): string | null {
+    const record = [...slotOptionsAll(), ...consumableOptions()].find(r => r.name === name);
+    return record ? itemIconDataUrl(record.id) : null;
 }
 
 /** Set one item's quantity. Zero removes it. */
