@@ -1,15 +1,16 @@
 # rs2b0t — a scriptable bot client for 2004scape / Lost City servers
 
-TypeScript botting client for 2004-era RuneScape private servers. Renders the real game
-client in the browser and drives it through a typed scripting API. No forged packets, no
-synthetic mouse input, no pixel reading.
+rs2b0t is a TypeScript botting client for 2004-era RuneScape private servers. It renders
+the real game client in the browser and drives it through a typed scripting API. Bots
+call the client's own `doAction` and `tryMove` instead of synthesising input or reading
+the screen, so a bot's packets match a human click byte for byte.
 
 | | |
 |---|---|
 | Revision | 274 (~2004 era client and content) |
 | Supported target | [rs2b2t](https://rs2b2t.com), a 2004scape anarchy fork |
 | Local dev engine | [LostCityRS](https://github.com/LostCityRS) Engine-TS + Content, branch 274 |
-| Not supported | the pure Lost City and 2004scape projects |
+| Unsupported targets | the pure Lost City and 2004scape projects |
 | Hosted client | https://w1.rs2b2t.com/rs2b0t |
 | Hosted MultiBox wall | https://w1.rs2b2t.com/rs2b0t/wall |
 | Project site | [2004bot.com](https://2004bot.com) |
@@ -28,8 +29,8 @@ tab is throttled by the browser, which starves every bot in it.
 | World-walking | A\* over a baked collision pack plus a door and transport graph, with stuck recovery, teleports and multi-level routing |
 | Quests | pure `decide(snapshot) → step` modules |
 | Clues | easy, medium and hard trails, including puzzle boxes and dig guardians |
-| Real client | bots drive the client's own `doAction` / `tryMove`, so packets are byte-identical to a human click |
-| Outcome checking | every action is verified against game state, never assumed |
+| Real client | bots drive the client's own `doAction` and `tryMove`, so packets match a human click byte for byte |
+| Outcome checking | every action is verified against game state before the bot proceeds |
 | In-client panel | script library, per-script parameters, live logs, `onPaint` HUD overlay |
 | Out-of-tree scripts | compile against `@rs2b0t/api` in your own repo and load by URL |
 
@@ -90,6 +91,6 @@ served the page; `live` targets the world host through a local reverse proxy. Se
 | | |
 |---|---|
 | Does it work with Lost City or 2004scape? | It builds against that engine family for local development, and the collision pack is generated from whatever engine you deploy into. Only rs2b2t is tested and supported. |
-| Does it move the mouse or read pixels? | No. Bots call the client's own action dispatch and read state through a typed adapter. |
+| Does it move the mouse or read pixels? | Bots call the client's own action dispatch and read state through a typed adapter. |
 | Do I have to fork the repo to write a bot? | No. Compile against `@rs2b0t/api` and load the bundle by URL. |
 | Which RuneScape revision is this? | 274. |

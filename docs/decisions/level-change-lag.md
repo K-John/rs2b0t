@@ -3,8 +3,8 @@
 # Level-change loc lag
 
 **Every scene query is empty for about a tick after the level changes.** Climb a
-ladder and immediately ask for nearby locs, and you get nothing — not because nothing
-is there, but because the scene has not been rebuilt yet.
+ladder and immediately ask for nearby locs, and you get nothing. The scene has not been
+rebuilt yet, so the query returns an empty list while the locs are still there.
 
 This is the single most expensive gotcha in this subsystem: blank looks exactly like
 absent, so code concludes an object is missing and starts a recovery it never needed.

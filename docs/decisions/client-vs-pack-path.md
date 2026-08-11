@@ -35,8 +35,8 @@ for gameclick movement.
 
 ## Status
 
-Experimental, opt-in, off by default. Both toggles are debug aids, not shipping
-behaviour.
+Both toggles are experimental and ship off by default. They exist as debug aids, and
+neither is intended to become default behaviour.
 
 ## See also
 

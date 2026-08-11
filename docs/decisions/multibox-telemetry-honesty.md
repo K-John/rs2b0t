@@ -2,9 +2,9 @@
 
 # Telemetry never guesses
 
-The resource card and diagnostics never substitute guessed or zero values for missing
-telemetry. There are no last-known values, no host or headroom estimates, and no
-zero-value substitutes.
+The resource card and diagnostics render one of the four readings below whenever a
+metric cannot be measured. They never render a last-known value, an estimate derived
+from host capacity, or a zero standing in for missing data.
 
 | Reading | Means |
 |---|---|
