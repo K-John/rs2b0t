@@ -40,6 +40,10 @@ const SLOT_LABEL: Record<Slot, string> = {
 export class LoadoutPanel {
     readonly root = el('div', 'rs2b0t-loadout-panel');
 
+    constructor() {
+        this.root.style.display = 'none';
+    }
+
     private selected: string | null = null;
     private picker: Target | null = null;
     private query = '';
