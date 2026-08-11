@@ -60,6 +60,48 @@ export async function dropProtect(kind: ProtectKind): Promise<void> {
     await new Protection(kind).clear();
 }
 
+/**
+ * Run `walk` with a protection prayer that tracks the threat instead of a
+ * stretch of map.
+ *
+ * A fixed on-at-A-off-at-B window is always wrong at one end: the throwers are
+ * behind you well before the stronghold door, and every tick of prayer burnt
+ * after that is a tick the fight inside does not get. `Sustain` is pumped by the
+ * walker on every pass, so borrowing the hook for the duration of the walk gives
+ * a per-tick check — up while something is actually shooting, down the moment it
+ * is not. The host's own hook (eating) still runs, first, because prayer is free
+ * when it is already holding and food is not.
+ */
+export async function protectedWalk(
+    kind: ProtectKind,
+    threat: () => boolean,
+    walk: () => Promise<boolean>,
+    log: (m: string) => void
+): Promise<boolean> {
+    const guard = new Protection(kind);
+    const host = Sustain.hook;
+    let armed = false;
+    Sustain.set(async () => {
+        if (threat()) {
+            if (!armed && (await guard.hold())) {
+                armed = true;
+                log(`holding Protect from ${kind === 'missiles' ? 'Missiles' : kind}`);
+            }
+        } else if (armed) {
+            armed = false;
+            await guard.clear();
+            log(`dropping Protect from ${kind === 'missiles' ? 'Missiles' : kind} — nothing in range`);
+        }
+        await host?.();
+    });
+    try {
+        return await walk();
+    } finally {
+        Sustain.set(host);
+        await guard.clear();
+    }
+}
+
 /** A tuna's worth of damage is enough to eat on; waiting spends the whole margin. */
 const EAT_AT_MISSING = 12;
 

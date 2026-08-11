@@ -1,6 +1,5 @@
 import { Execution } from '../../../api/Execution.js';
 import { Game } from '../../../api/Game.js';
-import { Prayer } from '../../../api/Prayer.js';
 import Tile from '../../../api/Tile.js';
 import { Equipment } from '../../../api/hud/Equipment.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
@@ -32,7 +31,7 @@ import {
     trollZone,
     type TrollZone
 } from './areas.js';
-import { attackable, dropProtect, fight, holdProtect } from './combat.js';
+import { attackable, fight, protectedWalk } from './combat.js';
 import { TROLL_FLAG, TROLL_STAGE, readTrollStrongholdProgress } from './journal.js';
 
 export {
@@ -303,9 +302,6 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
 
 const WALK = { radius: 4, attempts: 4, timeoutMs: 300_000 } as const;
 
-/** Keep this much in the bank for the general's Protect from Melee. */
-const MIN_PRAYER_FOR_CROSSING = 25;
-
 async function walkTo(tile: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
     if (here && here.level === tile.level && tile.distanceTo(here) <= radius) {
@@ -316,19 +312,21 @@ async function walkTo(tile: Tile, radius: number, log: (m: string) => void): Pro
 
 /** Mountain side of the troll pass — where the thrower gauntlet begins. */
 const CAVE_MOUTH = new Tile(2908, 3654, 0);
-/** Outside the Stronghold door — where it ends. */
-const STRONGHOLD_GATE = new Tile(2840, 3690, 0);
+/** troll_thrower attackrange is 8; arm a little before they can start. */
+const THROWER_RANGE = 11;
 
 /**
  * Prayer left over for the fight, and a protected mountain crossing.
  *
  * Five thrower trolls stand between the cave exit and the stronghold door and
- * they attack on sight, at range, the whole way across; nothing in a walk fights
- * back, so the crossing is pure damage that Protect from Missiles refuses
- * outright. But the prayer drains per tick, not per tile — held from Falador it
- * costs the whole bar before the general is in sight, and that fight is what the
- * prayer was for. It cost a death to learn. So the crossing gets its own leg:
- * walk to the cave mouth cold, arm, cross, drop.
+ * open on sight at eight tiles; nothing in a walk fights back, so the crossing
+ * is pure damage that Protect from Missiles refuses outright. But the prayer
+ * drains per tick, not per tile — held from Falador it emptied the whole bar
+ * before the level-113 general was in sight and killed the run.
+ *
+ * So the crossing is its own leg, and inside it the prayer follows the throwers
+ * rather than the map: up while one is in range, down the moment the last is
+ * behind us, which on this route is a good forty tiles before the door.
  */
 async function walkToStronghold(tile: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
     const zone = trollZone(Game.tile());
@@ -338,21 +336,9 @@ async function walkToStronghold(tile: Tile, radius: number, log: (m: string) => 
     if (zone !== 'mountain' && !(await walkTo(CAVE_MOUTH, 3, log))) {
         return false;
     }
-    // Below this the points are worth more to the fight than to the walk.
-    const spare = Prayer.points() >= MIN_PRAYER_FOR_CROSSING;
-    if (spare && (await holdProtect('missiles'))) {
-        log('holding Protect from Missiles across the thrower trolls');
-    }
-    try {
-        if (!(await walkTo(STRONGHOLD_GATE, 2, log))) {
-            return false;
-        }
-    } finally {
-        // Dropped at the door: everything past it is indoors, and a prayer left
-        // burning down the corridor is the general's Protect from Melee spent.
-        await dropProtect('missiles');
-    }
-    return walkTo(tile, radius, log);
+    const throwerNear = (): boolean =>
+        Npcs.query().name('Thrower Troll').within(THROWER_RANGE).nearest() !== null;
+    return protectedWalk('missiles', throwerNear, () => walkTo(tile, radius, log), log);
 }
 
 async function buyBoots(log: (m: string) => void): Promise<boolean> {
