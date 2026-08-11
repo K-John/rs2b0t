@@ -1,6 +1,7 @@
 import { SettingsStore, type SettingsSchema } from '../runtime/Settings.js';
 import { groupSchema, isVisible, renderControl, visibilityDeps } from './paramControls.js';
 import { el } from './dom.js';
+import { Loadouts } from '../items/loadoutStore.js';
 
 export default class ParamsModal {
     private backdrop: HTMLElement;
@@ -69,6 +70,13 @@ export default class ParamsModal {
             showGlobalExtra?: boolean;
         }
     ): void {
+        // Loadout names are player data, so the dropdown is filled at open time
+        // rather than baked into the schema at module load.
+        for (const def of Object.values(schema)) {
+            if (def.optionsFrom === 'loadouts') {
+                def.options = Loadouts.names();
+            }
+        }
         this.scriptName = scriptName;
         this.schema = schema;
         this.openTitle = opts?.title ?? null;
