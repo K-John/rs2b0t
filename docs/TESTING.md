@@ -63,7 +63,7 @@ import { GlobalRegistrator } from '@happy-dom/global-registrator';
 GlobalRegistrator.register();
 ```
 
-That, plus the [DOM fence](ARCHITECTURE.md#the-fences), is why subsystem modules can
+That, plus the [DOM fence](reference/import-fences.md), is why subsystem modules can
 be imported directly in a test without a browser.
 
 The deeper reason the logic is testable at all is that the pure parts are
@@ -510,4 +510,4 @@ against the local content pack (one medium clue's `Rope` requirement), so
 
 - [Manual index](README.md)
 - [Running locally](RUNNING.md#tests) — getting an engine to run these against
-- [Architecture](ARCHITECTURE.md#the-fences) — the fences that keep the logic headless
+- [Architecture](reference/import-fences.md) — the fences that keep the logic headless

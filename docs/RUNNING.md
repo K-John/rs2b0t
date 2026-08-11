@@ -227,7 +227,7 @@ Two honest caveats:
 
 `eslint.config.ts` also enforces two architectural fences — only `src/bot/adapter/`
 may name client internals, and the DOM is reachable only from `src/bot/ui/` and the
-entrypoints. See [Architecture](ARCHITECTURE.md#the-fences).
+entrypoints. See [Architecture](reference/import-fences.md).
 
 ## Smoke harnesses
 

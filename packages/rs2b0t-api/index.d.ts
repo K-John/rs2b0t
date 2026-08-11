@@ -7,7 +7,7 @@
 /**
  * ABI version this shim is built for. The client refuses a bundle whose
  * version does not match the one it installs.
- * @see docs/ARCHITECTURE.md#the-abi-boundary
+ * @see docs/decisions/architecture.md#the-abi-boundary
  */
 export const apiVersion: number;
 
@@ -59,7 +59,7 @@ export abstract class Area {
  * callback, so bot time is game time and Stop can unwind them; a bare
  * `setTimeout` escapes the runtime and trips the watchdog.
  * @see docs/API.md#execution
- * @see docs/ARCHITECTURE.md#frame-gap-insurance
+ * @see docs/decisions/architecture.md#frame-gap-insurance
  */
 export const Execution: {
     /** Resolve after at least `ms` wall-clock milliseconds. */

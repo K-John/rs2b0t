@@ -740,7 +740,7 @@ Full detail (bake, in-picker settings, live rebuild, smokes): **[Map tile picker
 - [Manual index](README.md)
 - [Map tile picker](MAP-PICKER.md) — basemap bake, walkable overlay, rebuild
 - [Scripting API](API.md#movement) — the script-facing movement surface
-- [Architecture](ARCHITECTURE.md#from-interact-to-a-packet) — how a click reaches the client
+- [Architecture](decisions/architecture.md#from-interact-to-a-packet) — how a click reaches the client
 - [Running locally](RUNNING.md#deploying-the-client) — building the collision pack and basemap
 - [Quests](QUESTS.md) — a heavy consumer of walking and doors
 - [Clue scrolls](CLUES.md) — coordinate clues and chasing NPCs

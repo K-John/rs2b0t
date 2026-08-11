@@ -20,7 +20,7 @@ pure Lost City or 2004scape projects and is not maintained for those targets.
 | Page | Covers |
 |---|---|
 | [Running locally](RUNNING.md) | prerequisites, getting an engine, deploying the client, tests, lint, smokes |
-| [Architecture](ARCHITECTURE.md) | the layers, the fences, the ABI boundary, how a call becomes a packet |
+| [Architecture](ARCHITECTURE.md) | the layers and the ABI boundary, then [design](decisions/architecture.md) and [fences](reference/import-fences.md) |
 | [Scripting API](API.md) | the complete `@rs2b0t/api` surface, with examples |
 | [World-walking](NAV.md) | the world walker: pack, doors, transports, teles, arrival |
 | [Map tile picker](MAP-PICKER.md) | Pick on Map: display modes, then [reference](reference/map-picker.md) and [baking](how-to/bake-the-basemap.md) |

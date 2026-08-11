@@ -1,4 +1,4 @@
-// docs/ARCHITECTURE.md#the-abi-boundary
+// docs/decisions/architecture.md#the-abi-boundary
 import { BUILD_INFO } from '../../config/buildInfo.js';
 import { reader } from '../adapter/ClientAdapter.js';
 import { PathPublish } from '../nav/pathPublish.js';

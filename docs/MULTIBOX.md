@@ -51,7 +51,7 @@ Five details that are not guessable from the outside:
   a tile switch which bot is focused.
 - **Storage is boxed per account.** Same-origin iframes share one `sessionStorage`, so
   every slot would otherwise overwrite the others' credentials — see
-  [per-instance storage](ARCHITECTURE.md#per-instance-storage). The wall passes
+  [per-instance storage](decisions/architecture.md#per-instance-storage). The wall passes
   `?box=<account>`.
 - `SlotStatus.player` is the logged-in character *once known*: a bot is added empty
   and has its account typed into its own panel, so the rail tile cannot show a name
@@ -111,7 +111,7 @@ under a different key, and that is detected rather than silently discarded.
 [`ProfileChooser`](../src/bot/multibox/ProfileChooser.ts) is the load-or-create screen
 and [`VaultPrompt`](../src/bot/multibox/VaultPrompt.ts) the unlock prompt. Both are
 DOM view modules, and are named explicitly in the
-[DOM fence](ARCHITECTURE.md#the-fences) alongside `src/bot/ui/`.
+[DOM fence](reference/import-fences.md) alongside `src/bot/ui/`.
 
 ## Login coordination
 
@@ -255,7 +255,7 @@ background throttling.
 ## See also
 
 - [Manual index](README.md)
-- [Architecture](ARCHITECTURE.md#per-instance-storage) — why storage is boxed per account
+- [Architecture](decisions/architecture.md#per-instance-storage) — why storage is boxed per account
 - [Dev and deploy](DEV.md) — run modes, viewers, and the hosting pipeline
 - [Running locally](RUNNING.md#the-multibox-wall) — opening a wall
 - [`desktop/README.md`](../desktop/README.md) — the unthrottled shell
