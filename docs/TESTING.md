@@ -472,7 +472,7 @@ un-notes into bank, catch last → bank hits N → cook batch), long paths, Buy/
 (coins-only + Bob/Nurmof broken-tool repair), Gerrant multi-buy restock, Auto freeform
 outside preset 64×64 map squares, and smith. Named camps floor leash to 64; only
 Location Auto respects a tight `leashRadius` (and skips mob flee). See
-[DEV.md](DEV.md#gatheringbot-behaviour-smoke) for the full id table and redeploy
+[DEV.md](how-to/gatheringbot-smoke.md) for the full id table and redeploy
 notes. Mainland setup always relogs after tutorial unlock (`RELOG_*` env overrides
 in `tools/tutorial/harness.ts`).
 

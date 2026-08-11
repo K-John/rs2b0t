@@ -29,7 +29,7 @@ pure Lost City or 2004scape projects and is not maintained for those targets.
 | [MultiBox](MULTIBOX.md) | the wall, then [reference](reference/multibox.md), [telemetry honesty](decisions/multibox-telemetry-honesty.md) and [diagnosis](how-to/diagnose-multibox.md) |
 | [Bundled scripts](SCRIPTS.md) | catalog of the shipped bots and their settings (generated) |
 | [Testing](TESTING.md) | unit tests, the live-harness ABI, the end-to-end smoke |
-| [Dev and deploy](DEV.md) | build targets, the three run modes, the hosting pipeline |
+| [Dev and deploy](DEV.md) | the three run modes, then [live wall](how-to/run-the-live-wall.md), [build targets](reference/build-targets.md), [maintainer infra](how-to/maintainer-infra.md) |
 | [Loc identity](decisions/loc-identity-model.md) | why a loc is a placement, not an ID |
 | [Loc state in the client](reference/loc-identity.md) | what the client does with locs that change state, and the gaps |
 | [Nav operator tools](nav/README.md) | transport coverage, client-vs-pack path paint, live nav harnesses |
