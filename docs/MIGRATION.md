@@ -28,7 +28,7 @@ Tracked markdown inventory against `.claude/rules/documentation.md`. Rewrite in 
 
 Total: 19 tracked files, 6192 lines. 13 are over the 150-line cap.
 
-Deleted 2026-08-11 rather than migrated: `docs/superpowers/` (2 files, 3345 lines — tracked against the never-commit-specs rule) and `docs/REVIEW_BACKLOG.md` (39 lines — belongs in issues).
+Deleted 2026-08-11 rather than migrated: `docs/superpowers/` (2 files, 3345 lines) and `docs/REVIEW_BACKLOG.md` (39 lines). `docs/superpowers/` was already in `.gitignore` (twice); the files predated the rule and gitignore never untracks what is already tracked.
 
 ## Flags — decide these before Phase 3
 

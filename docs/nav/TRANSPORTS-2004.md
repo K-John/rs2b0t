@@ -12,8 +12,7 @@ revision-274 / LostCity-style content pack should be either:
 
 These edges load into the **shared** graph (`loadTransportGraph`) for **classic and
 v2**. Spell/jewellery inject remains the only originless tele layer gated to v2.
-See [CLASSIC-PARITY.md](./CLASSIC-PARITY.md) and
-[NAV.md § One walker, two modes](../NAV.md#one-walker-two-modes-classic--v2).
+See [NAV.md § The world walker](../NAV.md#the-world-walker).
 
 Source of truth for “what exists” is the **deploy engine content tree**
 (`CONTENT_DIR`, e.g. `~/experiments/Server/content/scripts`).
@@ -224,5 +223,4 @@ Aliases (`Watchtower` → `Watch Tower`, etc.) resolve in `worldStateData` / `ca
 | `src/bot/nav/exec/specialCrossing.ts` | Entrana gear + spirit + glider map |
 | `src/bot/nav/pathOverlay.ts` | Live loc hull highlighter |
 | [docs/NAV.md](../NAV.md) | Product manual (one walker / two modes, path paint) |
-| [CLASSIC-PARITY.md](./CLASSIC-PARITY.md) | Shared stack vs pre-v2; what v2 mode alone adds |
 | Server `content/scripts/` | Authoritative hops |
