@@ -203,7 +203,7 @@ rate-limited (`sendCameraDelay = 20` ticks between reports).
 
 For automatic path-facing during walks, prefer Global **`navCameraFollow`**
 (default `false`) rather than driving yaw from scripts every tick — see
-[World-walking → Path camera](NAV.md#path-camera).
+[World-walking → Path camera](reference/nav-walker.md#path-camera).
 
 ```ts
 // One-shot face east (client units: east ≈ 1536)
@@ -673,7 +673,7 @@ Traversal.walkTo(dest: WorldTile, opts?: {
         denyTeleportIds?: string[];
     };
     bankItemCounts?: Record<string, number>;
-    // Optional: ban map rects from A* (ids or ad-hoc). See docs/NAV.md#danger-zones
+    // Optional: ban map rects from A* (ids or ad-hoc). See docs/reference/nav-pathfinding.md#danger-zones-optional-avoid
     avoidZones?: readonly (string | { minX: number; maxX: number; minZ: number; maxZ: number; level?: number })[];
 }): Promise<boolean>
 
@@ -723,7 +723,7 @@ Resolution: explicit force-off → explicit force-on → Global (default off).
 
 When teles are on, `distanceBeforeTeleport` defaults to **0** so A* cost decides. Short
 city hops stay pure walk. Full behaviour, jewellery limits, and bank-plan rules:
-[Nav teleports](NAV.md#nav-teleports). Transport matrix:
+[Nav teleports](reference/nav-teleports.md). Transport matrix:
 [transport reference](reference/transports-2004.md).
 
 **Essence mine (session multiloc):** multi-entry, **same-origin exit only**. Exit
@@ -742,7 +742,7 @@ and probe validity (including already-open barriers).
 `walkResilient` wraps the same pathfinder in an escalation ladder — **use it for
 script bank runs and long unattended walks**. Pass `avoidZones: ['white-wolf-mountain']`
 (or ad-hoc rects) so low-level accounts skip wolf-heavy corridors; off by default.
-See [Danger zones](NAV.md#danger-zones-optional-avoid) for catalog + pack verification.
+See [Danger zones](reference/nav-pathfinding.md#danger-zones-optional-avoid) for catalog + pack verification.
 
 For same-scene clicks, `DirectNavigator.walk(dest)` / `walkTo(dest, radius?,
 timeoutMs?)` are available, but prefer `Traversal.walkTo` / `walkResilient`.

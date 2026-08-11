@@ -66,7 +66,7 @@ export const USE_MAGE_BANK = 'useMageBank';
 /**
  * Every known bank. Some stands are sealed collision islands, so reaching one
  * is a data problem rather than a walker problem.
- * @see docs/NAV.md#arrival
+ * @see docs/reference/nav-walker.md#arrival
  */
 export const BANK_LOCATIONS: BankLocation[] = [
     { name: 'Varrock East', tile: new Tile(3253, 3420, 0) },

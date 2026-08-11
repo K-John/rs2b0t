@@ -104,7 +104,7 @@ export class Npc implements Interactable, Locatable {
 /**
  * Another player in the loaded scene. Players never block navigation.
  * @see docs/API.md#entity-shapes
- * @see docs/NAV.md#corridor-snap
+ * @see docs/decisions/corridor-snap.md
  */
 export class Player implements Locatable {
     constructor(readonly snap: PlayerSnapshot) {}

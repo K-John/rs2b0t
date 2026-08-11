@@ -14,7 +14,7 @@ import { SettingsStore } from '../runtime/Settings.js';
 
 /**
  * Options for a walk behind the escalation ladder.
- * @see docs/NAV.md#when-it-gets-stuck
+ * @see docs/reference/nav-walker.md#when-it-gets-stuck
  */
 export interface WalkResilientOptions {
     radius: number;
@@ -42,7 +42,7 @@ const PROGRESS_LOG_MS = 15_000;
 /**
  * Force nav spell/jewellery tele inject **off** for one walk (overrides Global
  * `navTeleports`). Prefer the Global toggle (default off) for normal use.
- * @see docs/NAV.md#the-world-walker
+ * @see docs/reference/nav-walker.md
  */
 export const NAV_PURE_WALK = {
     useTeleportCatalog: false as const,

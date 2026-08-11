@@ -1319,7 +1319,7 @@ class WalkExecutorImpl {
             }
             if (crossed) {
                 if (transport.toLevel !== undefined) {
-                    // docs/NAV.md#level-change-loc-lag
+                    // docs/decisions/level-change-lag.md
                     await Execution.delayTicks(2);
                 }
                 log(`${transport.action} ${transport.locName} at (${transport.locX},${transport.locZ}) ok`);

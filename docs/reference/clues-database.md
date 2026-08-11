@@ -66,7 +66,7 @@ export type ClueStep = ClueRow | { type: 'open-casket'; casketObj: string; caske
 no hidden position.
 
 **Talk steps must chase.** The NPC may patrol a whole building, so talk steps ride
-[`Reach.npcDialog`](../NAV.md#the-reach-primitive), which searches the scene and lets the
+[`Reach.npcDialog`](../reference/nav-walker.md#the-reach-primitive), which searches the scene and lets the
 server walk the player. A leash-camped approach abandons the clue when the NPC laps
 away.
 

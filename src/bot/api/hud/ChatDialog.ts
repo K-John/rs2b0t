@@ -6,7 +6,7 @@ import { Execution } from '../Execution.js';
  * Chat modals: dialogue pages, option lists, and make-x menus. Server-driven
  * chains must be driven to completion.
  * @see docs/API.md#chatdialog
- * @see docs/QUESTS.md#exec-primitives
+ * @see docs/reference/quest-primitives.md
  */
 export const ChatDialog = {
     isOpen(): boolean {

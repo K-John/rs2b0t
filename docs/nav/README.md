@@ -21,7 +21,7 @@ Harnesses that exercise teles pass `useTeleportCatalog: true` on the walk, which
 overrides Global. `USE_TELEPORTS=0` forces pure-walk, with no jewellery kit on
 travel-live.
 
-Full write-up: [NAV.md § Nav teleports](../NAV.md#nav-teleports).
+Full write-up: [NAV.md § Nav teleports](../reference/nav-teleports.md).
 
 ## Where things are
 
@@ -62,4 +62,4 @@ bash tools/cleanup-test-accounts.sh
 ```
 
 Travel live pacing, stuck-abort, HP/energy sustain and env flags:
-[NAV.md § Script travel OD](../NAV.md#script-travel-od-clues--gathering--quests).
+[NAV.md § Script travel OD](../how-to/script-travel-od.md).
