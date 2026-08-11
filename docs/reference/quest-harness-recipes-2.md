@@ -85,7 +85,7 @@ death recovery re-enters with **Push** (no key) and re-withdraws bank tools.
   — so a coin stack comes back as a single coin. Use it to test death recovery for real
   rather than seeding a post-death pose.
 - **A stage test seeds only what that stage produces, never its tools.** See
-  [Quests](../QUESTS.md#adding-a-quest) — every Watch Tower stage-10 test handed the bot
+  [Quests](../how-to/add-a-quest.md) — every Watch Tower stage-10 test handed the bot
   a pickaxe, so all of them passed while the quest could not mine.
   [`tools/shilo-solo-test.ts`](../../tools/shilo-solo-test.ts) is the current worked
   example: `--stage`/`--bits` jump the quest varps, `--tele` drops the account beside

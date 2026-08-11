@@ -8,7 +8,7 @@ Per-quest seed and stage commands, with what each recipe has actually proven.
 
 Polish goal (all quests with non-required combat): find the **bare minimum**
 stats that still clear, record fails, then later branch tactics by power level
-([Quests — proven floors](../QUESTS.md#official-reqs-vs-bot-proven-floors-polish-goal)).
+([Quests — proven floors](../reference/quest-eligibility.md#official-reqs-vs-bot-proven-floors-polish-goal)).
 
 | Recipe | What it proves | Status |
 |---|---|---|

@@ -62,7 +62,7 @@ export type ClueStep = ClueRow | { type: 'open-casket'; casketObj: string; caske
 ```
 
 `identifyStep` derives the current step from the ids the player is holding, so — like
-[a quest's `decide()`](../QUESTS.md#quest-state) — the solver is restartable and holds
+[a quest's `decide()`](../reference/quest-engine.md#quest-state) — the solver is restartable and holds
 no hidden position.
 
 **Talk steps must chase.** The NPC may patrol a whole building, so talk steps ride

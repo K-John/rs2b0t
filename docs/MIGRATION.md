@@ -21,7 +21,7 @@ Tracked markdown inventory against `.claude/rules/documentation.md`. Rewrite in 
 | 14 | `docs/CLUES.md` | 315 | reference | how-to (tracing, audit harness), explanation (yielding) | `docs/reference/clues-database.md` + `docs/how-to/trace-a-clue-failure.md` + `docs/decisions/clue-host-yielding.md` | ✅ |
 | 15 | `docs/DEV.md` | 338 | how-to | reference (build targets), maintainer-only | `docs/how-to/dev-and-deploy.md` + `docs/reference/build-targets.md` + `docs/how-to/maintainer-infra.md` | ✅ |
 | 16 | `docs/TESTING.md` | 513 | how-to | reference (known failures, seeding), explanation (what makes this testable) | `docs/how-to/write-a-harness.md` + `docs/reference/test-suites.md` + `docs/decisions/testability.md` | ✅ |
-| 17 | `docs/QUESTS.md` | 675 | reference | explanation (why not varps), how-to (adding a quest) | `docs/reference/quests.md` + `docs/how-to/add-a-quest.md` + `docs/decisions/quest-state-not-varps.md` | ☐ |
+| 17 | `docs/QUESTS.md` | 675 | reference | explanation (why not varps), how-to (adding a quest) | `docs/reference/quests.md` + `docs/how-to/add-a-quest.md` + `docs/decisions/quest-state-not-varps.md` | ✅ |
 | 18 | `docs/NAV.md` | 747 | reference | explanation (corridor snap, starvation), how-to (route corpus, stress) | `docs/reference/nav-*.md` (pack, pathfinding, doors, crossings, teleports) + `docs/decisions/corridor-snap.md` + `docs/how-to/run-route-corpus.md` | ☐ |
 | 19 | `docs/API.md` | 1123 | reference | how-to (getting started) | `docs/reference/api-{bots,entities,items,skills,dialogue,movement,quests,events}.md` + `docs/how-to/write-a-bot.md` | ☐ |
 | 20 | `docs/SCRIPTS.md` | 907 | reference | — | **DO NOT EDIT — generated** | ☐ |
