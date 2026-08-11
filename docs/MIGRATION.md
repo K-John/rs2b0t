@@ -13,7 +13,7 @@ Tracked markdown inventory against `.claude/rules/documentation.md`. Rewrite in 
 | 6 | `docs/MAP-PICKER.md` | 59 | how-to | reference (Settings) | `docs/how-to/map-picker.md` + `docs/reference/map-picker-settings.md` | ✅ |
 | 7 | `docs/nav/CLIENT-PATH-ALIGN.md` | 96 | explanation | how-to (harnesses), backlog (Follow-ups) | `docs/decisions/client-vs-pack-path.md` + `docs/how-to/compare-path-paint.md`; **FLAG: Follow-ups → issues** | ✅ |
 | 8 | `docs/LOCS.md` | 143 | explanation | reference | **FLAG: external pasted reference, not authored here** | ✅ |
-| 9 | `README.md` | 149 | mixed | how-to (quick start), explanation (how it connects), derivable (project structure) | `README.md` (root, exempt); delete Project structure | ☐ |
+| 9 | `README.md` | 149 | mixed | how-to (quick start), explanation (how it connects), derivable (project structure) | `README.md` (root, exempt); delete Project structure | ✅ |
 | 10 | `docs/ARCHITECTURE.md` | 164 | explanation | reference (the fences) | `docs/decisions/architecture.md` + `docs/reference/import-fences.md` | ☐ |
 | 11 | `docs/nav/TRANSPORTS-2004.md` | 228 | reference | explanation (non-goals, architecture), how-to (operator commands) | `docs/reference/transports-2004.md` + `docs/decisions/transport-scope.md` + `docs/how-to/verify-transports.md` | ☐ |
 | 12 | `docs/MULTIBOX.md` | 261 | reference | explanation (honesty rules), how-to (diagnostics) | `docs/reference/multibox.md` + `docs/decisions/multibox-telemetry-honesty.md` + `docs/how-to/diagnose-multibox.md` | ☐ |

@@ -47,25 +47,19 @@ tab visible; a backgrounded tab is throttled by the browser).
 
 ## Quick start (local development)
 
-Requires [Bun](https://bun.sh), Node 24+, and a compatible local game engine to
-deploy into (for development — production use is against **rs2b2t**).
+Requires [Bun](https://bun.sh), Node 24+, and a local game engine to deploy into.
+Production use is against **rs2b2t**.
 
-```bash
-bun install
-./tools/deploy-local-key.sh /path/to/engine
-```
+1. `bun install`
+2. `./tools/deploy-local-key.sh /path/to/engine`
+3. Open that engine's `/bot.html`, log in, pick a script from the library.
 
-Then open that engine's `/bot.html`, log in, and pick a script from the library.
+The helper reads the engine's generated RSA key from `data/config/private.pem`,
+derives the public modulus and exponent, and passes them to the client build. A fresh
+upstream Lost City engine has a different RSA key from the hosted build, so skipping
+this ends in login code 6.
 
-The deployment helper reads the engine's generated RSA key from
-`data/config/private.pem`, derives the public modulus and exponent, and passes
-them to the client build automatically. This is required when deploying against
-a fresh upstream Lost City engine, whose RSA key differs from the one used by
-the hosted build.
-
-**[docs/RUNNING.md](docs/RUNNING.md)** walks the whole path from a cold clone —
-including getting an engine, the login-key mismatch that otherwise ends in login
-code 6, and how to run the tests.
+**[docs/RUNNING.md](docs/RUNNING.md)** covers the whole path from a cold clone.
 
 ## Writing a bot
 
@@ -109,32 +103,12 @@ See the **[API reference](docs/API.md)** for the complete surface.
 
 ## Bundled scripts
 
-`src/bot/scripts/` ships 38 bots across combat, thieving, skilling, shop running,
-clue solving, and quests, plus navigation and banking utilities. They double as
-worked examples of the API.
+`src/bot/scripts/` ships 52 bots across combat, thieving, skilling, shop running,
+clue solving and quests, plus navigation and banking utilities. They double as worked
+examples of the API.
 
 **[docs/SCRIPTS.md](docs/SCRIPTS.md)** is the full catalog with every script's
-settings — it is generated from the registry, so it cannot drift.
-
-## Project structure
-
-```
-src/
-  bot/
-    api/          the scripting API surface (Game, entities, hud, movement, ...)
-    runtime/      the ABI, script runner/registry, settings
-    scripts/      bundled example bots
-    nav/          world-walking (collision pack, door/transport graph, A*)
-    ui/           the in-client panel + overlay
-  client/         the era browser client
-  config/         build-time server target (local | live | prod)
-packages/
-  rs2b0t-api/     the @rs2b0t/api shim external scripts compile against
-templates/
-  script-template/ starter for an out-of-tree bot
-tools/            build/deploy scripts + headless test harnesses
-docs/             API.md, DEV.md
-```
+settings. It is generated from the registry, so it cannot drift.
 
 ## How it connects
 
