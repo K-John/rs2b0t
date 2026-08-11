@@ -23,7 +23,9 @@ Point at another server with `bun run start -- --server=https://your-host`, or
 
 ## Package a distributable
 
-1. `bun run package` — `electron-builder --dir` → `desktop/dist/`
+```sh
+bun run package        # electron-builder --dir -> desktop/dist/
+```
 
 ## Facts
 
