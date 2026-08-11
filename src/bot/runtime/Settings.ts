@@ -210,14 +210,14 @@ export const NAV_SETTINGS: SettingsSchema = {
     },
     navPathStallTicks: {
         type: 'number',
-        default: 9,
+        default: 5,
         min: 1,
         max: 60,
         label: 'Path stall repath (ticks)',
         group: 'Routing',
         help:
             'Server ticks with no tile change before repathing the published route. '
-            + 'Default 9. Scripts may override per walk. URL: ?Global.navPathStallTicks=9.'
+            + 'Default 5. Scripts may override per walk. URL: ?Global.navPathStallTicks=5.'
     },
     navPathDeviation: {
         type: 'number',
