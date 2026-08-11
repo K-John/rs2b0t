@@ -85,7 +85,7 @@ export default class HillGiant extends TaskBot {
 
         this.meleeStyle = parseCombatStyle(this.settings.str('meleeStyle', 'strength'));
         this.weapon = this.settings.str('weapon', '').trim();
-        this.foodName = scriptFood(this.settings);
+        this.foodName = scriptFood(this.settings, 'Trout');
         this.foodPerTrip = this.settings.num('foodWithdraw', 12);
 
         this.bankCommon = this.settings.bool('bankCommonJunk', true);

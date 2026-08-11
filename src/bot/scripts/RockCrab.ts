@@ -161,7 +161,7 @@ export default class RockCrab extends TaskBot {
         FIGHT_HP_GATE = this.settings.num('fightHpGate', 40) / 100;
         REST_HP = this.settings.num('restUntilHp', 75) / 100;
 
-        FOOD_NAME = scriptFood(this.settings);
+        FOOD_NAME = scriptFood(this.settings, 'Lobster');
         FOOD_WITHDRAW = this.settings.num('foodWithdraw', 20);
         LOOT_NAMES = this.settings.list('loot', LOOT_NAMES).map(s => s.toLowerCase());
         BANK_COMMON = this.settings.bool('bankCommonJunk', true);

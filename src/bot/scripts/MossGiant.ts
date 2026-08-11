@@ -670,7 +670,7 @@ export default class MossGiant extends TaskBot {
         AMMO = this.settings.str('ammo', 'Iron arrow');
         WEAPON = STYLE === 'mage' ? this.settings.str('staff', 'Staff of air')
             : STYLE === 'range' ? this.settings.str('bow', 'Maple shortbow') : '';
-        FOOD_NAME = scriptFood(this.settings);
+        FOOD_NAME = scriptFood(this.settings, 'Lobster');
 
         PANIC_HP = this.settings.num('panicHp', 25) / 100;
         RUNES_WITHDRAW = this.settings.num('runesWithdraw', 150);

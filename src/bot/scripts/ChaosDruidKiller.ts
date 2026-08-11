@@ -189,7 +189,7 @@ export default class ChaosDruidKiller extends TaskBot {
         }
         this.locationName = locationName;
         this.spot = DRUID_SPOTS[locationName];
-        this.foodName = scriptFood(this.settings);
+        this.foodName = scriptFood(this.settings, 'Lobster');
         this.foodWithdraw = this.settings.num('foodWithdraw', 12);
         this.combatStyleIndex = Number(this.settings.str('combatStyleIndex', '1'));
 

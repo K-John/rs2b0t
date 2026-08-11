@@ -255,7 +255,7 @@ export default class WildyAgility extends TaskBot {
     override async onStart(): Promise<void> {
         await Execution.delayUntil(() => Game.ingame() && Game.tile() !== null, 0);
 
-        FOOD = scriptFood(this.settings).toLowerCase();
+        FOOD = scriptFood(this.settings, 'Lobster').toLowerCase();
 
         FOOD_WITHDRAW = this.settings.num('foodWithdraw', 20);
         MIN_FOOD = this.settings.num('minFood', 1);

@@ -198,7 +198,7 @@ export default class AutoFighter extends TaskBot {
         const spotMode = this.settings.str('spot', START_POSITION);
         ANCHOR = resolveKillingSpot(spotMode, Tile.from(Game.tile()!), this.settings.tile('coordinates', DEFAULT_CUSTOM_SPOT));
         LEASH = this.settings.num('leashRadius', 8);
-        FOOD = scriptFood(this.settings);
+        FOOD = scriptFood(this.settings, 'Trout');
         FOOD_WITHDRAW = this.settings.num('foodWithdraw', 10);
         PANIC_AT = this.settings.num('panicHp', 25) / 100;
         LOOT = this.settings.list('loot', DEFAULT_LOOT).map(s => s.trim().toLowerCase());

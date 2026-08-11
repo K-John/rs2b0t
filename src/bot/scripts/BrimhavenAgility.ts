@@ -96,7 +96,7 @@ export default class BrimhavenAgility extends TaskBot {
     override async onStart(): Promise<void> {
         await Execution.delayUntil(() => Game.ingame() && Game.tile() !== null, 0);
 
-        this.foodName = scriptFood(this.settings);
+        this.foodName = scriptFood(this.settings, 'Lobster');
         this.foodPerTrip = this.settings.num('foodWithdraw', DEFAULT_FOOD_PER_TRIP);
         this.bankAtTickets = this.settings.num('bankAtTickets', DEFAULT_BANK_TICKETS);
         this.startedAt = Date.now();

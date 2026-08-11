@@ -86,7 +86,7 @@ export default class ThievingBot extends TaskBot {
 
         this.target = this.settings.str('target', 'Man');
         this.action = this.settings.str('action', 'Pickpocket');
-        this.food = scriptFood(this.settings).toLowerCase();
+        this.food = scriptFood(this.settings, '').toLowerCase();
 
         this.autoBank = autoFoodBanking(this.settings.str('banking', 'None'));
         this.foodWithdraw = this.settings.num('foodWithdraw', 22);

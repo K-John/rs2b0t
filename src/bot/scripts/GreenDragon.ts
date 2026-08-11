@@ -834,7 +834,7 @@ export default class GreenDragon extends TaskBot {
         SHIELD = this.settings.str('shield', 'Dragonfire shield');
         USE_SPECIAL = this.settings.bool('useSpecial', true);
         this.xpAtStart = new Map(GRIND_SKILLS.map(sk => [sk, Skills.xp(sk)]));
-        FOOD_NAME = scriptFood(this.settings);
+        FOOD_NAME = scriptFood(this.settings, 'Lobster');
 
         PANIC_HP = this.settings.num('panicHp', 30) / 100;
         RUNES_WITHDRAW = this.settings.num('runesWithdraw', 150);

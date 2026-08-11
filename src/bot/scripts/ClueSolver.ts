@@ -40,7 +40,7 @@ export default class ClueSolver extends TaskBot {
     override async onStart(): Promise<void> {
         await Execution.delayUntil(() => Game.ingame() && Game.tile() !== null, 0);
 
-        const food = scriptFood(this.settings);
+        const food = scriptFood(this.settings, '');
         const foodPat = food.toLowerCase();
         this.solveClue = new SolveClue({
             log: m => this.log(m),
@@ -130,7 +130,7 @@ export default class ClueSolver extends TaskBot {
             return;
         }
         const keep = [
-            scriptFood(this.settings),
+            scriptFood(this.settings, ''),
             this.settings.str('weapon', ''),
             SPADE_NAME,
             ...TRIO,

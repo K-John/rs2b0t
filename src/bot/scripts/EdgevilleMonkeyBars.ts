@@ -19,6 +19,9 @@ import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
 const MONKEYBARS_APPROACH = new Tile(3121, 9964, 0);
 const MIN_AGILITY = 15; // required to swing across the monkey bars
 
+/** What this eats when the loadout names no food. */
+const FALLBACK_FOOD = 'Lobster';
+
 const RESTOCK_DUNGEON = 'Dungeon ladder (out of food)';
 const RESTOCK_DEATH = 'After death only';
 
@@ -79,7 +82,7 @@ function needsFoodRestock(bot: EdgevilleMonkeyBars): boolean {
     if (min <= 0) {
         return false;
     }
-    return foodCount(scriptFood(bot.settings)) < min;
+    return foodCount(scriptFood(bot.settings, FALLBACK_FOOD)) < min;
 }
 
 function swingOp(actions: string[], preferred?: string): string | undefined {
@@ -277,10 +280,10 @@ class EdgevilleMonkeyBars extends TaskBot {
 
         // Check inventory on startup — if no food is present, BankAndRestock will run first
         // (validate returns true when no food on surface for any restock mode).
-        const foodName = scriptFood(this.settings).toLowerCase();
+        const foodName = scriptFood(this.settings, FALLBACK_FOOD).toLowerCase();
         const hasFood = Inventory.items().some(i => i.name?.toLowerCase().includes(foodName));
         if (!hasFood) {
-            this.log(`No ${scriptFood(this.settings)} in inventory — banking first`);
+            this.log(`No ${scriptFood(this.settings, FALLBACK_FOOD)} in inventory — banking first`);
         }
 
         // Ensure Auto Retaliate is off so we don't fight back while doing agility.
@@ -308,7 +311,7 @@ class EdgevilleMonkeyBars extends TaskBot {
         const xph = mins > 0.5
             ? `${(((Skills.xp('agility') - this.xpAtStart) / mins) * 60 / 1000).toFixed(1)}k`
             : '—';
-        const food = scriptFood(this.settings);
+        const food = scriptFood(this.settings, FALLBACK_FOOD);
         const mode = restockMode(this) === RESTOCK_DEATH ? 'death' : 'dungeon';
 
         p.row(`Runtime: ${fmtDuration(mins)}`, `Swings: ${this.completions}`, `XP/hr: ${xph}`);
@@ -326,7 +329,7 @@ class EatFood implements Task {
     constructor(private bot: EdgevilleMonkeyBars) {}
 
     private foodName(): string {
-        return scriptFood(this.bot.settings);
+        return scriptFood(this.bot.settings, FALLBACK_FOOD);
     }
 
     private heldFood(): number {
@@ -377,7 +380,7 @@ class BankAndRestock implements Task {
         if (this.bot.died) {
             return true;
         }
-        const fc = foodCount(scriptFood(this.bot.settings));
+        const fc = foodCount(scriptFood(this.bot.settings, FALLBACK_FOOD));
         const min = this.bot.settings.num('minFood', 1);
         if (fc < min && (Game.tile()?.z ?? 0) < UNDERGROUND_Z) {
             // Below minimum food on the surface — bank before heading into the dungeon (works for both restock modes).
@@ -387,7 +390,7 @@ class BankAndRestock implements Task {
     }
     async execute() {
         const log = (m: string) => this.bot.log(m);
-        const foodName = scriptFood(this.bot.settings).toLowerCase();
+        const foodName = scriptFood(this.bot.settings, FALLBACK_FOOD).toLowerCase();
         const hasAnyFood = Inventory.items().some(i => i.name?.toLowerCase().includes(foodName));
 
         // Out of food underground → reverse dungeon path + ladder climb (only in dungeon mode)
@@ -411,7 +414,7 @@ class BankAndRestock implements Task {
         const opened = (await bankApi.openBooth(EDGEVILLE_BANK, 'Bank booth', 'Use-quickly', m => this.bot.log(`  ${m}`)))
             || (await bankApi.openNearest('Bank booth', 'Use-quickly', m => this.bot.log(`  ${m}`)));
         if (opened) {
-            const foodName = scriptFood(this.bot.settings);
+            const foodName = scriptFood(this.bot.settings, FALLBACK_FOOD);
             if (this.bot.settings.bool('bankJunk', true)) {
                 await Bank.depositAllMatching(depositAllExcept([foodName]));
             } else {

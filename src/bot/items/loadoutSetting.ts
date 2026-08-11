@@ -8,7 +8,7 @@ export const LOADOUT_SETTING: SettingDef = {
     options: [],
     optionsFrom: 'loadouts',
     label: 'Loadout',
-    help: 'gear and supplies to wear, defined in the Loadouts panel; blank uses the first one'
+    help: 'gear and supplies to wear, defined in the Loadouts panel; blank uses the first one. Anything the loadout does not name falls back to this script\'s own default'
 };
 
 /** The chosen loadout, the first as a fallback, null when none are defined. */

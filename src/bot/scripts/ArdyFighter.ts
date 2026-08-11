@@ -27,7 +27,7 @@ import { SolveClue } from '../clues/SolveClue.js';
 import { paintClueProgress } from '../clues/cluePaint.js';
 import { Sustain } from '../api/Sustain.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
-import { scriptFood } from '../items/loadoutPlan.js';
+import { scriptFoods } from '../items/loadoutPlan.js';
 import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
 
 const DEFAULT_ANCHOR = new Tile(2661, 3306, 0);
@@ -115,7 +115,7 @@ export default class ArdyFighter extends TaskBot {
         LEASH = this.settings.num('leashRadius', 12);
         TARGET = this.settings.str('target', 'Guard');
         BANK_STAND = this.settings.tile('bankStand', DEFAULT_BANK_STAND);
-        FOOD = [scriptFood(this.settings)].map(s => s.toLowerCase());
+        FOOD = scriptFoods(this.settings, DEFAULT_FOOD.split(',').map(s => s.trim())).map(s => s.toLowerCase());
         LOOT = this.settings.list('loot', LOOT).map(s => s.toLowerCase());
 
         PANIC_AT = this.settings.num('panicHp', 25) / 100;

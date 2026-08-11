@@ -74,7 +74,7 @@ export default class HerbloreSecondaries extends TaskBot {
             return;
         }
         this.def = def;
-        this.foodName = scriptFood(this.settings);
+        this.foodName = scriptFood(this.settings, FOOD_DEFAULT);
         this.foodWant = this.settings.num('foodWithdraw', FOOD_DEFAULT_COUNT);
         this.startedAt = Date.now();
 

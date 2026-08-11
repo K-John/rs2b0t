@@ -404,11 +404,14 @@ export function dungeonKit(snap: QuestSnapshot, needLight: boolean): QuestStep |
 let meleeGaveUp = false;
 
 /** Attempts before the weapon is written off — an unwieldable one never lands. */
+/** Wielded when the loadout names no weapon — nothing sells one, so it is bank-only either way. */
+const FALLBACK_WEAPON = 'Rune scimitar';
+
 const WIELD_TRIES = 3;
 let wieldTries = 0;
 
 export function meleeWeaponName(): string | null {
-    const name = weaponOf(QuestLoadout.current)?.trim();
+    const name = weaponOf(QuestLoadout.current, FALLBACK_WEAPON)?.trim();
     return name && name.length > 0 ? name : null;
 }
 

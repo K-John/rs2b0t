@@ -41,6 +41,9 @@ const ICON: Record<QueueStatus, string> = {
     UNKNOWN: '?'
 };
 
+/** General quest food when the loadout names none. */
+const FALLBACK_FOOD = 'Trout';
+
 export const AIO_SETTINGS: SettingsSchema = {
     quests: {
         type: 'string[]',
@@ -106,7 +109,7 @@ export default class AIOQuester extends TaskBot {
     }
 
     foodItem(): string | null {
-        return foodOf(QuestLoadout.current);
+        return foodOf(QuestLoadout.current, FALLBACK_FOOD);
     }
 
     verbose(): boolean {
