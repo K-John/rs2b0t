@@ -46,6 +46,20 @@ class Protection {
     }
 }
 
+/**
+ * Hold a protection prayer outside a fight — the thrower trolls that line the
+ * mountain between the cave exit and the stronghold door are pure ranged, and a
+ * walk past them with no prayer up is the most expensive stretch of the quest.
+ * Returns whether it went up, so the caller knows what to drop afterwards.
+ */
+export async function holdProtect(kind: ProtectKind): Promise<boolean> {
+    return new Protection(kind).hold();
+}
+
+export async function dropProtect(kind: ProtectKind): Promise<void> {
+    await new Protection(kind).clear();
+}
+
 /** A tuna's worth of damage is enough to eat on; waiting spends the whole margin. */
 const EAT_AT_MISSING = 12;
 
