@@ -1,3 +1,4 @@
+import { Equipment } from '../api/hud/Equipment.js';
 import { Loadouts } from '../items/loadoutStore.js';
 import { removeLoadout, uniqueName, upsertLoadout, type Loadout } from '../items/loadouts.js';
 import type { ItemRecord, Slot } from '../items/types.js';
@@ -11,6 +12,7 @@ import {
     SLOT_LAYOUT,
     SUPPLY_ROWS,
     wearItem,
+    wornFromEquipment,
     type SupplyRow
 } from './loadoutPanelLogic.js';
 
@@ -38,7 +40,9 @@ const SLOT_LABEL: Record<Slot, string> = {
  * in-memory copy that can drift from what is saved.
  */
 export class LoadoutPanel {
-    readonly root = el('div', 'rs2b0t-loadout-panel');
+    /** Full-screen backdrop; the window inside it is what the player sees. */
+    readonly root = el('div', 'rs2b0t-loadout-backdrop');
+    private readonly window = el('div', 'rs2b0t-loadout-panel');
 
     private selected: string | null = null;
     private picker: Target | null = null;
@@ -50,16 +54,35 @@ export class LoadoutPanel {
 
     constructor() {
         this.root.style.display = 'none';
+        this.root.appendChild(this.window);
+        // Clicking the backdrop, but not the window, closes.
+        this.root.addEventListener('click', e => {
+            if (e.target === this.root) {
+                this.close();
+            }
+        });
     }
 
     open(): void {
-        this.root.style.display = '';
+        this.root.style.display = 'flex';
+        this.ensureLoadout();
         const names = Loadouts.names();
         if (this.selected === null || !names.includes(this.selected)) {
             this.selected = names[0] ?? null;
         }
         this.adoptCarry();
         this.render();
+    }
+
+    /**
+     * Never sit on nothing. Every slot and supply click needs a loadout to write
+     * into, and with none selected they were silent no-ops — the panel looked
+     * broken rather than empty.
+     */
+    private ensureLoadout(): void {
+        if (Loadouts.names().length === 0) {
+            Loadouts.save([{ name: 'loadout', worn: {}, carry: [] }]);
+        }
     }
 
     close(): void {
@@ -151,14 +174,14 @@ export class LoadoutPanel {
     }
 
     private render(): void {
-        this.root.replaceChildren();
-        this.root.appendChild(this.header());
+        this.window.replaceChildren();
+        this.window.appendChild(this.header());
         const body = el('div', 'rs2b0t-loadout-body');
         body.appendChild(this.equipmentGrid());
         body.appendChild(this.supplies());
-        this.root.appendChild(body);
+        this.window.appendChild(body);
         if (this.picker) {
-            this.root.appendChild(this.pickerList(this.picker));
+            this.window.appendChild(this.pickerList(this.picker));
         }
         if (this.fillIcons() > 0) {
             this.scheduleIconFill();
@@ -168,6 +191,10 @@ export class LoadoutPanel {
     private header(): HTMLElement {
         const bar = el('div', 'rs2b0t-loadout-header');
         const list = Loadouts.all();
+
+        const title = el('span', 'rs2b0t-loadout-title');
+        title.textContent = 'Loadouts';
+        bar.appendChild(title);
 
         const select = el('select', 'rs2b0t-select');
         for (const l of list) {
@@ -187,6 +214,16 @@ export class LoadoutPanel {
         bar.appendChild(this.action('new', '+ new', () => {
             const created: Loadout = { name: uniqueName(Loadouts.all(), 'loadout'), worn: {}, carry: [] };
             this.commit(created);
+        }));
+        bar.appendChild(this.action('from-worn', 'from worn', () => {
+            const target = this.current();
+            if (!target) {
+                return;
+            }
+            // Supplies are untouched: they are not on the character's back, and
+            // wiping them because someone wanted their armour copied would be a
+            // surprise.
+            this.commit({ ...target, worn: wornFromEquipment(Equipment.items()) });
         }));
         bar.appendChild(this.action('rename', 'rename', () => {
             const from = this.current();
@@ -214,10 +251,12 @@ export class LoadoutPanel {
                 return;
             }
             Loadouts.save(removeLoadout(Loadouts.all(), this.selected));
+            this.ensureLoadout();
             this.selected = Loadouts.names()[0] ?? null;
             this.picker = null;
             this.render();
         }));
+        bar.appendChild(this.action('close', '\u2715', () => this.close()));
         return bar;
     }
 

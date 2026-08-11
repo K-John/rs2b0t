@@ -6,7 +6,8 @@ import {
     slotOptions,
     SLOT_LAYOUT,
     SUPPLY_ROWS,
-    wearItem
+    wearItem,
+    wornFromEquipment
 } from '#/bot/ui/loadoutPanelLogic.js';
 import { SLOTS } from '#/bot/items/types.js';
 
@@ -100,5 +101,32 @@ describe('SUPPLY_ROWS', () => {
         expect(SUPPLY_ROWS.map(r => r.label)).toEqual([
             'Food', 'Prayer potion', 'Antipoison', 'Super attack', 'Super strength', 'Super defence'
         ]);
+    });
+});
+
+describe('wornFromEquipment', () => {
+    test('maps each worn item onto the slot the catalog gives it', () => {
+        const worn = wornFromEquipment([
+            { name: 'Rune scimitar' },
+            { name: 'Rune platebody' },
+            { name: 'Rune full helm' }
+        ]);
+        expect(worn).toEqual({
+            righthand: 'Rune scimitar',
+            torso: 'Rune platebody',
+            hat: 'Rune full helm'
+        });
+    });
+
+    test('is case-insensitive and uses the catalog spelling', () => {
+        expect(wornFromEquipment([{ name: 'rune scimitar' }]).righthand).toBe('Rune scimitar');
+    });
+
+    test('skips empty slots and anything the catalog does not know', () => {
+        expect(wornFromEquipment([{ name: null }, { name: 'Nonsense item' }])).toEqual({});
+    });
+
+    test('nothing worn is an empty loadout, not a throw', () => {
+        expect(wornFromEquipment([])).toEqual({});
     });
 });

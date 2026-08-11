@@ -9,7 +9,20 @@ import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 
 import { launchBrowser } from './lib/harness.js';
-import { mainlandAccount } from './tutorial/harness.js';
+import { cheatQuiet, mainlandAccount } from './tutorial/harness.js';
+
+/**
+ * Debugname, display name, slot. Chainbody, not platebody: the rune platebody
+ * is Dragon Slayer-gated and refuses to equip without a word.
+ */
+const KIT: [string, string, string][] = [
+    ['rune_scimitar', 'Rune scimitar', 'righthand'],
+    ['rune_chainbody', 'Rune chainbody', 'torso'],
+    ['rune_platelegs', 'Rune platelegs', 'legs'],
+    ['rune_full_helm', 'Rune full helm', 'hat'],
+    ['rune_kiteshield', 'Rune kiteshield', 'lefthand'],
+    ['amulet_of_strength', 'Amulet of strength', 'front']
+];
 
 const base = process.env.BASE ?? 'http://localhost:8890';
 const user = `load${Date.now().toString(36).slice(-6)}`;
@@ -51,7 +64,8 @@ try {
     console.log(`mainland-ready as '${user}'`);
 
     await page.click('button:has-text("Loadouts")');
-    await page.click('[data-action=new]');
+    // No "+ new": opening gives you a loadout to edit, and this is the path a
+    // player actually takes on first use.
     await page.click('[data-slot=righthand]');
     await page.fill('[data-role=item-search]', 'Rune scimitar');
     await page.click('[data-item="Rune scimitar"]');
@@ -67,6 +81,38 @@ try {
         fail('weapon slot never rendered an icon — the panel gave up before the model streamed in');
     }
 
+    // "from worn" is the other half a DOM test cannot reach: it needs a real
+    // character with real equipment on.
+    await cheatQuiet(page, 'setstat attack 70');
+    await cheatQuiet(page, 'setstat defence 70');
+    for (const [obj] of KIT) {
+        await cheatQuiet(page, `give ${obj} 1`);
+    }
+    await page.waitForTimeout(1200);
+    const equipped = await page.evaluate(async names => {
+        const g = globalThis as never as { __rs2b0t: { Equipment: { equip(n: string): Promise<boolean> } } };
+        const done: string[] = [];
+        for (const n of names) {
+            if (await g.__rs2b0t.Equipment.equip(n)) {
+                done.push(n);
+            }
+        }
+        return done;
+    }, KIT.map(k => k[1]));
+    if (equipped.length !== KIT.length) {
+        fail(`only equipped ${equipped.length}/${KIT.length}: ${equipped.join(', ')}`);
+    }
+
+    await page.click('[data-action=from-worn]');
+    await page.waitForTimeout(500);
+    for (const [, name, slot] of KIT) {
+        const got = await page.getAttribute(`[data-slot=${slot}]`, 'data-item');
+        if (got !== name) {
+            fail(`from worn put '${got}' in ${slot}, wanted '${name}'`);
+        }
+    }
+    console.log(`from worn populated all ${KIT.length} slots`);
+
     await page.reload();
     await page.waitForSelector('button:has-text("Loadouts")', { timeout: 180_000 });
     await page.click('button:has-text("Loadouts")');
@@ -74,7 +120,7 @@ try {
     if (worn !== 'Rune scimitar') {
         fail(`after reload the weapon slot read '${worn}', wanted 'Rune scimitar'`);
     }
-    console.log('PASS (loadout defined, icon rendered, survived a reload)');
+    console.log('PASS (loadout defined, icon rendered, survived a reload, from worn read the character)');
 } finally {
     await browser.close();
 }

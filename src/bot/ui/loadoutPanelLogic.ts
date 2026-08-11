@@ -51,6 +51,28 @@ export function shieldDisabled(worn: Loadout['worn']): boolean {
     return isTwoHanded(worn.righthand);
 }
 
+/**
+ * What the character is wearing, as a loadout.
+ *
+ * Slots come from the catalog by name rather than from the equipment
+ * interface's slot index: the catalog already knows a rune scimitar is a
+ * righthand item, so there is no index mapping to get wrong.
+ */
+export function wornFromEquipment(equipped: readonly { name: string | null }[]): Loadout['worn'] {
+    const out: Loadout['worn'] = {};
+    for (const item of equipped) {
+        if (!item.name) {
+            continue;
+        }
+        const wanted = item.name.toLowerCase();
+        const record = ITEM_DB.find(r => r.slot !== undefined && r.name.toLowerCase() === wanted);
+        if (record?.slot) {
+            out[record.slot] = record.name;
+        }
+    }
+    return out;
+}
+
 export function wearItem(worn: Loadout['worn'], slot: Slot, name: string | null): Loadout['worn'] {
     const out = { ...worn };
     if (name === null) {

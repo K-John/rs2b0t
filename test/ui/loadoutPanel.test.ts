@@ -25,15 +25,14 @@ describe('LoadoutPanel', () => {
         expect(panel.root.querySelectorAll('[data-supply]').length).toBe(6);
     });
 
-    test('creating a loadout persists it', () => {
+    test('new adds a second loadout beside the one you opened onto', () => {
         const panel = openPanel();
         (panel.root.querySelector('[data-action=new]') as HTMLButtonElement).click();
-        expect(Loadouts.names()).toEqual(['loadout']);
+        expect(Loadouts.names()).toEqual(['loadout', 'loadout 2']);
     });
 
     test('picking an item for a slot persists it under that slot', () => {
         const panel = openPanel();
-        (panel.root.querySelector('[data-action=new]') as HTMLButtonElement).click();
         (panel.root.querySelector('[data-slot=righthand]') as HTMLElement).click();
         const search = panel.root.querySelector('[data-role=item-search]') as HTMLInputElement;
         search.value = 'Rune scimitar';
@@ -114,16 +113,57 @@ describe('LoadoutPanel', () => {
     });
 
     test('deleting a loadout removes it', () => {
-        Loadouts.save([{ name: 'melee', worn: {}, carry: [] }]);
+        Loadouts.save([
+            { name: 'melee', worn: {}, carry: [] },
+            { name: 'range', worn: {}, carry: [] }
+        ]);
         const panel = openPanel();
         (panel.root.querySelector('[data-action=delete]') as HTMLButtonElement).click();
-        expect(Loadouts.names()).toEqual([]);
+        expect(Loadouts.names()).toEqual(['range']);
     });
 
-    test('with no loadouts the slots render but nothing is selected', () => {
+    test('deleting the last loadout leaves an empty one rather than a dead panel', () => {
+        Loadouts.save([{ name: 'melee', worn: { righthand: 'Rune scimitar' }, carry: [] }]);
         const panel = openPanel();
-        expect(Loadouts.names()).toEqual([]);
+        (panel.root.querySelector('[data-action=delete]') as HTMLButtonElement).click();
+        expect(Loadouts.names()).toEqual(['loadout']);
+        (panel.root.querySelector('[data-slot=hat]') as HTMLElement).click();
+        expect(panel.root.querySelector('[data-role=item-search]')).not.toBeNull();
+    });
+
+    test('from worn fills the slots from what the character has on', () => {
+        const panel = openPanel();
+        (panel.root.querySelector('[data-action=from-worn]') as HTMLButtonElement).click();
+        // No client attached, so nothing is worn — the point is it commits
+        // cleanly rather than throwing or wiping the loadout out of existence.
+        expect(Loadouts.names()).toEqual(['loadout']);
+        expect(Loadouts.all()[0]!.worn).toEqual({});
+    });
+
+    test('from worn keeps the supplies you already set', () => {
+        Loadouts.save([{ name: 'melee', worn: {}, carry: [{ item: 'Lobster', qty: 16 }] }]);
+        const panel = openPanel();
+        (panel.root.querySelector('[data-action=from-worn]') as HTMLButtonElement).click();
+        expect(Loadouts.byName('melee')!.carry).toEqual([{ item: 'Lobster', qty: 16 }]);
+    });
+
+    test('opening with nothing saved gives you a loadout to edit', () => {
+        const panel = openPanel();
+        expect(Loadouts.names()).toEqual(['loadout']);
         expect(panel.root.querySelectorAll('[data-slot]').length).toBe(11);
         expect(panel.root.querySelector('[data-slot=righthand]')!.getAttribute('data-item')).toBeNull();
+    });
+
+    test('a slot click works on a freshly opened panel, without pressing new first', () => {
+        const panel = openPanel();
+        (panel.root.querySelector('[data-slot=hat]') as HTMLElement).click();
+        expect(panel.root.querySelector('[data-role=item-search]')).not.toBeNull();
+    });
+
+    test('a supply click works on a freshly opened panel too', () => {
+        const panel = openPanel();
+        const row = panel.root.querySelector('[data-supply=Food]') as HTMLElement;
+        (row.querySelector('[data-role=supply-item]') as HTMLElement).click();
+        expect(panel.root.querySelector('[data-role=item-search]')).not.toBeNull();
     });
 });
