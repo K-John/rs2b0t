@@ -262,6 +262,56 @@ describe('Troll Stronghold loadout', () => {
             .toEqual(['Lobster', 'Rune chainbody', WEAPON]);
     });
 
+    test('withdraws two prayer potions when the bank has them', () => {
+        const step = decide(snap({
+            stage: TROLL_STAGE.STARTED,
+            inv: COINS,
+            worn: [ITEM.CLIMBING_BOOTS, WEAPON],
+            bank: [...Array(40).fill('Lobster'), ...Array(5).fill('Prayer potion(4)')] as string[]
+        }));
+        expect(step.kind === 'withdraw'
+            && step.items.find(i => i.name === 'Prayer potion(4)')?.qty).toBe(2);
+    });
+
+    test('prefers the strongest dose the bank holds', () => {
+        const step = decide(snap({
+            stage: TROLL_STAGE.STARTED,
+            inv: COINS,
+            worn: [ITEM.CLIMBING_BOOTS, WEAPON],
+            bank: [...Array(40).fill('Lobster'), 'Prayer potion(2)', 'Prayer potion(3)'] as string[]
+        }));
+        expect(step.kind === 'withdraw'
+            && step.items.find(i => i.name?.startsWith('Prayer potion'))?.name).toBe('Prayer potion(3)');
+    });
+
+    test('tops up from a weaker dose when the strong one runs short', () => {
+        const step = decide(snap({
+            stage: TROLL_STAGE.STARTED,
+            inv: COINS,
+            worn: [ITEM.CLIMBING_BOOTS, WEAPON],
+            bank: [...Array(40).fill('Lobster'), 'Prayer potion(4)', 'Prayer potion(3)'] as string[]
+        }));
+        const potions = step.kind === 'withdraw'
+            ? step.items.filter(i => i.name.startsWith('Prayer potion'))
+            : [];
+        expect(potions.reduce((n, i) => n + i.qty, 0)).toBe(2);
+    });
+
+    test('carries on without potions when the bank has none', () => {
+        const step = decide(ready({ stage: TROLL_STAGE.STARTED, tile: ARENA }));
+        expect(customName(step)).toContain('Dad');
+    });
+
+    test('does not bank the potions it is carrying', () => {
+        const step = decide(ready({
+            stage: TROLL_STAGE.STARTED,
+            inv: [...FOOD, ...COINS, 'Prayer potion(4)', 'Prayer potion(4)'],
+            tile: ARENA
+        }));
+        expect(step.kind).not.toBe('deposit');
+        expect(customName(step)).toContain('Dad');
+    });
+
     test('withdraws food up to the target', () => {
         const step = decide(snap({
             stage: TROLL_STAGE.STARTED,

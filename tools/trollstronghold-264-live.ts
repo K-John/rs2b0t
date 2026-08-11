@@ -53,6 +53,7 @@ interface Args {
     at: Tile | null;
     pack: boolean;
     paint: boolean;
+    lowPrayer: boolean;
     deploy: boolean;
 }
 
@@ -77,6 +78,7 @@ function parse(argv: string[]): Args {
         at: null,
         pack: false,
         paint: false,
+        lowPrayer: false,
         deploy: true
     };
     for (let i = 0; i < argv.length; i++) {
@@ -84,6 +86,7 @@ function parse(argv: string[]): Args {
         if (flag === '--no-deploy') { out.deploy = false; continue; }
         if (flag === '--pack') { out.pack = true; continue; }
         if (flag === '--paint') { out.paint = true; continue; }
+        if (flag === '--lowprayer') { out.lowPrayer = true; continue; }
         const value = argv[++i];
         if (value === undefined) { break; }
         if (flag === '--base') { out.base = value; }
@@ -138,6 +141,7 @@ const BANK_SEED: BankSeedItem[] = [
     { debugName: 'lobster', displayName: 'Lobster', qty: 60 },
     { debugName: 'rune_scimitar', displayName: 'Rune scimitar', qty: 1 },
     { debugName: 'rune_chainbody', displayName: 'Rune chainbody', qty: 1 },
+    { debugName: '4doseprayerrestore', displayName: 'Prayer potion(4)', qty: 4 },
     { debugName: 'rune_platelegs', displayName: 'Rune platelegs', qty: 1 },
     { debugName: 'rune_full_helm', displayName: 'Rune full helm', qty: 1 },
     { debugName: 'rune_kiteshield', displayName: 'Rune kiteshield', qty: 1 }
@@ -262,6 +266,13 @@ try {
             await cheatQuiet(page, cmd);
         }
         console.log(`packed: ${PACK_SEED.join(', ')}`);
+    }
+
+    if (args.lowPrayer) {
+        // Empties the prayer bar so the sip path is exercised rather than
+        // skipped — a 70-prayer character never dips under half in one fight.
+        await cheatQuiet(page, '~1pray');
+        console.log('prayer drained to 1 (--lowprayer)');
     }
 
     const start = args.at ?? FALADOR_BANK;

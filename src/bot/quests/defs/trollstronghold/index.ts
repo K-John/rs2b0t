@@ -19,6 +19,8 @@ import {
     BOOT_COST,
     COIN_FLOAT,
     COMBAT_FOODS,
+    PRAYER_POTIONS,
+    PRAYER_POTION_TARGET,
     DENULTH_START,
     DUNSTAN_FINISH,
     FALADOR_WEST_BANK,
@@ -92,8 +94,14 @@ function plannedGear(snap: QuestSnapshot): string[] {
         .filter(name => !unwearable.has(name.toLowerCase()) && !worn(snap, name));
 }
 
+/** Doses held, across every strength. */
+function potionsHeld(snap: QuestSnapshot): number {
+    return PRAYER_POTIONS.reduce((total, name) => total + heldCount(snap, name), 0);
+}
+
 function keepSet(snap: QuestSnapshot): string[] {
     return [
+        ...PRAYER_POTIONS,
         ITEM.COINS,
         ITEM.CLIMBING_BOOTS,
         ITEM.PRISON_KEY,
@@ -214,6 +222,21 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
             missing.push(name);
         }
     }
+    // Optional: prayer is what makes Dad and a level-113 general a formality, but
+    // the quest is winnable on food alone, so a bank with none is not a blocker.
+    let wantPotions = PRAYER_POTION_TARGET - potionsHeld(snap);
+    for (const name of PRAYER_POTIONS) {
+        if (wantPotions <= 0) {
+            break;
+        }
+        const available = banked(snap, name);
+        if (available > 0) {
+            const take = Math.min(wantPotions, available);
+            fromBank.push({ name, qty: take });
+            wantPotions -= take;
+        }
+    }
+
     const have = foodHeld(snap);
     if (have < FOOD_TARGET) {
         for (const name of foodNames()) {
