@@ -509,5 +509,5 @@ against the local content pack (one medium clue's `Rope` requirement), so
 ## See also
 
 - [Manual index](README.md)
-- [Running locally](RUNNING.md#tests) — getting an engine to run these against
+- [Running locally](how-to/run-locally.md#test-lint-and-smoke) — getting an engine to run these against
 - [Architecture](reference/import-fences.md) — the fences that keep the logic headless

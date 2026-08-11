@@ -904,4 +904,4 @@ Tags: `gathering`, `banking`, `drop`, `firemaking`
 
 - [Manual index](README.md)
 - [Scripting API](API.md) — the surface these are written against
-- [Running locally](RUNNING.md#running-a-bot) — how to start one
+- [Running locally](how-to/run-locally.md#run-a-bot) — how to start one

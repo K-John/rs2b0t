@@ -19,7 +19,7 @@ pure Lost City or 2004scape projects and is not maintained for those targets.
 
 | Page | Covers |
 |---|---|
-| [Running locally](RUNNING.md) | prerequisites, getting an engine, deploying the client, tests, lint, smokes |
+| [Running locally](RUNNING.md) | [the whole path from a cold clone](how-to/run-locally.md), and [ports](reference/ports.md) |
 | [Architecture](ARCHITECTURE.md) | the layers and the ABI boundary, then [design](decisions/architecture.md) and [fences](reference/import-fences.md) |
 | [Scripting API](API.md) | the complete `@rs2b0t/api` surface, with examples |
 | [World-walking](NAV.md) | the world walker: pack, doors, transports, teles, arrival |
