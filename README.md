@@ -71,38 +71,25 @@ login code 6.
 Bots subclass a base class and are registered with `defineBot`:
 
 ```ts
-import { defineBot, Execution, Game, GroundItems, Inventory, LoopingBot } from '@rs2b0t/api';
+import { defineBot, Execution, Game, LoopingBot } from '@rs2b0t/api';
 
-class BoneBurier extends LoopingBot {
+class MyBot extends LoopingBot {
     override async onStart(): Promise<void> {
         await Execution.delayUntil(() => Game.ingame(), 0);
-        this.log('started');
     }
 
     async loop(): Promise<void> {
-        const bones = Inventory.first('Bones');
-        if (bones) {
-            const before = Inventory.used();
-            await bones.interact('Bury');
-            await Execution.delayUntil(() => Inventory.used() < before, 3000);
-            return;
-        }
-        const ground = GroundItems.query().name('Bones').within(10).nearest();
-        if (ground && !Inventory.isFull()) {
-            await ground.interact('Take');
-        }
-        await Execution.delayTicks(2);
+        // one pass of the behaviour; await an Execution wait, never setTimeout
     }
 }
 
-export default defineBot({
-    name: 'BoneBurier',
-    description: 'Loots and buries nearby bones',
-    create: () => new BoneBurier()
-});
+export default defineBot({ name: 'MyBot', description: '…', create: () => new MyBot() });
 ```
 
-A ready-to-copy starter lives in [`templates/script-template/`](templates/script-template/).
+A working example that loots and buries bones lives in
+[`templates/script-template/`](templates/script-template/) — copy that directory to start
+an out-of-tree bot. The same bot ships in-tree as
+[`src/bot/scripts/BoneBurier.ts`](src/bot/scripts/BoneBurier.ts).
 
 ## Bundled scripts
 
@@ -115,11 +102,10 @@ It is generated from the registry, so it cannot drift.
 
 ## How it connects
 
-The client resolves its game server from the build target (`src/config/target.ts`).
-`local` and `prod` talk same-origin to whatever origin served the page; `live` targets the
-world host directly, used with a local reverse proxy for development. The hosted `prod`
-build is baked into the engine image and served same-origin from the game server, with no
-proxy.
+The client resolves its game server from the build target baked into the bundle:
+`local` and `prod` talk same-origin to whatever origin served the page, and `live`
+targets the world host directly through a local reverse proxy. See
+[build targets](docs/reference/build-targets.md).
 
 ## Questions
 
