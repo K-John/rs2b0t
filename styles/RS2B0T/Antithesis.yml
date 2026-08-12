@@ -4,5 +4,5 @@ level: error
 ignorecase: true
 tokens:
   - 'it.?s not \w[\w ]{0,30}, it.?s'
-  - 'not just \w+'
+  - '(?:^|[.!?]\s+)not just \w+'
   - 'not because \w[\w ]{0,40}\. because'
