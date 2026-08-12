@@ -3,8 +3,8 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 
 import { actions, reader, type InvItemSnapshot } from '#/bot/adapter/ClientAdapter.js';
-import { Execution } from '#/bot/api/core/Execution.js';
-import { Bank } from '#/bot/api/hud/Bank.js';
+import { Execution } from '#/bot/api/execution/Execution.js';
+import { Bank } from '#/bot/api/bank/Bank.js';
 import { Input } from '#/bot/api/input/Input.js';
 
 const originals = {

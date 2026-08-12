@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { PaintState, hitRegion, resolveDock, toCanvasPoint, type Region } from '#/bot/api/hud/paintLogic.js';
+import { PaintState, hitRegion, resolveDock, toCanvasPoint, type Region } from '#/bot/api/paint/paintLogic.js';
 
 describe('toCanvasPoint', () => {
     test('maps CSS pixels to 765x503 logical space via the bounding rect', () => {

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { SettingsBag } from '#/bot/runtime/Settings.js';
-import { foodOf, gearOf, scriptFood, scriptFoods, suppliesOf, weaponOf } from '#/bot/api/items/loadoutPlan.js';
-import { Loadouts } from '#/bot/api/items/loadoutStore.js';
-import type { Loadout } from '#/bot/api/items/loadouts.js';
+import { foodOf, gearOf, scriptFood, scriptFoods, suppliesOf, weaponOf } from '#/bot/api/loadout/plan.js';
+import { Loadouts } from '#/bot/api/loadout/store.js';
+import type { Loadout } from '#/bot/api/loadout/loadouts.js';
 
 const melee: Loadout = {
     name: 'melee',

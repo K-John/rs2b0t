@@ -12,7 +12,7 @@ import {
     muleSupplierActive,
     parseMuleMode,
     parsePartnerList
-} from '#/bot/api/mule/PartnerTrade.js';
+} from '#/bot/api/trade/partner.js';
 
 describe('parsePartnerList / isConfiguredPartner', () => {
     test('splits and trims comma names', () => {

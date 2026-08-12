@@ -1,7 +1,7 @@
 import { reader } from '../../adapter/ClientAdapter.js';
 import { BotHost } from '../../runtime/BotHost.js';
-import { Execution } from '../core/Execution.js';
-import { Inventory } from '../hud/Inventory.js';
+import { Execution } from '../execution/Execution.js';
+import { Inventory } from '../inventory/Inventory.js';
 import { AttackClock } from './eatTiming.js';
 
 const BURY_CONFIRM_TICKS = 3;

@@ -1,11 +1,11 @@
-import { Execution } from '../../api/core/Execution.js';
+import { Execution } from '../../api/execution/Execution.js';
 import { Reachability } from '../../nav/geometry/Reachability.js';
 import type Tile from '../../geometry/Tile.js';
 import { Traversal } from '../../api/walking/Traversal.js';
-import { ChatDialog } from '../../api/hud/ChatDialog.js';
-import { Inventory } from '../../api/hud/Inventory.js';
-import { Locs } from '../../api/entities/Locs.js';
-import { Npcs } from '../../api/entities/Npcs.js';
+import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { Inventory } from '../../api/inventory/Inventory.js';
+import { Locs } from '../../api/locs/Locs.js';
+import { Npcs } from '../../api/npcs/Npcs.js';
 import type { QuestSnapshot, QuestStep } from '../engine/types.js';
 
 export const UNSHEARED_SHEEP_ID = 43;

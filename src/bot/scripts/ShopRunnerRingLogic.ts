@@ -1,5 +1,5 @@
-import { unitPrice } from '#/bot/api/shops/StockModel.js';
-import type { AccountView, Route, RouteCluster, ShopRecord } from '#/bot/api/shops/types.js';
+import { unitPrice } from '#/bot/api/shop/stock.js';
+import type { AccountView, Route, RouteCluster, ShopRecord } from '#/bot/api/shop/types.js';
 
 export function buyoutCostFromBaseline(rec: ShopRecord, obj: string): number {
     const item = rec.items.find(i => i.obj === obj);

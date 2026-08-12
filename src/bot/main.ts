@@ -21,7 +21,7 @@ import { RandomEventGuardian } from './runtime/RandomEventGuardian.js';
 import BotPanel from './ui/BotPanel.js';
 import Overlay from './ui/Overlay.js';
 import { installPaintInput } from './ui/PaintInput.js';
-import { paintState } from './api/hud/paintLogic.js';
+import { paintState } from './api/paint/paintLogic.js';
 import { BUILD_INFO, formatBuildInfo } from '../config/buildInfo.js';
 import './scripts/index.js';
 

@@ -5,7 +5,7 @@ mock.module('#3rdparty/tinymidipcm.js', () => ({ playMidi: (): void => {}, setMi
 
 const { RandomEventGuardian } = await import('#/bot/runtime/RandomEventGuardian.js');
 const { RandomEvents } = await import('#/bot/runtime/randomevents/RandomEvents.js');
-const { Game } = await import('#/bot/api/core/Game.js');
+const { Game } = await import('#/bot/api/game/Game.js');
 const { BotHost } = await import('#/bot/runtime/BotHost.js');
 
 /**

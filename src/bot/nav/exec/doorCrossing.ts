@@ -4,9 +4,9 @@
 
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import { reader } from '../../adapter/ClientAdapter.js';
-import { Execution } from '../../api/core/Execution.js';
-import { Inventory } from '../../api/hud/Inventory.js';
-import { Locs, type Loc } from '../../api/entities/Locs.js';
+import { Execution } from '../../api/execution/Execution.js';
+import { Inventory } from '../../api/inventory/Inventory.js';
+import { Locs, type Loc } from '../../api/locs/Locs.js';
 import { Reachability } from '../geometry/Reachability.js';
 import { CANT_REACH, GameMessages } from '../../api/chatbox/messages.js';
 import { Input } from '../../api/input/Input.js';

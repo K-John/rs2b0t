@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { buyoutCostFromBaseline, clusterEligible, estimateClusterGp, nextCluster, withdrawFor } from '#/bot/scripts/ShopRunnerRingLogic.js';
 import { ROUTE } from '#/bot/scripts/ShopRunnerRoute.js';
 import { SHOP_DB } from '#/bot/data/shopdb.js';
-import type { AccountView } from '#/bot/api/shops/types.js';
+import type { AccountView } from '#/bot/api/shop/types.js';
 
 const acct = (skills: Record<string, number>): AccountView => ({ qp: 0, quests: {}, skills });
 const ALL = new Set(Object.values(SHOP_DB).flatMap(r => r.items.map(i => i.name.toLowerCase())));

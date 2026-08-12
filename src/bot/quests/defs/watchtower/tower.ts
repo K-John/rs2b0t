@@ -1,10 +1,10 @@
 import { actions, reader } from '../../../adapter/ClientAdapter.js';
-import { Execution } from '../../../api/core/Execution.js';
-import { Game } from '../../../api/core/Game.js';
-import { Inventory } from '../../../api/hud/Inventory.js';
-import { Quests } from '../../../api/hud/Quests.js';
-import { Locs, type Loc } from '../../../api/entities/Locs.js';
-import { Npcs } from '../../../api/entities/Npcs.js';
+import { Execution } from '../../../api/execution/Execution.js';
+import { Game } from '../../../api/game/Game.js';
+import { Inventory } from '../../../api/inventory/Inventory.js';
+import { Quests } from '../../../api/questlog/Quests.js';
+import { Locs, type Loc } from '../../../api/locs/Locs.js';
+import { Npcs } from '../../../api/npcs/Npcs.js';
 import { Reach } from '../../../api/walking/Reach.js';
 import { Traversal } from '../../../api/walking/Traversal.js';
 import { driveDialog, talkThrough } from '../../exec/primitives.js';

@@ -9,7 +9,7 @@ import {
     spotWithinGatherRange
 } from '#/bot/scripts/GatherCamp.js';
 import { DEFAULT_CHASE_RADIUS, resolveCampRadius } from '#/bot/data/gatheringLocations.js';
-import { HOME_ARRIVE_RADIUS, shouldSoftHomeFromGatherMiss, shouldWalkHomeToGatherAnchor } from '#/bot/api/skilling/Anchor.js';
+import { HOME_ARRIVE_RADIUS, shouldSoftHomeFromGatherMiss, shouldWalkHomeToGatherAnchor } from '#/bot/api/tasks/Anchor.js';
 import Tile from '#/bot/geometry/Tile.js';
 
 describe('GatherCamp membership', () => {

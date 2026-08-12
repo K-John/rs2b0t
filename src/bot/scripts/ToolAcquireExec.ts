@@ -5,17 +5,17 @@
  * shop/NPC/anvil choreography so GatheringBot (and future scripts) do not grow
  * another 400-line private method block.
  */
-import { Execution } from '../api/core/Execution.js';
-import { Game } from '../api/core/Game.js';
+import { Execution } from '../api/execution/Execution.js';
+import { Game } from '../api/game/Game.js';
 import Tile from '../geometry/Tile.js';
 import { Traversal } from '../api/walking/Traversal.js';
-import { Bank, withdrawOp } from '../api/hud/Bank.js';
-import { ChatDialog } from '../api/hud/ChatDialog.js';
-import { Equipment } from '../api/hud/Equipment.js';
-import { Inventory } from '../api/hud/Inventory.js';
-import { Shop } from '../api/hud/Shop.js';
-import { Locs } from '../api/entities/Locs.js';
-import { Npcs } from '../api/entities/Npcs.js';
+import { Bank, withdrawOp } from '../api/bank/Bank.js';
+import { ChatDialog } from '../api/dialogue/ChatDialog.js';
+import { Equipment } from '../api/equipment/Equipment.js';
+import { Inventory } from '../api/inventory/Inventory.js';
+import { Shop } from '../api/shop/Shop.js';
+import { Locs } from '../api/locs/Locs.js';
+import { Npcs } from '../api/npcs/Npcs.js';
 import { bestPickaxe, canWieldTool, toolAttackLevel } from '../api/acquisition/Tools.js';
 import {
     COINS,

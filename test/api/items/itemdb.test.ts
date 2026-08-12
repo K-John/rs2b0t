@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { ITEM_DB } from '#/bot/data/itemdb.js';
-import { SLOTS } from '#/bot/api/items/types.js';
+import { SLOTS } from '#/bot/api/loadout/types.js';
 
 describe('ITEM_DB', () => {
     test('carries the whole equippable catalog', () => {

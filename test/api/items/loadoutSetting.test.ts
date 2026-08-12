@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { SettingsBag } from '#/bot/runtime/Settings.js';
-import { LOADOUT_SETTING, selectedLoadout } from '#/bot/api/items/loadoutSetting.js';
-import { Loadouts } from '#/bot/api/items/loadoutStore.js';
-import type { Loadout } from '#/bot/api/items/loadouts.js';
+import { LOADOUT_SETTING, selectedLoadout } from '#/bot/api/loadout/setting.js';
+import { Loadouts } from '#/bot/api/loadout/store.js';
+import type { Loadout } from '#/bot/api/loadout/loadouts.js';
 
 const melee: Loadout = { name: 'melee', worn: { righthand: 'Rune scimitar' }, carry: [] };
 const range: Loadout = { name: 'range', worn: {}, carry: [] };

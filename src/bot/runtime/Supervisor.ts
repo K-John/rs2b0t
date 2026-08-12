@@ -1,6 +1,6 @@
 import { reader, type WorldTile } from '../adapter/ClientAdapter.js';
-import type { AbstractBot } from '../api/core/Bot.js';
-import { Execution } from '../api/core/Execution.js';
+import type { AbstractBot } from '../api/bot/Bot.js';
+import { Execution } from '../api/execution/Execution.js';
 import { RandomEvents } from './randomevents/RandomEvents.js';
 import { Traversal } from '../api/walking/Traversal.js';
 import { bus } from '../api/events/EventBus.js';

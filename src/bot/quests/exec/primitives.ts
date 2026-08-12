@@ -1,12 +1,12 @@
 // docs/reference/quest-primitives.md
-import { EventSignal } from '../../api/core/EventSignal.js';
-import { Execution } from '../../api/core/Execution.js';
-import { Game } from '../../api/core/Game.js';
+import { EventSignal } from '../../api/execution/EventSignal.js';
+import { Execution } from '../../api/execution/Execution.js';
+import { Game } from '../../api/game/Game.js';
 import { Reach } from '../../api/walking/Reach.js';
 import Tile from '../../geometry/Tile.js';
-import { ChatDialog } from '../../api/hud/ChatDialog.js';
-import { Locs } from '../../api/entities/Locs.js';
-import { Npcs, talkOp, type Npc } from '../../api/entities/Npcs.js';
+import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { Locs } from '../../api/locs/Locs.js';
+import { Npcs, talkOp, type Npc } from '../../api/npcs/Npcs.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 

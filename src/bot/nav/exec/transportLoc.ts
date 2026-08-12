@@ -4,7 +4,7 @@
 
 import type { TransportInfo } from '../PathFinder.js';
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
-import { Locs, type Loc } from '../../api/entities/Locs.js';
+import { Locs, type Loc } from '../../api/locs/Locs.js';
 import { chebyshev } from '../geometry/followMath.js';
 import { locRefFromTransport, matchesLocRef } from '../locRef.js';
 

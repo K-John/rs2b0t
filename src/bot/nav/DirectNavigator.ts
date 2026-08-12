@@ -1,6 +1,6 @@
 import type { WorldTile } from '../adapter/ClientAdapter.js';
 import { reader } from '../adapter/ClientAdapter.js';
-import { Execution } from '../api/core/Execution.js';
+import { Execution } from '../api/execution/Execution.js';
 import { Reachability } from './geometry/Reachability.js';
 import { Input } from '../api/input/Input.js';
 import { isArrived } from './geometry/arrival.js';

@@ -1,8 +1,8 @@
-import { Execution } from '../api/core/Execution.js';
-import { Game } from '../api/core/Game.js';
-import { Inventory } from '../api/hud/Inventory.js';
+import { Execution } from '../api/execution/Execution.js';
+import { Game } from '../api/game/Game.js';
+import { Inventory } from '../api/inventory/Inventory.js';
 import { Traversal } from '../api/walking/Traversal.js';
-import { Locs } from '../api/entities/Locs.js';
+import { Locs } from '../api/locs/Locs.js';
 import { bus } from '../api/events/EventBus.js';
 import { countMatching } from './ArdyFighterLogic.js';
 import {

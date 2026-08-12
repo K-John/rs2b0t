@@ -7,9 +7,9 @@ import { advance, initialLadderState, judgeProbe, pickUnstickStep, type LadderSt
 import { isArrived } from '../../nav/geometry/arrival.js';
 import { chebyshev } from '../../nav/geometry/followMath.js';
 import { Reachability } from '../../nav/geometry/Reachability.js';
-import { EventSignal } from '../core/EventSignal.js';
-import { Execution } from '../core/Execution.js';
-import { Sustain } from '../core/Sustain.js';
+import { EventSignal } from '../execution/EventSignal.js';
+import { Execution } from '../execution/Execution.js';
+import { Sustain } from '../sustain/Sustain.js';
 import { SettingsStore } from '../../runtime/Settings.js';
 
 /**

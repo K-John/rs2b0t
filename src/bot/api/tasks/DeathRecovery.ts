@@ -1,7 +1,7 @@
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
-import type { AbstractBot, Task } from '../core/Bot.js';
-import { Execution } from '../core/Execution.js';
-import { Game } from '../core/Game.js';
+import type { AbstractBot, Task } from '../bot/Bot.js';
+import { Execution } from '../execution/Execution.js';
+import { Game } from '../game/Game.js';
 import { AcquireTask, hasAll, type ItemNeed } from '../acquisition/ItemAcquisition.js';
 import { Traversal } from '../walking/Traversal.js';
 

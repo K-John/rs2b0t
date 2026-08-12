@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import type { ShopItemDef } from '#/bot/api/shops/types.js';
-import { TICK_MS, expectedStock, unitPrice, unitsUnderPolicy } from '#/bot/api/shops/StockModel.js';
+import type { ShopItemDef } from '#/bot/api/shop/types.js';
+import { TICK_MS, expectedStock, unitPrice, unitsUnderPolicy } from '#/bot/api/shop/stock.js';
 
 const death: ShopItemDef = { obj: 'deathrune', name: 'Death rune', baseline: 1000, restockTicks: 150, cost: 30, stackable: true, members: false };
 const fire: ShopItemDef = { obj: 'firerune', name: 'Fire rune', baseline: 2000, restockTicks: 10, cost: 4, stackable: true, members: false };

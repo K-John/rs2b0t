@@ -1,4 +1,4 @@
-import { Skills } from '../../../api/hud/Skills.js';
+import { Skills } from '../../../api/skills/Skills.js';
 import { Traversal } from '../../../api/walking/Traversal.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { ANTIPOISON_IDS, DUEL_RING_IDS, FC_BANK, FC_ID, FC_ITEM, FC_SHOP, PICKAXES } from './areas.js';

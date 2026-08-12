@@ -1,13 +1,13 @@
 import { MiniMenuAction } from '#/client/MiniMenuAction.js';
 import { actions, reader } from '../../../adapter/ClientAdapter.js';
-import { Execution } from '../../../api/core/Execution.js';
-import { Game } from '../../../api/core/Game.js';
+import { Execution } from '../../../api/execution/Execution.js';
+import { Game } from '../../../api/game/Game.js';
 import Tile from '../../../geometry/Tile.js';
-import { ChatDialog } from '../../../api/hud/ChatDialog.js';
-import { Inventory } from '../../../api/hud/Inventory.js';
-import { GroundItems } from '../../../api/entities/GroundItems.js';
-import { Locs } from '../../../api/entities/Locs.js';
-import { Npcs } from '../../../api/entities/Npcs.js';
+import { ChatDialog } from '../../../api/dialogue/ChatDialog.js';
+import { Inventory } from '../../../api/inventory/Inventory.js';
+import { GroundItems } from '../../../api/grounditems/GroundItems.js';
+import { Locs } from '../../../api/locs/Locs.js';
+import { Npcs } from '../../../api/npcs/Npcs.js';
 import { Traversal } from '../../../api/walking/Traversal.js';
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from '../../engine/types.js';
@@ -38,7 +38,7 @@ import {
     TILE,
     TOSTIG_SHOP
 } from './areas.js';
-import { Modals } from '../../../api/hud/Modals.js';
+import { Modals } from '../../../api/widgets/Modals.js';
 import {
     DP_FLAG,
     DP_STAGE,

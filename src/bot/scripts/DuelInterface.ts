@@ -1,7 +1,7 @@
 import { actions, reader } from '../adapter/ClientAdapter.js';
 import { Input } from '../api/input/Input.js';
 import type { Player } from '../api/model/Player.js';
-import { Modals } from '../api/hud/Modals.js';
+import { Modals } from '../api/widgets/Modals.js';
 
 // 2004scape's Duel Arena contract (game_duelarena/duel_arena.rs2):
 // set_player_op("Challenge", 1) in the lobby and "Fight", 2 in an arena.

@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 
 import { actions, reader, type InvItemSnapshot, type WorldTile } from '#/bot/adapter/ClientAdapter.js';
-import { Execution } from '#/bot/api/core/Execution.js';
-import { Game } from '#/bot/api/core/Game.js';
-import { Bank } from '#/bot/api/hud/Bank.js';
-import { InvItem, Inventory } from '#/bot/api/hud/Inventory.js';
-import { Skills } from '#/bot/api/hud/Skills.js';
+import { Execution } from '#/bot/api/execution/Execution.js';
+import { Game } from '#/bot/api/game/Game.js';
+import { Bank } from '#/bot/api/bank/Bank.js';
+import { InvItem, Inventory } from '#/bot/api/inventory/Inventory.js';
+import { Skills } from '#/bot/api/skills/Skills.js';
 import { Input } from '#/bot/api/input/Input.js';
 import { ScriptRunner } from '#/bot/runtime/ScriptRunner.js';
 import { SettingsBag } from '#/bot/runtime/Settings.js';

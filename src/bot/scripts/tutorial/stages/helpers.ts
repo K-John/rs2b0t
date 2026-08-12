@@ -1,5 +1,5 @@
-import { Execution } from '../../../api/core/Execution.js';
-import { Locs } from '../../../api/entities/Locs.js';
+import { Execution } from '../../../api/execution/Execution.js';
+import { Locs } from '../../../api/locs/Locs.js';
 import { reader } from '../../../adapter/ClientAdapter.js';
 import { Input } from '../../../api/input/Input.js';
 

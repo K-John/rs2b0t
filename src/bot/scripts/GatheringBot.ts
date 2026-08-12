@@ -4,17 +4,17 @@ import {
     resolveRunAnchor,
     shouldWalkHomeToGatherAnchor,
     tileWithinLeash
-} from '../api/skilling/Anchor.js';
-import { TaskBot } from '../api/core/Bot.js';
-import { Execution } from '../api/core/Execution.js';
-import { Game } from '../api/core/Game.js';
+} from '../api/tasks/Anchor.js';
+import { TaskBot } from '../api/bot/Bot.js';
+import { Execution } from '../api/execution/Execution.js';
+import { Game } from '../api/game/Game.js';
 import Tile from '../geometry/Tile.js';
-import { Bank, withdrawOp } from '../api/hud/Bank.js';
-import { ChatDialog } from '../api/hud/ChatDialog.js';
-import { Equipment } from '../api/hud/Equipment.js';
-import { Inventory } from '../api/hud/Inventory.js';
-import { Paint } from '../api/hud/Paint.js';
-import { Skills } from '../api/hud/Skills.js';
+import { Bank, withdrawOp } from '../api/bank/Bank.js';
+import { ChatDialog } from '../api/dialogue/ChatDialog.js';
+import { Equipment } from '../api/equipment/Equipment.js';
+import { Inventory } from '../api/inventory/Inventory.js';
+import { Paint } from '../api/paint/Paint.js';
+import { Skills } from '../api/skills/Skills.js';
 import {
     foodCount as countFood,
     foodForms,
@@ -22,8 +22,8 @@ import {
     isFoodItem
 } from '../api/combat/food.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
-import { Locs } from '../api/entities/Locs.js';
-import { Npcs } from '../api/entities/Npcs.js';
+import { Locs } from '../api/locs/Locs.js';
+import { Npcs } from '../api/npcs/Npcs.js';
 import { Traversal } from '../api/walking/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
@@ -36,7 +36,7 @@ import {
     resolveChaseRadius,
     type GatheringLocation
 } from '../data/gatheringLocations.js';
-import { Players } from '../api/entities/Players.js';
+import { Players } from '../api/players/Players.js';
 import {
     DEFAULT_TRADE_RANGE,
     muleCookerActive,
@@ -48,7 +48,7 @@ import {
     parsePartnerList,
     type MuleMode,
     MULE_MODE_OPTIONS
-} from '../api/mule/PartnerTrade.js';
+} from '../api/trade/partner.js';
 import { resolveMiningLocation } from '../data/miningLocations.js';
 import { resolveWoodcuttingLocation } from '../data/woodcuttingLocations.js';
 import { BROKEN_PICKAXE, ROCK_OPTIONS, resolveRockIds } from '../data/miningRocks.js';
@@ -133,7 +133,7 @@ import {
     purgePackAtBank,
     waitBankReady,
     withdrawCoins
-} from '../api/banking/Banking.js';
+} from '../api/bank/trips.js';
 import {
     fmtDuration,
     fmtXpGained as fmtXpGainedPaint,
@@ -142,7 +142,7 @@ import {
     paintClip,
     paintSkillShort,
     paintSkillTitle
-} from '../api/hud/paintLogic.js';
+} from '../api/paint/paintLogic.js';
 import { driveDialog } from '../quests/exec/primitives.js';
 import {
     AXE_BAR_FOR,
@@ -221,7 +221,7 @@ export {
     HOME_ARRIVE_RADIUS,
     shouldSoftHomeFromGatherMiss,
     shouldWalkHomeToGatherAnchor
-} from '../api/skilling/Anchor.js';
+} from '../api/tasks/Anchor.js';
 export {
     effectiveGatherLeash,
     gatherHuntRadius,

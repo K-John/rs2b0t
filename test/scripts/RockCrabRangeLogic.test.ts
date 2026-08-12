@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { BOWS, DARTS } from '#/bot/api/combat/equipment.js';
+import { BOWS, DARTS } from '#/bot/api/equipment/wear.js';
 import { SETTINGS as MOSS_SETTINGS } from '#/bot/scripts/MossGiant.js';
 import { SETTINGS as ROCK_SETTINGS } from '#/bot/scripts/RockCrab.js';
 import { RANGED_WEAPONS, ROCK_CRAB_RANGED_WEAPONS, rangeLoadoutOf, rangeSupplyEmpty, rockCrabRangeLoadout } from '#/bot/scripts/RockCrabRangeLogic.js';

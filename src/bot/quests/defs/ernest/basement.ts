@@ -1,12 +1,12 @@
-import { Execution } from '../../../api/core/Execution.js';
-import { Game } from '../../../api/core/Game.js';
+import { Execution } from '../../../api/execution/Execution.js';
+import { Game } from '../../../api/game/Game.js';
 import { Reach } from '../../../api/walking/Reach.js';
-import { Sustain } from '../../../api/core/Sustain.js';
+import { Sustain } from '../../../api/sustain/Sustain.js';
 import Tile from '../../../geometry/Tile.js';
 import { Traversal } from '../../../api/walking/Traversal.js';
-import { Inventory } from '../../../api/hud/Inventory.js';
-import { GroundItems } from '../../../api/entities/GroundItems.js';
-import { Locs } from '../../../api/entities/Locs.js';
+import { Inventory } from '../../../api/inventory/Inventory.js';
+import { GroundItems } from '../../../api/grounditems/GroundItems.js';
+import { Locs } from '../../../api/locs/Locs.js';
 import { GameMessages } from '../../../api/chatbox/messages.js';
 import { settleScene } from '../../exec/prompts.js';
 import { EC_ID, EC_NAME, EC_TILE } from './areas.js';

@@ -1,5 +1,5 @@
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { Skills } from '../../../api/hud/Skills.js';
+import { Skills } from '../../../api/skills/Skills.js';
 import { EW_ITEM, PICKAXES, SEERS_BANK, type EwItem } from './areas.js';
 
 export const COAL_NEED = 4;

@@ -1,8 +1,8 @@
 import { actions, reader } from '../../adapter/ClientAdapter.js';
-import { Execution } from '../../api/core/Execution.js';
-import { Inventory } from '../../api/hud/Inventory.js';
-import { Quests } from '../../api/hud/Quests.js';
-import { GroundItems } from '../../api/entities/GroundItems.js';
+import { Execution } from '../../api/execution/Execution.js';
+import { Inventory } from '../../api/inventory/Inventory.js';
+import { Quests } from '../../api/questlog/Quests.js';
+import { GroundItems } from '../../api/grounditems/GroundItems.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import Tile from '../../geometry/Tile.js';
 import { QUESTS } from '../data/quests.js';

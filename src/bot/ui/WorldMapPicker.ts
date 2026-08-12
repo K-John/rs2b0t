@@ -19,7 +19,7 @@
 import { gunzipSync } from 'fflate';
 import { PathFinder } from '../nav/PathFinder.js';
 import { WALK_DESTINATIONS } from '../api/map/WalkDestinations.js';
-import { Game } from '../api/core/Game.js';
+import { Game } from '../api/game/Game.js';
 import { BotHost } from '../runtime/BotHost.js';
 import {
     BASEMAP_MANIFEST_NAME,

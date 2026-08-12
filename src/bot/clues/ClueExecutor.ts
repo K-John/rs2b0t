@@ -1,15 +1,15 @@
 // docs/decisions/clue-host-yielding.md
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
-import { Execution } from '#/bot/api/core/Execution.js';
-import { EventSignal } from '#/bot/api/core/EventSignal.js';
-import { Sustain } from '#/bot/api/core/Sustain.js';
+import { Execution } from '#/bot/api/execution/Execution.js';
+import { EventSignal } from '#/bot/api/execution/EventSignal.js';
+import { Sustain } from '#/bot/api/sustain/Sustain.js';
 import { Traversal } from '#/bot/api/walking/Traversal.js';
-import { Game } from '#/bot/api/core/Game.js';
-import { ChatDialog } from '#/bot/api/hud/ChatDialog.js';
-import { Inventory } from '#/bot/api/hud/Inventory.js';
-import { GroundItems } from '#/bot/api/entities/GroundItems.js';
-import { Locs } from '#/bot/api/entities/Locs.js';
-import { Npcs } from '#/bot/api/entities/Npcs.js';
+import { Game } from '#/bot/api/game/Game.js';
+import { ChatDialog } from '#/bot/api/dialogue/ChatDialog.js';
+import { Inventory } from '#/bot/api/inventory/Inventory.js';
+import { GroundItems } from '#/bot/api/grounditems/GroundItems.js';
+import { Locs } from '#/bot/api/locs/Locs.js';
+import { Npcs } from '#/bot/api/npcs/Npcs.js';
 import type { GroundItem } from '#/bot/api/model/GroundItem.js';
 import type { Loc } from '#/bot/api/model/Loc.js';
 import type { Npc } from '#/bot/api/model/Npc.js';

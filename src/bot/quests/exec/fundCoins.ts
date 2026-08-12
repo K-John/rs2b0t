@@ -4,15 +4,15 @@
  * Verified anchors match Waterfall / Goblin Diplomacy funding legs — Al Kharid Man
  * stands next to the kebab shop; Varrock Man is used only to afford the 10 gp toll.
  */
-import { Execution } from '../../api/core/Execution.js';
-import { EventSignal } from '../../api/core/EventSignal.js';
-import { Game } from '../../api/core/Game.js';
+import { Execution } from '../../api/execution/Execution.js';
+import { EventSignal } from '../../api/execution/EventSignal.js';
+import { Game } from '../../api/game/Game.js';
 import Tile from '../../geometry/Tile.js';
-import { ChatDialog } from '../../api/hud/ChatDialog.js';
-import { Inventory } from '../../api/hud/Inventory.js';
-import { Skills } from '../../api/hud/Skills.js';
-import { Npcs } from '../../api/entities/Npcs.js';
-import { Sustain } from '../../api/core/Sustain.js';
+import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { Inventory } from '../../api/inventory/Inventory.js';
+import { Skills } from '../../api/skills/Skills.js';
+import { Npcs } from '../../api/npcs/Npcs.js';
+import { Sustain } from '../../api/sustain/Sustain.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import type { QuestStep } from '../engine/types.js';
 

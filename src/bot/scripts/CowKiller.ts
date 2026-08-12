@@ -1,6 +1,6 @@
-import { Bank } from '../api/hud/Bank.js';
-import { Inventory } from '../api/hud/Inventory.js';
-import type { BankDestination } from '../api/banking/Banking.js';
+import { Bank } from '../api/bank/Bank.js';
+import { Inventory } from '../api/inventory/Inventory.js';
+import type { BankDestination } from '../api/bank/trips.js';
 import { Traversal } from '../api/walking/Traversal.js';
 import type Tile from '../geometry/Tile.js';
 import type { SettingsSchema } from '../runtime/Settings.js';

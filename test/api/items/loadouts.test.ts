@@ -6,7 +6,7 @@ import {
     uniqueName,
     upsertLoadout,
     type Loadout
-} from '#/bot/api/items/loadouts.js';
+} from '#/bot/api/loadout/loadouts.js';
 
 const melee: Loadout = {
     name: 'melee',

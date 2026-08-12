@@ -1,7 +1,7 @@
-import { Execution } from '../../api/core/Execution.js';
+import { Execution } from '../../api/execution/Execution.js';
 import { GameMessages } from '../../api/chatbox/messages.js';
-import { Inventory } from '../../api/hud/Inventory.js';
-import { Locs } from '../../api/entities/Locs.js';
+import { Inventory } from '../../api/inventory/Inventory.js';
+import { Locs } from '../../api/locs/Locs.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import Tile from '../../geometry/Tile.js';
 import type { NpcStop } from '../exec/primitives.js';

@@ -1,12 +1,12 @@
 import { reader } from '../../adapter/ClientAdapter.js';
-import { Execution } from '../../api/core/Execution.js';
-import { Game } from '../../api/core/Game.js';
+import { Execution } from '../../api/execution/Execution.js';
+import { Game } from '../../api/game/Game.js';
 import { Reach } from '../../api/walking/Reach.js';
 import { Traversal } from '../../api/walking/Traversal.js';
-import { ChatDialog } from '../../api/hud/ChatDialog.js';
-import { Inventory } from '../../api/hud/Inventory.js';
-import { Modals } from '../../api/hud/Modals.js';
-import { Npcs, type Npc } from '../../api/entities/Npcs.js';
+import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { Inventory } from '../../api/inventory/Inventory.js';
+import { Modals } from '../../api/widgets/Modals.js';
+import { Npcs, type Npc } from '../../api/npcs/Npcs.js';
 import { GameMessages } from '../../api/chatbox/messages.js';
 import { driveUntil } from '../exec/prompts.js';
 import {

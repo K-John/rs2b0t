@@ -1,10 +1,10 @@
-import { Execution } from '../../../api/core/Execution.js';
+import { Execution } from '../../../api/execution/Execution.js';
 import { Traversal } from '../../../api/walking/Traversal.js';
-import { Shop } from '../../../api/hud/Shop.js';
-import { ChatDialog } from '../../../api/hud/ChatDialog.js';
-import { Inventory } from '../../../api/hud/Inventory.js';
-import { GroundItems } from '../../../api/entities/GroundItems.js';
-import { Locs } from '../../../api/entities/Locs.js';
+import { Shop } from '../../../api/shop/Shop.js';
+import { ChatDialog } from '../../../api/dialogue/ChatDialog.js';
+import { Inventory } from '../../../api/inventory/Inventory.js';
+import { GroundItems } from '../../../api/grounditems/GroundItems.js';
+import { Locs } from '../../../api/locs/Locs.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { BONE_SPAWNS, SV_ITEM, SV_NPC, SV_TILE, type ShiloItem } from './areas.js';
 

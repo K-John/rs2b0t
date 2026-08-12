@@ -13,7 +13,7 @@ import {
     START_POSITION,
     wantsAutoFighterLoot
 } from '#/bot/scripts/AutoFighterData.js';
-import { matchesEntityName } from '#/bot/api/entities/Query.js';
+import { matchesEntityName } from '#/bot/api/query/Query.js';
 import { resolveControl } from '#/bot/ui/paramControls.js';
 
 describe('AutoFighter data', () => {

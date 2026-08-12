@@ -1,5 +1,5 @@
-import { Inventory } from '../../../api/hud/Inventory.js';
-import { Quests } from '../../../api/hud/Quests.js';
+import { Inventory } from '../../../api/inventory/Inventory.js';
+import { Quests } from '../../../api/questlog/Quests.js';
 import { SV_ITEM, SV_LOC, SV_TILE } from './areas.js';
 import { SHILO_QUEST } from './journal.js';
 import { driveUntil, heldId, here, promptLoc, settleScene, useOnLoc } from './scene.js';

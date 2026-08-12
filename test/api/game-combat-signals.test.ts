@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import { facingPlayer, PLAYER_FACE_BASE, RETALIATE_VARP, retaliateOnFromVarp } from '#/bot/api/core/Game.js';
+import { facingPlayer, PLAYER_FACE_BASE, RETALIATE_VARP, retaliateOnFromVarp } from '#/bot/api/game/Game.js';
 
 describe('auto-retaliate varp', () => {
     test('reads option_nodef', () => {

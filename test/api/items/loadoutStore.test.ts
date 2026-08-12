@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { Loadouts } from '#/bot/api/items/loadoutStore.js';
-import type { Loadout } from '#/bot/api/items/loadouts.js';
+import { Loadouts } from '#/bot/api/loadout/store.js';
+import type { Loadout } from '#/bot/api/loadout/loadouts.js';
 
 const melee: Loadout = {
     name: 'melee',

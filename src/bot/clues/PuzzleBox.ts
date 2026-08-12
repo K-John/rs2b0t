@@ -1,8 +1,8 @@
 // docs/reference/clues-mechanics.md#puzzle-boxes
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
-import { Execution } from '#/bot/api/core/Execution.js';
+import { Execution } from '#/bot/api/execution/Execution.js';
 import { Input } from '#/bot/api/input/Input.js';
-import { Inventory } from '#/bot/api/hud/Inventory.js';
+import { Inventory } from '#/bot/api/inventory/Inventory.js';
 import { PUZZLE_SIZE, applyPuzzleMove, isPuzzleSolved, readPuzzleBoard, solvePuzzle, type PuzzleBoard } from '#/bot/clues/puzzleLogic.js';
 import { PUZZLE_PIECE_SLOT } from '#/bot/clues/data/puzzlePieces.js';
 

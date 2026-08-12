@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { buyoutPlan } from '#/bot/api/shops/BuyoutLogic.js';
-import type { ShopRecord } from '#/bot/api/shops/types.js';
+import { buyoutPlan } from '#/bot/api/shop/buyout.js';
+import type { ShopRecord } from '#/bot/api/shop/types.js';
 
 const REC: ShopRecord = {
     inv: 'magearena_runeshop', title: '', keepers: ['Lundail'], sell: 1000, buy: 550, delta: 30, scope: 'shared', allstock: false,

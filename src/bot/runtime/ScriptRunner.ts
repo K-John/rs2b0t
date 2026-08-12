@@ -1,10 +1,10 @@
 import { reader } from '../adapter/ClientAdapter.js';
-import { resolveLoopCadence, type AbstractBot, type LoopCadence } from '../api/core/Bot.js';
-import { Execution } from '../api/core/Execution.js';
+import { resolveLoopCadence, type AbstractBot, type LoopCadence } from '../api/bot/Bot.js';
+import { Execution } from '../api/execution/Execution.js';
 import { RandomEvents } from './randomevents/RandomEvents.js';
-import { Sustain } from '../api/core/Sustain.js';
-import type { PaintFrame } from '../api/hud/Paint.js';
-import { paintState } from '../api/hud/paintLogic.js';
+import { Sustain } from '../api/sustain/Sustain.js';
+import type { PaintFrame } from '../api/paint/Paint.js';
+import { paintState } from '../api/paint/paintLogic.js';
 import { BotHost } from './BotHost.js';
 import { RecoveryHints } from './RecoveryHints.js';
 import { Scheduler } from './Scheduler.js';

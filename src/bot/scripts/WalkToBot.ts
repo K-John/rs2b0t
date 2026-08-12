@@ -1,10 +1,10 @@
 import type { WorldTile } from '../adapter/ClientAdapter.js';
-import { TaskBot, type Task } from '../api/core/Bot.js';
-import { Execution } from '../api/core/Execution.js';
-import { Game } from '../api/core/Game.js';
+import { TaskBot, type Task } from '../api/bot/Bot.js';
+import { Execution } from '../api/execution/Execution.js';
+import { Game } from '../api/game/Game.js';
 import Tile from '../geometry/Tile.js';
 import { Traversal } from '../api/walking/Traversal.js';
-import { Paint } from '../api/hud/Paint.js';
+import { Paint } from '../api/paint/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { SettingsStore } from '../runtime/Settings.js';
 import type { SettingsSchema } from '../runtime/Settings.js';

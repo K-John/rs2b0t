@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
-import { Player } from '#/bot/api/entities/index.js';
+import { Player } from '#/bot/api/model/Player.js';
 import { DUEL_CONFIRM_MODAL, DUEL_SELECT_MODAL, DUEL_WIN_MODAL, Duel, parseDuelPartnerHeader } from '#/bot/scripts/DuelInterface.js';
-import { Modals } from '#/bot/api/hud/Modals.js';
+import { Modals } from '#/bot/api/widgets/Modals.js';
 import { Input } from '#/bot/api/input/Input.js';
 
 const originals = {

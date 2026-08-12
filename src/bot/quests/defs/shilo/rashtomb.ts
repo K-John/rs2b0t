@@ -1,11 +1,11 @@
-import { Execution } from '../../../api/core/Execution.js';
-import { Game } from '../../../api/core/Game.js';
-import { Sustain } from '../../../api/core/Sustain.js';
+import { Execution } from '../../../api/execution/Execution.js';
+import { Game } from '../../../api/game/Game.js';
+import { Sustain } from '../../../api/sustain/Sustain.js';
 import { Traversal } from '../../../api/walking/Traversal.js';
-import { ChatDialog } from '../../../api/hud/ChatDialog.js';
-import { Equipment } from '../../../api/hud/Equipment.js';
+import { ChatDialog } from '../../../api/dialogue/ChatDialog.js';
+import { Equipment } from '../../../api/equipment/Equipment.js';
 import type { Npc } from '../../../api/model/Npc.js';
-import { Npcs } from '../../../api/entities/Npcs.js';
+import { Npcs } from '../../../api/npcs/Npcs.js';
 import { SV_ITEM, SV_LOC, SV_NPC, SV_TILE, inDolmenRoom, type ShiloArea } from './areas.js';
 import { driveChoice, heldId, here, locNear, promptLoc, settleScene, useOnLoc } from './scene.js';
 

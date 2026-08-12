@@ -4,8 +4,8 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
-import { Execution } from '#/bot/api/core/Execution.js';
-import { Modals } from '#/bot/api/hud/Modals.js';
+import { Execution } from '#/bot/api/execution/Execution.js';
+import { Modals } from '#/bot/api/widgets/Modals.js';
 
 /**
  * `Modals.close()` exists because `actions.closeModal()` only *sends* the close —

@@ -1,4 +1,4 @@
-import { withdrawOp } from '../api/banking/bankOps.js';
+import { withdrawOp } from '../api/bank/ops.js';
 
 export const ESS_ITEM = 'Rune essence';
 

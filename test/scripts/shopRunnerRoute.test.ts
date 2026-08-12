@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { ROUTE, SMOKE_ROUTE } from '#/bot/scripts/ShopRunnerRoute.js';
 import { SHOP_DB } from '#/bot/data/shopdb.js';
 import { SHOPRUNNER_SETTINGS } from '#/bot/scripts/ShopRunner.js';
-import type { Route } from '#/bot/api/shops/types.js';
+import type { Route } from '#/bot/api/shop/types.js';
 
 function checkRoute(route: Route): void {
     expect(route.ring).toEqual(route.clusters.map(c => c.id));

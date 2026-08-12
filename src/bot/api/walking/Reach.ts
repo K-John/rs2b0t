@@ -1,9 +1,9 @@
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import { reader } from '../../adapter/ClientAdapter.js';
-import { Execution } from '../core/Execution.js';
-import { ChatDialog } from '../hud/ChatDialog.js';
-import { Locs } from '../entities/Locs.js';
-import { Npcs, talkOp } from '../entities/Npcs.js';
+import { Execution } from '../execution/Execution.js';
+import { ChatDialog } from '../dialogue/ChatDialog.js';
+import { Locs } from '../locs/Locs.js';
+import { Npcs, talkOp } from '../npcs/Npcs.js';
 import { Reachability } from '../../nav/geometry/Reachability.js';
 import { Traversal } from './Traversal.js';
 import { WalkExecutor, isOpenableBarrier } from '../../nav/WalkExecutor.js';

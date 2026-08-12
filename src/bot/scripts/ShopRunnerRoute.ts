@@ -1,4 +1,4 @@
-import type { Route } from '#/bot/api/shops/types.js';
+import type { Route } from '#/bot/api/shop/types.js';
 
 const BOOTH = { boothName: 'Bank booth', boothOp: 'Use-quickly' };
 const RUNES = ['deathrune', 'chaosrune', 'firerune', 'waterrune', 'airrune', 'earthrune', 'mindrune', 'bodyrune'].map(obj => ({ obj }));

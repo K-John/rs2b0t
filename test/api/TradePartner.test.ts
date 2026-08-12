@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { parseTradePartnerHeader } from '#/bot/api/hud/Trade.js';
+import { parseTradePartnerHeader } from '#/bot/api/trade/Trade.js';
 
 describe('parseTradePartnerHeader', () => {
     test('strips Trading With: prefix', () => {

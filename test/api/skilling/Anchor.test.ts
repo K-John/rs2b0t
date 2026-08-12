@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
-import { beyondLeash, createReturnToAnchorTask, resolveRunAnchor, tileWithinLeash, type AnchorHost, type ReturnToAnchorOptions } from '#/bot/api/skilling/Anchor.js';
-import { Game } from '#/bot/api/core/Game.js';
+import { beyondLeash, createReturnToAnchorTask, resolveRunAnchor, tileWithinLeash, type AnchorHost, type ReturnToAnchorOptions } from '#/bot/api/tasks/Anchor.js';
+import { Game } from '#/bot/api/game/Game.js';
 import Tile from '#/bot/geometry/Tile.js';
 
 /**

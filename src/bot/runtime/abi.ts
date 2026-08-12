@@ -18,7 +18,7 @@ import {
     bankUnlocked,
     nearestBank,
     nearestUsableBank
-} from '../api/banking/BankLocations.js';
+} from '../api/bank/locations.js';
 import {
     Banking,
     COMMON_BANK_LOOT,
@@ -31,8 +31,8 @@ import {
     parseBankStrategy,
     resolveBankOpenRoute,
     shouldBankNow
-} from '../api/banking/Banking.js';
-import { AbstractBot, BranchTask, LeafTask, LoopingBot, TaskBot, TreeBot } from '../api/core/Bot.js';
+} from '../api/bank/trips.js';
+import { AbstractBot, BranchTask, LeafTask, LoopingBot, TaskBot, TreeBot } from '../api/bot/Bot.js';
 import {
     AL_KHARID_BANK,
     COW_LOCATIONS,
@@ -44,7 +44,7 @@ import {
     resolveCowLocation,
     shouldBootstrapTollCoins
 } from '../data/cowKillerLocations.js';
-import { Execution } from '../api/core/Execution.js';
+import { Execution } from '../api/execution/Execution.js';
 import {
     FISHING_LOCATIONS,
     FISHING_LOCATION_OPTIONS,
@@ -63,7 +63,7 @@ import {
     resolveFishMethod,
     spotMatchesMethod
 } from '../data/fishingMethods.js';
-import { Game } from '../api/core/Game.js';
+import { Game } from '../api/game/Game.js';
 import {
     DEFAULT_BOOTH_NAME,
     DEFAULT_BOOTH_OP,
@@ -185,19 +185,19 @@ import { GroundItem } from '../api/model/GroundItem.js';
 import { Loc } from '../api/model/Loc.js';
 import { Npc } from '../api/model/Npc.js';
 import { Player } from '../api/model/Player.js';
-import { Bank, withdrawOp } from '../api/hud/Bank.js';
-import { ChatDialog } from '../api/hud/ChatDialog.js';
-import { Equipment } from '../api/hud/Equipment.js';
-import { InvItem, Inventory } from '../api/hud/Inventory.js';
-import { Quests } from '../api/hud/Quests.js';
-import { Shop } from '../api/hud/Shop.js';
-import { Skills } from '../api/hud/Skills.js';
-import { Trade } from '../api/hud/Trade.js';
-import { GroundItems } from '../api/entities/GroundItems.js';
-import { Locs } from '../api/entities/Locs.js';
-import { Npcs } from '../api/entities/Npcs.js';
-import { Players } from '../api/entities/Players.js';
-import EntityQuery from '../api/entities/Query.js';
+import { Bank, withdrawOp } from '../api/bank/Bank.js';
+import { ChatDialog } from '../api/dialogue/ChatDialog.js';
+import { Equipment } from '../api/equipment/Equipment.js';
+import { InvItem, Inventory } from '../api/inventory/Inventory.js';
+import { Quests } from '../api/questlog/Quests.js';
+import { Shop } from '../api/shop/Shop.js';
+import { Skills } from '../api/skills/Skills.js';
+import { Trade } from '../api/trade/Trade.js';
+import { GroundItems } from '../api/grounditems/GroundItems.js';
+import { Locs } from '../api/locs/Locs.js';
+import { Npcs } from '../api/npcs/Npcs.js';
+import { Players } from '../api/players/Players.js';
+import EntityQuery from '../api/query/Query.js';
 import { bus, type EventMap } from '../api/events/EventBus.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { EssenceSession } from '../nav/essenceSession.js';
@@ -207,7 +207,7 @@ import {
     liveResetMordredBrief
 } from '../quests/defs/merlinscrystal.js';
 import { defineBot, registerScript } from './defineBot.js';
-import { Loadouts } from '../api/items/loadoutStore.js';
+import { Loadouts } from '../api/loadout/store.js';
 
 const API_VERSION = 1;
 
