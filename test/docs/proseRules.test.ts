@@ -35,7 +35,7 @@ test('BannedWords fires inside a TypeScript comment', () => {
 });
 
 test('BannedWords ignores a TypeScript string literal', () => {
-    expect(alertsFor('probe.ts').filter(a => a.Match === 'notacomment')).toEqual([]);
+    expect(alertsFor('probe.ts').filter(a => a.Match === 'strikingly')).toEqual([]);
 });
 
 const BOTH_FORMATS = ['RS2B0T.SoftWords', 'RS2B0T.Wordiness', 'RS2B0T.Editorialising', 'RS2B0T.Antithesis'];
