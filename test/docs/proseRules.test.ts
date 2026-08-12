@@ -37,3 +37,19 @@ test('BannedWords fires inside a TypeScript comment', () => {
 test('BannedWords ignores a TypeScript string literal', () => {
     expect(alertsFor('probe.ts').filter(a => a.Match === 'notacomment')).toEqual([]);
 });
+
+const BOTH_FORMATS = ['RS2B0T.SoftWords', 'RS2B0T.Wordiness', 'RS2B0T.Editorialising', 'RS2B0T.Antithesis'];
+
+test.each(BOTH_FORMATS)('%s fires on markdown', check => {
+    expect(checksIn('probe.md').has(check)).toBe(true);
+});
+
+test.each(BOTH_FORMATS)('%s fires inside a TypeScript comment', check => {
+    expect(checksIn('probe.ts').has(check)).toBe(true);
+});
+
+test('SoftWords is a warning, so it never gates', () => {
+    const soft = alertsFor('probe.md').filter(a => a.Check === 'RS2B0T.SoftWords');
+    expect(soft.length).toBeGreaterThan(0);
+    expect(soft.every(a => a.Severity === 'warning')).toBe(true);
+});
