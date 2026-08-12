@@ -8,7 +8,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 // earlier one covering it, so every fence below must carry this pattern too.
 // See docs/reference/import-fences.md#a-later-block-repeals-an-earlier-one.
 const CLIENT_INTERNALS = {
-    group: ['\\#/client/*', '\\#/io/*', '\\#/config/*', '\\#/dash3d/*', '\\#/datastruct/*', '\\#/graphics/*', '\\#/sound/*', '\\#/wordfilter/*', '\\#3rdparty/*', '!\\#/io/ServerProt.js', '!\\#/io/ClientProt.js', '!\\#/dash3d/CollisionFlag.js', '!\\#/client/MiniMenuAction.js'],
+    group: ['\\#/client/shell/*', '\\#/client/io/*', '\\#/client/config/*', '\\#/client/dash3d/*', '\\#/client/datastruct/*', '\\#/client/graphics/*', '\\#/client/sound/*', '\\#/client/wordfilter/*', '\\#/client/3rdparty/*', '!\\#/client/io/ServerProt.js', '!\\#/client/io/ClientProt.js', '!\\#/client/dash3d/CollisionFlag.js', '!\\#/client/shell/MiniMenuAction.js'],
     message: 'Only src/bot/adapter/ may touch client internals.'
 };
 
@@ -19,7 +19,7 @@ const APP_ENTRYPOINT = {
 };
 
 export default defineConfig([
-    globalIgnores(['src/3rdparty/', 'out/', 'desktop/', 'packages/', 'templates/', 'public-bot/', '.claude/', 'identifier.js']),
+    globalIgnores(['src/client/3rdparty/', 'out/', 'desktop/', 'packages/', 'templates/', 'public-bot/', '.claude/', 'identifier.js']),
     { files: ['**/*.{js,mjs,cjs,ts,mts,cts}'], plugins: { js }, extends: ['js/recommended'], languageOptions: { globals: globals.browser } },
     tseslint.configs.recommended,
     {

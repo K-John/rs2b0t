@@ -1,4 +1,4 @@
-import { Client } from '#/client/Client.js';
+import { Client } from '#/client/shell/Client.js';
 import { WorkerClock } from '#/bot/runtime/WorkerClock.js';
 
 import { BotHost } from './BotHost.js';
