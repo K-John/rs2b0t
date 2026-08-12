@@ -1,4 +1,4 @@
-import { ITEM_DB } from '../api/items/data/itemdb.js';
+import { ITEM_DB } from '../data/itemdb.js';
 import type { Loadout } from '../api/items/loadouts.js';
 import type { ItemRecord, Slot } from '../api/items/types.js';
 

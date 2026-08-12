@@ -7,7 +7,7 @@ import { Sustain } from '../../api/core/Sustain.js';
 import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Npcs, type Npc } from '../../api/entities/Npcs.js';
 import { Traversal } from '../../nav/Traversal.js';
-import Tile from '../../api/core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import { gotoNpc, talkThrough, type NpcStop } from '../exec/primitives.js';
 import { executeStep } from '../exec/steps.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';

@@ -2,7 +2,7 @@ import { MiniMenuAction } from '#/client/MiniMenuAction.js';
 import { actions, reader } from '../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
-import Tile from '../../../api/core/Tile.js';
+import Tile from '../../../geometry/Tile.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { GroundItems } from '../../../api/entities/GroundItems.js';

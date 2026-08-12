@@ -1,7 +1,7 @@
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import { Execution } from '../../api/core/Execution.js';
 import { Game } from '../../api/core/Game.js';
-import Tile from '../../api/core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import { Bank } from '../../api/hud/Bank.js';
 import { Equipment } from '../../api/hud/Equipment.js';
 import { Inventory } from '../../api/hud/Inventory.js';
@@ -14,7 +14,7 @@ import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
 import { Traversal } from '../../nav/Traversal.js';
-import { QUEST_ROCK_TYPES, ROCK_TYPES } from '../../api/skilling/MiningRocks.js';
+import { QUEST_ROCK_TYPES, ROCK_TYPES } from '../../data/miningRocks.js';
 import type { QuestStep } from '../engine/types.js';
 import { gotoNpc, talkThrough, type LadderHop } from './primitives.js';
 

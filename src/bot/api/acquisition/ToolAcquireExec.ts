@@ -7,7 +7,7 @@
  */
 import { Execution } from '../core/Execution.js';
 import { Game } from '../core/Game.js';
-import Tile from '../core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import { Traversal } from '../../nav/Traversal.js';
 import { Bank, withdrawOp } from '../hud/Bank.js';
 import { ChatDialog } from '../hud/ChatDialog.js';

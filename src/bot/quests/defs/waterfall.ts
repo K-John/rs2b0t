@@ -10,7 +10,7 @@ import { Locs, type Loc } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
 import { Sustain } from '../../api/core/Sustain.js';
 import { Traversal } from '../../nav/Traversal.js';
-import Tile from '../../api/core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import { GameMessages } from '../../events/gameMessages.js';
 import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';

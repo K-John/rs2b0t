@@ -1,5 +1,5 @@
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
-import Tile from '../../api/core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 
 /**
  * Alfred Grimhand's Barcrawl — data and card parsing.

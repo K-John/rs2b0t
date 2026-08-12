@@ -1,4 +1,4 @@
-import Tile from '../../../api/core/Tile.js';
+import Tile from '../../../geometry/Tile.js';
 import type { NpcStop } from '../../exec/primitives.js';
 
 /** Falador West — nearest era-correct bank to Burthorpe (no Burthorpe bank). */

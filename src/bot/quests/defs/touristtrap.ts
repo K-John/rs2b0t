@@ -3,7 +3,7 @@ import { EventSignal } from '../../api/randomevents/EventSignal.js';
 import { Execution } from '../../api/core/Execution.js';
 import { Game } from '../../api/core/Game.js';
 import { foodForms } from '../../api/combat/food.js';
-import Tile from '../../api/core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import { ChatDialog } from '../../api/hud/ChatDialog.js';
 import { Equipment } from '../../api/hud/Equipment.js';
 import { Inventory } from '../../api/hud/Inventory.js';

@@ -3,7 +3,7 @@ import { Inventory } from '../../api/hud/Inventory.js';
 import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
-import Tile from '../../api/core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import { talkThrough, walkWithHops, type NpcStop } from '../exec/primitives.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { QUESTS } from '../data/quests.js';

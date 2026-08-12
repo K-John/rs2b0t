@@ -1,6 +1,6 @@
-import type { WorldTile } from '../../adapter/ClientAdapter.js';
-import type { BankDestination } from '../banking/Banking.js';
-import Tile from '../core/Tile.js';
+import type { WorldTile } from '../adapter/ClientAdapter.js';
+import type { BankDestination } from '../api/banking/Banking.js';
+import Tile from '../geometry/Tile.js';
 
 export interface CowLocation {
     name: string;

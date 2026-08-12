@@ -1,4 +1,4 @@
-import type { WorldTile } from '../../adapter/ClientAdapter.js';
+import type { WorldTile } from '../adapter/ClientAdapter.js';
 
 /**
  * A world tile. Distances are Chebyshev, the game's movement metric.

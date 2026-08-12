@@ -1,8 +1,9 @@
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
+import { bankDistance } from '../../geometry/distance.js';
 import { SettingsStore } from '../../runtime/Settings.js';
 import { Quests } from '../hud/Quests.js';
 import { Skills } from '../hud/Skills.js';
-import Tile from '../core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 
 export interface BankRequirement {
     skill?: { name: string; level: number };
@@ -117,16 +118,7 @@ export const BANK_LOCATIONS: BankLocation[] = [
     }
 ];
 
-/**
- * Straight-line (Euclidean) distance, ignoring plane.
- * Chebyshev (king-move) wrongly prefers Falador East over Edgeville from
- * Barbarian Village tin/coal — the walk is shorter north to Edge.
- */
-export function bankDistance(from: WorldTile, bank: WorldTile): number {
-    const dx = bank.x - from.x;
-    const dz = bank.z - from.z;
-    return Math.hypot(dx, dz);
-}
+export { bankDistance };
 
 /** The tile a bank is actually walked to — its approach when it has one. */
 export function approachOf(bank: BankLocation): Tile {

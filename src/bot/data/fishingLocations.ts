@@ -1,11 +1,11 @@
-import type { WorldTile } from '../../adapter/ClientAdapter.js';
-import Tile from '../core/Tile.js';
-import { cookSurfaceForFishCamp } from './CookingRanges.js';
+import type { WorldTile } from '../adapter/ClientAdapter.js';
+import Tile from '../geometry/Tile.js';
+import { cookSurfaceForFishCamp } from './cookingRanges.js';
 import {
     locationOptions,
     resolveGatheringLocation,
     type GatheringLocation
-} from './GatheringLocations.js';
+} from './gatheringLocations.js';
 
 /**
  * Fishing camps for GatheringBot / Fisher.

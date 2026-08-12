@@ -9,7 +9,7 @@ import { ChatDialog } from '#/bot/api/hud/ChatDialog.js';
 import { GroundItems } from '#/bot/api/entities/GroundItems.js';
 import { Locs } from '#/bot/api/entities/Locs.js';
 import { Npcs } from '#/bot/api/entities/Npcs.js';
-import Tile from '#/bot/api/core/Tile.js';
+import Tile from '#/bot/geometry/Tile.js';
 import { CLUE_DB } from '#/bot/clues/data/cluedb.js';
 import { KILL_ANCHORS } from '#/bot/clues/data/killAnchors.js';
 import { GameMessages } from '#/bot/events/gameMessages.js';

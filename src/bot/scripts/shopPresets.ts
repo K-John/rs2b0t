@@ -1,5 +1,5 @@
-import Tile from '../api/core/Tile.js';
-import { SHOP_DB } from '../api/shops/data/shopdb.js';
+import Tile from '../geometry/Tile.js';
+import { SHOP_DB } from '../data/shopdb.js';
 
 interface ShopPreset {
     label: string;

@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 
 import { beyondLeash, createReturnToAnchorTask, resolveRunAnchor, tileWithinLeash, type AnchorHost, type ReturnToAnchorOptions } from '#/bot/api/skilling/Anchor.js';
 import { Game } from '#/bot/api/core/Game.js';
-import Tile from '#/bot/api/core/Tile.js';
+import Tile from '#/bot/geometry/Tile.js';
 
 /**
  * Run `body` with no player position. Asserting on "there is no live tile" has to

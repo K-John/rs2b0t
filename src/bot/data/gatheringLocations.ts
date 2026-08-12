@@ -1,6 +1,6 @@
-import type { WorldTile } from '../../adapter/ClientAdapter.js';
-import { bankDistance } from '../banking/BankLocations.js';
-import Tile from '../core/Tile.js';
+import type { WorldTile } from '../adapter/ClientAdapter.js';
+import { bankDistance } from '../geometry/distance.js';
+import Tile from '../geometry/Tile.js';
 
 /**
  * Shared gather camp: home pin + bank stand for Fisher / Miner / Woodcutter.

@@ -1,4 +1,4 @@
-import Tile from '../api/core/Tile.js';
+import Tile from '../geometry/Tile.js';
 
 export const STALL_TILE = new Tile(2667, 3310, 0);
 export const STAND = new Tile(2668, 3312, 0);

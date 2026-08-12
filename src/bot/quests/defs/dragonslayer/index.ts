@@ -7,7 +7,7 @@ import { Inventory } from '../../../api/hud/Inventory.js';
 import { Locs } from '../../../api/entities/Locs.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
 import { Traversal } from '../../../nav/Traversal.js';
-import Tile from '../../../api/core/Tile.js';
+import Tile from '../../../geometry/Tile.js';
 import { hasFlag } from '../../engine/types.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { QUESTS } from '../../data/quests.js';

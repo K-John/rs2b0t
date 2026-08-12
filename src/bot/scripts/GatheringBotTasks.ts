@@ -7,7 +7,7 @@ import type { Task } from '../api/core/Bot.js';
 import { EventSignal } from '../api/randomevents/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
-import Tile from '../api/core/Tile.js';
+import Tile from '../geometry/Tile.js';
 import type { Npc } from '../api/entities/index.js';
 import { Bank, withdrawOp } from '../api/hud/Bank.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
@@ -34,9 +34,9 @@ import {
     isConfiguredPartner
 } from '../api/mule/PartnerTrade.js';
 import { driveActivePartnerTrade } from '../api/mule/drivePartnerTrade.js';
-import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS } from '../api/skilling/MiningRocks.js';
+import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS } from '../data/miningRocks.js';
 import { bestPickaxe } from '../api/acquisition/Tools.js';
-import { WHIRLPOOL_IDS, fishingRestockPlan } from '../api/skilling/FishingMethods.js';
+import { WHIRLPOOL_IDS, fishingRestockPlan } from '../data/fishingMethods.js';
 import {
     bankPaceTicks,
     cookFilterLabel,

@@ -9,7 +9,7 @@ import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
 import { Reach } from '../../nav/Reach.js';
 import { Traversal } from '../../nav/Traversal.js';
-import Tile from '../../api/core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import { gotoNpc, isUnderground, talkThrough, type NpcStop } from '../exec/primitives.js';
 import { executeStep } from '../exec/steps.js';
 import { gpShort } from '../engine/provisioning.js';

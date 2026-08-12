@@ -9,7 +9,7 @@ import { Skills } from '../api/hud/Skills.js';
 import { Sustain } from '../api/core/Sustain.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { COIN_FLOAT, PROVISION_BANK, QuestEngine } from '../quests/engine/QuestEngine.js';
-import type Tile from '../api/core/Tile.js';
+import type Tile from '../geometry/Tile.js';
 import { executeStep } from '../quests/exec/steps.js';
 import { QUEST_DEFS, defById } from '../quests/defs/index.js';
 import { QuestFood } from '../quests/food.js';

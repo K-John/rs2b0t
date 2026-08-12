@@ -8,7 +8,7 @@ import {
 } from './BankLocations.js';
 import { Execution } from '../core/Execution.js';
 import { Game } from '../core/Game.js';
-import Tile from '../core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import { Traversal } from '../../nav/Traversal.js';
 import { Bank } from '../hud/Bank.js';
 import { Inventory } from '../hud/Inventory.js';

@@ -1,6 +1,6 @@
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import { Skills } from '../hud/Skills.js';
-import Tile from '../core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 
 interface AltarLocation {
     name: string;

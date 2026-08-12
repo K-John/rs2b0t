@@ -8,7 +8,7 @@ import {
 import { TaskBot } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
-import Tile from '../api/core/Tile.js';
+import Tile from '../geometry/Tile.js';
 import { Bank, withdrawOp } from '../api/hud/Bank.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
 import { Equipment } from '../api/hud/Equipment.js';
@@ -27,15 +27,15 @@ import { Npcs } from '../api/entities/Npcs.js';
 import { Traversal } from '../nav/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
-import { cookSurfaceForFishCamp, resolveFishCampCookSurface } from '../api/skilling/CookingRanges.js';
-import { resolveFishingLocation, type FishingLocation } from '../api/skilling/FishingLocations.js';
+import { cookSurfaceForFishCamp, resolveFishCampCookSurface } from '../data/cookingRanges.js';
+import { resolveFishingLocation, type FishingLocation } from '../data/fishingLocations.js';
 import { effectiveGatherLeash, isAutoLocation, NAMED_CAMP_LEASH_FLOOR } from '../api/skilling/GatherCamp.js';
 import {
     DEFAULT_CHASE_RADIUS,
     resolveCampRadius,
     resolveChaseRadius,
     type GatheringLocation
-} from '../api/skilling/GatheringLocations.js';
+} from '../data/gatheringLocations.js';
 import { Players } from '../api/entities/Players.js';
 import {
     DEFAULT_TRADE_RANGE,
@@ -49,9 +49,9 @@ import {
     type MuleMode,
     MULE_MODE_OPTIONS
 } from '../api/mule/PartnerTrade.js';
-import { resolveMiningLocation } from '../api/skilling/MiningLocations.js';
-import { resolveWoodcuttingLocation } from '../api/skilling/WoodcuttingLocations.js';
-import { BROKEN_PICKAXE, ROCK_OPTIONS, resolveRockIds } from '../api/skilling/MiningRocks.js';
+import { resolveMiningLocation } from '../data/miningLocations.js';
+import { resolveWoodcuttingLocation } from '../data/woodcuttingLocations.js';
+import { BROKEN_PICKAXE, ROCK_OPTIONS, resolveRockIds } from '../data/miningRocks.js';
 import {
     TINDERBOX,
     expandLocalFirePlot,
@@ -92,7 +92,7 @@ import {
     resolveFishMethod,
     spotMatchesMethod,
     type FishingMethod
-} from '../api/skilling/FishingMethods.js';
+} from '../data/fishingMethods.js';
 import {
     cookBatchAfterLoad,
     cookFilterLabel,
@@ -232,7 +232,7 @@ export {
     spotWithinGatherRange,
     START_TILE_LEASH_FLOOR
 } from '../api/skilling/GatherCamp.js';
-export { DEFAULT_CHASE_RADIUS } from '../api/skilling/GatheringLocations.js';
+export { DEFAULT_CHASE_RADIUS } from '../data/gatheringLocations.js';
 export {
     LOCAL_MINE_PREFER_RADIUS,
     pickNearestPreferLocal,

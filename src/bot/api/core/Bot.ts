@@ -1,7 +1,7 @@
 import { bus, type EventMap } from '../../events/EventBus.js';
 import { SettingsBag } from '../../runtime/Settings.js';
 import { Game } from './Game.js';
-import type Tile from './Tile.js';
+import type Tile from '../../geometry/Tile.js';
 
 /**
  * Base class for every bot.

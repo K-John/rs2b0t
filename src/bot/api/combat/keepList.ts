@@ -1,5 +1,5 @@
 import { foodForms } from './food.js';
-import { SPELL_DB } from './data/spelldb.js';
+import { SPELL_DB } from '../../data/spelldb.js';
 
 interface KeepParams {
     food: string;

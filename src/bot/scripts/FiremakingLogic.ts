@@ -1,5 +1,5 @@
 import type { WorldTile } from '../adapter/ClientAdapter.js';
-import Tile from '../api/core/Tile.js';
+import Tile from '../geometry/Tile.js';
 
 export { TINDERBOX } from '../api/acquisition/Tools.js';
 export const CANT_LIGHT = /can't light a fire here/i;

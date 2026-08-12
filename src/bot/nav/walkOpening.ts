@@ -2,7 +2,7 @@ import type { WorldTile } from '../adapter/ClientAdapter.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import { Reachability } from './geometry/Reachability.js';
-import type Tile from '../api/core/Tile.js';
+import type Tile from '../geometry/Tile.js';
 import { Traversal } from './Traversal.js';
 import { Locs } from '../api/entities/Locs.js';
 

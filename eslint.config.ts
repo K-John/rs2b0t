@@ -106,7 +106,10 @@ export default defineConfig([
             ]
         }
     },
-    // data/ holds inert catalogs. api/geometry is the only api it may name.
+    // data/ holds inert catalogs: tables plus pure resolvers over them, no live
+    // game reads. geometry/ is a top-level leaf, so no re-inclusion is needed —
+    // gitignore semantics cannot re-admit a path under an excluded parent, which
+    // is why geometry does not live under api/.
     {
         files: ['src/bot/data/**/*.ts'],
         rules: {
@@ -115,8 +118,9 @@ export default defineConfig([
                 {
                     patterns: [
                         {
-                            group: ['**/api/**', '**/nav/**', '**/scripts/**', '**/quests/**', '**/clues/**', '**/ui/**', '**/runtime/**', '**/multibox/**', '**/adapter/**', '!**/api/geometry/*'],
-                            message: 'data/ is inert — it may import only api/geometry.'
+                            group: ['**/api/**', '**/nav/**', '**/scripts/**', '**/quests/**', '**/clues/**', '**/ui/**', '**/runtime/**', '**/multibox/**', '**/adapter/**'],
+                            allowTypeImports: true,
+                            message: 'data/ is inert — value imports only from geometry/. Type-only imports are fine.'
                         }
                     ]
                 }

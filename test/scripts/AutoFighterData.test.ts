@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import Tile from '#/bot/api/core/Tile.js';
+import Tile from '#/bot/geometry/Tile.js';
 import { SETTINGS, shouldKeepBankItem } from '#/bot/scripts/AutoFighter.js';
 import {
     autoBankEnabled,

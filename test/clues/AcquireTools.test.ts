@@ -7,7 +7,7 @@ import { Game } from '#/bot/api/core/Game.js';
 import { Traversal } from '#/bot/nav/Traversal.js';
 import { GroundItems } from '#/bot/api/entities/GroundItems.js';
 import { Npcs } from '#/bot/api/entities/Npcs.js';
-import Tile from '#/bot/api/core/Tile.js';
+import Tile from '#/bot/geometry/Tile.js';
 import { stubProps } from '../lib/stubSingletons.js';
 
 const COORD_CLUE_ID = 2801;

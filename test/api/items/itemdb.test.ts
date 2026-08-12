@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { ITEM_DB } from '#/bot/api/items/data/itemdb.js';
+import { ITEM_DB } from '#/bot/data/itemdb.js';
 import { SLOTS } from '#/bot/api/items/types.js';
 
 describe('ITEM_DB', () => {

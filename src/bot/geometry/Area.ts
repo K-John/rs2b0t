@@ -1,4 +1,4 @@
-import type { WorldTile } from '../../adapter/ClientAdapter.js';
+import type { WorldTile } from '../adapter/ClientAdapter.js';
 import Tile from './Tile.js';
 
 /**

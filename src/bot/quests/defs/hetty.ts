@@ -6,7 +6,7 @@ import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
 import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Traversal } from '../../nav/Traversal.js';
-import Tile from '../../api/core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import type { NpcStop } from '../exec/primitives.js';
 import { gotoNpc, talkThrough } from '../exec/primitives.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';

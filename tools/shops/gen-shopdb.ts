@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { joinShopDb, parseInvShops, parseNpcKeepers, parseObjDefs, type ParsedInv, type ParsedKeeper, type ParsedObj } from './parse.js';
 
 const CONTENT = process.env.CONTENT_DIR ?? join(homedir(), 'code', 'rs2b2t-engine', '..', 'rs2b2t-content');
-const OUT = 'src/bot/api/shops/data/shopdb.ts';
+const OUT = 'src/bot/data/shopdb.ts';
 
 function filesUnder(root: string, ext: string): string[] {
     return (readdirSync(root, { recursive: true }) as string[])

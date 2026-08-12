@@ -1,4 +1,4 @@
-import Tile from '../api/core/Tile.js';
+import Tile from '../geometry/Tile.js';
 
 export const COAL = 'Coal';
 export const TRUCK_LOC = 'Coal Truck';

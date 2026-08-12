@@ -1,4 +1,4 @@
-import Tile from '../api/core/Tile.js';
+import Tile from '../geometry/Tile.js';
 
 export const RAFT_STAND = new Tile(2510, 3493, 0);
 export const ROCK_TILE = new Tile(2512, 3468, 0);

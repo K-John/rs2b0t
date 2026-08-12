@@ -1,4 +1,4 @@
-import Tile from '../../../api/core/Tile.js';
+import Tile from '../../../geometry/Tile.js';
 
 export const FC_QUEST = 'Family Crest';
 

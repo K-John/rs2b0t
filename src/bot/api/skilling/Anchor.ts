@@ -1,8 +1,8 @@
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import type { Task } from '../core/Bot.js';
 import { Game } from '../core/Game.js';
-import { DEFAULT_CAMP_RADIUS } from './GatheringLocations.js';
-import Tile from '../core/Tile.js';
+import { DEFAULT_CAMP_RADIUS } from '../../data/gatheringLocations.js';
+import Tile from '../../geometry/Tile.js';
 import { Traversal } from '../../nav/Traversal.js';
 import { walkOpening } from '../../nav/walkOpening.js';
 

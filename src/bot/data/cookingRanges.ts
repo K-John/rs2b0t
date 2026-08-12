@@ -1,4 +1,4 @@
-import Tile from '../core/Tile.js';
+import Tile from '../geometry/Tile.js';
 
 /**
  * Cooking surface catalog for Fisher cook loops and CookBot.

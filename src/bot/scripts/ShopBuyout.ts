@@ -12,7 +12,7 @@ import { talkThrough } from '../quests/exec/primitives.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { buyoutPlan } from '../api/shops/BuyoutLogic.js';
-import { SHOP_DB } from '../api/shops/data/shopdb.js';
+import { SHOP_DB } from '../data/shopdb.js';
 import type { ShopRecord } from '../api/shops/types.js';
 import { SHOP_PRESETS, presetByLabel, presetBuyableNames } from './shopPresets.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';

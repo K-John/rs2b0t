@@ -1,6 +1,6 @@
-import Tile from '../core/Tile.js';
-import type { FishingGearPiece, FishingMethod } from '../skilling/FishingMethods.js';
-import { BROKEN_PICKAXE } from '../skilling/MiningRocks.js';
+import Tile from '../../geometry/Tile.js';
+import type { FishingGearPiece, FishingMethod } from '../../data/fishingMethods.js';
+import { BROKEN_PICKAXE } from '../../data/miningRocks.js';
 import { AXES, HAMMER, PICKAXES, type ToolReq, type ToolTier } from './Tools.js';
 import { Execution } from '../core/Execution.js';
 import { Game } from '../core/Game.js';

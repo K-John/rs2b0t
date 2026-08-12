@@ -6,7 +6,7 @@ import { Game } from '../api/core/Game.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
 import { Paint } from '../api/hud/Paint.js';
 import { Skills } from '../api/hud/Skills.js';
-import Tile from '../api/core/Tile.js';
+import Tile from '../geometry/Tile.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Traversal } from '../nav/Traversal.js';
 import { Locs, type Loc } from '../api/entities/Locs.js';

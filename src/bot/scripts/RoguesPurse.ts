@@ -3,7 +3,7 @@ import { BANK_LOCATIONS, bankUnlocked, type BankLocation } from '../api/banking/
 import { LoopingBot } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
-import type Tile from '../api/core/Tile.js';
+import type Tile from '../geometry/Tile.js';
 import { Traversal } from '../nav/Traversal.js';
 import { DeathRecovery } from '../api/tasks/DeathRecovery.js';
 import { Bank } from '../api/hud/Bank.js';

@@ -17,7 +17,7 @@ import type { SettingsSchema } from '../runtime/Settings.js';
 import { talkThrough } from '../quests/exec/primitives.js';
 import { buyoutPlan } from '../api/shops/BuyoutLogic.js';
 import { clusterEligible, estimateClusterGp, nextCluster, withdrawFor } from '../api/shops/RingLogic.js';
-import { SHOP_DB } from '../api/shops/data/shopdb.js';
+import { SHOP_DB } from '../data/shopdb.js';
 import { ROUTE, SMOKE_ROUTE } from '../api/shops/data/route.js';
 import type { AccountView, NavPointLike, Route } from '../api/shops/types.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';

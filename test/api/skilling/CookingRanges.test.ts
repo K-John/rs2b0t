@@ -7,7 +7,7 @@ import {
     nearestCookingRange,
     rangeStandFromLoc,
     resolveFishCampCookSurface
-} from '#/bot/api/skilling/CookingRanges.js';
+} from '#/bot/data/cookingRanges.js';
 
 describe('CookingRanges catalog', () => {
     test('map pack yielded many Range ovens', () => {

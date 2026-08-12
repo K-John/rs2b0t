@@ -1,7 +1,7 @@
 import { TaskBot, type Task } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
-import Tile from '../api/core/Tile.js';
+import Tile from '../geometry/Tile.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { DeathRecovery } from '../api/tasks/DeathRecovery.js';
 import { PeriodicBank } from '../api/tasks/PeriodicBank.js';
@@ -16,7 +16,7 @@ import {
 } from '../api/combat/CombatStyle.js';
 import { Autocast } from '../api/combat/Autocast.js';
 import { castsAvailable, runeWithdrawList } from '../api/combat/CombatStyleLogic.js';
-import { SPELL_DB } from '../api/combat/data/spelldb.js';
+import { SPELL_DB } from '../data/spelldb.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
 import { GroundItems } from '../api/entities/GroundItems.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';

@@ -5,7 +5,7 @@ import { Game } from '#/bot/api/core/Game.js';
 import { ChatDialog } from '#/bot/api/hud/ChatDialog.js';
 import { Skills } from '#/bot/api/hud/Skills.js';
 import { Locs } from '#/bot/api/entities/Locs.js';
-import Tile from '#/bot/api/core/Tile.js';
+import Tile from '#/bot/geometry/Tile.js';
 import { Traversal } from '#/bot/nav/Traversal.js';
 import { SettingsBag } from '#/bot/runtime/Settings.js';
 import AgilityBot, { atGnomeCourse, GNOME_COURSE_RADIUS, GNOME_COURSE_START } from '#/bot/scripts/AgilityBot.js';

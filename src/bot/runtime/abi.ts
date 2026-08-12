@@ -11,7 +11,7 @@ import {
     tileInDangerZones
 } from '../nav/data/dangerZones.js';
 import { SettingsStore } from './Settings.js';
-import { Area } from '../api/core/Area.js';
+import { Area } from '../geometry/Area.js';
 import {
     BANK_LOCATIONS,
     bankDistance,
@@ -43,13 +43,13 @@ import {
     needsTollCoins,
     resolveCowLocation,
     shouldBootstrapTollCoins
-} from '../api/skilling/CowKillerLocations.js';
+} from '../data/cowKillerLocations.js';
 import { Execution } from '../api/core/Execution.js';
 import {
     FISHING_LOCATIONS,
     FISHING_LOCATION_OPTIONS,
     resolveFishingLocation
-} from '../api/skilling/FishingLocations.js';
+} from '../data/fishingLocations.js';
 import {
     ALL_FISHING_GEAR_NAMES,
     FISHING_METHODS,
@@ -62,7 +62,7 @@ import {
     missingFishingGear,
     resolveFishMethod,
     spotMatchesMethod
-} from '../api/skilling/FishingMethods.js';
+} from '../data/fishingMethods.js';
 import { Game } from '../api/core/Game.js';
 import {
     DEFAULT_BOOTH_NAME,
@@ -72,7 +72,7 @@ import {
     locationOptions,
     resolveGatheringLocation,
     sameMapSquare
-} from '../api/skilling/GatheringLocations.js';
+} from '../data/gatheringLocations.js';
 import { AcquireTask, hasAll, held } from '../api/acquisition/ItemAcquisition.js';
 import {
     MINING_LOCATIONS,
@@ -80,7 +80,7 @@ import {
     MINING_LOCATION_OPTIONS,
     miningLocationLabel,
     resolveMiningLocation
-} from '../api/skilling/MiningLocations.js';
+} from '../data/miningLocations.js';
 import {
     BROKEN_PICKAXE,
     GAS_ROCK_IDS,
@@ -88,18 +88,18 @@ import {
     ROCK_OPTIONS,
     ROCK_TYPES,
     resolveRockIds
-} from '../api/skilling/MiningRocks.js';
+} from '../data/miningRocks.js';
 import {
     ARDOUGNE_PICKPOCKET_TARGETS,
     PICKPOCKET_TARGETS,
     PICKPOCKET_TARGET_NAMES
-} from '../api/skilling/PickpocketTargets.js';
+} from '../data/pickpocketTargets.js';
 import {
     DEFAULT_RUNE,
     RUNE_OPTIONS,
     RUNES
-} from '../api/skilling/RuneCraftLocations.js';
-import Tile from '../api/core/Tile.js';
+} from '../data/runeCraftLocations.js';
+import Tile from '../geometry/Tile.js';
 import {
     AXE_BAR_FOR,
     AXE_SHOP_COSTS,
@@ -180,7 +180,7 @@ import {
     WOODCUTTING_LOCATIONS,
     WOODCUTTING_LOCATION_OPTIONS,
     resolveWoodcuttingLocation
-} from '../api/skilling/WoodcuttingLocations.js';
+} from '../data/woodcuttingLocations.js';
 import { GroundItem, Loc, Npc, Player } from '../api/entities/index.js';
 import { Bank, withdrawOp } from '../api/hud/Bank.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';

@@ -2,7 +2,7 @@ import { reader, actions, type WorldTile } from '../adapter/ClientAdapter.js';
 import { LoopingBot } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
-import Tile from '../api/core/Tile.js';
+import Tile from '../geometry/Tile.js';
 import { Traversal } from '../nav/Traversal.js';
 import { Bank } from '../api/hud/Bank.js';
 import { Inventory } from '../api/hud/Inventory.js';

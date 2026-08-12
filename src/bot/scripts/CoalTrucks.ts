@@ -2,7 +2,7 @@ import { LoopingBot } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { EventSignal } from '../api/randomevents/EventSignal.js';
 import { Game } from '../api/core/Game.js';
-import type Tile from '../api/core/Tile.js';
+import type Tile from '../geometry/Tile.js';
 import { Traversal } from '../nav/Traversal.js';
 import { depositAllExcept } from '../api/banking/Banking.js';
 import { Bank } from '../api/hud/Bank.js';
@@ -15,7 +15,7 @@ import { fmtDuration } from '../api/hud/paintLogic.js';
 import { Locs, type Loc } from '../api/entities/Locs.js';
 import { GameMessages } from '../events/gameMessages.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
-import { GAS_ROCK_IDS } from '../api/skilling/MiningRocks.js';
+import { GAS_ROCK_IDS } from '../data/miningRocks.js';
 import { bestPickaxe } from '../api/acquisition/Tools.js';
 import {
     COAL,

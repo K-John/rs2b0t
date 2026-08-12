@@ -1,5 +1,5 @@
 import type { SettingsBag } from '../../runtime/Settings.js';
-import { ITEM_DB } from './data/itemdb.js';
+import { ITEM_DB } from '../../data/itemdb.js';
 import { selectedLoadout } from './loadoutSetting.js';
 import type { CarryEntry, Loadout } from './loadouts.js';
 

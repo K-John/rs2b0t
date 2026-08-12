@@ -1,10 +1,10 @@
-import type { WorldTile } from '../../adapter/ClientAdapter.js';
-import Tile from '../core/Tile.js';
+import type { WorldTile } from '../adapter/ClientAdapter.js';
+import Tile from '../geometry/Tile.js';
 import {
     locationOptions,
     resolveGatheringLocation,
     type GatheringLocation
-} from './GatheringLocations.js';
+} from './gatheringLocations.js';
 
 /**
  * Woodcutting camps for GatheringBot / Woodcutter.

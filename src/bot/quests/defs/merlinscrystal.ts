@@ -9,7 +9,7 @@ import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
 import { Sustain } from '../../api/core/Sustain.js';
 import { Traversal } from '../../nav/Traversal.js';
-import Tile from '../../api/core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import { gotoNpc, pickPreferred, talkThrough, type NpcStop } from '../exec/primitives.js';
 import { gpShort } from '../engine/provisioning.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';

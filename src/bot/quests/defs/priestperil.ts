@@ -6,7 +6,7 @@ import { Quests } from '../../api/hud/Quests.js';
 import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
-import Tile from '../../api/core/Tile.js';
+import Tile from '../../geometry/Tile.js';
 import { inEssMine } from '../../scripts/EssMinerLogic.js';
 import { Bank } from '../../api/hud/Bank.js';
 import { driveDialog, gotoNpc, isUnderground, talkThrough, walkWithHops, type LadderHop, type NpcStop } from '../exec/primitives.js';

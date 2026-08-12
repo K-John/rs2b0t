@@ -6,7 +6,7 @@ import { Game } from '#/bot/api/core/Game.js';
 import { Traversal } from '#/bot/nav/Traversal.js';
 import { Locs } from '#/bot/api/entities/Locs.js';
 import { bus } from '#/bot/events/EventBus.js';
-import Tile from '#/bot/api/core/Tile.js';
+import Tile from '#/bot/geometry/Tile.js';
 import { stubProps } from '../lib/stubSingletons.js';
 
 let tick: number;
