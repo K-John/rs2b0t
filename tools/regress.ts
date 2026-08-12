@@ -81,18 +81,72 @@ function harnesses(tier: Tier, only: string[]): string[] {
         .sort();
 }
 
-async function run(cmd: string[], logFile: string, budgetMs: number, verdict?: (text: string) => Status): Promise<{ status: Status; ms: number; tail: string }> {
+const TTY = Boolean(process.stdout.isTTY);
+const VERBOSE = process.argv.includes('--verbose') || process.argv.includes('-v');
+/** How often a non-TTY run (cron, CI) prints a still-alive line. */
+const HEARTBEAT_MS = 30_000;
+
+function statusLine(label: string, started: number, last: string): void {
+    const el = `${Math.floor((Date.now() - started) / 1000)}s`.padStart(5);
+    const text = `  ⏳ ${label} ${el}  ${last}`.slice(0, (process.stdout.columns || 100) - 1);
+    if (TTY) process.stdout.write(`\r\u001b[2K${text}`);
+    else console.log(text);
+}
+
+/**
+ * Streams the child's output so a 90-minute harness shows progress instead of a
+ * blank terminal. Lines go to the log file always, to the terminal when
+ * --verbose, and the most recent one drives the live status line.
+ */
+async function run(label: string, cmd: string[], logFile: string, budgetMs: number, verdict?: (text: string) => Status): Promise<{ status: Status; ms: number; tail: string }> {
     const started = Date.now();
     const proc = Bun.spawn(cmd, { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, HEADED: '0' } });
     const timer = setTimeout(() => proc.kill(9), budgetMs);
-    const [out, err] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
+    const log = Bun.file(logFile).writer();
+    const lines: string[] = [];
+    let last = '';
+    let beat = Date.now();
+
+    const pump = async (stream: ReadableStream<Uint8Array>): Promise<void> => {
+        const decoder = new TextDecoder();
+        const rd = stream.getReader();
+        let buf = '';
+        for (;;) {
+            const { done, value } = await rd.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+            const parts = buf.split('\n');
+            buf = parts.pop() ?? '';
+            for (const line of parts) {
+                log.write(`${line}\n`);
+                lines.push(line);
+                if (lines.length > 400) lines.shift();
+                const clean = line.trim();
+                if (!clean) continue;
+                last = clean;
+                if (VERBOSE) {
+                    if (TTY) process.stdout.write('\r\u001b[2K');
+                    console.log(`     ${clean}`.slice(0, (process.stdout.columns || 100) - 1));
+                } else if (TTY || Date.now() - beat > HEARTBEAT_MS) {
+                    beat = Date.now();
+                    statusLine(label, started, clean);
+                }
+            }
+        }
+    };
+
+    const ticker = TTY && !VERBOSE ? setInterval(() => statusLine(label, started, last), 1000) : null;
+    await Promise.all([pump(proc.stdout), pump(proc.stderr)]);
     const code = await proc.exited;
     clearTimeout(timer);
+    if (ticker) clearInterval(ticker);
+    if (TTY) process.stdout.write('\r\u001b[2K');
+    await log.end();
+
     const ms = Date.now() - started;
-    const text = out + err;
-    writeFileSync(logFile, text);
+    const text = lines.join('\n');
     const timedOut = ms >= budgetMs - 1000;
-    const tail = text.trim().split('\n').filter(Boolean).slice(-3).join(' | ').slice(0, 240);
+    const tail = lines.filter(l => l.trim()).slice(-3).join(' | ').slice(0, 240);
     const status: Status = timedOut ? 'timeout' : verdict ? verdict(text) : code === 0 ? 'pass' : 'fail';
     return { status, ms, tail };
 }
@@ -149,7 +203,7 @@ const now: Run = { startedAt: new Date().toISOString(), git, tier, results: [] }
 console.log(`regress: tier=${tier} commit=${git}`);
 
 for (const { name, cmd, verdict } of OFFLINE_GATES) {
-    const r = await run(cmd, join(LOGS, `${name.replace(/\W+/g, '-')}.log`), 20 * 60_000, verdict);
+    const r = await run(name, cmd, join(LOGS, `${name.replace(/\W+/g, '-')}.log`), 20 * 60_000, verdict);
     now.results.push({ name, kind: 'gate', status: r.status, ms: r.ms, note: r.status === 'pass' ? '' : r.tail });
     console.log(`  ${ICON[r.status]} ${name} (${mins(r.ms)})`);
 }
@@ -159,16 +213,18 @@ if (!has('gates-only')) {
     if (!gatesGreen && !has('force')) {
         console.log('offline gates failed — skipping harnesses (pass --force to run anyway)');
     } else {
-        const deploy = await run(['sh', 'tools/deploy-local.sh'], join(LOGS, 'deploy.log'), 20 * 60_000);
+        const deploy = await run('deploy', ['sh', 'tools/deploy-local.sh'], join(LOGS, 'deploy.log'), 20 * 60_000);
         now.results.push({ name: 'deploy', kind: 'gate', status: deploy.status, ms: deploy.ms, note: deploy.status === 'pass' ? '' : deploy.tail });
         console.log(`  ${ICON[deploy.status]} deploy (${mins(deploy.ms)})`);
 
         if (deploy.status === 'pass') {
-            for (const file of harnesses(tier, only)) {
+            const files = harnesses(tier, only);
+            console.log(`running ${files.length} harnesses`);
+            for (const [i, file] of files.entries()) {
                 const budget = (BUDGET[file] ?? DEFAULT_BUDGET) * 60_000;
                 const cmd = ['bun', join('tools', file), '--no-deploy'];
                 if (engine) cmd.push('--base', engine);
-                const r = await run(cmd, join(LOGS, `${file}.log`), budget);
+                const r = await run(`[${i + 1}/${files.length}] ${file}`, cmd, join(LOGS, `${file}.log`), budget);
                 now.results.push({ name: file, kind: 'harness', status: r.status, ms: r.ms, note: r.status === 'pass' ? '' : r.tail });
                 console.log(`  ${ICON[r.status]} ${file} (${mins(r.ms)})`);
             }

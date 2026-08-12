@@ -28,6 +28,16 @@ Exit code is 1 when anything is failing, so it drives a cron or a CI job directl
 Tier is derived from the harness itself — anything accepting `--stage` is a quest run —
 so a new harness lands in the right tier without editing a list.
 
+## Watching it run
+
+| Mode | Shows |
+|---|---|
+| Terminal (TTY) | one status line per item, rewritten in place with elapsed seconds and the child's most recent output line |
+| Piped or cron | the same line, printed every 30 seconds, so a log records progress without carriage returns |
+| `--verbose` / `-v` | every line the child emits, prefixed |
+
+Full child output always reaches `out/regress/logs/<harness>.log` regardless of mode.
+
 ## The report
 
 `out/regress/report.md`, with per-harness logs in `out/regress/logs/`.
