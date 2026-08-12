@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Testing](../TESTING.md) › Seeding
+[Manual](../README.md) › [Testing](../TESTING.md) › Seeding
 
 # Seeding test accounts
 

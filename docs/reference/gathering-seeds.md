@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Dev and deploy](../DEV.md) › Gathering seed data
+[Manual](../README.md) › [Dev and deploy](../DEV.md) › Gathering seed data
 
 # Gathering seed data
 

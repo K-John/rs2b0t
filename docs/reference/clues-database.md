@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Clues](../CLUES.md) › Database
+[Manual](../README.md) › [Clues](../CLUES.md) › Database
 
 # Clue database
 

@@ -1,4 +1,4 @@
-> [Manual](README.md) › Map tile picker
+[Manual](README.md) › Map tile picker
 
 # Map tile picker
 

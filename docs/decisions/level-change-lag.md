@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [World-walking](../NAV.md) › Level-change lag
+[Manual](../README.md) › [World-walking](../NAV.md) › Level-change lag
 
 # Level-change loc lag
 

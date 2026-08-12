@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Clues](../CLUES.md) › Step mechanics
+[Manual](../README.md) › [Clues](../CLUES.md) › Step mechanics
 
 # Clue step mechanics
 

@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Quests](../QUESTS.md) › Primitives
+[Manual](../README.md) › [Quests](../QUESTS.md) › Primitives
 
 # Quest exec primitives
 

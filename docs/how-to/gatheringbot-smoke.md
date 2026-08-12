@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Dev and deploy](../DEV.md) › GatheringBot smoke
+[Manual](../README.md) › [Dev and deploy](../DEV.md) › GatheringBot smoke
 
 # GatheringBot behaviour smoke
 

@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Scripting API](../API.md) › World catalogs
+[Manual](../README.md) › [Scripting API](../API.md) › World catalogs
 
 # World catalogs
 

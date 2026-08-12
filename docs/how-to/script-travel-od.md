@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [World-walking](../NAV.md) › Script travel OD
+[Manual](../README.md) › [World-walking](../NAV.md) › Script travel OD
 
 # Script travel OD
 

@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Scripting API](../API.md) › Events and settings
+[Manual](../README.md) › [Scripting API](../API.md) › Events and settings
 
 # Events and settings
 

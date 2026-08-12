@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [MultiBox](../MULTIBOX.md) › Telemetry honesty
+[Manual](../README.md) › [MultiBox](../MULTIBOX.md) › Telemetry honesty
 
 # Telemetry never guesses
 

@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Scripting API](../API.md) › Banking
+[Manual](../README.md) › [Scripting API](../API.md) › Banking
 
 # Banking helpers
 

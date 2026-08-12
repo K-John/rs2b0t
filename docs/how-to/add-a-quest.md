@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Quests](../QUESTS.md) › Add a quest
+[Manual](../README.md) › [Quests](../QUESTS.md) › Add a quest
 
 # Add a quest
 

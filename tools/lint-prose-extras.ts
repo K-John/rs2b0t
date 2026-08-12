@@ -36,6 +36,8 @@ function isProse(line: string): boolean {
     return true;
 }
 
+const NAVIGATION = /^\[[^\]]+\]\([^)]+\)/;
+
 export function checkFragments(files: string[]): Finding[] {
     const found: Finding[] = [];
     for (const file of files) {
@@ -44,8 +46,9 @@ export function checkFragments(files: string[]): Finding[] {
         let start = -1;
         let block: string[] = [];
         const flush = () => {
-            if (block.length === 1 && block[0].trim().split(/\s+/).length < MIN_WORDS) {
-                found.push({ file, line: start, check: 'fragment', message: `One-line paragraph "${block[0].trim()}" reads as punctuation. Give it a subject and a verb or fold it into the neighbouring block.` });
+            const t = block[0]?.trim() ?? '';
+            if (block.length === 1 && !NAVIGATION.test(t) && t.split(/\s+/).length < MIN_WORDS) {
+                found.push({ file, line: start, check: 'fragment', message: `One-line paragraph "${t}" reads as punctuation. Give it a subject and a verb or fold it into the neighbouring block.` });
             }
             block = [];
             start = -1;

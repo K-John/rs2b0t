@@ -1,4 +1,4 @@
-> [Manual](../README.md) › Loc identity
+[Manual](../README.md) › Loc identity
 
 # Loc identity is a placement
 

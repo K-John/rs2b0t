@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [World-walking](../NAV.md) › Doors and crossings
+[Manual](../README.md) › [World-walking](../NAV.md) › Doors and crossings
 
 # Doors and crossings
 

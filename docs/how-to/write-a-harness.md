@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Testing](../TESTING.md) › Harness ABI
+[Manual](../README.md) › [Testing](../TESTING.md) › Harness ABI
 
 # The live-harness ABI
 

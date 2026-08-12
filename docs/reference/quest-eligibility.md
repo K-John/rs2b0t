@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Quests](../QUESTS.md) › Eligibility
+[Manual](../README.md) › [Quests](../QUESTS.md) › Eligibility
 
 # Quest eligibility
 

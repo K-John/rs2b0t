@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Quests](../QUESTS.md) › Engine
+[Manual](../README.md) › [Quests](../QUESTS.md) › Engine
 
 # Quest engine
 

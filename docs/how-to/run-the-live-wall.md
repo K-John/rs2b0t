@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Dev and deploy](../DEV.md) › Live wall
+[Manual](../README.md) › [Dev and deploy](../DEV.md) › Live wall
 
 # Run the live wall
 

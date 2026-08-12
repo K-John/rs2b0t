@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Running locally](../RUNNING.md) › Run locally
+[Manual](../README.md) › [Running locally](../RUNNING.md) › Run locally
 
 # Run rs2b0t locally
 

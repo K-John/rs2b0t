@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Scripting API](../API.md) › Movement
+[Manual](../README.md) › [Scripting API](../API.md) › Movement
 
 # Movement
 

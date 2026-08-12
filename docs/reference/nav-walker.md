@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [World-walking](../NAV.md) › Walker
+[Manual](../README.md) › [World-walking](../NAV.md) › Walker
 
 # The world walker
 

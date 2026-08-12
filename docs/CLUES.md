@@ -1,4 +1,4 @@
-> [Manual](README.md) › Clue scrolls
+[Manual](README.md) › Clue scrolls
 
 # Clue scrolls
 

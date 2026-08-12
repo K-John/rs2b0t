@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Scripting API](../API.md) › Quests
+[Manual](../README.md) › [Scripting API](../API.md) › Quests
 
 # Quests
 

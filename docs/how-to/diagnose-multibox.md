@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [MultiBox](../MULTIBOX.md) › Diagnose a slow wall
+[Manual](../README.md) › [MultiBox](../MULTIBOX.md) › Diagnose a slow wall
 
 # Diagnose a slow wall
 

@@ -1,4 +1,4 @@
-> [Manual](README.md) › Scripting API
+[Manual](README.md) › Scripting API
 
 # Scripting API
 

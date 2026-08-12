@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Architecture](../ARCHITECTURE.md) › Import fences
+[Manual](../README.md) › [Architecture](../ARCHITECTURE.md) › Import fences
 
 # Import fences
 

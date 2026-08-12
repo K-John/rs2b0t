@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Clues](../CLUES.md) › Trace a failure
+[Manual](../README.md) › [Clues](../CLUES.md) › Trace a failure
 
 # Trace a clue failure
 

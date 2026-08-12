@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [World-walking](../NAV.md) › Corridor snap
+[Manual](../README.md) › [World-walking](../NAV.md) › Corridor snap
 
 # Corridor snap
 

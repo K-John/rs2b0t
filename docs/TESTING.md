@@ -1,4 +1,4 @@
-> [Manual](README.md) › Testing
+[Manual](README.md) › Testing
 
 # Testing
 

@@ -1,4 +1,4 @@
-> [Manual](README.md) › World-walking
+[Manual](README.md) › World-walking
 
 # World-walking
 

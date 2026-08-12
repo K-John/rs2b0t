@@ -1,4 +1,4 @@
-> [Manual](README.md) › Doc migration
+[Manual](README.md) › Doc migration
 
 # Doc migration
 

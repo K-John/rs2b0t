@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Running locally](../RUNNING.md) › Ports
+[Manual](../README.md) › [Running locally](../RUNNING.md) › Ports
 
 # Engine ports and configuration
 

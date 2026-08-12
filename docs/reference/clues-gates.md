@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Clues](../CLUES.md) › Gates
+[Manual](../README.md) › [Clues](../CLUES.md) › Gates
 
 # Clue gates and unreachable clues
 

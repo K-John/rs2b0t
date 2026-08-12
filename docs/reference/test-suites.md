@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Testing](../TESTING.md) › Suites
+[Manual](../README.md) › [Testing](../TESTING.md) › Suites
 
 # Test suites
 

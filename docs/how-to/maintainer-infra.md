@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Dev and deploy](../DEV.md) › Maintainer infrastructure
+[Manual](../README.md) › [Dev and deploy](../DEV.md) › Maintainer infrastructure
 
 # Maintainer infrastructure
 

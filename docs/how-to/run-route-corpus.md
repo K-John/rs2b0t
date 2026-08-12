@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [World-walking](../NAV.md) › Route corpus
+[Manual](../README.md) › [World-walking](../NAV.md) › Route corpus
 
 # Route corpus and HARD stress
 

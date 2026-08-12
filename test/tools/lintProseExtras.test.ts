@@ -42,6 +42,13 @@ test('headings, list items, table rows and code are not fragments', () => {
     expect(checkFragments([fixture('skip.md', body)])).toEqual([]);
 });
 
+test('a breadcrumb is navigation, but a short paragraph beside it is still a fragment', () => {
+    const body = '[Manual](README.md) › Scripting API\n\n# Scripting API\n\nNot anymore.\n';
+    const found = checkFragments([fixture('crumb.md', body)]);
+    expect(found.map(f => f.line)).toEqual([5]);
+    expect(found[0].message).toContain('Not anymore.');
+});
+
 test('a long paragraph passes', () => {
     const path = fixture('long.md', 'This paragraph carries more than four words.\n');
     expect(checkFragments([path])).toEqual([]);

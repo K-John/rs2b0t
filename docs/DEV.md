@@ -1,4 +1,4 @@
-> [Manual](README.md) › Dev and deploy
+[Manual](README.md) › Dev and deploy
 
 # Dev and deploy
 

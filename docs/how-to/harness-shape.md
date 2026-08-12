@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Testing](../TESTING.md) › Write a harness
+[Manual](../README.md) › [Testing](../TESTING.md) › Write a harness
 
 # Write a harness
 

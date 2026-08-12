@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Clues](../CLUES.md) › Host yielding
+[Manual](../README.md) › [Clues](../CLUES.md) › Host yielding
 
 # Why the solver yields
 

@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [World-walking](../NAV.md) › Teleports
+[Manual](../README.md) › [World-walking](../NAV.md) › Teleports
 
 # Nav teleports
 

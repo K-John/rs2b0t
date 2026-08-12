@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Quests](../QUESTS.md) › Quest pitfalls
+[Manual](../README.md) › [Quests](../QUESTS.md) › Quest pitfalls
 
 # Quest pitfalls, continued
 

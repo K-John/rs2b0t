@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Testing](../TESTING.md) › End-to-end suite
+[Manual](../README.md) › [Testing](../TESTING.md) › End-to-end suite
 
 # Run the end-to-end suite
 

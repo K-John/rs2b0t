@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Nav](../nav/README.md) › Verify transports
+[Manual](../README.md) › [Nav](../nav/README.md) › Verify transports
 
 # Verify transport coverage
 

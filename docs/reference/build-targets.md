@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Dev and deploy](../DEV.md) › Build targets
+[Manual](../README.md) › [Dev and deploy](../DEV.md) › Build targets
 
 # Build targets
 

@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [MultiBox](../MULTIBOX.md) › Reference
+[Manual](../README.md) › [MultiBox](../MULTIBOX.md) › Reference
 
 # MultiBox reference
 

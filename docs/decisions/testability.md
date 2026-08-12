@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Testing](../TESTING.md) › Testability
+[Manual](../README.md) › [Testing](../TESTING.md) › Testability
 
 # What makes this testable
 

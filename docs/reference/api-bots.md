@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Scripting API](../API.md) › Bots
+[Manual](../README.md) › [Scripting API](../API.md) › Bots
 
 # Bots
 

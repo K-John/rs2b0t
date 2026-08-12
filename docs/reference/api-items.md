@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Scripting API](../API.md) › Items
+[Manual](../README.md) › [Scripting API](../API.md) › Items
 
 # Inventory, equipment and bank
 

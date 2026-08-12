@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Nav](../nav/README.md) › Client vs pack path
+[Manual](../README.md) › [Nav](../nav/README.md) › Client vs pack path
 
 # Why the painted route diverges from the walk
 

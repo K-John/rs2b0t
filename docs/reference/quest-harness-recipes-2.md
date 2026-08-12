@@ -1,4 +1,4 @@
-> [Manual](../README.md) › [Testing](../TESTING.md) › Quest harness recipes
+[Manual](../README.md) › [Testing](../TESTING.md) › Quest harness recipes
 
 # Quest harness recipes (G–Z)
 
