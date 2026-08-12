@@ -1,7 +1,8 @@
 import type { InvItemSnapshot } from '../../adapter/ClientAdapter.js';
 import { reader } from '../../adapter/ClientAdapter.js';
 import { Input } from '../input/Input.js';
-import { Loc, Npc } from '../entities/index.js';
+import { Loc } from '../model/Loc.js';
+import { Npc } from '../model/Npc.js';
 
 const BACKPACK_CAPACITY = 28;
 

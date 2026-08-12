@@ -181,7 +181,10 @@ import {
     WOODCUTTING_LOCATION_OPTIONS,
     resolveWoodcuttingLocation
 } from '../data/woodcuttingLocations.js';
-import { GroundItem, Loc, Npc, Player } from '../api/entities/index.js';
+import { GroundItem } from '../api/model/GroundItem.js';
+import { Loc } from '../api/model/Loc.js';
+import { Npc } from '../api/model/Npc.js';
+import { Player } from '../api/model/Player.js';
 import { Bank, withdrawOp } from '../api/hud/Bank.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
 import { Equipment } from '../api/hud/Equipment.js';

@@ -12,7 +12,7 @@ import { reader } from '../adapter/ClientAdapter.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Locs } from '../api/entities/Locs.js';
 import { Players } from '../api/entities/Players.js';
-import type { Player } from '../api/entities/index.js';
+import type { Player } from '../api/model/Player.js';
 import { Traversal } from '../api/walking/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { type SettingsSchema } from '../runtime/Settings.js';

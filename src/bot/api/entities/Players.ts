@@ -1,5 +1,5 @@
 import { reader, type PlayerSnapshot } from '../../adapter/ClientAdapter.js';
-import { Player } from './index.js';
+import { Player } from '../model/Player.js';
 import EntityQuery from './Query.js';
 
 /** PlayerSnapshot + empty ops for snapshot-first EntityQuery. */

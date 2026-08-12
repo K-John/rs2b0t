@@ -10,7 +10,7 @@ import { WalkExecutor, isOpenableBarrier } from '../../nav/WalkExecutor.js';
 import { openOp, towardDest } from '../../nav/walkOpening.js';
 import { chebyshev } from '../../nav/geometry/followMath.js';
 import { CANT_REACH, GameMessages } from '../chatbox/messages.js';
-import type { Interactable } from '../entities/index.js';
+import type { Interactable } from '../model/Interactable.js';
 
 type ReachStatus = 'done' | 'retry' | 'unreachable';
 

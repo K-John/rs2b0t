@@ -1,6 +1,6 @@
 import { actions, reader } from '../adapter/ClientAdapter.js';
 import { Input } from '../api/input/Input.js';
-import type { Player } from '../api/entities/index.js';
+import type { Player } from '../api/model/Player.js';
 import { Modals } from '../api/hud/Modals.js';
 
 // 2004scape's Duel Arena contract (game_duelarena/duel_arena.rs2):

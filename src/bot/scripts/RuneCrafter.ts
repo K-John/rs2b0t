@@ -12,7 +12,7 @@ import { Trade } from '../api/hud/Trade.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Locs } from '../api/entities/Locs.js';
 import { Players } from '../api/entities/Players.js';
-import type { Player } from '../api/entities/index.js';
+import type { Player } from '../api/model/Player.js';
 import { Traversal } from '../api/walking/Traversal.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';

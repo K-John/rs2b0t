@@ -1,5 +1,5 @@
 import { reader } from '../../adapter/ClientAdapter.js';
-import { Loc } from './index.js';
+import { Loc } from '../model/Loc.js';
 import EntityQuery from './Query.js';
 
 /**

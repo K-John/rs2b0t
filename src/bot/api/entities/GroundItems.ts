@@ -1,5 +1,5 @@
 import { reader } from '../../adapter/ClientAdapter.js';
-import { GroundItem } from './index.js';
+import { GroundItem } from '../model/GroundItem.js';
 import EntityQuery from './Query.js';
 
 /**

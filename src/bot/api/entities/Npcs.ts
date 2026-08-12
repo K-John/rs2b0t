@@ -1,5 +1,5 @@
 import { reader } from '../../adapter/ClientAdapter.js';
-import { Npc } from './index.js';
+import { Npc } from '../model/Npc.js';
 import EntityQuery from './Query.js';
 
 /**

@@ -4,7 +4,7 @@ import { Sustain } from '../../../api/core/Sustain.js';
 import { Traversal } from '../../../api/walking/Traversal.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Equipment } from '../../../api/hud/Equipment.js';
-import type { Npc } from '../../../api/entities/index.js';
+import type { Npc } from '../../../api/model/Npc.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
 import { SV_ITEM, SV_LOC, SV_NPC, SV_TILE, inDolmenRoom, type ShiloArea } from './areas.js';
 import { driveChoice, heldId, here, locNear, promptLoc, settleScene, useOnLoc } from './scene.js';

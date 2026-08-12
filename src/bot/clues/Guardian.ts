@@ -6,7 +6,7 @@ import { Sustain } from '#/bot/api/core/Sustain.js';
 import { Traversal } from '#/bot/api/walking/Traversal.js';
 import { Npcs } from '#/bot/api/entities/Npcs.js';
 import { GameMessages } from '#/bot/api/chatbox/messages.js';
-import type { Npc } from '#/bot/api/entities/index.js';
+import type { Npc } from '#/bot/api/model/Npc.js';
 
 // npc_add drops the wizard on a line-of-sight tile beside the dig, and the
 // engine deletes it once we are more than 17 tiles away.

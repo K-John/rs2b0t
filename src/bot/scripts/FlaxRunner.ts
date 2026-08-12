@@ -11,7 +11,7 @@ import { Trade } from '../api/hud/Trade.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Locs, type Loc } from '../api/entities/Locs.js';
 import { Players } from '../api/entities/Players.js';
-import type { Player } from '../api/entities/index.js';
+import type { Player } from '../api/model/Player.js';
 import { Traversal } from '../api/walking/Traversal.js';
 import { Reachability } from '../nav/geometry/Reachability.js';
 import { walkOpening } from '../nav/walkOpening.js';

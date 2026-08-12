@@ -8,7 +8,7 @@ import { EventSignal } from '../api/core/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import Tile from '../geometry/Tile.js';
-import type { Npc } from '../api/entities/index.js';
+import type { Npc } from '../api/model/Npc.js';
 import { Bank, withdrawOp } from '../api/hud/Bank.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
 import { Equipment } from '../api/hud/Equipment.js';

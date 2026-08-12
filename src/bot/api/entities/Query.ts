@@ -1,4 +1,4 @@
-import type { Locatable } from './index.js';
+import type { Locatable } from '../model/Interactable.js';
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 
 interface QueryableEntity extends Locatable {
