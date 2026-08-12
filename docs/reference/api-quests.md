@@ -1,4 +1,4 @@
-[Manual](../README.md) › [Scripting API](../API.md) › Quests
+> [Manual](../README.md) › [Scripting API](../API.md) › Quests
 
 # Quests
 
@@ -11,7 +11,7 @@ Quests.journal(name: string): Promise<string[]>  // opens the quest log modal
 Quests.points(): number                    // transmitted varp qp (101)
 ```
 
-**What these actually read.** Full rationale: [Quest state](../reference/quest-engine.md#quest-state).
+**What these read.** Full rationale: [Quest state](../reference/quest-engine.md#quest-state).
 
 | Call | Source | Cost |
 |---|---|---|

@@ -1,4 +1,4 @@
-[Manual](../README.md) › [Nav](../nav/README.md) › Compare path paint
+> [Manual](../README.md) › [Nav](../nav/README.md) › Compare path paint
 
 # Compare pack and client paint
 

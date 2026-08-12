@@ -1,9 +1,9 @@
-[Manual](README.md) › World-walking
+> [Manual](README.md) › World-walking
 
 # World-walking
 
 A\* over a baked collision pack plus a door and transport graph, executed against the
-real client's own movement, with stuck recovery.
+client's own movement, with stuck recovery.
 
 ## Pages
 

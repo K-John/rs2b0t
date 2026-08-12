@@ -1,4 +1,4 @@
-[Manual](../README.md) › [Quests](../QUESTS.md) › Quest state
+> [Manual](../README.md) › [Quests](../QUESTS.md) › Quest state
 
 # Why quest state is not read from varps
 

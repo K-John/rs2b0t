@@ -1,4 +1,4 @@
-[Manual](../README.md) › [Scripting API](../API.md) › Dialogue and trade
+> [Manual](../README.md) › [Scripting API](../API.md) › Dialogue and trade
 
 # Dialogue and trade
 
@@ -61,7 +61,7 @@ parseMuleMode(raw): 'off' | 'gatherer' | 'mule' | 'cooker' | 'supplier'
 muleGathererHandoffActive / muleReceiverActive / muleCookerActive / muleSupplierActive
 ```
 
-GatheringBot `muleMode` + `mulePartner`:
+GatheringBot pairs `muleMode` with `mulePartner`:
 
 | Mode | Role |
 | --- | --- |

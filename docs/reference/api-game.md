@@ -1,4 +1,4 @@
-[Manual](../README.md) › [Scripting API](../API.md) › Game
+> [Manual](../README.md) › [Scripting API](../API.md) › Game
 
 # Game
 

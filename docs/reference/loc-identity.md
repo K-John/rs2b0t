@@ -1,4 +1,4 @@
-[Manual](../README.md) › Loc state in the client
+> [Manual](../README.md) › Loc state in the client
 
 # Loc state in the client
 

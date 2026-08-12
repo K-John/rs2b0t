@@ -1,4 +1,4 @@
-[Manual](../README.md) › [Dev and deploy](../DEV.md) › Maintainer infrastructure
+> [Manual](../README.md) › [Dev and deploy](../DEV.md) › Maintainer infrastructure
 
 # Maintainer infrastructure
 
@@ -57,7 +57,7 @@ curl -sS https://w1.rs2b2t.com/rs2b0t/version.json
 # → { "commit": "…", "short": "e978193", "dirty": false, "builtAt": "…", "label": "e978193" }
 ```
 
-In the UI:
+The build stamp also appears here:
 
 - **Wall** rail → resource card → **Build** row (hover for full SHA + builtAt)
 - **Single client** panel under the `rs2b0t` title

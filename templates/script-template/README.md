@@ -1,4 +1,4 @@
-[Manual](../../docs/README.md) › Script template
+> [Manual](../../docs/README.md) › Script template
 
 # rs2b0t script template
 

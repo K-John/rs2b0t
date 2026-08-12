@@ -1,4 +1,4 @@
-[Manual](../README.md) › [World-walking](../NAV.md) › Pathfinding
+> [Manual](../README.md) › [World-walking](../NAV.md) › Pathfinding
 
 # Pathfinding
 

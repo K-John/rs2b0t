@@ -1,4 +1,4 @@
-[Manual](../README.md) › [MultiBox](../MULTIBOX.md) › Telemetry honesty
+> [Manual](../README.md) › [MultiBox](../MULTIBOX.md) › Telemetry honesty
 
 # Telemetry never guesses
 
@@ -45,7 +45,7 @@ is immune to that clamp.
 
 ## Why the coarse tier aggregates
 
-Keeping 1 sample in 30 would discard exactly the spikes worth having, so the 30s tier
+Keeping 1 sample in 30 would discard the spikes worth having, so the 30s tier
 aggregates rather than decimates.
 
 ## Why the renderer switch keeps the scene

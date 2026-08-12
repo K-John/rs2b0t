@@ -1,4 +1,4 @@
-[Manual](../README.md) › [Map tile picker](../MAP-PICKER.md) › Bake the basemap
+> [Manual](../README.md) › [Map tile picker](../MAP-PICKER.md) › Bake the basemap
 
 # Bake the basemap
 

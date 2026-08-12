@@ -1,4 +1,4 @@
-[Manual](../README.md) › [Scripting API](../API.md) › Skills
+> [Manual](../README.md) › [Scripting API](../API.md) › Skills
 
 # Skills
 

@@ -1,9 +1,6 @@
-[Manual](../README.md) › [Quests](../QUESTS.md) › Module shape
+> [Manual](../README.md) › [Quests](../QUESTS.md) › Module shape
 
 # The shape of a quest module
-
-
-Three directories, three jobs:
 
 | Directory | Job |
 |---|---|

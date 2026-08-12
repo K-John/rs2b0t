@@ -1,4 +1,4 @@
-[Manual](../README.md) › [Map tile picker](../MAP-PICKER.md) › Reference
+> [Manual](../README.md) › [Map tile picker](../MAP-PICKER.md) › Reference
 
 # Map tile picker reference
 

@@ -1,4 +1,4 @@
-[Manual](../README.md) › [Scripting API](../API.md) › Write a bot
+> [Manual](../README.md) › [Scripting API](../API.md) › Write a bot
 
 # Write a bot
 

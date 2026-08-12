@@ -1,4 +1,4 @@
-[Manual](../README.md) › [World-walking](../NAV.md) › Collision pack
+> [Manual](../README.md) › [World-walking](../NAV.md) › Collision pack
 
 # The collision pack
 
