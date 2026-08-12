@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test';
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -55,4 +56,32 @@ test('a root outside the repository falls back to a filesystem walk', () => {
     const dir = tree({ 'top.ts': 'export const a = 1;\n', 'nested/deep.ts': 'export const b = 2;\n', 'notes.md': '# title\n' });
     expect(trackedSources(dir)).toEqual([]);
     expect(sources(dir).sort()).toEqual([join(dir, 'nested/deep.ts'), join(dir, 'top.ts')]);
+});
+
+test('a missing root is a hard failure', () => {
+    expect(() => manifest('does-not-exist-xyz')).toThrow('prose triage: root is not a directory: does-not-exist-xyz');
+});
+
+test('a root that is a file is a hard failure', () => {
+    const dir = tree({ 'only.ts': '// one\n' });
+    const path = join(dir, 'only.ts');
+    expect(() => manifest(path)).toThrow(`prose triage: root is not a directory: ${path}`);
+});
+
+test('a root holding no TypeScript files is a hard failure', () => {
+    const dir = tree({ 'notes.md': '# title\n', 'nested/more.md': '# other\n' });
+    expect(() => manifest(dir)).toThrow(`prose triage: root holds no TypeScript files: ${dir}`);
+});
+
+test('a root of TypeScript files with no comments returns no rows without throwing', () => {
+    const dir = tree({ 'bare.ts': 'export const a = 1;\n', 'nested/plain.ts': 'export const b = 2;\n' });
+    expect(sources(dir).length).toBe(2);
+    expect(manifest(dir)).toEqual([]);
+});
+
+test('the command line reports a missing root and exits 2', () => {
+    const run = spawnSync('bun', ['tools/prose-triage.ts', 'does-not-exist-xyz'], { encoding: 'utf8' });
+    expect(run.status).toBe(2);
+    expect(run.stderr.trim()).toBe('prose triage: root is not a directory: does-not-exist-xyz');
+    expect(run.stdout).toBe('');
 });

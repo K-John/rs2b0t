@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { checkComments } from './lint-prose-extras.js';
 
@@ -40,10 +40,21 @@ function valeErrors(root: string): Map<string, number> {
     return counts;
 }
 
+function isDirectory(root: string): boolean {
+    try {
+        return statSync(root).isDirectory();
+    } catch {
+        return false;
+    }
+}
+
 export function manifest(root: string): Row[] {
+    if (!isDirectory(root)) throw new Error(`prose triage: root is not a directory: ${root}`);
+    const files = sources(root);
+    if (files.length === 0) throw new Error(`prose triage: root holds no TypeScript files: ${root}`);
     const errors = valeErrors(root);
     const rows: Row[] = [];
-    for (const file of sources(root)) {
+    for (const file of files) {
         const lines = readFileSync(file, 'utf8').split('\n');
         const comments = lines.filter(line => COMMENT.test(line)).length;
         if (comments === 0) continue;
@@ -55,7 +66,13 @@ export function manifest(root: string): Row[] {
 
 if (import.meta.main) {
     const root = process.argv[2] ?? 'src/bot';
-    const rows = manifest(root);
+    let rows: Row[];
+    try {
+        rows = manifest(root);
+    } catch (err) {
+        console.error(err instanceof Error ? err.message : String(err));
+        process.exit(2);
+    }
     for (const r of rows) console.log(`${r.errors}\t${r.blocks}\t${r.comments}\t${r.file}`);
     console.log(`${rows.length} files, ${rows.reduce((n, r) => n + r.comments, 0)} comment lines, ${rows.reduce((n, r) => n + r.errors, 0)} vale errors`);
 }
