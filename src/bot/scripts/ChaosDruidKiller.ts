@@ -14,7 +14,7 @@ import { Locs } from '../api/entities/Locs.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import Tile from '../api/core/Tile.js';
-import { Traversal } from '../api/movement/Traversal.js';
+import { Traversal } from '../nav/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { GameMessages } from '../events/gameMessages.js';

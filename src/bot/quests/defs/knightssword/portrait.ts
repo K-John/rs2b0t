@@ -2,7 +2,7 @@ import type { WorldTile } from '../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
 import Tile from '../../../api/core/Tile.js';
-import { Traversal } from '../../../api/movement/Traversal.js';
+import { Traversal } from '../../../nav/Traversal.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Locs } from '../../../api/entities/Locs.js';

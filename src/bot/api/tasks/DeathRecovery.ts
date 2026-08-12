@@ -3,7 +3,7 @@ import type { AbstractBot, Task } from '../core/Bot.js';
 import { Execution } from '../core/Execution.js';
 import { Game } from '../core/Game.js';
 import { AcquireTask, hasAll, type ItemNeed } from '../acquisition/ItemAcquisition.js';
-import { Traversal } from '../movement/Traversal.js';
+import { Traversal } from '../../nav/Traversal.js';
 
 const DEATH_RE = /oh dear.*you are dead/i;
 

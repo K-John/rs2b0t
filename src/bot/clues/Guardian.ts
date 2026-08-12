@@ -3,7 +3,7 @@ import { Execution } from '#/bot/api/core/Execution.js';
 import { Game } from '#/bot/api/core/Game.js';
 import { PROTECT_FROM_MAGIC, Prayer } from '#/bot/api/hud/Prayer.js';
 import { Sustain } from '#/bot/api/core/Sustain.js';
-import { Traversal } from '#/bot/api/movement/Traversal.js';
+import { Traversal } from '#/bot/nav/Traversal.js';
 import { Npcs } from '#/bot/api/entities/Npcs.js';
 import { GameMessages } from '#/bot/events/gameMessages.js';
 import type { Npc } from '#/bot/api/entities/index.js';

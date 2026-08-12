@@ -7,7 +7,7 @@ import { Quests } from '../../api/hud/Quests.js';
 import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
-import { Traversal } from '../../api/movement/Traversal.js';
+import { Traversal } from '../../nav/Traversal.js';
 import { DirectNavigator } from '../../nav/DirectNavigator.js';
 import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';

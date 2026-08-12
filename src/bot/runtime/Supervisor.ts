@@ -2,7 +2,7 @@ import { reader, type WorldTile } from '../adapter/ClientAdapter.js';
 import type { AbstractBot } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { RandomEvents } from '../api/randomevents/RandomEvents.js';
-import { Traversal } from '../api/movement/Traversal.js';
+import { Traversal } from '../nav/Traversal.js';
 import { bus } from '../events/EventBus.js';
 import { WalkExecutor } from '../nav/WalkExecutor.js';
 import { ScriptAborted, type ScriptContext } from './ScriptContext.js';

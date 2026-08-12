@@ -30,7 +30,7 @@ import { Players } from '../api/entities/Players.js';
 import { Sustain } from '../api/core/Sustain.js';
 import { DEFAULT_SPOTS } from './RockCrabSpots.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
-import { Traversal } from '../api/movement/Traversal.js';
+import { Traversal } from '../nav/Traversal.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
 import { ROCK_CRAB_RANGED_WEAPONS, rangeSupplyEmpty, rockCrabRangeLoadout } from './RockCrabRangeLogic.js';

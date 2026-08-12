@@ -13,7 +13,7 @@ import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Locs } from '../api/entities/Locs.js';
 import { Players } from '../api/entities/Players.js';
 import type { Player } from '../api/entities/index.js';
-import { Traversal } from '../api/movement/Traversal.js';
+import { Traversal } from '../nav/Traversal.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { SettingsStore, type SettingsSchema } from '../runtime/Settings.js';

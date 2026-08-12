@@ -21,7 +21,7 @@ import {
     rgba,
     type NavPathPaintTheme
 } from './pathPaintTheme.js';
-import { remainingPathFromPlayer } from './pathExpand.js';
+import { remainingPathFromPlayer } from './geometry/pathExpand.js';
 import { Game } from '../api/core/Game.js';
 
 /** areaGame surface blitted at (4,4) — see Client.overlayPos. */

@@ -21,7 +21,7 @@ import {
 } from './pathOverlay.js';
 import { parseHtmlColor, NAV_PATH_PAINT_DEFAULTS } from './pathPaintTheme.js';
 import { PathPublish } from './pathPublish.js';
-import { remainingPathFromPlayer } from './pathExpand.js';
+import { remainingPathFromPlayer } from './geometry/pathExpand.js';
 import { SettingsStore } from '../runtime/Settings.js';
 import { Game } from '../api/core/Game.js';
 

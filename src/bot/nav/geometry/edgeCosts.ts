@@ -31,7 +31,7 @@
  * @see bankPlan.ts
  */
 
-import type { TransportKind } from './types.js';
+import type { TransportKind } from '../types.js';
 
 /** Server: run takes up to this many path steps per tick. */
 export const RUN_TILES_PER_TICK = 2;

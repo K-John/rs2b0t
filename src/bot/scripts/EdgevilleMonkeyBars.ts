@@ -6,7 +6,7 @@ import { Inventory } from '../api/hud/Inventory.js';
 import { Bank } from '../api/hud/Bank.js';
 import { Skills } from '../api/hud/Skills.js';
 import { Paint } from '../api/hud/Paint.js';
-import { Traversal } from '../api/movement/Traversal.js';
+import { Traversal } from '../nav/Traversal.js';
 import { Locs, type Loc } from '../api/entities/Locs.js';
 import { actions, reader } from '../adapter/ClientAdapter.js';
 import { depositAllExcept } from '../api/banking/Banking.js';

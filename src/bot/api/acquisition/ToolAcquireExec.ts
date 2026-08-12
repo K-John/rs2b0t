@@ -8,7 +8,7 @@
 import { Execution } from '../core/Execution.js';
 import { Game } from '../core/Game.js';
 import Tile from '../core/Tile.js';
-import { Traversal } from '../movement/Traversal.js';
+import { Traversal } from '../../nav/Traversal.js';
 import { Bank, withdrawOp } from '../hud/Bank.js';
 import { ChatDialog } from '../hud/ChatDialog.js';
 import { Equipment } from '../hud/Equipment.js';

@@ -11,7 +11,7 @@ import { Banking } from '../api/banking/Banking.js';
 import { nearestBank } from '../api/banking/BankLocations.js';
 import { SPECIAL_CROSSINGS, specialCrossingForTransport, meetsRequirement, meetsSkill, pickChoice } from './data/specialCrossings.js';
 import { Skills } from '../api/hud/Skills.js';
-import { Reachability } from '../api/movement/Reachability.js';
+import { Reachability } from './geometry/Reachability.js';
 import { ActionRouter } from '../input/ActionRouter.js';
 import { Navigator, type PathResult } from './Navigator.js';
 import { DirectNavigator } from './DirectNavigator.js';
@@ -23,11 +23,11 @@ import {
     minChebyshevToPath,
     selectClientWalkTarget,
     starvedTerminalIndex
-} from './followMath.js';
+} from './geometry/followMath.js';
 import { PATH_CORRIDOR, resolvePathFollowConfig, type PathFollowOverrides } from './pathFollowPolicy.js';
 import { BotHost } from '../runtime/BotHost.js';
 import { classifyReason } from './walkLadder.js';
-import { isArrived } from './arrival.js';
+import { isArrived } from './geometry/arrival.js';
 import { snapshotWorldStateData } from './worldStateLive.js';
 import type { PathPolicy } from './types.js';
 import type { WorldStateData } from './worldStateData.js';
@@ -42,7 +42,7 @@ import { EssenceSession } from './essenceSession.js';
 import { PathPublish, formatHopLabel } from './pathPublish.js';
 import { PathCameraFollow, pathFacingYaw } from './cameraFollow.js';
 import { resolveDangerZones, type DangerZoneRect } from './data/dangerZones.js';
-import { expandWaypoints as expandWaypointsDense, localBfsPath } from './pathExpand.js';
+import { expandWaypoints as expandWaypointsDense, localBfsPath } from './geometry/pathExpand.js';
 import { DEFAULT_DISTANCE_BEFORE_TELEPORT } from './policy.js';
 import { SettingsStore } from '../runtime/Settings.js';
 import {
@@ -150,7 +150,7 @@ type FollowResult = 'arrived' | 'closest' | 'blocked' | 'repath' | 'failed' | 'i
 
 function expandWaypoints(waypoints: Waypoint[]): PathStep[] {
     // Experimental: scene-aware BFS when Global.navPathSceneExpand (opt-in debug).
-    let scene: import('./pathExpand.js').ExpandWorldFns | null = null;
+    let scene: import('./geometry/pathExpand.js').ExpandWorldFns | null = null;
     try {
         const on = SettingsStore.globalBag().bool('navPathSceneExpand', false);
         if (on && reader.attached()) {

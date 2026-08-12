@@ -170,12 +170,12 @@ import {
     toolRestockPlan,
     toolsNeedingEquip
 } from '../api/acquisition/Tools.js';
-import { Traversal } from '../api/movement/Traversal.js';
+import { Traversal } from '../nav/Traversal.js';
 import {
     WALK_DESTINATIONS,
     WALK_OPTIONS,
     resolveDestination
-} from '../api/movement/WalkDestinations.js';
+} from '../nav/WalkDestinations.js';
 import {
     WOODCUTTING_LOCATIONS,
     WOODCUTTING_LOCATION_OPTIONS,

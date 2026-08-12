@@ -14,7 +14,7 @@ import { Quests } from '../../api/hud/Quests.js';
 import { Skills } from '../../api/hud/Skills.js';
 import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
-import { Reachability } from '../../api/movement/Reachability.js';
+import { Reachability } from '../geometry/Reachability.js';
 import {
     matchesUseItem,
     meetsRequirement,
@@ -23,7 +23,7 @@ import {
     type SpecialCrossing
 } from '../data/specialCrossings.js';
 import { DirectNavigator } from '../DirectNavigator.js';
-import { chebyshev, isOnFarSide } from '../followMath.js';
+import { chebyshev, isOnFarSide } from '../geometry/followMath.js';
 import type { TransportInfo } from '../PathFinder.js';
 import { findTransportLoc } from './transportLoc.js';
 

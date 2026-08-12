@@ -4,7 +4,7 @@ import { expect, test, describe, beforeEach, afterAll } from 'bun:test';
 import { EventSignal } from '#/bot/api/randomevents/EventSignal.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Game } from '#/bot/api/core/Game.js';
-import { Traversal } from '#/bot/api/movement/Traversal.js';
+import { Traversal } from '#/bot/nav/Traversal.js';
 import { GroundItems } from '#/bot/api/entities/GroundItems.js';
 import { Npcs } from '#/bot/api/entities/Npcs.js';
 import Tile from '#/bot/api/core/Tile.js';

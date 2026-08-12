@@ -1,7 +1,7 @@
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import type { AbstractBot, Task } from '../core/Bot.js';
 import { Execution } from '../core/Execution.js';
-import { Traversal } from '../movement/Traversal.js';
+import { Traversal } from '../../nav/Traversal.js';
 import { Inventory } from '../hud/Inventory.js';
 import { Shop } from '../hud/Shop.js';
 import { GroundItems } from '../entities/GroundItems.js';

@@ -9,12 +9,12 @@ import {
 import { Execution } from '../core/Execution.js';
 import { Game } from '../core/Game.js';
 import Tile from '../core/Tile.js';
-import { Traversal } from '../movement/Traversal.js';
+import { Traversal } from '../../nav/Traversal.js';
 import { Bank } from '../hud/Bank.js';
 import { Inventory } from '../hud/Inventory.js';
 import { Locs } from '../entities/Locs.js';
 import { depositAllExcept, depositMatcher } from './bankRules.js';
-import { walkOpening } from '../movement/walkOpening.js';
+import { walkOpening } from '../../nav/walkOpening.js';
 
 /**
  * Snap radius for "I'm already at a bank" — booth underfoot / local stand.

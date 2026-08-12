@@ -13,7 +13,7 @@ import { Inventory } from '../../api/hud/Inventory.js';
 import { Skills } from '../../api/hud/Skills.js';
 import { Npcs } from '../../api/entities/Npcs.js';
 import { Sustain } from '../../api/core/Sustain.js';
-import { Traversal } from '../../api/movement/Traversal.js';
+import { Traversal } from '../../nav/Traversal.js';
 import type { QuestStep } from '../engine/types.js';
 
 export const VARROCK_FUNDING_MAN = new Tile(3240, 3405, 0);

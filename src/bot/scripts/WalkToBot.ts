@@ -3,12 +3,12 @@ import { TaskBot, type Task } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import Tile from '../api/core/Tile.js';
-import { Traversal } from '../api/movement/Traversal.js';
+import { Traversal } from '../nav/Traversal.js';
 import { Paint } from '../api/hud/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { SettingsStore } from '../runtime/Settings.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
-import { WALK_OPTIONS, resolveDestination } from '../api/movement/WalkDestinations.js';
+import { WALK_OPTIONS, resolveDestination } from '../nav/WalkDestinations.js';
 
 export const WALKTO_SETTINGS: SettingsSchema = {
     destination: { type: 'string', default: WALK_OPTIONS[0], options: WALK_OPTIONS, label: 'Destination' },

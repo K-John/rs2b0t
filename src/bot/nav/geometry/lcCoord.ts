@@ -5,7 +5,7 @@
  *   worldX = mx * 64 + lx, worldZ = mz * 64 + lz
  */
 
-import type { NavPoint } from './types.js';
+import type { NavPoint } from '../types.js';
 
 /** Parse `0_38_53_29_52` or `3_38_54_33_45` into a world tile. */
 export function parseLcCoord(raw: string): NavPoint {

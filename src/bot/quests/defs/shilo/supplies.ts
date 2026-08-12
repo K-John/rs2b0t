@@ -1,5 +1,5 @@
 import { Execution } from '../../../api/core/Execution.js';
-import { Traversal } from '../../../api/movement/Traversal.js';
+import { Traversal } from '../../../nav/Traversal.js';
 import { Shop } from '../../../api/hud/Shop.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';

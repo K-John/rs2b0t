@@ -3,7 +3,7 @@ import { Execution } from '../api/core/Execution.js';
 import { EventSignal } from '../api/randomevents/EventSignal.js';
 import { Game } from '../api/core/Game.js';
 import Tile from '../api/core/Tile.js';
-import { Traversal } from '../api/movement/Traversal.js';
+import { Traversal } from '../nav/Traversal.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { DeathRecovery } from '../api/tasks/DeathRecovery.js';
 import { Bank } from '../api/hud/Bank.js';

@@ -8,7 +8,7 @@ import { Skills } from '../../../api/hud/Skills.js';
 import { GroundItems } from '../../../api/entities/GroundItems.js';
 import { Locs } from '../../../api/entities/Locs.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
-import { Traversal } from '../../../api/movement/Traversal.js';
+import { Traversal } from '../../../nav/Traversal.js';
 import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
 import { talkChoosingBy } from '../../exec/primitives.js';

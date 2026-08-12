@@ -8,7 +8,7 @@ import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
 import { Sustain } from '../../api/core/Sustain.js';
-import { Traversal } from '../../api/movement/Traversal.js';
+import { Traversal } from '../../nav/Traversal.js';
 import Tile from '../../api/core/Tile.js';
 import { gotoNpc, pickPreferred, talkThrough, type NpcStop } from '../exec/primitives.js';
 import { gpShort } from '../engine/provisioning.js';

@@ -1,8 +1,8 @@
 // docs/reference/quest-primitives.md
 import { Execution } from '../../api/core/Execution.js';
-import { Reach } from '../../api/movement/Reach.js';
+import { Reach } from '../../nav/Reach.js';
 import type Tile from '../../api/core/Tile.js';
-import { Traversal } from '../../api/movement/Traversal.js';
+import { Traversal } from '../../nav/Traversal.js';
 import { ChatDialog } from '../../api/hud/ChatDialog.js';
 import { Inventory } from '../../api/hud/Inventory.js';
 import { Locs, type Loc } from '../../api/entities/Locs.js';

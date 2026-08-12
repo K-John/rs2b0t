@@ -6,7 +6,7 @@ import { Inventory } from '../api/hud/Inventory.js';
 import { Bank } from '../api/hud/Bank.js';
 import { Equipment } from '../api/hud/Equipment.js';
 import { Skills } from '../api/hud/Skills.js';
-import { Traversal } from '../api/movement/Traversal.js';
+import { Traversal } from '../nav/Traversal.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 
 // ============================================

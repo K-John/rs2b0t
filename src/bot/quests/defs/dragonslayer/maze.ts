@@ -4,7 +4,7 @@ import { Inventory } from '../../../api/hud/Inventory.js';
 import { GroundItems } from '../../../api/entities/GroundItems.js';
 import { Locs, type Loc } from '../../../api/entities/Locs.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
-import { Traversal } from '../../../api/movement/Traversal.js';
+import { Traversal } from '../../../nav/Traversal.js';
 import Tile from '../../../api/core/Tile.js';
 import { DS_ID } from './areas.js';
 

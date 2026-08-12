@@ -1,5 +1,5 @@
 // docs/reference/nav-walker.md#arrival
-import type { NavPoint } from './PathFinder.js';
+import type { NavPoint } from '../PathFinder.js';
 import { chebyshev } from './followMath.js';
 
 export interface ArrivalProbe {

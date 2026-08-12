@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import type { NavPoint } from '#/bot/nav/PathFinder.js';
-import { isArrived, type ArrivalProbe } from '#/bot/nav/arrival.js';
+import { isArrived, type ArrivalProbe } from '#/bot/nav/geometry/arrival.js';
 
 function probe(opts: { canReach?: boolean; walkable?: boolean; canReachAdjacent?: boolean; probeable?: boolean }): ArrivalProbe & { asked: string[] } {
     const asked: string[] = [];

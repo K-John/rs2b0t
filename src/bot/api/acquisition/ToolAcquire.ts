@@ -4,7 +4,7 @@ import { BROKEN_PICKAXE } from '../skilling/MiningRocks.js';
 import { AXES, HAMMER, PICKAXES, type ToolReq, type ToolTier } from './Tools.js';
 import { Execution } from '../core/Execution.js';
 import { Game } from '../core/Game.js';
-import { Traversal } from '../movement/Traversal.js';
+import { Traversal } from '../../nav/Traversal.js';
 import { Locs } from '../entities/Locs.js';
 
 export { BROKEN_PICKAXE, HAMMER };

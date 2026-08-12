@@ -16,8 +16,8 @@ import { Inventory } from '../api/hud/Inventory.js';
 import { Skills } from '../api/hud/Skills.js';
 import { Locs } from '../api/entities/Locs.js';
 import { Npcs } from '../api/entities/Npcs.js';
-import { Traversal } from '../api/movement/Traversal.js';
-import { isOpenableObstacle, openOp, walkOpening } from '../api/movement/walkOpening.js';
+import { Traversal } from '../nav/Traversal.js';
+import { isOpenableObstacle, openOp, walkOpening } from '../nav/walkOpening.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import {

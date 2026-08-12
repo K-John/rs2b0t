@@ -7,7 +7,7 @@ import { reader } from '../../adapter/ClientAdapter.js';
 import { Execution } from '../../api/core/Execution.js';
 import { Inventory } from '../../api/hud/Inventory.js';
 import { Locs, type Loc } from '../../api/entities/Locs.js';
-import { Reachability } from '../../api/movement/Reachability.js';
+import { Reachability } from '../geometry/Reachability.js';
 import { CANT_REACH, GameMessages } from '../../events/gameMessages.js';
 import { ActionRouter } from '../../input/ActionRouter.js';
 import { DirectNavigator } from '../DirectNavigator.js';
@@ -15,7 +15,7 @@ import {
     chooseCrossClick,
     isOnFarSide,
     shouldApproachClosedBarrier
-} from '../followMath.js';
+} from '../geometry/followMath.js';
 import type { TransportInfo } from '../PathFinder.js';
 import {
     classifyWebSlashChat,

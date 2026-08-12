@@ -1,5 +1,5 @@
 import { actions, reader } from '../../../adapter/ClientAdapter.js';
-import { chebyshev } from '../../../nav/followMath.js';
+import { chebyshev } from '../../../nav/geometry/followMath.js';
 import { Execution } from '../../core/Execution.js';
 import { ChatDialog } from '../../hud/ChatDialog.js';
 import { Locs } from '../../entities/Locs.js';

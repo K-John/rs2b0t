@@ -1,7 +1,7 @@
 import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
 import { Sustain } from '../../../api/core/Sustain.js';
-import { Traversal } from '../../../api/movement/Traversal.js';
+import { Traversal } from '../../../nav/Traversal.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Equipment } from '../../../api/hud/Equipment.js';
 import type { Npc } from '../../../api/entities/index.js';

@@ -4,7 +4,7 @@ import { expect, test, describe, beforeEach, afterAll } from 'bun:test';
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Game } from '#/bot/api/core/Game.js';
-import { Traversal } from '#/bot/api/movement/Traversal.js';
+import { Traversal } from '#/bot/nav/Traversal.js';
 import { ChatDialog } from '#/bot/api/hud/ChatDialog.js';
 import { GroundItems } from '#/bot/api/entities/GroundItems.js';
 import { Locs } from '#/bot/api/entities/Locs.js';

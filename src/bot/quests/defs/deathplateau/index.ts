@@ -8,7 +8,7 @@ import { Inventory } from '../../../api/hud/Inventory.js';
 import { GroundItems } from '../../../api/entities/GroundItems.js';
 import { Locs } from '../../../api/entities/Locs.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
-import { Traversal } from '../../../api/movement/Traversal.js';
+import { Traversal } from '../../../nav/Traversal.js';
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { hasFlag } from '../../engine/types.js';
