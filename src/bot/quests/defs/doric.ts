@@ -99,7 +99,7 @@ export function parseDoricJournal(lines: readonly string[] | string): number | u
     return undefined;
 }
 
-export async function readDoricStage(): Promise<number | undefined> {
+async function readDoricStage(): Promise<number | undefined> {
     const status = Quests.status("Doric's Quest");
     if (status === 'complete') return DORIC_STAGE.COMPLETE;
     if (status === 'notStarted') return DORIC_STAGE.NOT_STARTED;

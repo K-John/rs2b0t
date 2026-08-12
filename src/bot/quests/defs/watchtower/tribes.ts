@@ -27,7 +27,7 @@ export async function talkToOg(log: (m: string) => void): Promise<boolean> {
     return talkStrict(WT_NPC.OG, ['I seek entrance to the city of ogres.', 'I have your gold.', 'I have lost the key!'], log);
 }
 
-export async function enterTobanCamp(log: (m: string) => void): Promise<boolean> {
+async function enterTobanCamp(log: (m: string) => void): Promise<boolean> {
     if (watchtowerArea(Game.tile()) === 'tobanCamp') {
         return true;
     }
@@ -103,7 +103,7 @@ export async function talkToToban(log: (m: string) => void): Promise<boolean> {
     );
 }
 
-export async function swingToGrewIsland(log: (m: string) => void): Promise<boolean> {
+async function swingToGrewIsland(log: (m: string) => void): Promise<boolean> {
     if (watchtowerArea(Game.tile()) === 'grewIsland') {
         return true;
     }

@@ -274,5 +274,3 @@ export function ironBarsAt(snap: QuestSnapshot, miningLevel: number): QuestStep 
 }
 
 export const pickaxe = (snap: QuestSnapshot): QuestStep | null => pickaxeAt(snap, Skills.level('mining'));
-
-export const ironBars = (snap: QuestSnapshot): QuestStep => ironBarsAt(snap, Skills.level('mining'));

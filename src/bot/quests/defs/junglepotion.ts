@@ -187,7 +187,7 @@ export async function enterPothole(log: (m: string) => void): Promise<boolean> {
     return ok;
 }
 
-export async function leavePothole(log: (m: string) => void): Promise<boolean> {
+async function leavePothole(log: (m: string) => void): Promise<boolean> {
     if (!inCaves(Game.tile())) {
         return true;
     }
@@ -206,7 +206,7 @@ export async function leavePothole(log: (m: string) => void): Promise<boolean> {
     return ok;
 }
 
-export function pickHerb(herb: JungleHerb): (log: (m: string) => void) => Promise<boolean> {
+function pickHerb(herb: JungleHerb): (log: (m: string) => void) => Promise<boolean> {
     return async log => {
         // Only the unid is evidence of a fresh pick. A clean herb carried over from
         // an earlier run does not advance the stage, and Trufitus refuses it.
@@ -231,7 +231,7 @@ export function pickHerb(herb: JungleHerb): (log: (m: string) => void) => Promis
     };
 }
 
-export function identifyHerb(herb: JungleHerb): (log: (m: string) => void) => Promise<boolean> {
+function identifyHerb(herb: JungleHerb): (log: (m: string) => void) => Promise<boolean> {
     return async log => {
         if (heldId(herb.id) > 0) {
             return true;

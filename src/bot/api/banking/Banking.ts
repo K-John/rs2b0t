@@ -315,11 +315,6 @@ export function bankPaceTicks(rand: () => number = Math.random): number {
     return rand() < 0.35 ? 2 : 1;
 }
 
-/** @deprecated Use {@link bankPaceTicks}; wall-clock ms is not used for pacing. */
-export function bankPaceMs(rand: () => number = Math.random): number {
-    return bankPaceTicks(rand) * 600;
-}
-
 /** Pause between bank UI actions so tool checks don't flash open/close. */
 export async function bankPace(log?: (m: string) => void): Promise<void> {
     const ticks = bankPaceTicks();

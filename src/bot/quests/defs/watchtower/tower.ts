@@ -93,7 +93,7 @@ export async function leaveWizardFloor(log: (m: string) => void): Promise<boolea
     return Execution.delayUntil(() => level() === 0, 10_000);
 }
 
-export async function talkToWizard(prefer: string[], log: (m: string) => void): Promise<boolean> {
+async function talkToWizard(prefer: string[], log: (m: string) => void): Promise<boolean> {
     if ((await Reach.npcDialog({ name: WT_NPC.WIZARD, near: WT_TILE.WIZARD_FLOOR, log })) !== 'done') {
         return false;
     }

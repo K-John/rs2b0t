@@ -44,7 +44,7 @@ let pendingJag: Uint8Array | null = null;
 let regenTail: Promise<unknown> = Promise.resolve();
 
 /** Defaults for live Rebuild: nothing stamped (terrain-like). Prefer pre-baked overlays. */
-export const DEFAULT_BASEMAP_BAKE_PREFS: BasemapBakePrefs = {
+const DEFAULT_BASEMAP_BAKE_PREFS: BasemapBakePrefs = {
     labels: false,
     borders: false,
     npcs: false,
@@ -55,7 +55,7 @@ export const DEFAULT_BASEMAP_BAKE_PREFS: BasemapBakePrefs = {
 };
 
 /** Schema keys that only take effect when the basemap is regenerated. */
-export const MAP_PICKER_BAKE_KEYS = [
+const MAP_PICKER_BAKE_KEYS = [
     'bakeLabels',
     'bakeBorders',
     'bakeNpcs',

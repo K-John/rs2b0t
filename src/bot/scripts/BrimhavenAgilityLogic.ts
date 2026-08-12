@@ -12,8 +12,8 @@ export const DEFAULT_BANK_TICKETS = 1000;
 export const EAT_AT_HP = 5;
 export const TICKET_NAME = 'Agility arena ticket';
 export const ARENA_VARP = 309; // agilityarena_varbit
-export const PAID_BIT = 1;
-export const PILLAR_TAGGED_BIT = 0;
+const PAID_BIT = 1;
+const PILLAR_TAGGED_BIT = 0;
 
 /**
  * Rough surface Karamja / Brimhaven footprint (ship landing through arena entrance).
@@ -58,9 +58,7 @@ export const PILLARS: ReadonlyArray<{ x: number; z: number }> = [
 ];
 
 /** Server ticket enum is 0–23 only. */
-export const TICKET_PILLAR_COUNT = 24;
-export const LANDING_PLATFORM = 24;
-
+const TICKET_PILLAR_COUNT = 24;
 interface ArenaPoint {
     x: number;
     z: number;
@@ -72,7 +70,7 @@ interface ArenaAxis {
 }
 
 /** Furthest we search around an obstacle's ideal from-side stand tile. */
-export const OBSTACLE_APPROACH_RADIUS = 3;
+const OBSTACLE_APPROACH_RADIUS = 3;
 
 /** Cardinal direction of travel from one platform to an adjacent platform. */
 export function obstacleAxis(from: number, to: number): ArenaAxis | null {
@@ -255,7 +253,7 @@ export const ARDY_BANK = { x: 2655, z: 3283, level: 0 };
 export const ARENA_ENTRANCE = { x: 2809, z: 3194, level: 0 };
 export const LADDER_DOWN_STAND = { x: 2809, z: 3194, level: 0 };
 
-export function bitSet(varp: number, bit: number): boolean {
+function bitSet(varp: number, bit: number): boolean {
     return ((varp >>> bit) & 1) === 1;
 }
 
@@ -428,7 +426,7 @@ export function canStartObstacle(_animating: boolean, inPit: boolean): boolean {
 }
 
 /** Manhattan tile distance between two arena platforms (for hop tie-breaks). */
-export function platformGeoDist(a: number, b: number): number {
+function platformGeoDist(a: number, b: number): number {
     const pa = PILLARS[a];
     const pb = PILLARS[b];
     if (!pa || !pb) {

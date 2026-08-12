@@ -27,7 +27,7 @@ function fissure(): ReturnType<typeof locNear> {
  * visits. Looking at the mound re-creates whichever fissure the stage has earned,
  * and every fissure step goes through here first.
  */
-export async function ensureFissure(log: (m: string) => void): Promise<boolean> {
+async function ensureFissure(log: (m: string) => void): Promise<boolean> {
     if (fissure()) {
         return true;
     }

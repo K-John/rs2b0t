@@ -212,7 +212,7 @@ async function crossDoor(
  * stranded in are ones it can only have entered with the lever state that opens
  * the way back.
  */
-export async function reachPerfectGold(log: (m: string) => void): Promise<boolean> {
+async function reachPerfectGold(log: (m: string) => void): Promise<boolean> {
     for (let pass = 0; pass < 3; pass++) {
         // Ogres line the lever route and hellhounds guard the rocks; a custom
         // step this long has to pump the eat hook itself.

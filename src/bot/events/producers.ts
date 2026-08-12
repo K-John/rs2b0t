@@ -20,15 +20,6 @@ let wasIngame = false;
 /** Families that need a rescan before the next bus emit. */
 let dirty: ProducerDirtyFlags = emptyDirty(true);
 
-/** Test hook — reset caches + dirty state. */
-export function resetProducersForTests(): void {
-    lastTick = -1;
-    lastXp = lastLevel = lastInvIds = lastInvCounts = lastVarps = null;
-    lastChatSig = null;
-    wasIngame = false;
-    dirty = emptyDirty(true);
-}
-
 /**
  * Called from the packet path after the client has applied the opcode.
  * Marks which cached tables are stale; {@link pumpProducers} does the rescan.

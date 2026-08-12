@@ -134,7 +134,7 @@ function chronozon(): Npc | null {
  * on the way to arming all four bits — so "not in the scene" almost always means
  * "not back yet", not "we are in the wrong place".
  */
-export async function walkToChronozon(log: (m: string) => void): Promise<boolean> {
+async function walkToChronozon(log: (m: string) => void): Promise<boolean> {
     if (inChronozonLair(Game.tile()) && chronozon()) {
         return true;
     }

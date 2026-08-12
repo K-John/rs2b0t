@@ -127,7 +127,7 @@ const GIVE_UP = 3;
  * Drive the whole crawl. Returns once the card is fully signed; the guard still
  * has to be told, which {@link handInBarcrawl} does.
  */
-export async function runBarcrawl(log: (m: string) => void, onProgress?: Progress): Promise<boolean> {
+async function runBarcrawl(log: (m: string) => void, onProgress?: Progress): Promise<boolean> {
     let missed = 0;
     for (let pass = 0; pass < BARS.length * 2; pass++) {
         const progress = await readCard(m => log(`  ${m}`));
@@ -186,7 +186,7 @@ async function talkToGuard(log: (m: string) => void): Promise<boolean> {
  * Give the signed card to the gate guard. `outpost_guard_progress` consumes it
  * and sets `%barcrawl` to complete, which is what actually opens the gate.
  */
-export async function handInBarcrawl(log: (m: string) => void): Promise<boolean> {
+async function handInBarcrawl(log: (m: string) => void): Promise<boolean> {
     if (!(await talkToGuard(log))) {
         return false;
     }
@@ -210,7 +210,7 @@ type GuardVerdict = 'complete' | 'issued' | 'retry';
  * "already done" sends the bot at a gate that will not open, for good. Only
  * "'Ello friend." means finished.
  */
-export async function askGuard(log: (m: string) => void): Promise<GuardVerdict> {
+async function askGuard(log: (m: string) => void): Promise<GuardVerdict> {
     if (!(await talkToGuard(log))) {
         log('the outpost guard never opened a dialogue');
         return 'retry';

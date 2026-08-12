@@ -250,11 +250,6 @@ export const FISH_CAMP_COOK_PLANS: Readonly<Record<string, FishCampCookPlan>> = 
     }
 };
 
-/** @deprecated Prefer {@link FISH_CAMP_COOK_PLANS} + role; kept for simple pier lookup. */
-export const FISH_CAMP_COOK_SURFACES: Readonly<Record<string, CookingSurface>> = Object.fromEntries(
-    Object.entries(FISH_CAMP_COOK_PLANS).map(([k, v]) => [k, v.pier ?? v.bank!])
-);
-
 export function cookSurfaceForFishCamp(
     campName: string,
     role: CookSurfaceRole = 'pier'

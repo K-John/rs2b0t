@@ -206,7 +206,7 @@ import {
 import { defineBot, registerScript } from './defineBot.js';
 import { Loadouts } from '../api/items/loadoutStore.js';
 
-export const API_VERSION = 1;
+const API_VERSION = 1;
 
 export function installAbi(): void {
     const abi = Object.freeze({

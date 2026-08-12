@@ -15,7 +15,7 @@ export const DRAGON_STAGE = {
     COMPLETE: 10
 } as const;
 
-export const DRAGON_QUEST = 'Dragon Slayer';
+const DRAGON_QUEST = 'Dragon Slayer';
 
 function normalize(lines: readonly string[] | string): string {
     return (typeof lines === 'string' ? lines : lines.join(' '))

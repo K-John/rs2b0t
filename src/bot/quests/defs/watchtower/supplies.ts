@@ -126,7 +126,7 @@ export function sourceLightSource(snap: QuestSnapshot): QuestStep | null {
 }
 
 /** Ordered by preference; the module withdraws whichever the bank actually holds. */
-export const QUEST_FOODS = ['Tuna', 'Swordfish', 'Lobster'] as const;
+const QUEST_FOODS = ['Tuna', 'Swordfish', 'Lobster'] as const;
 
 export function carriedFood(snap: QuestSnapshot): number {
     return QUEST_FOODS.reduce((total, food) => total + (snap.inv.get(food.toLowerCase()) ?? 0), 0);

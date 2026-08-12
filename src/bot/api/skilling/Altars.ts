@@ -15,7 +15,7 @@ interface AltarLocation {
  * data for being close to a bank. Chaos altars are deliberately absent.
  * @see docs/reference/clues-mechanics.md#prayer-between-trails
  */
-export const ALTARS: AltarLocation[] = [
+const ALTARS: AltarLocation[] = [
     { name: 'Varrock church', tile: new Tile(3253, 3486, 0), loc: 'Altar' },
     { name: 'Edgeville Monastery', tile: new Tile(3051, 3498, 1), loc: 'Altar', requires: { skill: { name: 'prayer', level: 31 } } },
     { name: 'Al Kharid church', tile: new Tile(3243, 3205, 0), loc: 'Altar' },

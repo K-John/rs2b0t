@@ -10,7 +10,7 @@ export const MAZE_ORIGIN = { x: 45 * 64, z: 71 * 64 } as const; // (2880, 4544)
 /** SW origin of 3×3 Strange shrine (loc 3634 macro_maze_complete). */
 export const MAZE_SHRINE = { x: 2911, z: 4575 } as const; // local (31,31)
 /** Content pack: length=3 width=3 on macro_maze_complete. */
-export const MAZE_SHRINE_SIZE = 3 as const;
+const MAZE_SHRINE_SIZE = 3 as const;
 /**
  * West door into the shrine chamber (local 30,32). Routes must include this —
  * the south face of the shrine SW is a solid wall, so manhattan-adjacent south
@@ -122,7 +122,7 @@ const CARDINAL: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
  * of the SW corner alone: south/west of SW are walls, so that wrongly ends the
  * route one door short of the chamber.
  */
-export function isShrineTouchStand(
+function isShrineTouchStand(
     g: MazeGraph,
     x: number,
     z: number,

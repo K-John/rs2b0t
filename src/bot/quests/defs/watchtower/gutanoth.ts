@@ -169,7 +169,7 @@ export async function leaveLowerCity(log: (m: string) => void): Promise<boolean>
     return true;
 }
 
-export async function jumpChasm(log: (m: string) => void): Promise<boolean> {
+async function jumpChasm(log: (m: string) => void): Promise<boolean> {
     if (watchtowerArea(Game.tile()) === 'cityGuard') {
         return true;
     }
@@ -265,7 +265,7 @@ export async function answerRiddle(log: (m: string) => void): Promise<boolean> {
  * The region beyond overlaps the battlement side geographically, so membership is
  * decided by asking the pathfinder rather than by a bounding box.
  */
-export async function pastEastGate(): Promise<boolean> {
+async function pastEastGate(): Promise<boolean> {
     const here = Game.tile();
     if (!here) {
         return false;

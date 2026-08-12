@@ -212,7 +212,7 @@ export function fishTickManipProfile(method: FishTickManip, label = methodLabel(
     }
 }
 
-export function mineTickManipProfile(method: MineTickManip, label = methodLabel('mine', method)): TickManipProfile {
+function mineTickManipProfile(method: MineTickManip, label = methodLabel('mine', method)): TickManipProfile {
     switch (method) {
         case 'iron-cadence':
             return {

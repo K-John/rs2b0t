@@ -78,7 +78,7 @@ export interface ReturnToAnchorOptions {
     status?: string;
 }
 
-export function distanceToAnchor(host: AnchorHost, here: WorldTile | null = Game.tile()): number | null {
+function distanceToAnchor(host: AnchorHost, here: WorldTile | null = Game.tile()): number | null {
     if (!here) {
         return null;
     }

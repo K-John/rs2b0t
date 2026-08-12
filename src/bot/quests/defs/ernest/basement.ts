@@ -291,7 +291,7 @@ async function leaveBasement(log: (m: string) => void): Promise<boolean> {
  * after one, so a single miss blacklists the edge and strands the bot in a pocket
  * with no other way out. Reach retries, which is the whole difference.
  */
-export async function leaveAlcove(log: (m: string) => void): Promise<boolean> {
+async function leaveAlcove(log: (m: string) => void): Promise<boolean> {
     if (!inAlcove(here())) {
         return true;
     }

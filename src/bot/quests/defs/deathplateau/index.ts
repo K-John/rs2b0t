@@ -105,7 +105,7 @@ export function equipFloor(snap: QuestSnapshot, progress: QuestProgress | undefi
     return stage;
 }
 
-export function mapFlag(progress: QuestProgress | undefined, name: string): boolean {
+function mapFlag(progress: QuestProgress | undefined, name: string): boolean {
     return hasFlag(progress, name);
 }
 

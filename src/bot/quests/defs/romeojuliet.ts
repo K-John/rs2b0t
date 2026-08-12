@@ -96,7 +96,7 @@ export function parseRomeoJulietJournal(lines: readonly string[] | string): numb
     return undefined;
 }
 
-export async function readRomeoJulietStage(): Promise<number | undefined> {
+async function readRomeoJulietStage(): Promise<number | undefined> {
     const status = Quests.status('Romeo & Juliet');
     if (status === 'complete') return ROMEO_JULIET_STAGE.COMPLETE;
     if (status === 'notStarted') return ROMEO_JULIET_STAGE.NOT_STARTED;

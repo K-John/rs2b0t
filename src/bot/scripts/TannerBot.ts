@@ -37,7 +37,7 @@ interface TanMode {
 
 // every dragonhide shares the display name "Dragonhide", so this bot keys off
 // object ids throughout and only uses names for logging
-export const TAN_MODES: Record<string, TanMode> = {
+const TAN_MODES: Record<string, TanMode> = {
     'Soft leather': { hideId: 1739, hideLabel: 'Cow hide', productId: 1741, productLabel: 'Leather', tanAllComId: 8686 },
     'Hard leather': { hideId: 1739, hideLabel: 'Cow hide', productId: 1743, productLabel: 'Hard leather', tanAllComId: 8690 },
     'Green dragonhide': { hideId: 1753, hideLabel: 'Green dragonhide', productId: 1745, productLabel: 'Green d-leather', tanAllComId: 8695 },

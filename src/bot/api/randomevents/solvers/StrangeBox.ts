@@ -3,7 +3,7 @@ import { Execution } from '../../core/Execution.js';
 import { Inventory } from '../../hud/Inventory.js';
 import { Modals } from '../../hud/Modals.js';
 
-export const CUBE_IF = {
+const CUBE_IF = {
     root: 6554,
     models: [6555, 6557, 6559] as const,
     question: 6561,
@@ -51,7 +51,7 @@ export function solveCube(question: string, models: [number | null, number | nul
     return null;
 }
 
-export const LAMP_IF = {
+const LAMP_IF = {
     root: 2808,
     confirm: 2831,
     skills: {

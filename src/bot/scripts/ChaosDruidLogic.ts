@@ -4,7 +4,7 @@ import type { WorldTile } from '../adapter/ClientAdapter.js';
 // 3109,9937 is a two-tile collision pocket and cannot be used as a walk target.
 export const CHAOS_DRUID_FIELD: WorldTile = { x: 3110, z: 9936, level: 0 };
 export const CHAOS_DRUID_FIELD_RADIUS = 14;
-export const EDGEVILLE_DUNGEON_BOUNDS = {
+const EDGEVILLE_DUNGEON_BOUNDS = {
     minX: 3072,
     maxX: 3199,
     minZ: 9792,
@@ -19,7 +19,7 @@ interface DungeonBounds {
 }
 
 // m40_148 (warrior/ledge levels) plus m40_149 (the pit under the ledge)
-export const YANILLE_DUNGEON_BOUNDS: DungeonBounds = {
+const YANILLE_DUNGEON_BOUNDS: DungeonBounds = {
     minX: 2560,
     maxX: 2623,
     minZ: 9472,

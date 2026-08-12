@@ -18,7 +18,7 @@ function hillsideEntrance(): ReturnType<typeof locNear> {
     return locNear(SV_LOC.HILLSIDE_ENTRANCE, 'Enter', 10);
 }
 
-export async function revealDoors(log: (m: string) => void): Promise<boolean> {
+async function revealDoors(log: (m: string) => void): Promise<boolean> {
     if (carvedDoors() || hillsideEntrance()) {
         return true;
     }
@@ -233,7 +233,7 @@ export async function placeBone(log: (m: string) => void): Promise<boolean> {
  * `Open`, which teleports rather than walks. Nothing routes through them: they are
  * excluded from the door bake precisely because three bones is the only way in.
  */
-export async function crossTombDoors(dir: 'north' | 'south', log: (m: string) => void): Promise<boolean> {
+async function crossTombDoors(dir: 'north' | 'south', log: (m: string) => void): Promise<boolean> {
     const want = dir === 'north';
     const there = (): boolean => inDolmenRoom(Game.tile()) === want;
     if (there()) {
@@ -315,7 +315,7 @@ export async function workTheDolmen(log: (m: string) => void): Promise<boolean> 
     return fightNazastarool(log);
 }
 
-export async function fightNazastarool(log: (m: string) => void): Promise<boolean> {
+async function fightNazastarool(log: (m: string) => void): Promise<boolean> {
     const deadline = performance.now() + FIGHT_MS;
     while (performance.now() < deadline) {
         const target = Npcs.query().name(SV_NPC.NAZASTAROOL).action('Attack').within(14).nearest();
@@ -331,8 +331,4 @@ export async function fightNazastarool(log: (m: string) => void): Promise<boolea
     }
     log('Nazastarool outlasted the fight budget');
     return false;
-}
-
-export function beadsOn(): boolean {
-    return Equipment.contains(SV_ITEM.DEAD_BEADS.name);
 }

@@ -37,7 +37,7 @@ export function parseDruidicRitualJournal(lines: readonly string[] | string): nu
     return undefined;
 }
 
-export async function readDruidicRitualStage(): Promise<number | undefined> {
+async function readDruidicRitualStage(): Promise<number | undefined> {
     const status = Quests.status('Druidic Ritual');
     if (status === 'complete') return DRUIDIC_RITUAL_STAGE.COMPLETE;
     if (status === 'notStarted') return DRUIDIC_RITUAL_STAGE.NOT_STARTED;
@@ -78,7 +78,7 @@ const CAULDRON_INSIDE = new Tile(2892, 9831, 0);
 const CAULDRON_ID = 2142;
 const SUIT_OF_ARMOUR_ID = 453;
 
-export const DRUIDIC_RITUAL_HOPS: LadderHop[] = [
+const DRUIDIC_RITUAL_HOPS: LadderHop[] = [
     {
         stand: DUNGEON_SURFACE,
         locName: 'Ladder',

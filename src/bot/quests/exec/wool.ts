@@ -17,7 +17,7 @@ export interface WoolSites {
     spinLabel: string;
 }
 
-export async function shearOne(pen: Tile, log: (m: string) => void): Promise<boolean> {
+async function shearOne(pen: Tile, log: (m: string) => void): Promise<boolean> {
     const before = Inventory.count('Wool');
     const sheep = Npcs.query()
         .name('Sheep')
@@ -37,7 +37,7 @@ export async function shearOne(pen: Tile, log: (m: string) => void): Promise<boo
 }
 
 /** @see docs/decisions/level-change-lag.md — a wheel on an upper floor reads empty for a tick. */
-export async function spinAllWool(wheelStand: Tile, log: (m: string) => void): Promise<boolean> {
+async function spinAllWool(wheelStand: Tile, log: (m: string) => void): Promise<boolean> {
     const ballsBefore = Inventory.count('Ball of wool');
     if (!ChatDialog.isMakeMenu()) {
         const wheel = Locs.query().name('Spinning wheel').action('Spin').within(8).nearest();

@@ -101,7 +101,7 @@ export function stopReasonOf(reason: string): string {
 }
 
 /** One-line summary of how a finished run ended, for the next run's log. */
-export function endEpitaph(ctx: ScriptContext): string {
+function endEpitaph(ctx: ScriptContext): string {
     if (ctx.state === 'crashed') {
         return `crashed: ${ctx.crashError?.message ?? 'unknown error'}`;
     }

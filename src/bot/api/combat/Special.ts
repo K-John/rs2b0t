@@ -2,9 +2,9 @@ import { actions, reader } from '../../adapter/ClientAdapter.js';
 import { Execution } from '../core/Execution.js';
 
 /** specwep.rs2: %sa_energy, 0–1000, +100 every 50 ticks. */
-export const SA_ENERGY_VARP = 300;
+const SA_ENERGY_VARP = 300;
 /** %sa_attack — set by the spec bar, cleared by set_sa_vars once the hit lands. */
-export const SA_ARMED_VARP = 301;
+const SA_ARMED_VARP = 301;
 export const SA_MAX_ENERGY = 1000;
 
 const ARM_CONFIRM_TICKS = 2;

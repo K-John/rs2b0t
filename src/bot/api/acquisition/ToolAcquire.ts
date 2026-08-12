@@ -652,7 +652,7 @@ export function shopableMissingFishingGear(
  * Whether Nurmof (or another underground vendor) needs an explicit surface hop
  * before the stand walk. Pure geography — used by {@link walkToToolVendor}.
  */
-export function needsToolVendorSurfaceHop(
+function needsToolVendorSurfaceHop(
     vendor: ToolVendor,
     here: { x: number; z: number; level: number } | null
 ): boolean {

@@ -72,7 +72,7 @@ interface ShopSource {
     cost: number;
 }
 
-export const EXTRA_ITEM_SHOPS: Record<string, ShopSource> = {
+const EXTRA_ITEM_SHOPS: Record<string, ShopSource> = {
     Rope: { npc: 'Aemad', stand: new Tile(2613, 3294, 0), cost: 18 }
 };
 
@@ -90,7 +90,7 @@ export function extraItemShop(name: string): ShopSource | null {
  * (`shantaypass.inv` stock16, 5gp), and his counter is north of his own gate, so
  * the trip is always payable from the side the bot is stuck on.
  */
-export const GATE_ITEM_SHOPS: Record<string, ShopSource> = {
+const GATE_ITEM_SHOPS: Record<string, ShopSource> = {
     'Shantay pass': { npc: 'Shantay', stand: new Tile(3304, 3122, 0), cost: 5 }
 };
 

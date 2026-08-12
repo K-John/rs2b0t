@@ -186,16 +186,6 @@ export function bankPaceTicks(rand: () => number = Math.random): number {
     return rand() < 0.35 ? 2 : 1;
 }
 
-/** @deprecated Prefer {@link cookPaceTicks}; action loops run on game ticks. */
-export function cookHumanDelayMs(rand: () => number = Math.random): number {
-    return cookPaceTicks(rand) * 600;
-}
-
-/** @deprecated Prefer {@link bankPaceTicks}; action loops run on game ticks. */
-export function bankHumanDelayMs(rand: () => number = Math.random): number {
-    return bankPaceTicks(rand) * 600;
-}
-
 export function cookedNameFromRaw(rawName: string): string {
     const n = rawName.trim();
     if (/^raw\s+/i.test(n)) {

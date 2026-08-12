@@ -38,7 +38,7 @@ export const SUPPLY = {
     NURMOF: { npc: 'Nurmof', anchor: new Tile(2998, 9844, 0) }
 } as const;
 
-export const SUPPLY_LOC = {
+const SUPPLY_LOC = {
     FOUNTAIN: new Tile(2949, 3381, 0),
     /**
      * Clay comes from the Varrock mine — it is on the shopping sweep, beside

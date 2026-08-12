@@ -91,7 +91,7 @@ export async function readBasemapLocalCache(): Promise<BasemapLocalRecord | null
     }
 }
 
-export async function writeBasemapLocalCache(rec: BasemapLocalRecord): Promise<void> {
+async function writeBasemapLocalCache(rec: BasemapLocalRecord): Promise<void> {
     const db = await openDb();
     await new Promise<void>((resolve, reject) => {
         const tx = db.transaction(STORE, 'readwrite');
@@ -121,7 +121,7 @@ export async function clearBasemapLocalCache(): Promise<void> {
     }
 }
 
-export async function imageSourceToPngBlob(
+async function imageSourceToPngBlob(
     image: CanvasImageSource,
     width: number,
     height: number

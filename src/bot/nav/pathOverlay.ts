@@ -140,14 +140,14 @@ export function buildPathQuads(
     return out;
 }
 
-export function quadCenter(corners: TileQuad['corners']): { x: number; y: number } {
+function quadCenter(corners: TileQuad['corners']): { x: number; y: number } {
     return {
         x: (corners[0].x + corners[1].x + corners[2].x + corners[3].x) / 4,
         y: (corners[0].y + corners[1].y + corners[2].y + corners[3].y) / 4
     };
 }
 
-export function drawHopLabel(
+function drawHopLabel(
     ctx: CanvasRenderingContext2D,
     label: string,
     cx: number,
@@ -356,7 +356,7 @@ export function liveTransportLoc(t: PublishedPathTile): {
 }
 
 /** Draw hulls for transport locs on the published path (object highlighter). */
-export function paintNavLocHulls(ctx: CanvasRenderingContext2D): void {
+function paintNavLocHulls(ctx: CanvasRenderingContext2D): void {
     if (!isNavPathPaintEnabled()) {
         return;
     }

@@ -144,7 +144,7 @@ export function makePaste(snap: QuestSnapshot): QuestStep | null {
  * Item-on-NPC is an opnpcu, so this walks and then uses. It must not open a
  * conversation first, which is all `Reach.npcDialog` does.
  */
-export async function useHeldOnNpc(
+async function useHeldOnNpc(
     itemId: number,
     npcName: string,
     near: Tile,

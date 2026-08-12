@@ -110,7 +110,7 @@ async function pickpocketFundingMan(anchor: Tile, log: (m: string) => void): Pro
 }
 
 /** Buy one Kebab from the Al Kharid seller (exact "Yes please." dialogue). */
-export async function buyKebab(log: (m: string) => void): Promise<boolean> {
+async function buyKebab(log: (m: string) => void): Promise<boolean> {
     if (EventSignal.pending()) return false;
     if (!(await Traversal.walkResilient(KEBAB_SELLER, { radius: 2, attempts: 3, timeoutMs: 60_000, log }))) {
         return false;

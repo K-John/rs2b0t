@@ -8,7 +8,7 @@ const YES_CRAWL = ['Yes Please, I can think of nothing nicer!'];
 const YES_NOTES = ["Yes, I'll make some notes."];
 
 /** Crawling in needs the tattered scroll read; the pack routes over the log bridge. */
-export async function enterBerviriusTomb(log: (m: string) => void): Promise<boolean> {
+async function enterBerviriusTomb(log: (m: string) => void): Promise<boolean> {
     if (here() === 'berviriusTomb') {
         return true;
     }

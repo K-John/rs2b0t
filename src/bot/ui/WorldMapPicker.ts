@@ -269,7 +269,7 @@ function paintYouAreHere(
  *
  * Manual Rebuild always regenerates and overwrites the local entry.
  */
-export async function loadBasemap(): Promise<LoadedBasemap | null> {
+async function loadBasemap(): Promise<LoadedBasemap | null> {
     if (!basemapPromise) {
         basemapPromise = (async () => {
             const crcKey = await fetchClientCrcKey();
@@ -336,13 +336,8 @@ export async function loadBasemap(): Promise<LoadedBasemap | null> {
     return basemapPromise;
 }
 
-/** Reset in-memory basemap promise (tests). Does not clear IndexedDB. */
-export function resetBasemapCache(): void {
-    basemapPromise = null;
-}
-
 /** Install basemap for this page session (after manual rebuild). */
-export function installBasemapOverride(next: LoadedBasemap): void {
+function installBasemapOverride(next: LoadedBasemap): void {
     basemapPromise = Promise.resolve({ ...next, hint: undefined });
 }
 

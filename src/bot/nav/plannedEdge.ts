@@ -21,7 +21,3 @@ export function isAdjacentSameLevel(edge: PlannedEdge): boolean {
         && Math.max(Math.abs(edge.from.x - edge.to.x), Math.abs(edge.from.z - edge.to.z)) === 1
     );
 }
-
-export function isCrossLevel(edge: PlannedEdge): boolean {
-    return edge.from.level !== edge.to.level;
-}

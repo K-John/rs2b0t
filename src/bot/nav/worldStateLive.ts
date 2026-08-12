@@ -30,7 +30,7 @@ import { wildernessLevelAt } from './wilderness.js';
  * Content default on portal when null is Sedridor — live bots that entered via
  * a wizard will have session set.
  */
-export function snapshotEssenceExitReturn(): EssenceReturnId | undefined {
+function snapshotEssenceExitReturn(): EssenceReturnId | undefined {
     return EssenceSession.getReturnId();
 }
 

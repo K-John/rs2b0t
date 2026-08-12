@@ -72,11 +72,6 @@ function foodHeld(snap: QuestSnapshot): number {
 /** Refusals are silent — `equip` just returns false — so a re-picked item burns the run. */
 const unwearable = new Set<string>();
 
-/** Test seam. */
-export function resetUnwearable(): void {
-    unwearable.clear();
-}
-
 const TIERS = ['rune', 'adamant', 'mithril', 'black', 'steel', 'iron', 'bronze'] as const;
 
 const GEAR_SLOTS: readonly { slot: string; kinds: readonly string[] }[] = [
@@ -633,7 +628,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     return { kind: 'wait', reason: `unrecognized Troll Stronghold stage ${stage}` };
 }
 
-export function warnTrollStrongholdReadiness(): string | null {
+function warnTrollStrongholdReadiness(): string | null {
     const bits: string[] = [];
     const combat = Math.min(Skills.level('attack'), Skills.level('strength'), Skills.level('defence'));
     if (Skills.level('agility') < 15) {

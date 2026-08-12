@@ -438,13 +438,7 @@ async function wieldMelee(name: string, log: (m: string) => void): Promise<boole
     return false;
 }
 
-/** Reset between runs so a fixed loadout is not written off for the whole session. */
-export function resetMeleeWeapon(): void {
-    meleeGaveUp = false;
-    wieldTries = 0;
-}
-
-export function meleeWeapon(snap: QuestSnapshot): QuestStep | null {
+function meleeWeapon(snap: QuestSnapshot): QuestStep | null {
     const name = meleeWeaponName();
     if (!name || meleeGaveUp) {
         return null;

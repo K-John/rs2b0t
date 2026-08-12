@@ -108,7 +108,7 @@ const ALMERA: NpcStop = {
     prefer: ['How can I help?']
 };
 
-export const WATERFALL_HOPS: LadderHop[] = [
+const WATERFALL_HOPS: LadderHop[] = [
     { stand: new Tile(2533, 3156, 0), locName: 'Ladder', op: 'Climb-down', arrive: new Tile(2533, 9556, 0) },
     { stand: new Tile(2533, 9556, 0), locName: 'Ladder', op: 'Climb-up', arrive: new Tile(2533, 3156, 0) }
 ];

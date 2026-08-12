@@ -4,7 +4,7 @@ import { Execution } from '../../../api/core/Execution.js';
 import { Quests } from '../../../api/hud/Quests.js';
 import type { QuestProgress } from '../../engine/types.js';
 
-export const PRINCE_QUEST = 'Prince Ali Rescue';
+const PRINCE_QUEST = 'Prince Ali Rescue';
 
 export const PRINCE_STAGE = {
     NOT_STARTED: 0,

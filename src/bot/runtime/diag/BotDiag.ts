@@ -28,7 +28,7 @@ interface DiagClientView {
     ingame: boolean;
 }
 
-export class BotDiagnostics {
+class BotDiagnostics {
     readonly timer: PhaseTimer;
     private view: DiagClientView | null = null;
 

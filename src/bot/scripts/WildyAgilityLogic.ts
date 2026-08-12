@@ -22,7 +22,7 @@ export const RIDGE_APPROACH = new Tile(2998, 3916, 0);
  */
 export const COURSE_X_RADIUS = 24;
 /** Lateral width of the ridge→gate entry corridor (approach / EnterCourse). */
-export const ENTRY_RADIUS = 10;
+const ENTRY_RADIUS = 10;
 export const SEARCH_RADIUS = 20;
 /** Obstacle pits (ropeswing / log) teleport far above the course in world-z. */
 export const PIT_Z_GAP = 2000;
@@ -36,7 +36,7 @@ export const RIDGE_OP = 'Open';
 export const PIT_LADDER_OP = 'Climb-up';
 
 /** Starting-side tiles used when recovering from a failed / wrong-side attempt. */
-export const OBSTACLE_START: Readonly<Record<string, WorldTile>> = {
+const OBSTACLE_START: Readonly<Record<string, WorldTile>> = {
     'obstacle pipe': { x: 3004, z: 3937, level: 0 },
     ropeswing: { x: 3005, z: 3952, level: 0 },
     'stepping stone': { x: 3002, z: 3960, level: 0 },

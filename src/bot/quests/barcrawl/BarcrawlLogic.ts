@@ -13,7 +13,6 @@ import Tile from '../../api/core/Tile.js';
  * per bar into a scroll modal, the same shape as a quest journal.
  */
 
-export const BARCRAWL_CARD_ID = 455;
 export const COINS_ID = 995;
 export const BARCRAWL_CARD = 'Barcrawl card';
 export const COINS = 'Coins';

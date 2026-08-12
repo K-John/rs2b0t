@@ -43,7 +43,7 @@ interface LeatherKind {
 
 // levels/quantities are the engine's craft_leather_table; chaps deliberately has
 // no make10 because all three of its buttons make one (engine-side)
-export const LEATHERS: Record<string, LeatherKind> = {
+const LEATHERS: Record<string, LeatherKind> = {
     Leather: {
         leatherId: 1741,
         flow: 'interface',
