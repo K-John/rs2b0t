@@ -27,3 +27,11 @@ jobs:
 
       - name: lint
         run: bun run lint
+
+      - name: prose
+        continue-on-error: true
+        run: bun run lint:prose
+
+      - name: prose extras
+        continue-on-error: true
+        run: bun run lint:prose:extras
