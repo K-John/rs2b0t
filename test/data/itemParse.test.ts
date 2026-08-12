@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { joinItemDb, parseItemDefs, parseObjPack } from '../../../tools/items/parse.js';
+import { joinItemDb, parseItemDefs, parseObjPack } from '../../tools/items/parse.js';
 
 const SCIMITAR = `
 [rune_scimitar]
