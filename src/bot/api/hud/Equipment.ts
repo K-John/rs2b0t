@@ -1,5 +1,5 @@
 import { reader } from '../../adapter/ClientAdapter.js';
-import { ActionRouter } from '../../input/ActionRouter.js';
+import { Input } from '../input/Input.js';
 import { Execution } from '../core/Execution.js';
 import { Bank } from './Bank.js';
 import { Inventory, InvItem } from './Inventory.js';
@@ -58,7 +58,7 @@ export const Equipment = {
             return false;
         }
 
-        await ActionRouter.driver.invButton(worn.id, worn.slot, worn.comId, opIndex + 1);
+        await Input.invButton(worn.id, worn.slot, worn.comId, opIndex + 1);
         return Execution.delayUntil(() => !Equipment.contains(name), 3000);
     }
 };

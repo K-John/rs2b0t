@@ -1,6 +1,6 @@
 import type { InvItemSnapshot, WorldTile } from '../../adapter/ClientAdapter.js';
 import { reader, actions } from '../../adapter/ClientAdapter.js';
-import { ActionRouter } from '../../input/ActionRouter.js';
+import { Input } from '../input/Input.js';
 import type { BankNpcAccess, BankObjectAccess } from '../banking/BankLocations.js';
 import { Execution } from '../core/Execution.js';
 import { Reachability } from '../../nav/geometry/Reachability.js';
@@ -245,7 +245,7 @@ export const Bank = {
                 return;
             }
 
-            ActionRouter.driver.invButton(item.id, item.slot, item.comId, op);
+            Input.invButton(item.id, item.slot, item.comId, op);
             await Execution.delayUntil(() => !reader.bankSideItems().some(i => i.slot === item.slot && i.id === item.id), 2000);
         }
     },
@@ -474,7 +474,7 @@ function clickInvButtonMatching(
     for (let i = 0; i < item.ops.length; i++) {
         const op = item.ops[i];
         if (op !== null && norm(op) === opWanted) {
-            return ActionRouter.driver.invButton(item.id, item.slot, item.comId, i + 1);
+            return Input.invButton(item.id, item.slot, item.comId, i + 1);
         }
     }
 

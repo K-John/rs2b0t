@@ -1,5 +1,5 @@
 import { actions, reader } from '../adapter/ClientAdapter.js';
-import { ActionRouter } from '../input/ActionRouter.js';
+import { Input } from '../api/input/Input.js';
 import type { Player } from '../api/entities/index.js';
 import { Modals } from '../api/hud/Modals.js';
 
@@ -75,11 +75,11 @@ export const Duel = {
     },
 
     challenge(player: Player): boolean | Promise<boolean> {
-        return ActionRouter.driver.interactPlayer(player.index, CHALLENGE_OP);
+        return Input.interactPlayer(player.index, CHALLENGE_OP);
     },
 
     fight(player: Player): boolean | Promise<boolean> {
-        return ActionRouter.driver.interactPlayer(player.index, FIGHT_OP);
+        return Input.interactPlayer(player.index, FIGHT_OP);
     },
 
     accept(): boolean {

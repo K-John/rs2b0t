@@ -1,6 +1,6 @@
 import type { InvItemSnapshot } from '../../adapter/ClientAdapter.js';
 import { reader } from '../../adapter/ClientAdapter.js';
-import { ActionRouter } from '../../input/ActionRouter.js';
+import { Input } from '../input/Input.js';
 import { Loc, Npc } from '../entities/index.js';
 
 const BACKPACK_CAPACITY = 28;
@@ -44,7 +44,7 @@ export class InvItem {
         const wanted = action.toLowerCase();
         for (let i = 0; i < this.snap.ops.length; i++) {
             if (this.snap.ops[i]?.toLowerCase() === wanted) {
-                const driver = ActionRouter.driver;
+                const driver = Input;
                 return this.componentOps
                     ? driver.invButton(this.snap.id, this.snap.slot, this.snap.comId, i + 1)
                     : driver.heldOp(this.snap.id, this.snap.slot, this.snap.comId, i + 1);
@@ -60,7 +60,7 @@ export class InvItem {
         if (this.componentOps || (target instanceof InvItem && target.componentOps)) {
             return false;
         }
-        const driver = ActionRouter.driver;
+        const driver = Input;
         if (target instanceof InvItem) {
             return driver.useItemOnItem(this.snap.id, this.snap.slot, this.snap.comId, target.snap.id, target.snap.slot, target.snap.comId);
         }

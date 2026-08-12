@@ -4,13 +4,13 @@ import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
 import { Player } from '#/bot/api/entities/index.js';
 import { DUEL_CONFIRM_MODAL, DUEL_SELECT_MODAL, DUEL_WIN_MODAL, Duel, parseDuelPartnerHeader } from '#/bot/scripts/DuelInterface.js';
 import { Modals } from '#/bot/api/hud/Modals.js';
-import { ActionRouter } from '#/bot/input/ActionRouter.js';
+import { Input } from '#/bot/api/input/Input.js';
 
 const originals = {
     modals: reader.modals,
     ifText: reader.ifText,
     ifButton: actions.ifButton,
-    interactPlayer: ActionRouter.driver.interactPlayer,
+    interactPlayer: Input.interactPlayer,
     closeModal: Modals.close
 };
 
@@ -18,7 +18,7 @@ afterEach(() => {
     reader.modals = originals.modals;
     reader.ifText = originals.ifText;
     actions.ifButton = originals.ifButton;
-    ActionRouter.driver.interactPlayer = originals.interactPlayer;
+    Input.interactPlayer = originals.interactPlayer;
     Modals.close = originals.closeModal;
 });
 
@@ -125,7 +125,7 @@ describe('Duel modal contract', () => {
 describe('Duel player operations', () => {
     test('uses OPPLAYER1 for Challenge/accept and OPPLAYER2 for Fight', async () => {
         const calls: { index: number; op: number }[] = [];
-        ActionRouter.driver.interactPlayer = (index, op) => {
+        Input.interactPlayer = (index, op) => {
             calls.push({ index, op });
             return true;
         };

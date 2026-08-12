@@ -12,7 +12,7 @@ import { nearestBank } from '../api/banking/BankLocations.js';
 import { SPECIAL_CROSSINGS, specialCrossingForTransport, meetsRequirement, meetsSkill, pickChoice } from './data/specialCrossings.js';
 import { Skills } from '../api/hud/Skills.js';
 import { Reachability } from './geometry/Reachability.js';
-import { ActionRouter } from '../input/ActionRouter.js';
+import { Input } from '../api/input/Input.js';
 import { Navigator, type PathResult } from './Navigator.js';
 import { DirectNavigator } from './DirectNavigator.js';
 import type { TransportInfo, Waypoint } from './PathFinder.js';
@@ -1051,7 +1051,7 @@ class WalkExecutorImpl {
                             `stall recovery (${idleTicks} ticks idle, stall=${follow.stallTicks}) → path idx ${recover} (${tiles[recover]!.x},${tiles[recover]!.z})`
                         );
                         const mark = GameMessages.mark();
-                        if (ActionRouter.driver.walk(local.lx, local.lz)) {
+                        if (Input.walk(local.lx, local.lz)) {
                             walkClickMark = mark;
                             walkClickAt = { x: me.x, z: me.z, level: me.level };
                             this.publishClientWalkSegment(me, tiles[recover]!);
@@ -1157,7 +1157,7 @@ class WalkExecutorImpl {
                         return false;
                     }
                     const mark = GameMessages.mark();
-                    const ok = ActionRouter.driver.walk(local.lx, local.lz);
+                    const ok = Input.walk(local.lx, local.lz);
                     if (ok) {
                         walkClickMark = mark;
                         walkClickAt = { x: me.x, z: me.z, level: me.level };

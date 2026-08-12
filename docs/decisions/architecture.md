@@ -40,10 +40,8 @@ A script calls `npc.interact('Attack')`. What happens:
 
 1. The entity wrapper resolves `'Attack'` to an **op number** by reading the client's
    own op list for that entity — the same strings the right-click menu shows.
-2. It calls [`ActionRouter.driver`](../../src/bot/input/ActionRouter.ts), which is a
-   [`DirectInputDriver`](../../src/bot/input/DirectInputDriver.ts) implementing the
-   [`InputDriver`](../../src/bot/input/InputDriver.ts) interface.
-3. The driver maps `(entity kind, op)` to a `MiniMenuAction` constant — for an NPC,
+2. It calls [`Input`](../../src/bot/api/input/Input.ts).
+3. `Input` maps `(entity kind, op)` to a `MiniMenuAction` constant — for an NPC,
    op 2 becomes `OP_NPC2` — and calls `actions.menuAction(action, a, b, c)`.
 4. The adapter writes those four values into the client's **own** `menuAction`,
    `menuParamA/B/C` arrays at a scratch slot and calls the client's

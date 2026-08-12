@@ -90,7 +90,7 @@ test('a script can restart after stopping itself during onStart', async () => {
     // Tail, not the whole log: ScriptRunner is a singleton, so whether a line
     // about an earlier run is carried in depends on what ran before this file.
     expect(ScriptRunner.ctx?.log.map(line => line.msg).slice(-3)).toEqual([
-        'Self-stopping test bot started (input: direct)',
+        'Self-stopping test bot started',
         'stopping — test: self-stopping bot',
         'stopped — test: self-stopping bot'
     ]);

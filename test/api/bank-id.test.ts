@@ -5,7 +5,7 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { actions, reader, type InvItemSnapshot } from '#/bot/adapter/ClientAdapter.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Bank } from '#/bot/api/hud/Bank.js';
-import { ActionRouter } from '#/bot/input/ActionRouter.js';
+import { Input } from '#/bot/api/input/Input.js';
 
 const originals = {
     answerCountDialog: actions.answerCountDialog,
@@ -18,7 +18,7 @@ const originals = {
     modals: reader.modals,
     delayTicks: Execution.delayTicks,
     delayUntil: Execution.delayUntil,
-    invButton: ActionRouter.driver.invButton
+    invButton: Input.invButton
 };
 
 afterEach(() => {
@@ -32,7 +32,7 @@ afterEach(() => {
     (reader as any).modals = originals.modals;
     (Execution as any).delayTicks = originals.delayTicks;
     (Execution as any).delayUntil = originals.delayUntil;
-    (ActionRouter.driver as any).invButton = originals.invButton;
+    (Input as any).invButton = originals.invButton;
 });
 
 function item(id: number, count: number, slot: number): InvItemSnapshot {
@@ -62,7 +62,7 @@ describe('Bank exact-ID helpers', () => {
         const bankItems = [item(293, 2, 0), item(298, 3, 1), item(293, 4, 2)];
         const clicked: number[] = [];
         (reader as any).bankItems = () => bankItems;
-        (ActionRouter.driver as any).invButton = (id: number) => {
+        (Input as any).invButton = (id: number) => {
             clicked.push(id);
             return true;
         };
@@ -89,7 +89,7 @@ describe('Bank exact-ID helpers', () => {
         (reader as any).countDialogOpen = () => true;
         (Execution as any).delayTicks = async () => {};
         (Execution as any).delayUntil = async (condition: () => boolean) => condition();
-        (ActionRouter.driver as any).invButton = (id: number) => {
+        (Input as any).invButton = (id: number) => {
             clicked.push(id);
             return true;
         };
@@ -125,7 +125,7 @@ describe('Bank named Withdraw-X', () => {
             (reader as any).bankItems = () => [namedItem(20)];
             readyBank(() => inventory);
             let clickedOperation = 0;
-            (ActionRouter.driver as any).invButton = (_id: number, _slot: number, _comId: number, op: number) => {
+            (Input as any).invButton = (_id: number, _slot: number, _comId: number, op: number) => {
                 clickedOperation = op;
                 inventory = [{ ...namedItem(quantity), comId: 3214 }];
                 return true;
@@ -145,7 +145,7 @@ describe('Bank named Withdraw-X', () => {
         const clickedOperations: number[] = [];
         (reader as any).bankItems = () => [namedItem(bankCount)];
         readyBank(() => inventory);
-        (ActionRouter.driver as any).invButton = (_id: number, _slot: number, _comId: number, op: number) => {
+        (Input as any).invButton = (_id: number, _slot: number, _comId: number, op: number) => {
             clickedOperations.push(op);
             const quantity = op === 3 ? 10 : op === 2 ? 5 : 1;
             const carried = inventory[0]?.count ?? 0;
@@ -171,7 +171,7 @@ describe('Bank named Withdraw-X', () => {
         (reader as any).bankItems = () => [xOnlyItem()];
         readyBank(() => inventory);
         let answered = 0;
-        (ActionRouter.driver as any).invButton = () => true;
+        (Input as any).invButton = () => true;
         (actions as any).answerCountDialog = (quantity: number) => {
             answered = quantity;
             inventory = [{ ...namedItem(quantity), comId: 3214 }];

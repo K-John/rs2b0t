@@ -1,5 +1,5 @@
 import { actions, reader } from '../../adapter/ClientAdapter.js';
-import { ActionRouter } from '../../input/ActionRouter.js';
+import { Input } from '../input/Input.js';
 import { Execution } from '../core/Execution.js';
 
 /**
@@ -140,7 +140,7 @@ export const ChatDialog = {
         }
 
         const before = reader.modals().main;
-        if (!(await ActionRouter.driver.invButton(item.id, item.slot, item.comId, opIndex + 1))) {
+        if (!(await Input.invButton(item.id, item.slot, item.comId, opIndex + 1))) {
             return false;
         }
 
@@ -172,7 +172,7 @@ export const ChatDialog = {
         }
 
         const before = reader.modals().main;
-        if (!(await ActionRouter.driver.invButton(item.id, item.slot, item.comId, bestIdx + 1))) {
+        if (!(await Input.invButton(item.id, item.slot, item.comId, bestIdx + 1))) {
             return false;
         }
 
@@ -181,7 +181,7 @@ export const ChatDialog = {
 
     async continue(): Promise<boolean> {
         const before = reader.modals().chat;
-        if (!(await ActionRouter.driver.continueDialog())) {
+        if (!(await Input.continueDialog())) {
             return false;
         }
 

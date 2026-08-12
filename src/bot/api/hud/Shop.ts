@@ -1,5 +1,5 @@
 import { actions, reader } from '../../adapter/ClientAdapter.js';
-import { ActionRouter } from '../../input/ActionRouter.js';
+import { Input } from '../input/Input.js';
 import { Execution } from '../core/Execution.js';
 import { Npcs } from '../entities/Npcs.js';
 import { Inventory } from './Inventory.js';
@@ -67,7 +67,7 @@ export const Shop = {
 
             const before = countHeld(name);
             for (const opIndex of batch) {
-                await ActionRouter.driver.invButton(it.id, it.slot, it.comId, opIndex + 1);
+                await Input.invButton(it.id, it.slot, it.comId, opIndex + 1);
             }
             await Execution.delayUntil(() => countHeld(name) !== before, 3000);
             // the whole batch lands in one server tick — settle so the recount sees all of it
@@ -99,7 +99,7 @@ export const Shop = {
             }
 
             const before = countHeld(name);
-            await ActionRouter.driver.invButton(it.id, it.slot, it.comId, opIndex + 1);
+            await Input.invButton(it.id, it.slot, it.comId, opIndex + 1);
             await Execution.delayUntil(() => countHeld(name) !== before, 3000);
             const gone = before - countHeld(name);
             if (gone <= 0) {

@@ -6,7 +6,7 @@ import { Game } from '#/bot/api/core/Game.js';
 import { Bank } from '#/bot/api/hud/Bank.js';
 import { InvItem, Inventory } from '#/bot/api/hud/Inventory.js';
 import { Skills } from '#/bot/api/hud/Skills.js';
-import { ActionRouter } from '#/bot/input/ActionRouter.js';
+import { Input } from '#/bot/api/input/Input.js';
 import { ScriptRunner } from '#/bot/runtime/ScriptRunner.js';
 import { SettingsBag } from '#/bot/runtime/Settings.js';
 import LeatherCrafter from '#/bot/scripts/LeatherCrafter.js';
@@ -32,7 +32,7 @@ const original = {
     inventorySize: reader.inventorySize,
     bankSideItems: reader.bankSideItems,
     countDialogOpen: reader.countDialogOpen,
-    invButton: ActionRouter.driver.invButton,
+    invButton: Input.invButton,
     answerCountDialog: actions.answerCountDialog,
     closeModal: actions.closeModal,
     stop: ScriptRunner.stop
@@ -125,7 +125,7 @@ beforeEach(() => {
     reader.bankSideItems = () => sideReady ? inventory().map(item => item.snap) : [];
     reader.countDialogOpen = () => dialogOpen;
 
-    ActionRouter.driver.invButton = id => {
+    Input.invButton = id => {
         clickedIds.push(id);
         pendingId = id;
         dialogOpen = true;
@@ -170,7 +170,7 @@ afterEach(() => {
     reader.inventorySize = original.inventorySize;
     reader.bankSideItems = original.bankSideItems;
     reader.countDialogOpen = original.countDialogOpen;
-    ActionRouter.driver.invButton = original.invButton;
+    Input.invButton = original.invButton;
     actions.answerCountDialog = original.answerCountDialog;
     actions.closeModal = original.closeModal;
     ScriptRunner.stop = original.stop;
@@ -243,7 +243,7 @@ describe('LeatherCrafter bank withdrawals', () => {
     test('retries without stopping when a visible withdrawal action is rejected', async () => {
         inventoryCounts.set(NEEDLE, 1);
         bankContents = [snapshot(THREAD, 500, 2), snapshot(LEATHER, 500, 3)];
-        ActionRouter.driver.invButton = id => {
+        Input.invButton = id => {
             clickedIds.push(id);
             return false;
         };

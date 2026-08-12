@@ -1,5 +1,5 @@
 import { actions, reader } from '../../adapter/ClientAdapter.js';
-import { ActionRouter } from '../../input/ActionRouter.js';
+import { Input } from '../input/Input.js';
 import { Execution } from '../core/Execution.js';
 import { Players } from '../entities/Players.js';
 
@@ -81,7 +81,7 @@ export const Trade = {
             return false;
         }
 
-        return ActionRouter.driver.interactPlayer(target.index, TRADE_OP);
+        return Input.interactPlayer(target.index, TRADE_OP);
     },
 
     // pick chooses among same-name slots (e.g. offer only unnoted essence, not the noted stack)
@@ -96,7 +96,7 @@ export const Trade = {
             return false;
         }
 
-        return ActionRouter.driver.invButton(it.id, it.slot, OFFER_INV, OFFER_ALL);
+        return Input.invButton(it.id, it.slot, OFFER_INV, OFFER_ALL);
     },
 
     // offer exactly n (never more): Offer-X + count dialog; pick chooses among same-name slots
@@ -111,7 +111,7 @@ export const Trade = {
             return false;
         }
 
-        if (!(await ActionRouter.driver.invButton(it.id, it.slot, OFFER_INV, OFFER_X))) {
+        if (!(await Input.invButton(it.id, it.slot, OFFER_INV, OFFER_X))) {
             return false;
         }
 

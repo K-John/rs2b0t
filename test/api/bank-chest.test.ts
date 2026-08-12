@@ -9,7 +9,7 @@ import { Game } from '#/bot/api/core/Game.js';
 import { Traversal } from '#/bot/nav/Traversal.js';
 import { Bank } from '#/bot/api/hud/Bank.js';
 import { Locs } from '#/bot/api/entities/Locs.js';
-import { ActionRouter } from '#/bot/input/ActionRouter.js';
+import { Input } from '#/bot/api/input/Input.js';
 
 const originals = {
     bankIsOpen: Bank.isOpen,
@@ -20,7 +20,7 @@ const originals = {
     delayUntil: Execution.delayUntil,
     gameTile: Game.tile,
     bankSideItems: reader.bankSideItems,
-    invButton: ActionRouter.driver.invButton,
+    invButton: Input.invButton,
     locQuery: Locs.query,
     walkResilient: Traversal.walkResilient
 };
@@ -34,7 +34,7 @@ afterEach(() => {
     (Execution as any).delayUntil = originals.delayUntil;
     (Game as any).tile = originals.gameTile;
     (reader as any).bankSideItems = originals.bankSideItems;
-    (ActionRouter.driver as any).invButton = originals.invButton;
+    (Input as any).invButton = originals.invButton;
     (Locs as any).query = originals.locQuery;
     (Traversal as any).walkResilient = originals.walkResilient;
 });
@@ -49,7 +49,7 @@ test('deposit matching receives item IDs and distinguishes reward from clue cask
     (Bank as any).isOpen = () => true;
     (reader as any).bankSideItems = () => items;
     (Execution as any).delayUntil = async (condition: () => boolean) => condition();
-    (ActionRouter.driver as any).invButton = (id: number, slot: number) => {
+    (Input as any).invButton = (id: number, slot: number) => {
         clicked.push(id);
         items = items.filter(item => item.id !== id || item.slot !== slot);
         return true;

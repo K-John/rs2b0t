@@ -9,7 +9,7 @@ import { Inventory } from '../api/hud/Inventory.js';
 import { Paint } from '../api/hud/Paint.js';
 import { Shop } from '../api/hud/Shop.js';
 import { Npcs } from '../api/entities/Npcs.js';
-import { ActionRouter } from '../input/ActionRouter.js';
+import { Input } from '../api/input/Input.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
@@ -88,7 +88,7 @@ async function withdrawXById(id: number, count: number): Promise<boolean> {
         return false;
     }
     const before = Inventory.used();
-    ActionRouter.driver.invButton(item.id, item.slot, item.comId, op);
+    Input.invButton(item.id, item.slot, item.comId, op);
     if (!(await Execution.delayUntil(() => reader.countDialogOpen(), 3000))) {
         return false;
     }

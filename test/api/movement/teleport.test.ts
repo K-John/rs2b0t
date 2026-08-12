@@ -3,7 +3,7 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
 import { Game } from '#/bot/api/core/Game.js';
 import type { Npc } from '#/bot/api/entities/index.js';
-import { ActionRouter } from '#/bot/input/ActionRouter.js';
+import { Input } from '#/bot/api/input/Input.js';
 import {
     resolveTeleport,
     resolveTeleportComponent,
@@ -25,7 +25,7 @@ const originals = {
     buttonByText: reader.buttonByText,
     sideTabInterface: reader.sideTabInterface,
     targetButtonByBase: reader.targetButtonByBase,
-    castOnNpc: ActionRouter.driver.castOnNpc,
+    castOnNpc: Input.castOnNpc,
     openSideTab: Game.openSideTab
 };
 
@@ -34,7 +34,7 @@ afterEach(() => {
     reader.buttonByText = originals.buttonByText;
     reader.sideTabInterface = originals.sideTabInterface;
     reader.targetButtonByBase = originals.targetButtonByBase;
-    ActionRouter.driver.castOnNpc = originals.castOnNpc;
+    Input.castOnNpc = originals.castOnNpc;
     Game.openSideTab = originals.openSideTab;
 });
 
@@ -168,7 +168,7 @@ describe('Game.castOnNpc', () => {
             openedTab = true;
             return false;
         };
-        ActionRouter.driver.castOnNpc = (comId, npcIndex) => {
+        Input.castOnNpc = (comId, npcIndex) => {
             cast = { comId, npcIndex };
             return true;
         };
@@ -185,7 +185,7 @@ describe('Game.castOnNpc', () => {
             return -1;
         };
         let cast = false;
-        ActionRouter.driver.castOnNpc = () => {
+        Input.castOnNpc = () => {
             cast = true;
             return true;
         };

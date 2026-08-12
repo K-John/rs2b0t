@@ -1,6 +1,6 @@
 import type { GroundItemSnapshot, LocSnapshot, NpcSnapshot, PlayerSnapshot } from '../../adapter/ClientAdapter.js';
 import { reader } from '../../adapter/ClientAdapter.js';
-import { ActionRouter } from '../../input/ActionRouter.js';
+import { Input } from '../input/Input.js';
 import Tile from '../../geometry/Tile.js';
 
 /**
@@ -97,7 +97,7 @@ export class Npc implements Interactable, Locatable {
             return false;
         }
 
-        return ActionRouter.driver.interactNpc(this.snap.index, op);
+        return Input.interactNpc(this.snap.index, op);
     }
 }
 
@@ -176,7 +176,7 @@ export class Loc implements Interactable, Locatable {
             return false;
         }
 
-        return ActionRouter.driver.interactLoc(local.lx, local.lz, this.snap.typecode, op);
+        return Input.interactLoc(local.lx, local.lz, this.snap.typecode, op);
     }
 }
 
@@ -222,6 +222,6 @@ export class GroundItem implements Interactable, Locatable {
             return false;
         }
 
-        return ActionRouter.driver.takeObj(local.lx, local.lz, this.snap.id, op);
+        return Input.takeObj(local.lx, local.lz, this.snap.id, op);
     }
 }
