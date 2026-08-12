@@ -13,8 +13,8 @@ import { depositAllExcept } from '../api/banking/Banking.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { foodHealAmount, shouldEatToUseFood } from '../api/combat/food.js';
-import { scriptFood } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFood } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 const MONKEYBARS_APPROACH = new Tile(3121, 9964, 0);
 const MIN_AGILITY = 15; // required to swing across the monkey bars

@@ -37,8 +37,8 @@ import {
     type DruidLocationName,
     type DruidSpot
 } from './ChaosDruidLogic.js';
-import { scriptFood } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFood } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 export const SETTINGS: SettingsSchema = {
     location: {

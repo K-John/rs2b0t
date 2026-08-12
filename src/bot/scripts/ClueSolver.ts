@@ -18,8 +18,8 @@ import { ClueExecutor } from '../clues/ClueExecutor.js';
 import { paintClueProgress } from '../clues/cluePaint.js';
 import { SolveClue, heldClueLikeId } from '../clues/SolveClue.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
-import { scriptFood } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFood } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 export const SETTINGS: SettingsSchema = {
     loadout: LOADOUT_SETTING,

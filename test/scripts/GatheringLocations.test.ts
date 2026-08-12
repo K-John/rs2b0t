@@ -7,7 +7,7 @@ import {
     resolveGatheringLocation,
     sameMapSquare,
     type GatheringLocation
-} from '#/bot/api/catalogs/GatheringLocations.js';
+} from '#/bot/api/skilling/GatheringLocations.js';
 
 const TABLE: GatheringLocation[] = [
     {

@@ -15,11 +15,11 @@ import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { talkThrough } from '../quests/exec/primitives.js';
-import { buyoutPlan } from '../shops/BuyoutLogic.js';
-import { clusterEligible, estimateClusterGp, nextCluster, withdrawFor } from '../shops/RingLogic.js';
-import { SHOP_DB } from '../shops/data/shopdb.js';
-import { ROUTE, SMOKE_ROUTE } from '../shops/data/route.js';
-import type { AccountView, NavPointLike, Route } from '../shops/types.js';
+import { buyoutPlan } from '../api/shops/BuyoutLogic.js';
+import { clusterEligible, estimateClusterGp, nextCluster, withdrawFor } from '../api/shops/RingLogic.js';
+import { SHOP_DB } from '../api/shops/data/shopdb.js';
+import { ROUTE, SMOKE_ROUTE } from '../api/shops/data/route.js';
+import type { AccountView, NavPointLike, Route } from '../api/shops/types.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
 
 const BUYABLE_NAMES: string[] = [...new Set(

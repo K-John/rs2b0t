@@ -12,7 +12,7 @@ import { Quests } from '../../api/hud/Quests.js';
 import { Skills } from '../../api/hud/Skills.js';
 import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Locs } from '../../api/entities/Locs.js';
-import { ROCK_TYPES } from '../../api/catalogs/MiningRocks.js';
+import { ROCK_TYPES } from '../../api/skilling/MiningRocks.js';
 import { PICKAXES } from '../../api/acquisition/Tools.js';
 import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';

@@ -5,7 +5,7 @@ import {
     WOODCUTTING_LOCATIONS,
     WOODCUTTING_LOCATION_OPTIONS,
     resolveWoodcuttingLocation
-} from '#/bot/api/catalogs/WoodcuttingLocations.js';
+} from '#/bot/api/skilling/WoodcuttingLocations.js';
 
 const bankTiles = new Set(BANK_LOCATIONS.map(b => `${b.tile.x},${b.tile.z},${b.tile.level}`));
 

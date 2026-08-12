@@ -24,8 +24,8 @@ import { matchesEntityName } from '../api/entities/Query.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { BIG_BONES, BRASS_KEY, LIMPWURT, PIT_SPOTS, bonesAction, isHillGiantKill, keepOnDeposit, pickSpot, shouldBank, shouldEatForSpace, tripNeeds } from './HillGiantLogic.js';
-import { scriptFood } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFood } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 const TARGET = 'Giant';
 

@@ -2,7 +2,7 @@
  * GatheringBot task implementations (combat, mule, bank, cook, tools, gather).
  * Separated from the bot class for maintainability; behavior is unchanged.
  */
-import { beyondLeash, shouldSoftHomeFromGatherMiss, tileWithinLeash } from '../api/core/Anchor.js';
+import { beyondLeash, shouldSoftHomeFromGatherMiss, tileWithinLeash } from '../api/skilling/Anchor.js';
 import type { Task } from '../api/core/Bot.js';
 import { EventSignal } from '../api/randomevents/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
@@ -25,8 +25,8 @@ import {
     gatherSpotRangeOrigin,
     resourceWithinCamp,
     spotWithinGatherRange
-} from '../api/catalogs/GatherCamp.js';
-import { LOCAL_MINE_PREFER_RADIUS, shouldCooldownGatherTile } from '../api/combat/TargetPick.js';
+} from '../api/skilling/GatherCamp.js';
+import { LOCAL_MINE_PREFER_RADIUS, shouldCooldownGatherTile } from '../api/skilling/TargetPick.js';
 import { Trade } from '../api/hud/Trade.js';
 import {
     DEFAULT_TRADE_RANGE,
@@ -34,9 +34,9 @@ import {
     isConfiguredPartner
 } from '../api/mule/PartnerTrade.js';
 import { driveActivePartnerTrade } from '../api/mule/drivePartnerTrade.js';
-import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS } from '../api/catalogs/MiningRocks.js';
+import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS } from '../api/skilling/MiningRocks.js';
 import { bestPickaxe } from '../api/acquisition/Tools.js';
-import { WHIRLPOOL_IDS, fishingRestockPlan } from '../api/catalogs/FishingMethods.js';
+import { WHIRLPOOL_IDS, fishingRestockPlan } from '../api/skilling/FishingMethods.js';
 import {
     bankPaceTicks,
     cookFilterLabel,

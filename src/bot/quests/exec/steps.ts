@@ -14,7 +14,7 @@ import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
 import { Traversal } from '../../api/movement/Traversal.js';
-import { QUEST_ROCK_TYPES, ROCK_TYPES } from '../../api/catalogs/MiningRocks.js';
+import { QUEST_ROCK_TYPES, ROCK_TYPES } from '../../api/skilling/MiningRocks.js';
 import type { QuestStep } from '../engine/types.js';
 import { gotoNpc, talkThrough, type LadderHop } from './primitives.js';
 

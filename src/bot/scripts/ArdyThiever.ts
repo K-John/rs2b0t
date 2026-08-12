@@ -19,7 +19,7 @@ import { walkOpening } from '../api/movement/walkOpening.js';
 import { EventSignal } from '../api/randomevents/EventSignal.js';
 import { GroundItems } from '../api/entities/GroundItems.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';
-import { ARDOUGNE_PICKPOCKET_TARGETS } from '../api/catalogs/PickpocketTargets.js';
+import { ARDOUGNE_PICKPOCKET_TARGETS } from '../api/skilling/PickpocketTargets.js';
 import { chooseTarget, isHostileAttacker, requiredThieving, targetSpot } from './ArdyThieverLogic.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { countMatching, matchesAny, shouldBank, shouldEat, shouldPanic, slotsMatching } from './ArdyFighterLogic.js';

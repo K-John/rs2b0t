@@ -43,13 +43,13 @@ import {
     needsTollCoins,
     resolveCowLocation,
     shouldBootstrapTollCoins
-} from '../api/catalogs/CowKillerLocations.js';
+} from '../api/skilling/CowKillerLocations.js';
 import { Execution } from '../api/core/Execution.js';
 import {
     FISHING_LOCATIONS,
     FISHING_LOCATION_OPTIONS,
     resolveFishingLocation
-} from '../api/catalogs/FishingLocations.js';
+} from '../api/skilling/FishingLocations.js';
 import {
     ALL_FISHING_GEAR_NAMES,
     FISHING_METHODS,
@@ -62,7 +62,7 @@ import {
     missingFishingGear,
     resolveFishMethod,
     spotMatchesMethod
-} from '../api/catalogs/FishingMethods.js';
+} from '../api/skilling/FishingMethods.js';
 import { Game } from '../api/core/Game.js';
 import {
     DEFAULT_BOOTH_NAME,
@@ -72,7 +72,7 @@ import {
     locationOptions,
     resolveGatheringLocation,
     sameMapSquare
-} from '../api/catalogs/GatheringLocations.js';
+} from '../api/skilling/GatheringLocations.js';
 import { AcquireTask, hasAll, held } from '../api/acquisition/ItemAcquisition.js';
 import {
     MINING_LOCATIONS,
@@ -80,7 +80,7 @@ import {
     MINING_LOCATION_OPTIONS,
     miningLocationLabel,
     resolveMiningLocation
-} from '../api/catalogs/MiningLocations.js';
+} from '../api/skilling/MiningLocations.js';
 import {
     BROKEN_PICKAXE,
     GAS_ROCK_IDS,
@@ -88,17 +88,17 @@ import {
     ROCK_OPTIONS,
     ROCK_TYPES,
     resolveRockIds
-} from '../api/catalogs/MiningRocks.js';
+} from '../api/skilling/MiningRocks.js';
 import {
     ARDOUGNE_PICKPOCKET_TARGETS,
     PICKPOCKET_TARGETS,
     PICKPOCKET_TARGET_NAMES
-} from '../api/catalogs/PickpocketTargets.js';
+} from '../api/skilling/PickpocketTargets.js';
 import {
     DEFAULT_RUNE,
     RUNE_OPTIONS,
     RUNES
-} from '../api/catalogs/RuneCraftLocations.js';
+} from '../api/skilling/RuneCraftLocations.js';
 import Tile from '../api/core/Tile.js';
 import {
     AXE_BAR_FOR,
@@ -180,7 +180,7 @@ import {
     WOODCUTTING_LOCATIONS,
     WOODCUTTING_LOCATION_OPTIONS,
     resolveWoodcuttingLocation
-} from '../api/catalogs/WoodcuttingLocations.js';
+} from '../api/skilling/WoodcuttingLocations.js';
 import { GroundItem, Loc, Npc, Player } from '../api/entities/index.js';
 import { Bank, withdrawOp } from '../api/hud/Bank.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
@@ -204,7 +204,7 @@ import {
     liveResetMordredBrief
 } from '../quests/defs/merlinscrystal.js';
 import { defineBot, registerScript } from './defineBot.js';
-import { Loadouts } from '../items/loadoutStore.js';
+import { Loadouts } from '../api/items/loadoutStore.js';
 
 export const API_VERSION = 1;
 

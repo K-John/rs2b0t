@@ -1,7 +1,7 @@
 import { EventSignal } from '#/bot/api/randomevents/EventSignal.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Game } from '#/bot/api/core/Game.js';
-import { nearestAltar } from '#/bot/api/catalogs/Altars.js';
+import { nearestAltar } from '#/bot/api/skilling/Altars.js';
 import { nearestBank } from '#/bot/api/banking/BankLocations.js';
 import type { Task } from '#/bot/api/core/Bot.js';
 import { Prayer } from '#/bot/api/hud/Prayer.js';

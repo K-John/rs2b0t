@@ -35,8 +35,8 @@ import {
     LEDGE_DOOR, LEDGE_LOC, LEDGE_OP, legFor, RAFT_LOC, RAFT_OP, RAFT_STAND,
     attackRangeFor, eastFirst, lootWaitMs, ROCK_LOC, sameRoom, takenByAnother, ROPE, ROPE_THROW_STAND, TREE_LOC, TREE_STAND, type EscapeTele
 } from './FireGiantLogic.js';
-import { scriptFood } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFood } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 const TARGET = 'Fire giant';
 const FIELD_RADIUS = 10;

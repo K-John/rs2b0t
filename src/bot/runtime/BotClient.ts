@@ -2,7 +2,7 @@ import { Client } from '#/client/Client.js';
 import { WorkerClock } from '#/util/WorkerClock.js';
 
 import { BotHost } from './BotHost.js';
-import { BotDiag } from '../diag/BotDiag.js';
+import { BotDiag } from './diag/BotDiag.js';
 import { paintNavPathInGame } from '../nav/pathScenePaint.js';
 import { RenderGate } from './RenderGate.js';
 

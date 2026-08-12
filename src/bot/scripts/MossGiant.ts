@@ -29,8 +29,8 @@ import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { RANGED_WEAPONS, rangeLoadoutOf, rangeSupplyEmpty } from './RockCrabRangeLogic.js';
-import { scriptFood } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFood } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 const TARGET = 'Moss giant';
 const DEFAULT_SAFESPOT = new Tile(2553, 3406, 0);

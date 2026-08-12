@@ -14,7 +14,7 @@ import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '.
 import { talkChoosingBy } from '../../exec/primitives.js';
 import { QuestFood } from '../../food.js';
 import { QuestLoadout } from '../../gear.js';
-import { gearOf, weaponOf } from '../../../items/loadoutPlan.js';
+import { gearOf, weaponOf } from '../../../api/items/loadoutPlan.js';
 import {
     BOOT_COST,
     COIN_FLOAT,

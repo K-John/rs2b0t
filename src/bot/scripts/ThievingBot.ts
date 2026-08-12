@@ -1,5 +1,5 @@
 import { foodHealAmount, shouldEatToUseFood, MIN_EAT_HP } from '../api/combat/food.js';
-import { createReturnToAnchorTask, resolveRunAnchor, tileWithinLeash } from '../api/core/Anchor.js';
+import { createReturnToAnchorTask, resolveRunAnchor, tileWithinLeash } from '../api/skilling/Anchor.js';
 import { TaskBot, type Task } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
@@ -18,7 +18,7 @@ import { Npcs, type Npc } from '../api/entities/Npcs.js';
 import { Traversal } from '../api/movement/Traversal.js';
 import { nearestBank } from '../api/banking/BankLocations.js';
 import { walkOpening } from '../api/movement/walkOpening.js';
-import { PICKPOCKET_TARGET_NAMES } from '../api/catalogs/PickpocketTargets.js';
+import { PICKPOCKET_TARGET_NAMES } from '../api/skilling/PickpocketTargets.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
 import { chooseTarget } from './ArdyThieverLogic.js';
@@ -32,8 +32,8 @@ import {
     THIEVER_BANKING_OPTIONS,
     withdrawTo
 } from './ThievingBotLogic.js';
-import { scriptFood } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFood } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 export const SETTINGS: SettingsSchema = {
     target: { type: 'string', default: 'Man', options: PICKPOCKET_TARGET_NAMES, label: 'Pickpocket target', help: 'pick by exact in-game name (level in parens): Man/Woman 1, Farmer 10, Rogue 32, Guard 40, Knight of Ardougne 55, Paladin 70, Hero 80' },

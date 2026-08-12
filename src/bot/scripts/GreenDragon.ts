@@ -35,8 +35,8 @@ import { paintClueProgress } from '../clues/cluePaint.js';
 import { AT_BANK_RADIUS, RETURN_HOLD_MS, escapeNeeded, gearCandidates, gearToKeep, isGrindForeign, packForcesBank, slotFreeingAction, underPlayerAttack, wantsGroundItem, type SlotAction } from './GreenDragonLogic.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
-import { scriptFood } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFood } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 const TARGET = 'Green dragon';
 const DEFAULT_ANCHOR = new Tile(3096, 3814, 0);

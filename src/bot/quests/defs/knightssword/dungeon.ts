@@ -1,6 +1,6 @@
 import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
-import { QUEST_ROCK_TYPES } from '../../../api/catalogs/MiningRocks.js';
+import { QUEST_ROCK_TYPES } from '../../../api/skilling/MiningRocks.js';
 import { Sustain } from '../../../api/core/Sustain.js';
 import type Tile from '../../../api/core/Tile.js';
 import { Traversal } from '../../../api/movement/Traversal.js';

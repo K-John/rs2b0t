@@ -27,8 +27,8 @@ import { SolveClue } from '../clues/SolveClue.js';
 import { paintClueProgress } from '../clues/cluePaint.js';
 import { Sustain } from '../api/core/Sustain.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
-import { scriptFoods } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFoods } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 const DEFAULT_ANCHOR = new Tile(2661, 3306, 0);
 const DEFAULT_BANK_STAND = new Tile(2655, 3286, 0);

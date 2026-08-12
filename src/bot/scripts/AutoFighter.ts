@@ -52,8 +52,8 @@ import { paintClueProgress } from '../clues/cluePaint.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
 import { Reach } from '../api/movement/Reach.js';
 import { RANDOM_EVENT_CASKET_ID } from '../api/banking/Banking.js';
-import { scriptFood } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFood } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 const BOOTH = { name: 'Bank booth', op: 'Use-quickly' };
 const KIT = ['spade', 'sextant', 'watch', 'chart'];

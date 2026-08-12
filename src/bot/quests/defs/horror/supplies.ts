@@ -7,7 +7,7 @@ import { Skills } from '../../../api/hud/Skills.js';
 import { Locs } from '../../../api/entities/Locs.js';
 import { QuestFood } from '../../food.js';
 import { QuestLoadout } from '../../gear.js';
-import { weaponOf } from '../../../items/loadoutPlan.js';
+import { weaponOf } from '../../../api/items/loadoutPlan.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { useOnLoc } from '../../exec/prompts.js';
 import { smithNails } from '../dragonslayer/supplies.js';

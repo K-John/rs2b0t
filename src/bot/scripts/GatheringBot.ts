@@ -4,7 +4,7 @@ import {
     resolveRunAnchor,
     shouldWalkHomeToGatherAnchor,
     tileWithinLeash
-} from '../api/core/Anchor.js';
+} from '../api/skilling/Anchor.js';
 import { TaskBot } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
@@ -27,15 +27,15 @@ import { Npcs } from '../api/entities/Npcs.js';
 import { Traversal } from '../api/movement/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
-import { cookSurfaceForFishCamp, resolveFishCampCookSurface } from '../api/catalogs/CookingRanges.js';
-import { resolveFishingLocation, type FishingLocation } from '../api/catalogs/FishingLocations.js';
-import { effectiveGatherLeash, isAutoLocation, NAMED_CAMP_LEASH_FLOOR } from '../api/catalogs/GatherCamp.js';
+import { cookSurfaceForFishCamp, resolveFishCampCookSurface } from '../api/skilling/CookingRanges.js';
+import { resolveFishingLocation, type FishingLocation } from '../api/skilling/FishingLocations.js';
+import { effectiveGatherLeash, isAutoLocation, NAMED_CAMP_LEASH_FLOOR } from '../api/skilling/GatherCamp.js';
 import {
     DEFAULT_CHASE_RADIUS,
     resolveCampRadius,
     resolveChaseRadius,
     type GatheringLocation
-} from '../api/catalogs/GatheringLocations.js';
+} from '../api/skilling/GatheringLocations.js';
 import { Players } from '../api/entities/Players.js';
 import {
     DEFAULT_TRADE_RANGE,
@@ -49,9 +49,9 @@ import {
     type MuleMode,
     MULE_MODE_OPTIONS
 } from '../api/mule/PartnerTrade.js';
-import { resolveMiningLocation } from '../api/catalogs/MiningLocations.js';
-import { resolveWoodcuttingLocation } from '../api/catalogs/WoodcuttingLocations.js';
-import { BROKEN_PICKAXE, ROCK_OPTIONS, resolveRockIds } from '../api/catalogs/MiningRocks.js';
+import { resolveMiningLocation } from '../api/skilling/MiningLocations.js';
+import { resolveWoodcuttingLocation } from '../api/skilling/WoodcuttingLocations.js';
+import { BROKEN_PICKAXE, ROCK_OPTIONS, resolveRockIds } from '../api/skilling/MiningRocks.js';
 import {
     TINDERBOX,
     expandLocalFirePlot,
@@ -92,7 +92,7 @@ import {
     resolveFishMethod,
     spotMatchesMethod,
     type FishingMethod
-} from '../api/catalogs/FishingMethods.js';
+} from '../api/skilling/FishingMethods.js';
 import {
     cookBatchAfterLoad,
     cookFilterLabel,
@@ -221,7 +221,7 @@ export {
     HOME_ARRIVE_RADIUS,
     shouldSoftHomeFromGatherMiss,
     shouldWalkHomeToGatherAnchor
-} from '../api/core/Anchor.js';
+} from '../api/skilling/Anchor.js';
 export {
     effectiveGatherLeash,
     gatherHuntRadius,
@@ -231,13 +231,13 @@ export {
     resourceWithinCamp,
     spotWithinGatherRange,
     START_TILE_LEASH_FLOOR
-} from '../api/catalogs/GatherCamp.js';
-export { DEFAULT_CHASE_RADIUS } from '../api/catalogs/GatheringLocations.js';
+} from '../api/skilling/GatherCamp.js';
+export { DEFAULT_CHASE_RADIUS } from '../api/skilling/GatheringLocations.js';
 export {
     LOCAL_MINE_PREFER_RADIUS,
     pickNearestPreferLocal,
     shouldCooldownGatherTile
-} from '../api/combat/TargetPick.js';
+} from '../api/skilling/TargetPick.js';
 
 // Pure policy (also in GatheringBotLogic) — re-export for existing test/import paths.
 export {

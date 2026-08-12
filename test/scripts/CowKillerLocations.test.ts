@@ -11,7 +11,7 @@ import {
     resolveCowLocation,
     shouldBootstrapTollCoins,
     TOLL_COIN_TARGET
-} from '#/bot/api/catalogs/CowKillerLocations.js';
+} from '#/bot/api/skilling/CowKillerLocations.js';
 
 describe('CowKiller locations', () => {
     test('maps the supported fields to verified cow-spawn centres', () => {

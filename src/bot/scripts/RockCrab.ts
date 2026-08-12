@@ -34,8 +34,8 @@ import { Traversal } from '../api/movement/Traversal.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
 import { ROCK_CRAB_RANGED_WEAPONS, rangeSupplyEmpty, rockCrabRangeLoadout } from './RockCrabRangeLogic.js';
-import { scriptFood } from '../items/loadoutPlan.js';
-import { LOADOUT_SETTING } from '../items/loadoutSetting.js';
+import { scriptFood } from '../api/items/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/items/loadoutSetting.js';
 
 const DEFAULT_RESET = new Tile(2712, 3688, 0);
 const DEFAULT_BANK = new Tile(2725, 3491, 0);
