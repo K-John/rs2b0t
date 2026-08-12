@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { joinItemDb, parseItemDefs, parseObjPack, type ParsedItem } from './parse.js';
 
 const CONTENT = process.env.CONTENT_DIR ?? join(homedir(), 'code', 'rs2b2t-content');
-const OUT = 'src/bot/items/data/itemdb.ts';
+const OUT = 'src/bot/api/items/data/itemdb.ts';
 
 function filesUnder(root: string, ext: string): string[] {
     return (readdirSync(root, { recursive: true }) as string[])
