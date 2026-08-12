@@ -15,7 +15,7 @@ import { Paint } from '../api/hud/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { SettingsStore } from '../runtime/Settings.js';
 import { Traversal } from '../nav/Traversal.js';
-import { EventSignal } from '../api/randomevents/EventSignal.js';
+import { EventSignal } from '../runtime/randomevents/EventSignal.js';
 import { GroundItems } from '../api/entities/GroundItems.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';
 import { matchesEntityName } from '../api/entities/Query.js';

@@ -15,7 +15,7 @@ import type { Player } from '../api/entities/index.js';
 import { Traversal } from '../nav/Traversal.js';
 import { Reachability } from '../nav/geometry/Reachability.js';
 import { walkOpening } from '../nav/walkOpening.js';
-import { EventSignal } from '../api/randomevents/EventSignal.js';
+import { EventSignal } from '../runtime/randomevents/EventSignal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';

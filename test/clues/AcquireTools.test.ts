@@ -1,7 +1,7 @@
 import * as RealInventory from '#/bot/api/hud/Inventory.js';
 import { expect, test, describe, beforeEach, afterAll } from 'bun:test';
 
-import { EventSignal } from '#/bot/api/randomevents/EventSignal.js';
+import { EventSignal } from '#/bot/runtime/randomevents/EventSignal.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Game } from '#/bot/api/core/Game.js';
 import { Traversal } from '#/bot/nav/Traversal.js';

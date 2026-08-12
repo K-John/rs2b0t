@@ -7,7 +7,7 @@ import { advance, initialLadderState, judgeProbe, pickUnstickStep, type LadderSt
 import { isArrived } from './geometry/arrival.js';
 import { chebyshev } from './geometry/followMath.js';
 import { Reachability } from './geometry/Reachability.js';
-import { EventSignal } from '../api/randomevents/EventSignal.js';
+import { EventSignal } from '../runtime/randomevents/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { Sustain } from '../api/core/Sustain.js';
 import { SettingsStore } from '../runtime/Settings.js';

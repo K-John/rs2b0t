@@ -16,7 +16,7 @@ import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { SettingsStore } from '../runtime/Settings.js';
 import { Traversal } from '../nav/Traversal.js';
 import { walkOpening } from '../nav/walkOpening.js';
-import { EventSignal } from '../api/randomevents/EventSignal.js';
+import { EventSignal } from '../runtime/randomevents/EventSignal.js';
 import { GroundItems } from '../api/entities/GroundItems.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';
 import { ARDOUGNE_PICKPOCKET_TARGETS } from '../data/pickpocketTargets.js';

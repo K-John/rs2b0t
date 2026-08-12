@@ -1,7 +1,7 @@
 // docs/decisions/clue-host-yielding.md
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
 import { Execution } from '#/bot/api/core/Execution.js';
-import { EventSignal } from '#/bot/api/randomevents/EventSignal.js';
+import { EventSignal } from '#/bot/runtime/randomevents/EventSignal.js';
 import { Sustain } from '#/bot/api/core/Sustain.js';
 import { Traversal } from '#/bot/nav/Traversal.js';
 import { Game } from '#/bot/api/core/Game.js';

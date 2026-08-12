@@ -1,8 +1,8 @@
 import { actions, reader } from '../../../adapter/ClientAdapter.js';
 import { chebyshev } from '../../../nav/geometry/followMath.js';
-import { Execution } from '../../core/Execution.js';
-import { ChatDialog } from '../../hud/ChatDialog.js';
-import { Locs } from '../../entities/Locs.js';
+import { Execution } from '../../../api/core/Execution.js';
+import { ChatDialog } from '../../../api/hud/ChatDialog.js';
+import { Locs } from '../../../api/entities/Locs.js';
 import { MAZE_SHRINE, MAZE_SHRINE_DOOR } from './mazeGraph.js';
 import { selectRoute } from './selectRoute.js';
 

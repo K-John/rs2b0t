@@ -1,5 +1,5 @@
 // docs/reference/quest-primitives.md
-import { EventSignal } from '../../api/randomevents/EventSignal.js';
+import { EventSignal } from '../../runtime/randomevents/EventSignal.js';
 import { Execution } from '../../api/core/Execution.js';
 import { Game } from '../../api/core/Game.js';
 import { Reach } from '../../nav/Reach.js';

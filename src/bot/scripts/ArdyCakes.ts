@@ -12,7 +12,7 @@ import { Paint } from '../api/hud/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { Traversal } from '../nav/Traversal.js';
 import { walkOpening } from '../nav/walkOpening.js';
-import { EventSignal } from '../api/randomevents/EventSignal.js';
+import { EventSignal } from '../runtime/randomevents/EventSignal.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { matchesAny, shouldEat } from './ArdyFighterLogic.js';

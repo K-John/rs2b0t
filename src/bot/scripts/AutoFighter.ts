@@ -24,7 +24,7 @@ import { Bank } from '../api/hud/Bank.js';
 import { Paint } from '../api/hud/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { Traversal } from '../nav/Traversal.js';
-import { EventSignal } from '../api/randomevents/EventSignal.js';
+import { EventSignal } from '../runtime/randomevents/EventSignal.js';
 import { Sustain } from '../api/core/Sustain.js';
 import { nearestBank } from '../api/banking/BankLocations.js';
 import { GroundItems } from '../api/entities/GroundItems.js';

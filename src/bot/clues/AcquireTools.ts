@@ -1,6 +1,6 @@
 // docs/reference/clues-mechanics.md#tool-acquisition
 import { Execution } from '#/bot/api/core/Execution.js';
-import { EventSignal } from '#/bot/api/randomevents/EventSignal.js';
+import { EventSignal } from '#/bot/runtime/randomevents/EventSignal.js';
 import { Game } from '#/bot/api/core/Game.js';
 import { Traversal } from '#/bot/nav/Traversal.js';
 import { Inventory } from '#/bot/api/hud/Inventory.js';

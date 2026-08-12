@@ -3,7 +3,7 @@ import type { WorldTile } from '../adapter/ClientAdapter.js';
 import { actions, reader } from '../adapter/ClientAdapter.js';
 import { TaskBot, type Task } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
-import { EventSignal } from '../api/randomevents/EventSignal.js';
+import { EventSignal } from '../runtime/randomevents/EventSignal.js';
 import { Game } from '../api/core/Game.js';
 import Tile from '../geometry/Tile.js';
 import { Traversal } from '../nav/Traversal.js';

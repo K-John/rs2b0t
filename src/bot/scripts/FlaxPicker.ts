@@ -10,7 +10,7 @@ import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Locs, type Loc } from '../api/entities/Locs.js';
 import { Traversal } from '../nav/Traversal.js';
 import { Reachability } from '../nav/geometry/Reachability.js';
-import { EventSignal } from '../api/randomevents/EventSignal.js';
+import { EventSignal } from '../runtime/randomevents/EventSignal.js';
 import { actions, reader } from '../adapter/ClientAdapter.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';

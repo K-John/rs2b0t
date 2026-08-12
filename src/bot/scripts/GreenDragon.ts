@@ -1,7 +1,7 @@
 import { reader } from '../adapter/ClientAdapter.js';
 import { BotHost } from '../runtime/BotHost.js';
 import { TaskBot, type Task } from '../api/core/Bot.js';
-import { EventSignal } from '../api/randomevents/EventSignal.js';
+import { EventSignal } from '../runtime/randomevents/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import Tile from '../geometry/Tile.js';

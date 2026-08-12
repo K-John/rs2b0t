@@ -5,7 +5,7 @@
  * stands next to the kebab shop; Varrock Man is used only to afford the 10 gp toll.
  */
 import { Execution } from '../../api/core/Execution.js';
-import { EventSignal } from '../../api/randomevents/EventSignal.js';
+import { EventSignal } from '../../runtime/randomevents/EventSignal.js';
 import { Game } from '../../api/core/Game.js';
 import Tile from '../../geometry/Tile.js';
 import { ChatDialog } from '../../api/hud/ChatDialog.js';

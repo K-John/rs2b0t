@@ -5,7 +5,7 @@ import { Paint } from '../api/hud/Paint.js';
 import { Quests } from '../api/hud/Quests.js';
 import { Shop } from '../api/hud/Shop.js';
 import { Skills } from '../api/hud/Skills.js';
-import { EventSignal } from '../api/randomevents/EventSignal.js';
+import { EventSignal } from '../runtime/randomevents/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import { Traversal } from '../nav/Traversal.js';
