@@ -31,7 +31,7 @@
         "gen:basemap": "bun tools/map/build-basemap.ts",
         "verify:map-picker": "bun tools/map-picker-basemap-live.ts",
         "verify:map-picker-e2e": "bun tools/map-picker-walkto-e2e-live.ts",
-        "regress": "bun tools/regress.ts"
+        "e2e": "bun tools/e2e.ts"
     },
     "dependencies": {
         "fflate": "^0.8.2"

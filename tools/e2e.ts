@@ -1,26 +1,27 @@
 /**
- * Nightly regression runner.
+ * End-to-end runner.
  *
- * Deploys once, runs the offline gates and then the live harnesses sequentially,
+ * Deploys once, runs the offline gates and then the e2e harnesses sequentially,
  * and writes a report that diffs against the previous run — so the output names
  * what CHANGED rather than what is merely red.
  *
  * Usage:
- *   bun run regress                    # quick tier
- *   bun run regress -- --tier standard
- *   bun run regress -- --tier quests --engine ~/code/rs2b2t-engine
- *   bun run regress -- --only troll,horror
- *   bun run regress -- --gates-only    # offline only, no engine needed
+ *   bun run e2e                     # quick: the fast harnesses
+ *   bun run e2e -- --level smart    # only what the working diff can affect
+ *   bun run e2e -- --level full     # every harness, quests included
+ *   bun run e2e -- --only troll,horror
+ *   bun run e2e -- --gates-only     # offline gates, no engine needed
+ *   bun run e2e -- --verbose        # stream every child line
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 type Status = 'pass' | 'fail' | 'timeout' | 'skip';
-type Tier = 'quick' | 'standard' | 'quests';
+type Level = 'quick' | 'smart' | 'full';
 interface Result { name: string; kind: 'gate' | 'harness'; status: Status; ms: number; note: string; }
-interface Run { startedAt: string; git: string; tier: Tier; results: Result[]; }
+interface Run { startedAt: string; git: string; level: Level; results: Result[]; }
 
-const OUT = 'out/regress';
+const OUT = 'out/e2e';
 const LOGS = join(OUT, 'logs');
 const LATEST = join(OUT, 'latest.json');
 
@@ -65,20 +66,64 @@ function arg(name: string): string | undefined {
 }
 const has = (name: string): boolean => process.argv.includes(`--${name}`);
 
-/** A harness is a quest run when it takes --stage; those cost tens of minutes each. */
-function tierOf(file: string): Tier {
-    const src = readFileSync(join('tools', file), 'utf8');
-    if (src.includes("'--stage'")) return 'quests';
-    return file.endsWith('-live.ts') ? 'standard' : 'quick';
+/** Quest harnesses take --stage and cost tens of minutes each. */
+function isQuest(file: string): boolean {
+    return readFileSync(join('tools', file), 'utf8').includes("'--stage'");
 }
 
-function harnesses(tier: Tier, only: string[]): string[] {
-    const wanted: Tier[] = tier === 'quick' ? ['quick'] : tier === 'standard' ? ['quick', 'standard'] : ['quick', 'standard', 'quests'];
+function allHarnesses(): string[] {
     return readdirSync('tools')
         .filter(f => (f.endsWith('-test.ts') || f.endsWith('-live.ts')) && !EXCLUDED.has(f))
-        .filter(f => wanted.includes(tierOf(f)))
-        .filter(f => only.length === 0 || only.some(o => f.includes(o)))
         .sort();
+}
+
+/** Filename tokens, used to match a harness against changed source paths. */
+function tokens(file: string): string[] {
+    return file
+        .replace(/-(test|live)\.ts$/, '')
+        .split(/[-_]/)
+        .filter(t => t.length > 3 && !/^\d+$/.test(t));
+}
+
+/**
+ * smart: run only harnesses the working diff could plausibly affect.
+ *
+ * A harness is selected when one of its filename tokens appears in a changed
+ * path, or when a subsystem it must exercise changed. Shared code — the adapter,
+ * runtime, or the api surface — can affect anything, so it selects everything.
+ */
+function smartSelect(changed: string[]): { files: string[]; why: string } {
+    if (changed.length === 0) return { files: [], why: 'no changes against main' };
+    const broad = changed.some(c => /^src\/bot\/(adapter|runtime|api)\//.test(c) || c === 'package.json');
+    if (broad) return { files: allHarnesses(), why: 'shared code changed (adapter, runtime or api) — everything is reachable' };
+
+    const hay = changed.join(' ').toLowerCase();
+    const picked = allHarnesses().filter(f => tokens(f).some(t => hay.includes(t)));
+    const navTouched = changed.some(c => c.startsWith('src/bot/nav/'));
+    const withNav = navTouched ? [...new Set([...picked, ...allHarnesses().filter(f => f.includes('nav'))])] : picked;
+    return { files: withNav.sort(), why: `${changed.length} changed files matched ${withNav.length} harnesses` };
+}
+
+function harnesses(level: Level, only: string[]): { files: string[]; why: string } {
+    let files: string[];
+    let why: string;
+    if (level === 'full') {
+        files = allHarnesses();
+        why = 'full: every harness';
+    } else if (level === 'smart') {
+        const changed = (Bun.spawnSync(['git', 'diff', '--name-only', 'origin/main...HEAD']).stdout.toString() +
+                         Bun.spawnSync(['git', 'diff', '--name-only']).stdout.toString())
+            .split('\n').map(s => s.trim()).filter(Boolean);
+        ({ files, why } = smartSelect([...new Set(changed)]));
+    } else {
+        files = allHarnesses().filter(f => !isQuest(f) && f.endsWith('-test.ts'));
+        why = 'quick: non-quest -test.ts harnesses';
+    }
+    if (only.length > 0) {
+        files = files.filter(f => only.some(o => f.includes(o)));
+        why += '; filtered by --only';
+    }
+    return { files, why };
 }
 
 const TTY = Boolean(process.stdout.isTTY);
@@ -93,11 +138,6 @@ function statusLine(label: string, started: number, last: string): void {
     else console.log(text);
 }
 
-/**
- * Streams the child's output so a 90-minute harness shows progress instead of a
- * blank terminal. Lines go to the log file always, to the terminal when
- * --verbose, and the most recent one drives the live status line.
- */
 async function run(label: string, cmd: string[], logFile: string, budgetMs: number, verdict?: (text: string) => Status): Promise<{ status: Status; ms: number; tail: string }> {
     const started = Date.now();
     const proc = Bun.spawn(cmd, { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, HEADED: '0' } });
@@ -173,7 +213,7 @@ function report(now: Run, before: Run | null): string {
         '|---|---|',
         `| Started | ${now.startedAt} |`,
         `| Commit | \`${now.git}\` |`,
-        `| Tier | ${now.tier} |`,
+        `| Level | ${now.level} |`,
         `| Ran | ${now.results.length} |`,
         `| Failing | ${failed} |`,
         `| Baseline | ${before ? `${before.startedAt} (\`${before.git}\`)` : 'none — this is the first run'} |`,
@@ -192,15 +232,15 @@ function report(now: Run, before: Run | null): string {
     ].join('\n');
 }
 
-const tier = (arg('tier') as Tier | undefined) ?? 'quick';
+const level = (arg('level') as Level | undefined) ?? 'quick';
 const only = (arg('only') ?? '').split(',').map(s => s.trim()).filter(Boolean);
 const engine = arg('engine');
 
 mkdirSync(LOGS, { recursive: true });
 const git = (await new Response(Bun.spawn(['git', 'rev-parse', '--short', 'HEAD'], { stdout: 'pipe' }).stdout).text()).trim();
-const now: Run = { startedAt: new Date().toISOString(), git, tier, results: [] };
+const now: Run = { startedAt: new Date().toISOString(), git, level, results: [] };
 
-console.log(`regress: tier=${tier} commit=${git}`);
+console.log(`e2e: level=${level} commit=${git}`);
 
 for (const { name, cmd, verdict } of OFFLINE_GATES) {
     const r = await run(name, cmd, join(LOGS, `${name.replace(/\W+/g, '-')}.log`), 20 * 60_000, verdict);
@@ -218,8 +258,8 @@ if (!has('gates-only')) {
         console.log(`  ${ICON[deploy.status]} deploy (${mins(deploy.ms)})`);
 
         if (deploy.status === 'pass') {
-            const files = harnesses(tier, only);
-            console.log(`running ${files.length} harnesses`);
+            const { files, why } = harnesses(level, only);
+            console.log(`${files.length} harnesses — ${why}`);
             for (const [i, file] of files.entries()) {
                 const budget = (BUDGET[file] ?? DEFAULT_BUDGET) * 60_000;
                 const cmd = ['bun', join('tools', file), '--no-deploy'];

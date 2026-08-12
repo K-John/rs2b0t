@@ -1,32 +1,39 @@
-[Manual](../README.md) › [Testing](../TESTING.md) › Nightly regression
+[Manual](../README.md) › [Testing](../TESTING.md) › End-to-end suite
 
-# Run a nightly regression
+# Run the end-to-end suite
 
-`bun run regress` runs the offline gates, deploys once, then runs the live harnesses
-sequentially and writes a report that diffs against the previous run.
+`bun run e2e` runs the offline gates, deploys once, then runs the harnesses sequentially
+and writes a report that diffs against the previous run.
 
 ## Run it
 
 ```sh
-bun run regress                      # quick tier
-bun run regress -- --tier standard   # adds the -live.ts harnesses
-bun run regress -- --tier quests     # adds the 10 stage-driven quest runs
-bun run regress -- --gates-only      # offline only, no engine needed
-bun run regress -- --only troll,horror
+bun run e2e                     # quick
+bun run e2e -- --level smart    # only what the working diff can affect
+bun run e2e -- --level full     # every harness, quests included
+bun run e2e -- --gates-only     # offline gates, no engine needed
+bun run e2e -- --only troll,horror
+bun run e2e -- --verbose        # stream every child line
 ```
 
 Exit code is 1 when anything is failing, so it drives a cron or a CI job directly.
 
-## Tiers
+## Levels
 
-| Tier | Contains | Rough cost |
+| Level | Contains | Rough cost |
 |---|---|---|
-| `quick` | offline gates plus `tools/*-test.ts` | ~20 min |
-| `standard` | adds `tools/*-live.ts` | 2–3 h |
-| `quests` | adds harnesses that take `--stage` | overnight |
+| `quick` | offline gates plus the 33 non-quest `-test.ts` harnesses | ~20 min |
+| `smart` | offline gates plus whatever the working diff can affect | varies |
+| `full` | all 77 harnesses, including the 10 stage-driven quest runs | overnight |
 
-Tier is derived from the harness itself — anything accepting `--stage` is a quest run —
-so a new harness lands in the right tier without editing a list.
+`smart` selects a harness when one of its filename tokens appears in a changed path, and
+adds the nav harnesses when anything under `src/bot/nav/` changed. A change to shared
+code — `adapter/`, `runtime/`, `api/` or `package.json` — can reach anything, so it
+selects everything rather than pretending to be clever. The report states which rule
+fired.
+
+Quest harnesses are identified by taking `--stage`, so a new one lands in the right level
+without editing a list.
 
 ## Watching it run
 
