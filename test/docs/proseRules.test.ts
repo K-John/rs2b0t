@@ -80,3 +80,10 @@ test('HeadingContent fires only on heading lines', () => {
         .filter(a => !lines[a.Line - 1].startsWith('#'));
     expect(offending).toEqual([]);
 });
+
+test('NegationList catches a two-item list and ignores a conjunction', () => {
+    const lines = readFileSync(`${FIXTURES}/probe.md`, 'utf8').split('\n');
+    const hits = alertsFor('probe.md').filter(a => a.Check === 'RS2B0T.NegationList');
+    expect(hits.some(a => lines[a.Line - 1].startsWith('No prose, no preamble.'))).toBe(true);
+    expect(hits.some(a => lines[a.Line - 1].includes('no coal and no bars'))).toBe(false);
+});

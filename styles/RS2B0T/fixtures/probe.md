@@ -17,3 +17,7 @@ This document describes the thing.
 No prose, no preamble, no explanation.
 
 The banned opener is "This document" when it starts a sentence.
+
+No prose, no preamble.
+
+The bot has no coal and no bars, so it restocks.
