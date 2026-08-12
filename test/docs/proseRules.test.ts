@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 
 const VALE = 'node_modules/@vvago/vale/bin/vale';
 const FIXTURES = 'styles/RS2B0T/fixtures';
@@ -97,4 +97,19 @@ test('lint:prose covers every source area and excludes the vendored client', () 
     }
     expect(script).not.toContain('src/client');
     expect(script).not.toContain('desktop');
+});
+
+test('the docs/superpowers exclusion holds, and styles still load', () => {
+    const dir = 'docs/superpowers';
+    const probe = `${dir}/vale-exclusion-probe.md`;
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(probe, '# Overview\n\nThis line is actually crucial.\n');
+    try {
+        const excluded = lint([probe]).get(probe) ?? [];
+        const control = alertsFor('probe.md');
+        expect(excluded).toEqual([]);
+        expect(control.length).toBeGreaterThan(0);
+    } finally {
+        rmSync(probe, { force: true });
+    }
 });
