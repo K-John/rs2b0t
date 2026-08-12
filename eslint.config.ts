@@ -74,5 +74,70 @@ export default defineConfig([
         rules: {
             'no-restricted-globals': ['error', { name: 'document', message: 'DOM only in src/bot/ui/, main.ts, and src/bot/multibox/{DomSlotOps,ProfileChooser,TabBar,VaultPrompt,main}.ts.' }, { name: 'window', message: 'DOM only in src/bot/ui/, main.ts, and src/bot/multibox/{DomSlotOps,ProfileChooser,TabBar,VaultPrompt,main}.ts.' }]
         }
+    },
+
+    // api/ sits above adapter/, nav/ and data/, and on the host substrate
+    // (Settings, BotHost, Scheduler) that Execution/Game/loadouts genuinely need.
+    // It must not reach up into script lifecycle or the layers that consume it.
+    // Promoted to 'error' once the reorganization lands.
+    {
+        files: ['src/bot/api/**/*.ts'],
+        rules: {
+            'no-restricted-imports': [
+                'warn',
+                {
+                    patterns: [
+                        {
+                            group: [
+                                '**/scripts/**',
+                                '**/quests/**',
+                                '**/clues/**',
+                                '**/ui/**',
+                                '**/multibox/**',
+                                '**/runtime/**',
+                                '!**/runtime/Settings.js',
+                                '!**/runtime/BotHost.js',
+                                '!**/runtime/Scheduler.js'
+                            ],
+                            message: 'api/ may stand on runtime/{Settings,BotHost,Scheduler} only — never on script lifecycle or the layers that consume it.'
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    // data/ holds inert catalogs. api/geometry is the only api it may name.
+    {
+        files: ['src/bot/data/**/*.ts'],
+        rules: {
+            'no-restricted-imports': [
+                'warn',
+                {
+                    patterns: [
+                        {
+                            group: ['**/api/**', '**/nav/**', '**/scripts/**', '**/quests/**', '**/clues/**', '**/ui/**', '**/runtime/**', '**/multibox/**', '**/adapter/**', '!**/api/geometry/*'],
+                            message: 'data/ is inert — it may import only api/geometry.'
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    // The published surface is decidable: abi.ts pulls only from api/, data/, nav/.
+    {
+        files: ['src/bot/runtime/abi.ts'],
+        rules: {
+            'no-restricted-imports': [
+                'warn',
+                {
+                    patterns: [
+                        {
+                            group: ['**/scripts/**', '**/clues/**', '**/ui/**', '**/multibox/**', '**/quests/**', '**/events/**', '**/input/**'],
+                            message: 'abi.ts publishes from api/, data/ and nav/ only.'
+                        }
+                    ]
+                }
+            ]
+        }
     }
 ]);
