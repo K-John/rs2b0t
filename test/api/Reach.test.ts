@@ -1,12 +1,12 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test';
 
 import { reader } from '#/bot/adapter/ClientAdapter.js';
-import { Execution } from '#/bot/api/Execution.js';
-import { Reachability } from '#/bot/api/Reachability.js';
-import { Traversal } from '#/bot/api/Traversal.js';
+import { Execution } from '#/bot/api/core/Execution.js';
+import { Reachability } from '#/bot/api/movement/Reachability.js';
+import { Traversal } from '#/bot/api/movement/Traversal.js';
 import { ChatDialog } from '#/bot/api/hud/ChatDialog.js';
-import { Locs } from '#/bot/api/queries/Locs.js';
-import { Npcs } from '#/bot/api/queries/Npcs.js';
+import { Locs } from '#/bot/api/entities/Locs.js';
+import { Npcs } from '#/bot/api/entities/Npcs.js';
 import { WalkExecutor } from '#/bot/nav/WalkExecutor.js';
 import { stubProps } from '../lib/stubSingletons.js';
 
@@ -145,7 +145,7 @@ afterAll(() => {
     WalkExecutor.lastOutcome = realLastOutcome;
 });
 
-const { Reach } = await import('#/bot/api/Reach.js');
+const { Reach } = await import('#/bot/api/movement/Reach.js');
 
 beforeEach(() => {
     sceneLoc = null;

@@ -1,4 +1,4 @@
-import { BARCRAWL_GP } from '../../../barcrawl/BarcrawlLogic.js';
+import { BARCRAWL_GP } from '../../barcrawl/BarcrawlLogic.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { HD_ID, HD_ITEM } from './areas.js';
 

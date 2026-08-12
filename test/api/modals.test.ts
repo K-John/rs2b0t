@@ -4,7 +4,7 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
-import { Execution } from '#/bot/api/Execution.js';
+import { Execution } from '#/bot/api/core/Execution.js';
 import { Modals } from '#/bot/api/hud/Modals.js';
 
 /**

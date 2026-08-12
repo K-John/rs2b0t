@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
-import Tile from '#/bot/api/Tile.js';
-import { BARCRAWL_GP, BARS, nextBar, parseCard } from '#/bot/barcrawl/BarcrawlLogic.js';
+import Tile from '#/bot/api/core/Tile.js';
+import { BARCRAWL_GP, BARS, nextBar, parseCard } from '#/bot/quests/barcrawl/BarcrawlLogic.js';
 
 /** Verbatim from scroll.rs2's `scroll_barcrawl_card`. */
 function card(done: readonly string[]): string[] {

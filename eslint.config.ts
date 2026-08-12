@@ -48,7 +48,7 @@ export default defineConfig([
     // runtime coupling).
     {
         files: ['src/bot/**/*.ts'],
-        ignores: ['src/bot/adapter/**', 'src/bot/BotClient.ts'],
+        ignores: ['src/bot/adapter/**', 'src/bot/runtime/BotClient.ts'],
         rules: {
             'no-restricted-imports': [
                 'error',

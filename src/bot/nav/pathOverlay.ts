@@ -11,7 +11,7 @@
  */
 
 import { reader } from '../adapter/ClientAdapter.js';
-import { Locs } from '../api/queries/Locs.js';
+import { Locs } from '../api/entities/Locs.js';
 import { SettingsStore } from '../runtime/Settings.js';
 import { matchesTransportLoc } from './exec/transportLoc.js';
 import { PathPublish, type PublishedPathTile } from './pathPublish.js';
@@ -22,7 +22,7 @@ import {
     type NavPathPaintTheme
 } from './pathPaintTheme.js';
 import { remainingPathFromPlayer } from './pathExpand.js';
-import { Game } from '../api/Game.js';
+import { Game } from '../api/core/Game.js';
 
 /** areaGame surface blitted at (4,4) — see Client.overlayPos. */
 export const GAME_VIEW_CLIP = { x: 4, y: 4, w: 512, h: 334 } as const;

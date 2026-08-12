@@ -7,10 +7,10 @@ import {
     isAutoLocation,
     resourceWithinCamp,
     spotWithinGatherRange
-} from '#/bot/api/GatherCamp.js';
-import { DEFAULT_CHASE_RADIUS, resolveCampRadius } from '#/bot/api/GatheringLocations.js';
-import { HOME_ARRIVE_RADIUS, shouldSoftHomeFromGatherMiss, shouldWalkHomeToGatherAnchor } from '#/bot/api/Anchor.js';
-import Tile from '#/bot/api/Tile.js';
+} from '#/bot/api/catalogs/GatherCamp.js';
+import { DEFAULT_CHASE_RADIUS, resolveCampRadius } from '#/bot/api/catalogs/GatheringLocations.js';
+import { HOME_ARRIVE_RADIUS, shouldSoftHomeFromGatherMiss, shouldWalkHomeToGatherAnchor } from '#/bot/api/core/Anchor.js';
+import Tile from '#/bot/api/core/Tile.js';
 
 describe('GatherCamp membership', () => {
     test('resourceWithinCamp inclusive Chebyshev', () => {

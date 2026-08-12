@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { fleeCandidates } from '#/bot/api/eventEvade.js';
+import { fleeCandidates } from '#/bot/api/randomevents/eventEvade.js';
 
 const HERE = { x: 100, z: 100, level: 0 };
 const WEST_THREAT = { x: 98, z: 100 };

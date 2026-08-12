@@ -1,17 +1,17 @@
 import type { WorldTile } from '../adapter/ClientAdapter.js';
 import { reader } from '../adapter/ClientAdapter.js';
-import { EventSignal } from '../api/EventSignal.js';
+import { EventSignal } from '../api/randomevents/EventSignal.js';
 import { CANT_REACH, GameMessages } from '../events/gameMessages.js';
-import { Execution } from '../api/Execution.js';
-import { Sustain } from '../api/Sustain.js';
-import { Locs } from '../api/queries/Locs.js';
+import { Execution } from '../api/core/Execution.js';
+import { Sustain } from '../api/combat/Sustain.js';
+import { Locs } from '../api/entities/Locs.js';
 import { Inventory } from '../api/hud/Inventory.js';
 import { Bank } from '../api/hud/Bank.js';
-import { Banking } from '../api/Banking.js';
-import { nearestBank } from '../api/BankLocations.js';
+import { Banking } from '../api/banking/Banking.js';
+import { nearestBank } from '../api/banking/BankLocations.js';
 import { SPECIAL_CROSSINGS, specialCrossingForTransport, meetsRequirement, meetsSkill, pickChoice } from './data/specialCrossings.js';
 import { Skills } from '../api/hud/Skills.js';
-import { Reachability } from '../api/Reachability.js';
+import { Reachability } from '../api/movement/Reachability.js';
 import { ActionRouter } from '../input/ActionRouter.js';
 import { Navigator, type PathResult } from './Navigator.js';
 import { DirectNavigator } from './DirectNavigator.js';
@@ -25,7 +25,7 @@ import {
     starvedTerminalIndex
 } from './followMath.js';
 import { PATH_CORRIDOR, resolvePathFollowConfig, type PathFollowOverrides } from './pathFollowPolicy.js';
-import { BotHost } from '../BotHost.js';
+import { BotHost } from '../runtime/BotHost.js';
 import { classifyReason } from './walkLadder.js';
 import { isArrived } from './arrival.js';
 import { snapshotWorldStateData } from './worldStateLive.js';
@@ -67,7 +67,7 @@ import { chatShowsQuestLock, dismissQuestLockDialogue } from './exec/questLock.j
 import { postQuestTalkFor, type PostQuestTalk } from './data/postQuestTalks.js';
 import { Quests } from '../api/hud/Quests.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
-import { Npcs } from '../api/queries/Npcs.js';
+import { Npcs } from '../api/entities/Npcs.js';
 
 // Re-export for existing tests
 export {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { CUBE_PARTS, solveCube } from '#/bot/api/solvers/StrangeBox.js';
+import { CUBE_PARTS, solveCube } from '#/bot/api/randomevents/solvers/StrangeBox.js';
 
 describe('solveCube', () => {
     test('answers a colour question by shape position', () => {

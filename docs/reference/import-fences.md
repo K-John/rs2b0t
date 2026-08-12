@@ -7,7 +7,7 @@ declare the layering.
 
 | Fence | Applies to | Message |
 |---|---|---|
-| Client internals | `src/bot/**`, except `src/bot/adapter/**` and `src/bot/BotClient.ts` | `Only src/bot/adapter/ may touch client internals.` |
+| Client internals | `src/bot/**`, except `src/bot/adapter/**` and `src/bot/runtime/BotClient.ts` | `Only src/bot/adapter/ may touch client internals.` |
 | DOM | `src/bot/**`, except `src/bot/ui/`, `src/bot/main.ts`, and `src/bot/multibox/{DomSlotOps,ProfileChooser,VaultPrompt,main}.ts` | `DOM only in src/bot/ui/, main.ts, and src/bot/multibox/…` |
 
 Exempt from the client fence: the protocol const-enums `ServerProt`, `ClientProt` and

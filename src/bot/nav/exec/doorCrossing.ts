@@ -4,10 +4,10 @@
 
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import { reader } from '../../adapter/ClientAdapter.js';
-import { Execution } from '../../api/Execution.js';
+import { Execution } from '../../api/core/Execution.js';
 import { Inventory } from '../../api/hud/Inventory.js';
-import { Locs, type Loc } from '../../api/queries/Locs.js';
-import { Reachability } from '../../api/Reachability.js';
+import { Locs, type Loc } from '../../api/entities/Locs.js';
+import { Reachability } from '../../api/movement/Reachability.js';
 import { CANT_REACH, GameMessages } from '../../events/gameMessages.js';
 import { ActionRouter } from '../../input/ActionRouter.js';
 import { DirectNavigator } from '../DirectNavigator.js';

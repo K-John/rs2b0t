@@ -39,7 +39,7 @@ collision-data fix, not a walker fix.
 ## The Reach primitive
 
 Most last-mile bugs came from every caller hand-rolling its own approach loop.
-[`Reach`](../../src/bot/api/Reach.ts) is the shared one — **use it rather than writing
+[`Reach`](../../src/bot/api/movement/Reach.ts) is the shared one — **use it rather than writing
 another**:
 
 ```ts

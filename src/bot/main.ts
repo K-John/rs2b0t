@@ -1,6 +1,6 @@
 import { actions, reader } from './adapter/ClientAdapter.js';
-import BotClient from './BotClient.js';
-import { BotHost } from './BotHost.js';
+import BotClient from './runtime/BotClient.js';
+import { BotHost } from './runtime/BotHost.js';
 import { ClueExecutor, TRACE_STORAGE_KEY } from './clues/ClueExecutor.js';
 import { readTraceRing } from './clues/ClueTrace.js';
 import { BotDiag } from './diag/BotDiag.js';

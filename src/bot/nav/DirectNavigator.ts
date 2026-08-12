@@ -1,7 +1,7 @@
 import type { WorldTile } from '../adapter/ClientAdapter.js';
 import { reader } from '../adapter/ClientAdapter.js';
-import { Execution } from '../api/Execution.js';
-import { Reachability } from '../api/Reachability.js';
+import { Execution } from '../api/core/Execution.js';
+import { Reachability } from '../api/movement/Reachability.js';
 import { ActionRouter } from '../input/ActionRouter.js';
 import { isArrived } from './arrival.js';
 

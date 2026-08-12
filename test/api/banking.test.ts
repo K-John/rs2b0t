@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { shouldBankNow, parseBankStrategy } from '#/bot/api/Banking.js';
+import { shouldBankNow, parseBankStrategy } from '#/bot/api/banking/Banking.js';
 
 const state = (o: Partial<{ lootCount: number; minutesSinceLastBank: number; itemsThreshold: number; minutesThreshold: number }>) => ({
     lootCount: 20, minutesSinceLastBank: 0, itemsThreshold: 15, minutesThreshold: 10, ...o

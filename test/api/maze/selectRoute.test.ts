@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
-import { selectRoute } from '#/bot/api/maze/selectRoute.js';
-import { MAZE_SPAWNS } from '#/bot/api/maze/mazeGraph.js';
+import { selectRoute } from '#/bot/api/randomevents/maze/selectRoute.js';
+import { MAZE_SPAWNS } from '#/bot/api/randomevents/maze/mazeGraph.js';
 
 /**
  * The event does not only spawn on the four corners. Two live bots landed on

@@ -3,7 +3,7 @@ import {
     LOCAL_MINE_PREFER_RADIUS,
     pickNearestPreferLocal,
     shouldCooldownGatherTile
-} from '#/bot/api/TargetPick.js';
+} from '#/bot/api/combat/TargetPick.js';
 
 describe('pickNearestPreferLocal', () => {
     const rock = (id: string, dist: number) => ({ id, dist });

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { MIME_EMOTE_BY_SEQ, MIME_IF, mimeAnswer } from '#/bot/api/solvers/Mime.js';
+import { MIME_EMOTE_BY_SEQ, MIME_IF, mimeAnswer } from '#/bot/api/randomevents/solvers/Mime.js';
 
 describe('mime mapping', () => {
     test('eight distinct emotes map to eight distinct buttons', () => {

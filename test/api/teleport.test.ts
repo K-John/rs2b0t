@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
-import { Game } from '#/bot/api/Game.js';
+import { Game } from '#/bot/api/core/Game.js';
 import type { Npc } from '#/bot/api/entities/index.js';
 import { ActionRouter } from '#/bot/input/ActionRouter.js';
 import {
     resolveTeleport,
     resolveTeleportComponent,
     teleportButtonText
-} from '#/bot/api/Teleport.js';
+} from '#/bot/api/movement/Teleport.js';
 
 const FALLBACKS: Record<string, number> = {
     Varrock: 1164,

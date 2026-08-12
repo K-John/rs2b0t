@@ -1,5 +1,5 @@
 import { expect, test, describe } from 'bun:test';
-import { GearLossTracker, handleLocation, isHostileEventNpc, pickSacrificial } from '#/bot/api/RandomEvents.js';
+import { GearLossTracker, handleLocation, isHostileEventNpc, pickSacrificial } from '#/bot/api/randomevents/RandomEvents.js';
 
 describe('handleLocation', () => {
     test('worn handle wins (the wielded-pick case the old scan missed)', () => {

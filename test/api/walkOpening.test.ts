@@ -1,5 +1,5 @@
 import { expect, test, describe } from 'bun:test';
-import { isOpenableObstacle, openOp, towardDest } from '#/bot/api/walkOpening.js';
+import { isOpenableObstacle, openOp, towardDest } from '#/bot/api/movement/walkOpening.js';
 
 describe('isOpenableObstacle', () => {
     test('matches a shut door/gate by name + an Open op', () => {
