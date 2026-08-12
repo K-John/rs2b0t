@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-imports -- TODO: route through ClientAdapter; the fence was inert until 2026-08-11 and these predate it. */
 /**
  * Manual basemap rebuild for the map picker (user clicks Rebuild + confirms).
  *

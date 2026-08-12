@@ -55,7 +55,7 @@ export default defineConfig([
                 {
                     patterns: [
                         {
-                            group: ['#/client/*', '#/io/*', '#/config/*', '#/dash3d/*', '#/datastruct/*', '#/graphics/*', '#/sound/*', '#/wordfilter/*', '#3rdparty/*', '!#/io/ServerProt.js', '!#/io/ClientProt.js', '!#/dash3d/CollisionFlag.js'],
+                            group: ['\\#/client/*', '\\#/io/*', '\\#/config/*', '\\#/dash3d/*', '\\#/datastruct/*', '\\#/graphics/*', '\\#/sound/*', '\\#/wordfilter/*', '\\#3rdparty/*', '!\\#/io/ServerProt.js', '!\\#/io/ClientProt.js', '!\\#/dash3d/CollisionFlag.js', '!\\#/client/MiniMenuAction.js'],
                             message: 'Only src/bot/adapter/ may touch client internals.'
                         }
                     ]
