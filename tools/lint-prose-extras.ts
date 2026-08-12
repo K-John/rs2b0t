@@ -21,3 +21,49 @@ export function checkDocCap(files: string[]): Finding[] {
     }
     return found;
 }
+
+const MIN_WORDS = 5;
+
+function isProse(line: string): boolean {
+    const t = line.trim();
+    if (t === '') return false;
+    if (t.startsWith('#')) return false;
+    if (t.startsWith('|')) return false;
+    if (t.startsWith('-') || t.startsWith('*') || t.startsWith('>')) return false;
+    if (/^\d+\./.test(t)) return false;
+    if (t.startsWith('<!--')) return false;
+    return true;
+}
+
+export function checkFragments(files: string[]): Finding[] {
+    const found: Finding[] = [];
+    for (const file of files) {
+        const lines = readFileSync(file, 'utf8').split('\n');
+        let fenced = false;
+        let start = -1;
+        let block: string[] = [];
+        const flush = () => {
+            if (block.length === 1 && block[0].trim().split(/\s+/).length < MIN_WORDS) {
+                found.push({ file, line: start, check: 'fragment', message: `One-line paragraph "${block[0].trim()}" reads as punctuation. Give it a subject and a verb or fold it into the neighbouring block.` });
+            }
+            block = [];
+            start = -1;
+        };
+        for (const [index, line] of lines.entries()) {
+            if (line.trim().startsWith('```')) {
+                fenced = !fenced;
+                flush();
+                continue;
+            }
+            if (fenced) continue;
+            if (isProse(line)) {
+                if (start === -1) start = index + 1;
+                block.push(line);
+            } else {
+                flush();
+            }
+        }
+        flush();
+    }
+    return found;
+}
