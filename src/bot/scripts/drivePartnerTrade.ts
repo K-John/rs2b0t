@@ -5,14 +5,14 @@
  * Policy (partner filter, empty-own-offer safety) stays in {@link PartnerTrade};
  * this module sequences HUD actions from those decisions plus optional script hooks.
  */
-import { Execution } from '../core/Execution.js';
-import { Inventory } from '../hud/Inventory.js';
-import { Trade } from '../hud/Trade.js';
+import { Execution } from '../api/core/Execution.js';
+import { Inventory } from '../api/hud/Inventory.js';
+import { Trade } from '../api/hud/Trade.js';
 import {
     countOfferMatching,
     decideGiverOfferScreen,
     decideReceiverOfferScreen
-} from './PartnerTrade.js';
+} from '../api/mule/PartnerTrade.js';
 
 type PartnerTradeRole = 'giver' | 'receiver';
 

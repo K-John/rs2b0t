@@ -29,7 +29,7 @@ import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { cookSurfaceForFishCamp, resolveFishCampCookSurface } from '../data/cookingRanges.js';
 import { resolveFishingLocation, type FishingLocation } from '../data/fishingLocations.js';
-import { effectiveGatherLeash, isAutoLocation, NAMED_CAMP_LEASH_FLOOR } from '../api/skilling/GatherCamp.js';
+import { effectiveGatherLeash, isAutoLocation, NAMED_CAMP_LEASH_FLOOR } from './GatherCamp.js';
 import {
     DEFAULT_CHASE_RADIUS,
     resolveCampRadius,
@@ -168,7 +168,7 @@ import {
     executeFishingGearShopCart as execFishingGearShopCart,
     executeToolAcquirePlan as execToolAcquirePlan,
     type ToolAcquireHost
-} from '../api/acquisition/ToolAcquireExec.js';
+} from './ToolAcquireExec.js';
 import {
     gatheringCombatPolicy,
     hostileAttackerNearby,
@@ -231,13 +231,13 @@ export {
     resourceWithinCamp,
     spotWithinGatherRange,
     START_TILE_LEASH_FLOOR
-} from '../api/skilling/GatherCamp.js';
+} from './GatherCamp.js';
 export { DEFAULT_CHASE_RADIUS } from '../data/gatheringLocations.js';
 export {
     LOCAL_MINE_PREFER_RADIUS,
     pickNearestPreferLocal,
     shouldCooldownGatherTile
-} from '../api/skilling/TargetPick.js';
+} from './TargetPick.js';
 
 // Pure policy (also in GatheringBotLogic) — re-export for existing test/import paths.
 export {

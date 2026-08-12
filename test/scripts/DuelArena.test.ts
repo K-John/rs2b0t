@@ -4,7 +4,7 @@ import { reader } from '#/bot/adapter/ClientAdapter.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Game } from '#/bot/api/core/Game.js';
 import { ChatDialog } from '#/bot/api/hud/ChatDialog.js';
-import { Duel } from '#/bot/api/hud/Duel.js';
+import { Duel } from '#/bot/scripts/DuelInterface.js';
 import { Skills } from '#/bot/api/hud/Skills.js';
 import { paintState } from '#/bot/api/hud/paintLogic.js';
 import { ScriptRunner } from '#/bot/runtime/ScriptRunner.js';

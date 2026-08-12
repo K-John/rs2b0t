@@ -27,7 +27,7 @@ import {
     LOCAL_PICK_RADIUS, POCKET_CAP, CARVE_DROP,
     partnerNameMatches, flaxUnitsInOffer, spinnerNeedsClearPack, canReceiveFlaxOffer,
 } from './FlaxRunnerLogic.js';
-import { driveActivePartnerTrade } from '../api/mule/drivePartnerTrade.js';
+import { driveActivePartnerTrade } from './drivePartnerTrade.js';
 
 const LEASH = 8;
 const BOOTH = { op: 'Use-quickly' };

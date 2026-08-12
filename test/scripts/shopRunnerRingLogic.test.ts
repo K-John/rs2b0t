@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 
-import { buyoutCostFromBaseline, clusterEligible, estimateClusterGp, nextCluster, withdrawFor } from '#/bot/api/shops/RingLogic.js';
-import { ROUTE } from '#/bot/api/shops/data/route.js';
+import { buyoutCostFromBaseline, clusterEligible, estimateClusterGp, nextCluster, withdrawFor } from '#/bot/scripts/ShopRunnerRingLogic.js';
+import { ROUTE } from '#/bot/scripts/ShopRunnerRoute.js';
 import { SHOP_DB } from '#/bot/data/shopdb.js';
 import type { AccountView } from '#/bot/api/shops/types.js';
 

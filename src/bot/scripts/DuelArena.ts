@@ -7,7 +7,7 @@ import { Paint } from '../api/hud/Paint.js';
 import { fmtXpHr } from '../api/hud/paintLogic.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Players, type Player } from '../api/entities/Players.js';
-import { Duel } from '../api/hud/Duel.js';
+import { Duel } from './DuelInterface.js';
 import { GameMessages } from '../events/gameMessages.js';
 import { reader } from '../adapter/ClientAdapter.js';
 import { BotHost } from '../runtime/BotHost.js';

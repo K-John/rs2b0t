@@ -25,15 +25,15 @@ import {
     gatherSpotRangeOrigin,
     resourceWithinCamp,
     spotWithinGatherRange
-} from '../api/skilling/GatherCamp.js';
-import { LOCAL_MINE_PREFER_RADIUS, shouldCooldownGatherTile } from '../api/skilling/TargetPick.js';
+} from './GatherCamp.js';
+import { LOCAL_MINE_PREFER_RADIUS, shouldCooldownGatherTile } from './TargetPick.js';
 import { Trade } from '../api/hud/Trade.js';
 import {
     DEFAULT_TRADE_RANGE,
     countOfferMatching,
     isConfiguredPartner
 } from '../api/mule/PartnerTrade.js';
-import { driveActivePartnerTrade } from '../api/mule/drivePartnerTrade.js';
+import { driveActivePartnerTrade } from './drivePartnerTrade.js';
 import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS } from '../data/miningRocks.js';
 import { bestPickaxe } from '../api/acquisition/Tools.js';
 import { WHIRLPOOL_IDS, fishingRestockPlan } from '../data/fishingMethods.js';

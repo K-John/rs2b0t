@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { sweepPlan } from '#/bot/api/combat/AmmoLogic.js';
+import { sweepPlan } from '#/bot/scripts/AmmoLogic.js';
 
 describe('sweepPlan', () => {
     test('ignores stacks below minStack, keeps the rest nearest-first', () => {

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from 'bun:test';
 
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
 import { Player } from '#/bot/api/entities/index.js';
-import { DUEL_CONFIRM_MODAL, DUEL_SELECT_MODAL, DUEL_WIN_MODAL, Duel, parseDuelPartnerHeader } from '#/bot/api/hud/Duel.js';
+import { DUEL_CONFIRM_MODAL, DUEL_SELECT_MODAL, DUEL_WIN_MODAL, Duel, parseDuelPartnerHeader } from '#/bot/scripts/DuelInterface.js';
 import { Modals } from '#/bot/api/hud/Modals.js';
 import { ActionRouter } from '#/bot/input/ActionRouter.js';
 

@@ -7,7 +7,7 @@ import {
     isAutoLocation,
     resourceWithinCamp,
     spotWithinGatherRange
-} from '#/bot/api/skilling/GatherCamp.js';
+} from '#/bot/scripts/GatherCamp.js';
 import { DEFAULT_CHASE_RADIUS, resolveCampRadius } from '#/bot/data/gatheringLocations.js';
 import { HOME_ARRIVE_RADIUS, shouldSoftHomeFromGatherMiss, shouldWalkHomeToGatherAnchor } from '#/bot/api/skilling/Anchor.js';
 import Tile from '#/bot/geometry/Tile.js';

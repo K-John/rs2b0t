@@ -2,7 +2,7 @@
  * Gather camp membership / hunt policy (Fisher / Miner / Woodcutter).
  * Location tables stay in GatheringLocations; these helpers are pure disk math.
  */
-import { DEFAULT_CAMP_RADIUS } from '../../data/gatheringLocations.js';
+import { DEFAULT_CAMP_RADIUS } from '../data/gatheringLocations.js';
 
 /** Floor for non-Auto location modes (named camps + power None) — camp membership. */
 export const NAMED_CAMP_LEASH_FLOOR = DEFAULT_CAMP_RADIUS;

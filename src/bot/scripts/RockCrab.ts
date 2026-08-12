@@ -18,7 +18,7 @@ import { castsAvailable, runeWithdrawList, spellButtonCom } from '../api/combat/
 import { SPELL_DB } from '../data/spelldb.js';
 import { STAFFS } from '../api/combat/equipment.js';
 import { foodHealAmount, shouldEatToUseFood } from '../api/combat/food.js';
-import { sweepPlan } from '../api/combat/AmmoLogic.js';
+import { sweepPlan } from './AmmoLogic.js';
 import type { GroundItem } from '../api/entities/GroundItems.js';
 import { Paint } from '../api/hud/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';

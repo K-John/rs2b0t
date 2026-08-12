@@ -5,18 +5,18 @@
  * shop/NPC/anvil choreography so GatheringBot (and future scripts) do not grow
  * another 400-line private method block.
  */
-import { Execution } from '../core/Execution.js';
-import { Game } from '../core/Game.js';
-import Tile from '../../geometry/Tile.js';
-import { Traversal } from '../../nav/Traversal.js';
-import { Bank, withdrawOp } from '../hud/Bank.js';
-import { ChatDialog } from '../hud/ChatDialog.js';
-import { Equipment } from '../hud/Equipment.js';
-import { Inventory } from '../hud/Inventory.js';
-import { Shop } from '../hud/Shop.js';
-import { Locs } from '../entities/Locs.js';
-import { Npcs } from '../entities/Npcs.js';
-import { bestPickaxe, canWieldTool, toolAttackLevel } from './Tools.js';
+import { Execution } from '../api/core/Execution.js';
+import { Game } from '../api/core/Game.js';
+import Tile from '../geometry/Tile.js';
+import { Traversal } from '../nav/Traversal.js';
+import { Bank, withdrawOp } from '../api/hud/Bank.js';
+import { ChatDialog } from '../api/hud/ChatDialog.js';
+import { Equipment } from '../api/hud/Equipment.js';
+import { Inventory } from '../api/hud/Inventory.js';
+import { Shop } from '../api/hud/Shop.js';
+import { Locs } from '../api/entities/Locs.js';
+import { Npcs } from '../api/entities/Npcs.js';
+import { bestPickaxe, canWieldTool, toolAttackLevel } from '../api/acquisition/Tools.js';
 import {
     COINS,
     HAMMER,
@@ -26,7 +26,7 @@ import {
     type FishingGearBuyPlan,
     type ToolAcquirePlan,
     type ToolVendor
-} from './ToolAcquire.js';
+} from '../api/acquisition/ToolAcquire.js';
 
 /** Script-facing hooks needed to run acquire plans without owning a bot class. */
 export interface ToolAcquireHost {
