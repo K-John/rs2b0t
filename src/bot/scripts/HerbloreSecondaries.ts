@@ -2,7 +2,7 @@ import { TaskBot, type Task } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import Tile from '../geometry/Tile.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Bank } from '../api/hud/Bank.js';
 import { Equipment } from '../api/hud/Equipment.js';

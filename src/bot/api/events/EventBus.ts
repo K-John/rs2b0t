@@ -1,4 +1,4 @@
-import type { ChatLine } from '../adapter/ClientAdapter.js';
+import type { ChatLine } from '../../adapter/ClientAdapter.js';
 
 interface SkillXpEvent {
     skill: number;

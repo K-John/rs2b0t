@@ -3,7 +3,7 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test';
 import { reader } from '#/bot/adapter/ClientAdapter.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Reachability } from '#/bot/nav/geometry/Reachability.js';
-import { Traversal } from '#/bot/nav/Traversal.js';
+import { Traversal } from '#/bot/api/walking/Traversal.js';
 import { ChatDialog } from '#/bot/api/hud/ChatDialog.js';
 import { Locs } from '#/bot/api/entities/Locs.js';
 import { Npcs } from '#/bot/api/entities/Npcs.js';
@@ -26,7 +26,7 @@ let dialogOpen: boolean;
 let expectFlips: boolean;
 let onDoorOpen: (() => void) | null;
 
-const { GameMessages } = await import('#/bot/events/gameMessages.js');
+const { GameMessages } = await import('#/bot/api/chatbox/messages.js');
 
 // Mutate singletons — mock.module is permanent in Bun (docs/reference/test-suites.md).
 const restoreReader = stubProps(reader, { worldTile: () => ({ x: 0, z: 0, level: 0 }) });
@@ -145,7 +145,7 @@ afterAll(() => {
     WalkExecutor.lastOutcome = realLastOutcome;
 });
 
-const { Reach } = await import('#/bot/nav/Reach.js');
+const { Reach } = await import('#/bot/api/walking/Reach.js');
 
 beforeEach(() => {
     sceneLoc = null;

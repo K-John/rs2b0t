@@ -1,5 +1,5 @@
 import { Execution } from '../../../api/core/Execution.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';

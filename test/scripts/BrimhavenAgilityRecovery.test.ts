@@ -7,7 +7,7 @@ import { ChatDialog } from '#/bot/api/hud/ChatDialog.js';
 import { Inventory } from '#/bot/api/hud/Inventory.js';
 import { Skills } from '#/bot/api/hud/Skills.js';
 import Tile from '#/bot/geometry/Tile.js';
-import { Traversal } from '#/bot/nav/Traversal.js';
+import { Traversal } from '#/bot/api/walking/Traversal.js';
 import { SettingsBag } from '#/bot/runtime/Settings.js';
 import BrimhavenAgility from '#/bot/scripts/BrimhavenAgility.js';
 import {

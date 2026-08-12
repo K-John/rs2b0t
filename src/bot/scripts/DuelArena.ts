@@ -1,14 +1,14 @@
 import { TaskBot, type Task } from '../api/core/Bot.js';
 import { Game } from '../api/core/Game.js';
 import { Execution } from '../api/core/Execution.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { Skills } from '../api/hud/Skills.js';
 import { Paint } from '../api/hud/Paint.js';
 import { fmtXpHr } from '../api/hud/paintLogic.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Players, type Player } from '../api/entities/Players.js';
 import { Duel } from './DuelInterface.js';
-import { GameMessages } from '../events/gameMessages.js';
+import { GameMessages } from '../api/chatbox/messages.js';
 import { reader } from '../adapter/ClientAdapter.js';
 import { BotHost } from '../runtime/BotHost.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';

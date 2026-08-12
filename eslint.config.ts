@@ -136,8 +136,8 @@ export default defineConfig([
                 {
                     patterns: [
                         {
-                            group: ['**/scripts/**', '**/clues/**', '**/ui/**', '**/multibox/**', '**/quests/**', '**/events/**', '**/input/**'],
-                            message: 'abi.ts publishes from api/, data/ and nav/ only.'
+                            group: ['**/scripts/**', '**/clues/**', '**/ui/**', '**/multibox/**', '**/quests/**'],
+                            message: 'abi.ts publishes from api/, data/, geometry/ and nav/ only.'
                         }
                     ]
                 }

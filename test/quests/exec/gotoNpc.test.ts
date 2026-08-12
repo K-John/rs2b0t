@@ -2,7 +2,7 @@ import { expect, test, describe, beforeEach, afterAll } from 'bun:test';
 
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Game } from '#/bot/api/core/Game.js';
-import { Traversal } from '#/bot/nav/Traversal.js';
+import { Traversal } from '#/bot/api/walking/Traversal.js';
 import { Locs } from '#/bot/api/entities/Locs.js';
 import { Npcs } from '#/bot/api/entities/Npcs.js';
 import Tile from '#/bot/geometry/Tile.js';

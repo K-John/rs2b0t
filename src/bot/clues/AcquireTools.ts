@@ -1,8 +1,8 @@
 // docs/reference/clues-mechanics.md#tool-acquisition
 import { Execution } from '#/bot/api/core/Execution.js';
-import { EventSignal } from '#/bot/runtime/randomevents/EventSignal.js';
+import { EventSignal } from '#/bot/api/core/EventSignal.js';
 import { Game } from '#/bot/api/core/Game.js';
-import { Traversal } from '#/bot/nav/Traversal.js';
+import { Traversal } from '#/bot/api/walking/Traversal.js';
 import { Inventory } from '#/bot/api/hud/Inventory.js';
 import { GroundItems } from '#/bot/api/entities/GroundItems.js';
 import { gotoNpc, talkThrough, type NpcStop } from '#/bot/quests/exec/primitives.js';

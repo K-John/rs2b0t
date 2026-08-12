@@ -1,13 +1,13 @@
 import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
-import { Reach } from '../../../nav/Reach.js';
+import { Reach } from '../../../api/walking/Reach.js';
 import { Sustain } from '../../../api/core/Sustain.js';
 import Tile from '../../../geometry/Tile.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Locs } from '../../../api/entities/Locs.js';
-import { GameMessages } from '../../../events/gameMessages.js';
+import { GameMessages } from '../../../api/chatbox/messages.js';
 import { heldId, settleScene } from '../../exec/prompts.js';
 import { FC_ID, FC_ITEM, FC_LOC, inPerfectGoldZone } from './areas.js';
 

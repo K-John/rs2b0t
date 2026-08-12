@@ -4,7 +4,7 @@ import { Input } from '../input/Input.js';
 import type { BankNpcAccess, BankObjectAccess } from '../banking/BankLocations.js';
 import { Execution } from '../core/Execution.js';
 import { Reachability } from '../../nav/geometry/Reachability.js';
-import { Traversal } from '../../nav/Traversal.js';
+import { Traversal } from '../walking/Traversal.js';
 import { Locs } from '../entities/Locs.js';
 import { Npcs } from '../entities/Npcs.js';
 import { ChatDialog } from './ChatDialog.js';

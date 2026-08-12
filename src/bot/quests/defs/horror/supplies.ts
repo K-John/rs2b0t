@@ -1,6 +1,6 @@
 import { Execution } from '../../../api/core/Execution.js';
 import Tile from '../../../geometry/Tile.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import { Equipment } from '../../../api/hud/Equipment.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Skills } from '../../../api/hud/Skills.js';

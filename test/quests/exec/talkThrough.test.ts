@@ -4,7 +4,7 @@ import { reader } from '#/bot/adapter/ClientAdapter.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Game } from '#/bot/api/core/Game.js';
 import { Reachability } from '#/bot/nav/geometry/Reachability.js';
-import { Traversal } from '#/bot/nav/Traversal.js';
+import { Traversal } from '#/bot/api/walking/Traversal.js';
 import { ChatDialog } from '#/bot/api/hud/ChatDialog.js';
 import { Locs } from '#/bot/api/entities/Locs.js';
 import { Npcs } from '#/bot/api/entities/Npcs.js';
@@ -24,7 +24,7 @@ let continueOnly: boolean;
 let npcInteractOps: string[];
 let doorInteractOps: string[];
 
-const { GameMessages } = await import('#/bot/events/gameMessages.js');
+const { GameMessages } = await import('#/bot/api/chatbox/messages.js');
 
 // Mutate singletons — mock.module is permanent in Bun (docs/reference/test-suites.md).
 const restoreReader = stubProps(reader, { worldTile: () => ({ x: 0, z: 0, level: 0 }) });

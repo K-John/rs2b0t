@@ -1,5 +1,5 @@
 import { reader } from '../adapter/ClientAdapter.js';
-import { bus } from './EventBus.js';
+import { bus } from '../api/events/EventBus.js';
 import {
     anyDirty,
     applyDirty,

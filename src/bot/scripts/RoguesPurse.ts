@@ -4,7 +4,7 @@ import { LoopingBot } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import type Tile from '../geometry/Tile.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { DeathRecovery } from '../api/tasks/DeathRecovery.js';
 import { Bank } from '../api/hud/Bank.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';

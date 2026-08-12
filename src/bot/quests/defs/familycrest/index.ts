@@ -1,6 +1,6 @@
 import { Execution } from '../../../api/core/Execution.js';
-import { Reach } from '../../../nav/Reach.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Reach } from '../../../api/walking/Reach.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Npcs } from '../../../api/entities/Npcs.js';

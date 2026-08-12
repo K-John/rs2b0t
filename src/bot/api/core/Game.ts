@@ -3,7 +3,7 @@ import { BotHost } from '../../runtime/BotHost.js';
 import { Input } from '../input/Input.js';
 import { Execution } from './Execution.js';
 import { CombatStyleController, type CombatModeLabel, type CombatStyleResolution, type MeleeCombatStyle } from '../combat/CombatStyle.js';
-import { resolveTeleport, resolveTeleportComponent } from '../../nav/Teleport.js';
+import { resolveTeleport, resolveTeleportComponent } from '../map/Teleport.js';
 import type { Npc } from '../entities/index.js';
 
 const COM_MODE_VARP = 43;

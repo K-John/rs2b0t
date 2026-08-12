@@ -1,4 +1,4 @@
-import { EventSignal } from '#/bot/runtime/randomevents/EventSignal.js';
+import { EventSignal } from '#/bot/api/core/EventSignal.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Game } from '#/bot/api/core/Game.js';
 import { nearestAltar } from '#/bot/api/skilling/Altars.js';
@@ -6,7 +6,7 @@ import { nearestBank } from '#/bot/api/banking/BankLocations.js';
 import type { Task } from '#/bot/api/core/Bot.js';
 import { Prayer } from '#/bot/api/hud/Prayer.js';
 import { Sustain } from '#/bot/api/core/Sustain.js';
-import { Traversal } from '#/bot/nav/Traversal.js';
+import { Traversal } from '#/bot/api/walking/Traversal.js';
 import { foodHealAmount, shouldEatToUseFood } from '#/bot/api/combat/food.js';
 import { Locs } from '#/bot/api/entities/Locs.js';
 import { Bank } from '#/bot/api/hud/Bank.js';

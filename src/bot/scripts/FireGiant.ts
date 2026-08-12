@@ -1,5 +1,5 @@
 import { TaskBot, type Task } from '../api/core/Bot.js';
-import { EventSignal } from '../runtime/randomevents/EventSignal.js';
+import { EventSignal } from '../api/core/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { buryOneInFight } from '../api/combat/fightUpkeep.js';
 import { Game } from '../api/core/Game.js';
@@ -23,7 +23,7 @@ import { combatKeepNames } from '../api/combat/keepList.js';
 import { depositAllExcept, matchesCommonBankLoot } from '../api/banking/Banking.js';
 import { GroundItems } from '../api/entities/GroundItems.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';

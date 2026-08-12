@@ -1,9 +1,9 @@
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import { Inventory } from '../api/hud/Inventory.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { Locs } from '../api/entities/Locs.js';
-import { bus } from '../events/EventBus.js';
+import { bus } from '../api/events/EventBus.js';
 import { countMatching } from './ArdyFighterLogic.js';
 import {
     CAKE_ITEMS, LOCKOUT_TICKS, STALL_NAME, STALL_OP, STALL_TILE, STAND, STAND_ALT,

@@ -1,6 +1,6 @@
 import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import { Locs } from '../../../api/entities/Locs.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
 import { talkStrict } from '../../exec/primitives.js';

@@ -1,4 +1,4 @@
-import { EventSignal } from '../../../runtime/randomevents/EventSignal.js';
+import { EventSignal } from '../../../api/core/EventSignal.js';
 import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
 import { Prayer } from '../../../api/hud/Prayer.js';

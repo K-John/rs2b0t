@@ -9,7 +9,7 @@ import {
 import { Execution } from '../core/Execution.js';
 import { Game } from '../core/Game.js';
 import Tile from '../../geometry/Tile.js';
-import { Traversal } from '../../nav/Traversal.js';
+import { Traversal } from '../walking/Traversal.js';
 import { Bank } from '../hud/Bank.js';
 import { Inventory } from '../hud/Inventory.js';
 import { Locs } from '../entities/Locs.js';

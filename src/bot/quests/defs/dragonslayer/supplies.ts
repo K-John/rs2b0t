@@ -8,7 +8,7 @@ import { Shop } from '../../../api/hud/Shop.js';
 import { Skills } from '../../../api/hud/Skills.js';
 import { GroundItems } from '../../../api/entities/GroundItems.js';
 import { Locs } from '../../../api/entities/Locs.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import Tile from '../../../geometry/Tile.js';
 import { talkThrough } from '../../exec/primitives.js';
 import { openBankLeg } from '../../exec/steps.js';

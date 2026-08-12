@@ -16,7 +16,7 @@ import { Locs } from '../api/entities/Locs.js';
 import { Npcs } from '../api/entities/Npcs.js';
 import { Players } from '../api/entities/Players.js';
 import type { Player } from '../api/entities/index.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { type SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';

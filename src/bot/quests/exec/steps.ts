@@ -13,7 +13,7 @@ import { Navigator } from '../../nav/Navigator.js';
 import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
-import { Traversal } from '../../nav/Traversal.js';
+import { Traversal } from '../../api/walking/Traversal.js';
 import { QUEST_ROCK_TYPES, ROCK_TYPES } from '../../data/miningRocks.js';
 import type { QuestStep } from '../engine/types.js';
 import { gotoNpc, talkThrough, type LadderHop } from './primitives.js';

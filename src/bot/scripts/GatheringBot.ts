@@ -24,7 +24,7 @@ import {
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Locs } from '../api/entities/Locs.js';
 import { Npcs } from '../api/entities/Npcs.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { cookSurfaceForFishCamp, resolveFishCampCookSurface } from '../data/cookingRanges.js';

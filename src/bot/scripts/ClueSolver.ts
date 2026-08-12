@@ -5,7 +5,7 @@ import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import { nearestBank } from '../api/banking/BankLocations.js';
 import { Sustain } from '../api/core/Sustain.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { Paint } from '../api/hud/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { Bank } from '../api/hud/Bank.js';

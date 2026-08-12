@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 
-import { CANT_REACH, GameMessages } from '#/bot/events/gameMessages.js';
+import { CANT_REACH, GameMessages } from '#/bot/api/chatbox/messages.js';
 
 describe('GameMessages', () => {
     beforeEach(() => GameMessages.reset());

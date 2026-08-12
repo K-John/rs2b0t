@@ -8,7 +8,7 @@ import {
     resolveTeleport,
     resolveTeleportComponent,
     teleportButtonText
-} from '#/bot/nav/Teleport.js';
+} from '#/bot/api/map/Teleport.js';
 
 const FALLBACKS: Record<string, number> = {
     Varrock: 1164,

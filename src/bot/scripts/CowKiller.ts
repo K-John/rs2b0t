@@ -1,7 +1,7 @@
 import { Bank } from '../api/hud/Bank.js';
 import { Inventory } from '../api/hud/Inventory.js';
 import type { BankDestination } from '../api/banking/Banking.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import type Tile from '../geometry/Tile.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import ChickenKiller, { SETTINGS as CHICKEN_SETTINGS } from './ChickenKiller.js';

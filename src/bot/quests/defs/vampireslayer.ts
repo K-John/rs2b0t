@@ -7,7 +7,7 @@ import { Quests } from '../../api/hud/Quests.js';
 import { Skills } from '../../api/hud/Skills.js';
 import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
-import { Traversal } from '../../nav/Traversal.js';
+import { Traversal } from '../../api/walking/Traversal.js';
 import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { talkThrough, type NpcStop } from '../exec/primitives.js';

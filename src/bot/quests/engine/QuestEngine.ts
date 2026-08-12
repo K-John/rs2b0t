@@ -1,7 +1,7 @@
 // docs/reference/quest-engine.md#quest-state
 import { reader } from '../../adapter/ClientAdapter.js';
 import { type Task } from '../../api/core/Bot.js';
-import { EventSignal } from '../../runtime/randomevents/EventSignal.js';
+import { EventSignal } from '../../api/core/EventSignal.js';
 import { Execution } from '../../api/core/Execution.js';
 import { Game } from '../../api/core/Game.js';
 import Tile from '../../geometry/Tile.js';
@@ -21,7 +21,7 @@ import { nextQuest, queueRows, type QueueRow } from './queue.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from './types.js';
 import { NO_PROGRESS_PARK, NO_PROGRESS_WARN, ProgressWatchdog, progressSignature } from './watchdog.js';
 import { FAIL_WARN, StepTracker, formatDuration, formatTile, invDelta } from './trace.js';
-import { GameMessages } from '../../events/gameMessages.js';
+import { GameMessages } from '../../api/chatbox/messages.js';
 import type AIOQuester from '../../scripts/AIOQuester.js';
 
 const PARK_GIVE_UP = 3;

@@ -26,12 +26,12 @@ import { Bank } from '../api/hud/Bank.js';
 import { Skills } from '../api/hud/Skills.js';
 import { Paint } from '../api/hud/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
-import { Traversal } from '../nav/Traversal.js';
-import { CANT_REACH, GameMessages } from '../events/gameMessages.js';
+import { Traversal } from '../api/walking/Traversal.js';
+import { CANT_REACH, GameMessages } from '../api/chatbox/messages.js';
 import { RecoveryHints } from '../runtime/RecoveryHints.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
-import { Reach } from '../nav/Reach.js';
+import { Reach } from '../api/walking/Reach.js';
 
 const COMBAT_SKILLS = ['attack', 'strength', 'defence', 'hitpoints', 'ranged', 'magic'];
 

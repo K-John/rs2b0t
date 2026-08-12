@@ -4,7 +4,7 @@
  */
 import { beyondLeash, shouldSoftHomeFromGatherMiss, tileWithinLeash } from '../api/skilling/Anchor.js';
 import type { Task } from '../api/core/Bot.js';
-import { EventSignal } from '../runtime/randomevents/EventSignal.js';
+import { EventSignal } from '../api/core/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import Tile from '../geometry/Tile.js';
@@ -16,7 +16,7 @@ import { Inventory } from '../api/hud/Inventory.js';
 import { Skills } from '../api/hud/Skills.js';
 import { Locs } from '../api/entities/Locs.js';
 import { Npcs } from '../api/entities/Npcs.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { isOpenableObstacle, openOp, walkOpening } from '../nav/walkOpening.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';

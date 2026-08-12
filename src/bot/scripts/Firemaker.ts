@@ -1,17 +1,17 @@
 import { actions, reader, type WorldTile } from '../adapter/ClientAdapter.js';
 import { depositAllExcept } from '../api/banking/Banking.js';
 import { LoopingBot } from '../api/core/Bot.js';
-import { EventSignal } from '../runtime/randomevents/EventSignal.js';
+import { EventSignal } from '../api/core/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import { Reachability } from '../nav/geometry/Reachability.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { Bank } from '../api/hud/Bank.js';
 import { Inventory } from '../api/hud/Inventory.js';
 import { Paint } from '../api/hud/Paint.js';
 import { Skills } from '../api/hud/Skills.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
-import { GameMessages } from '../events/gameMessages.js';
+import { GameMessages } from '../api/chatbox/messages.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import {

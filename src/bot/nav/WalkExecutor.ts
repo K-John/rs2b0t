@@ -1,7 +1,7 @@
 import type { WorldTile } from '../adapter/ClientAdapter.js';
 import { reader } from '../adapter/ClientAdapter.js';
-import { EventSignal } from '../runtime/randomevents/EventSignal.js';
-import { CANT_REACH, GameMessages } from '../events/gameMessages.js';
+import { EventSignal } from '../api/core/EventSignal.js';
+import { CANT_REACH, GameMessages } from '../api/chatbox/messages.js';
 import { Execution } from '../api/core/Execution.js';
 import { Sustain } from '../api/core/Sustain.js';
 import { Locs } from '../api/entities/Locs.js';

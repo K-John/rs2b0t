@@ -1,4 +1,4 @@
-import { EventSignal } from '../../../runtime/randomevents/EventSignal.js';
+import { EventSignal } from '../../../api/core/EventSignal.js';
 import { Execution } from '../../../api/core/Execution.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Game } from '../../../api/core/Game.js';
@@ -6,7 +6,7 @@ import { Equipment } from '../../../api/hud/Equipment.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Locs } from '../../../api/entities/Locs.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import Tile from '../../../geometry/Tile.js';
 import { hasFlag } from '../../engine/types.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';

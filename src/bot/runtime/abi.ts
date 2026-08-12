@@ -170,12 +170,12 @@ import {
     toolRestockPlan,
     toolsNeedingEquip
 } from '../api/acquisition/Tools.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import {
     WALK_DESTINATIONS,
     WALK_OPTIONS,
     resolveDestination
-} from '../nav/WalkDestinations.js';
+} from '../api/map/WalkDestinations.js';
 import {
     WOODCUTTING_LOCATIONS,
     WOODCUTTING_LOCATION_OPTIONS,
@@ -195,7 +195,7 @@ import { Locs } from '../api/entities/Locs.js';
 import { Npcs } from '../api/entities/Npcs.js';
 import { Players } from '../api/entities/Players.js';
 import EntityQuery from '../api/entities/Query.js';
-import { bus, type EventMap } from '../events/EventBus.js';
+import { bus, type EventMap } from '../api/events/EventBus.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { EssenceSession } from '../nav/essenceSession.js';
 import {

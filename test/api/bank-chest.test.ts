@@ -6,7 +6,7 @@ import { reader, type InvItemSnapshot } from '#/bot/adapter/ClientAdapter.js';
 import { Banking, depositMatcher } from '#/bot/api/banking/Banking.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { Game } from '#/bot/api/core/Game.js';
-import { Traversal } from '#/bot/nav/Traversal.js';
+import { Traversal } from '#/bot/api/walking/Traversal.js';
 import { Bank } from '#/bot/api/hud/Bank.js';
 import { Locs } from '#/bot/api/entities/Locs.js';
 import { Input } from '#/bot/api/input/Input.js';

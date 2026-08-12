@@ -3,7 +3,7 @@ import type { Task } from '../core/Bot.js';
 import { Game } from '../core/Game.js';
 import { DEFAULT_CAMP_RADIUS } from '../../data/gatheringLocations.js';
 import Tile from '../../geometry/Tile.js';
-import { Traversal } from '../../nav/Traversal.js';
+import { Traversal } from '../walking/Traversal.js';
 import { walkOpening } from '../../nav/walkOpening.js';
 
 export interface AnchorHost {

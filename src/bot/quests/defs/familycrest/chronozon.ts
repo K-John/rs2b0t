@@ -2,12 +2,12 @@ import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
 import { Sustain } from '../../../api/core/Sustain.js';
 import Tile from '../../../geometry/Tile.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { GroundItems } from '../../../api/entities/GroundItems.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
 import type { Npc } from '../../../api/entities/index.js';
-import { GameMessages } from '../../../events/gameMessages.js';
+import { GameMessages } from '../../../api/chatbox/messages.js';
 import { heldId, settleScene } from '../../exec/prompts.js';
 import { ANTIPOISON_IDS, FC_ID, FC_ITEM, FC_NPC, inChronozonLair } from './areas.js';
 

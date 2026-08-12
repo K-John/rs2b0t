@@ -1,16 +1,16 @@
-import type { WorldTile } from '../adapter/ClientAdapter.js';
-import { reader } from '../adapter/ClientAdapter.js';
-import { Navigator } from './Navigator.js';
-import { DirectNavigator } from './DirectNavigator.js';
-import { WalkExecutor, type WalkOptions } from './WalkExecutor.js';
-import { advance, initialLadderState, judgeProbe, pickUnstickStep, type LadderState, type LastOutcome } from './walkLadder.js';
-import { isArrived } from './geometry/arrival.js';
-import { chebyshev } from './geometry/followMath.js';
-import { Reachability } from './geometry/Reachability.js';
-import { EventSignal } from '../runtime/randomevents/EventSignal.js';
-import { Execution } from '../api/core/Execution.js';
-import { Sustain } from '../api/core/Sustain.js';
-import { SettingsStore } from '../runtime/Settings.js';
+import type { WorldTile } from '../../adapter/ClientAdapter.js';
+import { reader } from '../../adapter/ClientAdapter.js';
+import { Navigator } from '../../nav/Navigator.js';
+import { DirectNavigator } from '../../nav/DirectNavigator.js';
+import { WalkExecutor, type WalkOptions } from '../../nav/WalkExecutor.js';
+import { advance, initialLadderState, judgeProbe, pickUnstickStep, type LadderState, type LastOutcome } from '../../nav/walkLadder.js';
+import { isArrived } from '../../nav/geometry/arrival.js';
+import { chebyshev } from '../../nav/geometry/followMath.js';
+import { Reachability } from '../../nav/geometry/Reachability.js';
+import { EventSignal } from '../core/EventSignal.js';
+import { Execution } from '../core/Execution.js';
+import { Sustain } from '../core/Sustain.js';
+import { SettingsStore } from '../../runtime/Settings.js';
 
 /**
  * Options for a walk behind the escalation ladder.

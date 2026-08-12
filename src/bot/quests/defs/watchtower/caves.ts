@@ -3,7 +3,7 @@ import { Game } from '../../../api/core/Game.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { GroundItems } from '../../../api/entities/GroundItems.js';
 import { Locs, type Loc } from '../../../api/entities/Locs.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import { talkChoosingBy, talkStrict, type LineRule } from '../../exec/primitives.js';
 import { hasFlag, type QuestProgress } from '../../engine/types.js';
 import { WT_CAVES, WT_ITEM, WT_LOC, WT_NIGHTSHADE, WT_NPC, watchtowerArea } from './areas.js';

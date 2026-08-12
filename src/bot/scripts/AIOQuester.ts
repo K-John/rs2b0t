@@ -1,5 +1,5 @@
 import { TaskBot, type Task } from '../api/core/Bot.js';
-import { EventSignal } from '../runtime/randomevents/EventSignal.js';
+import { EventSignal } from '../api/core/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import { Inventory, type InvItem } from '../api/hud/Inventory.js';

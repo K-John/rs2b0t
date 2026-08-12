@@ -15,7 +15,7 @@ import { Skills } from '../api/hud/Skills.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { GroundItems } from '../api/entities/GroundItems.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { nearestBank } from '../api/banking/BankLocations.js';
 import { walkOpening } from '../nav/walkOpening.js';
 import { PICKPOCKET_TARGET_NAMES } from '../data/pickpocketTargets.js';

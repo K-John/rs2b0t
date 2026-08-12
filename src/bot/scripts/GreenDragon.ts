@@ -1,7 +1,7 @@
 import { reader } from '../adapter/ClientAdapter.js';
 import { BotHost } from '../runtime/BotHost.js';
 import { TaskBot, type Task } from '../api/core/Bot.js';
-import { EventSignal } from '../runtime/randomevents/EventSignal.js';
+import { EventSignal } from '../api/core/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import Tile from '../geometry/Tile.js';
@@ -29,7 +29,7 @@ import { combatKeepNames } from '../api/combat/keepList.js';
 import { depositAllExcept } from '../api/banking/Banking.js';
 import { GroundItems } from '../api/entities/GroundItems.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { SolveClue } from '../clues/SolveClue.js';
 import { paintClueProgress } from '../clues/cluePaint.js';
 import { AT_BANK_RADIUS, RETURN_HOLD_MS, escapeNeeded, gearCandidates, gearToKeep, isGrindForeign, packForcesBank, slotFreeingAction, underPlayerAttack, wantsGroundItem, type SlotAction } from './GreenDragonLogic.js';

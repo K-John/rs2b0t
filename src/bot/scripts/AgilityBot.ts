@@ -1,6 +1,6 @@
 import type { WorldTile } from '../adapter/ClientAdapter.js';
 import { TaskBot, type Task } from '../api/core/Bot.js';
-import { EventSignal } from '../runtime/randomevents/EventSignal.js';
+import { EventSignal } from '../api/core/EventSignal.js';
 import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import { ChatDialog } from '../api/hud/ChatDialog.js';
@@ -8,7 +8,7 @@ import { Paint } from '../api/hud/Paint.js';
 import { Skills } from '../api/hud/Skills.js';
 import Tile from '../geometry/Tile.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { Locs, type Loc } from '../api/entities/Locs.js';
 import { Reachability } from '../nav/geometry/Reachability.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';

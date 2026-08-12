@@ -1,9 +1,9 @@
 import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
 import { Prayer } from '../../../api/hud/Prayer.js';
-import { Reach } from '../../../nav/Reach.js';
+import { Reach } from '../../../api/walking/Reach.js';
 import { Sustain } from '../../../api/core/Sustain.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Skills } from '../../../api/hud/Skills.js';

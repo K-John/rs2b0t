@@ -5,7 +5,7 @@ import { Inventory, type InvItem } from '../api/hud/Inventory.js';
 import { Bank } from '../api/hud/Bank.js';
 import { Skills } from '../api/hud/Skills.js';
 import { Paint } from '../api/hud/Paint.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { nearestBank } from '../api/banking/BankLocations.js';

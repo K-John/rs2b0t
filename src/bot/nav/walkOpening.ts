@@ -3,7 +3,7 @@ import { Execution } from '../api/core/Execution.js';
 import { Game } from '../api/core/Game.js';
 import { Reachability } from './geometry/Reachability.js';
 import type Tile from '../geometry/Tile.js';
-import { Traversal } from './Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { Locs } from '../api/entities/Locs.js';
 
 /** How far to search for a shut door after a walk segment stalls. */

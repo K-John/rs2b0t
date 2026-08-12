@@ -3,7 +3,7 @@ import { Game } from '../../../api/core/Game.js';
 import { QUEST_ROCK_TYPES } from '../../../data/miningRocks.js';
 import { Sustain } from '../../../api/core/Sustain.js';
 import type Tile from '../../../geometry/Tile.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Locs } from '../../../api/entities/Locs.js';
 import { Navigator } from '../../../nav/Navigator.js';

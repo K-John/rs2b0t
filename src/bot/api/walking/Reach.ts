@@ -1,16 +1,16 @@
-import type { WorldTile } from '../adapter/ClientAdapter.js';
-import { reader } from '../adapter/ClientAdapter.js';
-import { Execution } from '../api/core/Execution.js';
-import { ChatDialog } from '../api/hud/ChatDialog.js';
-import { Locs } from '../api/entities/Locs.js';
-import { Npcs, talkOp } from '../api/entities/Npcs.js';
-import { Reachability } from './geometry/Reachability.js';
+import type { WorldTile } from '../../adapter/ClientAdapter.js';
+import { reader } from '../../adapter/ClientAdapter.js';
+import { Execution } from '../core/Execution.js';
+import { ChatDialog } from '../hud/ChatDialog.js';
+import { Locs } from '../entities/Locs.js';
+import { Npcs, talkOp } from '../entities/Npcs.js';
+import { Reachability } from '../../nav/geometry/Reachability.js';
 import { Traversal } from './Traversal.js';
-import { WalkExecutor, isOpenableBarrier } from './WalkExecutor.js';
-import { openOp, towardDest } from './walkOpening.js';
-import { chebyshev } from './geometry/followMath.js';
-import { CANT_REACH, GameMessages } from '../events/gameMessages.js';
-import type { Interactable } from '../api/entities/index.js';
+import { WalkExecutor, isOpenableBarrier } from '../../nav/WalkExecutor.js';
+import { openOp, towardDest } from '../../nav/walkOpening.js';
+import { chebyshev } from '../../nav/geometry/followMath.js';
+import { CANT_REACH, GameMessages } from '../chatbox/messages.js';
+import type { Interactable } from '../entities/index.js';
 
 type ReachStatus = 'done' | 'retry' | 'unreachable';
 

@@ -5,7 +5,7 @@ import {
     applyDirty,
     dirtyFamiliesForPacket,
     emptyDirty
-} from '#/bot/events/producerDirty.js';
+} from '#/bot/runtime/producerDirty.js';
 
 describe('dirtyFamiliesForPacket', () => {
     test('inventory opcodes dirty only inventory', () => {

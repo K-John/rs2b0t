@@ -1,4 +1,4 @@
-import Tile from '../geometry/Tile.js';
+import Tile from '../../geometry/Tile.js';
 
 export interface WalkDestination {
     name: string;

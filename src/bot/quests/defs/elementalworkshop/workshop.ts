@@ -8,8 +8,8 @@ import { GroundItems } from '../../../api/entities/GroundItems.js';
 import type { GroundItem, Npc } from '../../../api/entities/index.js';
 import { Locs, type Loc } from '../../../api/entities/Locs.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
-import { Traversal } from '../../../nav/Traversal.js';
-import { GameMessages } from '../../../events/gameMessages.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
+import { GameMessages } from '../../../api/chatbox/messages.js';
 import { heldId, settleScene, useOnLoc } from '../../exec/prompts.js';
 import {
     BELLOWS_STAND,

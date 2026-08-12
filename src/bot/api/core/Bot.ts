@@ -1,4 +1,4 @@
-import { bus, type EventMap } from '../../events/EventBus.js';
+import { bus, type EventMap } from '../events/EventBus.js';
 import { SettingsBag } from '../../runtime/Settings.js';
 import { Game } from './Game.js';
 import type Tile from '../../geometry/Tile.js';

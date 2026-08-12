@@ -1,6 +1,6 @@
 import { TaskBot, type Task } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
-import { EventSignal } from '../runtime/randomevents/EventSignal.js';
+import { EventSignal } from '../api/core/EventSignal.js';
 import { Game } from '../api/core/Game.js';
 import Tile from '../geometry/Tile.js';
 import { depositAllExcept, purgePackAtBank } from '../api/banking/Banking.js';
@@ -15,7 +15,7 @@ import { Skills } from '../api/hud/Skills.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Locs } from '../api/entities/Locs.js';
 import { Npcs } from '../api/entities/Npcs.js';
-import { Traversal } from '../nav/Traversal.js';
+import { Traversal } from '../api/walking/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { SettingsStore } from '../runtime/Settings.js';
 import type { SettingsSchema } from '../runtime/Settings.js';

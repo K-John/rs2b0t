@@ -1,6 +1,6 @@
 import { Execution } from '../../../api/core/Execution.js';
 import type Tile from '../../../geometry/Tile.js';
-import { Traversal } from '../../../nav/Traversal.js';
+import { Traversal } from '../../../api/walking/Traversal.js';
 import { Bank } from '../../../api/hud/Bank.js';
 import { GroundItems } from '../../../api/entities/GroundItems.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
