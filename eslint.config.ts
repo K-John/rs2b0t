@@ -3,6 +3,21 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
+// ESLint flat config REPLACES rule options; it does not merge them. Any later
+// block that declares `no-restricted-imports` for a path silently repeals every
+// earlier one covering it, so every fence below must carry this pattern too.
+// See docs/reference/import-fences.md#a-later-block-repeals-an-earlier-one.
+const CLIENT_INTERNALS = {
+    group: ['\\#/client/*', '\\#/io/*', '\\#/config/*', '\\#/dash3d/*', '\\#/datastruct/*', '\\#/graphics/*', '\\#/sound/*', '\\#/wordfilter/*', '\\#3rdparty/*', '!\\#/io/ServerProt.js', '!\\#/io/ClientProt.js', '!\\#/dash3d/CollisionFlag.js', '!\\#/client/MiniMenuAction.js'],
+    message: 'Only src/bot/adapter/ may touch client internals.'
+};
+
+/** main.ts pulls in ui/ and the whole runtime — a leaf layer reaching it is a cycle. */
+const APP_ENTRYPOINT = {
+    group: ['**/main.js'],
+    message: 'main.ts is the app entrypoint — a leaf layer must not import it.'
+};
+
 export default defineConfig([
     globalIgnores(['src/3rdparty/', 'out/', 'desktop/', 'packages/', 'templates/', 'public-bot/', '.claude/', 'identifier.js']),
     { files: ['**/*.{js,mjs,cjs,ts,mts,cts}'], plugins: { js }, extends: ['js/recommended'], languageOptions: { globals: globals.browser } },
@@ -53,12 +68,7 @@ export default defineConfig([
             'no-restricted-imports': [
                 'error',
                 {
-                    patterns: [
-                        {
-                            group: ['\\#/client/*', '\\#/io/*', '\\#/config/*', '\\#/dash3d/*', '\\#/datastruct/*', '\\#/graphics/*', '\\#/sound/*', '\\#/wordfilter/*', '\\#3rdparty/*', '!\\#/io/ServerProt.js', '!\\#/io/ClientProt.js', '!\\#/dash3d/CollisionFlag.js', '!\\#/client/MiniMenuAction.js'],
-                            message: 'Only src/bot/adapter/ may touch client internals.'
-                        }
-                    ]
+                    patterns: [CLIENT_INTERNALS]
                 }
             ]
         }
@@ -86,6 +96,8 @@ export default defineConfig([
                 'error',
                 {
                     patterns: [
+                        CLIENT_INTERNALS,
+                        APP_ENTRYPOINT,
                         {
                             group: [
                                 '**/scripts/**',
@@ -116,6 +128,8 @@ export default defineConfig([
                 'error',
                 {
                     patterns: [
+                        CLIENT_INTERNALS,
+                        APP_ENTRYPOINT,
                         {
                             group: ['**/api/**', '**/nav/**', '**/scripts/**', '**/quests/**', '**/clues/**', '**/ui/**', '**/runtime/**', '**/multibox/**', '**/adapter/**'],
                             allowTypeImports: true,
@@ -126,7 +140,10 @@ export default defineConfig([
             ]
         }
     },
-    // The published surface is decidable: abi.ts pulls only from api/, data/, nav/.
+    // The published surface is decidable. abi.ts lives inside runtime/, so its
+    // siblings are named './X.js' with no 'runtime' in the specifier — a
+    // '**/runtime/**' pattern can never match them. Deny the whole sibling
+    // directory and re-admit the two it needs.
     {
         files: ['src/bot/runtime/abi.ts'],
         rules: {
@@ -134,9 +151,36 @@ export default defineConfig([
                 'error',
                 {
                     patterns: [
+                        CLIENT_INTERNALS,
+                        APP_ENTRYPOINT,
+                        {
+                            group: ['./*', '!./Settings.js', '!./defineBot.js'],
+                            message: 'abi.ts may name only runtime/{Settings,defineBot} — never script lifecycle.'
+                        },
                         {
                             group: ['**/scripts/**', '**/clues/**', '**/ui/**', '**/multibox/**', '**/quests/**'],
-                            message: 'abi.ts publishes from api/, data/, geometry/ and nav/ only.'
+                            message: 'abi.ts publishes from api/, data/, geometry/, nav/ and the adapter only.'
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    // geometry/ is the one value source data/ may name, so it must stay a leaf —
+    // otherwise it launders anything into the "inert" layer.
+    {
+        files: ['src/bot/geometry/**/*.ts'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [
+                        CLIENT_INTERNALS,
+                        APP_ENTRYPOINT,
+                        {
+                            group: ['**/api/**', '**/nav/**', '**/data/**', '**/scripts/**', '**/quests/**', '**/clues/**', '**/ui/**', '**/runtime/**', '**/multibox/**', '**/adapter/**'],
+                            allowTypeImports: true,
+                            message: 'geometry/ is a leaf — no value imports outside it. Type-only imports are fine.'
                         }
                     ]
                 }
