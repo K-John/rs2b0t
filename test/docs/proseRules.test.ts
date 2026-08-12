@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 const VALE = 'node_modules/@vvago/vale/bin/vale';
 const FIXTURES = 'styles/RS2B0T/fixtures';
@@ -52,4 +53,22 @@ test('SoftWords is a warning, so it never gates', () => {
     const soft = alertsFor('probe.md').filter(a => a.Check === 'RS2B0T.SoftWords');
     expect(soft.length).toBeGreaterThan(0);
     expect(soft.every(a => a.Severity === 'warning')).toBe(true);
+});
+
+const MARKDOWN_ONLY = ['RS2B0T.HeadingContent', 'RS2B0T.ThisDocument', 'RS2B0T.NegationList'];
+
+test.each(MARKDOWN_ONLY)('%s fires on markdown', check => {
+    expect(checksIn('probe.md').has(check)).toBe(true);
+});
+
+test.each(MARKDOWN_ONLY)('%s is disabled for TypeScript', check => {
+    expect(checksIn('probe.ts').has(check)).toBe(false);
+});
+
+test('HeadingContent fires only on heading lines', () => {
+    const lines = readFileSync(`${FIXTURES}/probe.md`, 'utf8').split('\n');
+    const offending = alertsFor('probe.md')
+        .filter(a => a.Check === 'RS2B0T.HeadingContent')
+        .filter(a => !lines[a.Line - 1].startsWith('#'));
+    expect(offending).toEqual([]);
 });
