@@ -420,7 +420,7 @@ function isFletchByproductName(name: string | null | undefined): boolean {
     );
 }
 
-// ── Mule / partner trade (shared policy: api/mule/PartnerTrade) ───────────────
+// ── Mule / partner trade (shared policy: api/trade/partner) ───────────────
 
 export class HandleGatherMuleTrade implements Task {
     private partnerWait = 0;

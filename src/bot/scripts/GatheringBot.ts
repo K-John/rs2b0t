@@ -1022,12 +1022,12 @@ export default class GatheringBot extends TaskBot {
         return walkToToolVendor(vendor, log);
     }
 
-    /** @see bankPace in api/banking/Banking */
+    /** @see bankPace in api/bank/trips */
     async bankPace(log?: (m: string) => void): Promise<void> {
         return bankPace(log);
     }
 
-    /** @see waitBankReady in api/banking/Banking */
+    /** @see waitBankReady in api/bank/trips */
     async waitBankReady(log: (m: string) => void = m => this.log(`  ${m}`)): Promise<boolean> {
         return waitBankReady(log);
     }

@@ -48,7 +48,7 @@ Trade.accept(): Promise<boolean>
 Trade.decline(): Promise<void>
 ```
 
-### Partner trade policy (`api/mule/PartnerTrade`)
+### Partner trade policy (`api/trade/partner`)
 
 Pure helpers shared by GatheringBot mule modes, FlaxRunner, and NatureCrafter:
 

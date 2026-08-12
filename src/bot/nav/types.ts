@@ -46,7 +46,7 @@ interface QuestRequirement {
     minStatus: 'started' | 'complete';
 }
 
-/** Planner-side gates. Dialog / NPC side-trips live in CrossingRecipe, not here. */
+/** Planner-side gates. Dialog / NPC side-trips live in specialCrossings, not here. */
 export interface TransportRequires {
     members?: boolean;
     skills?: SkillRequirement[];
@@ -137,7 +137,7 @@ export interface TransportEdge {
     disabledReason?: string;
     /**
      * Stable teleport id for policy allowlists (`varrock`, `lumbridge`, …).
-     * Aligns with `Game.teleport` / `api/movement/Teleport.ts` keys when kind is teleport.
+     * Aligns with `Game.teleport` / `api/map/Teleport.ts` keys when kind is teleport.
      */
     teleportId?: string;
 }
