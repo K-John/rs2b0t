@@ -115,6 +115,7 @@ export function checkComments(files: string[]): Finding[] {
     return found;
 }
 
+const CHECKS = ['doc-cap', 'fragment', 'why-tag', 'comment-block'];
 const DEFAULT_GATE = ['doc-cap', 'fragment'];
 
 function tracked(roots: string[], ext: string): string[] {
@@ -125,10 +126,20 @@ function tracked(roots: string[], ext: string): string[] {
 
 if (import.meta.main) {
     const gateArg = process.argv.find(a => a.startsWith('--gate='));
-    const gate = new Set(gateArg ? gateArg.slice('--gate='.length).split(',') : DEFAULT_GATE);
+    const names = gateArg ? gateArg.slice('--gate='.length).split(',') : DEFAULT_GATE;
+    const unknown = names.filter(name => !CHECKS.includes(name));
+    if (unknown.length > 0) {
+        console.error(`unknown gate name ${unknown.join(', ')}; valid names are ${CHECKS.join(', ')}`);
+        process.exit(2);
+    }
+    const gate = new Set(names);
 
     const markdown = tracked(['docs', 'README.md', 'templates'], '.md');
     const sources = tracked(['src/bot', 'tools', 'test'], '.ts');
+    if (markdown.length === 0 || sources.length === 0) {
+        console.error(`found no tracked files (markdown=${markdown.length} sources=${sources.length}); run this from the repository root`);
+        process.exit(2);
+    }
 
     const findings = [...checkDocCap(markdown), ...checkFragments(markdown), ...checkComments(sources)];
     for (const f of findings) {

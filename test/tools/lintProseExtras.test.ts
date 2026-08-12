@@ -47,6 +47,11 @@ test('a long paragraph passes', () => {
     expect(checkFragments([path])).toEqual([]);
 });
 
+test('a multi-line paragraph is not a fragment', () => {
+    const path = fixture('multi.md', 'Short line one\nshort line two\n');
+    expect(checkFragments([path])).toEqual([]);
+});
+
 test('a rationale comment without a Why: tag is reported', () => {
     const path = fixture('why.ts', '// The cache is skipped because the lock is held.\nexport const a = 1;\n');
     const found = checkComments([path]);
@@ -67,6 +72,18 @@ test('a comment block over two lines is reported', () => {
 test('a two-line comment block passes', () => {
     const path = fixture('short.ts', '// one\n// two\nexport const a = 1;\n');
     expect(checkComments([path]).filter(f => f.check === 'comment-block')).toEqual([]);
+});
+
+test('a JSDoc block with two payload lines passes', () => {
+    const path = fixture('jsdoc.ts', '/**\n * one\n * two\n */\nexport const a = 1;\n');
+    expect(checkComments([path]).filter(f => f.check === 'comment-block')).toEqual([]);
+});
+
+test('a JSDoc block with three payload lines is reported', () => {
+    const path = fixture('jsdoc-long.ts', '/**\n * one\n * two\n * three\n */\nexport const a = 1;\n');
+    const found = checkComments([path]).filter(f => f.check === 'comment-block');
+    expect(found.length).toBe(1);
+    expect(found[0].message).toContain('3-line');
 });
 
 test('a lint directive is never reported', () => {
