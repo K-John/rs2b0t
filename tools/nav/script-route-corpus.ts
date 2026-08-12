@@ -31,7 +31,7 @@ import path from 'node:path';
 
 import { gunzipSync } from 'fflate';
 
-import { BANK_LOCATIONS } from '#/bot/api/bank/locations.js';
+import { BANK_LOCATIONS } from '#/bot/api/bank/BankLocations.js';
 import { WALK_DESTINATIONS } from '#/bot/api/map/WalkDestinations.js';
 import { NAV_TARGETS } from '#/bot/nav/data/navTargets.js';
 import { PathFinder, type NavPoint } from '#/bot/nav/PathFinder.js';
