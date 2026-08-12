@@ -12,9 +12,9 @@ import Tile from '../core/Tile.js';
  * Locs.query for Range/Fire.
  */
 
-export type CookSurfaceKind = 'range' | 'fire' | 'fireplace';
+type CookSurfaceKind = 'range' | 'fire' | 'fireplace';
 
-export interface CookingSurface {
+interface CookingSurface {
     /**
      * Final stand next to the cook surface (path destination after any approach).
      * FishCook walks here (via walkOpening) and then uses the Range/Fire in leash.
@@ -154,7 +154,7 @@ export function nearestCookingRange(
  */
 export type CookSurfaceRole = 'pier' | 'bank';
 
-export interface FishCampCookPlan {
+interface FishCampCookPlan {
     /** Near the pier / camp spot (cook-then-bank). */
     pier?: CookingSurface;
     /** Near the bank booth (bank-raw-then-cook). Falls back to pier if omitted. */
@@ -289,7 +289,7 @@ export function resolveFishCampCookSurface(
 }
 
 /** One harness row: path from a camp spot (or bank) to a curated cook surface. */
-export type FishCampRangePathCase = {
+type FishCampRangePathCase = {
     id: string;
     camp: string;
     role: CookSurfaceRole;

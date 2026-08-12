@@ -46,7 +46,7 @@ export function matchProduct(options: readonly string[], product: string): strin
     return null;
 }
 
-export interface AttachPlan {
+interface AttachPlan {
     inputs: [string, string];
     product: string;
     level: number;

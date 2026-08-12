@@ -116,7 +116,7 @@ const BANK_FOODS = [
     ITEM.KEBAB
 ] as const;
 
-export type VampireSlayerArea = 'morganUpper' | 'crypt' | 'mainland' | 'unknown';
+type VampireSlayerArea = 'morganUpper' | 'crypt' | 'mainland' | 'unknown';
 
 export function vampireSlayerArea(tile: QuestSnapshot['tile']): VampireSlayerArea {
     if (!tile) return 'unknown';

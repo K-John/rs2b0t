@@ -45,7 +45,7 @@ function hostileFaceTarget(): boolean {
     );
 }
 
-export interface ChopBurnHost {
+interface ChopBurnHost {
     log(msg: string): void;
     setStatus(s: string): void;
     burnEnabled(): boolean;

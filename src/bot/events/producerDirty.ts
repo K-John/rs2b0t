@@ -8,7 +8,7 @@
  */
 import { ServerProt } from '#/io/ServerProt.js';
 
-export type ProducerFamily = 'skills' | 'inventory' | 'varps' | 'chat';
+type ProducerFamily = 'skills' | 'inventory' | 'varps' | 'chat';
 
 export interface ProducerDirtyFlags {
     skills: boolean;

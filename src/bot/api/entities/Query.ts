@@ -11,7 +11,7 @@ interface QueryableEntity extends Locatable {
  * so name / action / distance filters can run before allocating entity wrappers.
  * Matches ClientAdapter snapshot shapes (`ops`, not `actions()`).
  */
-export interface EntitySnapView {
+interface EntitySnapView {
     name: string | null;
     /** Menu ops; null/hidden slots ignored by {@link EntityQuery.action}. */
     ops: readonly (string | null)[];

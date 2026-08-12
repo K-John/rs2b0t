@@ -1,4 +1,4 @@
-export interface Pt {
+interface Pt {
     x: number;
     z: number;
     level: number;

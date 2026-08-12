@@ -1,7 +1,7 @@
 import Tile from '../api/core/Tile.js';
 import { SHOP_DB } from '../api/shops/data/shopdb.js';
 
-export interface ShopPreset {
+interface ShopPreset {
     label: string;
     keeper: string;
     shopStand: Tile;

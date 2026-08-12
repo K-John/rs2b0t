@@ -19,9 +19,9 @@ const RESTOCK_WAIT_MS = 8_000;
 const ATTEMPT_RE = /you attempt to steal/i;
 const LOCKOUT_RE = /can't steal from the market stall during combat/i;
 
-export type StealCakesResult = 'stocked' | 'combat' | 'aborted' | 'no-progress';
+type StealCakesResult = 'stocked' | 'combat' | 'aborted' | 'no-progress';
 
-export interface StealCakesOptions {
+interface StealCakesOptions {
     fillTo: number;
     abort: () => boolean;
     shouldEat?: () => boolean;

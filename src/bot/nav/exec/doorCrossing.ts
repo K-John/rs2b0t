@@ -246,7 +246,7 @@ export function noteFailedDoor(
  * Path-scoped stall recovery: only open doors that belong on the published route.
  * Street-front house doors sit *next* to the path corridor — proximity must not win.
  */
-export interface PathDoorHint {
+interface PathDoorHint {
     tiles: readonly { x: number; z: number; level: number }[];
     pathIdx: number;
     /**

@@ -43,7 +43,6 @@ export const LOG_LEVELS: Record<string, number> = {
 export const LOG_TYPE_OPTIONS = Object.keys(LOG_LEVELS);
 
 export const BURN_MODE_OPTIONS = ['Off', 'Chop then burn'] as const;
-export type BurnModeLabel = (typeof BURN_MODE_OPTIONS)[number];
 export type BurnMode = 'off' | 'chop-then-burn';
 
 export function parseBurnMode(label: string): BurnMode {

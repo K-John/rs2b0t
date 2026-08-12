@@ -17,7 +17,7 @@ import { el } from './dom.js';
 const SELECTED_SCRIPT_KEY = boxKey('selectedScript');
 const rendererEnabledKey = (): string => boxKey('rendererEnabled');
 
-export interface RendererControl {
+interface RendererControl {
     enabled(): boolean;
     setEnabled(enabled: boolean): void;
 }

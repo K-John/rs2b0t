@@ -43,7 +43,7 @@ export interface PathStepTile extends WorldTile {
     transport?: TransportInfo;
 }
 
-export type WalkToFn = (
+type WalkToFn = (
     dest: WorldTile,
     opts?: { radius?: number; timeoutMs?: number; log?: (msg: string) => void }
 ) => Promise<boolean>;

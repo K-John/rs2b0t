@@ -17,7 +17,7 @@ export const SPADE_SPAWNS: Tile[] = [
     new Tile(2981, 3369, 0)
 ];
 
-export type CoordTool = 'sextant' | 'watch' | 'chart';
+type CoordTool = 'sextant' | 'watch' | 'chart';
 
 export interface HeldTrio {
     sextant: boolean;
@@ -65,7 +65,7 @@ export const KOJO_EXIT = new Tile(2576, 3250, 0);
  * nearest stocked counter is Aemad's in East Ardougne — the same stand the
  * Waterfall and Watch Tower quests already use.
  */
-export interface ShopSource {
+interface ShopSource {
     npc: string;
     stand: Tile;
     /** Rough coins per unit, so a caller can say why it could not buy. */

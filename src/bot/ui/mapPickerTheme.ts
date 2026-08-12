@@ -23,7 +23,7 @@ export const MAP_PICKER_LABELS_KEY = 'showPlaceLabels';
 export const MAP_PICKER_MULTI_KEY = 'showMultiTint';
 export const MAP_PICKER_FREE_KEY = 'showFreeTint';
 
-export type MapPickerDotTheme = {
+type MapPickerDotTheme = {
     /** Classic worldmap terrain mode (vs collision-dot mode). */
     showBasemap: boolean;
     /**

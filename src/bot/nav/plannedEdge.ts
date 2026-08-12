@@ -5,18 +5,11 @@
 
 import type { NavPoint } from './types.js';
 
-export interface PlannedEdge {
+interface PlannedEdge {
     from: NavPoint;
     to: NavPoint;
 }
 
-export type ObstacleResolution =
-    | { kind: 'not_applicable' }
-    | { kind: 'crossed' }
-    | { kind: 'interacted' }
-    | { kind: 'walk_to_origin'; tile: NavPoint }
-    | { kind: 'waiting' }
-    | { kind: 'abort'; reason: string };
 
 export function plannedEdge(from: NavPoint, to: NavPoint): PlannedEdge {
     return { from, to };

@@ -1,7 +1,7 @@
 import { unitPrice } from '#/bot/api/shops/StockModel.js';
 import type { ShopRecord } from '#/bot/api/shops/types.js';
 
-export interface BuyoutItem {
+interface BuyoutItem {
     obj: string;
     name: string;
     units: number;

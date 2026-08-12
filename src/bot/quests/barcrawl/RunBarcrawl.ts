@@ -194,7 +194,7 @@ export async function handInBarcrawl(log: (m: string) => void): Promise<boolean>
     return Inventory.count(BARCRAWL_CARD) === 0;
 }
 
-export type GuardVerdict = 'complete' | 'issued' | 'retry';
+type GuardVerdict = 'complete' | 'issued' | 'retry';
 
 /**
  * Ask the gate guard where the crawl stands, which is the only oracle there is:

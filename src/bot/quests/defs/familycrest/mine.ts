@@ -22,7 +22,7 @@ const LEVER_LOC = {
     northRoom: { down: 2425, up: 2426 }
 } as const;
 
-export type MineRegion = 'main' | 'south' | 'northRoom' | 'gold' | 'outside';
+type MineRegion = 'main' | 'south' | 'northRoom' | 'gold' | 'outside';
 
 /**
  * The four components the lever doors cut the mine into, from a flood over the

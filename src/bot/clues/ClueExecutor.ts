@@ -64,7 +64,7 @@ import { TALK_ANCHORS } from '#/bot/clues/data/talkAnchors.js';
 
 export const TRACE_STORAGE_KEY = 'rs2b0t:cluetrace';
 
-export interface ClueProgress {
+interface ClueProgress {
     clueId: number;
     name: string;
     step: string;

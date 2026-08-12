@@ -14,9 +14,9 @@ import {
     decideReceiverOfferScreen
 } from './PartnerTrade.js';
 
-export type PartnerTradeRole = 'giver' | 'receiver';
+type PartnerTradeRole = 'giver' | 'receiver';
 
-export interface DrivePartnerTradeOpts {
+interface DrivePartnerTradeOpts {
     role: PartnerTradeRole;
     partners: readonly string[];
     /** Receiver: which of their offer slots count as product. */

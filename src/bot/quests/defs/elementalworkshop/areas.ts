@@ -61,7 +61,7 @@ export const WORKSHOP_Z_MAX = 9950;
 export const WORKSHOP_X_MIN = 2690;
 export const WORKSHOP_X_MAX = 2760;
 
-export type EwArea = 'workshop' | 'seers' | 'elsewhere' | 'unknown';
+type EwArea = 'workshop' | 'seers' | 'elsewhere' | 'unknown';
 
 export function ewArea(tile: QuestSnapshot['tile']): EwArea {
     if (!tile) {

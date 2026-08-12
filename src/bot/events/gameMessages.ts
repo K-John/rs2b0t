@@ -1,4 +1,4 @@
-export interface GameMessage {
+interface GameMessage {
     seq: number;
     text: string;
 }

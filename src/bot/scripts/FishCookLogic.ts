@@ -1,15 +1,12 @@
 
 
 export const COOK_MODE_OPTIONS = ['Off', 'Cook then bank', 'Bank raw then cook'] as const;
-export type CookModeLabel = (typeof COOK_MODE_OPTIONS)[number];
 export type CookMode = 'off' | 'cook-then-bank' | 'bank-raw-then-cook';
 
 export const BURNT_POLICY_OPTIONS = ['Drop', 'Bank'] as const;
-export type BurntPolicyLabel = (typeof BURNT_POLICY_OPTIONS)[number];
 export type BurntPolicy = 'drop' | 'bank';
 
 export const AFTER_COOK_OPTIONS = ['Stop', 'Continue'] as const;
-export type AfterCookLabel = (typeof AFTER_COOK_OPTIONS)[number];
 export type AfterCookCycle = 'stop' | 'continue';
 
 export const COOK_FISH_OPTIONS = [
@@ -167,7 +164,7 @@ export function shouldKeepDrainingCookBatch(inCookBatch: boolean, bankRawRemaini
     return inCookBatch && bankRawRemaining > 0;
 }
 
-export type CookBatchLoadOutcome = 'drain-more' | 'stop' | 'fish-again';
+type CookBatchLoadOutcome = 'drain-more' | 'stop' | 'fish-again';
 
 export function cookBatchAfterLoad(
     bankRawRemaining: number,

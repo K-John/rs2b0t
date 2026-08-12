@@ -24,12 +24,12 @@ const NOT_YOURS = /not after you/i;
 // indistinguishable from killing it unless the death itself is read.
 const DIED = /oh dear.*you are dead/i;
 
-export interface GuardianOutcome {
+interface GuardianOutcome {
     fought: boolean;
     killed: boolean;
 }
 
-export interface SustainWaitDeps {
+interface SustainWaitDeps {
     now: () => number;
     pump: () => Promise<void>;
     tick: () => Promise<void>;

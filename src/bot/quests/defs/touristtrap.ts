@@ -108,7 +108,7 @@ async function readTouristTrapStage(): Promise<number | undefined> {
     return stage;
 }
 
-export type TouristTrapArea =
+type TouristTrapArea =
     | 'surfaceJail'
     | 'undergroundJail'
     | 'campUpper'

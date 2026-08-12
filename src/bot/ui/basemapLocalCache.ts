@@ -15,7 +15,7 @@ const DB_VERSION = 1;
 const STORE = 'basemap';
 const ROW_KEY = 'current';
 
-export type BasemapLocalRecord = {
+type BasemapLocalRecord = {
     /** Hex of the 9×u32 jag checksums from `/crc` (login CRC table). */
     crcKey: string;
     prefsKey: string;

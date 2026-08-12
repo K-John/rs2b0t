@@ -50,7 +50,7 @@ export function parseJm2Locs(text: string): MazeLoc[] {
     return out;
 }
 
-export interface DoorInfo {
+interface DoorInfo {
     tile: { x: number; z: number };
     id: number;
     angle: number;

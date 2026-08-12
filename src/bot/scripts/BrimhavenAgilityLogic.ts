@@ -61,12 +61,12 @@ export const PILLARS: ReadonlyArray<{ x: number; z: number }> = [
 export const TICKET_PILLAR_COUNT = 24;
 export const LANDING_PLATFORM = 24;
 
-export interface ArenaPoint {
+interface ArenaPoint {
     x: number;
     z: number;
 }
 
-export interface ArenaAxis {
+interface ArenaAxis {
     dx: -1 | 0 | 1;
     dz: -1 | 0 | 1;
 }
@@ -169,7 +169,7 @@ export function edgeApproachCandidates(
     return candidates;
 }
 
-export type ObstacleKind =
+type ObstacleKind =
     | 'ledge'
     | 'pillar'
     | 'monkey'
@@ -185,7 +185,7 @@ export type ObstacleKind =
     | 'swing'
     | 'darts';
 
-export type EdgeMode = 'interact' | 'walk';
+type EdgeMode = 'interact' | 'walk';
 
 export interface ArenaEdge {
     a: number;
@@ -294,7 +294,7 @@ export function shouldBank(tickets: number, foodCount: number, bankAtTickets: nu
 }
 
 /** Inventory fields used to distinguish a real stack gain from a removal. */
-export interface TicketInventoryChange {
+interface TicketInventoryChange {
     id: number;
     name: string | null;
     count: number;
@@ -397,7 +397,7 @@ export function inArenaPit(x: number, z: number, level: number): boolean {
  * - elsewhere: left the start pillar for a different platform (partial progress)
  * - pending: still mid-attempt (soft fails need multi-tick idle confirmation in the waiter)
  */
-export type ObstacleOutcome = 'arrived' | 'fallen' | 'elsewhere' | 'pending';
+type ObstacleOutcome = 'arrived' | 'fallen' | 'elsewhere' | 'pending';
 
 export function obstacleOutcome(
     platform: number,

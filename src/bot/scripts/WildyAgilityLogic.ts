@@ -64,7 +64,7 @@ export const RIDGE_FAIL = /you lose your footing and fall into the wolf pit/i;
 
 export type RidgeOutcome = 'success' | 'fail' | 'interrupted' | 'timeout';
 
-export interface RidgeSignals {
+interface RidgeSignals {
     xpGained: boolean;
     successMessage: boolean;
     failMessage: boolean;
@@ -92,7 +92,7 @@ export function classifyRidge(s: RidgeSignals): RidgeOutcome {
     return 'timeout';
 }
 
-export type ObstacleSettleReason =
+type ObstacleSettleReason =
     | 'xp'
     | 'pit'
     | 'cant_reach'
@@ -102,7 +102,7 @@ export type ObstacleSettleReason =
     | 'low_hp'
     | 'timeout';
 
-export interface ObstacleSignals {
+interface ObstacleSignals {
     xpGained: boolean;
     inPit: boolean;
     cantReach: boolean;

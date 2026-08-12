@@ -8,7 +8,7 @@ export const BANKING_OPTIONS = ['Auto', 'None'];
 export const DEFAULT_CUSTOM_SPOT = new Tile(3273, 3427, 0);
 export const BURIAL_BONE_NAME = 'Bones';
 
-export interface BoneBurialState {
+interface BoneBurialState {
     enabled: boolean;
     inCombat: boolean;
     bankOpen: boolean;

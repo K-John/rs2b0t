@@ -114,7 +114,7 @@ export const SETTINGS: SettingsSchema = {
     ...PERIODIC_BANK_SETTINGS
 };
 
-export type FightKind = 'melee' | 'mage' | 'range';
+type FightKind = 'melee' | 'mage' | 'range';
 
 export default class ChickenKiller extends TaskBot {
     override loopDelay = 600;

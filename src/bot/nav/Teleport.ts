@@ -1,4 +1,4 @@
-export interface TeleportDefinition {
+interface TeleportDefinition {
     name: string;
     fallbackComId: number;
 }

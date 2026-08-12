@@ -22,7 +22,7 @@ export function xpAtLevel(level: number): number {
     return XP_AT_LEVEL[Math.min(MAX_LEVEL, Math.max(1, Math.floor(level)))] ?? 0;
 }
 
-export interface LevelProgress {
+interface LevelProgress {
     level: number;
     /** 0–1 through the current level; 1 at 99. */
     fraction: number;

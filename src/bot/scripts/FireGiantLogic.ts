@@ -31,7 +31,7 @@ export function attackRangeFor(style: string): number {
 // Distance is the wrong ordering in the west room. The giants wander up to 3 tiles,
 // so the westmost one often reads as nearest while a wall blocks line of sight — the
 // bot picks it, cannot hit it, and dances. Engage east-to-west, nearest breaking ties.
-export interface TargetLike {
+interface TargetLike {
     x: number;
     distance: number;
 }
@@ -52,7 +52,7 @@ export function eastFirst(a: TargetLike, b: TargetLike): number {
  * Our own target is always exempt, because its faceEntity flickers the same way and
  * dropping it on that would churn targets every few ticks.
  */
-export interface Engagement {
+interface Engagement {
     isOurs: boolean;
     inCombat: boolean;
     targetsMe: boolean;
@@ -136,7 +136,7 @@ export const ROPE_THROW_STAND = new Tile(2512, 3477, 0);
 
 export const DUNGEON_MIN_Z = 9000;
 
-export interface PointLike {
+interface PointLike {
     x: number;
     z: number;
     level: number;

@@ -41,7 +41,7 @@ export const RUNES: Record<string, RuneType> = {
 export const RUNE_OPTIONS = Object.keys(RUNES);
 export const DEFAULT_RUNE = 'Nature runes';
 
-export type StoreStep = { op: 'buy' | 'sell'; n: number } | { op: 'done' };
+type StoreStep = { op: 'buy' | 'sell'; n: number } | { op: 'done' };
 
 export function coinTargetFor(setting: number): number {
     return Math.max(MIN_COIN_TARGET, Math.floor(setting) || 0);

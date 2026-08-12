@@ -61,12 +61,12 @@ class Tier {
     }
 }
 
-export interface InputLatencySource {
+interface InputLatencySource {
     /** Worst input handler duration since the previous call, and how many landed. */
     drain(): { maxMs: number; count: number };
 }
 
-export interface DiagSamplerOptions {
+interface DiagSamplerOptions {
     collect: () => FrameSample[];
     freeze: FreezeWatch;
     input: InputLatencySource;

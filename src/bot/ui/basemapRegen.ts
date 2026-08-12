@@ -31,7 +31,7 @@ export type BasemapBakePrefs = {
     freemap: boolean;
 };
 
-export type RegeneratedBasemap = {
+type RegeneratedBasemap = {
     manifest: BasemapManifest;
     image: CanvasImageSource;
 };
@@ -65,7 +65,7 @@ export const MAP_PICKER_BAKE_KEYS = [
     'bakeFreemap'
 ] as const;
 
-export type MapPickerBakeKey = (typeof MAP_PICKER_BAKE_KEYS)[number];
+type MapPickerBakeKey = (typeof MAP_PICKER_BAKE_KEYS)[number];
 
 export function resolveBasemapBakePrefs(): BasemapBakePrefs {
     const g = new SettingsBag(SettingsStore.resolve(MAP_PICKER_SETTINGS_NS, MAP_PICKER_SETTINGS));

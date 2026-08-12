@@ -2,7 +2,7 @@ import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import { Skills } from '../hud/Skills.js';
 import Tile from '../core/Tile.js';
 
-export interface AltarLocation {
+interface AltarLocation {
     name: string;
     tile: Tile;
     /** Loc name to interact with; every altar answers to Pray-at. */

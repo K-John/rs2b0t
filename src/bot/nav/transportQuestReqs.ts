@@ -11,7 +11,7 @@
 import type { QuestProgress, TransportRequires } from './types.js';
 
 /** Engine permanent varp + complete stage (setvar seed). */
-export interface QuestVarSeed {
+interface QuestVarSeed {
     /** Journal / quest-list display name. */
     journal: string;
     /** Content varp name for `setvar <varp> <stage>`. */

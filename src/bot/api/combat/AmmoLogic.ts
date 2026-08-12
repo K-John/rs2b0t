@@ -1,10 +1,10 @@
-export interface AmmoStack {
+interface AmmoStack {
     key: string;
     count: number;
     distance: number;
 }
 
-export interface SweepOptions {
+interface SweepOptions {
     minStack: number;
     range: number;
     force: boolean;

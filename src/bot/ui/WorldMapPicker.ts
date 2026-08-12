@@ -58,7 +58,7 @@ import {
 } from '../runtime/Settings.js';
 import ParamsModal from './ParamsModal.js';
 
-export type PickedTile = { x: number; z: number; level: number };
+type PickedTile = { x: number; z: number; level: number };
 
 /** Mainland-ish default centre (Varrock). */
 const DEFAULT_CENTRE = { x: 3213, z: 3424 };

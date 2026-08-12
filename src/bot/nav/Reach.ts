@@ -12,9 +12,9 @@ import { chebyshev } from './geometry/followMath.js';
 import { CANT_REACH, GameMessages } from '../events/gameMessages.js';
 import type { Interactable } from '../api/entities/index.js';
 
-export type ReachStatus = 'done' | 'retry' | 'unreachable';
+type ReachStatus = 'done' | 'retry' | 'unreachable';
 
-export interface ReachLocOpts {
+interface ReachLocOpts {
     name: string;
     op: string;
     near: WorldTile;
@@ -24,18 +24,18 @@ export interface ReachLocOpts {
     log?: (m: string) => void;
 }
 
-export interface ReachNpcOpts {
+interface ReachNpcOpts {
     name: string;
     near: WorldTile;
     openMs?: number;
     log?: (m: string) => void;
 }
 
-export interface ReachEntity extends Interactable {
+interface ReachEntity extends Interactable {
     tile(): WorldTile;
 }
 
-export interface ReachEntityOpts<T extends ReachEntity> {
+interface ReachEntityOpts<T extends ReachEntity> {
     find: () => T | null;
     op: string;
     expect: () => boolean;

@@ -58,7 +58,6 @@ export interface Route {
 }
 
 export interface Seen { count: number; atMs: number }
-export type SeenMap = Record<string, Record<string, Seen>>;
 
 export interface AccountView {
     qp: number;

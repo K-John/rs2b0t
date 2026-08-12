@@ -11,9 +11,9 @@ export const CAKE_ITEMS = ['cake', 'bread', 'chocolate slice'];
 export const LOCKOUT_TICKS = 10;
 export const RESET_AFTER_REFUSALS = 3;
 
-export type StealOutcome = 'success' | 'caught' | 'lockout' | 'refused' | 'timeout';
+type StealOutcome = 'success' | 'caught' | 'lockout' | 'refused' | 'timeout';
 
-export interface StealSignals {
+interface StealSignals {
     gained: boolean;
     combat: boolean;
     lockoutSeen: boolean;

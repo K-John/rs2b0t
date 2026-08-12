@@ -9,7 +9,7 @@ export const LOGIN_BATCH_SIZE = 4;
 export const LOGIN_ATTEMPT_SPACING_MS = 1000;
 export const LOGIN_BATCH_COOLDOWN_MS = 16000;
 
-export interface LoginCoordinatorOptions {
+interface LoginCoordinatorOptions {
     now?: () => number;
     batchSize?: number;
     spacingMs?: number;

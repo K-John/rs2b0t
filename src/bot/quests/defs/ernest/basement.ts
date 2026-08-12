@@ -11,7 +11,7 @@ import { GameMessages } from '../../../events/gameMessages.js';
 import { settleScene } from '../../exec/prompts.js';
 import { EC_ID, EC_NAME, EC_TILE } from './areas.js';
 
-export type BasementRegion = 'entry' | 'r1r4' | 'r2' | 'r5' | 'r3' | 'r6' | 'r9' | 'outside';
+type BasementRegion = 'entry' | 'r1r4' | 'r2' | 'r5' | 'r3' | 'r6' | 'r9' | 'outside';
 
 /**
  * The seven components the nine puzzle doors cut the basement into, from a flood
@@ -68,7 +68,7 @@ export const DOOR_OPEN: Record<string, (bits: number) => boolean> = {
     '5to8': b => (!(b & C) && !!(b & D)) || (!(b & A) && !(b & B) && !!(b & C) && !!(b & D) && !(b & E) && !!(b & F))
 };
 
-export type LeverName = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+type LeverName = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 
 /** Wall decorations; the player operates them from their own tile. */
 const LEVER_TILE: Record<LeverName, Tile> = {
@@ -93,7 +93,7 @@ const DOOR_SIDE: Record<string, { near: Tile; far: Tile }> = {
     '5to8': { near: new Tile(3102, 9758, 0), far: new Tile(3102, 9757, 0) }
 };
 
-export type ChainMove =
+type ChainMove =
     | { kind: 'pull'; lever: LeverName; to: 'up' | 'down' }
     | { kind: 'door'; door: string; stand: Tile; arrive: Tile };
 

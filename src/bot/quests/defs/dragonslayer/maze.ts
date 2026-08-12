@@ -33,7 +33,7 @@ export const MAZE_NPC = {
     MELZAR: 753
 } as const;
 
-export type MazeLeg =
+type MazeLeg =
     | { kind: 'kill'; what: string; npcId: number; at: Tile; keyId: number }
     | { kind: 'door'; what: string; stand: Tile; door: Tile; keyId: number; land: Tile }
     | { kind: 'climb'; what: string; stand: Tile; ladder: Tile; op: string; land: Tile }

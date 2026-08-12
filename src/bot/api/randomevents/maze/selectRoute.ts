@@ -1,7 +1,7 @@
 import { buildMaze, solveRoute, type MazeGraph, type MazeLoc } from './mazeGraph.js';
 import { MAZE_LAYOUT, MAZE_LAYOUT_STRIDE } from './mazeLayout.js';
 
-export interface MazeRoute {
+interface MazeRoute {
     spawn: { x: number; z: number };
     doors: { x: number; z: number }[];
 }

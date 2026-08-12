@@ -462,4 +462,3 @@ export const TRAVEL_FAMILIES = [
     'elkoy_maze'
 ] as const;
 
-export type TravelFamilyId = (typeof TRAVEL_FAMILIES)[number];

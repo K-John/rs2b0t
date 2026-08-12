@@ -526,7 +526,7 @@ function storageKey(name: string, key: string): string {
     return boxKey(`set:${name}:${key}`);
 }
 
-export type SettingChangeListener = (name: string, key: string, value: string) => void;
+type SettingChangeListener = (name: string, key: string, value: string) => void;
 
 class SettingsStoreImpl {
     private urlParams: URLSearchParams | null = typeof location !== 'undefined' ? new URLSearchParams(location.search) : null;

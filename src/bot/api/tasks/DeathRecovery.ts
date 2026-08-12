@@ -7,7 +7,7 @@ import { Traversal } from '../../nav/Traversal.js';
 
 const DEATH_RE = /oh dear.*you are dead/i;
 
-export interface DeathRecoveryOptions {
+interface DeathRecoveryOptions {
     anchor: WorldTile;
     radius?: number;
     needs?: ItemNeed[];

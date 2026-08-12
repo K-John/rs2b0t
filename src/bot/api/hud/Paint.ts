@@ -4,7 +4,7 @@ import { cycleOption, paintState, resolveDock, type Dock, type Rect, type Region
  * Layout and behaviour of an overlay HUD.
  * @see docs/reference/api-bots.md
  */
-export interface PaintOptions {
+interface PaintOptions {
     dock?: Dock;
     accent?: string;
 }

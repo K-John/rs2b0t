@@ -11,7 +11,7 @@ export const EDGEVILLE_DUNGEON_BOUNDS = {
     maxZ: 10047
 } as const;
 
-export interface DungeonBounds {
+interface DungeonBounds {
     minX: number;
     maxX: number;
     minZ: number;
@@ -66,10 +66,10 @@ export const DRUID_SPOTS = {
 export type DruidLocationName = keyof typeof DRUID_SPOTS;
 export const DRUID_LOCATION_NAMES = Object.keys(DRUID_SPOTS) as DruidLocationName[];
 
-export type ChaosDruidArea = 'surface' | 'druid-dungeon' | 'other-underground' | 'unknown';
+type ChaosDruidArea = 'surface' | 'druid-dungeon' | 'other-underground' | 'unknown';
 
 /** The Yanille ledge splits the dungeon into zones the route must treat differently. */
-export type YanilleZone = 'north' | 'warrior' | 'pit' | 'outside';
+type YanilleZone = 'north' | 'warrior' | 'pit' | 'outside';
 
 export function yanilleZone(tile: WorldTile): YanilleZone {
     const b = YANILLE_DUNGEON_BOUNDS;
@@ -84,7 +84,7 @@ export function yanilleZone(tile: WorldTile): YanilleZone {
 
 export type ChaosDruidBankReason = 'prepare-trip' | 'loot-full' | 'low-health';
 
-export interface ChaosDruidTripState {
+interface ChaosDruidTripState {
     tripPrepared: boolean;
     inventoryFull: boolean;
     wantedLootVisible: boolean;
@@ -118,7 +118,7 @@ export function chaosDruidEatReady(input: {
     return !input.bankOpen && input.needEat;
 }
 
-export type LootSpaceAction = 'take' | 'eat-food' | 'drop-food' | 'bank';
+type LootSpaceAction = 'take' | 'eat-food' | 'drop-food' | 'bank';
 
 /** Decide how to make room for a wanted drop without discarding that drop. */
 export function chaosDruidLootSpaceAction(input: {

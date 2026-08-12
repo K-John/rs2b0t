@@ -29,7 +29,7 @@ export const SLOW_SPAN_MS = 50;
 /** Bounded so a pathological bot cannot grow this without limit between drains. */
 export const SLOW_SPAN_CAPACITY = 64;
 
-export interface PhaseTotals {
+interface PhaseTotals {
     /** Summed ms in each phase since the last drain. */
     ms: Record<Phase, number>;
     /** Slowest single occurrence of each phase since the last drain. */

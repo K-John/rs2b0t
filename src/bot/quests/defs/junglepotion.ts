@@ -17,7 +17,7 @@ export const TRUFITUS = new Tile(2809, 3086, 0);
 const ARDOUGNE_BANK = new Tile(2616, 3332, 0);
 
 /** Trufitus wants each herb picked fresh and cleaned, so both ids matter. */
-export interface JungleHerb {
+interface JungleHerb {
     key: string;
     /** Display name after Identify — what Trufitus accepts. */
     name: string;

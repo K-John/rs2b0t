@@ -14,7 +14,7 @@ export function bankTile(bankName: string): Tile {
 }
 
 export const TRADE_CAP: number = 27;
-export type MuleTradeState = 'has-essence' | 'empty';
+type MuleTradeState = 'has-essence' | 'empty';
 
 export function essencePerTrade(_invSize: number = 28, _holdsTalisman: boolean = true): number {
     return TRADE_CAP;

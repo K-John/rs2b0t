@@ -141,7 +141,7 @@ const PILLAR_STAND = new Tile(2563, 9911, 0);
 const STATUE_STAND = new Tile(2565, 9915, 0);
 const RAISED_ROOM_STAND = new Tile(2603, 9906, 0);
 
-export type WaterfallArea =
+type WaterfallArea =
     | 'mainland'
     | 'hudonMound'
     | 'fallsTreeBank'
@@ -167,7 +167,7 @@ export function waterfallArea(tile: QuestSnapshot['tile']): WaterfallArea {
     return 'mainland';
 }
 
-export type WaterfallDungeonEntryReadiness = 'waitForEnergy' | 'heal' | 'enableRun' | 'ready';
+type WaterfallDungeonEntryReadiness = 'waitForEnergy' | 'heal' | 'enableRun' | 'ready';
 
 export function waterfallDungeonEntryReadiness(
     energy: number,

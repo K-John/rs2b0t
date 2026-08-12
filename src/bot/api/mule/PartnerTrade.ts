@@ -50,7 +50,7 @@ export function countOfferMatching(
         .reduce((s, o) => s + Math.max(1, o.count), 0);
 }
 
-export type ReceiverOfferDecision =
+type ReceiverOfferDecision =
     | { action: 'wait-header' }
     | { action: 'decline'; reason: string }
     | { action: 'wait-offer' }
@@ -81,7 +81,7 @@ export function decideReceiverOfferScreen(opts: {
     return { action: 'accept' };
 }
 
-export type GiverOfferDecision = 'offer' | 'accept' | 'wait';
+type GiverOfferDecision = 'offer' | 'accept' | 'wait';
 
 /**
  * Giver side on the first trade screen (offer haul, then accept).

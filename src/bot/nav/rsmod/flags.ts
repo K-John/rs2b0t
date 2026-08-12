@@ -130,7 +130,7 @@ export const LocShape = {
 
 export type CollisionType = (typeof CollisionType)[keyof typeof CollisionType];
 export type CollisionFlag = (typeof CollisionFlag)[keyof typeof CollisionFlag];
-export type BlockAccessFlag = (typeof BlockAccessFlag)[keyof typeof BlockAccessFlag];
+type BlockAccessFlag = (typeof BlockAccessFlag)[keyof typeof BlockAccessFlag];
 export type LocAngle = (typeof LocAngle)[keyof typeof LocAngle];
 export type LocLayer = (typeof LocLayer)[keyof typeof LocLayer];
 export type LocShape = (typeof LocShape)[keyof typeof LocShape];
