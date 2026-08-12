@@ -8,7 +8,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 // earlier one covering it, so every fence below must carry this pattern too.
 // See docs/reference/import-fences.md#a-later-block-repeals-an-earlier-one.
 const CLIENT_INTERNALS = {
-    group: ['\\#/client/shell/*', '\\#/client/io/*', '\\#/client/config/*', '\\#/client/dash3d/*', '\\#/client/datastruct/*', '\\#/client/graphics/*', '\\#/client/sound/*', '\\#/client/wordfilter/*', '\\#/client/3rdparty/*', '!\\#/client/io/ServerProt.js', '!\\#/client/io/ClientProt.js', '!\\#/client/dash3d/CollisionFlag.js', '!\\#/client/shell/MiniMenuAction.js'],
+    group: ['\\#/client/*/*', '!\\#/client/io/ServerProt.js', '!\\#/client/io/ClientProt.js', '!\\#/client/dash3d/CollisionFlag.js', '!\\#/client/shell/MiniMenuAction.js', '!\\#/client/mapview/worldmapKeyNames.js'],
     message: 'Only src/bot/adapter/ may touch client internals.'
 };
 

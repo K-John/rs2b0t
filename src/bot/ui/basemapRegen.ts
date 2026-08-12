@@ -4,6 +4,7 @@
  * Not called on picker open, not on a timer, not when settings change — only from
  * the Rebuild button path. Freezes the tab briefly while worldmap.jag decodes + paints.
  */
+// eslint-disable-next-line no-restricted-imports -- TODO: route through ClientAdapter
 import { sleep } from '#/client/util/JsUtil.js';
 // eslint-disable-next-line no-restricted-imports -- TODO: route through ClientAdapter
 import { canvas, canvas2d } from '#/client/graphics/Canvas.js';
