@@ -22,7 +22,7 @@ import { CAKE_ITEMS, FLEE_TILE, LOCKOUT_TICKS, STAND } from './CakeStallLogic.js
 import { carriedCakes, stealCakes } from './CakeStall.js';
 import { SolveClue } from '../clues/SolveClue.js';
 import { paintClueProgress } from '../clues/cluePaint.js';
-import { Sustain } from '../api/combat/Sustain.js';
+import { Sustain } from '../api/core/Sustain.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
 
 const BANK_STAND = new Tile(2655, 3286, 0);

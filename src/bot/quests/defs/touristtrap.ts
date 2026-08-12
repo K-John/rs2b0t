@@ -13,7 +13,7 @@ import { GroundItems } from '../../api/entities/GroundItems.js';
 import { Locs } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
 import { Reachability } from '../../api/movement/Reachability.js';
-import { Sustain } from '../../api/combat/Sustain.js';
+import { Sustain } from '../../api/core/Sustain.js';
 import { Traversal } from '../../api/movement/Traversal.js';
 import { GameMessages } from '../../events/gameMessages.js';
 import { QUESTS } from '../data/quests.js';

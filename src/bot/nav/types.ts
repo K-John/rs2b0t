@@ -137,7 +137,7 @@ export interface TransportEdge {
     disabledReason?: string;
     /**
      * Stable teleport id for policy allowlists (`varrock`, `lumbridge`, …).
-     * Aligns with `Game.teleport` / `api/Teleport.ts` keys when kind is teleport.
+     * Aligns with `Game.teleport` / `api/movement/Teleport.ts` keys when kind is teleport.
      */
     teleportId?: string;
 }

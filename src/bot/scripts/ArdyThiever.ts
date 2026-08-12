@@ -28,7 +28,7 @@ import { CAKE_ITEMS } from './CakeStallLogic.js';
 import { stealCakes } from './CakeStall.js';
 import { SolveClue } from '../clues/SolveClue.js';
 import { paintClueProgress } from '../clues/cluePaint.js';
-import { Sustain } from '../api/combat/Sustain.js';
+import { Sustain } from '../api/core/Sustain.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
 import { STUN_COMBAT_TICKS, withdrawTo } from './ThievingBotLogic.js';
 

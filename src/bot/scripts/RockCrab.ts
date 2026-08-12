@@ -27,7 +27,7 @@ import { Skills } from '../api/hud/Skills.js';
 import { GroundItems } from '../api/entities/GroundItems.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';
 import { Players } from '../api/entities/Players.js';
-import { Sustain } from '../api/combat/Sustain.js';
+import { Sustain } from '../api/core/Sustain.js';
 import { DEFAULT_SPOTS } from './RockCrabSpots.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { Traversal } from '../api/movement/Traversal.js';

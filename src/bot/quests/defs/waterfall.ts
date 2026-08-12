@@ -8,7 +8,7 @@ import { Quests } from '../../api/hud/Quests.js';
 import { Skills } from '../../api/hud/Skills.js';
 import { Locs, type Loc } from '../../api/entities/Locs.js';
 import { Npcs } from '../../api/entities/Npcs.js';
-import { Sustain } from '../../api/combat/Sustain.js';
+import { Sustain } from '../../api/core/Sustain.js';
 import { Traversal } from '../../api/movement/Traversal.js';
 import Tile from '../../api/core/Tile.js';
 import { GameMessages } from '../../events/gameMessages.js';

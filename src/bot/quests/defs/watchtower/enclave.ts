@@ -6,7 +6,7 @@ import { Skills } from '../../../api/hud/Skills.js';
 import { GroundItems } from '../../../api/entities/GroundItems.js';
 import { Locs, type Loc } from '../../../api/entities/Locs.js';
 import { Npcs } from '../../../api/entities/Npcs.js';
-import { Sustain } from '../../../api/combat/Sustain.js';
+import { Sustain } from '../../../api/core/Sustain.js';
 import { Traversal } from '../../../api/movement/Traversal.js';
 import { driveDialog } from '../../exec/primitives.js';
 import { WT_ITEM, WT_LOC, WT_NPC, WT_TILE, watchtowerArea } from './areas.js';

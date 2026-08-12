@@ -16,7 +16,7 @@ import { Modals } from '../api/hud/Modals.js';
  * The tour is a miniquest of its own — it is what opens the Barbarian Outpost
  * gate and gates Barbarian Training — so it is runnable on its own as well as
  * from Horror from the Deep, which calls the same driver in
- * {@link ../barcrawl/RunBarcrawl.js}.
+ * {@link ../quests/barcrawl/RunBarcrawl.js}.
  */
 export default class Barcrawl extends LoopingBot {
     override loopDelay = 600;

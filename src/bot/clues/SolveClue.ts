@@ -5,7 +5,7 @@ import { nearestAltar } from '#/bot/api/catalogs/Altars.js';
 import { nearestBank } from '#/bot/api/banking/BankLocations.js';
 import type { Task } from '#/bot/api/core/Bot.js';
 import { Prayer } from '#/bot/api/hud/Prayer.js';
-import { Sustain } from '#/bot/api/combat/Sustain.js';
+import { Sustain } from '#/bot/api/core/Sustain.js';
 import { Traversal } from '#/bot/api/movement/Traversal.js';
 import { foodHealAmount, shouldEatToUseFood } from '#/bot/api/combat/food.js';
 import { Locs } from '#/bot/api/entities/Locs.js';

@@ -1,6 +1,6 @@
 import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
-import { Sustain } from '../../../api/combat/Sustain.js';
+import { Sustain } from '../../../api/core/Sustain.js';
 import type Tile from '../../../api/core/Tile.js';
 import { Traversal } from '../../../api/movement/Traversal.js';
 import { Inventory } from '../../../api/hud/Inventory.js';

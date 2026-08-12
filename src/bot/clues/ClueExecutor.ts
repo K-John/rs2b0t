@@ -2,7 +2,7 @@
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
 import { Execution } from '#/bot/api/core/Execution.js';
 import { EventSignal } from '#/bot/api/randomevents/EventSignal.js';
-import { Sustain } from '#/bot/api/combat/Sustain.js';
+import { Sustain } from '#/bot/api/core/Sustain.js';
 import { Traversal } from '#/bot/api/movement/Traversal.js';
 import { Game } from '#/bot/api/core/Game.js';
 import { ChatDialog } from '#/bot/api/hud/ChatDialog.js';

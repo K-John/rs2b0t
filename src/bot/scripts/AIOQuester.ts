@@ -6,7 +6,7 @@ import { Inventory, type InvItem } from '../api/hud/Inventory.js';
 import { Paint } from '../api/hud/Paint.js';
 import { Quests } from '../api/hud/Quests.js';
 import { Skills } from '../api/hud/Skills.js';
-import { Sustain } from '../api/combat/Sustain.js';
+import { Sustain } from '../api/core/Sustain.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { COIN_FLOAT, PROVISION_BANK, QuestEngine } from '../quests/engine/QuestEngine.js';
 import type Tile from '../api/core/Tile.js';

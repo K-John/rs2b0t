@@ -3,7 +3,7 @@ import { reader } from '../adapter/ClientAdapter.js';
 import { EventSignal } from '../api/randomevents/EventSignal.js';
 import { CANT_REACH, GameMessages } from '../events/gameMessages.js';
 import { Execution } from '../api/core/Execution.js';
-import { Sustain } from '../api/combat/Sustain.js';
+import { Sustain } from '../api/core/Sustain.js';
 import { Locs } from '../api/entities/Locs.js';
 import { Inventory } from '../api/hud/Inventory.js';
 import { Bank } from '../api/hud/Bank.js';

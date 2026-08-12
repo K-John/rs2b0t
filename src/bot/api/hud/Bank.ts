@@ -10,7 +10,7 @@ import { Npcs } from '../entities/Npcs.js';
 import { ChatDialog } from './ChatDialog.js';
 import { backpackCapacity, backpackSnapshots } from './Inventory.js';
 
-export { withdrawOp } from './bankOps.js';
+export { withdrawOp } from '../banking/bankOps.js';
 
 function backpackFull(): boolean {
     const size = backpackCapacity();

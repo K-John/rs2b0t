@@ -9,7 +9,7 @@ import { chebyshev } from '../../nav/followMath.js';
 import { Reachability } from './Reachability.js';
 import { EventSignal } from '../randomevents/EventSignal.js';
 import { Execution } from '../core/Execution.js';
-import { Sustain } from '../combat/Sustain.js';
+import { Sustain } from '../core/Sustain.js';
 import { SettingsStore } from '../../runtime/Settings.js';
 
 /**

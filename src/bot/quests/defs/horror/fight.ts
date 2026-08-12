@@ -2,7 +2,7 @@ import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
 import { Prayer } from '../../../api/hud/Prayer.js';
 import { Reach } from '../../../api/movement/Reach.js';
-import { Sustain } from '../../../api/combat/Sustain.js';
+import { Sustain } from '../../../api/core/Sustain.js';
 import { Traversal } from '../../../api/movement/Traversal.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';

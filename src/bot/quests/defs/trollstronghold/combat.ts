@@ -2,7 +2,7 @@ import { EventSignal } from '../../../api/randomevents/EventSignal.js';
 import { Execution } from '../../../api/core/Execution.js';
 import { Game } from '../../../api/core/Game.js';
 import { Prayer } from '../../../api/hud/Prayer.js';
-import { Sustain } from '../../../api/combat/Sustain.js';
+import { Sustain } from '../../../api/core/Sustain.js';
 import { ChatDialog } from '../../../api/hud/ChatDialog.js';
 import { Inventory } from '../../../api/hud/Inventory.js';
 import { Skills } from '../../../api/hud/Skills.js';

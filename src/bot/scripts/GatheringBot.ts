@@ -1017,17 +1017,17 @@ export default class GatheringBot extends TaskBot {
         return this.toolAcquire === 'on' && Game.tick() >= this.acquireBackoffUntilTick;
     }
 
-    /** @see walkToToolVendor in api/ToolAcquire — Nurmof surface hop included. */
+    /** @see walkToToolVendor in api/acquisition/ToolAcquire — Nurmof surface hop included. */
     async walkToToolVendor(vendor: ToolVendor, log: (m: string) => void = m => this.log(`  ${m}`)): Promise<boolean> {
         return walkToToolVendor(vendor, log);
     }
 
-    /** @see bankPace in api/Banking */
+    /** @see bankPace in api/banking/Banking */
     async bankPace(log?: (m: string) => void): Promise<void> {
         return bankPace(log);
     }
 
-    /** @see waitBankReady in api/Banking */
+    /** @see waitBankReady in api/banking/Banking */
     async waitBankReady(log: (m: string) => void = m => this.log(`  ${m}`)): Promise<boolean> {
         return waitBankReady(log);
     }
@@ -1240,7 +1240,7 @@ export default class GatheringBot extends TaskBot {
         }
     }
 
-    /** Host surface for api/ToolAcquireExec (buy / repair / smith). */
+    /** Host surface for api/acquisition/ToolAcquireExec (buy / repair / smith). */
     private toolAcquireHost(): ToolAcquireHost {
         return {
             setStatus: s => this.setStatus(s),

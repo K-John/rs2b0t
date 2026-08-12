@@ -25,7 +25,7 @@ import { foodHealAmount } from '../api/combat/food.js';
 import { stealCakes } from './CakeStall.js';
 import { SolveClue } from '../clues/SolveClue.js';
 import { paintClueProgress } from '../clues/cluePaint.js';
-import { Sustain } from '../api/combat/Sustain.js';
+import { Sustain } from '../api/core/Sustain.js';
 import { fmtDuration } from '../api/hud/paintLogic.js';
 import { scriptFoods } from '../items/loadoutPlan.js';
 import { LOADOUT_SETTING } from '../items/loadoutSetting.js';

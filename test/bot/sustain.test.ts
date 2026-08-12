@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'bun:test';
-import { Sustain } from '#/bot/api/combat/Sustain.js';
+import { Sustain } from '#/bot/api/core/Sustain.js';
 
 afterEach(() => Sustain.set(null));
 

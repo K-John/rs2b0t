@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-imports -- TODO: route through ClientAdapter; the fence was inert until 2026-08-11 and these predate it. */
 /**
  * Draw nav path into the client areaGame surface (post-world 3D, pre-nameplates).
  *
@@ -7,7 +6,9 @@
  * Still drawn after model composite (true z-buffer would need World inject).
  */
 
+// eslint-disable-next-line no-restricted-imports -- TODO: route through ClientAdapter
 import type { Client } from '#/client/Client.js';
+// eslint-disable-next-line no-restricted-imports -- TODO: route through ClientAdapter
 import Pix2D from '#/graphics/Pix2D.js';
 
 import { reader } from '../adapter/ClientAdapter.js';

@@ -25,7 +25,7 @@ import { Paint } from '../api/hud/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { Traversal } from '../api/movement/Traversal.js';
 import { EventSignal } from '../api/randomevents/EventSignal.js';
-import { Sustain } from '../api/combat/Sustain.js';
+import { Sustain } from '../api/core/Sustain.js';
 import { nearestBank } from '../api/banking/BankLocations.js';
 import { GroundItems } from '../api/entities/GroundItems.js';
 import { Npcs, type Npc } from '../api/entities/Npcs.js';

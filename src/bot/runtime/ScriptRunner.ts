@@ -2,7 +2,7 @@ import { reader } from '../adapter/ClientAdapter.js';
 import { resolveLoopCadence, type AbstractBot, type LoopCadence } from '../api/core/Bot.js';
 import { Execution } from '../api/core/Execution.js';
 import { RandomEvents } from '../api/randomevents/RandomEvents.js';
-import { Sustain } from '../api/combat/Sustain.js';
+import { Sustain } from '../api/core/Sustain.js';
 import type { PaintFrame } from '../api/hud/Paint.js';
 import { paintState } from '../api/hud/paintLogic.js';
 import { ActionRouter } from '../input/ActionRouter.js';
