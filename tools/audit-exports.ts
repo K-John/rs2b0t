@@ -4,6 +4,11 @@ import { join, relative } from 'node:path';
 
 const DECL = /^export\s+(?:declare\s+)?(?:async\s+)?(?:const|let|var|function|class|interface|type|enum)\s+([A-Za-z_$][\w$]*)/gm;
 
+/** Escape every regex metacharacter, not just the ones identifiers happen to use. */
+function escapeRegExp(literal: string): string {
+    return literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export function findDeadExports(sources: Map<string, string>, scanPrefix: string, dts: string): string[] {
     const dead: string[] = [];
     for (const [file, src] of sources) {
@@ -17,7 +22,7 @@ export function findDeadExports(sources: Map<string, string>, scanPrefix: string
             names.push(m[1]);
         }
         for (const name of names) {
-            const word = new RegExp(`\\b${name.replace(/\$/g, '\\$')}\\b`);
+            const word = new RegExp(`\\b${escapeRegExp(name)}\\b`);
             if (word.test(dts)) {
                 continue;
             }

@@ -25,6 +25,14 @@ describe('findDeadExports', () => {
         expect(findDeadExports(sources, 'src/bot', '')).toEqual([]);
     });
 
+    test('treats a $ in an identifier as a literal, not a regex metacharacter', () => {
+        const sources = new Map([
+            ['src/bot/a.ts', 'export const $cache = 1;\nexport const use$Me = 2;'],
+            ['src/bot/b.ts', "import { use$Me } from './a.js';\nconsole.log(use$Me);"]
+        ]);
+        expect(findDeadExports(sources, 'src/bot', '')).toEqual(['src/bot/a.ts\t$cache']);
+    });
+
     test('matches every exported declaration kind', () => {
         const sources = new Map([
             [
