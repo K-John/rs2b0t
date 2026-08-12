@@ -87,3 +87,14 @@ test('NegationList catches a two-item list and ignores a conjunction', () => {
     expect(hits.some(a => lines[a.Line - 1].startsWith('No prose, no preamble.'))).toBe(true);
     expect(hits.some(a => lines[a.Line - 1].includes('no coal and no bars'))).toBe(false);
 });
+
+test('lint:prose covers every source area and excludes the vendored client', () => {
+    const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> };
+    const script = pkg.scripts['lint:prose'];
+    expect(script).toBeDefined();
+    for (const path of ['docs', 'README.md', 'templates', 'src/bot', 'tools', 'test', 'bundle.ts', 'bot.bundle.ts', 'eslint.config.ts', 'identifier.js']) {
+        expect(script).toContain(path);
+    }
+    expect(script).not.toContain('src/client');
+    expect(script).not.toContain('desktop');
+});
