@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { checkDocCap, checkFragments } from '../../tools/lint-prose-extras.js';
+import { checkComments, checkDocCap, checkFragments } from '../../tools/lint-prose-extras.js';
 
 function fixture(name: string, body: string): string {
     const dir = mkdtempSync(join(tmpdir(), 'prose-'));
@@ -45,4 +45,31 @@ test('headings, list items, table rows and code are not fragments', () => {
 test('a long paragraph passes', () => {
     const path = fixture('long.md', 'This paragraph carries more than four words.\n');
     expect(checkFragments([path])).toEqual([]);
+});
+
+test('a rationale comment without a Why: tag is reported', () => {
+    const path = fixture('why.ts', '// The cache is skipped because the lock is held.\nexport const a = 1;\n');
+    const found = checkComments([path]);
+    expect(found.some(f => f.check === 'why-tag')).toBe(true);
+});
+
+test('a rationale comment carrying a Why: tag passes', () => {
+    const path = fixture('tagged.ts', '// Why: the cache is skipped because the lock is held.\nexport const a = 1;\n');
+    expect(checkComments([path]).filter(f => f.check === 'why-tag')).toEqual([]);
+});
+
+test('a comment block over two lines is reported', () => {
+    const path = fixture('block.ts', '// one\n// two\n// three\nexport const a = 1;\n');
+    const found = checkComments([path]);
+    expect(found.some(f => f.check === 'comment-block')).toBe(true);
+});
+
+test('a two-line comment block passes', () => {
+    const path = fixture('short.ts', '// one\n// two\nexport const a = 1;\n');
+    expect(checkComments([path]).filter(f => f.check === 'comment-block')).toEqual([]);
+});
+
+test('a lint directive is never reported', () => {
+    const path = fixture('directive.ts', '// eslint-disable-next-line no-restricted-imports -- the adapter is not ready\n// @ts-expect-error upstream types are wrong because the overload is missing\n// prettier-ignore\nexport const a = 1;\n');
+    expect(checkComments([path])).toEqual([]);
 });
