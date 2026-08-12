@@ -143,5 +143,9 @@ if (import.meta.main) {
     for (const [path, text] of pending) {
         writeFileSync(path, text);
     }
-    console.log('done');
+
+    // Specifiers get rewritten across all three trees, so a commit staged by a
+    // narrower path list ships a tree that does not resolve. Name what to stage.
+    const touched = [...new Set(pending.map(([p]) => relative(ROOT, p).split('/')[0]))].sort();
+    console.log(`done — stage all of: git add ${touched.join(' ')}`);
 }
