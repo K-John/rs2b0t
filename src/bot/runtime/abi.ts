@@ -201,6 +201,10 @@ import EntityQuery from '../api/query/Query.js';
 import { bus, type EventMap } from '../api/events/EventBus.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';
 import { EssenceSession } from '../nav/essenceSession.js';
+// Harness-only hooks, absent from packages/rs2b0t-api/index.d.ts and consumed
+// solely by tools/merlin-mordred-353-live.ts. The disable is line-scoped, so a
+// new quest import here still errors.
+// eslint-disable-next-line no-restricted-imports
 import {
     liveFortressStep,
     liveMordredBriefed,

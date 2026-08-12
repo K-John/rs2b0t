@@ -13,14 +13,21 @@ would have produced.
 ## Layers
 
 ```
-src/bot/scripts/     the bots themselves            ─┐
-src/bot/api/         core, entities, hud, movement, …  │  bot code
-src/bot/nav|quests|  subsystems                      │
-    clues|shops                                      │
-src/bot/runtime/     script lifecycle, ABI, settings ─┘
+src/bot/scripts/     the bots themselves                        ─┐
+src/bot/quests|clues subsystems                                  │
+src/bot/runtime/     script lifecycle, ABI, settings, solvers    │  bot code
+src/bot/api/         one directory per game-facing noun          │
+src/bot/nav/         pathfinder and walker internals             │
+src/bot/data/        inert catalogs                              │
+src/bot/geometry/    Tile, Area, distance                       ─┘
 src/bot/adapter/     ClientAdapter — the ONLY place that names client internals
 src/client/ …        the vendored era browser client
 ```
+
+A module belongs in `api/` iff it is a facade over one game interface, one
+entity collection, or one reusable script behaviour. One directory per noun,
+sized to what that noun needs; single-file directories are expected. Not
+catalogs, not solvers, not engines, not sole-consumer helpers.
 
 [`src/bot/adapter/ClientAdapter.ts`](../../src/bot/adapter/ClientAdapter.ts) is the whole
 boundary, and it has exactly two halves:

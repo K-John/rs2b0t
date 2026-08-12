@@ -79,12 +79,11 @@ export default defineConfig([
     // api/ sits above adapter/, nav/ and data/, and on the host substrate
     // (Settings, BotHost, Scheduler) that Execution/Game/loadouts genuinely need.
     // It must not reach up into script lifecycle or the layers that consume it.
-    // Promoted to 'error' once the reorganization lands.
     {
         files: ['src/bot/api/**/*.ts'],
         rules: {
             'no-restricted-imports': [
-                'warn',
+                'error',
                 {
                     patterns: [
                         {
@@ -114,7 +113,7 @@ export default defineConfig([
         files: ['src/bot/data/**/*.ts'],
         rules: {
             'no-restricted-imports': [
-                'warn',
+                'error',
                 {
                     patterns: [
                         {
@@ -132,7 +131,7 @@ export default defineConfig([
         files: ['src/bot/runtime/abi.ts'],
         rules: {
             'no-restricted-imports': [
-                'warn',
+                'error',
                 {
                     patterns: [
                         {
