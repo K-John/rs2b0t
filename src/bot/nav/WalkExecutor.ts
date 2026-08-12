@@ -1,14 +1,14 @@
 import type { WorldTile } from '../adapter/ClientAdapter.js';
 import { reader } from '../adapter/ClientAdapter.js';
 import { EventSignal } from '../api/execution/EventSignal.js';
-import { CANT_REACH, GameMessages } from '../api/chatbox/messages.js';
+import { CANT_REACH, GameMessages } from '../api/chatbox/gameMessages.js';
 import { Execution } from '../api/execution/Execution.js';
 import { Sustain } from '../api/sustain/Sustain.js';
 import { Locs } from '../api/locs/Locs.js';
 import { Inventory } from '../api/inventory/Inventory.js';
 import { Bank } from '../api/bank/Bank.js';
-import { Banking } from '../api/bank/trips.js';
-import { nearestBank } from '../api/bank/locations.js';
+import { Banking } from '../api/bank/Banking.js';
+import { nearestBank } from '../api/bank/BankLocations.js';
 import { SPECIAL_CROSSINGS, specialCrossingForTransport, meetsRequirement, meetsSkill, pickChoice } from './data/specialCrossings.js';
 import { Skills } from '../api/skills/Skills.js';
 import { Reachability } from './geometry/Reachability.js';

@@ -4,7 +4,7 @@ import type Tile from '../../../geometry/Tile.js';
 import { Traversal } from '../../../api/walking/Traversal.js';
 import { Inventory } from '../../../api/inventory/Inventory.js';
 import { Locs } from '../../../api/locs/Locs.js';
-import { GameMessages } from '../../../api/chatbox/messages.js';
+import { GameMessages } from '../../../api/chatbox/gameMessages.js';
 import { driveUntil, settleScene } from '../../exec/prompts.js';
 import { HD_ID, HD_ITEM, HD_LOC, HD_TILE } from './areas.js';
 import { inBasement } from './lighthouse.js';

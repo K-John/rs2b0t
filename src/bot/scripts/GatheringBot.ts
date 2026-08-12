@@ -48,7 +48,7 @@ import {
     parsePartnerList,
     type MuleMode,
     MULE_MODE_OPTIONS
-} from '../api/trade/partner.js';
+} from '../api/trade/PartnerTrade.js';
 import { resolveMiningLocation } from '../data/miningLocations.js';
 import { resolveWoodcuttingLocation } from '../data/woodcuttingLocations.js';
 import { BROKEN_PICKAXE, ROCK_OPTIONS, resolveRockIds } from '../data/miningRocks.js';
@@ -133,7 +133,7 @@ import {
     purgePackAtBank,
     waitBankReady,
     withdrawCoins
-} from '../api/bank/trips.js';
+} from '../api/bank/Banking.js';
 import {
     fmtDuration,
     fmtXpGained as fmtXpGainedPaint,
@@ -1022,12 +1022,12 @@ export default class GatheringBot extends TaskBot {
         return walkToToolVendor(vendor, log);
     }
 
-    /** @see bankPace in api/bank/trips */
+    /** @see bankPace in api/bank/Banking */
     async bankPace(log?: (m: string) => void): Promise<void> {
         return bankPace(log);
     }
 
-    /** @see waitBankReady in api/bank/trips */
+    /** @see waitBankReady in api/bank/Banking */
     async waitBankReady(log: (m: string) => void = m => this.log(`  ${m}`)): Promise<boolean> {
         return waitBankReady(log);
     }

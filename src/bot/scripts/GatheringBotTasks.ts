@@ -32,7 +32,7 @@ import {
     DEFAULT_TRADE_RANGE,
     countOfferMatching,
     isConfiguredPartner
-} from '../api/trade/partner.js';
+} from '../api/trade/PartnerTrade.js';
 import { driveActivePartnerTrade } from './drivePartnerTrade.js';
 import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS } from '../data/miningRocks.js';
 import { bestPickaxe } from '../api/acquisition/Tools.js';
@@ -57,7 +57,7 @@ import {
     shouldCookForTannerfish,
     shouldEatForTannerfish
 } from './TickManipLogic.js';
-import { Banking } from '../api/bank/trips.js';
+import { Banking } from '../api/bank/Banking.js';
 import { parseRangeStyle } from '../api/combat/CombatStyle.js';
 import { BROKEN_AXE, COINS, buyPlansCost, fishingGearShopCart, planGatherToolAcquire } from '../api/acquisition/ToolAcquire.js';
 import {
@@ -420,7 +420,7 @@ function isFletchByproductName(name: string | null | undefined): boolean {
     );
 }
 
-// ── Mule / partner trade (shared policy: api/trade/partner) ───────────────
+// ── Mule / partner trade (shared policy: api/trade/PartnerTrade) ───────────────
 
 export class HandleGatherMuleTrade implements Task {
     private partnerWait = 0;

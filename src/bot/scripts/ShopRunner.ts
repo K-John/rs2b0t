@@ -15,7 +15,7 @@ import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { talkThrough } from '../quests/exec/primitives.js';
-import { buyoutPlan } from '../api/shop/buyout.js';
+import { buyoutPlan } from '../api/shop/BuyoutLogic.js';
 import { clusterEligible, estimateClusterGp, nextCluster, withdrawFor } from './ShopRunnerRingLogic.js';
 import { SHOP_DB } from '../data/shopdb.js';
 import { ROUTE, SMOKE_ROUTE } from './ShopRunnerRoute.js';

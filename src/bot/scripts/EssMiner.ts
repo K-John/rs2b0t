@@ -3,7 +3,7 @@ import { Execution } from '../api/execution/Execution.js';
 import { EventSignal } from '../api/execution/EventSignal.js';
 import { Game } from '../api/game/Game.js';
 import Tile from '../geometry/Tile.js';
-import { depositAllExcept, purgePackAtBank } from '../api/bank/trips.js';
+import { depositAllExcept, purgePackAtBank } from '../api/bank/Banking.js';
 import { Bank } from '../api/bank/Bank.js';
 import { ChatDialog } from '../api/dialogue/ChatDialog.js';
 import { Equipment } from '../api/equipment/Equipment.js';

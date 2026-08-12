@@ -21,7 +21,7 @@ import { nextQuest, queueRows, type QueueRow } from './queue.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from './types.js';
 import { NO_PROGRESS_PARK, NO_PROGRESS_WARN, ProgressWatchdog, progressSignature } from './watchdog.js';
 import { FAIL_WARN, StepTracker, formatDuration, formatTile, invDelta } from './trace.js';
-import { GameMessages } from '../../api/chatbox/messages.js';
+import { GameMessages } from '../../api/chatbox/gameMessages.js';
 import type AIOQuester from '../../scripts/AIOQuester.js';
 
 const PARK_GIVE_UP = 3;

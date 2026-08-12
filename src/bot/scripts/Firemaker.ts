@@ -1,5 +1,5 @@
 import { actions, reader, type WorldTile } from '../adapter/ClientAdapter.js';
-import { depositAllExcept } from '../api/bank/trips.js';
+import { depositAllExcept } from '../api/bank/Banking.js';
 import { LoopingBot } from '../api/bot/Bot.js';
 import { EventSignal } from '../api/execution/EventSignal.js';
 import { Execution } from '../api/execution/Execution.js';
@@ -11,7 +11,7 @@ import { Inventory } from '../api/inventory/Inventory.js';
 import { Paint } from '../api/paint/Paint.js';
 import { Skills } from '../api/skills/Skills.js';
 import { fmtDuration } from '../api/paint/paintLogic.js';
-import { GameMessages } from '../api/chatbox/messages.js';
+import { GameMessages } from '../api/chatbox/gameMessages.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import {

@@ -7,7 +7,7 @@ import { Inventory } from '../../../api/inventory/Inventory.js';
 import { GroundItems } from '../../../api/grounditems/GroundItems.js';
 import { Npcs } from '../../../api/npcs/Npcs.js';
 import type { Npc } from '../../../api/model/Npc.js';
-import { GameMessages } from '../../../api/chatbox/messages.js';
+import { GameMessages } from '../../../api/chatbox/gameMessages.js';
 import { heldId, settleScene } from '../../exec/prompts.js';
 import { ANTIPOISON_IDS, FC_ID, FC_ITEM, FC_NPC, inChronozonLair } from './areas.js';
 

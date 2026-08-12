@@ -16,7 +16,7 @@ import { fmtDuration } from '../api/paint/paintLogic.js';
 import { COMBAT_STYLE_OPTIONS, describeCombatStyle, parseCombatStyle, type MeleeCombatStyle } from '../api/combat/CombatStyle.js';
 import { DROP_DB } from '../data/dropdb.js';
 import { foodForms, foodCount as foodCountIn, foodHealAmount, shouldEatToUseFood } from '../api/combat/food.js';
-import { matchesCommonBankLoot } from '../api/bank/trips.js';
+import { matchesCommonBankLoot } from '../api/bank/Banking.js';
 import { GroundItems } from '../api/grounditems/GroundItems.js';
 import { Locs } from '../api/locs/Locs.js';
 import { Npcs, type Npc } from '../api/npcs/Npcs.js';
@@ -24,8 +24,8 @@ import { matchesEntityName } from '../api/query/Query.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { BIG_BONES, BRASS_KEY, LIMPWURT, PIT_SPOTS, bonesAction, isHillGiantKill, keepOnDeposit, pickSpot, shouldBank, shouldEatForSpace, tripNeeds } from './HillGiantLogic.js';
-import { scriptFood } from '../api/loadout/plan.js';
-import { LOADOUT_SETTING } from '../api/loadout/setting.js';
+import { scriptFood } from '../api/loadout/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/loadout/loadoutSetting.js';
 
 const TARGET = 'Giant';
 

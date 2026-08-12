@@ -12,7 +12,7 @@ import {
     countOfferMatching,
     decideGiverOfferScreen,
     decideReceiverOfferScreen
-} from '../api/trade/partner.js';
+} from '../api/trade/PartnerTrade.js';
 
 type PartnerTradeRole = 'giver' | 'receiver';
 

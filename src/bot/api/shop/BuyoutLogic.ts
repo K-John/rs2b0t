@@ -1,4 +1,4 @@
-import { unitPrice } from '#/bot/api/shop/stock.js';
+import { unitPrice } from '#/bot/api/shop/StockModel.js';
 import type { ShopRecord } from '#/bot/api/shop/types.js';
 
 interface BuyoutItem {

@@ -1,4 +1,4 @@
-import { BANK_LOCATIONS } from '../api/bank/locations.js';
+import { BANK_LOCATIONS } from '../api/bank/BankLocations.js';
 import Tile from '../geometry/Tile.js';
 import { type TradeItem } from '../api/trade/Trade.js';
 import { RUNES, RUNE_OPTIONS, DEFAULT_RUNE, type RuneRoute, type RuneType } from '../data/runeCraftLocations.js';

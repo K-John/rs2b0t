@@ -5,7 +5,7 @@ import {
     type BankLocation,
     type BankNpcAccess,
     type BankObjectAccess
-} from './locations.js';
+} from './BankLocations.js';
 import { Execution } from '../execution/Execution.js';
 import { Game } from '../game/Game.js';
 import Tile from '../../geometry/Tile.js';
@@ -13,7 +13,7 @@ import { Traversal } from '../walking/Traversal.js';
 import { Bank } from './Bank.js';
 import { Inventory } from '../inventory/Inventory.js';
 import { Locs } from '../locs/Locs.js';
-import { depositAllExcept, depositMatcher } from './rules.js';
+import { depositAllExcept, depositMatcher } from './bankRules.js';
 import { walkOpening } from '../../nav/walkOpening.js';
 
 /**
@@ -35,7 +35,7 @@ export {
     shouldBankNow,
     type BankStrategy,
     type BankTriggerState
-} from './rules.js';
+} from './bankRules.js';
 
 export interface BankDestination {
     name: string;

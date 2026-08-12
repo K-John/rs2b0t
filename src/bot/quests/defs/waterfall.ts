@@ -11,7 +11,7 @@ import { Npcs } from '../../api/npcs/Npcs.js';
 import { Sustain } from '../../api/sustain/Sustain.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import Tile from '../../geometry/Tile.js';
-import { GameMessages } from '../../api/chatbox/messages.js';
+import { GameMessages } from '../../api/chatbox/gameMessages.js';
 import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { talkThrough, walkWithHops, type LadderHop, type NpcStop } from '../exec/primitives.js';

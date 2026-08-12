@@ -1,5 +1,5 @@
 import { Equipment } from '../api/equipment/Equipment.js';
-import { Loadouts } from '../api/loadout/store.js';
+import { Loadouts } from '../api/loadout/loadoutStore.js';
 import { removeLoadout, uniqueName, upsertLoadout, type Loadout } from '../api/loadout/loadouts.js';
 import type { ItemRecord, Slot } from '../api/loadout/types.js';
 import { el } from './dom.js';

@@ -26,7 +26,7 @@ let dialogOpen: boolean;
 let expectFlips: boolean;
 let onDoorOpen: (() => void) | null;
 
-const { GameMessages } = await import('#/bot/api/chatbox/messages.js');
+const { GameMessages } = await import('#/bot/api/chatbox/gameMessages.js');
 
 // Mutate singletons — mock.module is permanent in Bun (docs/reference/test-suites.md).
 const restoreReader = stubProps(reader, { worldTile: () => ({ x: 0, z: 0, level: 0 }) });

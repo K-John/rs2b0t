@@ -12,7 +12,7 @@ import {
     tryParseCombatStyle,
     type MeleeCombatStyle
 } from '../api/combat/CombatStyle.js';
-import { Autocast } from '../api/magic/Magic.js';
+import { Autocast } from '../api/magic/Autocast.js';
 import { castsAvailable, runeWithdrawList } from '../api/combat/CombatStyleLogic.js';
 import { foodHealAmount } from '../api/combat/food.js';
 import { SPELL_DB } from '../data/spelldb.js';
@@ -26,7 +26,7 @@ import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { Traversal } from '../api/walking/Traversal.js';
 import { EventSignal } from '../api/execution/EventSignal.js';
 import { Sustain } from '../api/sustain/Sustain.js';
-import { nearestBank } from '../api/bank/locations.js';
+import { nearestBank } from '../api/bank/BankLocations.js';
 import { GroundItems } from '../api/grounditems/GroundItems.js';
 import { Npcs, type Npc } from '../api/npcs/Npcs.js';
 import { matchesEntityName } from '../api/query/Query.js';
@@ -51,9 +51,9 @@ import { SolveClue } from '../clues/SolveClue.js';
 import { paintClueProgress } from '../clues/cluePaint.js';
 import { fmtDuration } from '../api/paint/paintLogic.js';
 import { Reach } from '../api/walking/Reach.js';
-import { RANDOM_EVENT_CASKET_ID } from '../api/bank/trips.js';
-import { scriptFood } from '../api/loadout/plan.js';
-import { LOADOUT_SETTING } from '../api/loadout/setting.js';
+import { RANDOM_EVENT_CASKET_ID } from '../api/bank/Banking.js';
+import { scriptFood } from '../api/loadout/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/loadout/loadoutSetting.js';
 
 const BOOTH = { name: 'Bank booth', op: 'Use-quickly' };
 const KIT = ['spade', 'sextant', 'watch', 'chart'];

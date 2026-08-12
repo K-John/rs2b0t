@@ -6,7 +6,7 @@ import Tile from '../geometry/Tile.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { DeathRecovery } from '../api/tasks/DeathRecovery.js';
 import { PeriodicBank } from '../api/tasks/PeriodicBank.js';
-import { PERIODIC_BANK_SETTINGS, parseBankStrategy, depositMatcher } from '../api/bank/trips.js';
+import { PERIODIC_BANK_SETTINGS, parseBankStrategy, depositMatcher } from '../api/bank/Banking.js';
 import { ChatDialog } from '../api/dialogue/ChatDialog.js';
 import { Skills } from '../api/skills/Skills.js';
 import { Inventory } from '../api/inventory/Inventory.js';

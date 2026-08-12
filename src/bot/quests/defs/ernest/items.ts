@@ -5,7 +5,7 @@ import type Tile from '../../../geometry/Tile.js';
 import { Traversal } from '../../../api/walking/Traversal.js';
 import { Inventory } from '../../../api/inventory/Inventory.js';
 import { GroundItems } from '../../../api/grounditems/GroundItems.js';
-import { GameMessages } from '../../../api/chatbox/messages.js';
+import { GameMessages } from '../../../api/chatbox/gameMessages.js';
 import { promptLoc, settleScene, useOnLoc } from '../../exec/prompts.js';
 import { EC_ID, EC_NAME, EC_TILE } from './areas.js';
 

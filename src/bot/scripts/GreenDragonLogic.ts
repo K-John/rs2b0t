@@ -1,4 +1,4 @@
-import { matchesCommonBankLoot } from '../api/bank/rules.js';
+import { matchesCommonBankLoot } from '../api/bank/bankRules.js';
 import { CASKET_IDS, CLUE_DB } from '../clues/data/cluedb.js';
 
 /** First wilderness row north of the Edgeville ditch. */

@@ -1,5 +1,5 @@
 import { actions } from '../adapter/ClientAdapter.js';
-import { BANK_LOCATIONS, bankUnlocked, type BankLocation } from '../api/bank/locations.js';
+import { BANK_LOCATIONS, bankUnlocked, type BankLocation } from '../api/bank/BankLocations.js';
 import { LoopingBot } from '../api/bot/Bot.js';
 import { Execution } from '../api/execution/Execution.js';
 import { Game } from '../api/game/Game.js';

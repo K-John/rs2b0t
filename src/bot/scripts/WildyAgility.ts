@@ -16,7 +16,7 @@ import { Paint } from '../api/paint/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { Skills } from '../api/skills/Skills.js';
 import { Locs, type Loc } from '../api/locs/Locs.js';
-import { CANT_REACH, GameMessages } from '../api/chatbox/messages.js';
+import { CANT_REACH, GameMessages } from '../api/chatbox/gameMessages.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/paint/paintLogic.js';
 import {
@@ -47,8 +47,8 @@ import {
     southOfRidge,
     type RidgeOutcome
 } from './WildyAgilityLogic.js';
-import { scriptFood } from '../api/loadout/plan.js';
-import { LOADOUT_SETTING } from '../api/loadout/setting.js';
+import { scriptFood } from '../api/loadout/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/loadout/loadoutSetting.js';
 
 // Lowered because the default wait is 24 ticks and obstacle clears can take ~20.
 const LAP_RETRY_LIMIT = 2;

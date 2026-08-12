@@ -1,5 +1,5 @@
 import type { SettingDef, SettingsBag } from '../../runtime/Settings.js';
-import { Loadouts } from './store.js';
+import { Loadouts } from './loadoutStore.js';
 import type { Loadout } from './loadouts.js';
 
 export const LOADOUT_SETTING: SettingDef = {

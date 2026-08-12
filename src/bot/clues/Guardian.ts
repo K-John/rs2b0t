@@ -5,7 +5,7 @@ import { PROTECT_FROM_MAGIC, Prayer } from '#/bot/api/prayer/Prayer.js';
 import { Sustain } from '#/bot/api/sustain/Sustain.js';
 import { Traversal } from '#/bot/api/walking/Traversal.js';
 import { Npcs } from '#/bot/api/npcs/Npcs.js';
-import { GameMessages } from '#/bot/api/chatbox/messages.js';
+import { GameMessages } from '#/bot/api/chatbox/gameMessages.js';
 import type { Npc } from '#/bot/api/model/Npc.js';
 
 // npc_add drops the wizard on a line-of-sight tile beside the dig, and the

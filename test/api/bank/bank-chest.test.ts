@@ -3,7 +3,7 @@
 import { afterEach, expect, test } from 'bun:test';
 
 import { reader, type InvItemSnapshot } from '#/bot/adapter/ClientAdapter.js';
-import { Banking, depositMatcher } from '#/bot/api/bank/trips.js';
+import { Banking, depositMatcher } from '#/bot/api/bank/Banking.js';
 import { Execution } from '#/bot/api/execution/Execution.js';
 import { Game } from '#/bot/api/game/Game.js';
 import { Traversal } from '#/bot/api/walking/Traversal.js';

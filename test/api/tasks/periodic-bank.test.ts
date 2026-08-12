@@ -2,7 +2,7 @@
    monkey-patched per test; typed shims would re-state the whole surface for no safety. */
 import { expect, test } from 'bun:test';
 import { PeriodicBank } from '#/bot/api/tasks/PeriodicBank.js';
-import { Banking } from '#/bot/api/bank/trips.js';
+import { Banking } from '#/bot/api/bank/Banking.js';
 import { Game } from '#/bot/api/game/Game.js';
 import { Execution } from '#/bot/api/execution/Execution.js';
 

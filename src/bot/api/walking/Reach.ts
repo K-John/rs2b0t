@@ -9,7 +9,7 @@ import { Traversal } from './Traversal.js';
 import { WalkExecutor, isOpenableBarrier } from '../../nav/WalkExecutor.js';
 import { openOp, towardDest } from '../../nav/walkOpening.js';
 import { chebyshev } from '../../nav/geometry/followMath.js';
-import { CANT_REACH, GameMessages } from '../chatbox/messages.js';
+import { CANT_REACH, GameMessages } from '../chatbox/gameMessages.js';
 import type { Interactable } from '../model/Interactable.js';
 
 type ReachStatus = 'done' | 'retry' | 'unreachable';

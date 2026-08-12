@@ -16,7 +16,7 @@ import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { GroundItems } from '../api/grounditems/GroundItems.js';
 import { Npcs, type Npc } from '../api/npcs/Npcs.js';
 import { Traversal } from '../api/walking/Traversal.js';
-import { nearestBank } from '../api/bank/locations.js';
+import { nearestBank } from '../api/bank/BankLocations.js';
 import { walkOpening } from '../nav/walkOpening.js';
 import { PICKPOCKET_TARGET_NAMES } from '../data/pickpocketTargets.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
@@ -32,8 +32,8 @@ import {
     THIEVER_BANKING_OPTIONS,
     withdrawTo
 } from './ThievingBotLogic.js';
-import { scriptFood } from '../api/loadout/plan.js';
-import { LOADOUT_SETTING } from '../api/loadout/setting.js';
+import { scriptFood } from '../api/loadout/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/loadout/loadoutSetting.js';
 
 export const SETTINGS: SettingsSchema = {
     target: { type: 'string', default: 'Man', options: PICKPOCKET_TARGET_NAMES, label: 'Pickpocket target', help: 'pick by exact in-game name (level in parens): Man/Woman 1, Farmer 10, Rogue 32, Guard 40, Knight of Ardougne 55, Paladin 70, Hero 80' },

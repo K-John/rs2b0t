@@ -1,5 +1,5 @@
 import { actions, reader } from '../adapter/ClientAdapter.js';
-import { Banking } from '../api/bank/trips.js';
+import { Banking } from '../api/bank/Banking.js';
 import { LoopingBot } from '../api/bot/Bot.js';
 import { Execution } from '../api/execution/Execution.js';
 import { Game } from '../api/game/Game.js';

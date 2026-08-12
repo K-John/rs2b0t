@@ -1,7 +1,7 @@
 import type { InvItemSnapshot, WorldTile } from '../../adapter/ClientAdapter.js';
 import { reader, actions } from '../../adapter/ClientAdapter.js';
 import { Input } from '../input/Input.js';
-import type { BankNpcAccess, BankObjectAccess } from './locations.js';
+import type { BankNpcAccess, BankObjectAccess } from './BankLocations.js';
 import { Execution } from '../execution/Execution.js';
 import { Reachability } from '../../nav/geometry/Reachability.js';
 import { Traversal } from '../walking/Traversal.js';
@@ -10,7 +10,7 @@ import { Npcs } from '../npcs/Npcs.js';
 import { ChatDialog } from '../dialogue/ChatDialog.js';
 import { backpackCapacity, backpackSnapshots } from '../inventory/Inventory.js';
 
-export { withdrawOp } from './ops.js';
+export { withdrawOp } from './bankOps.js';
 
 function backpackFull(): boolean {
     const size = backpackCapacity();

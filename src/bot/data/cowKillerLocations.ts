@@ -1,5 +1,5 @@
 import type { WorldTile } from '../adapter/ClientAdapter.js';
-import type { BankDestination } from '../api/bank/trips.js';
+import type { BankDestination } from '../api/bank/Banking.js';
 import Tile from '../geometry/Tile.js';
 
 export interface CowLocation {

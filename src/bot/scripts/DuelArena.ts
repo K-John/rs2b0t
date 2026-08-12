@@ -8,7 +8,7 @@ import { fmtXpHr } from '../api/paint/paintLogic.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { Players, type Player } from '../api/players/Players.js';
 import { Duel } from './DuelInterface.js';
-import { GameMessages } from '../api/chatbox/messages.js';
+import { GameMessages } from '../api/chatbox/gameMessages.js';
 import { reader } from '../adapter/ClientAdapter.js';
 import { BotHost } from '../runtime/BotHost.js';
 import { DirectNavigator } from '../nav/DirectNavigator.js';

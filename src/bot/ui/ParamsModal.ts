@@ -1,7 +1,7 @@
 import { SettingsStore, type SettingsSchema } from '../runtime/Settings.js';
 import { groupSchema, isVisible, renderControl, visibilityDeps } from './paramControls.js';
 import { el } from './dom.js';
-import { Loadouts } from '../api/loadout/store.js';
+import { Loadouts } from '../api/loadout/loadoutStore.js';
 
 export default class ParamsModal {
     private backdrop: HTMLElement;

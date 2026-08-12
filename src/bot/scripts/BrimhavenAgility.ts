@@ -54,8 +54,8 @@ import {
     wantRunForGoal,
     type ArenaEdge
 } from './BrimhavenAgilityLogic.js';
-import { scriptFood } from '../api/loadout/plan.js';
-import { LOADOUT_SETTING } from '../api/loadout/setting.js';
+import { scriptFood } from '../api/loadout/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/loadout/loadoutSetting.js';
 
 export const BRIMHAVEN_AGILITY_SETTINGS: SettingsSchema = {
     loadout: LOADOUT_SETTING,

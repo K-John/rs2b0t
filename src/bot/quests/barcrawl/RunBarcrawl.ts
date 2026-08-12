@@ -7,7 +7,7 @@ import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Modals } from '../../api/widgets/Modals.js';
 import { Npcs, type Npc } from '../../api/npcs/Npcs.js';
-import { GameMessages } from '../../api/chatbox/messages.js';
+import { GameMessages } from '../../api/chatbox/gameMessages.js';
 import { driveUntil } from '../exec/prompts.js';
 import {
     BARBARIAN_GUARD_ID,

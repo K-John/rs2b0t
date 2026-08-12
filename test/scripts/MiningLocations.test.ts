@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { BANK_LOCATIONS } from '#/bot/api/bank/locations.js';
+import { BANK_LOCATIONS } from '#/bot/api/bank/BankLocations.js';
 import Tile from '#/bot/geometry/Tile.js';
 import {
     MINING_LOCATIONS,

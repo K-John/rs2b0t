@@ -2,7 +2,7 @@ import { EventSignal } from '#/bot/api/execution/EventSignal.js';
 import { Execution } from '#/bot/api/execution/Execution.js';
 import { Game } from '#/bot/api/game/Game.js';
 import { nearestAltar } from '#/bot/api/altar/Altars.js';
-import { nearestBank } from '#/bot/api/bank/locations.js';
+import { nearestBank } from '#/bot/api/bank/BankLocations.js';
 import type { Task } from '#/bot/api/bot/Bot.js';
 import { Prayer } from '#/bot/api/prayer/Prayer.js';
 import { Sustain } from '#/bot/api/sustain/Sustain.js';

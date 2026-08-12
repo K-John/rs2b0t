@@ -10,7 +10,7 @@ import type { Npc } from '../../../api/model/Npc.js';
 import { Locs, type Loc } from '../../../api/locs/Locs.js';
 import { Npcs } from '../../../api/npcs/Npcs.js';
 import { Traversal } from '../../../api/walking/Traversal.js';
-import { GameMessages } from '../../../api/chatbox/messages.js';
+import { GameMessages } from '../../../api/chatbox/gameMessages.js';
 import { heldId, settleScene, useOnLoc } from '../../exec/prompts.js';
 import {
     BELLOWS_STAND,

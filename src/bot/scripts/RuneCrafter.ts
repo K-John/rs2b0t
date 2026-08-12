@@ -3,7 +3,7 @@ import { Execution } from '../api/execution/Execution.js';
 import { Game } from '../api/game/Game.js';
 import Tile from '../geometry/Tile.js';
 import { Bank } from '../api/bank/Bank.js';
-import { withdrawOp } from '../api/bank/ops.js';
+import { withdrawOp } from '../api/bank/bankOps.js';
 import { ChatDialog } from '../api/dialogue/ChatDialog.js';
 import { Inventory, type InvItem } from '../api/inventory/Inventory.js';
 import { Paint } from '../api/paint/Paint.js';

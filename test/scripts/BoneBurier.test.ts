@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from 'bun:test';
 import { actions, reader, type InvItemSnapshot } from '#/bot/adapter/ClientAdapter.js';
-import { Banking } from '#/bot/api/bank/trips.js';
+import { Banking } from '#/bot/api/bank/Banking.js';
 import { Execution } from '#/bot/api/execution/Execution.js';
 import { Bank } from '#/bot/api/bank/Bank.js';
 import { Inventory, type InvItem } from '#/bot/api/inventory/Inventory.js';

@@ -11,7 +11,7 @@ import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { talkThrough } from '../quests/exec/primitives.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
-import { buyoutPlan } from '../api/shop/buyout.js';
+import { buyoutPlan } from '../api/shop/BuyoutLogic.js';
 import { SHOP_DB } from '../data/shopdb.js';
 import type { ShopRecord } from '../api/shop/types.js';
 import { SHOP_PRESETS, presetByLabel, presetBuyableNames } from './shopPresets.js';

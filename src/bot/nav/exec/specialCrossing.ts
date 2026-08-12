@@ -4,7 +4,7 @@
 
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import { actions, reader } from '../../adapter/ClientAdapter.js';
-import { Banking, isDisposableGatherJunk } from '../../api/bank/trips.js';
+import { Banking, isDisposableGatherJunk } from '../../api/bank/Banking.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { ChatDialog } from '../../api/dialogue/ChatDialog.js';

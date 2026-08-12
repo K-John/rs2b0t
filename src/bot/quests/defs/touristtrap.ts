@@ -15,7 +15,7 @@ import { Npcs } from '../../api/npcs/Npcs.js';
 import { Reachability } from '../../nav/geometry/Reachability.js';
 import { Sustain } from '../../api/sustain/Sustain.js';
 import { Traversal } from '../../api/walking/Traversal.js';
-import { GameMessages } from '../../api/chatbox/messages.js';
+import { GameMessages } from '../../api/chatbox/gameMessages.js';
 import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { earnQuestCoinsStep } from '../exec/fundCoins.js';

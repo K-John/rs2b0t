@@ -5,7 +5,7 @@ import Tile from '../geometry/Tile.js';
 import { ContinueDialog } from '../api/tasks/ContinueDialog.js';
 import { DeathRecovery } from '../api/tasks/DeathRecovery.js';
 import { PeriodicBank } from '../api/tasks/PeriodicBank.js';
-import { PERIODIC_BANK_SETTINGS, depositAllExcept, parseBankStrategy, type BankDestination } from '../api/bank/trips.js';
+import { PERIODIC_BANK_SETTINGS, depositAllExcept, parseBankStrategy, type BankDestination } from '../api/bank/Banking.js';
 import {
     COMBAT_STYLE_OPTIONS,
     RANGE_STYLE_OPTIONS,
@@ -14,7 +14,7 @@ import {
     parseRangeStyle,
     type MeleeCombatStyle
 } from '../api/combat/CombatStyle.js';
-import { Autocast } from '../api/magic/Magic.js';
+import { Autocast } from '../api/magic/Autocast.js';
 import { castsAvailable, runeWithdrawList } from '../api/combat/CombatStyleLogic.js';
 import { SPELL_DB } from '../data/spelldb.js';
 import { ChatDialog } from '../api/dialogue/ChatDialog.js';
@@ -27,7 +27,7 @@ import { Skills } from '../api/skills/Skills.js';
 import { Paint } from '../api/paint/Paint.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { Traversal } from '../api/walking/Traversal.js';
-import { CANT_REACH, GameMessages } from '../api/chatbox/messages.js';
+import { CANT_REACH, GameMessages } from '../api/chatbox/gameMessages.js';
 import { RecoveryHints } from '../runtime/RecoveryHints.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { fmtDuration } from '../api/paint/paintLogic.js';

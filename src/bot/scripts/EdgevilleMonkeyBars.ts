@@ -9,12 +9,12 @@ import { Paint } from '../api/paint/Paint.js';
 import { Traversal } from '../api/walking/Traversal.js';
 import { Locs, type Loc } from '../api/locs/Locs.js';
 import { actions, reader } from '../adapter/ClientAdapter.js';
-import { depositAllExcept } from '../api/bank/trips.js';
+import { depositAllExcept } from '../api/bank/Banking.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
 import { foodHealAmount, shouldEatToUseFood } from '../api/combat/food.js';
-import { scriptFood } from '../api/loadout/plan.js';
-import { LOADOUT_SETTING } from '../api/loadout/setting.js';
+import { scriptFood } from '../api/loadout/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/loadout/loadoutSetting.js';
 
 const MONKEYBARS_APPROACH = new Tile(3121, 9964, 0);
 const MIN_AGILITY = 15; // required to swing across the monkey bars

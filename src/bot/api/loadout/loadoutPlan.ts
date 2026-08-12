@@ -1,6 +1,6 @@
 import type { SettingsBag } from '../../runtime/Settings.js';
 import { ITEM_DB } from '../../data/itemdb.js';
-import { selectedLoadout } from './setting.js';
+import { selectedLoadout } from './loadoutSetting.js';
 import type { CarryEntry, Loadout } from './loadouts.js';
 
 /** A loadout naming nothing means unchosen, so every accessor takes the caller's own fallback. */

@@ -18,7 +18,7 @@ import {
     bankUnlocked,
     nearestBank,
     nearestUsableBank
-} from '../api/bank/locations.js';
+} from '../api/bank/BankLocations.js';
 import {
     Banking,
     COMMON_BANK_LOOT,
@@ -31,7 +31,7 @@ import {
     parseBankStrategy,
     resolveBankOpenRoute,
     shouldBankNow
-} from '../api/bank/trips.js';
+} from '../api/bank/Banking.js';
 import { AbstractBot, BranchTask, LeafTask, LoopingBot, TaskBot, TreeBot } from '../api/bot/Bot.js';
 import {
     AL_KHARID_BANK,
@@ -211,7 +211,7 @@ import {
     liveResetMordredBrief
 } from '../quests/defs/merlinscrystal.js';
 import { defineBot, registerScript } from './defineBot.js';
-import { Loadouts } from '../api/loadout/store.js';
+import { Loadouts } from '../api/loadout/loadoutStore.js';
 
 const API_VERSION = 1;
 

@@ -8,7 +8,7 @@ import { Paint } from '../api/paint/Paint.js';
 import { Traversal } from '../api/walking/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
-import { nearestBank } from '../api/bank/locations.js';
+import { nearestBank } from '../api/bank/BankLocations.js';
 import { fmtDuration } from '../api/paint/paintLogic.js';
 import {
     BATCH,

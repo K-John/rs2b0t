@@ -17,7 +17,7 @@ import Tile from '../geometry/Tile.js';
 import { Traversal } from '../api/walking/Traversal.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../runtime/Settings.js';
-import { GameMessages } from '../api/chatbox/messages.js';
+import { GameMessages } from '../api/chatbox/gameMessages.js';
 import {
     chaosDruidArea,
     chaosDruidBankReason,
@@ -37,8 +37,8 @@ import {
     type DruidLocationName,
     type DruidSpot
 } from './ChaosDruidLogic.js';
-import { scriptFood } from '../api/loadout/plan.js';
-import { LOADOUT_SETTING } from '../api/loadout/setting.js';
+import { scriptFood } from '../api/loadout/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/loadout/loadoutSetting.js';
 
 export const SETTINGS: SettingsSchema = {
     location: {

@@ -1,5 +1,5 @@
 import { Execution } from '../../api/execution/Execution.js';
-import { GameMessages } from '../../api/chatbox/messages.js';
+import { GameMessages } from '../../api/chatbox/gameMessages.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Locs } from '../../api/locs/Locs.js';
 import { Traversal } from '../../api/walking/Traversal.js';

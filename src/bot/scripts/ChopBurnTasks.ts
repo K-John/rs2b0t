@@ -9,7 +9,7 @@ import { Inventory } from '../api/inventory/Inventory.js';
 import { Skills } from '../api/skills/Skills.js';
 import { Npcs } from '../api/npcs/Npcs.js';
 import { reader } from '../adapter/ClientAdapter.js';
-import { GameMessages } from '../api/chatbox/messages.js';
+import { GameMessages } from '../api/chatbox/gameMessages.js';
 import {
     CANT_LIGHT,
     FIRE_LIGHT_TICKS,

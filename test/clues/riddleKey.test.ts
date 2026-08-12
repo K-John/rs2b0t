@@ -12,7 +12,7 @@ import { Npcs } from '#/bot/api/npcs/Npcs.js';
 import Tile from '#/bot/geometry/Tile.js';
 import { CLUE_DB } from '#/bot/clues/data/cluedb.js';
 import { KILL_ANCHORS } from '#/bot/clues/data/killAnchors.js';
-import { GameMessages } from '#/bot/api/chatbox/messages.js';
+import { GameMessages } from '#/bot/api/chatbox/gameMessages.js';
 import { stubProps } from '../lib/stubSingletons.js';
 
 // riddle001: kill Black Heather at the Bandit Camp for the chest key.

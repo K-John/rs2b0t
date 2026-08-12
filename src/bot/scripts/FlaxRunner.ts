@@ -2,7 +2,7 @@ import { TaskBot, type Task } from '../api/bot/Bot.js';
 import { Execution } from '../api/execution/Execution.js';
 import { Game } from '../api/game/Game.js';
 import Tile from '../geometry/Tile.js';
-import { depositAllExcept } from '../api/bank/trips.js';
+import { depositAllExcept } from '../api/bank/Banking.js';
 import { ChatDialog } from '../api/dialogue/ChatDialog.js';
 import { Inventory } from '../api/inventory/Inventory.js';
 import { Bank } from '../api/bank/Bank.js';

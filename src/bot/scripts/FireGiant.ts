@@ -13,14 +13,14 @@ import { Skills } from '../api/skills/Skills.js';
 import { Paint } from '../api/paint/Paint.js';
 import { fmtDuration } from '../api/paint/paintLogic.js';
 import { COMBAT_STYLE_OPTIONS, RANGE_STYLE_OPTIONS, parseCombatStyle, parseRangeStyle, type MeleeCombatStyle } from '../api/combat/CombatStyle.js';
-import { Autocast } from '../api/magic/Magic.js';
+import { Autocast } from '../api/magic/Autocast.js';
 import { castsAvailable, runeWithdrawList } from '../api/combat/CombatStyleLogic.js';
 import { SPELL_DB } from '../data/spelldb.js';
 import { DROP_DB } from '../data/dropdb.js';
-import { BOWS, STAFFS } from '../api/equipment/wear.js';
+import { BOWS, STAFFS } from '../api/combat/equipment.js';
 import { foodForms, foodCount as foodCountIn, foodHealAmount, shouldEatToUseFood } from '../api/combat/food.js';
 import { combatKeepNames } from '../api/combat/keepList.js';
-import { depositAllExcept, matchesCommonBankLoot } from '../api/bank/trips.js';
+import { depositAllExcept, matchesCommonBankLoot } from '../api/bank/Banking.js';
 import { GroundItems } from '../api/grounditems/GroundItems.js';
 import { Npcs, type Npc } from '../api/npcs/Npcs.js';
 import { Traversal } from '../api/walking/Traversal.js';
@@ -35,8 +35,8 @@ import {
     LEDGE_DOOR, LEDGE_LOC, LEDGE_OP, legFor, RAFT_LOC, RAFT_OP, RAFT_STAND,
     attackRangeFor, eastFirst, lootWaitMs, ROCK_LOC, sameRoom, takenByAnother, ROPE, ROPE_THROW_STAND, TREE_LOC, TREE_STAND, type EscapeTele
 } from './FireGiantLogic.js';
-import { scriptFood } from '../api/loadout/plan.js';
-import { LOADOUT_SETTING } from '../api/loadout/setting.js';
+import { scriptFood } from '../api/loadout/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/loadout/loadoutSetting.js';
 
 const TARGET = 'Fire giant';
 const FIELD_RADIUS = 10;

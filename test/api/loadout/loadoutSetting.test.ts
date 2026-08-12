@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { SettingsBag } from '#/bot/runtime/Settings.js';
-import { LOADOUT_SETTING, selectedLoadout } from '#/bot/api/loadout/setting.js';
-import { Loadouts } from '#/bot/api/loadout/store.js';
+import { LOADOUT_SETTING, selectedLoadout } from '#/bot/api/loadout/loadoutSetting.js';
+import { Loadouts } from '#/bot/api/loadout/loadoutStore.js';
 import type { Loadout } from '#/bot/api/loadout/loadouts.js';
 
 const melee: Loadout = { name: 'melee', worn: { righthand: 'Rune scimitar' }, carry: [] };

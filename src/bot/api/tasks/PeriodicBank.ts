@@ -2,7 +2,7 @@ import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import type { Task } from '../bot/Bot.js';
 import { Execution } from '../execution/Execution.js';
 import { Game } from '../game/Game.js';
-import { Banking, shouldBankNow, type BankDestination, type BankStrategy } from '../bank/trips.js';
+import { Banking, shouldBankNow, type BankDestination, type BankStrategy } from '../bank/Banking.js';
 
 const FAILURE_BACKOFF_MS = 3 * 60_000;
 

@@ -30,8 +30,8 @@ import {
     shopCoinsToWithdraw,
     type SecondaryDef
 } from './HerbloreSecondariesLogic.js';
-import { scriptFood } from '../api/loadout/plan.js';
-import { LOADOUT_SETTING } from '../api/loadout/setting.js';
+import { scriptFood } from '../api/loadout/loadoutPlan.js';
+import { LOADOUT_SETTING } from '../api/loadout/loadoutSetting.js';
 
 export const HERBLORE_SECONDARIES_SETTINGS: SettingsSchema = {
     secondary: {

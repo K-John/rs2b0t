@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { buyoutPlan } from '#/bot/api/shop/buyout.js';
+import { buyoutPlan } from '#/bot/api/shop/BuyoutLogic.js';
 import type { ShopRecord } from '#/bot/api/shop/types.js';
 
 const REC: ShopRecord = {

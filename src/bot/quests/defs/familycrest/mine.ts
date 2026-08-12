@@ -7,7 +7,7 @@ import { Traversal } from '../../../api/walking/Traversal.js';
 import { ChatDialog } from '../../../api/dialogue/ChatDialog.js';
 import { Inventory } from '../../../api/inventory/Inventory.js';
 import { Locs } from '../../../api/locs/Locs.js';
-import { GameMessages } from '../../../api/chatbox/messages.js';
+import { GameMessages } from '../../../api/chatbox/gameMessages.js';
 import { heldId, settleScene } from '../../exec/prompts.js';
 import { FC_ID, FC_ITEM, FC_LOC, inPerfectGoldZone } from './areas.js';
 

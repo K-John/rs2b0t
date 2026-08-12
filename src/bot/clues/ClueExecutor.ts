@@ -13,7 +13,7 @@ import { Npcs } from '#/bot/api/npcs/Npcs.js';
 import type { GroundItem } from '#/bot/api/model/GroundItem.js';
 import type { Loc } from '#/bot/api/model/Loc.js';
 import type { Npc } from '#/bot/api/model/Npc.js';
-import { GameMessages } from '#/bot/api/chatbox/messages.js';
+import { GameMessages } from '#/bot/api/chatbox/gameMessages.js';
 import { identifyStep } from '#/bot/clues/ClueLogic.js';
 import { ClueTrace, pushTraceRing } from '#/bot/clues/ClueTrace.js';
 import { CASKET_IDS, CLUE_DB } from '#/bot/clues/data/cluedb.js';
