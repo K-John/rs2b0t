@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { BUILD_INFO, formatBuildInfo } from '#/config/buildInfo.js';
+import { BUILD_INFO, formatBuildInfo } from '#/bot/runtime/buildInfo.js';
 
 describe('BUILD_INFO', () => {
     test('has the shape harnesses and the UI expect', () => {

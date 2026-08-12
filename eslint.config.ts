@@ -80,9 +80,9 @@ export default defineConfig([
     // src/bot/multibox/ stays fenced.
     {
         files: ['src/bot/**/*.ts'],
-        ignores: ['src/bot/ui/**', 'src/bot/main.ts', 'src/bot/multibox/DomSlotOps.ts', 'src/bot/multibox/ProfileChooser.ts', 'src/bot/multibox/TabBar.ts', 'src/bot/multibox/VaultPrompt.ts', 'src/bot/multibox/main.ts'],
+        ignores: ['src/bot/ui/**', 'src/bot/main.ts', 'src/bot/multibox/DomSlotOps.ts', 'src/bot/multibox/ProfileChooser.ts', 'src/bot/multibox/TabBar.ts', 'src/bot/multibox/VaultPrompt.ts', 'src/bot/multibox/main.ts', 'src/bot/runtime/WorkerClock.ts'],
         rules: {
-            'no-restricted-globals': ['error', { name: 'document', message: 'DOM only in src/bot/ui/, main.ts, and src/bot/multibox/{DomSlotOps,ProfileChooser,TabBar,VaultPrompt,main}.ts.' }, { name: 'window', message: 'DOM only in src/bot/ui/, main.ts, and src/bot/multibox/{DomSlotOps,ProfileChooser,TabBar,VaultPrompt,main}.ts.' }]
+            'no-restricted-globals': ['error', { name: 'document', message: 'DOM only in src/bot/ui/, main.ts, src/bot/multibox/{DomSlotOps,ProfileChooser,TabBar,VaultPrompt,main}.ts and runtime/WorkerClock.ts.' }, { name: 'window', message: 'DOM only in src/bot/ui/, main.ts, src/bot/multibox/{DomSlotOps,ProfileChooser,TabBar,VaultPrompt,main}.ts and runtime/WorkerClock.ts.' }]
         }
     },
 
@@ -154,8 +154,8 @@ export default defineConfig([
                         CLIENT_INTERNALS,
                         APP_ENTRYPOINT,
                         {
-                            group: ['./*', '!./Settings.js', '!./defineBot.js'],
-                            message: 'abi.ts may name only runtime/{Settings,defineBot} — never script lifecycle.'
+                            group: ['./*', '!./Settings.js', '!./defineBot.js', '!./buildInfo.js'],
+                            message: 'abi.ts may name only runtime/{Settings,defineBot,buildInfo} — never script lifecycle.'
                         },
                         {
                             group: ['**/scripts/**', '**/clues/**', '**/ui/**', '**/multibox/**', '**/quests/**'],

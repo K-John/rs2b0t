@@ -1,4 +1,4 @@
-import { sleep } from './JsUtil.js';
+import { sleep } from '../../util/JsUtil.js';
 
 const HUB_KEY = '__rs2b0tWorkerClockHubV1';
 
