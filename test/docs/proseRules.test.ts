@@ -61,8 +61,16 @@ test.each(MARKDOWN_ONLY)('%s fires on markdown', check => {
     expect(checksIn('probe.md').has(check)).toBe(true);
 });
 
-test.each(MARKDOWN_ONLY)('%s is disabled for TypeScript', check => {
-    expect(checksIn('probe.ts').has(check)).toBe(false);
+test('NegationList is disabled for TypeScript', () => {
+    expect(checksIn('probe.ts').has('RS2B0T.NegationList')).toBe(false);
+});
+
+test('ThisDocument ignores a mid-sentence self-reference', () => {
+    const lines = readFileSync(`${FIXTURES}/probe.md`, 'utf8').split('\n');
+    const midSentence = lines.findIndex(l => l.startsWith('The banned opener')) + 1;
+    expect(midSentence).toBeGreaterThan(0);
+    const onThatLine = alertsFor('probe.md').filter(a => a.Check === 'RS2B0T.ThisDocument' && a.Line === midSentence);
+    expect(onThatLine).toEqual([]);
 });
 
 test('HeadingContent fires only on heading lines', () => {
