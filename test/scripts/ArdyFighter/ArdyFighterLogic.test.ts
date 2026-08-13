@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { countMatching, matchesAny, shouldBank, shouldEat, shouldPanic, shouldRestock, slotsMatching, type PackItem } from '#/bot/scripts/ArdyFighter/ArdyFighterLogic.js';
+import { countMatching, matchesAny, shouldBank, shouldEat, shouldPanic, shouldRestock, slotsMatching, type PackItem } from '#/bot/api/inventory/packRules.js';
 
 const item = (name: string | null, count = 1): PackItem => ({ name, count });
 

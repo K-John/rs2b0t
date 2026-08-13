@@ -1,6 +1,6 @@
-import { Bank } from '../../api/bank/Bank.js';
-import { Execution } from '../../api/execution/Execution.js';
-import { Inventory } from '../../api/inventory/Inventory.js';
+import { Bank } from '../bank/Bank.js';
+import { Execution } from '../execution/Execution.js';
+import { Inventory } from '../inventory/Inventory.js';
 
 interface NamedStack {
     name: string | null;

@@ -1,5 +1,5 @@
 import Tile from '../../geometry/Tile.js';
-import { matchesAny } from './ArdyFighterLogic.js';
+import { matchesAny } from '../../api/inventory/packRules.js';
 
 export const START_POSITION = 'Start position';
 export const CUSTOM_COORDINATES = 'Custom coordinates';

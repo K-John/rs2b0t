@@ -2,14 +2,14 @@
 
 // Why: it is used by GatheringBot mule modes and by FlaxRunner's Runner/Spinner handoff.
 // Why: policy — the partner filter and the empty-own-offer safety — stays in {@link PartnerTrade}, and this module sequences HUD actions from those decisions plus optional script hooks.
-import { Execution } from '../../api/execution/Execution.js';
-import { Inventory } from '../../api/inventory/Inventory.js';
-import { Trade } from '../../api/trade/Trade.js';
+import { Execution } from '../execution/Execution.js';
+import { Inventory } from '../inventory/Inventory.js';
+import { Trade } from './Trade.js';
 import {
     countOfferMatching,
     decideGiverOfferScreen,
     decideReceiverOfferScreen
-} from '../../api/trade/PartnerTrade.js';
+} from './PartnerTrade.js';
 
 type PartnerTradeRole = 'giver' | 'receiver';
 

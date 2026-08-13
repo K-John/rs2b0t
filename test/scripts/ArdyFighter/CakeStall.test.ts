@@ -108,7 +108,7 @@ afterAll(() => {
     Object.assign(RealInventory.Inventory, realInventoryFns);
 });
 
-const { stealCakes } = await import('#/bot/scripts/ArdyFighter/CakeStall.js');
+const { stealCakes } = await import('#/bot/api/thieving/CakeStall.js');
 
 const say = (text: string): void => {
     chatHandler?.({ text });

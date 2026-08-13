@@ -33,7 +33,7 @@ import {
     countOfferMatching,
     isConfiguredPartner
 } from '../../api/trade/PartnerTrade.js';
-import { driveActivePartnerTrade } from './drivePartnerTrade.js';
+import { driveActivePartnerTrade } from '../../api/trade/drivePartnerTrade.js';
 import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS } from '../../data/miningRocks.js';
 import { bestPickaxe } from '../../api/acquisition/Tools.js';
 import { WHIRLPOOL_IDS, fishingRestockPlan } from '../../data/fishingMethods.js';

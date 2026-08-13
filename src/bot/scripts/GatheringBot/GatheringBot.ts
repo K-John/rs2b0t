@@ -63,7 +63,7 @@ import {
     shouldBurnFullLoad,
     type BurnMode,
     type FirePlot
-} from './FiremakingLogic.js';
+} from '../../api/firemaking/Firemaking.js';
 import {
     axeReq,
     bestHeldToolNames,

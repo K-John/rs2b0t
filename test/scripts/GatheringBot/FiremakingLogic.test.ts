@@ -15,7 +15,7 @@ import {
     runWest,
     shouldBurnFullLoad,
     tileKey
-} from '#/bot/scripts/GatheringBot/FiremakingLogic.js';
+} from '#/bot/api/firemaking/Firemaking.js';
 
 describe('FiremakingLogic', () => {
     test('parseBurnMode', () => {

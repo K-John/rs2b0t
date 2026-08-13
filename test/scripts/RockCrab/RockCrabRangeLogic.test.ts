@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import { BOWS, DARTS } from '#/bot/api/combat/equipment.js';
-import { SETTINGS as MOSS_SETTINGS } from '#/bot/scripts/RockCrab/MossGiant.js';
+import { SETTINGS as MOSS_SETTINGS } from '#/bot/scripts/MossGiant/MossGiant.js';
 import { SETTINGS as ROCK_SETTINGS } from '#/bot/scripts/RockCrab/RockCrab.js';
-import { RANGED_WEAPONS, ROCK_CRAB_RANGED_WEAPONS, rangeLoadoutOf, rangeSupplyEmpty, rockCrabRangeLoadout } from '#/bot/scripts/RockCrab/RockCrabRangeLogic.js';
+import { RANGED_WEAPONS, ROCK_CRAB_RANGED_WEAPONS, rangeLoadoutOf, rangeSupplyEmpty, rockCrabRangeLoadout } from '#/bot/api/combat/ranged.js';
 
 describe('shared ranged loadouts (RockCrab + MossGiant)', () => {
     test('offers every bow and standard dart as a ranged weapon', () => {

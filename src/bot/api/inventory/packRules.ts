@@ -1,4 +1,4 @@
-import { shouldEatToUseFood } from '../../api/combat/food.js';
+import { shouldEatToUseFood } from '../combat/food.js';
 
 export interface PackItem {
     readonly name: string | null;

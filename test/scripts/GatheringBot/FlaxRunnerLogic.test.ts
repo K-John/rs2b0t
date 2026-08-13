@@ -7,7 +7,7 @@ import {
     spinnerNeedsClearPack,
     TRADE_FAIL_COOLDOWN_TICKS,
     TRADE_REQUEST_COOLDOWN_TICKS
-} from '#/bot/scripts/GatheringBot/FlaxRunnerLogic.js';
+} from '#/bot/scripts/FlaxRunner/FlaxRunnerLogic.js';
 
 describe('partnerNameMatches', () => {
     test('case-insensitive exact match', () => {

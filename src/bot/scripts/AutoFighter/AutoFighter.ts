@@ -32,7 +32,7 @@ import { Npcs, type Npc } from '../../api/npcs/Npcs.js';
 import { matchesEntityName } from '../../api/query/Query.js';
 import { SettingsStore, type SettingsSchema } from '../../runtime/Settings.js';
 import Tile from '../../geometry/Tile.js';
-import { countMatching, matchesAny, shouldBank, shouldEat, shouldPanic } from './ArdyFighterLogic.js';
+import { countMatching, matchesAny, shouldBank, shouldEat, shouldPanic } from '../../api/inventory/packRules.js';
 import {
     autoBankEnabled,
     BANKING_OPTIONS,

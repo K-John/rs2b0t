@@ -25,7 +25,7 @@ import {
     tileKey,
     type BurnDir,
     type FirePlot
-} from './FiremakingLogic.js';
+} from '../../api/firemaking/Firemaking.js';
 
 /** Same face-target filter as GatheringBot.FleeCombat — sticky combatCycle is ignored. */
 function hostileFaceTarget(): boolean {

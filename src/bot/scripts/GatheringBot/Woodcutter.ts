@@ -1,6 +1,6 @@
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import GatheringBot, { GATHERING_SETTINGS } from './GatheringBot.js';
-import { BURN_MODE_OPTIONS, FIRE_SPOT_OPTIONS } from './FiremakingLogic.js';
+import { BURN_MODE_OPTIONS, FIRE_SPOT_OPTIONS } from '../../api/firemaking/Firemaking.js';
 import { TICK_MANIP_UNSHIPPED_HELP, WC_TICK_MANIP_OPTIONS, tickManipUiOptions } from './TickManipLogic.js';
 import { FORGETFUL_BANK_SETTING, TOOL_ACQUIRE_SETTING } from '../../api/acquisition/ToolAcquire.js';
 import { WOODCUTTING_LOCATION_OPTIONS } from '../../data/woodcuttingLocations.js';

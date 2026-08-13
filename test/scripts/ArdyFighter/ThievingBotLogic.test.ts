@@ -8,7 +8,7 @@ import {
     shouldRestockFood,
     STUN_COMBAT_TICKS,
     THIEVER_BANKING_OPTIONS
-} from '#/bot/scripts/ArdyFighter/ThievingBotLogic.js';
+} from '#/bot/api/thieving/stealRules.js';
 
 describe('Thiever food banking', () => {
     test('banking is opt-in', () => {

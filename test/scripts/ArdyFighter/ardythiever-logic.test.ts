@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { ARDOUGNE_PICKPOCKET_TARGETS } from '#/bot/data/pickpocketTargets.js';
-import { HOSTILE_NAMES, chooseTarget, isHostileAttacker, requiredThieving, targetSpot } from '#/bot/scripts/ArdyFighter/ArdyThieverLogic.js';
+import { HOSTILE_NAMES, chooseTarget, isHostileAttacker, requiredThieving, targetSpot } from '#/bot/api/thieving/targets.js';
 
 const SPAWNS: Record<string, [number, number][]> = {
     'Guard': [[2651, 3307], [2659, 3309], [2660, 3309], [2661, 3309], [2663, 3301], [2665, 3300], [2664, 3318]],

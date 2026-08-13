@@ -6,7 +6,7 @@ import { actions, reader, type InvItemSnapshot } from '#/bot/adapter/ClientAdapt
 import { Execution } from '#/bot/api/execution/Execution.js';
 import { Bank } from '#/bot/api/bank/Bank.js';
 import { Input } from '#/bot/api/input/Input.js';
-import { closeBankAndConfirmCount } from '#/bot/scripts/ArdyFighter/ThievingBotLogic.js';
+import { closeBankAndConfirmCount } from '#/bot/api/thieving/stealRules.js';
 
 const LOBSTER = 379;
 

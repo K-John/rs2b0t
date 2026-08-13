@@ -1,6 +1,6 @@
 import { expect, test, describe } from 'bun:test';
 
-import { classifySteal, shouldReset, RESET_AFTER_REFUSALS, STAND, STAND_ALT, STALL_TILE, CAKE_ITEMS } from '#/bot/scripts/ArdyFighter/CakeStallLogic.js';
+import { classifySteal, shouldReset, RESET_AFTER_REFUSALS, STAND, STAND_ALT, STALL_TILE, CAKE_ITEMS } from '#/bot/api/thieving/cakeStallData.js';
 
 describe('classifySteal (one steal click resolved)', () => {
     test('a gained cake is success even if ambient combat coincides', () => {

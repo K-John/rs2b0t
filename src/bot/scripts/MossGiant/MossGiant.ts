@@ -28,7 +28,7 @@ import { Traversal } from '../../api/walking/Traversal.js';
 import { DirectNavigator } from '../../engines/nav/DirectNavigator.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
-import { RANGED_WEAPONS, rangeLoadoutOf, rangeSupplyEmpty } from './RockCrabRangeLogic.js';
+import { RANGED_WEAPONS, rangeLoadoutOf, rangeSupplyEmpty } from '../../api/combat/ranged.js';
 import { scriptFood } from '../../api/loadout/loadoutPlan.js';
 import { LOADOUT_SETTING } from '../../api/loadout/loadoutSetting.js';
 

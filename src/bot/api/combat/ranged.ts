@@ -1,4 +1,4 @@
-import { BOWS, DARTS } from '../../api/combat/equipment.js';
+import { BOWS, DARTS } from './equipment.js';
 
 /** Bows + darts — shared by RockCrab, MossGiant, and any ranged fighter. */
 export const RANGED_WEAPONS = [...BOWS, ...DARTS];

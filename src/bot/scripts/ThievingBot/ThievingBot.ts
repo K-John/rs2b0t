@@ -21,7 +21,7 @@ import { walkOpening } from '../../engines/nav/walkOpening.js';
 import { PICKPOCKET_TARGET_NAMES } from '../../data/pickpocketTargets.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import { fmtDuration } from '../../api/paint/paintLogic.js';
-import { chooseTarget } from './ArdyThieverLogic.js';
+import { chooseTarget } from '../../api/thieving/targets.js';
 import {
     STUN_COMBAT_TICKS,
     autoFoodBanking,
@@ -31,7 +31,7 @@ import {
     shouldRestockFood,
     THIEVER_BANKING_OPTIONS,
     withdrawTo
-} from './ThievingBotLogic.js';
+} from '../../api/thieving/stealRules.js';
 import { scriptFood } from '../../api/loadout/loadoutPlan.js';
 import { LOADOUT_SETTING } from '../../api/loadout/loadoutSetting.js';
 

@@ -29,10 +29,10 @@ import {
     runInDir,
     tileKey,
     type FirePlot
-} from './FiremakingLogic.js';
+} from '../../api/firemaking/Firemaking.js';
 import { exactTool, hasAllTools, toolKeepNames, toolRestockPlan, type ToolReq } from '../../api/acquisition/Tools.js';
 
-export { FIRE_SPOTS, LOG_LEVELS } from './FiremakingLogic.js';
+export { FIRE_SPOTS, LOG_LEVELS } from '../../api/firemaking/Firemaking.js';
 
 export const FIREMAKER_SETTINGS: SettingsSchema = {
     logType: { type: 'string', default: 'Logs', options: Object.keys(LOG_LEVELS), label: 'What to burn' },

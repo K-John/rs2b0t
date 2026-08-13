@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import Tile from '#/bot/geometry/Tile.js';
-import { SETTINGS, shouldKeepBankItem } from '#/bot/scripts/ArdyFighter/AutoFighter.js';
+import { SETTINGS, shouldKeepBankItem } from '#/bot/scripts/AutoFighter/AutoFighter.js';
 import {
     autoBankEnabled,
     BANKING_OPTIONS,
@@ -12,7 +12,7 @@ import {
     SPOT_OPTIONS,
     START_POSITION,
     wantsAutoFighterLoot
-} from '#/bot/scripts/ArdyFighter/AutoFighterData.js';
+} from '#/bot/scripts/AutoFighter/AutoFighterData.js';
 import { matchesEntityName } from '#/bot/api/query/Query.js';
 import { resolveControl } from '#/bot/ui/paramControls.js';
 
