@@ -1,5 +1,10 @@
 // Live CoalTrucks run: --phase cross|fill|drain|nopick|full --speed 300 --minutes N.
 // Why: the truck count is a server-only varp the bot cannot read, so it is seeded with ::setvar and asserted with ::getvar.
+
+//   bun tools/coaltrucks-test.ts --phase cross --speed 300 --minutes 3   # proves the log balance level
+//   bun tools/coaltrucks-test.ts --phase fill  --speed 300 --minutes 8
+//   bun tools/coaltrucks-test.ts --phase drain --speed 300 --minutes 8
+//   bun tools/coaltrucks-test.ts --minutes 45                            # full uncheated loop
 import { fail, launchBrowser } from './lib/harness.js';
 import { cheatQuiet, getServerVar, mainlandAccount, relog, startScript } from './tutorial/harness.js';
 

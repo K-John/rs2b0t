@@ -1,5 +1,7 @@
 // Live repro — Strange box ("Mysterious box") random event: [base].
 // Seeds a macro_cube and watches the always-on guardian try to solve it.
+
+//   bun tools/strangebox-repro-live.ts [http://localhost:8888]
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs } from './lib/harness.js';
 
 const args = positionalArgs(process.argv.slice(2), 'http://localhost:8888');

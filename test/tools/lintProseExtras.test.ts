@@ -93,6 +93,18 @@ test('a JSDoc block with three payload lines is reported', () => {
     expect(found[0].message).toContain('3-line');
 });
 
+test('a usage block of runnable commands is not a comment block', () => {
+    const body = ['// Usage:', '//   bun tools/coaltrucks-test.ts --phase cross --speed 300 --minutes 3   # proves the log balance level', '//   bun tools/coaltrucks-test.ts --minutes 45                            # full uncheated loop', '//   ENGINE_DIR=... sh tools/deploy-local.sh   # once', 'export const a = 1;', ''].join('\n');
+    expect(checkComments([fixture('usage.ts', body)])).toEqual([]);
+});
+
+test('a rationale block of the same length is still a comment block', () => {
+    const body = ['// The cache is skipped while the lock is held.', '// Callers then re-read the manifest.', '// A stale entry would otherwise survive the swap.', 'export const a = 1;', ''].join('\n');
+    const found = checkComments([fixture('rationale.ts', body)]).filter(f => f.check === 'comment-block');
+    expect(found.length).toBe(1);
+    expect(found[0].message).toContain('3-line');
+});
+
 test('a lint directive is never reported', () => {
     const path = fixture('directive.ts', '// eslint-disable-next-line no-restricted-imports -- the adapter is not ready\n// @ts-expect-error upstream types are wrong because the overload is missing\n// prettier-ignore\nexport const a = 1;\n');
     expect(checkComments([path])).toEqual([]);

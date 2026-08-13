@@ -75,6 +75,8 @@ export function checkFragments(files: string[]): Finding[] {
 const MAX_BLOCK = 2;
 const RATIONALE = /\b(because|so that|the reason)\b/i;
 const DIRECTIVE = /^\s*(?:\/\/|\/\*+|\*)\s*(eslint|@ts-|prettier|vale|biome|c8|istanbul|oxlint)/;
+const USAGE = /^(?:usage:\s*)?(?:[A-Z_]+=\S+\s+)*(?:bun|sh|node|npx|npm)\s/i;
+const USAGE_HEADER = /^usage:/i;
 
 type Block = { start: number; lines: string[] };
 
@@ -99,6 +101,10 @@ function text(block: Block): string {
     return block.lines.map(l => l.replace(/^\s*(\/\/|\/\*+|\*\/|\*)/, '').trim()).join(' ');
 }
 
+function isUsageBlock(payload: string[]): boolean {
+    return payload.some(l => USAGE.test(l)) && payload.every(l => USAGE.test(l) || USAGE_HEADER.test(l));
+}
+
 export function checkComments(files: string[]): Finding[] {
     const found: Finding[] = [];
     for (const file of files) {
@@ -109,8 +115,8 @@ export function checkComments(files: string[]): Finding[] {
             if (RATIONALE.test(body) && !tagged) {
                 found.push({ file, line: block.start, check: 'why-tag', message: 'Rationale comment without a Why: tag. Collapse it to one tagged line or move it to docs/decisions/.' });
             }
-            const payload = block.lines.filter(l => text({ start: 0, lines: [l] }) !== '');
-            if (payload.length > MAX_BLOCK) {
+            const payload = block.lines.map(l => text({ start: 0, lines: [l] })).filter(l => l !== '');
+            if (payload.length > MAX_BLOCK && !isUsageBlock(payload)) {
                 found.push({ file, line: block.start, check: 'comment-block', message: `${payload.length}-line comment block. Keep comments to a rare one-liner where the code is cryptic.` });
             }
         }

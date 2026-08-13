@@ -1,5 +1,9 @@
 // Prince Ali Rescue, one quest at a time: --stage 30 --give beer:3 --keystatus 1.
 // Why: the bank is seeded with coins alone — seeding a stage with the tools that stage needs is what let every Watch Tower stage-10 test pass while the quest could not mine.
+
+//   bun tools/princeali-solo-test.ts                          uncheated 0 -> 110
+//   bun tools/princeali-solo-test.ts --stage 30 --give beer:3  from a jumped stage
+//   bun tools/princeali-solo-test.ts --stage 20 --keystatus 1  the already-forged wedge
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 

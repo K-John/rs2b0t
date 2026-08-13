@@ -1,5 +1,7 @@
 // Issue #294 — rail tabs, full user journey: [base]. Creates a vault and three profiles through the UI, groups bots into tabs with drag events, renames, reorders and deletes tabs.
 // Reloads the page and proves the tab state (list, order, membership, active) restores.
+
+//   bun tools/multibox-tabs-test.ts [http://localhost:8888]
 import { fail, launchBrowser, positionalArgs } from './lib/harness.js';
 
 const args = positionalArgs(process.argv.slice(2), 'http://localhost:8888');

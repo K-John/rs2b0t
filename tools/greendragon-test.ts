@@ -1,5 +1,7 @@
 // Live GreenDragon proof: [base]. Case 1 — a hard clue on the ground with a pack full of lobsters: spend food for the slot, take the clue by obj id, hand to SolveClue, leave the wilderness, open a bank.
 // Case 2 — clues off and teleported off the field: the bot walks itself back. Proven on a short hop rather than a full trail, which is slow and flakes on the known nav-island destinations.
+
+//   bun tools/greendragon-test.ts [http://localhost:8888]
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs, setSettings } from './lib/harness.js';
 import type { Page } from 'playwright-core';
 

@@ -1,5 +1,7 @@
 // Issue #311 — live HillGiant proof: [base].
 // Starts with no key, so the script has to fetch the Edgeville dungeon spawn, unlock the hut, climb down and kill a giant.
+
+//   bun tools/hillgiant-test.ts [http://localhost:8888]
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs, setSettings } from './lib/harness.js';
 
 const args = positionalArgs(process.argv.slice(2), 'http://localhost:8888');
