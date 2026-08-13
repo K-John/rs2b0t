@@ -13,7 +13,7 @@ human click would have produced.
 ## Layers
 
 ```
-src/bot/scripts/     the bots themselves                        ─┐
+src/bot/scripts/     one directory per contribution             ─┐
 src/bot/quests|clues subsystems                                  │
 src/bot/runtime/     script lifecycle, ABI, settings, solvers    │  bot code
 src/bot/api/         one directory per game-facing noun          │
@@ -30,6 +30,14 @@ A module belongs in `api/` iff it is a facade over one game interface, one
 entity collection, or one reusable script behaviour. One directory per noun,
 sized to what that noun needs; single-file directories are expected. Not
 catalogs, not solvers, not engines, not sole-consumer helpers.
+
+A directory under `scripts/` is one contribution: a registered bot plus every
+module only it reaches. Two bots share a directory iff they share a private
+module or an `extends`, and the directory takes the name of the bot whose module
+the others share. `scripts/index.ts` is the registry barrel and stays at the
+root. Shared code is the contribution's implementation and stays inside it, so a
+directory never imports a sibling — see
+[import fences](../reference/import-fences.md).
 
 [`src/bot/adapter/ClientAdapter.ts`](../../src/bot/adapter/ClientAdapter.ts) is the
 boundary, and it has two halves:
