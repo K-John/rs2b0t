@@ -78,7 +78,7 @@ export default defineBot({ name: 'MyBot', description: '…', create: () => new 
 
 Copy [`templates/script-template/`](templates/script-template/) to start an out-of-tree
 bot. The same example ships in-tree as
-[`src/bot/scripts/BoneBurier.ts`](src/bot/scripts/BoneBurier.ts).
+[`src/bot/scripts/BoneBurier/BoneBurier.ts`](src/bot/scripts/BoneBurier/BoneBurier.ts).
 
 ## How it connects
 

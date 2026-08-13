@@ -13,7 +13,7 @@ import { FISHING_LOCATIONS } from '#/bot/data/fishingLocations.js';
 import { MINING_LOCATIONS } from '#/bot/data/miningLocations.js';
 import { WOODCUTTING_LOCATIONS } from '#/bot/data/woodcuttingLocations.js';
 import { FISH_CAMP_COOK_PLANS, COOKING_RANGE_LOCS } from '#/bot/data/cookingRanges.js';
-import { FIRE_SPOTS } from '#/bot/scripts/FiremakingLogic.js';
+import { FIRE_SPOTS } from '#/bot/scripts/GatheringBot/FiremakingLogic.js';
 import { CLUE_DB } from '#/bot/clues/data/cluedb.js';
 import { NAV_TARGETS } from '#/bot/nav/data/navTargets.js';
 import { PathFinder, type NavPoint } from '#/bot/nav/PathFinder.js';

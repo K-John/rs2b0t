@@ -7,7 +7,7 @@ import { GroundItems } from '../../api/grounditems/GroundItems.js';
 import { Locs } from '../../api/locs/Locs.js';
 import { Npcs } from '../../api/npcs/Npcs.js';
 import Tile from '../../geometry/Tile.js';
-import { inEssMine } from '../../scripts/EssMinerLogic.js';
+import { inEssMine } from '../../scripts/EssMiner/EssMinerLogic.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { driveDialog, gotoNpc, isUnderground, talkThrough, walkWithHops, type LadderHop, type NpcStop } from '../exec/primitives.js';
 import { executeStep, openBankLeg } from '../exec/steps.js';
