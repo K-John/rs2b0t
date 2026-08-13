@@ -173,7 +173,7 @@ export default class BrimhavenAgility extends TaskBot {
 
     platform(): number {
         const t = this.here();
-        // Only snap to pillars on the real platform plane — the fall pit shares
+        // Only snap to pillars on the live platform plane — the fall pit shares
         // x/z with pillars but has no Rope swing / ledge locs (stuck loop).
         if (!t || !onArenaPlatform(t.level) || !inArena(t.x, t.z)) {
             return -1;
@@ -737,7 +737,7 @@ async function waitObstacleSettled(bot: BrimhavenAgility, from: number, to: numb
         } else {
             idleTicks = 0;
         }
-        // Soft fail / stuck mid-trap: after a real leave, a few idle ticks without
+        // Soft fail / stuck mid-trap: after a live leave, a few idle ticks without
         // arriving means bounce or stall — retry now (not a 8–12s hang).
         if (leftStart && idleTicks >= 3) {
             bot.log(

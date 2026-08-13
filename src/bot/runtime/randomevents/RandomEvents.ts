@@ -319,7 +319,7 @@ class RandomEventsImpl {
         this.handling = true;
         try {
             // detect/handle must never throw into ScriptRunner — a thrown error
-            // marks the whole script crashed even when the maze/dialog later succeeds.
+            // marks the script crashed even when the maze/dialog later succeeds.
             return await this.handleInner(log);
         } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);

@@ -359,7 +359,7 @@ async function pickpocketFundingMan(anchor: Tile, log: (message: string) => void
     }
     await clearFundingContinues();
     if (Skills.effective('hitpoints') < hpBefore) {
-        // A failed level-1 Man pickpocket stuns for exactly eight server ticks.
+        // A failed level-1 Man pickpocket stuns for eight server ticks.
         await Execution.delayTicks(8);
     }
     return true;
@@ -665,7 +665,7 @@ function normalizeLoadout(
     const hasExcess = inventoryHasExcessKeptIds(snap, keepIds);
     const hasEquipment = snap.worn.size > 0 || (snap.wornIds?.size ?? 0) > 0;
     if (!hasEquipment && !inventoryHasOutsideIds(snap, keepIds) && !hasExcess) return null;
-    // Why: the bank API can keep an exact id but not a partial quantity, so an otherwise valid item over its phase limit means banking the whole pack and letting the stage planner withdraw the precise quantities on its next snapshot.
+    // Why: the bank API can keep an exact id but not a partial quantity, so an otherwise valid item over its phase limit means banking the pack and letting the stage planner withdraw the precise quantities on its next snapshot.
     // Why: equipment needs the same empty-pack treatment, so every worn slot has room to unequip before the final deposit pass.
     const normalizedKeepIds = hasExcess || hasEquipment ? [] : keepIds;
     return { kind: 'custom', name, run: log => stripAndDeposit(normalizedKeepIds, log, bank) };
@@ -990,7 +990,7 @@ async function solvePillars(log: (message: string) => void): Promise<boolean> {
         return false;
     }
 
-    // Why: varp 66 is server-only, and a fresh trip starts with exactly six of each rune, so after an interrupted trip the number still held equals the number of unset pillars.
+    // Why: varp 66 is server-only, and a fresh trip starts with six of each rune, so after an interrupted trip the number still held equals the number of unset pillars.
     // Why: replaying every possible placement is therefore idempotent — set bits consume nothing and unset bits consume one.
     for (const pillar of pillars) {
         for (const rune of RUNES) {

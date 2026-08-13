@@ -17,7 +17,7 @@ four-NPC chain, driven by [`data/toolAcquire.ts`](../../src/bot/api/ai/clues/dat
 
 A toll the bot cannot pay does not read as "too poor" — A* prunes the crossing, so
 the region behind it leaves the graph and the leg reports a bare `unreachable`.
-The Kharidian desert is the sharp case: it has exactly one baked entrance and it
+The Kharidian desert is the sharp case: it has one baked entrance and it
 eats a Shantay pass, so a bot without one is told the desert does not exist.
 
 [`gateItems.ts`](../../src/bot/event/webwalk/gateItems.ts) tells the two apart. On an

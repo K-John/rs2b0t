@@ -176,7 +176,7 @@ describe('decide — pickaxe outranks every phase', () => {
 
 describe('decide — getting back to the mine', () => {
     // Without this the bot idles at the bank forever after fetching a pickaxe:
-    // findRock is leashed to the mine, so rockAvailable is false and it just waits.
+    // findRock is leashed to the mine, so rockAvailable is false and it waits.
     test('walks to the mine when the fill phase starts away from it', () => {
         expect(decide(view({ atMine: false }))).toEqual({ kind: 'travel-to-mine' });
     });

@@ -612,7 +612,7 @@ class Fight implements Task {
                 continue;
             }
 
-            // Why: this loop owns the bot for the whole fight, so a sibling BuryBones task only runs in whatever gaps the loop leaves.
+            // Why: this loop owns the bot for the fight, so a sibling BuryBones task only runs in whatever gaps the loop leaves.
             // Why: the burial skips the swing tick, so it costs no attack.
             if (BURY_BONES && (await buryOneInFight('Big bones'))) {
                 this.bot.countBurial();

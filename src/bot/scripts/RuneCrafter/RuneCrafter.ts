@@ -423,7 +423,7 @@ class RunnerDeliver implements Task {
             return;
         }
         // spam on purpose: a busy recipient drops the request server-side, and answering our
-        // most recent request is exactly how the recipient opens the trade — so keep asking
+        // most recent request is how the recipient opens the trade — so keep asking
         this.bot.setStatus(`delivering to ${partner}`);
         this.bot.log(`requesting a trade with ${master.name}`);
         await Trade.request(master.name ?? partner);

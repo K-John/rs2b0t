@@ -25,7 +25,7 @@ function normalize(lines: readonly string[] | string): string {
         .toLowerCase();
 }
 
-// Newest first: every entry keeps the whole earlier history.
+// Newest first: every entry keeps the earlier history.
 const STAGE_LINES: readonly [string, number][] = [
     ['quest complete!', PRINCE_STAGE.COMPLETE],
     ['i then used a wig, a skirt and some skin paste', PRINCE_STAGE.SAVED],

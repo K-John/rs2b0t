@@ -111,7 +111,7 @@ export async function fetchRubberTube(log: (m: string) => void): Promise<boolean
     await settleScene();
     if (!(await takeSpawn(EC_ID.RUBBER_TUBE, EC_NAME.RUBBER_TUBE, EC_TILE.RUBBER_TUBE_SPAWN, log))) {
         // Leaving matters more than the tube: stranded in here, every later leg
-        // spends its whole budget proving the world unreachable.
+        // spends its budget proving the world unreachable.
         await crossClosetDoor('out', log);
         return false;
     }

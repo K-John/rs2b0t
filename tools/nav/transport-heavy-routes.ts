@@ -112,7 +112,7 @@ const SEEDS: Seed[] = [
         from: TRAVEL_STANDS.brimhavenCart,
         to: CART_SHILO
     },
-    // Real multiloc product path: enter via wizard (sets session) → exit portal.
+    // Multiloc product path: enter via wizard (sets session) → exit portal.
     // Live harness must NOT setvar exit_essence_mine_coord — that only tests cheats.
     {
         id: 'TH-ess-round-aubury',

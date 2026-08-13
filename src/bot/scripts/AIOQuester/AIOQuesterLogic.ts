@@ -28,7 +28,7 @@ export function resolveConsumeAction(actions: readonly string[]): string | null 
     return null;
 }
 
-// Why: a fitting heal wins across the whole pack before the low-HP safety floor is considered, so a large food in an earlier slot cannot veto a later Cake bite that fits.
+// Why: a fitting heal wins across the pack before the low-HP safety floor is considered, so a large food in an earlier slot cannot veto a later Cake bite that fits.
 
 /** Selects one eligible item and its consume operation. */
 export function selectSustainConsumable<T extends SustainInventoryItem>(

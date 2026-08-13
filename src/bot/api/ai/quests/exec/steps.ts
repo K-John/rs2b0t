@@ -22,7 +22,7 @@ import { gotoNpc, talkThrough, type LadderHop } from './primitives.js';
 const BANK_CANDIDATES = 6;
 
 // Why: from the Lumbridge respawn the three closest banks by air — Al Kharid, Shantay Pass and the Duel Arena — sit behind the same 10gp toll gate, and the navigator prunes a fare it cannot pay.
-// Why: to a bot that has just died every bank it can see is one it cannot reach, and the first it can walk to is only third on the list, so the navigator is asked for path costs.
+// Why: to a bot that has died every bank it can see is one it cannot reach, and the first it can walk to is only third on the list, so the navigator is asked for path costs.
 
 /** The nearest bank measured by walking cost. */
 async function reachableBank(from: WorldTile, log: (m: string) => void): Promise<Tile | undefined> {

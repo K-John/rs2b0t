@@ -132,7 +132,7 @@ const restoreTraversal = stubProps(Traversal, {
         return walkResult;
     }
 });
-// Real WalkExecutor — pin lastOutcome via the writable field (no module mock).
+// WalkExecutor — pin lastOutcome via the writable field (no module mock).
 const realLastOutcome = WalkExecutor.lastOutcome;
 afterAll(() => {
     restoreReader();

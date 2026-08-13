@@ -28,7 +28,7 @@ describe('HillGiant pit spots', () => {
     });
 
     test('spots are spread out, not clustered on one corner', () => {
-        // the whole point is that several bots do not pile onto one tile
+        // the point is that several bots do not pile onto one tile
         for (let i = 0; i < PIT_SPOTS.length; i++) {
             for (let j = i + 1; j < PIT_SPOTS.length; j++) {
                 const a = PIT_SPOTS[i];

@@ -106,7 +106,7 @@ export default class ClueSolver extends TaskBot {
                         return;
                     }
                 }
-                // Why: the casket reward has to go in, or the bot stands on the booth holding the whole trail's loot until the next trail's prep deposits it.
+                // Why: the casket reward has to go in, or the bot stands on the booth holding the trail's loot until the next trail's prep deposits it.
                 await this.depositTrailLoot();
                 this.returnToBank = false;
                 this.setStatus('waiting for a clue');

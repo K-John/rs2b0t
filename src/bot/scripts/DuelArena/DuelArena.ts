@@ -169,7 +169,7 @@ export default class DuelArena extends TaskBot {
         );
     }
 
-    /** A style is valid only when the combat interface trains exactly that stat. */
+    /** A style is valid only when the combat interface trains that stat. */
     exactStyleMode(): number | null {
         const style = this.desiredStyle();
         return exactTrainingMode(style, Game.combatStyleResolution(style));

@@ -37,7 +37,7 @@ export function minerFoodConfig(name: string, target: number): MinerFoodConfig |
 }
 
 /**
- * Eat exactly when the configured food's whole heal fits, or consume one slot
+ * Eat when the configured food's heal fits, or consume one slot
  * from a full pack so mining can continue with another ore.
  */
 export function shouldEatMinerFood(opts: { hp: number; maxHp: number; heal: number; foodCount: number; inventoryFull: boolean }): boolean {

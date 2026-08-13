@@ -225,7 +225,7 @@ export default class HillGiant extends TaskBot {
             return this.walkTo(this.spot, 'the pit spot');
         }
         // Stop OUTSIDE the door: the ladder is behind it, so pathing straight to
-        // the ladder just makes the walker batter a door only the key can open.
+        // the ladder makes the walker batter a door only the key can open.
         if (!(await this.walkTo(HUT_OUTSIDE, 'the hill giant hut'))) {
             this.log('could not reach the hill giant hut — retrying');
             return false;

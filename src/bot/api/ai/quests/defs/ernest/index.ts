@@ -8,7 +8,7 @@ import { heldId, kit } from './supplies.js';
 
 const talk = (stop: typeof VERONICA): QuestStep => ({ kind: 'talk', stop });
 
-// Why: the tube and the oil can are both inside the manor and the basement is entered from the same floor, so only the gauge leg goes outside — one exit and one re-entry for the whole quest.
+// Why: the tube and the oil can are both inside the manor and the basement is entered from the same floor, so only the gauge leg goes outside — one exit and one re-entry for the quest.
 
 /** The next of tube, oil can, gauge that is still outstanding. */
 function parts(snap: QuestSnapshot): QuestStep {
@@ -35,7 +35,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === undefined) {
         return { kind: 'wait', reason: 'quest stage not readable' };
     }
-    // Why: there are three sealed pockets, each reachable only by a scripted teleport, and a leg that starts in one spends its whole budget proving the world unreachable.
+    // Why: there are three sealed pockets, each reachable only by a scripted teleport, and a leg that starts in one spends its budget proving the world unreachable.
     // Why: this runs ahead of the bank trip, which is itself a walk.
     if (inCloset(snap.tile)) {
         return { kind: 'custom', name: 'leave the closet', run: leaveCloset };
@@ -65,7 +65,7 @@ export const ernest: QuestModule = {
     record: QUESTS.find(r => r.id === 'haunted')!,
     bank: EC_TILE.DRAYNOR_BANK,
     // Why: the record lists the three parts as acquirable, and the engine calls a gather fn instead of decide() while any is missing, which would fetch the oil can before Veronica had been spoken to.
-    // Why: ownsInventory hands the whole loop to decide(), and kit() takes over the spade and food the engine no longer withdraws.
+    // Why: ownsInventory hands the loop to decide(), and kit() takes over the spade and food the engine no longer withdraws.
     ownsInventory: true,
     tools: [
         'spade', 'poison', 'fish food', 'poisoned fish food', 'key',

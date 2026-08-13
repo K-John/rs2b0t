@@ -82,7 +82,7 @@ function edgeKind(e: TransportEdgeData): TransportEdgeData['kind'] {
 }
 
 // Walkable is not reachable: build-collision leaves sealed tiles behind — a lone square with no exits at all, or a one-tile-wide strip whose only exits run along itself.
-// Why: snapping a ladder onto one lands the walker somewhere it can never leave, and the local component size tells them apart without a whole-map flood.
+// Why: snapping a ladder onto one lands the walker somewhere it can never leave, and the local component size tells them apart without a-map flood.
 const LOCAL_FLOOD_CAP = 192;
 const DX8 = [0, 1, 0, -1, 1, 1, -1, -1];
 const DZ8 = [1, 0, -1, 0, 1, -1, -1, 1];

@@ -172,7 +172,7 @@ function makeSpace(snap: QuestSnapshot, slots: number): QuestStep | null {
         return { kind: 'deposit', keep, bank: DRAYNOR_BANK, exactKeep: true };
     }
     // Why: a restart can hold nothing but an oversized pile of otherwise-valid quest supplies or food, and the generic deposit step cannot retain quantities.
-    // Why: the whole load is banked, keeping only coins, and the state machine withdraws one clean loadout.
+    // Why: the load is banked, keeping only coins, and the state machine withdraws one clean loadout.
     return { kind: 'deposit', keep: ['coins'], bank: DRAYNOR_BANK, exactKeep: true };
 }
 
@@ -186,7 +186,7 @@ function normalizePack(snap: QuestSnapshot): QuestStep | null {
 function sourceCoins(snap: QuestSnapshot): QuestStep | null {
     const inPack = heldCount(snap, 'Coins');
     // One 5k withdrawal comfortably covers the beer, hammer, sword, and kebabs. Do not walk
-    // across the map after every tiny purchase just to refill one or two coins.
+    // across the map after every tiny purchase to refill one or two coins.
     if (inPack >= COIN_RESERVE) return null;
     const inBank = banked(snap, 'Coins');
     if (inBank <= 0) return { kind: 'wait', reason: 'need coins for Vampire Slayer supplies' };

@@ -363,7 +363,7 @@ export class QuestEngine implements Task {
         const startedAt = Date.now();
         const ok = await executeStep(bankAwareStep, module.hops ?? [], m => {
             // Verbose keeps the repeats: a sub-log that fires once per rock is the
-            // whole record of a mining leg, and de-duping it erases the leg.
+            // record of a mining leg, and de-duping it erases the leg.
             if (verbose) {
                 this.host.log(`  ${m}`);
                 return;

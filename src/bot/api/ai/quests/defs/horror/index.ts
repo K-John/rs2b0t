@@ -51,7 +51,7 @@ function teleportRunes(snap: QuestSnapshot): QuestStep | null {
     return Traversal.teleportsEnabled() ? runeKit(snap) : null;
 }
 
-// Why: every step banks before it shops, as the ordinary account already owns most of this — a hammer and eight steel nails are not exotic — and the whole detour collapses to nothing when they are in the bank.
+// Why: every step banks before it shops, as the ordinary account already owns most of this — a hammer and eight steel nails are not exotic — and the detour collapses to nothing when they are in the bank.
 // Why: hammer, nails and runes are three Varrock errands, and the planks are ground spawns at the Barbarian Outpost, which is the last stop before the lighthouse.
 
 /** Everything the bridge repair consumes, in the order the map wants it. */

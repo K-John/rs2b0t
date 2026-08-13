@@ -281,7 +281,7 @@ export function shouldBank(tickets: number, foodCount: number, bankAtTickets: nu
     return foodCount <= 0 || tickets >= bankAtTickets;
 }
 
-/** Inventory fields used to distinguish a real stack gain from a removal. */
+/** Inventory fields used to distinguish a live stack gain from a removal. */
 interface TicketInventoryChange {
     id: number;
     name: string | null;

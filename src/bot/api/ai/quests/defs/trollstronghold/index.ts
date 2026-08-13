@@ -65,7 +65,7 @@ function foodHeld(snap: QuestSnapshot): number {
 
 // Loadout
 
-/** Refusals are silent — `equip` just returns false — so a re-picked item burns the run. */
+/** Refusals are silent — `equip` returns false — so a re-picked item burns the run. */
 const unwearable = new Set<string>();
 
 const TIERS = ['rune', 'adamant', 'mithril', 'black', 'steel', 'iron', 'bronze'] as const;
@@ -149,7 +149,7 @@ function scanBank(): QuestStep {
 }
 
 /**
- * The whole kit in one step — a step per piece pays a task hand-off each, and
+ * The kit in one step — a step per piece pays a task hand-off each, and
  * `equip` already waits for the item to land. Refusals are shed, not retried.
  */
 function wearAll(names: readonly string[]): QuestStep {
@@ -192,7 +192,7 @@ function withdraw(items: { name: string; qty: number }[]): QuestStep {
 // Why: this runs on every decide() tick while the character is still on the mainland, so each branch has to be idempotent.
 // Why: a step that does not change the snapshot would spin here forever rather than progress the quest.
 
-/** The whole loadout, in one pure pass; null when the pack is ready. */
+/** The loadout, in one pure pass; null when the pack is ready. */
 export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): QuestStep | null {
     const bootsReady = held(snap, ITEM.CLIMBING_BOOTS) || worn(snap, ITEM.CLIMBING_BOOTS);
     // Past the stile a bank trip means climbing back down the secret way. Only a
@@ -220,7 +220,7 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
 
     // One visit: Tenzing is forty tiles west and the bank is east.
     const fromBank: { name: string; qty: number }[] = [];
-    // Exactly one purchase — a standing float would mean a bank trip for 12gp of change.
+    // One purchase — a standing float would mean a bank trip for 12gp of change.
     const needsBootMoney = !bootsReady && banked(snap, ITEM.CLIMBING_BOOTS) === 0;
     if (needsBootMoney && heldCount(snap, ITEM.COINS) < COIN_FLOAT && banked(snap, ITEM.COINS) > 0) {
         fromBank.push({
@@ -319,7 +319,7 @@ const CAVE_MOUTH = new Tile(2908, 3654, 0);
 const THROWER_RANGE = 11;
 
 // Why: five thrower trolls stand between the cave exit and the stronghold door and open on sight at eight tiles, and nothing in a walk fights back, so the crossing is pure damage that Protect from Missiles refuses outright.
-// Why: the prayer drains per tick rather than per tile — held from Falador it emptied the whole bar before the level-113 general was in sight and killed the run.
+// Why: the prayer drains per tick rather than per tile — held from Falador it emptied the bar before the level-113 general was in sight and killed the run.
 // Why: the crossing is therefore its own leg, with the prayer following the throwers rather than the map: up while one is in range, down the moment the last is behind us, which on this route is a good forty tiles before the door.
 
 /** Walk to the stronghold under a threat-tracking protection prayer. */
@@ -356,7 +356,7 @@ async function buyBoots(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: Dad does not die — below twenty hitpoints `defeat_dad` fires, setting the quest stage, healing him back to full and offering a forfeit dialogue.
-// Why: draining that dialogue is the win condition, and leaving it up loses the fight just won.
+// Why: draining that dialogue is the win condition, and leaving it up loses the fight won.
 
 /** Fight Dad to his forfeit and drain the dialogue. */
 async function fightDad(log: (m: string) => void): Promise<boolean> {

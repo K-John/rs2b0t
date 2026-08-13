@@ -28,7 +28,7 @@ This caused every one of the suite's long-standing failures. Two distinct shapes
   Only modules with more than one *runtime* export can do this — `Npcs`, `Locs`,
   `GroundItems`, `Inventory`. Fix: `import * as Real from …` and spread it.
 - **Overridden behaviour.** Even a complete mock replaces the singleton, so a test that
-  needs the *real* implementation gets the stub. Spreading does not help here.
+  needs the unstubbed implementation gets the stub. Spreading does not help here.
   Fix: **mutate the singleton instead of replacing the module**, scoped to the file:
 
   ```ts

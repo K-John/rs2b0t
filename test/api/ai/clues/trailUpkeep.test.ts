@@ -11,7 +11,7 @@ import { stubProps } from '../../../lib/stubSingletons.js';
 
 const LOBSTER = 'Lobster';
 const MAX_HP = 70;
-/** Any real clue scroll — the bank check only runs while one is held. */
+/** Any clue scroll — the bank check only runs while one is held. */
 const HELD_CLUE = Number(Object.keys(CLUE_DB)[0]);
 
 let hp: number;

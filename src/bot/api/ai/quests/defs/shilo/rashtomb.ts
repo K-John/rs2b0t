@@ -34,7 +34,7 @@ async function revealDoors(log: (m: string) => void): Promise<boolean> {
     );
 }
 
-// Why: searching the doors is what teaches the bone lock, and the engine only records it while the stage is exactly `entered_tomb_bervirius`.
+// Why: searching the doors is what teaches the bone lock, and the engine only records it while the stage is `entered_tomb_bervirius`.
 // Why: this therefore runs after the Bervirius dolmen and before the bone key is cut.
 
 /** Search the carved doors to learn the bone lock. */
@@ -110,7 +110,7 @@ export async function enterRashTomb(log: (m: string) => void): Promise<boolean> 
 
 /**
  * `zq_open_tombexit` refuses to open for anyone carrying the bone key — the key has
- * to be *used on* the door instead. That inversion is the whole trick of the exit.
+ * to be *used on* the door instead. That inversion is the trick of the exit.
  */
 export async function leaveRashTomb(log: (m: string) => void): Promise<boolean> {
     if (here() !== 'rashEntry') {

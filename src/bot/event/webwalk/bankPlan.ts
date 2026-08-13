@@ -18,7 +18,7 @@ export interface MissingItem {
 }
 
 interface BankPlanInput {
-    /** Cost of walking direct with real inventory (no bank). */
+    /** Cost of walking direct with inventory (no bank). */
     directCost: number;
     /** True if direct path already uses a teleport hop. */
     directHasTeleport: boolean;

@@ -123,7 +123,7 @@ describe('rankBanksByDetour (bank on the way, not nearest to us)', () => {
     test('the Lumbridge death spawn banks at Draynor, not the nearer Al Kharid', () => {
         const alKharid = named('Al Kharid');
         const draynor = named('Draynor');
-        // Al Kharid really is closer to the corpse — that is the trap.
+        // Al Kharid is closer to the corpse — that is the trap.
         expect(bankDistance(LUMBRIDGE_DEATH, alKharid.tile)).toBeLessThan(
             bankDistance(LUMBRIDGE_DEATH, draynor.tile)
         );

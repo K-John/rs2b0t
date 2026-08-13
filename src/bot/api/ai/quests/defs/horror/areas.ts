@@ -85,7 +85,7 @@ export const HD_LOC = {
 } as const;
 
 // Why: the lighthouse exists twice — during the quest its interior is the broken copy in mapsquare 38_71.
-// Why: repairing the light teleports the player by (+64,-960) into the real one in 39_56, and every staircase from there routes back into the copy.
+// Why: repairing the light teleports the player by (+64,-960) into the live one in 39_56, and every staircase from there routes back into the copy.
 // Why: nothing walks between them, as the doorway and the stairs teleport.
 export const HD_TILE = {
     /** South shore of the causeway, one tile before the first basalt gap. */
@@ -105,7 +105,7 @@ export const HD_TILE = {
     QUEST_STAIRS_L2: new Tile(2441, 4601, 2),
     QUEST_LIGHT: new Tile(2443, 4598, 2),
 
-    /** Real lighthouse, where repairing the light drops the player. */
+    /** Lighthouse, where repairing the light drops the player. */
     REAL_STAIRS_L2: new Tile(2506, 3640, 2),
     REAL_LIGHTHOUSE_L0: new Tile(2509, 3637, 0),
 
@@ -144,7 +144,7 @@ export const HD_TILE = {
     SAND_PIT: new Tile(2541, 3103, 0),
     /**
      * East of the Yanille range, which is `forceapproach=east` at angle 0 — so
-     * east really is east here, and the west side answers nothing at all.
+     * east is east here, and the west side answers nothing at all.
      */
     YANILLE_RANGE: new Tile(2550, 3099, 0),
     // Why: Rellekka's furnace is nearer to everything this quest does and refuses anyone who has not finished The Fremennik Trials, so this is East Ardougne's.

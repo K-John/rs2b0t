@@ -205,7 +205,7 @@ export class TannerfishSustain implements Task {
     }
 }
 
-/** Miner-only smart eating: whole-heal boundary or one more ore slot. */
+/** Miner-only smart eating: full-heal boundary or one more ore slot. */
 export class MinerEatFood implements Task {
     constructor(private bot: GatheringBot) {}
 
@@ -2094,7 +2094,7 @@ export class Gather implements Task {
         return spotWithinGatherRange(this.bot.getAnchor().distanceTo(spotTile), hunt);
     }
 
-    // Why: named camps search the entire membership disk, which fixes "no spots within 40 of you" mid-pier.
+    // Why: named camps search the membership disk, which fixes "no spots within 40 of you" mid-pier.
     // Why: freeform searches the player and start hunt disks.
 
     /** Nearest matching fishing spot in scene for this mode. */
@@ -2152,7 +2152,7 @@ export class Gather implements Task {
         }
         if (this.bot.isNpc()) {
             // Freeform fish measures spots from the player — still yield past the start-tile
-            // leash so ReturnToAnchor bounds wander (don't chase the whole river).
+            // leash so ReturnToAnchor bounds wander (don't chase the river).
             if (this.bot.isFreeformCamp() && beyondLeash(this.bot, Game.tile(), 4)) {
                 return false;
             }
@@ -2173,7 +2173,7 @@ export class Gather implements Task {
     }
 
     private gasAt(t: Tile): boolean {
-        // Tile-local filter first so we do not scan the whole scene for name/action.
+        // Tile-local filter first so we do not scan the scene for name/action.
         return (
             Locs.query()
                 .withinOf(t, 0)
@@ -2680,7 +2680,7 @@ export class Gather implements Task {
             if (Inventory.used() > before) {
                 this.bot.noteGatherRoll();
             }
-            // Advance toward t5 without blocking the whole cycle in one task beat.
+            // Advance toward t5 without blocking the cycle in one task beat.
             await Execution.delayUntilTicks(
                 () => {
                     const s = this.bot.farmerCycleStartTick();

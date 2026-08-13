@@ -194,7 +194,7 @@ class FletchDialog implements Task {
         const floor = usedMakeX ? Math.max(0, start - count) : 0;
         let mark = this.bot.logCount();
         let idle = 0;
-        const idleLimit = 12; // ~ticks without a log consume → real stall
+        const idleLimit = 12; // ~ticks without a log consume → stall
         for (let guard = 0; guard < 400 && this.bot.logCount() > floor; guard++) {
             if (ChatDialog.canContinue()) {
                 return;

@@ -1,4 +1,4 @@
-// Why: this module is step tracing for the quest engine, where a quest leg keeps the same description for its whole run — `smith 8 nails` covers mining four iron, mining eight coal, two furnace trips and an anvil.
+// Why: this module is step tracing for the quest engine, where a quest leg keeps the same description for its run — `smith 8 nails` covers mining four iron, mining eight coal, two furnace trips and an anvil.
 // Why: a log that prints a step once and then suppresses the repeat shows one line and goes silent for minutes, which from the outside is indistinguishable from a hang.
 
 /** Re-announce a repeating step after this many attempts, whichever comes first. */

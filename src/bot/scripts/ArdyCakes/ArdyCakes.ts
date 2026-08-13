@@ -269,7 +269,7 @@ class BankRun implements Task {
         }
         const before = carriedCakes();
         const heldBefore = Inventory.used();
-        // The whole pack goes in: cakes are the haul and everything else is random
+        // The pack goes in: cakes are the haul and everything else is random
         // event loot (death runes, arrows, coins) that would ride along forever.
         await Bank.depositInventory();
         await Execution.delayTicks(1);

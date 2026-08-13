@@ -45,7 +45,7 @@ continue leaves the conversation half-finished and the quest un-advanced.
 
 `gotoNpc` is leash-limited by design. For an NPC that patrols, that is the wrong
 tool: it wanders out of leash and the step is abandoned. Use
-[`Reach.npcDialog`](../reference/nav-walker.md#the-reach-primitive), which searches the whole scene and
+[`Reach.npcDialog`](../reference/nav-walker.md#the-reach-primitive), which searches the scene and
 lets the server chase.
 
 Opening the dialogue itself goes through [`Reach`](../reference/nav-walker.md#the-reach-primitive), so an

@@ -35,7 +35,7 @@ function line(tiles: Set<string>, from: NavPoint, to: NavPoint): void {
     }
 }
 
-/** Two collision islands separated by the real four-tile-wide Shantay doorway. */
+/** Two collision islands separated by the live four-tile-wide Shantay doorway. */
 function desertExitPack(): Uint8Array {
     const tiles = new Set<string>();
     line(tiles, REPORTED_START, SHANTAY_EXIT.from);

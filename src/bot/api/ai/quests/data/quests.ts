@@ -632,7 +632,7 @@ export const QUESTS: QuestRecord[] = [
             quests: ['junglepotion']
         },
         // Karamja has no bank until this quest opens Shilo's, so the module sources
-        // its whole loadout from Jiminua's rather than provisioning from a bank.
+        // its loadout from Jiminua's rather than provisioning from a bank.
         items: []
     }
 ];

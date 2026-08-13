@@ -94,7 +94,7 @@ const restoreChat = stubProps(ChatDialog, {
 const restoreExec = stubProps(Execution, {
     delayUntil: async (fn: () => boolean): Promise<boolean> => fn(),
     // The hunt waits on the tick, so the fake world has to move on the tick too —
-    // otherwise a wait for something that never arrives burns its budget for real.
+    // otherwise a wait for something that never arrives burns its budget in full.
     delayTicks: async (): Promise<void> => {
         ticks++;
         onTick?.();

@@ -24,7 +24,7 @@ function locNear(id: number, op: string, within = 8): Loc | null {
 // Why: an op that opens a dialogue does so a tick later.
 // Why: without this wait the driver sees no dialogue, starts a fresh conversation with the nearest NPC, and lands in whatever dead-end line that NPC offers.
 
-/** Wait for the dialogue an op just opened. */
+/** Wait for the dialogue an op opened. */
 async function awaitDialogue(what: string, log: (m: string) => void): Promise<boolean> {
     if (await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue(), 8000)) {
         return true;
@@ -113,7 +113,7 @@ export async function crossBattlement(log: (m: string) => void): Promise<boolean
         return false;
     }
     // Why: he ignores the cake until he has asked for a gift, as opnpcu only accepts it once the market bits are 1, so the talk comes first.
-    // Why: talking while already holding the cake completes the whole exchange in one go.
+    // Why: talking while already holding the cake completes the exchange in one go.
     if (await guard.interact('Talk-to')) {
         if (await awaitDialogue('the battlement guard', log)) {
             // The unmatched option here is "Not if I can help it."
@@ -124,7 +124,7 @@ export async function crossBattlement(log: (m: string) => void): Promise<boolean
         await settleScene();
         return true;
     }
-    // Otherwise he has only just asked; hand the cake over now.
+    // Otherwise he has only asked; hand the cake over now.
     const cake = Inventory.items().find(item => item.id === WT_ITEM.ROCK_CAKE.id);
     if (cake && (await cake.useOn(guard))) {
         if (await awaitDialogue('the battlement guard', log)) {
@@ -309,7 +309,7 @@ export async function crossEastGate(log: (m: string) => void): Promise<boolean> 
     return true;
 }
 
-/** Once the bar is paid the gate is an ordinary door, so the way out is just Open. */
+/** Once the bar is paid the gate is an ordinary door, so the way out is Open. */
 export async function leaveEastGate(log: (m: string) => void): Promise<boolean> {
     if (!(await pastEastGate())) {
         return true;

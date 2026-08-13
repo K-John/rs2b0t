@@ -110,7 +110,7 @@ export default class SmelterBot extends TaskBot {
 
 class BankTrip implements Task {
     constructor(private bot: SmelterBot) {}
-    // anything the pack cannot make a bar from means go and restock, not just an
+    // anything the pack cannot make a bar from means go and restock, not an
     // empty primary ore — iron without coal is equally unsmeltable
     validate(): boolean { return !this.bot.canSmelt(); }
     async execute(): Promise<void> {

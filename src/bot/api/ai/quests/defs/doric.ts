@@ -74,7 +74,7 @@ const ORE_ANCHORS: Readonly<Record<Mineable, Tile>> = {
     Iron: new Tile(2972, 3239, 0)
 };
 
-// Static bronze pickaxe on the table just south of the Rimmington mine.
+// Static bronze pickaxe on the table south of the Rimmington mine.
 const BRONZE_PICKAXE_SPAWN = new Tile(2963, 3216, 0);
 const PICKAXE_RESPAWN_MS = 70_000;
 const ROCK_RESPAWN_MS = 30_000;

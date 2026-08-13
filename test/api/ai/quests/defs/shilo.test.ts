@@ -12,7 +12,7 @@ const KARAMJA = at(2809, 3086);
 const MAINLAND = at(2616, 3332);
 
 function progress(stage: number, flags: string[] = []): QuestProgress {
-    // The parser emits exactly one counted flag of each kind, so defaults are only
+    // The parser emits one counted flag of each kind, so defaults are only
     // filled in when the caller has not named its own.
     const counted = ['bones-placed', 'naza'].filter(key => !flags.some(f => f.startsWith(key + ':')));
     return { stage, flags: new Set([...counted.map(key => `${key}:0`), ...flags]) };
@@ -625,7 +625,7 @@ describe('shilo decide — recovery', () => {
 describe('shilo decide — pockets a step enters itself', () => {
     test("standing in Bervirius' tomb it searches the dolmen, it does not climb out", () => {
         // searchBerviriusDolmen crawls in on its own; escaping unconditionally would
-        // climb straight back out of the tomb it just entered, forever.
+        // climb straight back out of the tomb it entered, forever.
         const step = decide(snapshot({
             progress: progress(SV_STAGE.ENTERED_AH_ZA_RHOON, ['read-tattered', 'read-crumpled']),
             invIds: carrying([SV_ITEM.BONE_SHARD.id, 1]),

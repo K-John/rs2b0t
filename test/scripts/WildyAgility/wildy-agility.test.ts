@@ -47,7 +47,7 @@ test('onCourse is everything north of the Gate within the lateral band', () => {
     expect(COURSE_X_RADIUS).toBeGreaterThanOrEqual(16);
 
     // Lap-zone tiles (obstacles / pit ladder exits)
-    expect(onCourse(new Tile(2998, 3932, 0))).toBe(true); // just north of gate
+    expect(onCourse(new Tile(2998, 3932, 0))).toBe(true); // north of gate
     expect(onCourse(new Tile(2998, 3937, 0))).toBe(true); // post-ridge / rocks area
     expect(onCourse(new Tile(3004, 3937, 0))).toBe(true); // pipe start
     expect(onCourse(new Tile(3005, 3952, 0))).toBe(true); // ropeswing

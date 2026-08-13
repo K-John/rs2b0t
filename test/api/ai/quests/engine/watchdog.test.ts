@@ -84,7 +84,7 @@ describe('progressSignature — journal flags', () => {
 
     test('a flag-only change counts as progress', () => {
         // Reading a scroll or searching a lock moves nothing else at all. Without
-        // flags in the signature such a step burns the whole no-progress budget.
+        // flags in the signature such a step burns the no-progress budget.
         expect(progressSignature(withFlags(['read-tattered'])))
             .not.toBe(progressSignature(withFlags(['read-tattered', 'read-crumpled'])));
     });

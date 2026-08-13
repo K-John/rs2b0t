@@ -74,7 +74,7 @@ async function run(
     (reader as any).bankComId = () => 5382;
     (reader as any).bankItems = () => bank;
     (reader as any).bankSideItems = () => side;
-    // This is the real failure mode: the normal inventory tab is unavailable.
+    // This is the live failure mode: the normal inventory tab is unavailable.
     (reader as any).inventory = () => [];
     (reader as any).inventorySize = () => 0;
     (reader as any).modals = () => ({ main: 5292, side: 5063, chat: -1 });

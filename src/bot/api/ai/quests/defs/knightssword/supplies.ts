@@ -12,7 +12,7 @@ import { GENERAL_STORE, KS_ID, KS_NAME, KS_TILE, WYDIN } from './areas.js';
 
 const COINS_ID = 995;
 
-// Why: the float is a threshold rather than a target, as `buy` withdraws exactly `estGp` when the pack is short, so topping up to an exact balance sends the bot back to a booth after every item bought.
+// Why: the float is a threshold rather than a target, as `buy` withdraws `estGp` when the pack is short, so topping up to an exact balance sends the bot back to a booth after every item bought.
 export const COIN_FLOAT = 1000;
 export const COIN_LOW = 200;
 
@@ -247,7 +247,7 @@ export function ironBarsAt(snap: QuestSnapshot, miningLevel: number): QuestStep 
     if (banked > 0) {
         return withdraw([{ name: KS_NAME.IRON_BAR, qty: Math.min(2 - held, banked), id: KS_ID.IRON_BAR }]);
     }
-    // Why: `mineRock` ignores its qty and mines exactly one ore per invocation, so the batch is counted here.
+    // Why: `mineRock` ignores its qty and mines one ore per invocation, so the batch is counted here.
     // Why: smelting on the first ore would walk the 130 tiles between Rimmington and the furnace eight times over.
     if (heldId(snap, KS_ID.IRON_ORE) >= ORE_PER_TRIP) {
         return { kind: 'custom', name: 'smelt iron bars', run: smeltIron };

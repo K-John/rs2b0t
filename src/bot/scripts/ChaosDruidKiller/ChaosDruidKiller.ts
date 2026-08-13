@@ -687,7 +687,7 @@ export default class ChaosDruidKiller extends TaskBot {
         }
 
         this.setStatus('banking loot');
-        // Why: equipment is not in the backpack, so depositing the whole pack banks the haul and gives the withdrawal a clean slate.
+        // Why: equipment is not in the backpack, so depositing the pack banks the haul and gives the withdrawal a clean slate.
         // Why: every trip is normalised rather than carrying leftovers above the configured amount.
         await Bank.depositInventory();
         await Execution.delayTicks(1);

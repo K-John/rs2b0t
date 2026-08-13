@@ -42,7 +42,7 @@ function readFlags(text: string): Set<string> {
         flags.add(TROLL_FLAG.HAS_PRISON_KEY);
     }
     // Stage 30 prints "I've rescued Mad Eadgar."; stage 40 folds him into
-    // "I've rescued Godric and Mad Eadgar." — match both, not just the first.
+    // "I've rescued Godric and Mad Eadgar." — match both, not the first.
     if (text.includes('rescued mad eadgar') || text.includes('and mad eadgar')) {
         flags.add(TROLL_FLAG.FREED_EADGAR);
     }

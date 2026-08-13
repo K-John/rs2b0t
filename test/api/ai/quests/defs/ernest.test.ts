@@ -85,7 +85,7 @@ describe('Ernest the Chicken decide()', () => {
 
     test('keys its way out of the closet before doing anything else', () => {
         // The closet is a sealed ten-tile room; a bank trip from inside it spends
-        // the whole step budget proving the world unreachable.
+        // the step budget proving the world unreachable.
         const stuck = step({ stage: EC_STAGE.SPOKEN_ODDENSTEIN, tile: { x: 3111, z: 3367, level: 0 } });
         expect(customName(stuck)).toBe('leave the closet');
     });
@@ -100,7 +100,7 @@ describe('Ernest the Chicken decide()', () => {
 
     test('escapes the basement once the can is held, ahead of the gauge leg', () => {
         // Observed live: the climb-out failed, and every later leg then spent its
-        // whole budget planning a route out of a sealed pocket.
+        // budget planning a route out of a sealed pocket.
         const inBasement = step({
             stage: EC_STAGE.SPOKEN_ODDENSTEIN,
             invIds: [[EC_ID.RUBBER_TUBE, 1], [EC_ID.OIL_CAN, 1]],
@@ -119,7 +119,7 @@ describe('Ernest the Chicken decide()', () => {
     });
 
     test('does not fight fetchOilCan for the pocket before the can is held', () => {
-        // Without the can, being in the basement is exactly where the leg belongs;
+        // Without the can, being in the basement is where the leg belongs;
         // escaping would bounce the two against each other forever.
         const goingIn = step({
             stage: EC_STAGE.SPOKEN_ODDENSTEIN,

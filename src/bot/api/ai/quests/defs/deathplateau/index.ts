@@ -796,7 +796,7 @@ async function gambleHarold(log: (m: string) => void): Promise<boolean> {
 
 /**
  * Content auto-runs harold_reclaim_iou when equiproom ≥ given_iou and neither
- * IOU nor combination is held — just talk and drain.
+ * IOU nor combination is held — talk and drain.
  */
 async function reclaimIouFromHarold(log: (m: string) => void): Promise<boolean> {
     if (liveId(DEATH_ITEM.IOU.id) > 0 || liveId(DEATH_ITEM.COMBINATION.id) > 0) {

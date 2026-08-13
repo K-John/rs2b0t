@@ -1209,7 +1209,7 @@ export default class GatheringBot extends TaskBot {
         await Execution.delayTicks(1);
         if (await this.openScriptBank(log)) {
             await this.waitBankReady(log);
-            // Glance only — no real withdraw; just the double-take.
+            // Glance only — no withdraw; the double-take.
             await this.bankPace();
             if (Bank.isOpen()) {
                 await Bank.close();
@@ -1945,7 +1945,7 @@ export default class GatheringBot extends TaskBot {
     }
 
     /**
-     * Drop surplus fletchable logs so knife-delay keeps exactly one delay log.
+     * Drop surplus fletchable logs so knife-delay keeps one delay log.
      * Prefer dropping non-tree-matched logs first when chopping.
      */
     async trimDelayLogs(keep = 1): Promise<number> {

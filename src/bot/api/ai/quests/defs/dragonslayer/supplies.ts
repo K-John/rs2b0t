@@ -178,7 +178,7 @@ const ROCKS = { clay: [2108, 2109], iron: [2092, 2093], coal: [2096, 2097] } as 
 // Why: bronze pickaxes lie on the ground for nothing, and one of them is thirteen tiles from the Falador bank.
 // Why: Nurmof is a last resort, as his shop is at the bottom of the Dwarven Mine.
 const PICKAXE_SPAWNS: readonly Tile[] = [
-    new Tile(3009, 3342, 0), // Falador, just south of the bank
+    new Tile(3009, 3342, 0), // Falador, south of the bank
     new Tile(3081, 3429, 0), // Barbarian Village
     new Tile(2963, 3216, 0)  // Rimmington
 ];
@@ -316,7 +316,7 @@ export async function smithNails(need: number, log: (m: string) => void): Promis
     const coal = (): number => Inventory.count(SUPPLY_ITEM.COAL);
     const steel = (): number => Inventory.count(SUPPLY_ITEM.STEEL_BAR);
 
-    // Why: mining, then smelting the whole load, then hammering the whole load is the order that works; reversed, the leg smelts one bar, walks to the anvil for two nails, and walks back — six round trips across half of Asgarnia.
+    // Why: mining, then smelting the load, then hammering the load is the order that works; reversed, the leg smelts one bar, walks to the anvil for two nails, and walks back — six round trips across half of Asgarnia.
     if (steel() === 0 && (ore() < bars || coal() < bars * 2)) {
         // Why: six bars is eighteen slots of ore, and the rest of the quest's shopping is already bought by now, so it goes in the bank to make room and comes back out when the ship needs it.
         if (Inventory.items().some(i => i.name !== null && !KEEP.some(k => i.name!.toLowerCase().includes(k)))) {
@@ -330,7 +330,7 @@ export async function smithNails(need: number, log: (m: string) => void): Promis
             await Bank.depositAllMatching((name) => !KEEP.some(k => name.toLowerCase().includes(k)));
             log(`banked ${spare.length} items for ore room: ${spare.join(', ')}`);
             // Why: the bank is left open deliberately, as QuestEngine only re-reads it while the interface is up.
-            // Why: a stale snapshot makes everything just deposited look lost, which sent the bot back to Oziach for a maze key that was in the bank the whole time.
+            // Why: a stale snapshot makes everything deposited look lost, which sent the bot back to Oziach for a maze key that was in the bank the time.
             return false;
         }
         if (!(await ensurePickaxe(log))) {
@@ -413,7 +413,7 @@ export async function smithNails(need: number, log: (m: string) => void): Promis
 /** Spawns already emptied this trip, so the walk moves on instead of circling. */
 const plankTried = new Set<string>();
 
-// Why: `need` is the shortfall the engine still wants and not the total, as comparing it against the whole pack reads "2 held, 1 short" as satisfied and the third plank never gets fetched.
+// Why: `need` is the shortfall the engine still wants and not the total, as comparing it against the pack reads "2 held, 1 short" as satisfied and the third plank never gets fetched.
 
 /** Walk the Graveyard of Shadows picking up the plank spawns. */
 async function grabPlanks(need: number, log: (m: string) => void): Promise<boolean> {

@@ -78,7 +78,7 @@ async function enterCave(index: number, log: (m: string) => void): Promise<boole
         return false;
     }
     await settleScene();
-    // Why: p_teleport lands exactly on the landing tile, so anything further out means the player was dumped in the dark cave.
+    // Why: p_teleport lands on the landing tile, so anything further out means the player was dumped in the dark cave.
     // Why: cave 4's landing is only 9 tiles from it, so the tolerance has to be tight.
     const here = Game.tile();
     if (here && cave.landing.distanceTo(here) > 5) {
@@ -167,7 +167,7 @@ export async function takeNightshade(log: (m: string) => void): Promise<boolean>
 }
 
 export async function answerMadSkavid(log: (m: string) => void): Promise<boolean> {
-    // Cave 6 sits on the far side of the gold-bar gate, and the whole trip is one
+    // Cave 6 sits on the far side of the gold-bar gate, and the trip is one
     // leg so the crossing state never has to survive a decide() round trip.
     if (watchtowerArea(Game.tile()) !== 'skavidCaves' && !(await crossEastGate(log))) {
         return false;

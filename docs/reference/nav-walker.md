@@ -64,7 +64,7 @@ expansions run out at about eleven tiles of open ground, so past that "too far t
 search" is indistinguishable from "walled off" — and a patrolling target would have
 the bot opening doors it never needed.
 
-`Reach.npcDialog` searches the whole scene and lets the server walk the player to the
+`Reach.npcDialog` searches the scene and lets the server walk the player to the
 target, so it follows an NPC that wanders. A leash-limited approach loop cannot — a
 patrolling NPC walks out of range and the interaction is abandoned.
 
@@ -93,7 +93,7 @@ numbers. What they govern:
 | pathFollow `stallTicks` (default 9) | server ticks without **tile change** before stall recovery / repath (not reset on walk clicks) |
 | `UNREACH_CLICK_IDLE_TICKS` | idle ticks before clearing an unreachable mid-path walk click (re-pick only; not stall recovery) |
 | `MAX_REPATHS` | re-plans allowed for one walk |
-| walk `timeoutMs` | wall-clock budget for the whole `walkTo` (shared across repaths); `walk timed out` when exhausted |
+| walk `timeoutMs` | wall-clock budget for the `walkTo` (shared across repaths); `walk timed out` when exhausted |
 | `TRANSPORT_WAIT_MS` | how long to wait for a crossing to complete |
 | `MULTI_DOOR_CROSS_MS` | budget for a door-dense interior |
 | `OPEN_WAIT_MS` | how long to wait for a leaf to open |

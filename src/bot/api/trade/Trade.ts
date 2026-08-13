@@ -100,7 +100,7 @@ export const Trade = {
         return Input.invButton(it.id, it.slot, OFFER_INV, OFFER_ALL);
     },
 
-    // offer exactly n (never more): Offer-X + count dialog; pick chooses among same-name slots
+    // offer n (never more): Offer-X + count dialog; pick chooses among same-name slots
     async offer(itemName: string, n: number, pick?: (i: { count: number; id: number; slot: number }) => boolean): Promise<boolean> {
         if (n <= 0 || !reader.tradeOfferOpen()) {
             return false;

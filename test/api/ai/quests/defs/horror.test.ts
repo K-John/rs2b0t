@@ -83,7 +83,7 @@ describe('Horror from the Deep decide()', () => {
     });
 
     test('gathers the bridge kit before starting the quest', () => {
-        // Why: Larrissa is at the lighthouse and the whole bridge kit is in Varrock, so talking first buys a second crossing of the map.
+        // Why: Larrissa is at the lighthouse and the bridge kit is in Varrock, so talking first buys a second crossing of the map.
         expect(step().kind).not.toBe('talk');
     });
 
@@ -273,7 +273,7 @@ describe('Horror from the Deep — teleport kit', () => {
         s !== null && s.kind === 'withdraw' && s.items.some(i => i.id === HD_ID.LAW_RUNE);
 
     test('draws law when nav teleports are on and the bank has them', () => {
-        // A* only injects a hop the *live inventory* can pay for, so the whole
+        // A* only injects a hop the *live inventory* can pay for, so the
         // difference between "can plan a Camelot hop" and "does" is this fetch.
         expect(lawIn(runeKit(snap({ bankIds: bankedLaw }), true))).toBe(true);
     });

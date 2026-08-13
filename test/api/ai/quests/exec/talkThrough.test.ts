@@ -39,7 +39,7 @@ const restoreReach = stubProps(Reachability, {
     canReach: (t: TileLike) =>
         npcReachable || !(sceneNpc !== null && t.x === sceneNpc.tile.x && t.z === sceneNpc.tile.z)
 });
-// Real WalkExecutor instance — only pin lastOutcome so facade tests stay intact.
+// WalkExecutor instance — only pin lastOutcome so facade tests stay intact.
 const realLastOutcome = WalkExecutor.lastOutcome;
 WalkExecutor.lastOutcome = 'arrived';
 

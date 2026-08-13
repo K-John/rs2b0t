@@ -40,7 +40,7 @@ const RUNE_BUY = {
     death: 60
 } as const;
 
-// Why: a `buy` step withdraws exactly this much when the pack is under it, so each estimate has to stay well below the leg's coin float or every purchase walks back to a bank.
+// Why: a `buy` step withdraws this much when the pack is under it, so each estimate has to stay well below the leg's coin float or every purchase walks back to a bank.
 
 // Per-purchase coin estimates.
 export const RUNE_GP = 25_000;
@@ -174,7 +174,7 @@ function heldDuelRing(snap: QuestSnapshot): number {
     return DUEL_RING_IDS.reduce((sum, id) => sum + held(snap, id), 0);
 }
 
-// Why: A* only injects a teleport the live inventory can afford, and nothing else in this quest ever puts a law rune in the pack — this is the whole gap between the navigator being able to plan a Camelot hop and it doing so.
+// Why: A* only injects a teleport the live inventory can afford, and nothing else in this quest ever puts a law rune in the pack — this is the gap between the navigator being able to plan a Camelot hop and it doing so.
 // Why: it costs one bank trip at the start and saves several minutes of walking, as Camelot lands 71 tiles from Caleb against a 379-cost walk and the duel ring lands 73 from the Al Kharid furnace against roughly 600 from Witchaven.
 // Why: it never blocks — no runes banked means the quest walks, as before.
 

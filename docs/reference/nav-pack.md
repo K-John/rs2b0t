@@ -3,7 +3,7 @@
 # The collision pack
 
 The client only knows collision for the scene it has loaded. World-scale pathfinding
-needs the whole map, so collision is **baked ahead of time** from an engine's data by
+needs the map, so collision is **baked ahead of time** from an engine's data by
 [`tools/nav/build-collision.ts`](../../tools/nav/build-collision.ts) into
 `out/collision.lcnav.gz`.
 

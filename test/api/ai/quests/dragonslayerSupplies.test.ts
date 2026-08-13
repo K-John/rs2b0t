@@ -18,7 +18,7 @@ function snapshot(over: Partial<QuestSnapshot> = {}): QuestSnapshot {
     } as QuestSnapshot;
 }
 
-/** The nails leg's mining load: exactly what fills the pack mid-quest. */
+/** The nails leg's mining load: what fills the pack mid-quest. */
 const ORE_LOAD = new Map([
     ['coins', 200], ['bronze pickaxe', 1], ['hammer', 1], ['maze key', 1],
     ['lobster', 6], ['iron ore', 6], ['coal', 12]

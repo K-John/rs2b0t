@@ -120,7 +120,7 @@ tiles (wrong doorway / same loc type).
 
 **Loc placement ref (`locRef.ts`):** scenery-backed edges are keyed by **placement**
 (level + tile) plus optional closed/open ids — not by name alone. `matchesLocRef` /
-`locRefValid` / `locRefStale` support “is this edge still real in the scene?” checks
+`locRefValid` / `locRefStale` support “is this edge still present in the scene?” checks
 (open leaf counts as valid for Open-actions).
 
 **Code map:** `src/bot/event/webwalk/` — `PathFinder`, `WalkExecutor`, `exec/`, `data/`, plus

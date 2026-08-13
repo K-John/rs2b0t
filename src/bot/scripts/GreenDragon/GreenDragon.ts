@@ -493,7 +493,7 @@ async function bankRoutine(bot: GreenDragon): Promise<void> {
 
     await withdrawStyleSupplies(bot);
 
-    // Why: eating spends the load just withdrawn, so heal first and top the food back up after.
+    // Why: eating spends the load withdrawn, so heal first and top the food back up after.
     // Why: walking back on panic hp forces another trip, or a death on the way in.
     if (await eatToFull(bot)) {
         if (await Bank.openNearest('Bank booth', 'Use-quickly', m => bot.log(`  ${m}`))) {
@@ -507,7 +507,7 @@ async function bankRoutine(bot: GreenDragon): Promise<void> {
 
 /**
  * Heal up before walking back. Returning to the dragons on the hp that forced
- * the trip just forces another one — or a death on the way in.
+ * the trip forces another one — or a death on the way in.
  */
 async function eatToFull(bot: GreenDragon): Promise<boolean> {
     if (hpFrac() >= 1 || !hasFood()) {
@@ -756,7 +756,7 @@ class Fight implements Task {
                     continue;
                 }
             }
-            // Why: this cycle owns the bot for the whole kill, so a sibling SpecialAttack task above Fight never runs during combat.
+            // Why: this cycle owns the bot for the kill, so a sibling SpecialAttack task above Fight never runs during combat.
             if (USE_SPECIAL && !Special.armed() && Special.ready(WEAPON) && Equipment.contains(WEAPON)) {
                 if (await Special.arm()) {
                     this.bot.countSpecial();

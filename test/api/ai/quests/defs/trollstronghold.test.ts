@@ -385,7 +385,7 @@ describe('Troll Stronghold loadout', () => {
     });
 
     test('wearing gear is a step that can give up, not a plain equip that retries forever', () => {
-        // A rune platebody also wants Dragon Slayer; the server just refuses, and
+        // A rune platebody also wants Dragon Slayer; the server refuses, and
         // a `kind: equip` step re-derived from the same snapshot never stops.
         const step = decide(snap({
             stage: TROLL_STAGE.STARTED,

@@ -15,7 +15,7 @@ const JIMINUA_SHOP = { npc: SV_NPC.JIMINUA, anchor: SV_TILE.JIMINUA };
 // Asking prices run well above obj cost and climb as stock drains; this leaves headroom.
 const BREAD_PRICE = 40;
 
-/** Two ship fares, the whole Jiminua kit, and headroom for a second shop trip. */
+/** Two ship fares, the Jiminua kit, and headroom for a second shop trip. */
 export const KARAMJA_PURSE = 2000;
 
 export const QUEST_FOOD = 'Bread';
@@ -99,7 +99,7 @@ export function sourceCoins(snap: QuestSnapshot, want: number): QuestStep | null
 }
 
 /**
- * The whole outstanding toolkit, judged by what the remaining quest still needs.
+ * The outstanding toolkit, judged by what the remaining quest still needs.
  * One `stockUp` step buys all of it in a single visit.
  */
 function kitShortfall(snap: QuestSnapshot, need: readonly ShiloItem[]): { item: ShiloItem; qty: number }[] {

@@ -175,7 +175,7 @@ async function openOracleMagicDoor(log: (m: string) => void, wantEast: boolean):
         return false;
     }
     const stand = wantEast ? DS_LOC.ORACLE_DOOR_STAND : new Tile(3051, 9840, 0);
-    // Enter from west stand; leave from just east of the door tile.
+    // Enter from west stand; leave from east of the door tile.
     const leaveStand = new Tile(3052, 9840, 0);
     if (!(await walk(wantEast ? stand : leaveStand, log, 0))) {
         return false;
@@ -557,7 +557,7 @@ async function killElvarg(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: Crandor has no bank, and after the kill no boat either, as Ned's ship crash-landed getting here.
-// Why: a run that stopped here would leave the character standing in the lair of the thing it just killed, on an island, until something wandered in.
+// Why: a run that stopped here would leave the character standing in the lair of the thing it killed, on an island, until something wandered in.
 // Why: the gate always opens from the inside — both leaves are angle 0, so `check_axis_locactive` reads the lair's own column as "entering" and the lock only guards the way in.
 // Why: the wall is the way home.
 
@@ -750,7 +750,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     }
 
     if (stage === DRAGON_STAGE.BOUGHT_SHIP) {
-        // Why: a hole takes one plank and four nails together, as lady_lumbridge.rs2 inv_dels both, so what is owed is four nails per plank still to be placed and never the twelve the whole hull costs.
+        // Why: a hole takes one plank and four nails together, as lady_lumbridge.rs2 inv_dels both, so what is owed is four nails per plank still to be placed and never the twelve the hull costs.
         // Why: measured against the total, the first patched hole reads as eight missing nails and the bot walks back to the Dwarven Mine with the hull still open.
         // Why: the pack is the ruler and the bank is not — once a plank is carried it is one hole's worth of work, and a spare left in the bank must not inflate the count back to a full hull.
         const planksHeld = snap.invIds?.get(DS_ID.PLANK) ?? 0;
@@ -831,7 +831,7 @@ export const dragonslayer: QuestModule = {
     bank: 'nearest',
     grind: ['Giant rat', 'Ghost', 'Skeleton', 'Zombie', 'Melzar the mad', 'Lesser demon', 'Elvarg'],
     // Why: the nails leg is the tightest the pack ever gets — it keeps coins, pickaxe, hammer and the maze key, then mines eighteen slots of ore on top.
-    // Why: six lunches made that exactly twenty-eight, and at twenty-eight every pickup and every purchase fails silently.
+    // Why: six lunches made that twenty-eight, and at twenty-eight every pickup and every purchase fails silently.
     food: 3,
     tools: [
         'coins', 'maze key', 'key', 'map part', 'crandor map', 'plank', 'nails', 'hammer',

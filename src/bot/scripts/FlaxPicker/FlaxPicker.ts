@@ -338,7 +338,7 @@ class GoToField implements Task {
     async execute(): Promise<void> {
         const here = Game.tile();
         if (here && this.bot.fieldCentre().distanceTo(here) <= FIELD_ARRIVE) {
-            await Execution.delayTicks(2); // at the centre — flax just respawning, wait it out
+            await Execution.delayTicks(2); // at the centre — flax respawning, wait it out
             return;
         }
         this.bot.setStatus('travelling to the flax field');

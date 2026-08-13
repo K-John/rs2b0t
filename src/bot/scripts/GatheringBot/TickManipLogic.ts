@@ -412,7 +412,7 @@ export function isFletchableLogName(name: string | null | undefined): boolean {
 }
 
 /**
- * Prefer keeping exactly one delay log in the pack.
+ * Prefer keeping one delay log in the pack.
  * Returns how many logs of `logName` to drop (extras beyond 1).
  */
 export function extraDelayLogsToDrop(logCount: number, keep = 1): number {

@@ -106,7 +106,7 @@ function inTheOpen(area: ShiloArea, stepIfOpen: QuestStep): QuestStep {
 
 /**
  * For steps that enter their own pocket. Escaping unconditionally would climb
- * straight back out of the tomb the step just walked into, forever.
+ * straight back out of the tomb the step walked into, forever.
  */
 function inTheOpenOrIn(area: ShiloArea, ownPocket: ShiloArea, stepIfOk: QuestStep): QuestStep {
     return area === ownPocket ? stepIfOk : inTheOpen(area, stepIfOk);
@@ -141,7 +141,7 @@ function stageStart(snap: QuestSnapshot, area: ShiloArea): QuestStep {
 
 /**
  * Everything Jiminua stocks that the rest of the quest still wants, so one shop trip
- * covers the whole fissure sequence and both crafts instead of six island crossings.
+ * covers the fissure sequence and both crafts instead of six island crossings.
  */
 function toolsFrom(stage: number): ShiloItem[] {
     const need: ShiloItem[] = [];

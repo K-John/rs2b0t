@@ -104,7 +104,7 @@ export function meetsRequires(requires: TransportRequires | undefined, state: Wo
     return { ok: true };
 }
 
-/** True when `requires` has at least one real gate (not `{}`). */
+/** True when `requires` has at least one gate (not `{}`). */
 export function hasGatingRequires(requires: TransportRequires | undefined): boolean {
     if (!requires) {
         return false;

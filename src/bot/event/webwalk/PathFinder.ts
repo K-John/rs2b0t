@@ -61,7 +61,7 @@ export interface TransportInfo {
     teleportId?: string;
     /**
      * Graph edge cost when known (set during A* reconstruction). Used by
-     * hopsFromWaypoints so explain/corpus costs match the real edge (#337).
+     * hopsFromWaypoints so explain/corpus costs match the live edge (#337).
      */
     edgeCost?: number;
 }
@@ -315,7 +315,7 @@ export class PathFinder {
         return this.slots[(level << 16) | ((x >> 6) << 8) | (z >> 6)];
     }
 
-    /** Every (level, mapsquare) the pack carries, for whole-map sweeps. */
+    /** Every (level, mapsquare) the pack carries, for full-map sweeps. */
     populatedSquares(): { mx: number; mz: number; level: number }[] {
         const out: { mx: number; mz: number; level: number }[] = [];
         for (let key = 0; key < this.slots.length; key++) {
@@ -725,7 +725,7 @@ export class PathFinder {
 
         const gScore = new Map<number, number>();
         const cameFrom = new Map<number, number>();
-        /** Arrival search-key → transport metadata + real edge cost for hop reconstruct. */
+        /** Arrival search-key → transport metadata + edge cost for hop reconstruct. */
         const viaEdge = new Map<number, { transport: TransportInfo; cost: number; kind?: string }>();
         const closed = new Set<number>();
         const open = new MinHeap();
@@ -909,7 +909,7 @@ export class PathFinder {
             if (via || viaNext || turn || last) {
                 const wp: Waypoint = point(chain[i]!);
                 if (via) {
-                    // Preserve real graph cost on the arrival waypoint's transport.
+                    // Preserve graph cost on the arrival waypoint's transport.
                     wp.transport = { ...via.transport, edgeCost: via.cost };
                 }
                 waypoints.push(wp);

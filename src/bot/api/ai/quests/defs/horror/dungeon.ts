@@ -51,7 +51,7 @@ async function loadWall(log: (m: string) => void): Promise<string[] | null> {
         const held = Inventory.first(slot.item);
         if (!held) {
             // Why: every slot consumes its item, so an item that is gone is almost always one already in the wall.
-            // Why: treating that as fatal wedges the whole quest — the dagger is spent, the pass stops at its slot, and the arrow behind it is never placed, so it is noted and the door judges.
+            // Why: treating that as fatal wedges the quest — the dagger is spent, the pass stops at its slot, and the arrow behind it is never placed, so it is noted and the door judges.
             missing.push(slot.item);
             continue;
         }
@@ -149,7 +149,7 @@ export async function openWallAndDescend(log: (m: string) => void): Promise<bool
     return true;
 }
 
-// Why: completing teleports the player into the post-quest dagannoth cavern under the real lighthouse, a level-1 pocket of mapsquare 39_156 that nothing walks out of.
+// Why: completing teleports the player into the post-quest dagannoth cavern under the live lighthouse, a level-1 pocket of mapsquare 39_156 that nothing walks out of.
 // Why: its own iron ladder climbs to the lighthouse's ground floor, and from there the causeway is an ordinary walk.
 // Why: retaliation stays off, as the level-100 dagannoths on the floor below are not a fight worth having on the way home.
 

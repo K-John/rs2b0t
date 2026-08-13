@@ -79,7 +79,7 @@ HEADED=1 SEGMENT=quests LIMIT=50 OFFSET=0 bun tools/nav-script-travel-live.ts
 | `STUCK_FACTOR` | Multiplier on est wall time (default **2.5**) |
 | `STUCK_MIN_S` | Min elapsed before stuck kill (default **20**) |
 | `STUCK_NOMOVE_S` | Min seconds without tile change (default **12**) |
-| `HARNESS_SUITE_ABORT` | Default **on** — stop the **whole** suite only on harness death (`is still running`, seed fail, tele fail). Product OD fails continue. |
+| `HARNESS_SUITE_ABORT` | Default **on** — stop the full suite only on harness death (`is still running`, seed fail, tele fail). Product OD fails continue. |
 | `HP_REFILL_AT` | Effective HP ≤ this → `setstat hitpoints 99` (default **40**; `0` = off). Not invuln. |
 | `SUSTAIN_EVERY_S` | Energy + HP check period mid-walk (default **5**; floor 2). Keeps multi-suite fleets light. |
 | `ENERGY_REFILL_AT` | Run energy % threshold mid-walk (default **25**). Same sustain cadence. |

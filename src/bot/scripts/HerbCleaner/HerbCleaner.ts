@@ -195,7 +195,7 @@ class Clean implements Task {
         if (ok) {
             this.bot.countClean(this.bot.cleanCount() - beforeClean);
         } else if (this.bot.takeRefusal()) {
-            // Why: the engine refused every click just made — level drift in the table, or a non-members world.
+            // Why: the engine refused every click made — level drift in the table, or a non-members world.
             // Why: the herbs clicked are denied, not a re-derived level guess.
             for (const herb of clickedHerbs) {
                 this.bot.deny(herb);

@@ -72,7 +72,7 @@ export const KS_TILE = {
     LADDER_BOTTOM: new Tile(3008, 9551, 0)
 } as const;
 
-// Why: the cupboard spans (2984,3336)-(2985,3336) and only its south side is legal, so these two tiles are the whole approach.
+// Why: the cupboard spans (2984,3336)-(2985,3336) and only its south side is legal, so these two tiles are the approach.
 // Why: standing on the one further from Sir Vyvin is often the difference between a refused search and a taken one.
 export const VYVIN_APPROACHES: readonly Tile[] = [
     new Tile(2985, 3335, 2),

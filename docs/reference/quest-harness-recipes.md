@@ -71,7 +71,7 @@ a pickaxe) is bought live.
 ## Ernest the Chicken — stage-scoped harness
 
 [`tools/ernest-chicken-229-live.ts`](../../tools/ernest-chicken-229-live.ts) drives
-the whole quest from a clean account, or one stage of it. `--stage N` sets
+the quest from a clean account, or one stage of it. `--stage N` sets
 `%haunted` and relogs; the module reads the quest tab, not the varp.
 
 ```sh

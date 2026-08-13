@@ -133,7 +133,7 @@ export async function handleSpecialCrossing(
     }
 
     if (sc.npc) {
-        // Prefer the crossing action when it is a real NPC op (Teleport, Pay-fare, …).
+        // Prefer the crossing action when it is a NPC op (Teleport, Pay-fare, …).
         const preferred =
             sc.action && sc.action !== 'Open' && sc.action !== 'Go-through' && sc.action !== 'Pull'
                 ? sc.action

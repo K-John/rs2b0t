@@ -279,7 +279,7 @@ async function leaveBasement(log: (m: string) => void): Promise<boolean> {
 
 // Why: the nav crossing exists, but the executor gets one look at the scene and the arrival here is a scripted teleport.
 // Why: every loc query is empty for about a tick after one, so a single miss blacklists the edge and strands the bot in a pocket with no other way out.
-// Why: Reach retries, which is the whole difference.
+// Why: Reach retries, which is the difference.
 
 /** Pull the alcove lever back into the manor. */
 async function leaveAlcove(log: (m: string) => void): Promise<boolean> {

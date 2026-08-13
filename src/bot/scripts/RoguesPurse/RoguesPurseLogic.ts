@@ -13,7 +13,7 @@ export const DROP_OP = 'Drop';
 export const COINS = 'Coins';
 
 // Why: the Karamja ship is a `Pay-fare` SpecialCrossing, and the navigator prunes crossings it cannot pay for.
-// Why: an empty pack therefore makes the whole island read as `unreachable` rather than as "you are broke".
+// Why: an empty pack therefore makes the island read as `unreachable` rather than as "you are broke".
 // Why: this must stay in step with `nav/data/specialCrossings.ts`.
 
 /** Karamja ship fare. */

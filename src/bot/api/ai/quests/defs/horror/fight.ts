@@ -86,7 +86,7 @@ async function pokeJossik(log: (m: string) => void): Promise<boolean> {
 // Why: `horror_dagannoth_jr4` declares no `ai_*player2` of its own, so it runs the default melee AI at `damagetype=stab_style` — Protect from Melee zeroes it and Protect from Missiles does nothing, which is why a "protected" junior fight still cost seventeen hitpoints.
 // Why: the mother overrides both, meleeing in `opplayer2` and ranging in `applayer2`, and `ai_applayer2` puts her back on melee the moment missiles are protected, so missiles forces her onto the style whose max hit is single figures.
 // Why: alternating the two is the better play only if the flip lands every tick, since each switch costs her the turn and in perfect lockstep she never attacks.
-// Why: a bot cannot promise every tick — taking damage makes the loop eat, eating spends the tick's one action, and the prayer stops flipping exactly when it matters, half the time on the wrong one.
+// Why: a bot cannot promise every tick — taking damage makes the loop eat, eating spends the tick's one action, and the prayer stops flipping when it matters, half the time on the wrong one.
 // Why: holding one prayer is worse in theory and survives in practice.
 const PROTECT = {
     melee: { name: 'protect from melee', level: 43 },
@@ -132,7 +132,7 @@ class Protection {
 const CAST_TICKS = 5;
 
 // Why: a tuna's worth of damage taken is enough to eat on.
-// Why: waiting for a shark's worth wastes none of the heal but spends the whole margin first, and the margin is what a bad thirty ticks eats through.
+// Why: waiting for a shark's worth wastes none of the heal but spends the margin first, and the margin is what a bad thirty ticks eats through.
 const EAT_AT_MISSING = 12;
 
 function hungry(): boolean {
@@ -179,7 +179,7 @@ async function fightLoop(plan: FightPlan, log: (m: string) => void): Promise<boo
     // an interface to be built.
     await prayers.hold();
     // The spellbook root is only walkable once its tab has been built, and the
-    // whole fight is casts: open it before the first form change, not during.
+    // fight is casts: open it before the first form change, not during.
     await Game.openSideTab(MAGIC_TAB);
     Game.setAutoRetaliate(false);
     let casts = 0;
@@ -253,7 +253,7 @@ async function fightLoop(plan: FightPlan, log: (m: string) => void): Promise<boo
                     refused = 0;
                 } else if (++refused >= 5) {
                     // A cast that never selects is silent: no message, no
-                    // animation, just a fight that stands still until it loses.
+                    // animation, a fight that stands still until it loses.
                     log(`could not select ${element} — magic level or runes short`);
                     return false;
                 }

@@ -63,7 +63,7 @@ describe('picking the approach tile', () => {
 
     test('both legal approaches are south of the cupboard', () => {
         // The cupboard spans (2984,3336)-(2985,3336) and only its south side is
-        // legal, so these two tiles are the entire approach.
+        // legal, so these two tiles are the approach.
         expect(VYVIN_APPROACHES.map(t => `${t.x},${t.z},${t.level}`))
             .toEqual(['2985,3335,2', '2984,3335,2']);
     });

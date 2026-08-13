@@ -14,7 +14,7 @@ const state = (items: Record<string, number> = {}): WorldStateData => ({
 });
 
 /**
- * Real geometry from the baked pack: the player stands at (3304,3118), the loc
+ * Geometry from the baked pack: the player stands at (3304,3118), the loc
  * is at (3302,3116), and the hop lands at (3304,3114).
  */
 const shantayPath = (): PathResult =>

@@ -236,7 +236,7 @@ describe('iron bar chain', () => {
     });
 
     test('keeps mining on a part-built batch', () => {
-        // mineRock ignores its qty and mines exactly one ore per invocation, so
+        // mineRock ignores its qty and mines one ore per invocation, so
         // smelting on the first ore would walk Rimmington -> furnace eight times.
         for (const ore of [1, ORE_PER_TRIP - 1]) {
             expect(ironBarsAt(withPick([[KS_ID.IRON_ORE, ore]]), MAX_MINING))

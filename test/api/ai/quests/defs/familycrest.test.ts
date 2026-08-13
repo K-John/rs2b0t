@@ -77,7 +77,7 @@ function customName(step: QuestStep): string | null {
 
 /**
  * Journal lines copied verbatim out of `quest_crest/scripts/crest_journal.rs2`,
- * appended exactly as the server appends them.
+ * appended as the server appends them.
  */
 const HEADER = "@str@I have agreed to restore Dimintheis' family crest to him.|";
 const FOUND_CALEB = '@str@I found Caleb working as a Chef in Catherby and told him of|'

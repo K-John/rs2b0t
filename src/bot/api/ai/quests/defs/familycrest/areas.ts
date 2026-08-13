@@ -121,7 +121,7 @@ export const FC_SHOP = {
     AUBURY: { npc: 'Aubury', anchor: new Tile(3253, 3401, 0) },
     /** Dommik — ring mould, necklace mould, chisel. */
     DOMMIK: { npc: 'Dommik', anchor: new Tile(3322, 3194, 0) },
-    /** The only shop in the game holding a cut ruby, and it holds exactly one. */
+    /** The only shop in the game holding a cut ruby, and it holds one. */
     GEM_MERCHANT: { npc: 'Gem merchant', anchor: new Tile(2669, 3303, 0) },
     /** Jiminua's Jungle Store — the only antipoison on sale anywhere. */
     JIMINUA: { npc: 'Jiminua', anchor: new Tile(2767, 3122, 0) },

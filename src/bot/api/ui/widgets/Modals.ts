@@ -3,7 +3,7 @@ import { Execution } from '../../execution/Execution.js';
 
 // Why: `actions.closeModal()` only sends the close — it is a CLOSE_BUTTON menu action, and the modal stays in `reader.modals().main` until the server answers a tick or more later.
 // Why: code that closes and reads on with no wait sees the modal still up, and so does every other task in the loop, so the next one to poll "is a modal open?" fires a second close that lands a tick later on whatever modal is open by then.
-// Why: that is how a journal read's stale close shuts a scroll a later step had just opened.
+// Why: that is how a journal read's stale close shuts a scroll a later step had opened.
 // Why: the task loop is cooperative, so a closer that awaits its own close yields with the modal gone and nobody else has a reason to close anything.
 
 /** One tick of server round-trip, plus room for a dropped action to be re-sent. */

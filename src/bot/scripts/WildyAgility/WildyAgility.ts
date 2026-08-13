@@ -851,7 +851,7 @@ class RunLap implements Task {
         if (reason === 'pit') {
             this.bot.log(`fell into the pit during '${this.bot.currentName()}' — escaping`);
             this.bot.setStatus('in the pit — escaping');
-            // Fall is a real outcome, not a stuck click — reset so recovery
+            // Fall is a live outcome, not a stuck click — reset so recovery
             // does not inherit a half-spent retry counter.
             this.stuck = 0;
             return;

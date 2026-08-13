@@ -125,7 +125,7 @@ export const DUNSTAN_FINISH: NpcStop = {
 };
 
 // Why: Tenzing's post-quest shop is a dialogue rather than a shop interface, and it loops — after every purchase he asks "Was there anything else?" and re-offers the same five options.
-// Why: a plain preference list matches "Can I buy some Climbing boots?" again and buys until the pack is full, so the exit is driven off what he just said rather than off the options.
+// Why: a plain preference list matches "Can I buy some Climbing boots?" again and buys until the pack is full, so the exit is driven off what he said rather than off the options.
 export const TENZING_BOOTS: NpcStop = {
     npc: 'Tenzing',
     anchor: TILE.TENZING,

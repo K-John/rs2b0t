@@ -59,7 +59,7 @@ export function spinnerNeedsClearPack(flaxHeld: number, slotsUsed: number): bool
 /** True if free inventory slots can hold `units` of offered flax (1 slot per stack item in trade). */
 export function canReceiveFlaxOffer(freeSlots: number, offeredFlaxUnits: number): boolean {
     // Why: flax stacks in a trade still need one free slot per offered stack line, and a full runner pack is typically one stack of 28 or fewer.
-    // Why: the spinner holds no flax at handoff, so one free slot receives the whole stack.
+    // Why: the spinner holds no flax at handoff, so one free slot receives the stack.
     if (offeredFlaxUnits <= 0) {
         return true;
     }

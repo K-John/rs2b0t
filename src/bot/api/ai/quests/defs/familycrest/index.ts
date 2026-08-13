@@ -204,7 +204,7 @@ function source(
     return { kind: 'wait', reason: `need ${short}x ${item.name} — none in the bank and nothing sells it` };
 }
 
-// Why: runes are stackable, so one withdraw covers the whole fight.
+// Why: runes are stackable, so one withdraw covers the fight.
 // Why: the top-up is measured against a third of the buy quantity rather than against `BLAST_MINIMUM`, which is one cast of each.
 // Why: the teleport kit carries 30 fire runes, which satisfied that minimum, so the fight went in with six Fire Blasts and spent the kill phase casting nothing.
 
@@ -411,7 +411,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         }
 
         if (supply < outstanding) {
-            // Why: nothing in the mine can be fetched from inside it and the walk back out costs the whole lever chain, so everything is sourced before entering.
+            // Why: nothing in the mine can be fetched from inside it and the walk back out costs the lever chain, so everything is sourced before entering.
             // Why: the bank is pinned to Ardougne rather than left to "nearest" because the next stop is Witchaven — from Boot, Falador is the closer booth but the Falador-then-Witchaven walk is about 90 tiles longer.
             // Why: an unread bank is no evidence of an empty one, as deciding "buy from Nurmof" before the first scan sends the bot across the map for a pickaxe that was in the bank all along.
             if (!snap.bankKnown && (!hasPickaxe(snap) || !hasWeapon(snap) || heldFood(snap) === 0)) {
@@ -437,8 +437,8 @@ export function decide(snap: QuestSnapshot): QuestStep {
         }
 
         // Why: everything left after the mine — the moulds, the rubies, the furnace and Avan himself — is in Al Kharid, so the moulds and rubies are sourced before the smelt to keep it to one trip.
-        // Why: coins come first, as a `buy` step withdraws exactly its own `estGp` threshold, so buying the ring mould leaves the pack a few coins under it and the next purchase walks back to the bank.
-        // Why: one float covers the whole leg.
+        // Why: coins come first, as a `buy` step withdraws its own `estGp` threshold, so buying the ring mould leaves the pack a few coins under it and the next purchase walks back to the bank.
+        // Why: one float covers the leg.
         const legCoins = coinTopUp(snap, 50_000, LEG_BANK.gold);
         if (legCoins) {
             return legCoins;

@@ -118,7 +118,7 @@ interface LightStep {
     done: () => boolean;
 }
 
-// Why: the torch refuses the tinderbox until it has been tarred ("The torch does not seem to be flammable..."), and whichever application is last teleports the player out into the real lighthouse.
+// Why: the torch refuses the tinderbox until it has been tarred ("The torch does not seem to be flammable..."), and whichever application is last teleports the player out into the live lighthouse.
 // Why: tar and glass are read off their own consumption, and the tinderbox is not consumed, so the only proof it caught is leaving the broken copy.
 
 /** Apply tar, glass and light to the lamp. */
@@ -173,7 +173,7 @@ export async function repairLight(flags: ReadonlySet<string>, log: (m: string) =
     return !inQuestLighthouse(Game.tile());
 }
 
-// Why: repairing teleports into the real lighthouse's lamp room, its staircase routes back into the copy at level 1, and only the copy's ground floor has the iron ladder down.
+// Why: repairing teleports into the live lighthouse's lamp room, its staircase routes back into the copy at level 1, and only the copy's ground floor has the iron ladder down.
 
 /** Descend from wherever the repair left the player to the basement. */
 export async function descendToBasement(log: (m: string) => void): Promise<boolean> {

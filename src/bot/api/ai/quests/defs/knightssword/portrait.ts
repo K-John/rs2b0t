@@ -94,7 +94,7 @@ export async function fetchPortrait(log: (m: string) => void): Promise<boolean> 
     let refusals = 0;
     for (let i = 0; i < ATTEMPTS; i++) {
         // Why: he wanders on a timer and can camp the tile south of the cupboard, where both approaches are within his one-tile reach.
-        // Why: vacating the whole approach gives him somewhere to go, where standing on it does not.
+        // Why: vacating the approach gives him somewhere to go, where standing on it does not.
         if (refusals >= REFUSALS_BEFORE_RETREAT) {
             refusals = 0;
             log('stepping away to give Sir Vyvin room to wander');

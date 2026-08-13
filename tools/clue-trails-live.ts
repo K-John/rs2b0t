@@ -16,7 +16,7 @@ if (!['easy', 'medium', 'hard'].includes(TIER)) {
     fail(`TIER must be easy, medium or hard (got '${TIER}')`);
 }
 const TRAILS = Number(process.env.TRAILS ?? 20);
-/** A whole trail is several legs; hard trails cross the map more than once. */
+/** A trail is several legs; hard trails cross the map more than once. */
 const TRAIL_BUDGET_MS = Number(process.env.TRAIL_BUDGET_MS ?? 900_000);
 const POLL_MS = 1000;
 
@@ -344,7 +344,7 @@ async function main(): Promise<void> {
             const seedId = SEED_ONLY > 0 ? SEED_ONLY : TIER_CLUES[Math.floor(Math.random() * TIER_CLUES.length)];
             const seedObj = CLUE_DB[seedId].obj;
             console.log(`\n${'─'.repeat(72)}\ntrail ${n + 1}/${TRAILS} — seeding ${seedId} ${seedObj}\n${'─'.repeat(72)}`);
-            // A dead runner is silent, and every later round would just time out
+            // A dead runner is silent, and every later round would time out
             // against a script that is not running. Say so, and put it back.
             const before = await runnerState(page);
             if (before !== 'running') {

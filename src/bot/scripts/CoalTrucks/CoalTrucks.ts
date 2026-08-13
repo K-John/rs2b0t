@@ -203,7 +203,7 @@ export default class CoalTrucks extends LoopingBot {
             return;
         }
         // Why: a rock yields one coal and depletes, so this returns on the gain and lets the next loop pick a live rock.
-        // Why: waiting out the stall on a spent rock costs the whole 20s — measured 1 coal / 20s, against ~1 coal / 2s once this returns early.
+        // Why: waiting out the stall on a spent rock costs the 20s — measured 1 coal / 20s, against ~1 coal / 2s once this returns early.
         // Why: a swing that stops is the other way out, since a stolen rock or a manual click ends it with no coal and no gain condition fires.
         // Why: two stages, because the swing has not begun yet and a bare `!animating` would be true at once and re-click forever.
         const view = (): MineView => ({
@@ -243,7 +243,7 @@ export default class CoalTrucks extends LoopingBot {
             ScriptRunner.stop('CoalTrucks: the truck refused the item we used on it');
             return;
         }
-        // Same race as the pull: the message can beat the inventory by a tick, and a real
+        // Same race as the pull: the message can beat the inventory by a tick, and a true
         // 12-coal deposit then reads as 0. "full" moves nothing, so it has nothing to wait for.
         if (result === 'all' || result === 'partial') {
             await Execution.delayUntil(() => Inventory.count(COAL) < held, 2000);
@@ -279,7 +279,7 @@ export default class CoalTrucks extends LoopingBot {
             return;
         }
         // The message can beat the inventory by a tick, so settle before counting or
-        // a real pull logs as "took 0".
+        // a live pull logs as "took 0".
         await Execution.delayUntil(() => Inventory.count(COAL) > before, 2000);
         this.pullsThisHaul++;
         this.truckEmpty = truckEmptyAfterRemove(result);

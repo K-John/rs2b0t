@@ -104,7 +104,7 @@ export async function fightGuardian(name: string, log: (m: string) => void): Pro
                 break;
             }
 
-            // Why: the engine takes one action per tick, so an Attack sent here lands in the same tick as the bite `Sustain.run()` just sent and replaces it.
+            // Why: the engine takes one action per tick, so an Attack sent here lands in the same tick as the bite `Sustain.run()` sent and replaces it.
             // Why: measured two bites logged and zero lobsters consumed while the bot was beaten from 62 to 0 in six ticks.
             // Why: once the guardian is facing us the fight continues on its own and the tick belongs to food.
             if (!(Game.inCombat() && target.targetsMe())) {

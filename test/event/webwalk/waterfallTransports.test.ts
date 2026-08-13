@@ -69,7 +69,7 @@ function line(tiles: Set<string>, from: Point, to: Point): void {
 }
 
 /**
- * A tiny collision pack with four disconnected islands matching the real exit
+ * A tiny collision pack with four disconnected islands matching the live exit
  * topology. Only the curated instance transports can connect those islands.
  */
 function waterfallExitPack(): Uint8Array {

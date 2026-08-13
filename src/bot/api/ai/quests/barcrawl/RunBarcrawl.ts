@@ -26,7 +26,7 @@ import {
 } from './BarcrawlLogic.js';
 
 // Why: the scroll is a main modal built with `if_settext`, so no dialogue driver can see it.
-// Why: every other modal read comes back empty while it is up, so it has to be closed again, exactly like a quest journal.
+// Why: every other modal read comes back empty while it is up, so it has to be closed again, like a quest journal.
 
 /** Read the barcrawl card. */
 export async function readCard(log?: (m: string) => void): Promise<BarcrawlProgress | null> {
@@ -114,7 +114,7 @@ export type Progress = (signed: number, total: number) => void;
 const GIVE_UP = 3;
 
 /**
- * Drive the whole crawl. Returns once the card is fully signed; the guard still
+ * Drive the crawl. Returns once the card is fully signed; the guard still
  * has to be told, which {@link handInBarcrawl} does.
  */
 async function runBarcrawl(log: (m: string) => void, onProgress?: Progress): Promise<boolean> {

@@ -1862,13 +1862,13 @@ async function surfaceRescueCheckpoint(log: (m: string) => void): Promise<boolea
 
 async function returnAnaToIrena(log: (m: string) => void): Promise<boolean> {
     // Returning Ana flows directly into both reward-choice menus without a stable dialogue
-    // boundary. Permit exactly the selected skill here as well as in restart-at-reward.
+    // boundary. Permit the selected skill here as well as in restart-at-reward.
     if (!(await talkStrict(NPC.IRENA, IRENA, ['Agility.'], log))) return false;
     return Execution.delayUntil(() => !Inventory.contains(ITEM.ANA_BARREL), 8000);
 }
 
 async function claimReward(log: (m: string) => void): Promise<boolean> {
-    // The same skill may be selected twice. The strict driver makes exactly the one permitted
+    // The same skill may be selected twice. The strict driver makes the one permitted
     // choice at both menus and drains the quest-complete dialogue.
     return talkStrict(NPC.IRENA, IRENA, ['Agility.'], log);
 }
@@ -2250,7 +2250,7 @@ function stepLabel(step: QuestStep): string {
 
 /**
  * Copy-pasteable context for stuck Tourist Trap runs (engine logs these via observe).
- * Keep dense — operators paste the whole log into agents.
+ * Keep dense — operators paste the log into agents.
  */
 export function observeTouristTrap(snap: QuestSnapshot, step: QuestStep): readonly string[] {
     const area = touristTrapArea(snap.tile);

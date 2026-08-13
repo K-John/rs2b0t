@@ -129,7 +129,7 @@ export type BurnDir = { dx: number; dz: number };
 /** The lane direction a successful light steps into. */
 export const BURN_WEST: BurnDir = { dx: -1, dz: 0 };
 
-/** West first (real lanes), then other cardinals for light-wherever fallbacks. */
+/** West first (lanes), then other cardinals for light-wherever fallbacks. */
 const BURN_DIRS: readonly BurnDir[] = [
     BURN_WEST,
     { dx: 1, dz: 0 },

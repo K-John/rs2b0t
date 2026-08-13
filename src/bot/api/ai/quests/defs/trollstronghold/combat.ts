@@ -111,7 +111,7 @@ async function sipPrayer(log: (m: string) => void): Promise<boolean> {
     return drank;
 }
 
-/** A tuna's worth of damage is enough to eat on; waiting spends the whole margin. */
+/** A tuna's worth of damage is enough to eat on; waiting spends the margin. */
 const EAT_AT_MISSING = 12;
 
 function hungry(): boolean {

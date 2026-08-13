@@ -85,7 +85,7 @@ class ChopBurnLoad implements Task {
         if (EventSignal.pending()) {
             return false;
         }
-        // Real attackers: FleeCombat owns the loop. Sticky combatCycle alone must not
+        // Attackers: FleeCombat owns the loop. Sticky combatCycle alone must not
         // freeze chop-then-burn for minutes (Draynor harness thrash).
         if (Game.inCombat() && hostileFaceTarget()) {
             return false;

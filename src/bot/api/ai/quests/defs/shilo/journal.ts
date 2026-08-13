@@ -81,7 +81,7 @@ function readFlags(text: string): Set<string> {
 
 export function parseShiloJournal(lines: readonly string[] | string): QuestProgress | undefined {
     const text = normalize(lines);
-    // Newest first: every later entry keeps the whole earlier history.
+    // Newest first: every later entry keeps the earlier history.
     const hit = STAGE_LINES.find(([needle]) => text.includes(needle));
     return hit ? { stage: hit[1], flags: readFlags(text) } : undefined;
 }

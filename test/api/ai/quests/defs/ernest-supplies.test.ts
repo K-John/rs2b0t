@@ -14,7 +14,7 @@ afterAll(() => { QuestFood.name = originalFood; });
 function snap(options: {
     invIds?: [number, number][];
     bankIds?: [number, number][];
-    /** Name-keyed, like the real snapshot: this is where food is looked up. */
+    /** Name-keyed, like the live snapshot: this is where food is looked up. */
     bank?: [string, number][];
     food?: number;
     bankKnown?: boolean;

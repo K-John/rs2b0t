@@ -24,7 +24,7 @@ describe('Dagannoth mother forms', () => {
 
     test('the elemental forms keep their spells — the block alignment depends on it', () => {
         // These four are what cross-validate the 104 offset against npc.dat:
-        // water/fire/earth land exactly where the pack orders them.
+        // water/fire/earth land where the pack orders them.
         expect(FORM_ELEMENT[1352]).toBe('Water');
         expect(FORM_ELEMENT[1353]).toBe('Fire');
         expect(FORM_ELEMENT[1354]).toBe('Earth');

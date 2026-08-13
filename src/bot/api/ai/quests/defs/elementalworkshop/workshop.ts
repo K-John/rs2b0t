@@ -179,7 +179,7 @@ export async function enterWorkshop(log: (m: string) => void): Promise<boolean> 
         }
     }
 
-    // Stairs are just inside; walk if needed, then Climb-down into the workshop pocket.
+    // Stairs are inside; walk if needed, then Climb-down into the workshop pocket.
     if (!(await walkNear(STAIRS_TOP, 3, log))) {
         // Still try the climb from wherever we are if the stairs are visible.
         await settleScene();
@@ -541,7 +541,7 @@ async function _waitOutCombat(ms: number): Promise<void> {
     await Execution.delayUntil(() => !Game.inCombat(), ms);
 }
 
-/** Prefer a real weapon — unarmed maxed accounts still stall forever on the rock elemental. */
+/** Prefer a live weapon — unarmed maxed accounts still stall forever on the rock elemental. */
 async function ensureMeleeWeapon(log: (m: string) => void): Promise<void> {
     if (Equipment.items().some(i => {
         const n = i.name?.toLowerCase() ?? '';

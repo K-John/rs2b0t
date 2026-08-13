@@ -7,7 +7,7 @@ const boxes = Object.entries(REGION_BOX);
 
 describe('Ernest basement geography', () => {
     test('every region box is disjoint from every other', () => {
-        // A tile naming a room is the whole reason each leg can be a plain walk.
+        // Why: a tile naming a room is what lets each leg be a plain walk.
         for (const [aName, a] of boxes) {
             for (const [bName, b] of boxes) {
                 if (aName === bName) {

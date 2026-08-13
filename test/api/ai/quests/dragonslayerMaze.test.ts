@@ -75,7 +75,7 @@ describe("Melzar's Maze route", () => {
         expect(inMaze({ x: 2932, z: 9645, level: 0 })).toBe(true);
         expect(inMaze({ x: 2960, z: 3250, level: 0 })).toBe(false);
         // The front door's own tile is the doorstep outside; counting it in
-        // sends the bot that just let itself out straight back through.
+        // sends the bot that let itself out straight back through.
         expect(inMaze({ x: 2941, z: 3248, level: 0 })).toBe(false);
         expect(inMaze({ x: 2940, z: 3248, level: 0 })).toBe(true);
         expect(inMaze(null)).toBe(false);

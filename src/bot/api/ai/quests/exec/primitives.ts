@@ -257,7 +257,7 @@ export function talkStrict(npcName: string, prefer: string[], log: (m: string) =
 }
 
 /**
- * Drive a dialogue whose correct option depends on what the NPC just said.
+ * Drive a dialogue whose correct option depends on what the NPC said.
  * @see docs/reference/quest-primitives.md
  */
 export async function talkChoosingBy(

@@ -106,7 +106,7 @@ function here(): { x: number; z: number; level: number } | null {
 }
 
 // Why: the loc model is an unreliable read — `loc_change(..., 500)` reverts the lever to its down model after five minutes while leaving the varp bit set, so a lever that looks down may be up.
-// Why: the chat line the pull emits is emitted exactly when the bit changes, so it is the oracle.
+// Why: the chat line the pull emits is emitted when the bit changes, so it is the oracle.
 
 /** Pull a lever until the server confirms the wanted state. */
 async function setLever(
@@ -418,7 +418,7 @@ export async function smeltPerfectBars(log: (m: string) => void): Promise<boolea
     return heldId(FC_ID.PERFECT_GOLD_ORE) === 0;
 }
 
-// Why: the panel lists a placeholder object per gem, and each placeholder carries the real product's display name, so "Ruby ring" matches.
+// Why: the panel lists a placeholder object per gem, and each placeholder carries the live product's display name, so "Ruby ring" matches.
 // Why: `crafting_gold` substitutes the perfect bar for the ordinary one whenever a perfect bar is held, which is why the ordinary ruby ring is the thing to click.
 
 /** Craft the jewellery Avan asked for. */

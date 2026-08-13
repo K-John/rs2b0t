@@ -542,7 +542,7 @@ class RepeatMonkeyBars implements Task {
         const bars = findMonkeyBars(this.bot);
 
         if (!bars) {
-            // periodic diagnostic so we can learn the real loc name/ops live
+            // periodic diagnostic so we can learn the live loc name/ops live
             const now = Date.now();
             if (now - this.lastScanLog > 8000) {
                 this.lastScanLog = now;

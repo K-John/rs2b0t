@@ -240,7 +240,7 @@ function fieldGiants(): Npc[] {
 }
 
 // A drop we repeatedly fail to pick up would otherwise keep qualifying, and with the
-// safespot walk-back in between the bot just trades places with it forever.
+// safespot walk-back in between the bot trades places with it forever.
 const lootSkip = new Map<string, number>();
 
 function lootKey(g: { name: string | null; tile(): Tile }): string {
@@ -282,7 +282,7 @@ async function eatOnce(bot: FireGiant): Promise<boolean> {
 
 async function quickReturnToSafespot(bot: FireGiant): Promise<boolean> {
     bot.setStatus('returning to the safespot');
-    // a tier switch is a one-tile hop, so a long per-attempt window just adds
+    // a tier switch is a one-tile hop, so a long per-attempt window adds
     // latency while something is hitting us — retry sooner instead
     for (let i = 0; i < 4 && !atSafespot() && !EventSignal.pending(); i++) {
         DirectNavigator.walk(activeSafespot());
@@ -1026,7 +1026,7 @@ class Fight implements Task {
                     this.engagedAt = performance.now();
                 }
                 if (performance.now() - this.engagedAt < RE_ENGAGE_MS) {
-                    // Why: this loop owns the bot for the whole fight, so a sibling BuryBones task only runs in whatever gaps the loop leaves.
+                    // Why: this loop owns the bot for the fight, so a sibling BuryBones task only runs in whatever gaps the loop leaves.
                     // Why: this hold is the idle stretch while the giant is worn down, so the tick is free here.
                     if (BURY_BONES && (await buryOneInFight('Big bones'))) {
                         this.bot.countBurial();

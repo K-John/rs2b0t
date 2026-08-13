@@ -271,7 +271,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (snap.journal === 'unknown') {
         return { kind: 'wait', reason: 'quest journal not loaded' };
     }
-    // Why: a carried unid outranks the journal, as it exists only because it was just picked — the state the journal cannot render.
+    // Why: a carried unid outranks the journal, as it exists only because it was picked — the state the journal cannot render.
     // Why: at `found_snake_weed` holding the unid the journal writes no line at all, and every other `found_` stage writes the previous stage's "go and pick it" line.
     const carried = JUNGLE_HERBS.find(h => (snap.invIds?.get(h.unidId) ?? 0) > 0);
     if (carried) {

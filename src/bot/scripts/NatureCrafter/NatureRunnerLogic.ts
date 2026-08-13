@@ -18,7 +18,7 @@ export interface RuneType {
     runnerBank: Tile;
     masterBank: Tile;
     // set when the bank is too far to carry unnoted: the runner banks a NOTE and un-notes here.
-    // null = short bank<->altar hop, so it just carries unnoted essence (no store, no fares, no ship)
+    // null = short bank<->altar hop, so it carries unnoted essence (no store, no fares, no ship)
     unnote: { npc: string; tile: Tile } | null;
 }
 
@@ -69,7 +69,7 @@ export function offerCount(unnoted: number): number {
     return Math.max(0, Math.min(TRADE_CAP, unnoted));
 }
 
-// Short route only. A trade window moves at most TRADE_CAP, so anything carried beyond it just
+// Short route only. A trade window moves at most TRADE_CAP, so anything carried beyond it
 // buys the master a second altar round trip for the remainder — cap it however big withdrawEss is.
 export function shortRouteWithdraw(perSetting: number, banked: number, room: number): number {
     const want = perSetting > 0 ? Math.min(perSetting, TRADE_CAP) : TRADE_CAP;

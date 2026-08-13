@@ -151,7 +151,7 @@ describe('sourceCoins', () => {
 
     test('the floor is low enough that a shop trip does not trigger a bank trip', () => {
         // Every purchase in this quest is well under PURSE_FLOOR, so a purse topped to
-        // PURSE_TOP survives the whole route without bouncing back to a bank.
+        // PURSE_TOP survives the route without bouncing back to a bank.
         expect(PURSE_TOP - PURSE_FLOOR).toBeGreaterThan(500);
     });
 });

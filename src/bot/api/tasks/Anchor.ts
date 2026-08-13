@@ -35,7 +35,7 @@ export function shouldWalkHomeToGatherAnchor(
     return distToAnchor > r;
 }
 
-// Why: BankCatch and restock use the tight {@link HOME_ARRIVE_RADIUS} disk via {@link shouldWalkHomeToGatherAnchor}, but gather must not, since freeform pier-hops and brief spot despawns sit just outside the 8-tile disk and thrash hunt↔home.
+// Why: BankCatch and restock use the tight {@link HOME_ARRIVE_RADIUS} disk via {@link shouldWalkHomeToGatherAnchor}, but gather must not, since freeform pier-hops and brief spot despawns sit outside the 8-tile disk and thrash hunt↔home.
 // Why: home is only pulled when clearly off the resource pad — a bank square or a long wander.
 // Why: the threshold is soft (~20–28) rather than full camp membership, because a bank at ~36 must still soft-home even when membership is 64.
 

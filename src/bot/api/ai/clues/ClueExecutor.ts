@@ -161,7 +161,7 @@ function heldCounts(): Map<number, number> {
     return counts;
 }
 
-// Why: only gains count — comparing the pack as a whole made every bite of food read as progress, so a leg that did nothing still reported `step done` and burned a leg off the trail budget.
+// Why: only gains count — comparing the pack as a made every bite of food read as progress, so a leg that did nothing still reported `step done` and burned a leg off the trail budget.
 // Why: a step also counts as progressed when it picks up something it needed, such as a riddle key or a tool.
 
 /** Did anything enter the pack since `before`? */

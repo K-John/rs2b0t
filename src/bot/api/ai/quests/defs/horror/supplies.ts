@@ -121,7 +121,7 @@ export function foodWant(snap: QuestSnapshot, stage: number): FoodWant | null {
 }
 
 // Why: `ownsInventory` opts this quest out of the engine's coin and food withdrawal, so the module draws both itself.
-// Why: the float is a threshold rather than a target, as a `buy` step withdraws exactly `estGp` when short, so topping up to an exact balance means a booth trip after every purchase.
+// Why: the float is a threshold rather than a target, as a `buy` step withdraws `estGp` when short, so topping up to an exact balance means a booth trip after every purchase.
 
 /** The module's own coin and food withdrawal, or null when the pack is ready. */
 export function kit(snap: QuestSnapshot, food?: FoodWant | null): QuestStep | null {
@@ -169,7 +169,7 @@ export function nails(snap: QuestSnapshot): QuestStep {
 
 // Why: both the Range and the Furnace carry `forceapproach=east`, which names the only side that works and rotates with the placement.
 // Why: the Yanille range sits at angle 0 so east is east, and the Ardougne furnace at angle 2 so its "east" is west in world space.
-// Why: standing anywhere else has the use-on silently dropped — no refusal, no message, just a loc that never answers.
+// Why: standing anywhere else has the use-on silently dropped — no refusal, no message, a loc that never answers.
 // Why: a radius-2 walk is a coin flip between the legal side and a wedge, so this lands on the tile and nowhere else.
 
 /** Use a held item on a loc from an exact tile. */
@@ -275,11 +275,11 @@ function swampTar(snap: QuestSnapshot): QuestStep {
 // Why: `smithNails` banks the pack to make room for ore and law is not on its keep-list, so a per-tick law top-up and the nails leg deposit each other's work forever — `smith 8 nails` → `withdraw Law rune×60` → `smith 8 nails`, parked at the Varrock booth until the engine gives up.
 // Why: drawing it here means it is drawn once, after the last leg that empties the pack.
 
-/** The whole rune kit — law from the bank, the elements from Aubury. */
+/** The rune kit — law from the bank, the elements from Aubury. */
 export function runeKit(snap: QuestSnapshot, teleports = Traversal.teleportsEnabled()): QuestStep | null {
     if (teleports && heldId(snap, HD_ID.LAW_RUNE) < LAW_LOW) {
         // Why: an unread bank is no evidence of an empty one, as `bankIds` is blank until a booth has been opened.
-        // Why: answering "no law banked" here would quietly leave the toggle doing nothing for the whole quest.
+        // Why: answering "no law banked" here would quietly leave the toggle doing nothing for the quest.
         if (!snap.bankKnown) {
             return scanBank;
         }
@@ -368,7 +368,7 @@ async function wieldMelee(name: string, log: (m: string) => void): Promise<boole
         return true;
     }
     // Silent refusal is the norm here: an attack level short of the weapon's
-    // requirement is not a message, just a wield that does not happen.
+    // requirement is not a message, a wield that does not happen.
     if (++wieldTries >= WIELD_TRIES) {
         meleeGaveUp = true;
         log(`could not wield the ${name} after ${WIELD_TRIES} tries `
@@ -401,7 +401,7 @@ function meleeWeapon(snap: QuestSnapshot): QuestStep | null {
 }
 
 // Why: these are skills the server does not gate but the quest cannot be done without.
-// Why: `smithing` is the nails (2 to a steel bar at 34), `crafting` is the glass, and `magic` is the whole mother fight — four elemental spells with the tier chosen from this level.
+// Why: `smithing` is the nails (2 to a steel bar at 34), `crafting` is the glass, and `magic` is the mother fight — four elemental spells with the tier chosen from this level.
 // Why: `prayer` 43 covers both protections — melee for the junior, which is a plain melee npc, and missiles for the mother, which forces her off the ranged attack that hits for twenty-four.
 const HD_PROVEN_SKILLS = { smithing: 34, crafting: 1, magic: 59, prayer: 43 } as const;
 
@@ -450,6 +450,6 @@ export function sealedArea(tile: { x: number; z: number; level: number } | null 
     if (tile.z >= 9984 && tile.z <= 10047 && tile.x >= 2496 && tile.x <= 2559) {
         return true;
     }
-    // The real lighthouse above the ground floor.
+    // The lighthouse above the ground floor.
     return tile.level > 0 && tile.x >= 2503 && tile.x <= 2514 && tile.z >= 3635 && tile.z <= 3646;
 }
