@@ -13,7 +13,8 @@ import { LoadoutPanel } from './LoadoutPanel.js';
 import { isVisible, summarize } from './paramControls.js';
 import { el } from './dom.js';
 
-const SELECTED_SCRIPT_KEY = boxKey('selectedScript');
+// Why: boxId() reads the live URL, so freezing this at module load pins the key to whatever box was current when BotPanel was first imported.
+const selectedScriptKey = (): string => boxKey('selectedScript');
 const rendererEnabledKey = (): string => boxKey('rendererEnabled');
 
 interface RendererControl {
@@ -78,8 +79,8 @@ export default class BotPanel {
         script.appendChild(sectionTitle('script'));
 
         this.library = new ScriptLibrary(name => this.selectScript(name));
-        const remembered = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(SELECTED_SCRIPT_KEY) : null)
-            ?? (typeof localStorage !== 'undefined' ? localStorage.getItem(SELECTED_SCRIPT_KEY) : null);
+        const remembered = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(selectedScriptKey()) : null)
+            ?? (typeof localStorage !== 'undefined' ? localStorage.getItem(selectedScriptKey()) : null);
         this.selectedScript = remembered && ScriptRegistry.get(remembered) ? remembered : (ScriptRegistry.list()[0]?.name ?? '');
 
         const pick = el('div', 'rs2b0t-buttons');
@@ -219,10 +220,10 @@ export default class BotPanel {
         }
         this.selectedScript = name;
         if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.setItem(SELECTED_SCRIPT_KEY, name);
+            sessionStorage.setItem(selectedScriptKey(), name);
         }
         if (typeof localStorage !== 'undefined') {
-            localStorage.setItem(SELECTED_SCRIPT_KEY, name);
+            localStorage.setItem(selectedScriptKey(), name);
         }
         this.scriptName.textContent = name;
         this.renderSettings();
