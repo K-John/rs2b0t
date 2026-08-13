@@ -1,9 +1,5 @@
-// Live proof #428 — HillGiant banks at Varrock West, not East.
-// Seeds a full pack of loot in the Edgeville giant pit so the bank task fires,
-// then asserts the player stands at West (~3185,3440) rather than East (~3253,3420).
-//
-//   ENGINE_DIR=... sh tools/deploy-local.sh   # once
-//   bun tools/hillgiant-bank-428-live.ts [http://localhost:8890]
+// Live proof #428 — HillGiant banks at Varrock West (~3185,3440) rather than East (~3253,3420): [base].
+// Seeds a full pack of loot in the Edgeville giant pit so the bank task fires.
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs, setSettings } from './lib/harness.js';
 
 const args = positionalArgs(process.argv.slice(2), 'http://localhost:8890');
