@@ -12,6 +12,10 @@
 Enforced by `test/tools/e2eSplitFence.test.ts`. The closure is reported by
 `bun run audit:e2e-split`.
 
+The runner lives at `e2e/runner.ts` rather than under `tools/`, because it reads
+`e2e/manifest.ts` and this fence forbids the other direction. See the
+[case manifest](e2e-manifest.md).
+
 The reverse direction is allowed: `e2e/nav-script-routes-live.ts` and
 `e2e/nav-script-travel-live.ts` import corpus builders under `tools/nav/`. Those
 builders need no browser and carry their own unit tests, so they stay on the
