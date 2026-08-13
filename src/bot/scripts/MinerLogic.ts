@@ -34,7 +34,6 @@ export function desertCampFoodReserveDepleted(foodCount: number): boolean {
     return foodCount <= 1;
 }
 
-/** Selected ore names that are actually present at a named camp. */
 export function unsupportedCampOres(
     selected: readonly string[],
     supported: readonly string[] | null | undefined
