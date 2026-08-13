@@ -1,3 +1,4 @@
+// docs/decisions/multibox-telemetry-honesty.md
 // Why: degradation is only visible against its own past, so a fine tier covers the minutes
 // around an incident and a coarse tier answers "what did it look like an hour ago".
 

@@ -1,3 +1,4 @@
+// docs/decisions/multibox-telemetry-honesty.md
 // Why: kept out of main.ts so the sampler can be tested without a DOM.
 
 import { FreezeWatch } from '../runtime/diag/FreezeWatch.js';
