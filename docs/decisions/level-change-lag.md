@@ -12,7 +12,7 @@ It caused a false "the crystal broke" wander loop at the Camelot tower, and phan
 ladder detours in the walker.
 
 The executor settles after any level-changing transport before trusting the scene
-([`WalkExecutor.ts`](../../src/bot/nav/WalkExecutor.ts)):
+([`WalkExecutor.ts`](../../src/bot/engines/nav/WalkExecutor.ts)):
 
 ```ts
 if (crossed) {

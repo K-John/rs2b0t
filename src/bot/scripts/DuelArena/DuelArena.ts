@@ -11,7 +11,7 @@ import { Duel } from './DuelInterface.js';
 import { GameMessages } from '../../api/chatbox/gameMessages.js';
 import { reader } from '../../adapter/ClientAdapter.js';
 import { BotHost } from '../../runtime/BotHost.js';
-import { DirectNavigator } from '../../nav/DirectNavigator.js';
+import { DirectNavigator } from '../../engines/nav/DirectNavigator.js';
 import Tile from '../../geometry/Tile.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';

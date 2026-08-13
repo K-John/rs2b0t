@@ -5,7 +5,7 @@
 //   TIER=medium TRAILS=5 bun tools/clue-trails-live.ts
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import type { Page } from 'playwright-core';
-import { CASKET_IDS, CLUE_DB } from '#/bot/clues/data/cluedb.js';
+import { CASKET_IDS, CLUE_DB } from '#/bot/engines/clues/data/cluedb.js';
 import { HARNESS_VIEWPORT, boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, parseArgs, setSettings } from './lib/harness.js';
 
 const { base } = parseArgs(process.argv.slice(2), { base: 'http://localhost:8888' });

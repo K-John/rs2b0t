@@ -1,7 +1,7 @@
 import { BotHost } from '../runtime/BotHost.js';
-import { isNavPathPaintEnabled } from '../nav/pathOverlay.js';
-import { paintNavPath } from '../nav/pathOverlay.js';
-import { PathPublish } from '../nav/pathPublish.js';
+import { isNavPathPaintEnabled } from '../engines/nav/pathOverlay.js';
+import { paintNavPath } from '../engines/nav/pathOverlay.js';
+import { PathPublish } from '../engines/nav/pathPublish.js';
 import { AutoRelogin } from '../runtime/AutoRelogin.js';
 import { ScriptRunner } from '../runtime/ScriptRunner.js';
 import { paintLoginQueue } from './LoginQueuePaint.js';

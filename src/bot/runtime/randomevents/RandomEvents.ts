@@ -4,7 +4,7 @@ import { EventSignal } from '../../api/execution/EventSignal.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { fleeCandidates } from './eventEvade.js';
 import { Game } from '../../api/game/Game.js';
-import { Reachability } from '../../nav/geometry/Reachability.js';
+import { Reachability } from '../../engines/nav/geometry/Reachability.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { ChatDialog } from '../../api/dialogue/ChatDialog.js';

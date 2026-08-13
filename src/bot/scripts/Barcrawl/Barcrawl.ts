@@ -5,9 +5,9 @@ import { Bank } from '../../api/bank/Bank.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Paint } from '../../api/paint/Paint.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
-import { openBankLeg } from '../../quests/exec/steps.js';
-import { BARCRAWL_CARD, BARCRAWL_GP, BARS, COINS } from '../../quests/barcrawl/BarcrawlLogic.js';
-import { ensureBarcrawl, readCard } from '../../quests/barcrawl/RunBarcrawl.js';
+import { openBankLeg } from '../../engines/quests/exec/steps.js';
+import { BARCRAWL_CARD, BARCRAWL_GP, BARS, COINS } from '../../engines/quests/barcrawl/BarcrawlLogic.js';
+import { ensureBarcrawl, readCard } from '../../engines/quests/barcrawl/RunBarcrawl.js';
 import { Modals } from '../../api/widgets/Modals.js';
 
 // Why: the tour is a miniquest of its own — it opens the Barbarian Outpost gate and gates Barbarian Training.

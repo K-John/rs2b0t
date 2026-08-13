@@ -6,7 +6,7 @@ const abs = (p: string) => `${ROOT}/${p}`;
 const KNOWN = new Set([
     abs('src/bot/api/core/Game.ts'),
     abs('src/bot/api/entities/index.ts'),
-    abs('src/bot/nav/data/doors.json'),
+    abs('src/bot/engines/nav/data/doors.json'),
     abs('src/bot/ui/WorldMapPicker.ts')
 ]);
 const exists = (p: string) => KNOWN.has(p);
@@ -29,7 +29,7 @@ describe('resolveSpec', () => {
     });
 
     test('passes .json through unchanged', () => {
-        expect(resolveSpec(abs('src/bot/nav/Navigator.ts'), './data/doors.json', exists)).toBe(abs('src/bot/nav/data/doors.json'));
+        expect(resolveSpec(abs('src/bot/engines/nav/Navigator.ts'), './data/doors.json', exists)).toBe(abs('src/bot/engines/nav/data/doors.json'));
     });
 
     test('returns null for bare and 3rdparty specifiers', () => {
@@ -60,7 +60,7 @@ describe('renderSpec', () => {
     });
 
     test('keeps the .json extension', () => {
-        expect(renderSpec(abs('src/bot/nav/Navigator.ts'), abs('src/bot/nav/data/doors.json'), './data/doors.json')).toBe('./data/doors.json');
+        expect(renderSpec(abs('src/bot/engines/nav/Navigator.ts'), abs('src/bot/engines/nav/data/doors.json'), './data/doors.json')).toBe('./data/doors.json');
     });
 });
 

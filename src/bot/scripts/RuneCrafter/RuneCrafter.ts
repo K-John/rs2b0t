@@ -14,7 +14,7 @@ import { Locs } from '../../api/locs/Locs.js';
 import { Players } from '../../api/players/Players.js';
 import type { Player } from '../../api/model/Player.js';
 import { Traversal } from '../../api/walking/Traversal.js';
-import { DirectNavigator } from '../../nav/DirectNavigator.js';
+import { DirectNavigator } from '../../engines/nav/DirectNavigator.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import { SettingsStore, type SettingsSchema } from '../../runtime/Settings.js';
 import { fmtDuration } from '../../api/paint/paintLogic.js';

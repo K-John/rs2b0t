@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import fs from 'node:fs';
 import { gunzipSync } from 'fflate';
-import { PathFinder } from '#/bot/nav/PathFinder.js';
+import { PathFinder } from '#/bot/engines/nav/PathFinder.js';
 import { cappedSampleStep, nearestWalkable, sampleStep } from '#/bot/ui/WorldMapPicker.js';
 
 const PACK_PATH = 'out/collision.lcnav.gz';

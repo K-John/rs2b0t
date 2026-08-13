@@ -143,7 +143,7 @@ import {
     paintSkillShort,
     paintSkillTitle
 } from '../../api/paint/paintLogic.js';
-import { driveDialog } from '../../quests/exec/primitives.js';
+import { driveDialog } from '../../engines/quests/exec/primitives.js';
 import {
     AXE_BAR_FOR,
     BROKEN_AXE,

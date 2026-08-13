@@ -12,10 +12,10 @@ import { join } from 'node:path';
 
 import { gunzipSync } from 'fflate';
 
-import doorsJson from '#/bot/nav/data/doors.json';
-import transportsJson from '#/bot/nav/data/transports.json';
-import stairsJson from '#/bot/nav/data/stairEdges.json';
-import { PathFinder, type DoorEdgeData, type TransportEdgeData } from '#/bot/nav/PathFinder.js';
+import doorsJson from '#/bot/engines/nav/data/doors.json';
+import transportsJson from '#/bot/engines/nav/data/transports.json';
+import stairsJson from '#/bot/engines/nav/data/stairEdges.json';
+import { PathFinder, type DoorEdgeData, type TransportEdgeData } from '#/bot/engines/nav/PathFinder.js';
 
 import { Reader, bridgedLevel, forEachLoc, loadLocTypes, loadMapsquares, parseLands } from './lib.js';
 

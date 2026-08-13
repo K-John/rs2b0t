@@ -36,7 +36,7 @@ import type { ScriptRoute } from './nav/script-route-corpus.js';
 import {
     transportQuestJournalNames,
     transportQuestSetvarCommands
-} from '../src/bot/nav/transportQuestReqs.js';
+} from '../src/bot/engines/nav/transportQuestReqs.js';
 import fs from 'node:fs';
 import path from 'node:path';
 

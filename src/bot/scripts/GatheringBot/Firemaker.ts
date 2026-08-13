@@ -4,7 +4,7 @@ import { LoopingBot } from '../../api/bot/Bot.js';
 import { EventSignal } from '../../api/execution/EventSignal.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
-import { Reachability } from '../../nav/geometry/Reachability.js';
+import { Reachability } from '../../engines/nav/geometry/Reachability.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { Inventory } from '../../api/inventory/Inventory.js';

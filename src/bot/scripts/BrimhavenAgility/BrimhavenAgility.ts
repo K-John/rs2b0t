@@ -2,7 +2,7 @@ import { actions, reader } from '../../adapter/ClientAdapter.js';
 import { TaskBot, type Task } from '../../api/bot/Bot.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
-import { Reachability } from '../../nav/geometry/Reachability.js';
+import { Reachability } from '../../engines/nav/geometry/Reachability.js';
 import Tile from '../../geometry/Tile.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
@@ -15,7 +15,7 @@ import { fmtDuration } from '../../api/paint/paintLogic.js';
 import { foodCount as foodCountIn, foodForms } from '../../api/combat/food.js';
 import { Locs, type Loc } from '../../api/locs/Locs.js';
 import { Npcs } from '../../api/npcs/Npcs.js';
-import { DirectNavigator } from '../../nav/DirectNavigator.js';
+import { DirectNavigator } from '../../engines/nav/DirectNavigator.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import {

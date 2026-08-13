@@ -19,7 +19,7 @@ stats that still clear, record fails, then later branch tactics by power level
 | Official skills only (20/20/20) | Server eligibility | required; combat not gated |
 
 Constants:
-[`EW_PROVEN_COMBAT_FLOOR`](../../src/bot/quests/defs/elementalworkshop/supplies.ts)
+[`EW_PROVEN_COMBAT_FLOOR`](../../src/bot/engines/quests/defs/elementalworkshop/supplies.ts)
 (50/50/40/50), `EW_FAILED_COMBAT` (40/40/25/40), `EW_PROBE_COMBAT` (45/…),
 `EW_OFFICIAL_SKILLS`. `warnReadiness` logs if the account is below the proven floor.
 

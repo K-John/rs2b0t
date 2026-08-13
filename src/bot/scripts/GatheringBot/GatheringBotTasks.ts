@@ -17,8 +17,8 @@ import { Skills } from '../../api/skills/Skills.js';
 import { Locs } from '../../api/locs/Locs.js';
 import { Npcs } from '../../api/npcs/Npcs.js';
 import { Traversal } from '../../api/walking/Traversal.js';
-import { isOpenableObstacle, openOp, walkOpening } from '../../nav/walkOpening.js';
-import { DirectNavigator } from '../../nav/DirectNavigator.js';
+import { isOpenableObstacle, openOp, walkOpening } from '../../engines/nav/walkOpening.js';
+import { DirectNavigator } from '../../engines/nav/DirectNavigator.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import {
     gatherHuntRadius,

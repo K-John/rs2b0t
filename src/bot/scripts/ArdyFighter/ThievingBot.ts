@@ -3,7 +3,7 @@ import { createReturnToAnchorTask, resolveRunAnchor, tileWithinLeash } from '../
 import { TaskBot, type Task } from '../../api/bot/Bot.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
-import { Reachability } from '../../nav/geometry/Reachability.js';
+import { Reachability } from '../../engines/nav/geometry/Reachability.js';
 import Tile from '../../geometry/Tile.js';
 import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
 import { Bank } from '../../api/bank/Bank.js';
@@ -17,7 +17,7 @@ import { GroundItems } from '../../api/grounditems/GroundItems.js';
 import { Npcs, type Npc } from '../../api/npcs/Npcs.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { nearestBank } from '../../api/bank/BankLocations.js';
-import { walkOpening } from '../../nav/walkOpening.js';
+import { walkOpening } from '../../engines/nav/walkOpening.js';
 import { PICKPOCKET_TARGET_NAMES } from '../../data/pickpocketTargets.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import { fmtDuration } from '../../api/paint/paintLogic.js';

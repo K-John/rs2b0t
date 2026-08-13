@@ -17,7 +17,7 @@ One `PathFinder` / `WalkExecutor` / transport graph. No classic/v2 dual stack.
 
 ## Arrival
 
-[`arrival.ts`](../../src/bot/nav/geometry/arrival.ts) answers "are we there?" honestly, and the
+[`arrival.ts`](../../src/bot/engines/nav/geometry/arrival.ts) answers "are we there?" honestly, and the
 subtlety is that many destinations are **not standable** — a bank booth, a furnace,
 a tree are all solid.
 
@@ -70,7 +70,7 @@ patrolling NPC walks out of range and the interaction is abandoned.
 
 ## When it gets stuck
 
-[`walkLadder.ts`](../../src/bot/nav/walkLadder.ts) is an escalation ladder rather than a
+[`walkLadder.ts`](../../src/bot/engines/nav/walkLadder.ts) is an escalation ladder rather than a
 retry count. It tracks progress, backs off, and after `UNREACHABLE_PASSES` concludes
 the destination is unreachable — reporting `'arrived' | 'closest' |
 'budget' | 'failed' | 'interrupted'` rather than silently spinning.
@@ -80,7 +80,7 @@ slow route from an impossible one.
 
 ## Tuning constants
 
-The top of [`WalkExecutor.ts`](../../src/bot/nav/WalkExecutor.ts) is a block of bare
+The top of [`WalkExecutor.ts`](../../src/bot/engines/nav/WalkExecutor.ts) is a block of bare
 numbers. What they govern:
 
 | Constant | Meaning |
@@ -107,8 +107,8 @@ Optional orbit-camera path facing so operators can see the route being walked
 |---|---|---|
 | Global `navCameraFollow` | `false` | `?Global.navCameraFollow=true` |
 
-When on, [`WalkExecutor`](../../src/bot/nav/WalkExecutor.ts) samples a path-facing yaw
-each follow tick and [`PathCameraFollow`](../../src/bot/nav/cameraFollow.ts) eases the
+When on, [`WalkExecutor`](../../src/bot/engines/nav/WalkExecutor.ts) samples a path-facing yaw
+each follow tick and [`PathCameraFollow`](../../src/bot/engines/nav/cameraFollow.ts) eases the
 orbit yaw on the **client frame loop** (not once per walk tick), so turns feel like
 a human holding left/right rather than stepping.
 

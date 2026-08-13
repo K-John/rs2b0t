@@ -8,7 +8,7 @@ import { Inventory } from '../../api/inventory/Inventory.js';
 import { Paint } from '../../api/paint/Paint.js';
 import { Shop } from '../../api/shop/Shop.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
-import { talkThrough } from '../../quests/exec/primitives.js';
+import { talkThrough } from '../../engines/quests/exec/primitives.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import { buyoutPlan } from '../../api/shop/BuyoutLogic.js';

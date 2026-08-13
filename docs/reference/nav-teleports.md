@@ -56,7 +56,7 @@ off → force-off. Other scripts use Global / A* cost (default span 0).
 
 ### Costs (lowest wins)
 
-Path costs are **time in run-tile units** (`src/bot/nav/geometry/edgeCosts.ts`, idea **@lulwut**),
+Path costs are **time in run-tile units** (`src/bot/engines/nav/geometry/edgeCosts.ts`, idea **@lulwut**),
 aligned with server movement:
 
 | Mode | Server | Cost of one map step |
@@ -123,7 +123,7 @@ tiles (wrong doorway / same loc type).
 `locRefValid` / `locRefStale` support “is this edge still real in the scene?” checks
 (open leaf counts as valid for Open-actions).
 
-**Code map:** `src/bot/nav/` — `PathFinder`, `WalkExecutor`, `exec/`, `data/`, plus
+**Code map:** `src/bot/engines/nav/` — `PathFinder`, `WalkExecutor`, `exec/`, `data/`, plus
 teleport catalog, travel catalog, WorldState helpers, bank plan. Transport matrix:
 [transport reference](../reference/transports-2004.md).
 

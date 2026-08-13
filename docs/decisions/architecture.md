@@ -14,10 +14,9 @@ human click would have produced.
 
 ```
 src/bot/scripts/     one directory per contribution             ─┐
-src/bot/quests|clues subsystems                                  │
+src/bot/engines/     clues, quests, nav — driven, not contained   │
 src/bot/runtime/     script lifecycle, ABI, settings, solvers    │  bot code
 src/bot/api/         one directory per game-facing noun          │
-src/bot/nav/         pathfinder and walker internals             │
 src/bot/data/        inert catalogs                              │
 src/bot/geometry/    Tile, Area, distance                       ─┘
 src/bot/adapter/     ClientAdapter — the ONLY place that names client internals
@@ -30,6 +29,10 @@ A module belongs in `api/` iff it is a facade over one game interface, one
 entity collection, or one reusable script behaviour. One directory per noun,
 sized to what that noun needs; single-file directories are expected. Not
 catalogs, not solvers, not engines, not sole-consumer helpers.
+
+A module belongs in `engines/` iff it is a multi-step domain engine that scripts
+drive and do not contain. They order as `clues` → `quests` → `nav`, no cycle.
+`api/` excludes them by the rule that excludes catalogs and solvers.
 
 A directory under `scripts/` is one contribution: a registered bot plus every
 module only it reaches. Two bots share a directory iff they share a private

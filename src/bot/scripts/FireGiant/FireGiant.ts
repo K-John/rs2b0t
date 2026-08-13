@@ -24,7 +24,7 @@ import { depositAllExcept, matchesCommonBankLoot } from '../../api/bank/Banking.
 import { GroundItems } from '../../api/grounditems/GroundItems.js';
 import { Npcs, type Npc } from '../../api/npcs/Npcs.js';
 import { Traversal } from '../../api/walking/Traversal.js';
-import { DirectNavigator } from '../../nav/DirectNavigator.js';
+import { DirectNavigator } from '../../engines/nav/DirectNavigator.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import { reader } from '../../adapter/ClientAdapter.js';

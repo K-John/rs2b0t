@@ -3,7 +3,7 @@ import { reader, actions } from '../../adapter/ClientAdapter.js';
 import { Input } from '../input/Input.js';
 import type { BankNpcAccess, BankObjectAccess } from './BankLocations.js';
 import { Execution } from '../execution/Execution.js';
-import { Reachability } from '../../nav/geometry/Reachability.js';
+import { Reachability } from '../../engines/nav/geometry/Reachability.js';
 import { Traversal } from '../walking/Traversal.js';
 import { Locs } from '../locs/Locs.js';
 import { Npcs } from '../npcs/Npcs.js';

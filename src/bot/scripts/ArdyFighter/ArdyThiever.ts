@@ -1,7 +1,7 @@
 import { TaskBot, type Task } from '../../api/bot/Bot.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
-import { Reachability } from '../../nav/geometry/Reachability.js';
+import { Reachability } from '../../engines/nav/geometry/Reachability.js';
 import Tile from '../../geometry/Tile.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
 import { DeathRecovery } from '../../api/tasks/DeathRecovery.js';
@@ -15,7 +15,7 @@ import { Paint } from '../../api/paint/Paint.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import { SettingsStore } from '../../runtime/Settings.js';
 import { Traversal } from '../../api/walking/Traversal.js';
-import { walkOpening } from '../../nav/walkOpening.js';
+import { walkOpening } from '../../engines/nav/walkOpening.js';
 import { EventSignal } from '../../api/execution/EventSignal.js';
 import { GroundItems } from '../../api/grounditems/GroundItems.js';
 import { Npcs, type Npc } from '../../api/npcs/Npcs.js';
@@ -26,8 +26,8 @@ import { countMatching, matchesAny, shouldBank, shouldEat, shouldPanic, slotsMat
 import { foodHealAmount } from '../../api/combat/food.js';
 import { CAKE_ITEMS } from './CakeStallLogic.js';
 import { stealCakes } from './CakeStall.js';
-import { SolveClue } from '../../clues/SolveClue.js';
-import { paintClueProgress } from '../../clues/cluePaint.js';
+import { SolveClue } from '../../engines/clues/SolveClue.js';
+import { paintClueProgress } from '../../engines/clues/cluePaint.js';
 import { Sustain } from '../../api/sustain/Sustain.js';
 import { fmtDuration } from '../../api/paint/paintLogic.js';
 import { STUN_COMBAT_TICKS, withdrawTo } from './ThievingBotLogic.js';

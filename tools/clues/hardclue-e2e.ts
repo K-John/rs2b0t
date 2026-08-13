@@ -10,8 +10,8 @@ import fs from 'node:fs';
 
 import type { Browser, Page } from 'playwright-core';
 
-import { CLUE_DB } from '#/bot/clues/data/cluedb.js';
-import { PACK_UNREACHABLE } from '#/bot/clues/data/unreachable.js';
+import { CLUE_DB } from '#/bot/engines/clues/data/cluedb.js';
+import { PACK_UNREACHABLE } from '#/bot/engines/clues/data/unreachable.js';
 
 import { boot as bootClient, cheatQuiet, launchBrowser, login, logout, setSettings } from '../lib/harness.js';
 

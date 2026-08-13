@@ -4,15 +4,15 @@ import { join } from 'node:path';
 
 import { gunzipSync } from 'fflate';
 
-import doorsJson from '#/bot/nav/data/doors.json';
-import { allTransportRows } from '#/bot/nav/loadTransportGraph.js';
-import stairsJson from '#/bot/nav/data/stairEdges.json';
-import { PathFinder, type DoorEdgeData, type NavPoint, type TransportEdgeData } from '#/bot/nav/PathFinder.js';
-import { CLUE_DB } from '#/bot/clues/data/cluedb.js';
-import { CLUE_GATES } from '#/bot/clues/data/clueGates.js';
-import { KILL_ANCHORS } from '#/bot/clues/data/killAnchors.js';
-import { PACK_UNREACHABLE } from '#/bot/clues/data/unreachable.js';
-import { TALK_ANCHORS } from '#/bot/clues/data/talkAnchors.js';
+import doorsJson from '#/bot/engines/nav/data/doors.json';
+import { allTransportRows } from '#/bot/engines/nav/loadTransportGraph.js';
+import stairsJson from '#/bot/engines/nav/data/stairEdges.json';
+import { PathFinder, type DoorEdgeData, type NavPoint, type TransportEdgeData } from '#/bot/engines/nav/PathFinder.js';
+import { CLUE_DB } from '#/bot/engines/clues/data/cluedb.js';
+import { CLUE_GATES } from '#/bot/engines/clues/data/clueGates.js';
+import { KILL_ANCHORS } from '#/bot/engines/clues/data/killAnchors.js';
+import { PACK_UNREACHABLE } from '#/bot/engines/clues/data/unreachable.js';
+import { TALK_ANCHORS } from '#/bot/engines/clues/data/talkAnchors.js';
 
 import { Reader, bridgedLevel, forEachLoc, loadLocTypes, loadMapsquares, parseLands } from '../nav/lib.js';
 

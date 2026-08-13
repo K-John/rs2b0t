@@ -13,7 +13,7 @@ import { Paint } from '../../api/paint/Paint.js';
 import { Skills } from '../../api/skills/Skills.js';
 import { fmtDuration } from '../../api/paint/paintLogic.js';
 import { Locs, type Loc } from '../../api/locs/Locs.js';
-import { WalkExecutor } from '../../nav/WalkExecutor.js';
+import { WalkExecutor } from '../../engines/nav/WalkExecutor.js';
 import {
     JUNGLE_HERBS,
     JUNGLE_POTION_QUEST,
@@ -21,8 +21,8 @@ import {
     enterPothole,
     inCaves,
     readJungleProgress
-} from '../../quests/defs/junglepotion.js';
-import { settleScene } from '../../quests/exec/prompts.js';
+} from '../../engines/quests/defs/junglepotion.js';
+import { settleScene } from '../../engines/quests/exec/prompts.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import {
     COINS,

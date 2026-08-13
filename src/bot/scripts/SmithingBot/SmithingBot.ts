@@ -9,7 +9,7 @@ import { Skills } from '../../api/skills/Skills.js';
 import { Paint } from '../../api/paint/Paint.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
 import { Locs } from '../../api/locs/Locs.js';
-import { walkOpening } from '../../nav/walkOpening.js';
+import { walkOpening } from '../../engines/nav/walkOpening.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import { fmtDuration } from '../../api/paint/paintLogic.js';

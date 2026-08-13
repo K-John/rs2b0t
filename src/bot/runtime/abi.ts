@@ -1,15 +1,15 @@
 // docs/decisions/architecture.md#the-abi-boundary
 import { BUILD_INFO } from './buildInfo.js';
 import { reader } from '../adapter/ClientAdapter.js';
-import { PathPublish } from '../nav/pathPublish.js';
-import { isNavPathPaintEnabled } from '../nav/pathOverlay.js';
+import { PathPublish } from '../engines/nav/pathPublish.js';
+import { isNavPathPaintEnabled } from '../engines/nav/pathOverlay.js';
 import {
     KNOWN_DANGER_ZONES,
     knownDangerZone,
     knownDangerZoneIds,
     resolveDangerZones,
     tileInDangerZones
-} from '../nav/data/dangerZones.js';
+} from '../engines/nav/data/dangerZones.js';
 import { SettingsStore } from './Settings.js';
 import { Area } from '../geometry/Area.js';
 import {
@@ -199,8 +199,8 @@ import { Npcs } from '../api/npcs/Npcs.js';
 import { Players } from '../api/players/Players.js';
 import EntityQuery from '../api/query/Query.js';
 import { bus, type EventMap } from '../api/events/EventBus.js';
-import { DirectNavigator } from '../nav/DirectNavigator.js';
-import { EssenceSession } from '../nav/essenceSession.js';
+import { DirectNavigator } from '../engines/nav/DirectNavigator.js';
+import { EssenceSession } from '../engines/nav/essenceSession.js';
 // Harness-only hooks, absent from packages/rs2b0t-api/index.d.ts and consumed
 // solely by tools/merlin-mordred-353-live.ts. The disable is line-scoped, so a
 // new quest import here still errors.
@@ -209,7 +209,7 @@ import {
     liveFortressStep,
     liveMordredBriefed,
     liveResetMordredBrief
-} from '../quests/defs/merlinscrystal.js';
+} from '../engines/quests/defs/merlinscrystal.js';
 import { defineBot, registerScript } from './defineBot.js';
 import { Loadouts } from '../api/loadout/loadoutStore.js';
 

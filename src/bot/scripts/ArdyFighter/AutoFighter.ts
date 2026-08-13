@@ -47,8 +47,8 @@ import {
     START_POSITION,
     wantsAutoFighterLoot
 } from './AutoFighterData.js';
-import { SolveClue } from '../../clues/SolveClue.js';
-import { paintClueProgress } from '../../clues/cluePaint.js';
+import { SolveClue } from '../../engines/clues/SolveClue.js';
+import { paintClueProgress } from '../../engines/clues/cluePaint.js';
 import { fmtDuration } from '../../api/paint/paintLogic.js';
 import { Reach } from '../../api/walking/Reach.js';
 import { RANDOM_EVENT_CASKET_ID } from '../../api/bank/Banking.js';

@@ -1,5 +1,5 @@
 import { matchesCommonBankLoot } from '../../api/bank/bankRules.js';
-import { CASKET_IDS, CLUE_DB } from '../../clues/data/cluedb.js';
+import { CASKET_IDS, CLUE_DB } from '../../engines/clues/data/cluedb.js';
 
 /** First wilderness row north of the Edgeville ditch. */
 export const WILDY_MIN_Z = 3520;

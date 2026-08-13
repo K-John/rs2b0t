@@ -1,11 +1,11 @@
 import { actions, reader } from './adapter/ClientAdapter.js';
 import BotClient from './runtime/BotClient.js';
 import { BotHost } from './runtime/BotHost.js';
-import { ClueExecutor, TRACE_STORAGE_KEY } from './clues/ClueExecutor.js';
-import { readTraceRing } from './clues/ClueTrace.js';
+import { ClueExecutor, TRACE_STORAGE_KEY } from './engines/clues/ClueExecutor.js';
+import { readTraceRing } from './engines/clues/ClueTrace.js';
 import { BotDiag } from './runtime/diag/BotDiag.js';
 import { Input } from './api/input/Input.js';
-import { Navigator } from './nav/Navigator.js';
+import { Navigator } from './engines/nav/Navigator.js';
 import { installAbi } from './runtime/abi.js';
 import { AutoRelogin } from './runtime/AutoRelogin.js';
 import type { LoginCoordination } from './runtime/LoginCoordination.js';

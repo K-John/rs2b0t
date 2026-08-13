@@ -2,7 +2,7 @@
  * Map picker display theme — SettingsStore namespace `MapPicker` (in-picker Settings modal).
  * Not part of Global settings.
  */
-import { parseHtmlColor, rgba } from '../nav/pathPaintTheme.js';
+import { parseHtmlColor, rgba } from '../engines/nav/pathPaintTheme.js';
 import { WORLDMAP_KEY_NAMES } from '../../client/mapview/worldmapKeyNames.js';
 import {
     MAP_PICKER_SETTINGS,

@@ -9,7 +9,7 @@ import { Paint } from '../../api/paint/Paint.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
 import { Locs, type Loc } from '../../api/locs/Locs.js';
 import { Traversal } from '../../api/walking/Traversal.js';
-import { Reachability } from '../../nav/geometry/Reachability.js';
+import { Reachability } from '../../engines/nav/geometry/Reachability.js';
 import { EventSignal } from '../../api/execution/EventSignal.js';
 import { actions, reader } from '../../adapter/ClientAdapter.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';

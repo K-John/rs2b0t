@@ -12,12 +12,12 @@ import { gunzipSync } from 'fflate';
 
 import { BANK_LOCATIONS } from '#/bot/api/bank/BankLocations.js';
 import { WALK_DESTINATIONS } from '#/bot/api/map/WalkDestinations.js';
-import { NAV_TARGETS } from '#/bot/nav/data/navTargets.js';
-import { PathFinder, type NavPoint } from '#/bot/nav/PathFinder.js';
-import { loadDefaultNavEdges } from '#/bot/nav/loadTransportGraph.js';
-import { formatHops } from '#/bot/nav/hops.js';
-import type { PathPolicy } from '#/bot/nav/types.js';
-import type { WorldStateData } from '#/bot/nav/worldStateData.js';
+import { NAV_TARGETS } from '#/bot/engines/nav/data/navTargets.js';
+import { PathFinder, type NavPoint } from '#/bot/engines/nav/PathFinder.js';
+import { loadDefaultNavEdges } from '#/bot/engines/nav/loadTransportGraph.js';
+import { formatHops } from '#/bot/engines/nav/hops.js';
+import type { PathPolicy } from '#/bot/engines/nav/types.js';
+import type { WorldStateData } from '#/bot/engines/nav/worldStateData.js';
 
 export interface ScriptRoute {
     id: string;

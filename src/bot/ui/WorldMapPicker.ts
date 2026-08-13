@@ -3,7 +3,7 @@
  * Why: there is no continuous render loop — paint runs only on user input or setting change, coalesced to one `requestAnimationFrame` — and basemap rebuild is manual only, so opening the picker never runs MapView.
  */
 import { gunzipSync } from 'fflate';
-import { PathFinder } from '../nav/PathFinder.js';
+import { PathFinder } from '../engines/nav/PathFinder.js';
 import { WALK_DESTINATIONS } from '../api/map/WalkDestinations.js';
 import { Game } from '../api/game/Game.js';
 import { BotHost } from '../runtime/BotHost.js';
