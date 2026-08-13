@@ -61,11 +61,11 @@ const has = (name: string): boolean => process.argv.includes(`--${name}`);
 
 /** Quest harnesses take --stage and cost tens of minutes each. */
 function isQuest(file: string): boolean {
-    return readFileSync(join('tools', file), 'utf8').includes("'--stage'");
+    return readFileSync(join('e2e', file), 'utf8').includes("'--stage'");
 }
 
 function allHarnesses(): string[] {
-    return readdirSync('tools')
+    return readdirSync('e2e')
         .filter(f => (f.endsWith('-test.ts') || f.endsWith('-live.ts')) && !EXCLUDED.has(f))
         .sort();
 }
@@ -250,7 +250,7 @@ if (!has('gates-only')) {
             console.log(`${files.length} harnesses — ${why}`);
             for (const [i, file] of files.entries()) {
                 const budget = (BUDGET[file] ?? DEFAULT_BUDGET) * 60_000;
-                const cmd = ['bun', join('tools', file), '--no-deploy'];
+                const cmd = ['bun', join('e2e', file), '--no-deploy'];
                 if (engine) cmd.push('--base', engine);
                 const r = await run(`[${i + 1}/${files.length}] ${file}`, cmd, join(LOGS, `${file}.log`), budget);
                 now.results.push({ name: file, kind: 'harness', status: r.status, ms: r.ms, note: r.status === 'pass' ? '' : r.tail });

@@ -32,7 +32,7 @@ import {
     type NavTile
 } from './lib/navLiveHarness.js';
 import { cheatQuiet, mainlandAccount, maxmeAndClearDialogs, relog } from './tutorial/harness.js';
-import type { ScriptRoute } from './nav/script-route-corpus.js';
+import type { ScriptRoute } from '../tools/nav/script-route-corpus.js';
 import {
     transportQuestJournalNames,
     transportQuestSetvarCommands
@@ -242,7 +242,7 @@ async function loadSeedRoutes(): Promise<ScriptRoute[]> {
         const { GlobalRegistrator } = await import('@happy-dom/global-registrator');
         GlobalRegistrator.register();
     }
-    const { buildScriptRoutes } = await import('./nav/script-route-corpus.js');
+    const { buildScriptRoutes } = await import('../tools/nav/script-route-corpus.js');
     return buildScriptRoutes();
 }
 

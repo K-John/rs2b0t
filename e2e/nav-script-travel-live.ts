@@ -40,7 +40,7 @@ import {
     travelRouteStats,
     type TravelRoute,
     type TravelSegment
-} from './nav/script-travel-corpus.js';
+} from '../tools/nav/script-travel-corpus.js';
 import {
     transportQuestJournalNames,
     transportQuestSetvarCommands

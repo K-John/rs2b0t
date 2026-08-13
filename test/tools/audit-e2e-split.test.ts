@@ -79,6 +79,31 @@ describe('liveClosure', () => {
         expect(liveClosure(entry, sources).move).toEqual(['tools/hillgiant-test.ts', entry]);
     });
 
+    test('holds back an ABI module only a unit test consumes', () => {
+        const sources = new Map([
+            [entry, ''],
+            ['tools/nav-script-travel-live.ts', "import { boot } from './lib/harness.js';\nimport { build } from './nav/script-travel-corpus.js';"],
+            ['tools/nav/script-travel-corpus.ts', '']
+        ]);
+        const offlineTests = new Map([
+            ['test/event/webwalk/script-travel-corpus.test.ts', "import { build } from '../../../tools/nav/script-travel-corpus.js';"]
+        ]);
+        const { move, heldBack } = liveClosure(entry, sources, offlineTests);
+        expect(heldBack).toEqual(['tools/nav/script-travel-corpus.ts']);
+        expect(move).not.toContain('tools/nav/script-travel-corpus.ts');
+    });
+
+    test('a unit test of a harness itself does not hold the harness back', () => {
+        const sources = new Map([
+            [entry, ''],
+            ['tools/hillgiant-test.ts', "import { boot } from './lib/harness.js';"]
+        ]);
+        const offlineTests = new Map([
+            ['test/tools/harness-args.test.ts', "import { parseArgs } from '../../tools/hillgiant-test.js';"]
+        ]);
+        expect(liveClosure(entry, sources, offlineTests).move).toContain('tools/hillgiant-test.ts');
+    });
+
     test('reports an empty closure when the entry sits outside the scanned tree', () => {
         const sources = new Map([
             ['tools/gen-itemdb.ts', "import { parse } from './items/parse.js';"],

@@ -34,8 +34,29 @@ function depGraph(sources: Map<string, string>): Map<string, Set<string>> {
     return dep;
 }
 
-/** The bidirectional import closure around `entry`: consumers, their ABI, minus ABI shared with offline tools. */
-export function liveClosure(entry: string, sources: Map<string, string>): { move: string[]; heldBack: string[] } {
+/** Modules under `sources` that `consumers` imports; used to spot offline consumers living outside the tree. */
+function outboundInto(consumers: Map<string, string>, sources: Map<string, string>): Set<string> {
+    const out = new Set<string>();
+    for (const [file, src] of consumers) {
+        SPEC.lastIndex = 0;
+        let m: RegExpExecArray | null;
+        while ((m = SPEC.exec(src))) {
+            const target = resolveSpec(file, m[1]);
+            if (target !== null && sources.has(target)) {
+                out.add(target);
+            }
+        }
+    }
+    return out;
+}
+
+/** The bidirectional import closure around `entry`: consumers, their ABI, minus ABI shared with offline code.
+ *  `offlineTests` names consumers outside the scanned tree — a unit test proves its target runs without a browser. */
+export function liveClosure(
+    entry: string,
+    sources: Map<string, string>,
+    offlineTests: Map<string, string> = new Map()
+): { move: string[]; heldBack: string[] } {
     const dep = depGraph(sources);
     const reaches = (file: string, seen: Set<string>): boolean => {
         if (seen.has(file)) {
@@ -68,7 +89,11 @@ export function liveClosure(entry: string, sources: Map<string, string>): { move
         }
     }
     const offline = [...sources.keys()].filter(f => !core.has(f) && !abi.has(f));
-    const heldBack = [...abi].filter(a => offline.some(o => dep.get(o)?.has(a))).sort();
+    // Why: only ABI modules are eligible, so a unit test covering a harness never drags the harness back.
+    const testedOffline = outboundInto(offlineTests, sources);
+    const heldBack = [...abi]
+        .filter(a => testedOffline.has(a) || offline.some(o => dep.get(o)?.has(a)))
+        .sort();
     const held = new Set(heldBack);
     const move = [...core, ...[...abi].filter(a => !held.has(a))].sort();
     return { move, heldBack };
@@ -101,7 +126,7 @@ export function readTree(dir: string): Map<string, string> {
 if (import.meta.main) {
     const entry = process.argv.includes('--after') ? 'e2e/lib/harness.ts' : 'tools/lib/harness.ts';
     const sources = readTree('tools');
-    const { move, heldBack } = liveClosure(entry, sources);
+    const { move, heldBack } = liveClosure(entry, sources, readTree('test'));
     if (process.argv.includes('--plan')) {
         for (const f of move) {
             console.log(`e2e/${f.slice('tools/'.length)}\t${f}`);
