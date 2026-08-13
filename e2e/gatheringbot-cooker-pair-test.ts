@@ -2,8 +2,8 @@
  *  BASE / BUDGET_S from the environment; redeploy first when GatheringBot / cook / mule code changes. */
 
 // Usage:
-//   HEADED=1 bun tools/gatheringbot-cooker-pair-test.ts
-//   BASE=http://localhost:8890 BUDGET_S=240 bun tools/gatheringbot-cooker-pair-test.ts
+//   HEADED=1 bun e2e/gatheringbot-cooker-pair-test.ts
+//   BASE=http://localhost:8890 BUDGET_S=240 bun e2e/gatheringbot-cooker-pair-test.ts
 
 // Redeploy first when GatheringBot / cook / mule code changes:
 //   ~/redeploy.sh

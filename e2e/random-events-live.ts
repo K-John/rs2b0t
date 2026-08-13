@@ -2,7 +2,7 @@
  *  Verified against macro_events.constant (^macro_swarm=1, ^macro_maze=8), macro_event_swarm.rs2, macro_event_maze.rs2, and pack loc 3634 = macro_maze_complete "Strange shrine" Touch @ 0_45_71_31_31. Proof: out/issue-randomevents-proof.json + screenshots/ */
 
 //   ~/redeploy.sh   # botclient with RandomEventGuardian + maze fix
-//   bun tools/random-events-live.ts [http://localhost:8890]
+//   bun e2e/random-events-live.ts [http://localhost:8890]
 import { mkdir } from 'node:fs/promises';
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs } from './lib/harness.js';
 import { createHarnessProof } from './lib/harnessProof.js';
@@ -158,7 +158,7 @@ try {
 
     await mkdir('screenshots', { recursive: true });
     await proof.writeSuccess(page, {
-        harness: 'tools/random-events-live.ts',
+        harness: 'e2e/random-events-live.ts',
         content: {
             swarm: '^macro_swarm=1, despawn when range>3 (macro_event_lost_hostile)',
             maze: 'mapzone 0_45_71, shrine macro_maze_complete id 3634 Touch @ 2911,4575',

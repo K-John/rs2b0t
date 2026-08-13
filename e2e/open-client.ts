@@ -1,5 +1,5 @@
 // Open a visible bot-client window at the login screen for manual inspection.
-// Usage: HEADED=1 bun tools/open-client.ts [base]
+// Usage: HEADED=1 bun e2e/open-client.ts [base]
 
 import { boot, fail, launchBrowser } from './lib/harness.js';
 

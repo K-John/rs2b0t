@@ -2,7 +2,7 @@
 // Seeds a full pack of loot in the Edgeville giant pit so the bank task fires.
 
 //   ENGINE_DIR=... sh tools/deploy-local.sh   # once
-//   bun tools/hillgiant-bank-428-live.ts [http://localhost:8890]
+//   bun e2e/hillgiant-bank-428-live.ts [http://localhost:8890]
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs, setSettings } from './lib/harness.js';
 
 const args = positionalArgs(process.argv.slice(2), 'http://localhost:8890');

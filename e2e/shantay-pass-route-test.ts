@@ -2,8 +2,8 @@
  *  The harness accepts loopback HTTP only, refuses the live multibox port, and refuses to run when the served bot bundle differs from this worktree's build. */
 
 //   bun run build:bot
-//   bun tools/shantay-pass-route-test.ts --base http://127.0.0.1:8990
-//   bun tools/shantay-pass-route-test.ts --base http://127.0.0.1:8990 --expect-unreachable
+//   bun e2e/shantay-pass-route-test.ts --base http://127.0.0.1:8990
+//   bun e2e/shantay-pass-route-test.ts --base http://127.0.0.1:8990 --expect-unreachable
 import { createHash } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 

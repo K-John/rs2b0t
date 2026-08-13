@@ -1,8 +1,8 @@
 // Run N complete treasure trails back to back and score them (TIER=medium TRAILS=5). Proof: out/clue-trails.json
 // Why: the bank is stocked by hand rather than with `~bank_f2p`, whose max-int stacks refuse further deposits and hang the trail's own bank stop on a deposit that can never land.
 
-//   HEADED=1 SLOWMO=0 bun tools/clue-trails-live.ts
-//   TIER=medium TRAILS=5 bun tools/clue-trails-live.ts
+//   HEADED=1 SLOWMO=0 bun e2e/clue-trails-live.ts
+//   TIER=medium TRAILS=5 bun e2e/clue-trails-live.ts
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import type { Page } from 'playwright-core';
 import { CASKET_IDS, CLUE_DB } from '#/bot/api/ai/clues/data/cluedb.js';

@@ -1,9 +1,9 @@
 /** Local LostCity end-to-end proof for Doric's Quest: [base] staged|natural|all [minutes].
  *  The natural scenario starts in Lumbridge at 10 Hitpoints, every other skill 1, an empty backpack and 2m coins banked. */
 
-//   bun tools/doric-level3-test.ts http://127.0.0.1:8990 staged 12
-//   bun tools/doric-level3-test.ts http://127.0.0.1:8990 natural 30
-//   bun tools/doric-level3-test.ts http://127.0.0.1:8990 all 40
+//   bun e2e/doric-level3-test.ts http://127.0.0.1:8990 staged 12
+//   bun e2e/doric-level3-test.ts http://127.0.0.1:8990 natural 30
+//   bun e2e/doric-level3-test.ts http://127.0.0.1:8990 all 40
 import { createHash } from 'node:crypto';
 import { chromium, type Browser, type Page } from 'playwright-core';
 

@@ -1,7 +1,7 @@
 /** Live staged proof for Death Plateau (#237): [base] [stage].
  *  Stages (death_equiproom): 0 start, 10 Eohric, 20 Harold duty, 40 ale, 50 gamble, 55 IOU, 60 combo, 70 unlocked door. */
 
-//   bun tools/deathplateau-237-live.ts [base] [stage]
+//   bun e2e/deathplateau-237-live.ts [base] [stage]
 import { launchBrowser, positionalArgs } from './lib/harness.js';
 import { cheatQuiet, getServerVarQuiet, mainlandAccount, relog, startScript } from './tutorial/harness.js';
 

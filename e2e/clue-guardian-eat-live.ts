@@ -1,7 +1,7 @@
 // Live proof: a hard-clue dig guardian is fought while eating. Proof: out/clue-guardian-eat-proof.json
 // Why: one SolveClue call spans a full trail, so a host's own Eat task never gets a turn between legs; prayer stays at 1 so Protect from Magic cannot blunt the wizard.
 
-//   HEADED=1 bun tools/clue-guardian-eat-live.ts
+//   HEADED=1 bun e2e/clue-guardian-eat-live.ts
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import type { Page } from 'playwright-core';
 import { HARNESS_VIEWPORT, boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, parseArgs, setSettings } from './lib/harness.js';

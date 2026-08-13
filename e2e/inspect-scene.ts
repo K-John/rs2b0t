@@ -1,7 +1,7 @@
 import { boot, fail, launchBrowser, login, type } from './lib/harness.js';
 
 const arg = (process.argv[2] || '').split(',').map(Number);
-if (arg.length < 2) fail('usage: bun tools/inspect-scene.ts <x,z,level> [locFilter] [npcFilter]');
+if (arg.length < 2) fail('usage: bun e2e/inspect-scene.ts <x,z,level> [locFilter] [npcFilter]');
 const [x, z, level = 0] = arg;
 const locFilter = (process.argv[3] || '').toLowerCase();
 const npcFilter = (process.argv[4] || '').toLowerCase();

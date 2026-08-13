@@ -2,10 +2,10 @@
  *  Needs a botclient with the picker and the collision pack, a basemap preferred, and cheats if tele is used. Proof: out/issue0-map-picker-walkto-e2e-proof.json, screenshots/issue0-map-picker-walkto-e2e-success.png */
 
 //   HEADED=1 BOT_USER=harness1 BOT_PASS=test \
-//     bun tools/map-picker-walkto-e2e-live.ts [http://localhost:8890]
+//     bun e2e/map-picker-walkto-e2e-live.ts [http://localhost:8890]
 
 // Or auto-mint a name (local engine with cheats):
-//   HEADED=1 bun tools/map-picker-walkto-e2e-live.ts http://localhost:8890
+//   HEADED=1 bun e2e/map-picker-walkto-e2e-live.ts http://localhost:8890
 import { boot, cheatQuiet, fail, launchBrowser, login, positionalArgs, setSettings, stopScript } from './lib/harness.js';
 import { createHarnessProof } from './lib/harnessProof.js';
 
@@ -219,7 +219,7 @@ try {
 
     await proof.writeSuccess(page, {
         issue: 0,
-        harness: 'tools/map-picker-walkto-e2e-live.ts',
+        harness: 'e2e/map-picker-walkto-e2e-live.ts',
         basemap: basemapAttr,
         from: startTile,
         picked,

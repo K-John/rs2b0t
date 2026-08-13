@@ -2,14 +2,14 @@
  *  Why: inventory seeds go through the engine cheat `give` and bank seeds through `givebank`; acquire scenarios purge bank tools first so a leftover withdrawal cannot false-PASS, and the bot client is redeployed by hand — tools/deploy-local.sh from this tree is not for live e2e. */
 
 // Usage:
-//   bun tools/gatheringbot-test.ts
-//   bun tools/gatheringbot-test.ts mining fishing
-//   bun tools/gatheringbot-test.ts acquire
-//   bun tools/gatheringbot-test.ts endgame
-//   bun tools/gatheringbot-test.ts mine-bank fish-path-shark
-//   BASE=http://localhost:8888 bun tools/gatheringbot-test.ts
-//   HEADED=1 SLOWMO=200 bun tools/gatheringbot-test.ts mine-bank
-//   BUDGET_S=180 bun tools/gatheringbot-test.ts   # per-scenario seconds (default 150)
+//   bun e2e/gatheringbot-test.ts
+//   bun e2e/gatheringbot-test.ts mining fishing
+//   bun e2e/gatheringbot-test.ts acquire
+//   bun e2e/gatheringbot-test.ts endgame
+//   bun e2e/gatheringbot-test.ts mine-bank fish-path-shark
+//   BASE=http://localhost:8888 bun e2e/gatheringbot-test.ts
+//   HEADED=1 SLOWMO=200 bun e2e/gatheringbot-test.ts mine-bank
+//   BUDGET_S=180 bun e2e/gatheringbot-test.ts   # per-scenario seconds (default 150)
 import type { Page } from 'playwright-core';
 import { launchBrowser, parseArgs } from './lib/harness.js';
 import {

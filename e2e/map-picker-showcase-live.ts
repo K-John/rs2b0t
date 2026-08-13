@@ -1,7 +1,7 @@
 /** Live showcase: login → open the map picker → capture a screenshot for each basemap mode / Worldmap layer combo: [base].
  *  Writes screenshots/issue0-map-picker-showcase-{terrain,labels,key-bank,full,dots}.png and -proof.json. */
 
-//   HEADED=0 bun tools/map-picker-showcase-live.ts [http://localhost:8890]
+//   HEADED=0 bun e2e/map-picker-showcase-live.ts [http://localhost:8890]
 import { mkdir } from 'node:fs/promises';
 import { writeFileSync } from 'node:fs';
 import { boot, fail, launchBrowser, login, positionalArgs } from './lib/harness.js';
@@ -205,7 +205,7 @@ try {
             {
                 issue: 0,
                 slug: 'map-picker-showcase',
-                harness: 'tools/map-picker-showcase-live.ts',
+                harness: 'e2e/map-picker-showcase-live.ts',
                 user,
                 base,
                 shots,

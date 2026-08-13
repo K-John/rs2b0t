@@ -1,11 +1,11 @@
 // Dragon Slayer, one quest at a time: --stage N --var N --oracle N --shield N --goblin N --give --speed 300.
 // Why: `~update_questlist` recounts %qp from completed quests at login, so `qp` is set after the last relog; --give is for wedges, since seeding a stage's items proves nothing about the stages before it.
 
-//   bun tools/dragonslayer-solo-test.ts                     uncheated 0 -> complete
-//   bun tools/dragonslayer-solo-test.ts --stage 2           jump to "spoken to Oziach"
-//   bun tools/dragonslayer-solo-test.ts --stage 3 --var 2   ... with 2 of 3 hull holes patched
-//   bun tools/dragonslayer-solo-test.ts --stage 2 --oracle 3 --shield 1 --goblin 1
-//   bun tools/dragonslayer-solo-test.ts --speed 100         server ms/tick, default 300
+//   bun e2e/dragonslayer-solo-test.ts                     uncheated 0 -> complete
+//   bun e2e/dragonslayer-solo-test.ts --stage 2           jump to "spoken to Oziach"
+//   bun e2e/dragonslayer-solo-test.ts --stage 3 --var 2   ... with 2 of 3 hull holes patched
+//   bun e2e/dragonslayer-solo-test.ts --stage 2 --oracle 3 --shield 1 --goblin 1
+//   bun e2e/dragonslayer-solo-test.ts --speed 100         server ms/tick, default 300
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 

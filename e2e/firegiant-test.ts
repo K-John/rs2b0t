@@ -1,7 +1,7 @@
 // Live smoke for FireGiant: [base] [user] [budget-min] [style]. PASS on reaching the dungeon (z > 9000) and landing a kill.
 // Why: `~completequests` opens two blocking p_choice2 dialogs and completes nothing; varp 65 never reaches the client so the setvar needs a relog; `~item`/`~bankitem` guard on p_finduid and return silently while busy, and `~maxme` locks the player through a flood of level-ups — seed first, max last, verify.
 
-// Usage: bun tools/firegiant-test.ts [base] [user] [budget-min] [style]
+// Usage: bun e2e/firegiant-test.ts [base] [user] [budget-min] [style]
 
 import { launchBrowser, positionalArgs } from './lib/harness.js';
 import { cheatQuiet, getServerVarQuiet, mainlandAccount, relog, startScript } from './tutorial/harness.js';

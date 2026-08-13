@@ -1,9 +1,9 @@
 /** Live Family Crest harness (#210): --stage N --until N --minutes N --teleports. Members-only, so the :8890 world, not the :8888 sim.
  *  Why: `--stage` sets `%crestquest` and relogs — update_questlist only recolours the journal entry at login, and the module reads the tab rather than the varp. */
 
-//   HEADED=1 bun tools/family-crest-210-live.ts --stage 7 --minutes 25
-//   HEADED=1 bun tools/family-crest-210-live.ts --stage 0 --minutes 90     # full run
-//   HEADED=1 bun tools/family-crest-210-live.ts --stage 0 --teleports       # + tele kit
+//   HEADED=1 bun e2e/family-crest-210-live.ts --stage 7 --minutes 25
+//   HEADED=1 bun e2e/family-crest-210-live.ts --stage 0 --minutes 90     # full run
+//   HEADED=1 bun e2e/family-crest-210-live.ts --stage 0 --teleports       # + tele kit
 import type { Page } from 'playwright-core';
 import { launchBrowser } from './lib/harness.js';
 import {

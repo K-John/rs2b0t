@@ -1,7 +1,7 @@
 // Live proof for #369 / #320 — the baked FireGiant Baxtorian sequence with no mid-path cheats.
 // Why: only the raft board is teleported to, and every rope hop needs the south walk between it.
 
-//   ~/redeploy.sh && HEADED=1 bun tools/baxtorian-rope-369-live.ts
+//   ~/redeploy.sh && HEADED=1 bun e2e/baxtorian-rope-369-live.ts
 import type { Page } from 'playwright-core';
 import { launchBrowser, parseArgs } from './lib/harness.js';
 import { createHarnessProof } from './lib/harnessProof.js';

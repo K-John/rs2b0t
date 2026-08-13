@@ -1,11 +1,11 @@
 /** End-to-end hard-trail run against the local server — one trail of up to six legs, each handing back a random new hard clue: --id, --mins, --trails, --speed, --no-teleports.
  *  HEADED=1 (optionally SLOWMO=ms) opens a visible window to watch a trail run. */
 
-//   bun tools/clues/hardclue-e2e.ts                     # start from a random hard clue
-//   bun tools/clues/hardclue-e2e.ts --id 2794 --mins 45 # start from a chosen one
-//   bun tools/clues/hardclue-e2e.ts --trails 3          # run three trails back to back
-//   bun tools/clues/hardclue-e2e.ts --speed 150         # 4x world tick rate
-//   bun tools/clues/hardclue-e2e.ts --no-teleports      # force everything on foot
+//   bun e2e/clues/hardclue-e2e.ts                     # start from a random hard clue
+//   bun e2e/clues/hardclue-e2e.ts --id 2794 --mins 45 # start from a chosen one
+//   bun e2e/clues/hardclue-e2e.ts --trails 3          # run three trails back to back
+//   bun e2e/clues/hardclue-e2e.ts --speed 150         # 4x world tick rate
+//   bun e2e/clues/hardclue-e2e.ts --no-teleports      # force everything on foot
 import fs from 'node:fs';
 
 import type { Browser, Page } from 'playwright-core';

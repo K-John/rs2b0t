@@ -2,9 +2,9 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, posix, relative } from 'node:path';
 
-export const SPEC = /(?:from\s+|import\(\s*)['"]([^'"]+)['"]/g;
+export const SPEC = /(?:from\s+|import\s*\(\s*|require\s*\(\s*|import\s+)['"]([^'"]+)['"]/g;
 
-/** Repo-root path a relative specifier names; null when it is bare, aliased or not TypeScript. */
+/** Repo-root path a relative specifier names; null when it is bare, aliased or names a non-TypeScript file. */
 export function resolveSpec(fromFile: string, spec: string): string | null {
     if (!spec.startsWith('.')) {
         return null;
@@ -13,7 +13,11 @@ export function resolveSpec(fromFile: string, spec: string): string | null {
     if (target.endsWith('.js')) {
         return `${target.slice(0, -3)}.ts`;
     }
-    return target.endsWith('.ts') ? target : null;
+    if (target.endsWith('.ts')) {
+        return target;
+    }
+    // Why: moduleResolution "bundler" makes the extensionless spelling idiomatic, and it typechecks.
+    return posix.basename(target).includes('.') ? null : `${target}.ts`;
 }
 
 function depGraph(sources: Map<string, string>): Map<string, Set<string>> {
@@ -119,6 +123,60 @@ export function importsInto(fromPrefix: string, toPrefix: string, sources: Map<s
     return found.sort();
 }
 
+/** Files under `fromPrefix` holding a string literal that names a path inside `toPrefix`, as `file\tliteral`.
+ *  Why: a specifier assembled by concatenation never appears as one literal, so specifier analysis misses it. */
+export function mentionsAcross(
+    fromPrefix: string,
+    toPrefix: string,
+    sources: Map<string, string>,
+    exempt: Set<string>
+): string[] {
+    const needle = `${toPrefix}/`;
+    const found: string[] = [];
+    for (const [file, src] of sources) {
+        if (!file.startsWith(`${fromPrefix}/`) || exempt.has(file)) {
+            continue;
+        }
+        for (const lit of src.match(/'[^'\n]*'|"[^"\n]*"/g) ?? []) {
+            const body = lit.slice(1, -1);
+            // Why: only a relative fragment can be concatenated into a working specifier, so prose
+            // naming an e2e command is not a violation.
+            if (body.includes(needle) && /^\.{1,2}\//.test(body)) {
+                found.push(`${file}\t${body}`);
+            }
+        }
+    }
+    return found.sort();
+}
+
+/** Files under `prefix` that drive a browser, which belong on the e2e side whatever they import.
+ *  Why: it matches an import of playwright rather than the word, so naming a symbol after it is not a hit. */
+export function playwrightUnder(prefix: string, sources: Map<string, string>): string[] {
+    const DRIVES = /(?:from\s+|import\s*\(\s*|require\s*\(\s*|import\s+)['"]playwright|chromium\.launch\s*\(/;
+    return [...sources]
+        .filter(([f, s]) => f.startsWith(`${prefix}/`) && DRIVES.test(s))
+        .map(([f]) => f)
+        .sort();
+}
+
+/** Files transitively importing `entry`. This is the violation set; ABI modules `entry` imports are not. */
+export function consumersOf(entry: string, sources: Map<string, string>): string[] {
+    const dep = depGraph(sources);
+    const reaches = (file: string, seen: Set<string>): boolean => {
+        if (seen.has(file)) {
+            return false;
+        }
+        seen.add(file);
+        for (const d of dep.get(file) ?? []) {
+            if (d === entry || reaches(d, seen)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    return [...sources.keys()].filter(f => reaches(f, new Set())).sort();
+}
+
 export function misnamedUnder(prefix: string, files: string[]): string[] {
     return files
         .filter(f => f.startsWith(`${prefix}/`) && (f.endsWith('-test.ts') || f.endsWith('-live.ts')))
@@ -144,7 +202,7 @@ export function readTree(dir: string): Map<string, string> {
 }
 
 if (import.meta.main) {
-    const entry = process.argv.includes('--after') ? 'e2e/lib/harness.ts' : 'tools/lib/harness.ts';
+    const entry = process.argv.includes('--after') ? 'e2e/lib/harness.ts' : 'e2e/lib/harness.ts';
     const sources = readTree('tools');
     const { move, heldBack } = liveClosure(entry, sources, readTree('test'));
     if (process.argv.includes('--plan')) {

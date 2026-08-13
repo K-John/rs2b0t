@@ -2,10 +2,10 @@
  *  Why: item seeds go through the engine cheat `give <obj> <qty>` rather than `~item`/`~bankitem`, and the bot client is redeployed by hand — tools/deploy-local.sh from this tree is not for live e2e. */
 
 // Usage:
-//   bun tools/thievingbot-test.ts
-//   bun tools/thievingbot-test.ts http://localhost:8888
-//   BASE=http://localhost:8890 BUDGET_S=900 bun tools/thievingbot-test.ts
-//   HEADED=1 SLOWMO=200 bun tools/thievingbot-test.ts
+//   bun e2e/thievingbot-test.ts
+//   bun e2e/thievingbot-test.ts http://localhost:8888
+//   BASE=http://localhost:8890 BUDGET_S=900 bun e2e/thievingbot-test.ts
+//   HEADED=1 SLOWMO=200 bun e2e/thievingbot-test.ts
 import type { Page } from 'playwright-core';
 import { launchBrowser, parseArgs } from './lib/harness.js';
 import { cheatQuiet, mainlandAccount, startScript } from './tutorial/harness.js';

@@ -25,16 +25,41 @@ Why a test rather than `no-restricted-imports`: membership is transitive through
 the harness ABI, and ESLint globs match one specifier at a time — the same
 reason the contribution boundary sits outside the ESLint config.
 
+A fourth rule: no file under `tools/` may import `playwright`, whatever else it
+imports. `e2e/clues/live-clue-sweep.ts` escaped the first draft on two counts
+at once — it hand-rolled `chromium.launch` instead of importing the harness ABI,
+so the closure never reached it, and its name ends `-sweep.ts`, so the suffix
+rule did not match.
+
 Why the fence checks specifiers rather than the closure: the closure drops edges
 that leave its source map, which is what keeps `src/` out of it. Reading only
 `tools/`, an import of `e2e/lib/harness.ts` resolves to a path outside the map,
 the edge disappears, and the closure reports nothing. The first draft of this
-fence was inert for that reason and the probe below caught it.
+fence was inert for that reason.
+
+The transitive rule reads `consumersOf`, not `liveClosure().move`. `move`
+includes the ABI that `e2e/` imports, which is the permitted direction, so
+filtering it flags the held-back corpus builders as violations.
+
+`SPEC` covers `from '…'`, bare `import '…'`, `import('…')` and `require('…')`,
+and `resolveSpec` resolves extensionless specifiers, because
+`moduleResolution: "bundler"` makes that spelling idiomatic and it typechecks.
+A specifier assembled by concatenation never appears as one literal, so `mentionsAcross`
+also rejects any relative literal naming an `e2e/` path. Prose naming an `e2e`
+command is not a violation — only a literal starting `./` or `../` can be
+concatenated into a working specifier.
 
 | Rule | Probe |
 |---|---|
-| boundary | `printf "import { boot } from '../e2e/lib/harness.js';\n" > tools/probe-fence.ts` |
+| boundary | `printf "import { boot } from '../e2e/lib/harness';\n" > tools/probe-fence.ts` |
+| concatenation | `printf "const s = '../e2e/lib/' + 'harness.js';\n" > tools/probe-fence.ts` |
+| browser | `printf "import { chromium } from 'playwright-core';\n" > tools/probe-fence.ts` |
 | suffix | `touch tools/probe-fence-live.ts` |
 | unit-run | `touch e2e/probe-fence.test.ts` |
 
 Each probe fails one named test. Delete the file afterwards.
+
+Eleven probe forms are verified against this fence: extensionless, side-effect,
+`require`, concatenated, re-export, multi-line, an `e2e/` file other than the
+entry, a hand-rolled browser, a nested-directory crossing, both filename
+suffixes, and both Bun test-name forms.

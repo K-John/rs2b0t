@@ -1,6 +1,6 @@
 // Live proof for #432 — AIOQuester "Skip quest": [base].
 
-//   bun tools/aio-skip-quest-432-live.ts [http://127.0.0.1:8888]
+//   bun e2e/aio-skip-quest-432-live.ts [http://127.0.0.1:8888]
 import type { Page } from 'playwright-core';
 import { launchBrowser, positionalArgs } from './lib/harness.js';
 import { cheatQuiet, mainlandAccount, startScript, teleTo } from './tutorial/harness.js';

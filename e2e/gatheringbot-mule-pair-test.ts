@@ -2,8 +2,8 @@
  *  BASE / BUDGET_S from the environment; redeploy the bot client first when GatheringBot / Trade / mule code changes. */
 
 // Usage:
-//   HEADED=1 bun tools/gatheringbot-mule-pair-test.ts
-//   BASE=http://localhost:8890 BUDGET_S=180 bun tools/gatheringbot-mule-pair-test.ts
+//   HEADED=1 bun e2e/gatheringbot-mule-pair-test.ts
+//   BASE=http://localhost:8890 BUDGET_S=180 bun e2e/gatheringbot-mule-pair-test.ts
 
 // Redeploy the bot client first when GatheringBot / Trade / mule code changes:
 //   ~/redeploy.sh

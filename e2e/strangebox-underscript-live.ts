@@ -1,7 +1,7 @@
 // Live proof — Strange box ("Mysterious box") random event under a running script: [base].
 // Why: the engine replicates the box every ~90s and on every wrong answer, up to a 28-slot pack, so the guardian/Supervisor must solve it mid-run and let the script resume.
 
-//   bun tools/strangebox-underscript-live.ts [http://localhost:8888]
+//   bun e2e/strangebox-underscript-live.ts [http://localhost:8888]
 import { launchBrowser, parseArgs } from './lib/harness.js';
 import { cheatQuiet, mainlandAccount, startScript } from './tutorial/harness.js';
 

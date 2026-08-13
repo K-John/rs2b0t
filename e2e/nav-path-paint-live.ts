@@ -1,10 +1,10 @@
 /** Focused live harness for explore path paint: CASES=…, LIMIT=…, PATH_PAINT_SCENE_EXPAND=0. Operator only, and needs explore/client-path-paint redeployed.
- *  Watches PathPublish during each leg and reports maxTiles + maxClientSeg; red = pack path, cyan = last walk-click scene BFS segment. Shared harness: tools/lib/navLiveHarness.ts */
+ *  Watches PathPublish during each leg and reports maxTiles + maxClientSeg; red = pack path, cyan = last walk-click scene BFS segment. Shared harness: e2e/lib/navLiveHarness.ts */
 
 //   ~/redeploy.sh   # on explore/client-path-paint
-//   HEADED=1 bun tools/nav-path-paint-live.ts
-//   HEADED=1 CASES=lumb-dray,varrock-edge LIMIT=1 bun tools/nav-path-paint-live.ts
-//   HEADED=1 PATH_PAINT_SCENE_EXPAND=0 bun tools/nav-path-paint-live.ts  # Chebyshev expand only
+//   HEADED=1 bun e2e/nav-path-paint-live.ts
+//   HEADED=1 CASES=lumb-dray,varrock-edge LIMIT=1 bun e2e/nav-path-paint-live.ts
+//   HEADED=1 PATH_PAINT_SCENE_EXPAND=0 bun e2e/nav-path-paint-live.ts  # Chebyshev expand only
 import type { Page } from 'playwright-core';
 import { launchBrowser, parseArgs } from './lib/harness.js';
 import { createHarnessProof } from './lib/harnessProof.js';

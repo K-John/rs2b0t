@@ -2,10 +2,10 @@
  *  Why: startup logs out through IF_BUTTON com 2458 so mainlandAccount relogs in ~9s rather than holding a long unclean disconnect; STUCK_ABORT kills a leg whose wall time far exceeds the path-cost estimate while the character has not moved (door thrash), and HARNESS_SUITE_ABORT stops the suite on harness death alone — product OD failures continue. */
 
 //   ~/redeploy.sh
-//   HEADED=1 SEGMENT=fishing LIMIT=0 bun tools/nav-script-travel-live.ts
-//   HEADED=1 SEGMENT=clues LIMIT=20 BUDGET_S=300 bun tools/nav-script-travel-live.ts
-//   HEADED=1 SEGMENT=quests OFFSET=0 LIMIT=50 bun tools/nav-script-travel-live.ts
-//   HEADED=1 SEGMENT=gathering-all bun tools/nav-script-travel-live.ts
+//   HEADED=1 SEGMENT=fishing LIMIT=0 bun e2e/nav-script-travel-live.ts
+//   HEADED=1 SEGMENT=clues LIMIT=20 BUDGET_S=300 bun e2e/nav-script-travel-live.ts
+//   HEADED=1 SEGMENT=quests OFFSET=0 LIMIT=50 bun e2e/nav-script-travel-live.ts
+//   HEADED=1 SEGMENT=gathering-all bun e2e/nav-script-travel-live.ts
 import fs from 'node:fs';
 import path from 'node:path';
 

@@ -1,6 +1,6 @@
 // Live proof #374 — Miner at Fight Arena prefers nearest iron (not a far rock).
 //
-//   bun tools/fight-arena-iron-374-live.ts [http://localhost:8890]
+//   bun e2e/fight-arena-iron-374-live.ts [http://localhost:8890]
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs } from './lib/harness.js';
 
 const args = positionalArgs(process.argv.slice(2), 'http://localhost:8890');

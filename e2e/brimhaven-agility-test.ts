@@ -1,6 +1,6 @@
 // Issue #429 — live BrimhavenAgility proof: [base].
 
-//   bun tools/brimhaven-agility-test.ts [http://localhost:8888]
+//   bun e2e/brimhaven-agility-test.ts [http://localhost:8888]
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs, setSettings } from './lib/harness.js';
 
 const args = positionalArgs(process.argv.slice(2), 'http://localhost:8888');

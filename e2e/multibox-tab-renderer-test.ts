@@ -1,7 +1,7 @@
 // Issue #314 — a background tab must stop its bots drawing, and returning to it must resume what was running before: [base].
 // Measured with each bot's own RenderGate frame counter rather than a proxy for it.
 
-//   bun tools/multibox-tab-renderer-test.ts [http://localhost:8888]
+//   bun e2e/multibox-tab-renderer-test.ts [http://localhost:8888]
 import { fail, launchBrowser, positionalArgs } from './lib/harness.js';
 
 const args = positionalArgs(process.argv.slice(2), 'http://localhost:8888');

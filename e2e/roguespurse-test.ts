@@ -1,10 +1,10 @@
 // Live RoguesPurse run: --base --minutes --at mainland --fare 100 --speed 100 --bank-coins --die-after 60 --stage 0 --no-maxme.
 // Why: herbs/tick is the metric that matters — it is immune to `::speed`, and 1.0 is the pipelined ceiling (one search + identify + drop per game tick).
 
-//   bun tools/roguespurse-test.ts --base http://localhost:8888 --minutes 4
-//   bun tools/roguespurse-test.ts --at mainland --fare 100 --minutes 25 --speed 100
-//   bun tools/roguespurse-test.ts --bank-coins --die-after 60 --minutes 30   # deathwalk
-//   bun tools/roguespurse-test.ts --stage 0 --no-maxme --minutes 2   # gate rejection
+//   bun e2e/roguespurse-test.ts --base http://localhost:8888 --minutes 4
+//   bun e2e/roguespurse-test.ts --at mainland --fare 100 --minutes 25 --speed 100
+//   bun e2e/roguespurse-test.ts --bank-coins --die-after 60 --minutes 30   # deathwalk
+//   bun e2e/roguespurse-test.ts --stage 0 --no-maxme --minutes 2   # gate rejection
 import { fail, launchBrowser } from './lib/harness.js';
 import { cheatQuiet, mainlandAccount, relog, startScript } from './tutorial/harness.js';
 

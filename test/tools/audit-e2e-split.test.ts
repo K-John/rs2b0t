@@ -1,11 +1,17 @@
 import { describe, expect, test } from 'bun:test';
 import {
     bunTestNamesUnder,
+    consumersOf,
     importsInto,
     liveClosure,
+    mentionsAcross,
     misnamedUnder,
+    playwrightUnder,
     resolveSpec
 } from '../../tools/audit-e2e-split.js';
+
+// Why: these fixtures are synthetic path strings rather than a picture of the tree, and they model
+// the pre-move layout deliberately — that is the shape the closure was written to resolve.
 
 describe('resolveSpec', () => {
     test('resolves a sibling .js specifier to its .ts path', () => {
@@ -22,6 +28,14 @@ describe('resolveSpec', () => {
 
     test('ignores an aliased specifier', () => {
         expect(resolveSpec('tools/x.ts', '#/client/io/Packet.js')).toBeNull();
+    });
+
+    test('resolves an extensionless specifier to its .ts path', () => {
+        expect(resolveSpec('tools/x.ts', '../e2e/lib/harness')).toBe('e2e/lib/harness.ts');
+    });
+
+    test('ignores a specifier naming a non-TypeScript extension', () => {
+        expect(resolveSpec('tools/x.ts', './routes.json')).toBeNull();
     });
 });
 
@@ -131,29 +145,32 @@ describe('liveClosure', () => {
     });
 });
 
+describe('consumersOf', () => {
+    test('names a file transitively importing the entry, never the entry ABI', () => {
+        const sources = new Map([
+            ['e2e/lib/harness.ts', ''],
+            ['tools/bad.ts', "import { boot } from '../e2e/lib/harness.js';"],
+            ['e2e/x-live.ts', "import { boot } from './lib/harness.js';\nimport { c } from '../tools/nav/corpus.js';"],
+            ['tools/nav/corpus.ts', '']
+        ]);
+        expect(consumersOf('e2e/lib/harness.ts', sources).filter(f => f.startsWith('tools/')))
+            .toEqual(['tools/bad.ts']);
+    });
+});
+
 describe('importsInto', () => {
     test('flags a tools file importing across into e2e', () => {
-        const sources = new Map([
-            ['tools/probe-fence.ts', "import { boot } from '../e2e/lib/harness.js';"]
-        ]);
-        expect(importsInto('tools', 'e2e', sources)).toEqual([
-            'tools/probe-fence.ts\t../e2e/lib/harness.js'
-        ]);
+        const sources = new Map([['tools/probe.ts', "import { boot } from '../e2e/lib/harness.js';"]]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual(['tools/probe.ts\t../e2e/lib/harness.js']);
     });
 
     test('flags a nested tools file reaching across', () => {
-        const sources = new Map([
-            ['tools/nav/x.ts', "import { boot } from '../../e2e/lib/harness.js';"]
-        ]);
-        expect(importsInto('tools', 'e2e', sources)).toEqual([
-            'tools/nav/x.ts\t../../e2e/lib/harness.js'
-        ]);
+        const sources = new Map([['tools/nav/x.ts', "import { boot } from '../../e2e/lib/harness.js';"]]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual(['tools/nav/x.ts\t../../e2e/lib/harness.js']);
     });
 
     test('ignores imports that stay inside the prefix', () => {
-        const sources = new Map([
-            ['tools/gen-itemdb.ts', "import { parse } from './items/parse.js';"]
-        ]);
+        const sources = new Map([['tools/gen-itemdb.ts', "import { parse } from './items/parse.js';"]]);
         expect(importsInto('tools', 'e2e', sources)).toEqual([]);
     });
 
@@ -165,10 +182,72 @@ describe('importsInto', () => {
     });
 
     test('catches a dynamic import across the boundary', () => {
-        const sources = new Map([
-            ['tools/x.ts', "const m = await import('../e2e/lib/harness.js');"]
-        ]);
+        const sources = new Map([['tools/x.ts', "const m = await import('../e2e/lib/harness.js');"]]);
         expect(importsInto('tools', 'e2e', sources)).toEqual(['tools/x.ts\t../e2e/lib/harness.js']);
+    });
+
+    test('catches an extensionless import', () => {
+        const sources = new Map([['tools/x.ts', "import { boot } from '../e2e/lib/harness';"]]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual(['tools/x.ts\t../e2e/lib/harness']);
+    });
+
+    test('catches a side-effect import carrying no from clause', () => {
+        const sources = new Map([['tools/x.ts', "import '../e2e/lib/harness.js';"]]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual(['tools/x.ts\t../e2e/lib/harness.js']);
+    });
+
+    test('catches a require call', () => {
+        const sources = new Map([['tools/x.ts', "const h = require('../e2e/lib/harness.js');"]]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual(['tools/x.ts\t../e2e/lib/harness.js']);
+    });
+
+    test('catches a re-export', () => {
+        const sources = new Map([['tools/x.ts', "export { boot } from '../e2e/lib/harness.js';"]]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual(['tools/x.ts\t../e2e/lib/harness.js']);
+    });
+
+    test('catches an import of an e2e file other than the entry', () => {
+        const sources = new Map([['tools/x.ts', "import { p } from '../e2e/lib/harnessProof.js';"]]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual(['tools/x.ts\t../e2e/lib/harnessProof.js']);
+    });
+});
+
+describe('mentionsAcross', () => {
+    test('catches a specifier assembled by concatenation', () => {
+        const sources = new Map([['tools/x.ts', "const s = '../e2e/lib/' + 'harness.js';\nawait import(s);"]]);
+        expect(mentionsAcross('tools', 'e2e', sources, new Set())).toEqual(['tools/x.ts\t../e2e/lib/']);
+    });
+
+    test('exempts a named file', () => {
+        const sources = new Map([['tools/audit-e2e-split.ts', "const entry = 'e2e/lib/harness.ts';"]]);
+        expect(mentionsAcross('tools', 'e2e', sources, new Set(['tools/audit-e2e-split.ts']))).toEqual([]);
+    });
+
+    test('ignores a bare directory name carrying no separator', () => {
+        const sources = new Map([['tools/e2e.ts', "readdirSync('e2e');"]]);
+        expect(mentionsAcross('tools', 'e2e', sources, new Set())).toEqual([]);
+    });
+
+    test('ignores prose naming an e2e command', () => {
+        const sources = new Map([
+            ['tools/nav/script-route-corpus.ts', "description: 'Live: HARD=1 bun e2e/nav-script-routes-live.ts'"]
+        ]);
+        expect(mentionsAcross('tools', 'e2e', sources, new Set())).toEqual([]);
+    });
+});
+
+describe('playwrightUnder', () => {
+    test('flags a file driving a browser outside the e2e tree', () => {
+        const sources = new Map([
+            ['tools/clues/live-clue-sweep.ts', "import { chromium } from 'playwright-core';"],
+            ['tools/gen-itemdb.ts', "import { parse } from './items/parse.js';"]
+        ]);
+        expect(playwrightUnder('tools', sources)).toEqual(['tools/clues/live-clue-sweep.ts']);
+    });
+
+    test('does not flag a file naming playwright only in a symbol', () => {
+        const sources = new Map([['tools/audit-e2e-split.ts', 'export function playwrightUnder() {}']]);
+        expect(playwrightUnder('tools', sources)).toEqual([]);
     });
 });
 

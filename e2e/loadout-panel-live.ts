@@ -1,7 +1,7 @@
 /** Live proof for the loadout panel: open it in a client, define a loadout, confirm it survives a reload.
  *  Why: item icons only render against a loaded cache, which is the half a DOM test cannot cover. */
 
-//   HEADED=1 bun tools/loadout-panel-live.ts
+//   HEADED=1 bun e2e/loadout-panel-live.ts
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 

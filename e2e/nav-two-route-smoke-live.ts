@@ -2,7 +2,7 @@
  *  Content coords: elkoy entrance 0_39_49_8_56, maze land 0_39_49_19_23, balancing ledge 2580,9520 / 2580,9512; the web needs a plain Knife. PATH_PAINT=1 (default) → showNavPath + navCameraFollow + red pack / cyan client. */
 
 //   ~/redeploy.sh
-//   HEADED=1 bun tools/nav-two-route-smoke-live.ts [http://localhost:8890]
+//   HEADED=1 bun e2e/nav-two-route-smoke-live.ts [http://localhost:8890]
 import type { Page } from 'playwright-core';
 import { launchBrowser, parseArgs } from './lib/harness.js';
 import { createHarnessProof } from './lib/harnessProof.js';

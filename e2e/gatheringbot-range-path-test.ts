@@ -4,9 +4,9 @@
 // Why: it catches door/approach regressions (Seers Large door) without a full bank-home loop.
 
 // Usage:
-//   HEADED=1 bun tools/gatheringbot-range-path-test.ts
-//   BUDGET_S=120 bun tools/gatheringbot-range-path-test.ts
-//   CAMPS=Catherby,Seers bun tools/gatheringbot-range-path-test.ts
+//   HEADED=1 bun e2e/gatheringbot-range-path-test.ts
+//   BUDGET_S=120 bun e2e/gatheringbot-range-path-test.ts
+//   CAMPS=Catherby,Seers bun e2e/gatheringbot-range-path-test.ts
 
 // Redeploy first when GatheringBot / CookingRanges / walkOpening change:
 //   ~/redeploy.sh
