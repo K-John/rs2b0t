@@ -2,18 +2,18 @@ import { TaskBot, type Task } from '../../api/bot/Bot.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
 import Tile from '../../geometry/Tile.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Bank, withdrawOp } from '../../api/bank/Bank.js';
 import { Skills } from '../../api/skills/Skills.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
 import { Locs } from '../../api/locs/Locs.js';
-import { walkOpening } from '../../engines/nav/walkOpening.js';
+import { walkOpening } from '../../event/webwalk/walkOpening.js';
 import { EventSignal } from '../../api/execution/EventSignal.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
-import { fmtDuration } from '../../api/paint/paintLogic.js';
+import { fmtDuration } from '../../paint/paintLogic.js';
 
 const RESPIN_AFTER_TICKS = 6;
 

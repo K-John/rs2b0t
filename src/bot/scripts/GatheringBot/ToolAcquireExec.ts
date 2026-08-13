@@ -6,7 +6,7 @@ import { Game } from '../../api/game/Game.js';
 import Tile from '../../geometry/Tile.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { Bank, withdrawOp } from '../../api/bank/Bank.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Equipment } from '../../api/equipment/Equipment.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Shop } from '../../api/shop/Shop.js';

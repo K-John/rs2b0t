@@ -1,5 +1,5 @@
 import { actions, reader } from '../../adapter/ClientAdapter.js';
-import { Input } from '../input/Input.js';
+import { Input } from '../../input/Input.js';
 import { Execution } from '../execution/Execution.js';
 import { Npcs } from '../npcs/Npcs.js';
 import { Inventory } from '../inventory/Inventory.js';

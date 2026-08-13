@@ -3,20 +3,20 @@ import { EventSignal } from '../../api/execution/EventSignal.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
 import { Inventory, type InvItem } from '../../api/inventory/Inventory.js';
-import { Paint } from '../../api/paint/Paint.js';
-import { Quests } from '../../api/questlog/Quests.js';
+import { Paint } from '../../paint/Paint.js';
+import { Quests } from '../../api/ui/questlog/Quests.js';
 import { Skills } from '../../api/skills/Skills.js';
 import { Sustain } from '../../api/sustain/Sustain.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
-import { COIN_FLOAT, PROVISION_BANK, QuestEngine } from '../../engines/quests/engine/QuestEngine.js';
+import { COIN_FLOAT, PROVISION_BANK, QuestEngine } from '../../api/ai/quests/engine/QuestEngine.js';
 import type Tile from '../../geometry/Tile.js';
-import { executeStep } from '../../engines/quests/exec/steps.js';
-import { QUEST_DEFS, defById } from '../../engines/quests/defs/index.js';
-import { QuestFood } from '../../engines/quests/food.js';
-import { QuestLoadout } from '../../engines/quests/gear.js';
+import { executeStep } from '../../api/ai/quests/exec/steps.js';
+import { QUEST_DEFS, defById } from '../../api/ai/quests/defs/index.js';
+import { QuestFood } from '../../api/ai/quests/food.js';
+import { QuestLoadout } from '../../api/ai/quests/gear.js';
 import { foodOf } from '../../api/loadout/loadoutPlan.js';
 import { LOADOUT_SETTING, selectedLoadout } from '../../api/loadout/loadoutSetting.js';
-import type { QueueRow, QueueStatus } from '../../engines/quests/engine/queue.js';
+import type { QueueRow, QueueStatus } from '../../api/ai/quests/engine/queue.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import {
@@ -200,6 +200,10 @@ export default class AIOQuester extends TaskBot {
         const d = this.died;
         this.died = false;
         return d;
+    }
+
+    finish(reason: string): void {
+        ScriptRunner.stop(reason);
     }
 
     override onPaint(ctx: CanvasRenderingContext2D): void {

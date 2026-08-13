@@ -17,20 +17,20 @@ import {
 import { Autocast } from '../../api/magic/Autocast.js';
 import { castsAvailable, runeWithdrawList } from '../../api/combat/CombatStyleLogic.js';
 import { SPELL_DB } from '../../data/spelldb.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { GroundItems } from '../../api/grounditems/GroundItems.js';
 import { Npcs, type Npc } from '../../api/npcs/Npcs.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Equipment } from '../../api/equipment/Equipment.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { Skills } from '../../api/skills/Skills.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { CANT_REACH, GameMessages } from '../../api/chatbox/gameMessages.js';
 import { RecoveryHints } from '../../runtime/RecoveryHints.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
-import { fmtDuration } from '../../api/paint/paintLogic.js';
+import { fmtDuration } from '../../paint/paintLogic.js';
 import { Reach } from '../../api/walking/Reach.js';
 
 const COMBAT_SKILLS = ['attack', 'strength', 'defence', 'hitpoints', 'ranged', 'magic'];

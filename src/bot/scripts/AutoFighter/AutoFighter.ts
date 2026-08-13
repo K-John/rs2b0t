@@ -16,12 +16,12 @@ import { Autocast } from '../../api/magic/Autocast.js';
 import { castsAvailable, runeWithdrawList } from '../../api/combat/CombatStyleLogic.js';
 import { foodHealAmount } from '../../api/combat/food.js';
 import { SPELL_DB } from '../../data/spelldb.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Skills } from '../../api/skills/Skills.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Equipment } from '../../api/equipment/Equipment.js';
 import { Bank } from '../../api/bank/Bank.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { EventSignal } from '../../api/execution/EventSignal.js';
@@ -47,9 +47,9 @@ import {
     START_POSITION,
     wantsAutoFighterLoot
 } from './AutoFighterData.js';
-import { SolveClue } from '../../engines/clues/SolveClue.js';
-import { paintClueProgress } from '../../engines/clues/cluePaint.js';
-import { fmtDuration } from '../../api/paint/paintLogic.js';
+import { SolveClue } from '../../api/ai/clues/SolveClue.js';
+import { paintClueProgress } from '../../api/ai/clues/cluePaint.js';
+import { fmtDuration } from '../../paint/paintLogic.js';
 import { Reach } from '../../api/walking/Reach.js';
 import { RANDOM_EVENT_CASKET_ID } from '../../api/bank/Banking.js';
 import { scriptFood } from '../../api/loadout/loadoutPlan.js';

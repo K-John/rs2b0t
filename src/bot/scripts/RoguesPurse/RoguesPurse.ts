@@ -7,13 +7,13 @@ import type Tile from '../../geometry/Tile.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { DeathRecovery } from '../../api/tasks/DeathRecovery.js';
 import { Bank } from '../../api/bank/Bank.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { Skills } from '../../api/skills/Skills.js';
-import { fmtDuration } from '../../api/paint/paintLogic.js';
+import { fmtDuration } from '../../paint/paintLogic.js';
 import { Locs, type Loc } from '../../api/locs/Locs.js';
-import { WalkExecutor } from '../../engines/nav/WalkExecutor.js';
+import { WalkExecutor } from '../../event/webwalk/WalkExecutor.js';
 import {
     JUNGLE_HERBS,
     JUNGLE_POTION_QUEST,
@@ -21,8 +21,8 @@ import {
     enterPothole,
     inCaves,
     readJungleProgress
-} from '../../engines/quests/defs/junglepotion.js';
-import { settleScene } from '../../engines/quests/exec/prompts.js';
+} from '../../api/ai/quests/defs/junglepotion.js';
+import { settleScene } from '../../api/ai/quests/exec/prompts.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import {
     COINS,

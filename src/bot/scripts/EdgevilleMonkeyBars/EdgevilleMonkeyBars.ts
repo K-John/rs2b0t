@@ -5,7 +5,7 @@ import Tile from '../../geometry/Tile.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { Skills } from '../../api/skills/Skills.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { Locs, type Loc } from '../../api/locs/Locs.js';
 import { actions, reader } from '../../adapter/ClientAdapter.js';

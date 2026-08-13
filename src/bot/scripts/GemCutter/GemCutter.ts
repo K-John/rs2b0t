@@ -4,12 +4,12 @@ import { Game } from '../../api/game/Game.js';
 import { Inventory, type InvItem } from '../../api/inventory/Inventory.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { Skills } from '../../api/skills/Skills.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import { nearestBank } from '../../api/bank/BankLocations.js';
-import { fmtDuration } from '../../api/paint/paintLogic.js';
+import { fmtDuration } from '../../paint/paintLogic.js';
 import {
     CHISEL_ID,
     GEM_OPTIONS,

@@ -6,7 +6,7 @@ import { Game } from '#/bot/api/game/Game.js';
 import { Bank } from '#/bot/api/bank/Bank.js';
 import { InvItem, Inventory } from '#/bot/api/inventory/Inventory.js';
 import { Skills } from '#/bot/api/skills/Skills.js';
-import { Input } from '#/bot/api/input/Input.js';
+import { Input } from '#/bot/input/Input.js';
 import { ScriptRunner } from '#/bot/runtime/ScriptRunner.js';
 import { SettingsBag } from '#/bot/runtime/Settings.js';
 import LeatherCrafter from '#/bot/scripts/LeatherCrafter/LeatherCrafter.js';

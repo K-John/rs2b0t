@@ -2,7 +2,7 @@
 
 # Quest exec primitives
 
-[`exec/primitives.ts`](../../src/bot/engines/quests/exec/primitives.ts) is the shared vocabulary
+[`exec/primitives.ts`](../../src/bot/api/ai/quests/exec/primitives.ts) is the shared vocabulary
 that quest steps are built from:
 
 | Primitive | What it handles |
@@ -14,7 +14,7 @@ that quest steps are built from:
 | `talkOp(actions)` / `pickPreferred(options, prefer)` | choosing an op or an option |
 | `isUnderground(t)` / `needsHop(here, anchor)` | whether a level change is required |
 
-[`exec/prompts.ts`](../../src/bot/engines/quests/exec/prompts.ts) covers the other half — the
+[`exec/prompts.ts`](../../src/bot/api/ai/quests/exec/prompts.ts) covers the other half — the
 world, rather than a conversation:
 
 | Primitive | What it handles |

@@ -6,12 +6,12 @@ import Tile from '../../geometry/Tile.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { Shop } from '../../api/shop/Shop.js';
 import { Locs } from '../../api/locs/Locs.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
-import { fmtDuration } from '../../api/paint/paintLogic.js';
+import { fmtDuration } from '../../paint/paintLogic.js';
 import { isShopRun, vialsToBuy } from './VialFillerLogic.js';
 
 const EMPTY_VIAL = 'Vial';

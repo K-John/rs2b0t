@@ -2,7 +2,7 @@
  * Pure GatheringBot policy helpers (unit-tested, no live client).
  * Kept separate so task modules can import without circular deps on the bot class.
  */
-import { wildernessLevelAt, type WildTile } from '../../engines/nav/wilderness.js';
+import { wildernessLevelAt, type WildTile } from '../../event/webwalk/wilderness.js';
 import { combatBreaksGather } from './TickManipLogic.js';
 
 type GatheringCombatMode =

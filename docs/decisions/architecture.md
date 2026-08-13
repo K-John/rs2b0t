@@ -14,9 +14,11 @@ human click would have produced.
 
 ```
 src/bot/scripts/     one directory per contribution             ─┐
-src/bot/engines/     clues, quests, nav — driven, not contained   │
+src/bot/panel/       the bot's own control UI                     │
 src/bot/runtime/     script lifecycle, ABI, settings, solvers    │  bot code
-src/bot/api/         one directory per game-facing noun          │
+src/bot/api/         game-facing nouns, plus ai/ and ui/          │
+src/bot/event/       long-running events — webwalk                │
+src/bot/input|paint/ the input driver, canvas overlays            │
 src/bot/data/        inert catalogs                              │
 src/bot/geometry/    Tile, Area, distance                       ─┘
 src/bot/adapter/     ClientAdapter — the ONLY place that names client internals
@@ -25,22 +27,8 @@ src/client/shell/    Client, GameShell, and the rest of the former src/client/*.
 src/client/dash3d|io|config|graphics|mapview|sound|util|datastruct|wordfilter|3rdparty
 ```
 
-A module belongs in `api/` iff it is a facade over one game interface, one
-entity collection, or one reusable script behaviour. One directory per noun,
-sized to what that noun needs; single-file directories are expected. Not
-catalogs, not solvers, not engines, not sole-consumer helpers.
-
-A module belongs in `engines/` iff it is a multi-step domain engine that scripts
-drive and do not contain. They order as `clues` → `quests` → `nav`, no cycle.
-`api/` excludes them by the rule that excludes catalogs and solvers.
-
-A directory under `scripts/` is one contribution: a registered bot plus every
-module only it reaches. Two bots share a directory iff they share a private
-module or an `extends`, and the directory takes the name of the bot whose module
-the others share. `scripts/index.ts` is the registry barrel and stays at the
-root. Shared code is the contribution's implementation and stays inside it, so a
-directory never imports a sibling — see
-[import fences](../reference/import-fences.md).
+The split follows OSBot's `org.osbot.rs07`. What belongs in each directory, and
+where this departs from OSBot, is in [namespaces](../reference/namespaces.md).
 
 [`src/bot/adapter/ClientAdapter.ts`](../../src/bot/adapter/ClientAdapter.ts) is the
 boundary, and it has two halves:
@@ -59,7 +47,7 @@ A script calls `npc.interact('Attack')`. What happens:
 
 1. The entity wrapper resolves `'Attack'` to an **op number** by reading the client's
    own op list for that entity — the same strings the right-click menu shows.
-2. It calls [`Input`](../../src/bot/api/input/Input.ts).
+2. It calls [`Input`](../../src/bot/input/Input.ts).
 3. `Input` maps `(entity kind, op)` to a `MiniMenuAction` constant — for an NPC,
    op 2 becomes `OP_NPC2` — and calls `actions.menuAction(action, a, b, c)`.
 4. The adapter writes those four values into the client's **own** `menuAction`,

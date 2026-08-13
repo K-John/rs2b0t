@@ -1,4 +1,4 @@
-import { JP_STAGE, JUNGLE_POTION_QUEST } from '../../engines/quests/defs/junglepotion.js';
+import { JP_STAGE, JUNGLE_POTION_QUEST } from '../../api/ai/quests/defs/junglepotion.js';
 
 /** `oc_param(rogues_purse, identified_herb_level)`. */
 export const IDENTIFY_LEVEL = 3;

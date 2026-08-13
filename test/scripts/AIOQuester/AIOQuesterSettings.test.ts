@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from 'bun:test';
 
 import { AIO_SETTINGS, QUEST_OPTION_LABELS } from '#/bot/scripts/AIOQuester/AIOQuester.js';
-import { QUEST_DEFS } from '#/bot/engines/quests/defs/index.js';
+import { QUEST_DEFS } from '#/bot/api/ai/quests/defs/index.js';
 import { SettingsStore } from '#/bot/runtime/Settings.js';
 
 afterEach(() => {

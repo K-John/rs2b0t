@@ -109,13 +109,13 @@ Aliases such as `Watchtower` → `Watch Tower` resolve in `worldStateData` /
 
 | File | Role |
 |---|---|
-| `src/bot/engines/nav/travelCatalog.ts` | Curated edges |
-| `src/bot/engines/nav/specialRequires.ts` | Door and transport skill gates |
-| `src/bot/engines/nav/transportQuestReqs.ts` | Quest journal and setvar seeds |
-| `src/bot/engines/nav/loadTransportGraph.ts` | Graph merge |
-| `src/bot/engines/nav/data/specialCrossings.ts` | Execute dialogs |
-| `src/bot/engines/nav/exec/specialCrossing.ts` | Entrana gear, spirit, glider map |
-| `src/bot/engines/nav/pathOverlay.ts` | Live loc hull highlighter |
+| `src/bot/event/webwalk/travelCatalog.ts` | Curated edges |
+| `src/bot/event/webwalk/specialRequires.ts` | Door and transport skill gates |
+| `src/bot/event/webwalk/transportQuestReqs.ts` | Quest journal and setvar seeds |
+| `src/bot/event/webwalk/loadTransportGraph.ts` | Graph merge |
+| `src/bot/event/webwalk/data/specialCrossings.ts` | Execute dialogs |
+| `src/bot/event/webwalk/exec/specialCrossing.ts` | Entrana gear, spirit, glider map |
+| `src/bot/event/webwalk/pathOverlay.ts` | Live loc hull highlighter |
 
 ## See also
 

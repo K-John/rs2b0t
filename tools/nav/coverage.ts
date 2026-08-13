@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import { gunzipSync } from 'fflate';
-import { PathFinder, type NavPoint } from '../../src/bot/engines/nav/PathFinder.js';
-import { loadDefaultNavEdges } from '../../src/bot/engines/nav/loadTransportGraph.js';
-import { NAV_TARGETS } from '../../src/bot/engines/nav/data/navTargets.js';
-import { classifyTarget, nearestConnected, type ReachChecker } from '../../src/bot/engines/nav/coverageLogic.js';
+import { PathFinder, type NavPoint } from '../../src/bot/event/webwalk/PathFinder.js';
+import { loadDefaultNavEdges } from '../../src/bot/event/webwalk/loadTransportGraph.js';
+import { NAV_TARGETS } from '../../src/bot/event/webwalk/data/navTargets.js';
+import { classifyTarget, nearestConnected, type ReachChecker } from '../../src/bot/event/webwalk/coverageLogic.js';
 
 const BUDGET = 1_000_000;
 const MAX_RING = 8;

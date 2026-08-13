@@ -4,7 +4,7 @@ import { Game } from '../game/Game.js';
 import { DEFAULT_CAMP_RADIUS } from '../../data/gatheringLocations.js';
 import Tile from '../../geometry/Tile.js';
 import { Traversal } from '../walking/Traversal.js';
-import { walkOpening } from '../../engines/nav/walkOpening.js';
+import { walkOpening } from '../../event/webwalk/walkOpening.js';
 
 export interface AnchorHost {
     getAnchor(): Tile;

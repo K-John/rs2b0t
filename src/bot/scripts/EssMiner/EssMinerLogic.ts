@@ -72,10 +72,6 @@ export function heldPickaxeToKeep(selection: string, miningLevel: number, held: 
     return pick.kind === 'held' ? pick.item : null;
 }
 
-export function inEssMine(x: number, z: number): boolean {
-    return (x >> 6) === 45 && (z >> 6) === 75;
-}
-
 export function withdrawOneOp(ops: readonly (string | null)[]): string | null {
     return withdrawOp(ops, '1');
 }

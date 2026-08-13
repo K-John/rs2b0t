@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { reader } from '#/bot/adapter/ClientAdapter.js';
 import { Execution } from '#/bot/api/execution/Execution.js';
 import { Game } from '#/bot/api/game/Game.js';
-import { ChatDialog } from '#/bot/api/dialogue/ChatDialog.js';
+import { ChatDialog } from '#/bot/api/ui/dialogue/ChatDialog.js';
 import { Inventory } from '#/bot/api/inventory/Inventory.js';
 import { Skills } from '#/bot/api/skills/Skills.js';
 import Tile from '#/bot/geometry/Tile.js';

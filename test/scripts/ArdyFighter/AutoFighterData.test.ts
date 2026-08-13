@@ -14,7 +14,7 @@ import {
     wantsAutoFighterLoot
 } from '#/bot/scripts/AutoFighter/AutoFighterData.js';
 import { matchesEntityName } from '#/bot/api/query/Query.js';
-import { resolveControl } from '#/bot/ui/paramControls.js';
+import { resolveControl } from '#/bot/panel/paramControls.js';
 
 describe('AutoFighter data', () => {
     test('loot defaults to exactly gems + clues (the spec set)', () => {

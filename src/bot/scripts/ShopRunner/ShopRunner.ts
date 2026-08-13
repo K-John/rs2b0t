@@ -1,8 +1,8 @@
 import { Bank } from '../../api/bank/Bank.js';
 import { Equipment } from '../../api/equipment/Equipment.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
-import { Paint } from '../../api/paint/Paint.js';
-import { Quests } from '../../api/questlog/Quests.js';
+import { Paint } from '../../paint/Paint.js';
+import { Quests } from '../../api/ui/questlog/Quests.js';
 import { Shop } from '../../api/shop/Shop.js';
 import { Skills } from '../../api/skills/Skills.js';
 import { EventSignal } from '../../api/execution/EventSignal.js';
@@ -14,13 +14,13 @@ import { AcquireTask } from '../../api/acquisition/ItemAcquisition.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
-import { talkThrough } from '../../engines/quests/exec/primitives.js';
+import { talkThrough } from '../../api/ai/quests/exec/primitives.js';
 import { buyoutPlan } from '../../api/shop/BuyoutLogic.js';
 import { clusterEligible, estimateClusterGp, nextCluster, withdrawFor } from './ShopRunnerRingLogic.js';
 import { SHOP_DB } from '../../data/shopdb.js';
 import { ROUTE, SMOKE_ROUTE } from './ShopRunnerRoute.js';
 import type { AccountView, NavPointLike, Route } from '../../api/shop/types.js';
-import { fmtDuration } from '../../api/paint/paintLogic.js';
+import { fmtDuration } from '../../paint/paintLogic.js';
 
 const BUYABLE_NAMES: string[] = [...new Set(
     ROUTE.clusters.flatMap(c => c.shops.flatMap(s => s.buys.map(b => SHOP_DB[s.shopId]?.items.find(i => i.obj === b.obj)?.name).filter((n): n is string => n !== undefined)))

@@ -7,9 +7,9 @@ import fs from 'node:fs';
 
 import { gunzipSync } from 'fflate';
 
-import { PathFinder } from '#/bot/engines/nav/PathFinder.js';
-import { loadDefaultNavEdges } from '#/bot/engines/nav/loadTransportGraph.js';
-import { formatHops } from '#/bot/engines/nav/hops.js';
+import { PathFinder } from '#/bot/event/webwalk/PathFinder.js';
+import { loadDefaultNavEdges } from '#/bot/event/webwalk/loadTransportGraph.js';
+import { formatHops } from '#/bot/event/webwalk/hops.js';
 
 import { buildScriptRoutes } from './script-route-corpus.js';
 

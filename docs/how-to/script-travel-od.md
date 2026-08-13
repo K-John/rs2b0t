@@ -37,7 +37,7 @@ the pack, routes still build but anchors may land on solid locs.
 | **firemaking** | `FIRE_SPOTS` bank pins | Full directed mesh bank_i → bank_j (i ≠ j). |
 | **cooking** | `FISH_CAMP_COOK_PLANS` pier/bank stands; sample of `COOKING_RANGE_LOCS` | Pier ↔ bank per camp; chain every 8th range loc (max 24 samples). |
 | **gathering-all** | All of the above gathering flags + residual `NAV_TARGETS` (not ClueSolver / AIOQuester / island) | Filter: `r.gathering \|\| segment === gathering-all`. Residual nav targets: consecutive chain only. |
-| **quests** | Every `new Tile(x, z[, level])` in `src/bot/engines/quests/defs/**/areas.ts` (and single-file quests with ≥2 tiles) | **Consecutive pairs in source order** within each file, plus reverse. Not full quest mesh; not full quest state (transport varps only when `SEED_QUESTS` / `SEGMENT=quests`). Ids: `quest-<name>-i-j`. |
+| **quests** | Every `new Tile(x, z[, level])` in `src/bot/api/ai/quests/defs/**/areas.ts` (and single-file quests with ≥2 tiles) | **Consecutive pairs in source order** within each file, plus reverse. Not full quest mesh; not full quest state (transport varps only when `SEED_QUESTS` / `SEGMENT=quests`). Ids: `quest-<name>-i-j`. |
 | **all** | Union of every segment | No filter. |
 
 Shared rules on every leg (`add`):

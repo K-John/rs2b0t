@@ -10,15 +10,15 @@ import { Game } from '../../api/game/Game.js';
 import Tile from '../../geometry/Tile.js';
 import type { Npc } from '../../api/model/Npc.js';
 import { Bank, withdrawOp } from '../../api/bank/Bank.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Equipment } from '../../api/equipment/Equipment.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Skills } from '../../api/skills/Skills.js';
 import { Locs } from '../../api/locs/Locs.js';
 import { Npcs } from '../../api/npcs/Npcs.js';
 import { Traversal } from '../../api/walking/Traversal.js';
-import { isOpenableObstacle, openOp, walkOpening } from '../../engines/nav/walkOpening.js';
-import { DirectNavigator } from '../../engines/nav/DirectNavigator.js';
+import { isOpenableObstacle, openOp, walkOpening } from '../../event/webwalk/walkOpening.js';
+import { DirectNavigator } from '../../event/webwalk/DirectNavigator.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import {
     gatherHuntRadius,

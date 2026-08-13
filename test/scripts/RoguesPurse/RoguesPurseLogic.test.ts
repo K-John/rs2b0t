@@ -13,8 +13,8 @@ import {
     planCycle,
     rankBanksByDetour
 } from '#/bot/scripts/RoguesPurse/RoguesPurseLogic.js';
-import { JP_STAGE } from '#/bot/engines/quests/defs/junglepotion.js';
-import { SPECIAL_CROSSINGS } from '#/bot/engines/nav/data/specialCrossings.js';
+import { JP_STAGE } from '#/bot/api/ai/quests/defs/junglepotion.js';
+import { SPECIAL_CROSSINGS } from '#/bot/event/webwalk/data/specialCrossings.js';
 import { BANK_LOCATIONS, bankDistance } from '#/bot/api/bank/BankLocations.js';
 
 describe('planCycle (one tick of packets)', () => {

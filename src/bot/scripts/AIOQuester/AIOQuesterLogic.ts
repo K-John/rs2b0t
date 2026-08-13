@@ -1,5 +1,5 @@
 import { foodForms, foodHealAmount, shouldEatToUseFood } from '../../api/combat/food.js';
-import type { QuestSustain } from '../../engines/quests/engine/types.js';
+import type { QuestSustain } from '../../api/ai/quests/engine/types.js';
 
 export interface ResolvedSustainPolicy {
     foods: readonly string[];

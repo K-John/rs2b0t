@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { BEST_AVAILABLE, ESS_ITEM, PICK_OPTIONS, PICK_TIERS, desiredPickaxe, heldPickaxeToKeep, inEssMine, needsPickaxeCheck, requiredMiningLevel, resolvePick, withdrawOneOp } from '#/bot/scripts/EssMiner/EssMinerLogic.js';
+import { BEST_AVAILABLE, ESS_ITEM, PICK_OPTIONS, PICK_TIERS, desiredPickaxe, heldPickaxeToKeep, needsPickaxeCheck, requiredMiningLevel, resolvePick, withdrawOneOp } from '#/bot/scripts/EssMiner/EssMinerLogic.js';
+import { inEssMine } from '#/bot/api/map/regions.js';
 
 describe('PICK_TIERS', () => {
     test('best-first with the content levelrequire values (pickaxes.obj)', () => {

@@ -10,10 +10,10 @@ import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
 import Tile from '../../geometry/Tile.js';
 import { Bank, withdrawOp } from '../../api/bank/Bank.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Equipment } from '../../api/equipment/Equipment.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { Skills } from '../../api/skills/Skills.js';
 import {
     foodCount as countFood,
@@ -142,8 +142,8 @@ import {
     paintClip,
     paintSkillShort,
     paintSkillTitle
-} from '../../api/paint/paintLogic.js';
-import { driveDialog } from '../../engines/quests/exec/primitives.js';
+} from '../../paint/paintLogic.js';
+import { driveDialog } from '../../api/ai/quests/exec/primitives.js';
 import {
     AXE_BAR_FOR,
     BROKEN_AXE,

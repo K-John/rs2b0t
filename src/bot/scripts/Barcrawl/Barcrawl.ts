@@ -3,12 +3,12 @@ import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
-import { openBankLeg } from '../../engines/quests/exec/steps.js';
-import { BARCRAWL_CARD, BARCRAWL_GP, BARS, COINS } from '../../engines/quests/barcrawl/BarcrawlLogic.js';
-import { ensureBarcrawl, readCard } from '../../engines/quests/barcrawl/RunBarcrawl.js';
-import { Modals } from '../../api/widgets/Modals.js';
+import { openBankLeg } from '../../api/ai/quests/exec/steps.js';
+import { BARCRAWL_CARD, BARCRAWL_GP, BARS, COINS } from '../../api/ai/quests/barcrawl/BarcrawlLogic.js';
+import { ensureBarcrawl, readCard } from '../../api/ai/quests/barcrawl/RunBarcrawl.js';
+import { Modals } from '../../api/ui/widgets/Modals.js';
 
 // Why: the tour is a miniquest of its own — it opens the Barbarian Outpost gate and gates Barbarian Training.
 // Why: it is runnable on its own as well as from Horror from the Deep, which calls the same driver in {@link ../quests/barcrawl/RunBarcrawl.js}.

@@ -4,9 +4,9 @@ import { Game } from '../../api/game/Game.js';
 import Tile from '../../geometry/Tile.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { withdrawOp } from '../../api/bank/bankOps.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Inventory, type InvItem } from '../../api/inventory/Inventory.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { Skills } from '../../api/skills/Skills.js';
 import { Trade } from '../../api/trade/Trade.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
@@ -14,10 +14,10 @@ import { Locs } from '../../api/locs/Locs.js';
 import { Players } from '../../api/players/Players.js';
 import type { Player } from '../../api/model/Player.js';
 import { Traversal } from '../../api/walking/Traversal.js';
-import { DirectNavigator } from '../../engines/nav/DirectNavigator.js';
+import { DirectNavigator } from '../../event/webwalk/DirectNavigator.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import { SettingsStore, type SettingsSchema } from '../../runtime/Settings.js';
-import { fmtDuration } from '../../api/paint/paintLogic.js';
+import { fmtDuration } from '../../paint/paintLogic.js';
 
 const ESSENCE = 'Rune essence';
 const ESSENCE_ID = 1436; // blankrune (unnoted essence); the bank-note variant has a different id

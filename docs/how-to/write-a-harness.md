@@ -53,8 +53,8 @@ Smoke:
 | `bun run verify:map-picker -- <base>` | UI pick → Confirm → tile fields (`tools/map-picker-basemap-live.ts`); asserts `data-basemap` settled |
 | `bun run verify:map-picker-e2e -- <base>` | login + pick + WalkTo arrives (`tools/map-picker-walkto-e2e-live.ts`; needs a loggable world / cheats for short hops) |
 
-Unit: `test/ui/worldMapBasemap.test.ts`, `test/ui/mapPickerTheme.test.ts`,
-`test/ui/worldMapPicker.test.ts` (collision pack for snap tests).
+Unit: `test/panel/worldMapBasemap.test.ts`, `test/panel/mapPickerTheme.test.ts`,
+`test/panel/worldMapPicker.test.ts` (collision pack for snap tests).
 
 **Viewport (local preference).** Headed Chrome should use the **smaller** client scale
 used by GatheringBot / `verify-gather-locs` / plain `browser.newPage()` — Playwright’s

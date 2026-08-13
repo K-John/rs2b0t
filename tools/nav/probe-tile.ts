@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import { gunzipSync } from 'fflate';
-import doorsJson from '../../src/bot/engines/nav/data/doors.json';
-import transportsJson from '../../src/bot/engines/nav/data/transports.json';
-import stairsJson from '../../src/bot/engines/nav/data/stairEdges.json';
-import { PathFinder, type DoorEdgeData, type NavPoint } from '../../src/bot/engines/nav/PathFinder.js';
-import { WT_CAVES, WT_NIGHTSHADE, WT_TILE } from '../../src/bot/engines/quests/defs/watchtower/areas.js';
-import { ARDOUGNE_ADVENTURER, MAGIC_GUILD, OGRE_HERBLORE } from '../../src/bot/engines/quests/defs/watchtower/supplies.js';
+import doorsJson from '../../src/bot/event/webwalk/data/doors.json';
+import transportsJson from '../../src/bot/event/webwalk/data/transports.json';
+import stairsJson from '../../src/bot/event/webwalk/data/stairEdges.json';
+import { PathFinder, type DoorEdgeData, type NavPoint } from '../../src/bot/event/webwalk/PathFinder.js';
+import { WT_CAVES, WT_NIGHTSHADE, WT_TILE } from '../../src/bot/api/ai/quests/defs/watchtower/areas.js';
+import { ARDOUGNE_ADVENTURER, MAGIC_GUILD, OGRE_HERBLORE } from '../../src/bot/api/ai/quests/defs/watchtower/supplies.js';
 
 const SHOPS = { adventurer: ARDOUGNE_ADVENTURER, magicGuild: MAGIC_GUILD, ogreHerblore: OGRE_HERBLORE };
 

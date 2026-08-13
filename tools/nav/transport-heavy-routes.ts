@@ -8,11 +8,11 @@ import path from 'node:path';
 
 import { gunzipSync } from 'fflate';
 
-import { PathFinder, type NavPoint } from '#/bot/engines/nav/PathFinder.js';
-import { loadDefaultNavEdges } from '#/bot/engines/nav/loadTransportGraph.js';
-import { formatHops } from '#/bot/engines/nav/hops.js';
-import type { PathPolicy } from '#/bot/engines/nav/types.js';
-import type { WorldStateData } from '#/bot/engines/nav/worldStateData.js';
+import { PathFinder, type NavPoint } from '#/bot/event/webwalk/PathFinder.js';
+import { loadDefaultNavEdges } from '#/bot/event/webwalk/loadTransportGraph.js';
+import { formatHops } from '#/bot/event/webwalk/hops.js';
+import type { PathPolicy } from '#/bot/event/webwalk/types.js';
+import type { WorldStateData } from '#/bot/event/webwalk/worldStateData.js';
 import {
     SPIRIT_TREE,
     GLIDER_PAD,
@@ -23,12 +23,12 @@ import {
     ESSENCE_MINE_PAD,
     WILDY_LEVER,
     TRAVEL_STANDS
-} from '#/bot/engines/nav/travelCatalog.js';
-import type { EssenceReturnId } from '#/bot/engines/nav/essenceExit.js';
+} from '#/bot/event/webwalk/travelCatalog.js';
+import type { EssenceReturnId } from '#/bot/event/webwalk/essenceExit.js';
 import {
     richTransportQuestMap,
     TRANSPORT_QUEST_SEEDS
-} from '#/bot/engines/nav/transportQuestReqs.js';
+} from '#/bot/event/webwalk/transportQuestReqs.js';
 
 const packPath =
     process.argv.find(a => a.startsWith('--pack='))?.split('=')[1]

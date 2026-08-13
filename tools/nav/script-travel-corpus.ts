@@ -14,11 +14,11 @@ import { MINING_LOCATIONS } from '#/bot/data/miningLocations.js';
 import { WOODCUTTING_LOCATIONS } from '#/bot/data/woodcuttingLocations.js';
 import { FISH_CAMP_COOK_PLANS, COOKING_RANGE_LOCS } from '#/bot/data/cookingRanges.js';
 import { FIRE_SPOTS } from '#/bot/api/firemaking/Firemaking.js';
-import { CLUE_DB } from '#/bot/engines/clues/data/cluedb.js';
-import { NAV_TARGETS } from '#/bot/engines/nav/data/navTargets.js';
-import { PathFinder, type NavPoint } from '#/bot/engines/nav/PathFinder.js';
-import { TALK_ANCHORS } from '#/bot/engines/clues/data/talkAnchors.js';
-import { KILL_ANCHORS } from '#/bot/engines/clues/data/killAnchors.js';
+import { CLUE_DB } from '#/bot/api/ai/clues/data/cluedb.js';
+import { NAV_TARGETS } from '#/bot/event/webwalk/data/navTargets.js';
+import { PathFinder, type NavPoint } from '#/bot/event/webwalk/PathFinder.js';
+import { TALK_ANCHORS } from '#/bot/api/ai/clues/data/talkAnchors.js';
+import { KILL_ANCHORS } from '#/bot/api/ai/clues/data/killAnchors.js';
 
 export type TravelSegment =
     | 'all'
@@ -282,7 +282,7 @@ export function buildTravelRoutes(): TravelRoute[] {
     }
 
     // ── Quests: scrape areas.ts for Tile literals, ordered pairs within file ─
-    const questDir = path.join(process.cwd(), 'src/bot/engines/quests/defs');
+    const questDir = path.join(process.cwd(), 'src/bot/api/ai/quests/defs');
     const areaFiles = listAreaFiles(questDir);
     for (const file of areaFiles) {
         const tiles = scrapeTilesFromFile(file);

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, test } from 'bun:test';
 
 import { reader, type InvItemSnapshot } from '#/bot/adapter/ClientAdapter.js';
 import { Inventory } from '#/bot/api/inventory/Inventory.js';
-import { Input } from '#/bot/api/input/Input.js';
+import { Input } from '#/bot/input/Input.js';
 
 const originals = {
     bankComId: reader.bankComId,

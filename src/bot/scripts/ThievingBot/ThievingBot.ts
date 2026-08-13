@@ -3,12 +3,12 @@ import { createReturnToAnchorTask, resolveRunAnchor, tileWithinLeash } from '../
 import { TaskBot, type Task } from '../../api/bot/Bot.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
-import { Reachability } from '../../engines/nav/geometry/Reachability.js';
+import { Reachability } from '../../event/webwalk/geometry/Reachability.js';
 import Tile from '../../geometry/Tile.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Bank } from '../../api/bank/Bank.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
-import { Paint } from '../../api/paint/Paint.js';
+import { Paint } from '../../paint/Paint.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import { SettingsStore } from '../../runtime/Settings.js';
 import { Skills } from '../../api/skills/Skills.js';
@@ -17,10 +17,10 @@ import { GroundItems } from '../../api/grounditems/GroundItems.js';
 import { Npcs, type Npc } from '../../api/npcs/Npcs.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { nearestBank } from '../../api/bank/BankLocations.js';
-import { walkOpening } from '../../engines/nav/walkOpening.js';
+import { walkOpening } from '../../event/webwalk/walkOpening.js';
 import { PICKPOCKET_TARGET_NAMES } from '../../data/pickpocketTargets.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
-import { fmtDuration } from '../../api/paint/paintLogic.js';
+import { fmtDuration } from '../../paint/paintLogic.js';
 import { chooseTarget } from '../../api/thieving/targets.js';
 import {
     STUN_COMBAT_TICKS,

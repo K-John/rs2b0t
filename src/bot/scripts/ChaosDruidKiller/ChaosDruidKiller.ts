@@ -3,11 +3,11 @@ import { foodCount as countFood, isFoodItem, foodHealAmount, shouldEatToUseFood 
 import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
 import { Bank } from '../../api/bank/Bank.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Equipment } from '../../api/equipment/Equipment.js';
 import { Inventory, type InvItem } from '../../api/inventory/Inventory.js';
-import { Paint } from '../../api/paint/Paint.js';
-import { fmtDuration } from '../../api/paint/paintLogic.js';
+import { Paint } from '../../paint/Paint.js';
+import { fmtDuration } from '../../paint/paintLogic.js';
 import { Skills } from '../../api/skills/Skills.js';
 import { GroundItems } from '../../api/grounditems/GroundItems.js';
 import { Locs } from '../../api/locs/Locs.js';
