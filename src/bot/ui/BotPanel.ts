@@ -314,9 +314,7 @@ export default class BotPanel {
             status.className = 'rs2b0t-load-status rs2b0t-load-ok';
         });
         button(buttons, 'Log in', () => {
-            // Log in as whoever is typed here. Without this the button used only the
-            // last Saved account, so a freshly typed login silently did nothing (or
-            // logged in as the wrong bot) until you pressed Save first.
+            // Why: reading only the last Saved account makes a freshly typed login do nothing, or log in as the wrong bot, until Save is pressed first.
             AutoRelogin.setCredentials(userInput.value.trim(), passInput.value);
             const ok = AutoRelogin.loginNow();
             status.textContent = ok ? 'logging in…' : 'enter a username / already ingame';
@@ -333,7 +331,7 @@ export default class BotPanel {
         const auto = document.createElement('input');
         auto.type = 'checkbox';
         // Mirror runtime state (?autologin=1 / Multibox). enable() may run after the
-        // panel is built, so listen for changes instead of painting once (#215).
+        // panel is built, so listen for changes instead of painting once.
         auto.checked = AutoRelogin.isAutoLogin();
         auto.addEventListener('change', () => AutoRelogin.setAutoLogin(auto.checked));
         AutoRelogin.onAutoLoginChange(on => {
@@ -478,7 +476,7 @@ export default class BotPanel {
         const ingame = reader.ingame();
         const scene = reader.sceneState();
         // Ready = logged in + scene fully built (2). Show partial scene so operators
-        // do not confuse "ingame" with "safe to inject" (#445).
+        // do not confuse "ingame" with "safe to inject".
         this.stateCell.textContent = !ingame
             ? 'title screen'
             : scene === 2
