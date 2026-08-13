@@ -42,7 +42,7 @@ export const SETTINGS: SettingsSchema = {
     mode: { type: 'string', default: 'Master', options: ['Master', 'Runner'], label: 'Mode', help: 'Master crafts at the altar and takes essence from runners; Runner ferries essence to the master' },
     partner: { type: 'string', default: '', label: 'Partner name(s)', help: 'Master: runner name(s) to accept essence from, comma-separated. Runner: the master to deliver to.' },
     bankEvery: { type: 'number', default: 60, min: 0, label: 'Bank everything every N minutes (0 = never)', help: 'Master: walks to the bank on this timer and deposits everything except the talisman — banks the runes and clears out whatever random events have left in the pack. Air banks at Falador East; the nature master\'s nearest bank is the quest-gated Shilo Village one, so it may not be reachable' },
-    withdrawEss: { type: 'number', default: 0, min: 0, label: 'Essence per restock (0 = default)', help: 'Runner: essence withdrawn per bank restock. 0 = the whole bank stack when noting (nature), or one trade-load (air)' },
+    withdrawEss: { type: 'number', default: 0, min: 0, label: 'Essence per restock (0 = default)', help: 'Runner: essence withdrawn per bank restock. 0 = the full bank stack when noting (nature), or one trade-load (air)' },
     withdrawCoins: { type: 'number', default: 10000, min: 0, label: 'Coins target at restock', help: 'Runner: top coins up to this at each restock (boat fares + shop buy-backs). Unused by air.' }
 };
 

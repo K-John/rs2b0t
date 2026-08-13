@@ -24,7 +24,7 @@ export const SHOPBUYOUT_SETTINGS: SettingsSchema = {
     budgetGp: { type: 'number', default: 250_000, min: 100, label: 'Total gp to spend', help: 'the session budget — the bot stops cleanly once roughly this much has been spent' },
     perTripGp: { type: 'number', default: 100_000, min: 100, label: 'Gp per bank trip' },
     stopFloorGp: { type: 'number', default: 5000, min: 0, label: 'Stop below bank gp' },
-    buyItems: { type: 'string[]', default: [], options: presetBuyableNames(), label: 'Items to buy (empty = all stock)', help: 'multi-select, valuable-first under the coin budget; leave empty to buy the whole shop out' },
+    buyItems: { type: 'string[]', default: [], options: presetBuyableNames(), label: 'Items to buy (empty = all stock)', help: 'multi-select, valuable-first under the coin budget; leave empty to buy the shop out' },
     recheckSeconds: { type: 'number', default: 60, min: 5, max: 600, label: 'Restock recheck (s)', help: 'wait between buy passes once the stock is drained (elemental runes restock 1/30s, law/nature 1/3min)' }
 };
 

@@ -633,7 +633,7 @@ ScriptRegistry.register({
 
 ScriptRegistry.register({
     name: 'TannerBot',
-    description: 'Al Kharid tanning loop — banks hides, tans the whole load in one click at the Tanner, and every Nth trip keeps a slot free to buy out Dommik\'s thread',
+    description: 'Al Kharid tanning loop — banks hides, tans the full load in one click at the Tanner, and every Nth trip keeps a slot free to buy out Dommik\'s thread',
     category: 'Crafting',
     tags: ['alkharid', 'leather', 'dragonhide', 'banking', 'afk'],
     settingsSchema: TANNER_SETTINGS,

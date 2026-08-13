@@ -9,7 +9,7 @@ const CLIENT_INTERNALS = {
     message: 'Only src/bot/adapter/ may touch client internals.'
 };
 
-/** main.ts pulls in ui/ and the whole runtime — a leaf layer reaching it is a cycle. */
+/** main.ts pulls in panel/ and the runtime — a leaf layer reaching it is a cycle. */
 const APP_ENTRYPOINT = {
     group: ['**/main.js'],
     message: 'main.ts is the app entrypoint — a leaf layer must not import it.'

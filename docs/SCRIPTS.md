@@ -454,7 +454,7 @@ Needle-and-thread crafting loop — banks for leather and makes the best item yo
 
 ### TannerBot
 
-Al Kharid tanning loop — banks hides, tans the whole load in one click at the Tanner, and every Nth trip keeps a slot free to buy out Dommik's thread
+Al Kharid tanning loop — banks hides, tans the full load in one click at the Tanner, and every Nth trip keeps a slot free to buy out Dommik's thread
 
 - Tags: `alkharid`, `leather`, `dragonhide`, `banking`, `afk`
 
