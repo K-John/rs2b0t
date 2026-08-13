@@ -28,6 +28,8 @@ import {
     type RuneRoute, 
 } from './MuleCrafterLogic.js';
 
+// Why: each crafter-mule trade gives all runes and receives 27 essence, after which the crafter enters the altar again; it walks back to the bank only after every mule has traded.
+
 const ESSENCE = 'Rune essence';
 const ESSENCE_ID = 1436; // blankrune (unnoted essence); the bank-note variant has a different id
 const RUINS = 'Mysterious ruins';
