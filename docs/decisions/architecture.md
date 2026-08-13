@@ -95,7 +95,7 @@ externally-compiled bundles are linked against. Bun's own minifier shortens loca
 never renames properties, so a production build stays compatible.
 
 See [the scripting API](../API.md) for the surface itself, and
-[`templates/script-template/`](../../templates/script-template/) for a working
+[`docs/script-template/`](../script-template/) for a working
 out-of-tree bot.
 
 ## Per-instance storage

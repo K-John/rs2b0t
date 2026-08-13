@@ -9,7 +9,7 @@ pure Lost City or 2004scape projects and is not maintained for those targets.
 
 | If you want to… | Read |
 |---|---|
-| Write a bot | [Scripting API](API.md), then [`templates/script-template/`](../templates/script-template/) |
+| Write a bot | [Scripting API](API.md), then the [script template](script-template/README.md) |
 | See what already exists | [Bundled scripts](SCRIPTS.md) |
 | Run it locally | [Running locally](RUNNING.md) |
 | Change the client itself | [Architecture](ARCHITECTURE.md), then [Testing](TESTING.md) |
