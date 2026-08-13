@@ -99,6 +99,15 @@ test('lint:prose covers every source area and excludes the vendored client', () 
     expect(script).not.toContain('desktop');
 });
 
+test('the repository has no prose errors', () => {
+    const paths = ['docs', 'README.md', 'templates', 'src/bot', 'tools', 'test', 'bundle.ts', 'bot.bundle.ts', 'eslint.config.ts', 'identifier.js'];
+    const errors: string[] = [];
+    for (const [file, alerts] of lint(paths)) {
+        for (const a of alerts.filter(x => x.Severity === 'error')) errors.push(`${file}:${a.Line}  ${a.Check}  ${a.Match}`);
+    }
+    expect(errors.sort()).toEqual([]);
+});
+
 test('the docs/superpowers exclusion holds, and styles still load', () => {
     const dir = 'docs/superpowers';
     const probe = `${dir}/vale-exclusion-probe.md`;
