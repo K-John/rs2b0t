@@ -1,3 +1,4 @@
+// docs/reference/multibox.md#login-coordination
 import type {
     LoginCoordination,
     LoginCoordinationRegistry,

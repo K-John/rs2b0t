@@ -174,6 +174,78 @@ test('the same file without a generated marker reports both', () => {
     expect(checks).toContain('why-tag');
 });
 
+test('a doc-path citation does not count toward the block payload', () => {
+    const body = [
+        '/**',
+        ' * The vault keys credentials by profile so a restore never crosses accounts.',
+        ' * Slots are recycled in flex order.',
+        ' * @see docs/reference/api-game.md#world-primitives',
+        ' */',
+        'export const a = 1;',
+        ''
+    ].join('\n');
+    expect(checkComments([fixture('cite-jsdoc.ts', body)]).filter(f => f.check === 'comment-block')).toEqual([]);
+});
+
+test('a bare doc-path backlink does not count toward the block payload', () => {
+    const body = ['// docs/reference/multibox.md#profile-vault', '// The vault stores one credential set per profile.', '// Slots are recycled in flex order.', 'export const a = 1;', ''].join('\n');
+    expect(checkComments([fixture('cite-bare.ts', body)]).filter(f => f.check === 'comment-block')).toEqual([]);
+});
+
+test('every citation shape is exempt', () => {
+    const body = [
+        '// docs/reference/multibox.md#profile-vault',
+        '// @see docs/reference/api-game.md#world-primitives',
+        '/**',
+        ' * @see docs/how-to/run-locally.md',
+        ' */',
+        '// (#215)',
+        '// #160',
+        '// (#445).',
+        'export const a = 1;',
+        ''
+    ].join('\n');
+    expect(checkComments([fixture('cite-shapes.ts', body)])).toEqual([]);
+});
+
+test('a line merely mentioning docs is not a citation', () => {
+    const body = ['// one line of prose', '// the docs cover this in more detail', '// a third line of prose', 'export const a = 1;', ''].join('\n');
+    const found = checkComments([fixture('cite-word.ts', body)]).filter(f => f.check === 'comment-block');
+    expect(found.length).toBe(1);
+    expect(found[0].message).toContain('3-line');
+});
+
+test('a citation-only block is never a finding', () => {
+    const body = ['// docs/reference/multibox.md#slots', '// docs/reference/multibox.md#login-coordination', '// docs/decisions/architecture.md#layers', 'export const a = 1;', ''].join('\n');
+    expect(checkComments([fixture('cite-only.ts', body)])).toEqual([]);
+});
+
+test('a block whose payload lines are all Why:-tagged is not a comment block', () => {
+    const body = [
+        '// Why: the bank booth op is "Use-quickly" on this stand.',
+        '// Why: the loc query is empty for a tick after a region change.',
+        '// Why: a journal colour tag collapses to a space.',
+        '// Why: sub-tables are resolved in place.',
+        'export const a = 1;',
+        ''
+    ].join('\n');
+    expect(checkComments([fixture('all-tagged.ts', body)]).filter(f => f.check === 'comment-block')).toEqual([]);
+});
+
+test('a mixed block of tagged and untagged lines is still a comment block', () => {
+    const body = [
+        '// Why: the bank booth op is "Use-quickly" on this stand.',
+        '// Why: the loc query is empty for a tick after a region change.',
+        '// The panel repaints on every frame.',
+        '// Callers then re-read the manifest.',
+        'export const a = 1;',
+        ''
+    ].join('\n');
+    const found = checkComments([fixture('mixed-tagged.ts', body)]).filter(f => f.check === 'comment-block');
+    expect(found.length).toBe(1);
+    expect(found[0].message).toContain('4-line');
+});
+
 test('a lint directive is never reported', () => {
     const path = fixture('directive.ts', '// eslint-disable-next-line no-restricted-imports -- the adapter is not ready\n// @ts-expect-error upstream types are wrong because the overload is missing\n// prettier-ignore\nexport const a = 1;\n');
     expect(checkComments([path])).toEqual([]);

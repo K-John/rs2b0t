@@ -253,7 +253,7 @@ export const MINING_LOCATIONS: MiningLocation[] = [
         'Members; Monastery mine, iron + coal; seed unverified.',
         false
     ),
-    // Tick-manip iron camps, unpolished until live checks.
+    // Tick-manip iron camps, unpolished until live checks (#160).
     mine(
         'Legends Guild Iron (west)',
         // Iron cluster west of Legends Guild ~2691–2697, 3328–3334.

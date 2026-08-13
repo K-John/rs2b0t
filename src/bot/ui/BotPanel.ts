@@ -331,7 +331,7 @@ export default class BotPanel {
         const auto = document.createElement('input');
         auto.type = 'checkbox';
         // Mirror runtime state (?autologin=1 / Multibox). enable() may run after the
-        // panel is built, so listen for changes instead of painting once.
+        // panel is built, so listen for changes instead of painting once (#215).
         auto.checked = AutoRelogin.isAutoLogin();
         auto.addEventListener('change', () => AutoRelogin.setAutoLogin(auto.checked));
         AutoRelogin.onAutoLoginChange(on => {
@@ -476,7 +476,7 @@ export default class BotPanel {
         const ingame = reader.ingame();
         const scene = reader.sceneState();
         // Ready = logged in + scene fully built (2). Show partial scene so operators
-        // do not confuse "ingame" with "safe to inject".
+        // do not confuse "ingame" with "safe to inject" (#445).
         this.stateCell.textContent = !ingame
             ? 'title screen'
             : scene === 2

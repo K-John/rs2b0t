@@ -120,7 +120,7 @@ export const WOODCUTTING_LOCATIONS: WoodcuttingLocation[] = [
         ['magic'],
         'Bank is Grand Tree 1F booths (open, no quest gate) — seed stand'
     ),
-    // Tick-manip camps, unpolished until live path/resource checks.
+    // Tick-manip camps, unpolished until live path/resource checks (#160).
     camp(
         'S Falador Oaks',
         // Oaks south of Falador walls (~2949–3002, 3267–3314). Chickens ~2966,3346 for 2t retaliate.

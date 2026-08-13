@@ -136,7 +136,7 @@ export const FISHING_LOCATIONS: FishingLocation[] = (
             resources: ['lava eel'],
             notes: 'Dungeon spot; surface bank at Falador West'
         },
-        // Seed camp; stays unverified until live polish.
+        // Seed camp; stays unverified until live polish (#160).
         {
             name: 'Gnome Stronghold (fishing)',
             spot: new Tile(2388, 3420, 0),

@@ -29,6 +29,7 @@ const CROP_TX = TILE_W / 2 - (GAME_X + GAME_W / 2) * CROP_K;
 const CROP_TY = TILE_H / 2 - (GAME_Y + GAME_H / 2) * CROP_K;
 const CROP_TRANSFORM = `translate(${CROP_TX}px, ${CROP_TY}px) scale(${CROP_K})`;
 
+// docs/reference/multibox.md#slots
 // Rail (background) slots paint at ~1fps while the focused slot draws every frame.
 // Why: many bots stay cheap on a laptop, and setting it per-iframe leaves the standalone client its own RenderGate default.
 const RAIL_BACKGROUND_INTERVAL_MS = 1000;

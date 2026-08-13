@@ -77,6 +77,10 @@ export function checkFragments(files: string[]): Finding[] {
 const MAX_BLOCK = 2;
 const RATIONALE = /\b(because|so that|the reason)\b/i;
 const DIRECTIVE = /^\s*(?:\/\/|\/\*+|\*)\s*(eslint|@ts-|prettier|vale|biome|c8|istanbul|oxlint)/;
+const DOC_PATH = String.raw`docs\/[\w./-]*\.md(?:#[\w-]+)?`;
+const ISSUE_REF = String.raw`\(?#\d+\)?`;
+const CITATION = new RegExp(String.raw`^(?:@?see\s+)?(?:${DOC_PATH}|${ISSUE_REF})[\s.,;:]*(?:\*\/)?$`, 'i');
+const WHY = /(^|\s)Why:/;
 const RUNNER = String.raw`(?:\S+\.sh|bun|sh|node|npx|npm)`;
 const ENVS = String.raw`(?:[A-Z_][A-Z0-9_]*=\S*\s+)*`;
 const LABEL = String.raw`(?:[A-Za-z][\w .'()+/-]{0,30}:\s+)?`;
@@ -142,12 +146,12 @@ export function checkComments(files: string[]): Finding[] {
         for (const block of commentBlocks(source)) {
             if (block.lines.some(l => DIRECTIVE.test(l))) continue;
             const body = text(block);
-            const tagged = /(^|\s)Why:/.test(body);
-            if (RATIONALE.test(body) && !tagged) {
+            if (RATIONALE.test(body) && !WHY.test(body)) {
                 found.push({ file, line: block.start, check: 'why-tag', message: 'Rationale comment without a Why: tag. Collapse it to one tagged line or move it to docs/decisions/.' });
             }
-            const payload = block.lines.map(l => text({ start: 0, lines: [l] })).filter(l => l !== '');
-            if (payload.length > MAX_BLOCK && !isUsageBlock(payload)) {
+            const payload = block.lines.map(l => text({ start: 0, lines: [l] })).filter(l => l !== '' && !CITATION.test(l));
+            const allTagged = payload.length > 0 && payload.every(l => WHY.test(l));
+            if (payload.length > MAX_BLOCK && !allTagged && !isUsageBlock(payload)) {
                 found.push({ file, line: block.start, check: 'comment-block', message: `${payload.length}-line comment block. Keep comments to a rare one-liner where the code is cryptic.` });
             }
         }
