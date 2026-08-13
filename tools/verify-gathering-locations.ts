@@ -1,5 +1,13 @@
 /** Live helper: teleport to each gather camp and sample nearby rocks / trees / fish. Reports PASS/FAIL only and never edits the location tables.
  *  Skill names as argv (default all), BASE / HEADED / SLOWMO from the environment. Requires a local engine and a deployed bot client. */
+
+// Usage:
+//   bun tools/verify-gathering-locations.ts              # all skills
+//   bun tools/verify-gathering-locations.ts fishing
+//   bun tools/verify-gathering-locations.ts mining woodcutting
+//   BASE=http://localhost:8888 bun tools/verify-gathering-locations.ts
+//   HEADED=1 bun tools/verify-gathering-locations.ts fishing   # visible Chrome
+//   HEADED=1 SLOWMO=400 bun tools/verify-gathering-locations.ts mining
 import { boot, cheatQuiet, fail, launchBrowser, login } from './lib/harness.js';
 import type { GatheringLocation } from '../src/bot/data/gatheringLocations.js';
 

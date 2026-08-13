@@ -1,5 +1,8 @@
 /** PvP combat-signal probe: what the client can see when another player attacks. Two accounts in the wilderness — the victim samples every candidate raw client field ~10x/sec while the attacker drives OP_PLAYER2 ("Attack"). No bot code is touched and no script runs on either side, so this measures the deployed client.
  *  Scenarios: A idle_attacked (does self faceEntity get set), B npcfight_attacked (does retaliate re-target), C retaliate_off (the dependency plus varp 172 polarity), D npcfight_clean (negative control — self faceEntity stays <32768), E disengage (how fast the signal decays). */
+
+//   HEADED=1 bun tools/pvp-signal-probe.ts
+//   BASE=http://localhost:8888 bun tools/pvp-signal-probe.ts
 import { appendFileSync, writeFileSync } from 'node:fs';
 import type { Page } from 'playwright-core';
 import { launchBrowser, parseArgs } from './lib/harness.js';

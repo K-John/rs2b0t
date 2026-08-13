@@ -1,5 +1,11 @@
 /** Live walk stress over every travel OD scraped from clues, gathering and quests (corpus: tools/nav/script-travel-corpus.ts). SEGMENT=all|clues|quests|gathering-all|fishing|mining|woodcutting|firemaking|cooking, LIMIT (0 = all, default 25), OFFSET, USE_TELEPORTS, PATH_PAINT, ENERGY_REFILL_AT, HP_REFILL_AT, SUSTAIN_EVERY_S. A success proof is written only when every leg passes.
  *  Why: startup logs out through IF_BUTTON com 2458 so mainlandAccount relogs in ~9s rather than holding a long unclean disconnect; STUCK_ABORT kills a leg whose wall time far exceeds the path-cost estimate while the character has not moved (door thrash), and HARNESS_SUITE_ABORT stops the suite on harness death alone — product OD failures continue. */
+
+//   ~/redeploy.sh
+//   HEADED=1 SEGMENT=fishing LIMIT=0 bun tools/nav-script-travel-live.ts
+//   HEADED=1 SEGMENT=clues LIMIT=20 BUDGET_S=300 bun tools/nav-script-travel-live.ts
+//   HEADED=1 SEGMENT=quests OFFSET=0 LIMIT=50 bun tools/nav-script-travel-live.ts
+//   HEADED=1 SEGMENT=gathering-all bun tools/nav-script-travel-live.ts
 import fs from 'node:fs';
 import path from 'node:path';
 

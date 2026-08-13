@@ -1,5 +1,8 @@
 /** Bake full-world basemap assets from worldmap.jag: [--engine DIR] [--jag PATH] [--out DIR] [--revision TAG]. Emits a terrain-only basemap plus pre-baked transparent key / multi / free overlays so the picker can toggle layers without re-running MapView.
  *  worldmap.jag resolution order: --jag → $ENGINE/data/pack/mapview → out/ → download from 2004scape. */
+
+// Usage:
+//   bun tools/map/build-basemap.ts [--engine DIR] [--jag PATH] [--out DIR] [--revision TAG]
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';

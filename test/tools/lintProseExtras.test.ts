@@ -98,6 +98,44 @@ test('a usage block of runnable commands is not a comment block', () => {
     expect(checkComments([fixture('usage.ts', body)])).toEqual([]);
 });
 
+test('a redeploy-then-run usage block is not a comment block', () => {
+    const body = [
+        '// Usage:',
+        '//   ~/redeploy.sh   # botclient with RandomEventGuardian + maze fix',
+        '//   ~/redeploy.sh && HEADED=1 bun tools/varrock-sewer-web-370-live.ts',
+        '//   HEADED=1 SHIP_352=1 bun tools/nav-script-routes-live.ts',
+        '//   then: HEADED=1 bun tools/nav-tele-smoke.ts',
+        'export const a = 1;',
+        ''
+    ].join('\n');
+    expect(checkComments([fixture('redeploy.ts', body)])).toEqual([]);
+});
+
+test('a labelled command wrapped over continuation lines is one usage line', () => {
+    const body = [
+        '// Ideal (inventory pre-loaded, max stats) — mid-quest smoke only (proven PASS):',
+        '//   HEADED=1 bun tools/aio-quest-test.ts http://localhost:8890 ew1 elemental_workshop 15 \\',
+        "//     'knife:1,hammer:1,bronze_pickaxe:1' \\",
+        "//     max Lobster 'speed 300' '2716,3481'",
+        'export const a = 1;',
+        ''
+    ].join('\n');
+    expect(checkComments([fixture('wrapped.ts', body)])).toEqual([]);
+});
+
+test('a prose run longer than the header allowance is still a comment block', () => {
+    const body = [
+        '// The cache is skipped while the lock is held.',
+        '// Callers then re-read the manifest.',
+        '// A stale entry would otherwise survive the swap:',
+        '//   bun tools/x.ts',
+        'export const a = 1;',
+        ''
+    ].join('\n');
+    const found = checkComments([fixture('longheader.ts', body)]).filter(f => f.check === 'comment-block');
+    expect(found.length).toBe(1);
+});
+
 test('a rationale block of the same length is still a comment block', () => {
     const body = ['// The cache is skipped while the lock is held.', '// Callers then re-read the manifest.', '// A stale entry would otherwise survive the swap.', 'export const a = 1;', ''].join('\n');
     const found = checkComments([fixture('rationale.ts', body)]).filter(f => f.check === 'comment-block');

@@ -1,5 +1,10 @@
 /** Live Troll Stronghold harness (#264): --stage N --until N --at x,z,level --pack --paint --minutes N, base :8890.
  *  Why: `--stage` sets `%troll_quest` and relogs since update_questlist only recolours the journal at login; the bank holds coins, food and a melee kit but no climbing boots, since sourcing those from Tenzing for 12gp is part of what the run has to prove, and `~bankitem` exists only in rs2b2t-content so the :8888 sim seeds nothing. */
+
+//   HEADED=1 bun tools/trollstronghold-264-live.ts --stage 0 --minutes 90
+//   HEADED=1 bun tools/trollstronghold-264-live.ts --stage 0 --paint    # draw the route
+//   HEADED=1 bun tools/trollstronghold-264-live.ts --stage 20 --until 30 --minutes 45
+//   HEADED=1 bun tools/trollstronghold-264-live.ts --stage 30 --at 2852,10105,0 --pack --minutes 25
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 

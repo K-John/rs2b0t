@@ -1,5 +1,8 @@
 /** Nav A/B: walk a fixed corpus of door / stair / transport-heavy ODs and report the outcome plus the walker's own log for each. --base, --out, ROUTES=1,4,7.
  *  One account, one walk at a time, over live ODs, so two builds can be diffed line for line. */
+
+//   bun tools/nav/route-walk-live.ts --base http://localhost:8890 --out out/routes-head.json
+//   ROUTES=1,4,7 bun tools/nav/route-walk-live.ts
 import fs from 'node:fs';
 
 import type { Page } from 'playwright-core';

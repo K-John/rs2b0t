@@ -1,6 +1,8 @@
 // RuneCrafter multibox e2e: 1 Mule Recipient + N Runners (default 20) in one multibox wall page — the issue-#209 acceptance test at scale. Usage: [base] [budget-min] [num-runners] [rune].
 // Why: phase 1 preps each account on a throwaway page (tutorial skip, maxme, seed, tele, logout) and server-side state persists, so STAMP=<tag> PREP=0 reuses them; phase 2 opens multibox.html, presets each box's settings, adds every account, waits for the staggered logins, then calls controller.startAll() and soaks.
 
+// Usage: bun tools/runecrafter-multibox-test.ts [base] [budget-min] [num-runners] [rune]
+
 import type { Browser, Page } from 'playwright-core';
 import { launchBrowser, parseArgs, cheatQuiet, fail, setSettings, type } from './lib/harness.js';
 import { mainlandAccount } from './tutorial/harness.js';

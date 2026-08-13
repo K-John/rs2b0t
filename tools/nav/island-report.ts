@@ -1,5 +1,11 @@
 /** Whole-map connectivity census: every region the walker cannot reach from the mainland, and the loc most likely to be the missing edge. Default islands >= 40 tiles; --min 200 --top 30 --json out/islands.json.
  *  Why: flooding uses the pack's exit masks plus the baked door / transport / stair edges, i.e. what A* can traverse — plain walkability over-connects and lies. */
+
+// Why: a clue, quest step or bot that "can't get there" is usually not a walker bug — it is a region the baked graph never joined up.
+
+//   bun tools/nav/island-report.ts                    # islands >= 40 tiles
+//   bun tools/nav/island-report.ts --min 200 --top 30
+//   bun tools/nav/island-report.ts --json out/islands.json
 import fs from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';

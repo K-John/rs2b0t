@@ -1,5 +1,15 @@
 /** Live walk stress over script-ripped high-traffic routes: HARD=1, TRANSPORT_HEAVY=1, SHIP_352=1, JEWELLERY_ONLY=1, LIMIT, BUDGET_S, PATH_PAINT, USE_TELEPORTS, ENERGY_REFILL_AT. Server tick drops to 300ms and is restored to 600 on exit; charged duel/glory/games neck are seeded at start and topped up each leg so OD paths may Rub.
- *  Why: `energy` alone is a no-op — the engine has no native energy cheat — so refills go through the content debugproc `~energy`, which needs p_finduid and retries while the player is mid protected script. */
+ *  Why: `energy` alone is a no-op — the engine has no native energy cheat — so refills go through the content debugproc `~energy` (healenergy 10000 + run on), which needs p_finduid and retries while the player is mid protected script. */
+
+//   ~/redeploy.sh
+//   HEADED=1 HARD=1 ENERGY_REFILL_AT=25 bun tools/nav-script-routes-live.ts
+//   HEADED=1 TRANSPORT_HEAVY=1 LIMIT=12 bun tools/nav-script-routes-live.ts
+//   HEADED=1 LIMIT=8 BUDGET_S=180 bun tools/nav-script-routes-live.ts
+//   HEADED=1 LIMIT=10 bun tools/nav-script-routes-live.ts
+//   HEADED=1 SHIP_352=1 bun tools/nav-script-routes-live.ts
+//   HEADED=1 LIMIT=2 PATH_PAINT=1 bun tools/nav-script-routes-live.ts   # dual red/cyan paint
+
+// Pack-only: bun --preload ./test/setup-dom.ts tools/nav/script-route-corpus.js --hardest=25
 import type { Page } from 'playwright-core';
 import { launchBrowser, parseArgs } from './lib/harness.js';
 import { createHarnessProof } from './lib/harnessProof.js';

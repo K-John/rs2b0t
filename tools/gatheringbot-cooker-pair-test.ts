@@ -1,5 +1,12 @@
 /** Two-account Fisher mule e2e at Catherby: the Gatherer hauls raw lobster to the camp meet, the Cooker cooks at the Range and banks (burntPolicy Drop).
  *  BASE / BUDGET_S from the environment; redeploy first when GatheringBot / cook / mule code changes. */
+
+// Usage:
+//   HEADED=1 bun tools/gatheringbot-cooker-pair-test.ts
+//   BASE=http://localhost:8890 BUDGET_S=240 bun tools/gatheringbot-cooker-pair-test.ts
+
+// Redeploy first when GatheringBot / cook / mule code changes:
+//   ~/redeploy.sh
 import type { Page } from 'playwright-core';
 import { launchBrowser, parseArgs } from './lib/harness.js';
 import {

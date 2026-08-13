@@ -1,5 +1,8 @@
 /** Build ~10 transport-heavy OD pairs from curated 2004 travel plus known hubs, pack-probe them with full WorldState, and write a live-friendly JSON list: --write --n=12 --explain.
  *  Output: tools/nav/transport-heavy.routes.json — feed it to a harness or copy ids into the nav-script-routes-live LIMIT list. */
+
+//   bun tools/nav/transport-heavy-routes.ts
+//   bun tools/nav/transport-heavy-routes.ts --write --n=12 --explain
 import fs from 'node:fs';
 import path from 'node:path';
 

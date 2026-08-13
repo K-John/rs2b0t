@@ -32,7 +32,7 @@ const RELOG_RETRY_MS = Number(process.env.RELOG_RETRY_MS) || 2_000;
 const RELOG_BUDGET_MS = Number(process.env.RELOG_BUDGET_MS) || 90_000;
 
 /** Logout via the logout UI button (if_button 2458 → ClientProt.IF_BUTTON).
- *  Falls back to client.logout() when the button packet cannot be sent. */
+ *  Falls back to client.logout() when the button packet cannot be sent. Why: 2458 is the same component id as LOGOUT_BUTTON_COM in tools/lib/harness.ts, so the two logout paths have to move together. */
 async function cleanLogout(page: Page): Promise<'ifbutton' | 'client'> {
     // logout:try_logout — tab-rooted; engine accepts without the logout tab open.
     const LOGOUT_BUTTON = 2458;

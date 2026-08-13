@@ -1,5 +1,12 @@
 /** Live Horror from the Deep harness (#216): --stage N --until N --minutes N --barcrawl 0 --bits <names> --teleports --stocked. Members-only, so base :8890 — the :8888 sim has no `node` block and every members gate refuses.
  *  Why: `--stage` relogs since update_questlist only recolours the journal entry at login; every `deephorror` sub-bit is seeded to match, since the bridge, the key and the three lamp repairs are separate bits of one varp and a stage jump leaving them clear describes a state the quest cannot reach; the bank holds coins and food alone, since a stage-1 run handed eight nails passes while the quest cannot smith them. */
+
+//   HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 10 --minutes 240
+//   HEADED=1 bun tools/horror-deep-216-live.ts --stage 4 --until 10 --minutes 60
+//   HEADED=1 bun tools/horror-deep-216-live.ts --stage 1 --barcrawl 0 --minutes 90
+//   HEADED=1 bun tools/horror-deep-216-live.ts --stage 1 --bits horrorbridgeleft,horrorbridgeright
+//   HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 10 --teleports
+//   HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 2 --stocked --teleports
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 

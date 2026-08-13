@@ -1,5 +1,7 @@
 /** Live DartFletcher throughput test: --base http://localhost:19080 --minutes 3.
  *  Reports wall-clock XP/hr and a tick-normalized 600ms-world projection that survives a changed dev tick speed. */
+
+//   bun tools/dartfletcher-test.ts --base http://localhost:19080 --minutes 3
 import type { Page } from 'playwright-core';
 import { fail, launchBrowser, parseArgs } from './lib/harness.js';
 import { cheatQuiet, mainlandAccount, startScript } from './tutorial/harness.js';

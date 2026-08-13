@@ -1,5 +1,13 @@
 /** End-to-end runner: --level quick|smart|full, --only <names>, --gates-only, --verbose.
  *  Deploys once, runs the offline gates then the harnesses, and diffs the report against the previous run so the output names what changed. */
+
+// Usage:
+//   bun run e2e                     # quick: the fast harnesses
+//   bun run e2e -- --level smart    # only what the working diff can affect
+//   bun run e2e -- --level full     # every harness, quests included
+//   bun run e2e -- --only troll,horror
+//   bun run e2e -- --gates-only     # offline gates, no engine needed
+//   bun run e2e -- --verbose        # stream every child line
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 

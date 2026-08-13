@@ -1,5 +1,7 @@
 /** GreenDragon PK-threat behaviour, two accounts: a bystander idling 3 tiles away must not scatter the bot, and the same account attacking must produce `escaping (under attack)`.
  *  Why: phase 2 runs at empty low wilderness — the zone is single-way, so while any npc is on the bot the engine refuses the PvP attack outright ("Someone else is already fighting your opponent."). */
+
+//   HEADED=1 bun tools/greendragon-pk-flee-test.ts
 import type { Page } from 'playwright-core';
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, setSettings } from './lib/harness.js';
 

@@ -1,5 +1,10 @@
 /** Pack stress corpus ripped from in-tree script / nav data: BANK_LOCATIONS, WALK_DESTINATIONS, NAV_TARGETS and tools/nav/mainland-routes.json. --write, --hardest=25, --no-tele, --endpoint-radius=0, --corridor-grid=32.
  *  Why: paths dedupe three times — exact from→to at build time, an optional near-endpoint collapse for generator twins, and a post-A* journey-signature collapse on end map-square plus hop sequence; hardest ranking uses teleports by default (full runes, magic 99) to match live stress, and the preload is required since BankLocations pulls a little client surface. */
+
+//   bun --preload ./test/setup-dom.ts tools/nav/script-route-corpus.ts --write
+//   bun --preload ./test/setup-dom.ts tools/nav/script-route-corpus.ts --hardest=25
+//   bun --preload ./test/setup-dom.ts tools/nav/script-route-corpus.ts --no-tele --hardest=25
+//   bun --preload ./test/setup-dom.ts tools/nav/script-route-corpus.ts --endpoint-radius=0 --corridor-grid=32
 import fs from 'node:fs';
 import path from 'node:path';
 

@@ -1,5 +1,12 @@
 /** Two-account GatheringBot mule e2e at SE Varrock iron: two logins, a seeded iron haul on the gatherer, Miner on both sides with reciprocal partners, asserting a handoff.
  *  BASE / BUDGET_S from the environment; redeploy the bot client first when GatheringBot / Trade / mule code changes. */
+
+// Usage:
+//   HEADED=1 bun tools/gatheringbot-mule-pair-test.ts
+//   BASE=http://localhost:8890 BUDGET_S=180 bun tools/gatheringbot-mule-pair-test.ts
+
+// Redeploy the bot client first when GatheringBot / Trade / mule code changes:
+//   ~/redeploy.sh
 import type { Page } from 'playwright-core';
 import { launchBrowser, parseArgs } from './lib/harness.js';
 import {

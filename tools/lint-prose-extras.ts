@@ -75,8 +75,13 @@ export function checkFragments(files: string[]): Finding[] {
 const MAX_BLOCK = 2;
 const RATIONALE = /\b(because|so that|the reason)\b/i;
 const DIRECTIVE = /^\s*(?:\/\/|\/\*+|\*)\s*(eslint|@ts-|prettier|vale|biome|c8|istanbul|oxlint)/;
-const USAGE = /^(?:usage:\s*)?(?:[A-Z_]+=\S+\s+)*(?:bun|sh|node|npx|npm)\s/i;
-const USAGE_HEADER = /^usage:/i;
+const RUNNER = String.raw`(?:\S+\.sh|bun|sh|node|npx|npm)`;
+const ENVS = String.raw`(?:[A-Z_][A-Z0-9_]*=\S*\s+)*`;
+const LABEL = String.raw`(?:[A-Za-z][\w .'()+/-]{0,30}:\s+)?`;
+const USAGE = new RegExp(String.raw`^${LABEL}${ENVS}${RUNNER}(?=\s|$)`, 'i');
+const USAGE_HEADER = /:$/;
+const CONTINUED = /\\$/;
+const HEADER_MAX = 2;
 
 type Block = { start: number; lines: string[] };
 
@@ -101,8 +106,30 @@ function text(block: Block): string {
     return block.lines.map(l => l.replace(/^\s*(\/\/|\/\*+|\*\/|\*)/, '').trim()).join(' ');
 }
 
+function joinContinuations(payload: string[]): string[] {
+    const joined: string[] = [];
+    for (const line of payload) {
+        const prev = joined.at(-1);
+        if (prev !== undefined && CONTINUED.test(prev)) joined[joined.length - 1] = `${prev.replace(CONTINUED, '').trim()} ${line}`;
+        else joined.push(line);
+    }
+    return joined;
+}
+
 function isUsageBlock(payload: string[]): boolean {
-    return payload.some(l => USAGE.test(l)) && payload.every(l => USAGE.test(l) || USAGE_HEADER.test(l));
+    const lines = joinContinuations(payload);
+    const command = lines.map(l => USAGE.test(l));
+    if (!command.some(Boolean)) return false;
+    const exempt = [...command];
+    let run = 0;
+    for (let i = lines.length - 2; i >= 0; i--) {
+        if (command[i]) { run = 0; continue; }
+        const header = run === 0 ? command[i + 1] && USAGE_HEADER.test(lines[i]) : exempt[i + 1] && run < HEADER_MAX;
+        if (!header) { run = 0; continue; }
+        exempt[i] = true;
+        run++;
+    }
+    return exempt.every(Boolean);
 }
 
 export function checkComments(files: string[]): Finding[] {

@@ -1,5 +1,8 @@
 /** Custom pure-walk / escort smoke (teleports off): Yanille bank 2612,3092 → dungeon warrior field 2580,9501; TGV centre 2542,3169 → outside maze ~2493,3187; then the Elkoy maze shortcut with Tree Gnome Village started.
  *  Content coords: elkoy entrance 0_39_49_8_56, maze land 0_39_49_19_23, balancing ledge 2580,9520 / 2580,9512; the web needs a plain Knife. PATH_PAINT=1 (default) → showNavPath + navCameraFollow + red pack / cyan client. */
+
+//   ~/redeploy.sh
+//   HEADED=1 bun tools/nav-two-route-smoke-live.ts [http://localhost:8890]
 import type { Page } from 'playwright-core';
 import { launchBrowser, parseArgs } from './lib/harness.js';
 import { createHarnessProof } from './lib/harnessProof.js';
