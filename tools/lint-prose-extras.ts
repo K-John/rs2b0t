@@ -5,8 +5,10 @@ export type Finding = { file: string; line: number; check: string; message: stri
 
 const DOC_CAP = 150;
 
+const GENERATED = /^[ \t]*(?:<!--|\/\/+|\/\*+|\*)[ \t]*@?generated\b/im;
+
 function isGenerated(body: string): boolean {
-    return body.slice(0, 400).includes('<!-- GENERATED');
+    return GENERATED.test(body.slice(0, 400));
 }
 
 export function checkDocCap(files: string[]): Finding[] {
@@ -135,7 +137,9 @@ function isUsageBlock(payload: string[]): boolean {
 export function checkComments(files: string[]): Finding[] {
     const found: Finding[] = [];
     for (const file of files) {
-        for (const block of commentBlocks(readFileSync(file, 'utf8'))) {
+        const source = readFileSync(file, 'utf8');
+        if (isGenerated(source)) continue;
+        for (const block of commentBlocks(source)) {
             if (block.lines.some(l => DIRECTIVE.test(l))) continue;
             const body = text(block);
             const tagged = /(^|\s)Why:/.test(body);
