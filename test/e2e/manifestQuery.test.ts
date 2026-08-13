@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import type { Case } from '../../e2e/manifestTypes.js';
 import {
     casesForLevel,
+    casesForLevelIncludingDocumented,
     casesForScript,
     casesForSubsystem,
     selectByChanges,
@@ -124,9 +125,42 @@ describe('validate', () => {
         expect(validate(cases, files, dirs)).toContain('a: vetted but carries no provenAt');
     });
 
+    test('rejects a documented case with no documentedIn', () => {
+        const cases = [mk({ id: 'a', harness: 'hillgiant-test.ts', status: 'documented', provenAt: undefined })];
+        expect(validate(cases, files, dirs)).toContain('a: documented but carries no documentedIn');
+    });
+
+    test('a documented case needs no provenAt', () => {
+        const cases = [mk({
+            id: 'a', harness: 'hillgiant-test.ts', status: 'documented',
+            provenAt: undefined, documentedIn: 'docs/TESTING.md'
+        })];
+        expect(validate(cases, files, dirs)).toEqual([]);
+    });
+
     test('rejects a harness file no case names', () => {
         const cases = [mk({ id: 'a', harness: 'hillgiant-test.ts' })];
         expect(validate(cases, [...files, 'orphan-live.ts'], dirs))
             .toContain('no case names harness: orphan-live.ts');
+    });
+});
+
+describe('casesForLevel with documented', () => {
+    const cases = [
+        mk({ id: 'v', harness: 'a-test.ts' }),
+        mk({ id: 'd', harness: 'b-test.ts', status: 'documented', provenAt: undefined, documentedIn: 'docs/TESTING.md' }),
+        mk({ id: 'u', harness: 'c-test.ts', status: 'unvetted', provenAt: undefined })
+    ];
+
+    test('quick runs vetted only, never documented', () => {
+        expect(casesForLevel(cases, 'quick').map(c => c.id)).toEqual(['v']);
+    });
+
+    test('full runs vetted, documented and unvetted', () => {
+        expect(casesForLevel(cases, 'full').map(c => c.id)).toEqual(['v', 'd', 'u']);
+    });
+
+    test('casesForLevelIncludingDocumented drops unvetted', () => {
+        expect(casesForLevelIncludingDocumented(cases).map(c => c.id)).toEqual(['v', 'd']);
     });
 });

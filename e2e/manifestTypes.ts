@@ -17,7 +17,9 @@ export type ScriptName = typeof SCRIPT_NAMES[number];
 export type Subsystem =
     | 'nav' | 'multibox' | 'clues' | 'panel' | 'quests' | 'random-events' | 'world' | 'infra';
 
-export type CaseStatus = 'vetted' | 'unvetted' | 'broken';
+/** vetted: someone ran it green and recorded the commit. documented: a doc or npm script tells you
+ *  how to run it, with no green run on record. unvetted: neither. broken: known to fail or assert nothing. */
+export type CaseStatus = 'vetted' | 'documented' | 'unvetted' | 'broken';
 
 export type Level = 'quick' | 'smart' | 'full';
 
@@ -35,5 +37,7 @@ export interface Case {
     budgetMin?: number;
     /** Commit where this case last ran green. Required when status is 'vetted'. */
     provenAt?: string;
+    /** Doc path or npm script naming how to run this. Required when status is 'documented'. */
+    documentedIn?: string;
     note?: string;
 }

@@ -16,6 +16,11 @@ export function casesForLevel(cases: readonly Case[], level: Level): Case[] {
     return level === 'full' ? open : open.filter(c => c.status === 'vetted');
 }
 
+/** Cases a level would run once every documented case has been confirmed green. */
+export function casesForLevelIncludingDocumented(cases: readonly Case[]): Case[] {
+    return runnable(cases).filter(c => c.status === 'vetted' || c.status === 'documented');
+}
+
 /** Which subsystem a changed path belongs to, or null when it names none. */
 function subsystemOf(path: string): Subsystem | null {
     if (path.startsWith('src/bot/event/webwalk/')) {
@@ -94,6 +99,9 @@ export function validate(
         }
         if (c.status === 'vetted' && c.provenAt === undefined) {
             problems.push(`${c.id}: vetted but carries no provenAt`);
+        }
+        if (c.status === 'documented' && c.documentedIn === undefined) {
+            problems.push(`${c.id}: documented but carries no documentedIn`);
         }
     }
     const named = new Set(cases.map(c => c.harness));
