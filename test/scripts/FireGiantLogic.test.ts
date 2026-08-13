@@ -123,6 +123,7 @@ describe('sameRoom', () => {
     });
 });
 
+// Why: 2568,9893 is melee-proof, so it is the tile to drop back to whenever a giant reaches the forward spot.
 describe('safespot tiers', () => {
     test('the forward spot is 2568,9892 and the fallback is 2568,9893', () => {
         expect([DEFAULT_SAFESPOT.x, DEFAULT_SAFESPOT.z, DEFAULT_SAFESPOT.level]).toEqual([2568, 9892, 0]);
