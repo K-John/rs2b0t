@@ -111,3 +111,4 @@ while repealing another on the same files.
 ## See also
 
 - [Architecture](../decisions/architecture.md)
+- [Live-harness boundary](live-harness-boundary.md) — the `tools/` and `e2e/` split

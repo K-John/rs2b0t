@@ -20,6 +20,7 @@
         "lint:prose:extras": "bun tools/lint-prose-extras.ts --gate=doc-cap,fragment,why-tag,comment-block",
         "audit:exports": "bun tools/audit-exports.ts",
         "audit:script-dirs": "bun tools/audit-script-dirs.ts",
+        "audit:e2e-split": "bun tools/audit-e2e-split.ts --after",
         "typecheck": "tsc --noEmit",
         "format": "prettier --write",
         "smoke": "bun e2e/e2e-smoke.ts",

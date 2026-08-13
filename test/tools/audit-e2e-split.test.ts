@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import {
     bunTestNamesUnder,
+    importsInto,
     liveClosure,
     misnamedUnder,
     resolveSpec
@@ -127,6 +128,47 @@ describe('liveClosure', () => {
             ['tools/x-live.ts', "const m = await import('./lib/harness.js');"]
         ]);
         expect(liveClosure(entry, sources).move).toContain('tools/x-live.ts');
+    });
+});
+
+describe('importsInto', () => {
+    test('flags a tools file importing across into e2e', () => {
+        const sources = new Map([
+            ['tools/probe-fence.ts', "import { boot } from '../e2e/lib/harness.js';"]
+        ]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual([
+            'tools/probe-fence.ts\t../e2e/lib/harness.js'
+        ]);
+    });
+
+    test('flags a nested tools file reaching across', () => {
+        const sources = new Map([
+            ['tools/nav/x.ts', "import { boot } from '../../e2e/lib/harness.js';"]
+        ]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual([
+            'tools/nav/x.ts\t../../e2e/lib/harness.js'
+        ]);
+    });
+
+    test('ignores imports that stay inside the prefix', () => {
+        const sources = new Map([
+            ['tools/gen-itemdb.ts', "import { parse } from './items/parse.js';"]
+        ]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual([]);
+    });
+
+    test('ignores the permitted e2e to tools direction', () => {
+        const sources = new Map([
+            ['e2e/nav-script-routes-live.ts', "import { build } from '../tools/nav/script-route-corpus.js';"]
+        ]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual([]);
+    });
+
+    test('catches a dynamic import across the boundary', () => {
+        const sources = new Map([
+            ['tools/x.ts', "const m = await import('../e2e/lib/harness.js');"]
+        ]);
+        expect(importsInto('tools', 'e2e', sources)).toEqual(['tools/x.ts\t../e2e/lib/harness.js']);
     });
 });
 

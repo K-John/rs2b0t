@@ -99,6 +99,26 @@ export function liveClosure(
     return { move, heldBack };
 }
 
+/** Files under `fromPrefix` whose specifiers resolve into `toPrefix`, as `file\tspecifier`.
+ *  Why: the closure drops edges leaving its source map, so it cannot see a tools/ file reaching into e2e/. */
+export function importsInto(fromPrefix: string, toPrefix: string, sources: Map<string, string>): string[] {
+    const found: string[] = [];
+    for (const [file, src] of sources) {
+        if (!file.startsWith(`${fromPrefix}/`)) {
+            continue;
+        }
+        SPEC.lastIndex = 0;
+        let m: RegExpExecArray | null;
+        while ((m = SPEC.exec(src))) {
+            const target = resolveSpec(file, m[1]);
+            if (target !== null && target.startsWith(`${toPrefix}/`)) {
+                found.push(`${file}\t${m[1]}`);
+            }
+        }
+    }
+    return found.sort();
+}
+
 export function misnamedUnder(prefix: string, files: string[]): string[] {
     return files
         .filter(f => f.startsWith(`${prefix}/`) && (f.endsWith('-test.ts') || f.endsWith('-live.ts')))
