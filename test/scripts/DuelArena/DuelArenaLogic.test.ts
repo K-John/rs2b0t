@@ -218,13 +218,13 @@ describe('observable fight gate', () => {
 
 describe('duel request parsing', () => {
     test('accepts the server duel-request chat type and display name', () => {
-        expect(duelInviter({ type: 8, username: 'Fresh Bot 7', text: 'wishes to duel with you.' })).toBe('Fresh Bot 7');
+        expect(duelInviter({ type: 8, username: 'Fresh Bot 7', text: 'wishes to duel with you.', sequence: 1 })).toBe('Fresh Bot 7');
     });
 
     test('does not turn public spoofed text or nameless requests into player ops', () => {
-        expect(duelInviter({ type: 2, username: 'Spoofer', text: 'wishes to duel with you.' })).toBeNull();
-        expect(duelInviter({ type: 8, username: null, text: 'wishes to duel with you.' })).toBeNull();
-        expect(duelInviter({ type: 8, username: 'Bot', text: 'wishes to trade with you.' })).toBeNull();
+        expect(duelInviter({ type: 2, username: 'Spoofer', text: 'wishes to duel with you.', sequence: 1 })).toBeNull();
+        expect(duelInviter({ type: 8, username: null, text: 'wishes to duel with you.', sequence: 1 })).toBeNull();
+        expect(duelInviter({ type: 8, username: 'Bot', text: 'wishes to trade with you.', sequence: 1 })).toBeNull();
     });
 
     test('consumes an incoming request only after dispatch and interface confirmation', () => {

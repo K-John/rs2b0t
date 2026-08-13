@@ -7,3 +7,7 @@
 [submodule "3rdparty/emsdk"]
 	path = 3rdparty/emsdk
 	url = https://github.com/emscripten-core/emsdk
+[submodule "do-not-touch/apiv2/content"]
+	path = do-not-touch/apiv2/content
+	url = https://github.com/LostCityRS/Content.git
+	branch = 274

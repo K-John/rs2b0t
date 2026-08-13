@@ -26,8 +26,27 @@ function modal(main: number): void {
     reader.modals = () => ({ main, side: -1, chat: -1 });
 }
 
+const IDLE = {
+    animation: -1,
+    poseAnimation: -1,
+    orientation: 0,
+    targetOrientation: 0,
+    overheadText: null,
+    spotAnimation: -1,
+    moving: false,
+    running: false,
+    target: null,
+    combatLevel: 3,
+    skillLevel: 0,
+    ops: [],
+    health: 0,
+    totalHealth: 0
+} as const;
+
 function player(index: number): Player {
     return new Player({
+        ...IDLE,
+        ops: [...IDLE.ops],
         index,
         name: `Bot ${index}`,
         tile: { x: 3368, z: 3274, level: 0 },

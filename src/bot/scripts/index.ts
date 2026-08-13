@@ -68,6 +68,7 @@ import { ShopRunner, SHOPRUNNER_SETTINGS } from './ShopRunner/ShopRunner.js';
 import AIOTeleport, { SETTINGS as AIOTELEPORT_SETTINGS } from './AIOTeleport/AIOTeleport.js';
 import Barcrawl from './Barcrawl/Barcrawl.js';
 import DuelArena, { DUEL_ARENA_SETTINGS } from './DuelArena/DuelArena.js';
+import TravelBot, { TRAVEL_SETTINGS } from '../../../do-not-touch/scripts/travel/TravelBot.js';
 
 // First register = panel default when no script is remembered (BotPanel → list()[0]).
 ScriptRegistry.register({
@@ -683,4 +684,13 @@ ScriptRegistry.register({
     tags: ['crafting', 'fletching', 'flax', 'bow-strings', 'trade', 'two-player', 'afk'],
     settingsSchema: FLAXRUNNER_SETTINGS,
     create: () => new FlaxRunner()
+});
+
+ScriptRegistry.register({
+    name: 'Travel (apiv2)',
+    description: 'Walk to a chosen bank or city using the route planner — through doors, stairs and stiles, no teleporting',
+    category: 'Utility',
+    tags: ['travel', 'walking', 'banking', 'apiv2'],
+    settingsSchema: TRAVEL_SETTINGS,
+    create: () => new TravelBot()
 });

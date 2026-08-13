@@ -5,7 +5,7 @@
 
 # Bundled scripts
 
-- Scripts: 51. Categories: 19.
+- Scripts: 52. Categories: 20.
 - Source: [`src/bot/scripts/`](../src/bot/scripts/). API: [scripting API](API.md).
 - Settings are the parameters the panel exposes before a script starts.
 
@@ -29,6 +29,7 @@
 - [Smithing](#smithing) — 2
 - [Thieving](#thieving) — 3
 - [Treasure Trails](#treasure-trails) — 1
+- [Utility](#utility) — 1
 - [Woodcutting](#woodcutting) — 1
 
 ## Agility
@@ -865,6 +866,18 @@ Solves the easy clue scroll (or opens the casket) in your pack — banks everyth
 | `foodWithdraw` | number (1–27) | `8` | Food to withdraw |
 | `restorePrayer` | boolean | `true` | Top up prayer between trails |
 | `useTeleports` | boolean | `true` | Use teleports |
+
+## Utility
+
+### Travel (apiv2)
+
+Walk to a chosen bank or city using the route planner — through doors, stairs and stiles, no teleporting
+
+- Tags: `travel`, `walking`, `banking`, `apiv2`
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| `destination` | string | `"Al Kharid bank"` | Destination — one of: Al Kharid bank, Ardougne North bank, Ardougne South bank, Catherby bank, Draynor bank, Edgeville bank, Falador East bank, Falador West bank, Rellekka bank, Seers' Village bank, Varrock East bank, Varrock West bank, Yanille bank, Al Kharid Palace, Ardougne Zoo, Barbarian Village, Burthorpe, Camelot, Catherby, Draynor Village, East Ardougne, Edgeville, Falador Park, Lumbridge Castle, Port Khazard, Port Sarim docks, Rellekka, Rimmington, Sinclair Mansion, Taverley, Varrock Square, Varrock north gate, Wilderness gate, Yanille |
 
 ## Woodcutting
 

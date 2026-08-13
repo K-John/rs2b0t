@@ -4,8 +4,10 @@ import Skill from '#/client/shell/Skill.js';
 import { ButtonType, ComponentType } from '#/client/config/IfType.js';
 import IfType from '#/client/config/IfType.js';
 import LocType from '#/client/config/LocType.js';
+import VarpType from '#/client/config/VarpType.js';
 import ObjType from '#/client/config/ObjType.js';
 import CollisionMap from '#/client/dash3d/CollisionMap.js';
+import type ClientEntity from '#/client/dash3d/ClientEntity.js';
 import Model from '#/client/dash3d/Model.js';
 import type ModelSource from '#/client/dash3d/ModelSource.js';
 import { ClientProt } from '#/client/io/ClientProt.js';
@@ -13,6 +15,7 @@ import { ClientProt } from '#/client/io/ClientProt.js';
 import { SELF_TEST, type RawClient } from './RawClient.js';
 
 const SCENE_SIZE = 104;
+const SIDE_TAB_COUNT = 15;
 
 // Why: locs() sweeps 104x104 tiles x 4 typecodes at a measured 1.4-1.7ms and 586-2289
 // objects per call, and frame-rate script waiters would rebuild the unchanged scene ~24x/sec per bot.
@@ -129,10 +132,13 @@ export interface WorldTile {
     level: number;
 }
 
+let chatSeq = 0;
+
 export interface ChatLine {
     type: number;
     username: string | null;
     text: string;
+    sequence: number;
 }
 
 interface StatSnapshot {
@@ -142,12 +148,40 @@ interface StatSnapshot {
     xp: number;
 }
 
-export interface NpcSnapshot {
+export interface SceneSnapshot {
+    available: boolean;
+    baseX: number;
+    baseZ: number;
+    level: number;
+    width: number;
+    height: number;
+    collisionFlags: number[];
+}
+
+export interface ActorTargetSnapshot {
+    kind: 'npc' | 'player';
+    index: number;
+}
+
+export interface ActorSnapshot {
+    animation: number;
+    poseAnimation: number;
+    orientation: number;
+    targetOrientation: number;
+    overheadText: string | null;
+    spotAnimation: number;
+    moving: boolean;
+    running: boolean;
+    target: ActorTargetSnapshot | null;
+}
+
+export interface NpcSnapshot extends ActorSnapshot {
     index: number;
     id: number;
     anim: number;
     name: string | null;
     level: number;
+    size: number;
     tile: WorldTile;
     distance: number;
     ops: (string | null)[];
@@ -157,40 +191,148 @@ export interface NpcSnapshot {
     faceEntity: number;
 }
 
-export interface PlayerSnapshot {
+export interface PlayerSnapshot extends ActorSnapshot {
     index: number;
     name: string | null;
+    combatLevel: number;
+    skillLevel: number;
     tile: WorldTile;
     distance: number;
+    ops: (string | null)[];
     inCombat: boolean;
+    health: number;
+    totalHealth: number;
     faceEntity: number;
 }
 
 export interface LocSnapshot {
     typecode: number;
+    info: number;
     id: number;
     name: string | null;
+    description: string | null;
     ops: (string | null)[];
     tile: WorldTile;
     distance: number;
+    layer: 'wall' | 'wallDecoration' | 'ground' | 'groundDecoration';
+    shape: number;
+    angle: number;
+    width: number;
+    length: number;
+    footprintWidth: number;
+    footprintLength: number;
+    blockWalk: boolean;
+    blockRange: boolean;
+    active: boolean;
+    animation: number;
+    mapFunction: number;
+    mapScene: number;
+    forceApproach: number;
 }
 
 export interface GroundItemSnapshot {
     id: number;
     name: string | null;
+    description: string | null;
     count: number;
     ops: (string | null)[];
     tile: WorldTile;
     distance: number;
+    stackable: boolean;
+    members: boolean;
+    baseValue: number;
+    noted: boolean;
+    certificateLink: number;
+    certificateTemplate: number;
 }
 
 export interface InvItemSnapshot {
     slot: number;
     id: number;
     name: string | null;
+    description?: string | null;
     count: number;
     ops: (string | null)[];
     comId: number;
+    stackable?: boolean;
+    members?: boolean;
+    baseValue?: number;
+    noted?: boolean;
+    certificateLink?: number;
+    certificateTemplate?: number;
+}
+
+export interface WidgetVarpBindingSnapshot {
+    scriptIndex: number;
+    varp: number;
+    value: number | null;
+    comparator: number | null;
+}
+
+export interface WidgetSnapshot {
+    componentId: number;
+    layerId: number;
+    parentId: number;
+    rootComponentId: number;
+    root: 'main' | 'side' | 'chat';
+    type: number;
+    buttonType: number;
+    clientCode: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    scrollHeight: number;
+    scrollPosition: number;
+    hidden: boolean;
+    text: string | null;
+    alternateText: string | null;
+    buttonText: string | null;
+    targetVerb: string | null;
+    targetBase: string | null;
+    targetMask: number;
+    modelType: number;
+    modelId: number;
+    alternateModelType: number;
+    alternateModelId: number;
+    scripts: (number[] | null)[] | null;
+    scriptComparators: number[] | null;
+    scriptOperands: number[] | null;
+    varpBindings: WidgetVarpBindingSnapshot[];
+    colour: number;
+    ops: (string | null)[];
+    items: InvItemSnapshot[];
+}
+
+export interface SideTabSnapshot {
+    index: number;
+    rootComponentId: number;
+    available: boolean;
+    active: boolean;
+    visible: boolean;
+    widgets: WidgetSnapshot[];
+}
+
+export interface WorldStateSnapshot {
+    mapBaseX: number;
+    mapBaseZ: number;
+    level: number;
+    members: boolean;
+    multiCombat: boolean;
+    playerCount: number;
+    npcCount: number;
+    cycle: number;
+}
+
+export interface CameraSnapshot {
+    x: number;
+    y: number;
+    z: number;
+    pitch: number;
+    yaw: number;
+    orbitPitch: number;
+    orbitYaw: number;
+    cinematic: boolean;
 }
 
 interface SelectButtonLabel {
@@ -205,6 +347,12 @@ export function attach(client: unknown): string[] {
     invalidateLocSnapshots();
 
     if (!missing.includes('tcpIn')) {
+        const origAddChat = raw.addChat;
+        raw.addChat = function (this: RawClient, type: number, text: string, sender: string): void {
+            origAddChat.call(this, type, text, sender);
+            chatSeq++;
+        };
+
         const orig = raw.tcpIn;
         raw.tcpIn = async function (this: RawClient): Promise<boolean> {
             const processed = await orig.call(this);
@@ -224,6 +372,28 @@ export function attach(client: unknown): string[] {
 
 export function setPacketListener(cb: ((ptype: number) => void) | null): void {
     packetListener = cb;
+}
+
+function decodeActorTarget(faceEntity: number): ActorTargetSnapshot | null {
+    if (faceEntity < 0) {
+        return null;
+    }
+    return faceEntity < 32768 ? { kind: 'npc', index: faceEntity } : { kind: 'player', index: faceEntity - 32768 };
+}
+
+function actorSnapshot(entity: ClientEntity): ActorSnapshot {
+    const moving = entity.routeLength > 0;
+    return {
+        animation: entity.primaryAnim,
+        poseAnimation: entity.secondaryAnim,
+        orientation: entity.yaw,
+        targetOrientation: entity.dstYaw,
+        overheadText: entity.chatMessage,
+        spotAnimation: entity.spotanimId,
+        target: decodeActorTarget(entity.faceEntity),
+        moving,
+        running: moving && entity.routeRun[0] === true
+    };
 }
 
 export const reader = {
@@ -381,6 +551,13 @@ export const reader = {
         return raw?.var[index] ?? 0;
     },
 
+    mapFlag(): { lx: number; lz: number } | null {
+        if (!raw || raw.minimapFlagX === 0) {
+            return null;
+        }
+        return { lx: raw.minimapFlagX, lz: raw.minimapFlagZ };
+    },
+
     chat(count: number): ChatLine[] {
         const lines: ChatLine[] = [];
         if (!raw) {
@@ -393,7 +570,7 @@ export const reader = {
                 break;
             }
 
-            lines.push({ type: raw.chatType[i], username: raw.chatUsername[i], text });
+            lines.push({ type: raw.chatType[i], username: raw.chatUsername[i], text, sequence: chatSeq - 1 - i });
         }
 
         return lines;
@@ -703,11 +880,13 @@ export const reader = {
             const x = raw.mapBuildBaseX + (npc.x >> 7);
             const z = raw.mapBuildBaseZ + (npc.z >> 7);
             out.push({
+                ...actorSnapshot(npc),
                 index: raw.npcIds[i],
                 id: npc.type?.id ?? -1,
                 anim: npc.primaryAnim,
                 name: npc.type?.name ?? null,
                 level: npc.type?.vislevel ?? -1,
+                size: npc.size,
                 tile: { x, z, level: raw.minusedlevel },
                 distance: Math.max(Math.abs(x - px), Math.abs(z - pz)),
                 ops: npc.type?.op ?? [],
@@ -723,6 +902,119 @@ export const reader = {
 
     selfSlot(): number {
         return raw?.selfSlot ?? -1;
+    },
+
+    localPlayer(): PlayerSnapshot | null {
+        if (!raw?.localPlayer) {
+            return null;
+        }
+        const player = raw.localPlayer;
+        const x = raw.mapBuildBaseX + (player.x >> 7);
+        const z = raw.mapBuildBaseZ + (player.z >> 7);
+        return {
+            ...actorSnapshot(player),
+            index: raw.selfSlot,
+            name: player.name,
+            combatLevel: player.combatLevel,
+            skillLevel: player.skillLevel,
+            tile: { x, z, level: raw.minusedlevel },
+            distance: 0,
+            ops: Array.from(raw.playerOp ?? []).slice(0, 5),
+            inCombat: combatShowing(player.combatCycle),
+            health: player.health,
+            totalHealth: player.totalHealth,
+            faceEntity: player.faceEntity
+        };
+    },
+
+    sceneBounds(): SceneSnapshot {
+        const map = raw?.collision[raw.minusedlevel] ?? null;
+        return {
+            available: map !== null,
+            baseX: raw?.mapBuildBaseX ?? 0,
+            baseZ: raw?.mapBuildBaseZ ?? 0,
+            level: raw?.minusedlevel ?? 0,
+            width: map?.sizeX ?? SCENE_SIZE,
+            height: map?.sizeZ ?? SCENE_SIZE,
+            collisionFlags: []
+        };
+    },
+
+    scene(): SceneSnapshot {
+        const map = raw?.collision[raw.minusedlevel] ?? null;
+        return {
+            available: map !== null,
+            baseX: raw?.mapBuildBaseX ?? 0,
+            baseZ: raw?.mapBuildBaseZ ?? 0,
+            level: raw?.minusedlevel ?? 0,
+            width: map?.sizeX ?? SCENE_SIZE,
+            height: map?.sizeZ ?? SCENE_SIZE,
+            collisionFlags: map === null ? [] : Array.from(map.flags)
+        };
+    },
+
+    widgets(): WidgetSnapshot[] {
+        if (!raw) {
+            return [];
+        }
+
+        const roots: { id: number; root: WidgetSnapshot['root'] }[] = [];
+        if (raw.mainModalId !== -1) roots.push({ id: raw.mainModalId, root: 'main' });
+        const sideRoot = raw.sideModalId !== -1 ? raw.sideModalId : (raw.sideIcon[raw.activeIcon] ?? -1);
+        if (sideRoot !== -1) roots.push({ id: sideRoot, root: 'side' });
+        if (raw.chatModalId !== -1) roots.push({ id: raw.chatModalId, root: 'chat' });
+
+        return roots.flatMap(({ id, root }) => readWidgetTree(id, root));
+    },
+
+    sideTabs(): SideTabSnapshot[] {
+        if (!raw) {
+            return Array.from({ length: SIDE_TAB_COUNT }, (_, index) => ({ index, rootComponentId: -1, available: false, active: false, visible: false, widgets: [] }));
+        }
+
+        const client = raw;
+        const widgetsByRoot = new Map<number, WidgetSnapshot[]>();
+        return Array.from({ length: Math.max(SIDE_TAB_COUNT, client.sideIcon.length) }, (_, index) => {
+            const rootComponentId = client.sideIcon[index] ?? -1;
+            const available = rootComponentId !== -1;
+            const active = client.activeIcon === index;
+            let widgets: WidgetSnapshot[] = [];
+            if (available) {
+                widgets = widgetsByRoot.get(rootComponentId) ?? readWidgetTree(rootComponentId, 'side');
+                widgetsByRoot.set(rootComponentId, widgets);
+            }
+            return { index, rootComponentId, available, active, visible: active && client.sideModalId === -1 && available, widgets };
+        });
+    },
+
+    varps(): { index: number; value: number }[] {
+        return Array.from({ length: VarpType.numDefinitions }, (_, index) => ({ index, value: raw?.var[index] ?? 0 }));
+    },
+
+    worldState(): WorldStateSnapshot {
+        return {
+            mapBaseX: raw?.mapBuildBaseX ?? 0,
+            mapBaseZ: raw?.mapBuildBaseZ ?? 0,
+            level: raw?.minusedlevel ?? 0,
+            members: (raw?.membersAccount ?? 0) !== 0,
+            multiCombat: (raw?.inMultizone ?? 0) !== 0,
+            playerCount: raw?.playerCount ?? 0,
+            npcCount: raw?.npcCount ?? 0,
+            cycle: raw ? ((raw as unknown as { constructor: { loopCycle: number } }).constructor.loopCycle ?? 0) : 0
+        };
+    },
+
+    cameraState(): CameraSnapshot {
+        return {
+            x: raw?.camX ?? 0,
+            y: raw?.camY ?? 0,
+            z: raw?.camZ ?? 0,
+            pitch: raw?.camPitch ?? 0,
+            yaw: raw?.camYaw ?? 0,
+            orbitPitch: raw?.orbitCameraPitch ?? 0,
+            orbitYaw: raw?.orbitCameraYaw ?? 0,
+            cinematic: raw?.cinemaCam ?? false
+        };
     },
 
     selfFaceEntity(): number {
@@ -747,11 +1039,17 @@ export const reader = {
             const x = raw.mapBuildBaseX + (player.x >> 7);
             const z = raw.mapBuildBaseZ + (player.z >> 7);
             out.push({
+                ...actorSnapshot(player),
                 index: raw.playerIds[i],
                 name: player.name,
+                combatLevel: player.combatLevel,
+                skillLevel: player.skillLevel,
                 tile: { x, z, level: raw.minusedlevel },
                 distance: Math.max(Math.abs(x - px), Math.abs(z - pz)),
+                ops: Array.from(raw.playerOp ?? []).slice(0, 5),
                 inCombat: combatShowing(player.combatCycle),
+                health: player.health,
+                totalHealth: player.totalHealth,
                 faceEntity: player.faceEntity
             });
         }
@@ -782,25 +1080,50 @@ export const reader = {
 
         for (let lx = 0; lx < SCENE_SIZE; lx++) {
             for (let lz = 0; lz < SCENE_SIZE; lz++) {
-                const typecodes = [raw.world.wallType(level, lx, lz), raw.world.sceneType(level, lx, lz), raw.world.gdType(level, lx, lz), raw.world.decorType(level, lz, lx)];
+                const entries = [
+                    { typecode: raw.world.wallType(level, lx, lz), layer: 'wall' as const },
+                    { typecode: raw.world.sceneType(level, lx, lz), layer: 'ground' as const },
+                    { typecode: raw.world.gdType(level, lx, lz), layer: 'groundDecoration' as const },
+                    { typecode: raw.world.decorType(level, lz, lx), layer: 'wallDecoration' as const }
+                ];
 
-                for (const typecode of typecodes) {
+                for (const { typecode, layer } of entries) {
                     if (typecode === 0) {
                         continue;
                     }
 
                     const id = (typecode >> 14) & 0x7fff;
+                    const info = raw.world.typeCode2(level, lx, lz, typecode);
+                    const shape = info & 0x1f;
+                    const angle = (info >> 6) & 0x3;
                     const loc = LocType.list(id);
                     const x = raw.mapBuildBaseX + lx;
                     const z = raw.mapBuildBaseZ + lz;
+                    const rotated = angle === 1 || angle === 3;
 
                     out.push({
                         typecode,
+                        info,
                         id,
                         name: loc.name,
+                        description: loc.desc,
                         ops: loc.op ?? [],
                         tile: { x, z, level },
-                        distance: Math.max(Math.abs(x - px), Math.abs(z - pz))
+                        distance: Math.max(Math.abs(x - px), Math.abs(z - pz)),
+                        layer,
+                        shape,
+                        angle,
+                        width: loc.width,
+                        length: loc.length,
+                        footprintWidth: rotated ? loc.length : loc.width,
+                        footprintLength: rotated ? loc.width : loc.length,
+                        blockWalk: loc.blockwalk,
+                        blockRange: loc.blockrange,
+                        active: loc.active,
+                        animation: loc.anim,
+                        mapFunction: loc.mapfunction,
+                        mapScene: loc.mapscene,
+                        forceApproach: loc.forceapproach
                     });
                 }
             }
@@ -837,10 +1160,17 @@ export const reader = {
                     out.push({
                         id: obj.id,
                         name: type.name,
+                        description: type.desc,
                         count: obj.count,
                         ops: groundOps(type.op),
                         tile: { x, z, level },
-                        distance
+                        distance,
+                        stackable: type.stackable,
+                        members: type.members,
+                        baseValue: type.cost,
+                        noted: type.certtemplate !== -1,
+                        certificateLink: type.certlink,
+                        certificateTemplate: type.certtemplate
                     });
                 }
             }
@@ -1588,6 +1918,68 @@ function verticalCentre(component: PositionedComponent): number {
 
 function isCombatStyleLabel(text: string | null): boolean {
     return /^\s*\((?:accurate|aggressive|controlled|defensive)\)\s*$/i.test(text ?? '');
+}
+
+function widgetVarpBindings(com: IfType): WidgetVarpBindingSnapshot[] {
+    const bindings: WidgetVarpBindingSnapshot[] = [];
+    for (const [scriptIndex, script] of (com.scripts ?? []).entries()) {
+        if (script !== null && script[0] === 5 && script[1] !== undefined) {
+            bindings.push({
+                scriptIndex,
+                varp: script[1],
+                value: com.scriptOperand?.[scriptIndex] ?? null,
+                comparator: com.scriptComparator?.[scriptIndex] ?? null
+            });
+        }
+    }
+    return bindings;
+}
+
+function widgetActions(com: IfType): (string | null)[] {
+    const actions = [...(com.iop ?? [])];
+    for (const action of [com.buttonText, com.targetVerb]) {
+        if (action !== null && action.length > 0 && !actions.includes(action)) {
+            actions.push(action);
+        }
+    }
+    return actions;
+}
+
+function readWidgetTree(rootComponentId: number, root: WidgetSnapshot['root']): WidgetSnapshot[] {
+    return walkPositionedComponents(rootComponentId).map(({ com, parentId, x, y }) => ({
+        componentId: com.id,
+        layerId: com.layerId,
+        parentId,
+        rootComponentId,
+        root,
+        type: com.type,
+        buttonType: com.buttonType,
+        clientCode: com.clientCode,
+        x,
+        y,
+        width: com.width,
+        height: com.height,
+        scrollHeight: com.scrollHeight,
+        scrollPosition: com.scrollPos,
+        hidden: com.hide,
+        text: com.text,
+        alternateText: com.text2,
+        buttonText: com.buttonText,
+        targetVerb: com.targetVerb,
+        targetBase: com.targetBase,
+        targetMask: com.targetMask,
+        modelType: com.model1Type,
+        modelId: com.model1Id,
+        alternateModelType: com.model2Type,
+        alternateModelId: com.model2Id,
+        scripts: com.scripts?.map(script => (script === null ? null : Array.from(script))) ?? null,
+        scriptComparators: com.scriptComparator === null ? null : Array.from(com.scriptComparator),
+        scriptOperands: com.scriptOperand === null ? null : Array.from(com.scriptOperand),
+        varpBindings: widgetVarpBindings(com),
+        colour: com.colour,
+        ops: widgetActions(com),
+        items: readInvComponent(com.id, () => com.iop ?? [])
+    }));
 }
 
 function groundOps(op: (string | null)[] | null): (string | null)[] {

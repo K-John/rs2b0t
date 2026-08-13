@@ -16,6 +16,7 @@ export interface RawClient {
 
     localPlayer: ClientPlayer | null;
     players: (ClientPlayer | null)[];
+    playerOp: (string | null)[];
     playerIds: Int32Array;
     playerCount: number;
     npc: (ClientNpc | null)[];
@@ -36,6 +37,10 @@ export interface RawClient {
     chatType: Int32Array;
     chatUsername: (string | null)[];
     chatText: (string | null)[];
+    addChat(type: number, text: string, sender: string): void;
+
+    minimapFlagX: number;
+    minimapFlagZ: number;
 
     menuNumEntries: number;
     menuOption: string[];
@@ -47,6 +52,18 @@ export interface RawClient {
     chatModalId: number;
     mainModalId: number;
     sideModalId: number;
+
+    membersAccount: number;
+    inMultizone: number;
+
+    camX: number;
+    camY: number;
+    camZ: number;
+    camPitch: number;
+    camYaw: number;
+    orbitCameraPitch: number;
+    orbitCameraYaw: number;
+    cinemaCam: boolean;
 
     world: World | null;
     groundObj: (LinkList<ClientObj> | null)[][][];
@@ -94,6 +111,7 @@ export const SELF_TEST = [
     'mapBuildBaseZ',
     'minusedlevel',
     'localPlayer',
+    'playerOp',
     'players',
     'playerIds',
     'playerCount',
@@ -112,6 +130,9 @@ export const SELF_TEST = [
     'chatType',
     'chatUsername',
     'chatText',
+    'addChat',
+    'minimapFlagX',
+    'minimapFlagZ',
     'menuNumEntries',
     'menuOption',
     'menuAction',
@@ -121,6 +142,16 @@ export const SELF_TEST = [
     'chatModalId',
     'mainModalId',
     'sideModalId',
+    'membersAccount',
+    'inMultizone',
+    'camX',
+    'camY',
+    'camZ',
+    'camPitch',
+    'camYaw',
+    'orbitCameraPitch',
+    'orbitCameraYaw',
+    'cinemaCam',
     'world',
     'groundObj',
     'collision',

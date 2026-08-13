@@ -21,7 +21,8 @@ function fakeClient(overrides: Record<string, unknown> = {}) {
             return lx === 1 && lz === 2 ? (7 << 14) | 1 : 0;
         },
         gdType: (): number => 0,
-        decorType: (): number => 0
+        decorType: (): number => 0,
+        typeCode2: (): number => 10
     };
     return {
         world,

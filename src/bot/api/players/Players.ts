@@ -2,9 +2,6 @@ import { reader, type PlayerSnapshot } from '../../adapter/ClientAdapter.js';
 import { Player } from '../model/Player.js';
 import EntityQuery from '../query/Query.js';
 
-/** PlayerSnapshot + empty ops for snapshot-first EntityQuery. */
-type PlayerSnapRow = PlayerSnapshot & { ops: readonly (string | null)[] };
-
 /**
  * Player queries.
  * @see docs/reference/api-entities.md
@@ -12,8 +9,7 @@ type PlayerSnapRow = PlayerSnapshot & { ops: readonly (string | null)[] };
 export const Players = {
     query(): EntityQuery<Player> {
         return EntityQuery.fromSnapshots(
-            (): readonly PlayerSnapRow[] =>
-                reader.players().map(s => ({ ...s, ops: [] as readonly (string | null)[] })),
+            (): readonly PlayerSnapshot[] => reader.players().map(s => ({ ...s, ops: [] })),
             s => new Player(s)
         );
     }

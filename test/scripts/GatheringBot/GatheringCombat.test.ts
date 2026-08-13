@@ -25,6 +25,20 @@ afterEach(() => {
 
 function snapshot(faceEntity: number, inCombat = true): PlayerSnapshot {
     return {
+        animation: -1,
+        poseAnimation: -1,
+        orientation: 0,
+        targetOrientation: 0,
+        overheadText: null,
+        spotAnimation: -1,
+        moving: false,
+        running: false,
+        target: null,
+        combatLevel: 3,
+        skillLevel: 0,
+        ops: [],
+        health: 0,
+        totalHealth: 0,
         index: 12,
         name: 'Incoming player',
         tile: { x: 3019, z: 3590, level: 0 },
