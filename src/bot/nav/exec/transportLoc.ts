@@ -103,9 +103,7 @@ export function findTransportLoc(transport: TransportInfo): Loc | null {
     if (byMeta) {
         return byMeta;
     }
-    // Scripted Tourist Trap barriers have adjacent leaves with different outcomes;
-    // if their recorded identity is absent, selecting a sibling would execute the
-    // wrong server handler.
+    // Why: adjacent scripted leaves have different handlers, so a missing identity must not select a sibling.
     if (transport.locId !== undefined && DESERT_MINING_CAMP_SCRIPTED_DOOR_IDS.has(transport.locId)) {
         return null;
     }

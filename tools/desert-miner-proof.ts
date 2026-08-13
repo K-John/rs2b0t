@@ -1,10 +1,4 @@
-/**
- * Isolated browser proof for the Desert Mining Camp Miner round trip.
- *
- * The harness refuses to mutate an account until it has attested an explicitly
- * named temporary engine process, its ports/profile, and the served worktree
- * artifacts. See --help for the matching server invocation.
- */
+/** Why: fresh-account mutation is allowed only after the dedicated server, profile, ports, and artifacts are attested. */
 import { createHash } from 'node:crypto';
 import { access, mkdir, readFile, readlink, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
