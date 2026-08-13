@@ -8,13 +8,16 @@
 //   bun run e2e -- --only troll,horror
 //   bun run e2e -- --gates-only     # offline gates, no engine needed
 //   bun run e2e -- --verbose        # stream every child line
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { errorTail } from './lib/e2e-report.js';
+// Why: e2e-report stays on the tools side because it needs no browser; e2e may import tools.
+import { errorTail } from '../tools/lib/e2e-report.js';
+import { CASES } from './manifest.js';
+import { casesForLevel, selectByChanges } from './manifestQuery.js';
+import type { Case, Level } from './manifestTypes.js';
 
 type Status = 'pass' | 'fail' | 'timeout' | 'skip';
-type Level = 'quick' | 'smart' | 'full';
 interface Result { name: string; kind: 'gate' | 'harness'; status: Status; ms: number; note: string; }
 interface Run { startedAt: string; git: string; level: Level; results: Result[]; }
 
@@ -22,18 +25,7 @@ const OUT = 'out/e2e';
 const LOGS = join(OUT, 'logs');
 const LATEST = join(OUT, 'latest.json');
 
-/** Harnesses that need a world, an account or a second machine no runner can provide. */
-const EXCLUDED = new Set(['hosted-proof-test.ts', 'hosted-wall-test.ts', 'external-script-test.ts']);
-
-/** Minutes per harness. Anything absent gets DEFAULT_BUDGET. */
-const BUDGET: Record<string, number> = {
-    'trollstronghold-264-live.ts': 90,
-    'horror-deep-216-live.ts': 90,
-    'family-crest-210-live.ts': 75,
-    'knights-sword-228-live.ts': 60,
-    'ernest-chicken-229-live.ts': 45,
-    'aio-quest-test.ts': 120
-};
+/** Minutes for a case that names no budgetMin of its own. */
 const DEFAULT_BUDGET = 12;
 
 /** `verdict` overrides the exit code where a tool reports its status in its output.
@@ -59,59 +51,24 @@ function arg(name: string): string | undefined {
 }
 const has = (name: string): boolean => process.argv.includes(`--${name}`);
 
-/** Quest harnesses take --stage and cost tens of minutes each. */
-function isQuest(file: string): boolean {
-    return readFileSync(join('e2e', file), 'utf8').includes("'--stage'");
-}
-
-function allHarnesses(): string[] {
-    return readdirSync('e2e')
-        .filter(f => (f.endsWith('-test.ts') || f.endsWith('-live.ts')) && !EXCLUDED.has(f))
-        .sort();
-}
-
-/** Filename tokens, used to match a harness against changed source paths. */
-function tokens(file: string): string[] {
-    return file
-        .replace(/-(test|live)\.ts$/, '')
-        .split(/[-_]/)
-        .filter(t => t.length > 3 && !/^\d+$/.test(t));
-}
-
-/** smart: run only harnesses the working diff could plausibly affect.
- *  A harness is selected when one of its filename tokens appears in a changed path or a subsystem it exercises changed; shared code (adapter, runtime, api) selects everything. */
-function smartSelect(changed: string[]): { files: string[]; why: string } {
-    if (changed.length === 0) return { files: [], why: 'no changes against main' };
-    const broad = changed.some(c => /^src\/bot\/(adapter|runtime|api)\//.test(c) || c === 'package.json');
-    if (broad) return { files: allHarnesses(), why: 'shared code changed (adapter, runtime or api) — everything is reachable' };
-
-    const hay = changed.join(' ').toLowerCase();
-    const picked = allHarnesses().filter(f => tokens(f).some(t => hay.includes(t)));
-    const navTouched = changed.some(c => c.startsWith('src/bot/event/webwalk/'));
-    const withNav = navTouched ? [...new Set([...picked, ...allHarnesses().filter(f => f.includes('nav'))])] : picked;
-    return { files: withNav.sort(), why: `${changed.length} changed files matched ${withNav.length} harnesses` };
-}
-
-function harnesses(level: Level, only: string[]): { files: string[]; why: string } {
-    let files: string[];
+function pick(level: Level, only: string[]): { cases: Case[]; why: string } {
+    let cases: Case[];
     let why: string;
-    if (level === 'full') {
-        files = allHarnesses();
-        why = 'full: every harness';
-    } else if (level === 'smart') {
+    if (level === 'smart') {
         const changed = (Bun.spawnSync(['git', 'diff', '--name-only', 'origin/main...HEAD']).stdout.toString() +
                          Bun.spawnSync(['git', 'diff', '--name-only']).stdout.toString())
             .split('\n').map(s => s.trim()).filter(Boolean);
-        ({ files, why } = smartSelect([...new Set(changed)]));
+        ({ cases, why } = selectByChanges(CASES, [...new Set(changed)]));
     } else {
-        files = allHarnesses().filter(f => !isQuest(f) && f.endsWith('-test.ts'));
-        why = 'quick: non-quest -test.ts harnesses';
+        cases = casesForLevel(CASES, level);
+        why = `${level}: ${cases.length} case(s) from the manifest`;
     }
     if (only.length > 0) {
-        files = files.filter(f => only.some(o => f.includes(o)));
+        // Why: --only reaches broken and manual cases, which no level selects.
+        cases = CASES.filter(c => only.some(o => c.id.includes(o) || c.harness.includes(o)));
         why += '; filtered by --only';
     }
-    return { files, why };
+    return { cases, why };
 }
 
 const TTY = Boolean(process.stdout.isTTY);
@@ -126,9 +83,10 @@ function statusLine(label: string, started: number, last: string): void {
     else console.log(text);
 }
 
-async function run(label: string, cmd: string[], logFile: string, budgetMs: number, verdict?: (text: string) => Status): Promise<{ status: Status; ms: number; tail: string }> {
+async function run(label: string, cmd: string[], logFile: string, budgetMs: number, verdict?: (text: string) => Status, caseEnv?: Readonly<Record<string, string>>): Promise<{ status: Status; ms: number; tail: string }> {
     const started = Date.now();
-    const proc = Bun.spawn(cmd, { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, HEADED: '0' } });
+    // Why: the case env lands after HEADED so a case may ask for a headed run of its own.
+    const proc = Bun.spawn(cmd, { stdout: 'pipe', stderr: 'pipe', env: { ...process.env, HEADED: '0', ...caseEnv } });
     const timer = setTimeout(() => proc.kill(9), budgetMs);
     const log = Bun.file(logFile).writer();
     const lines: string[] = [];
@@ -224,6 +182,24 @@ const level = (arg('level') as Level | undefined) ?? 'quick';
 const only = (arg('only') ?? '').split(',').map(s => s.trim()).filter(Boolean);
 const engine = arg('engine');
 
+// Why: --list answers "what would run" without an engine, a deploy or a browser.
+if (has('list')) {
+    const byStatus = new Map<string, number>();
+    for (const c of CASES) {
+        byStatus.set(c.status, (byStatus.get(c.status) ?? 0) + 1);
+    }
+    console.log(`${CASES.length} case(s): ${[...byStatus].map(([s, n]) => `${n} ${s}`).join(', ')}`);
+    for (const lvl of ['quick', 'smart', 'full'] as const) {
+        const { cases, why } = pick(lvl, only);
+        console.log(`\n${lvl} — ${cases.length} case(s) — ${why}`);
+        for (const c of cases) {
+            const covers = [...(c.covers.scripts ?? []), ...(c.covers.subsystems ?? [])].join(', ');
+            console.log(`  ${c.status.padEnd(10)} ${c.id.padEnd(34)} ${covers}`);
+        }
+    }
+    process.exit(0);
+}
+
 mkdirSync(LOGS, { recursive: true });
 const git = (await new Response(Bun.spawn(['git', 'rev-parse', '--short', 'HEAD'], { stdout: 'pipe' }).stdout).text()).trim();
 const now: Run = { startedAt: new Date().toISOString(), git, level, results: [] };
@@ -246,15 +222,15 @@ if (!has('gates-only')) {
         console.log(`  ${ICON[deploy.status]} deploy (${mins(deploy.ms)})`);
 
         if (deploy.status === 'pass') {
-            const { files, why } = harnesses(level, only);
-            console.log(`${files.length} harnesses — ${why}`);
-            for (const [i, file] of files.entries()) {
-                const budget = (BUDGET[file] ?? DEFAULT_BUDGET) * 60_000;
-                const cmd = ['bun', join('e2e', file), '--no-deploy'];
+            const { cases, why } = pick(level, only);
+            console.log(`${cases.length} case(s) — ${why}`);
+            for (const [i, c] of cases.entries()) {
+                const budget = (c.budgetMin ?? DEFAULT_BUDGET) * 60_000;
+                const cmd = ['bun', join('e2e', c.harness), ...(c.args ?? []), '--no-deploy'];
                 if (engine) cmd.push('--base', engine);
-                const r = await run(`[${i + 1}/${files.length}] ${file}`, cmd, join(LOGS, `${file}.log`), budget);
-                now.results.push({ name: file, kind: 'harness', status: r.status, ms: r.ms, note: r.status === 'pass' ? '' : r.tail });
-                console.log(`  ${ICON[r.status]} ${file} (${mins(r.ms)})${r.status === 'pass' ? '' : `\n      ${r.tail}`}`);
+                const r = await run(`[${i + 1}/${cases.length}] ${c.id}`, cmd, join(LOGS, `${c.id}.log`), budget, undefined, c.env);
+                now.results.push({ name: c.id, kind: 'harness', status: r.status, ms: r.ms, note: r.status === 'pass' ? '' : r.tail });
+                console.log(`  ${ICON[r.status]} ${c.id} (${mins(r.ms)})${r.status === 'pass' ? '' : `\n      ${r.tail}`}`);
             }
         } else {
             console.log('deploy failed — harnesses would test a stale bundle, so none were run');

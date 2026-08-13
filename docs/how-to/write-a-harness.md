@@ -16,7 +16,7 @@ rs2b0t.actions
 ```
 
 Read arguments through `parseArgs` or `positionalArgs`, never `process.argv[N]` directly.
-Why: `tools/e2e.ts` appends `--no-deploy` to every harness, so raw indexing reads a flag as
+Why: `e2e/runner.ts` appends `--no-deploy` to every harness, so raw indexing reads a flag as
 the engine base and the harness dies before it reaches the engine.
 
 [`e2e/lib/harness.ts`](../../e2e/lib/harness.ts) holds the shared parts:
