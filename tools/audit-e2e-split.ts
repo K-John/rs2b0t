@@ -1,0 +1,115 @@
+#!/usr/bin/env bun
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, posix, relative } from 'node:path';
+
+export const SPEC = /(?:from\s+|import\(\s*)['"]([^'"]+)['"]/g;
+
+/** Repo-root path a relative specifier names; null when it is bare, aliased or not TypeScript. */
+export function resolveSpec(fromFile: string, spec: string): string | null {
+    if (!spec.startsWith('.')) {
+        return null;
+    }
+    const target = posix.normalize(posix.join(posix.dirname(fromFile), spec));
+    if (target.endsWith('.js')) {
+        return `${target.slice(0, -3)}.ts`;
+    }
+    return target.endsWith('.ts') ? target : null;
+}
+
+function depGraph(sources: Map<string, string>): Map<string, Set<string>> {
+    const dep = new Map<string, Set<string>>();
+    for (const [file, src] of sources) {
+        const out = new Set<string>();
+        SPEC.lastIndex = 0;
+        let m: RegExpExecArray | null;
+        while ((m = SPEC.exec(src))) {
+            const target = resolveSpec(file, m[1]);
+            // Why: membership never leaves the supplied map, so product source under src/ is not swept in.
+            if (target !== null && sources.has(target)) {
+                out.add(target);
+            }
+        }
+        dep.set(file, out);
+    }
+    return dep;
+}
+
+/** The bidirectional import closure around `entry`: consumers, their ABI, minus ABI shared with offline tools. */
+export function liveClosure(entry: string, sources: Map<string, string>): { move: string[]; heldBack: string[] } {
+    const dep = depGraph(sources);
+    const reaches = (file: string, seen: Set<string>): boolean => {
+        if (seen.has(file)) {
+            return false;
+        }
+        seen.add(file);
+        for (const d of dep.get(file) ?? []) {
+            if (d === entry || reaches(d, seen)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    // Why: the entry joins the closure only when it is inside the scanned tree, so pointing the audit
+    // at the post-move entry over tools/ reports an empty closure rather than the entry itself.
+    const core = new Set<string>(sources.has(entry) ? [entry] : []);
+    for (const file of sources.keys()) {
+        if (reaches(file, new Set())) {
+            core.add(file);
+        }
+    }
+    const abi = new Set<string>();
+    const frontier = [...core];
+    while (frontier.length) {
+        for (const d of dep.get(frontier.pop() as string) ?? []) {
+            if (!abi.has(d) && !core.has(d)) {
+                abi.add(d);
+                frontier.push(d);
+            }
+        }
+    }
+    const offline = [...sources.keys()].filter(f => !core.has(f) && !abi.has(f));
+    const heldBack = [...abi].filter(a => offline.some(o => dep.get(o)?.has(a))).sort();
+    const held = new Set(heldBack);
+    const move = [...core, ...[...abi].filter(a => !held.has(a))].sort();
+    return { move, heldBack };
+}
+
+export function misnamedUnder(prefix: string, files: string[]): string[] {
+    return files
+        .filter(f => f.startsWith(`${prefix}/`) && (f.endsWith('-test.ts') || f.endsWith('-live.ts')))
+        .sort();
+}
+
+const BUN_TEST = /(?:\.|_)(?:test|spec)\.(?:ts|tsx|js|jsx)$/;
+
+export function bunTestNamesUnder(prefix: string, files: string[]): string[] {
+    return files.filter(f => f.startsWith(`${prefix}/`) && BUN_TEST.test(f)).sort();
+}
+
+export function walk(dir: string): string[] {
+    return readdirSync(dir).flatMap(name => {
+        const p = join(dir, name);
+        return statSync(p).isDirectory() ? walk(p) : p.endsWith('.ts') ? [p] : [];
+    });
+}
+
+export function readTree(dir: string): Map<string, string> {
+    const files = walk(dir).map(p => relative(process.cwd(), p));
+    return new Map(files.map(f => [f, readFileSync(f, 'utf8')]));
+}
+
+if (import.meta.main) {
+    const entry = process.argv.includes('--after') ? 'e2e/lib/harness.ts' : 'tools/lib/harness.ts';
+    const sources = readTree('tools');
+    const { move, heldBack } = liveClosure(entry, sources);
+    if (process.argv.includes('--plan')) {
+        for (const f of move) {
+            console.log(`e2e/${f.slice('tools/'.length)}\t${f}`);
+        }
+    } else {
+        console.log(`${sources.size} scanned; ${move.length} live; ${heldBack.length} held back`);
+        for (const h of heldBack) {
+            console.log(`  held back: ${h}`);
+        }
+    }
+}
