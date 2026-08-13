@@ -7,7 +7,7 @@ describe('contributionOf', () => {
     });
 
     test('reaches through a nested directory', () => {
-        expect(contributionOf('src/bot/scripts/TutorialBot/stages/Chef.ts')).toBe('TutorialBot');
+        expect(contributionOf('src/bot/scripts/GatheringBot/tasks/Fish.ts')).toBe('GatheringBot');
     });
 
     test('returns null for the registry barrel', () => {
@@ -27,10 +27,10 @@ describe('findCrossDirImports', () => {
 
     test('flags a sibling reached from a nested file', () => {
         const sources = new Map([
-            ['src/bot/scripts/TutorialBot/stages/Chef.ts', "import { x } from '../../RockCrab/RockCrabSpots.js';"]
+            ['src/bot/scripts/GatheringBot/tasks/Fish.ts', "import { x } from '../../RockCrab/RockCrabSpots.js';"]
         ]);
         expect(findCrossDirImports(sources)).toEqual([
-            'src/bot/scripts/TutorialBot/stages/Chef.ts\t../../RockCrab/RockCrabSpots.js'
+            'src/bot/scripts/GatheringBot/tasks/Fish.ts\t../../RockCrab/RockCrabSpots.js'
         ]);
     });
 
@@ -40,7 +40,7 @@ describe('findCrossDirImports', () => {
     });
 
     test('allows a nested file reaching its own contribution root', () => {
-        const sources = new Map([['src/bot/scripts/TutorialBot/stages/Chef.ts', "import { x } from '../StageTask.js';"]]);
+        const sources = new Map([['src/bot/scripts/GatheringBot/tasks/Fish.ts', "import { x } from '../GatheringBotLogic.js';"]]);
         expect(findCrossDirImports(sources)).toEqual([]);
     });
 

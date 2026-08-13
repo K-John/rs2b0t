@@ -37,7 +37,6 @@ import GreenDragon, { SETTINGS as GREENDRAGON_SETTINGS } from './GreenDragon/Gre
 import FireGiant, { SETTINGS as FIREGIANT_SETTINGS } from './FireGiant/FireGiant.js';
 import RockCrab, { SETTINGS as ROCKCRAB_SETTINGS } from './RockCrab/RockCrab.js';
 import ThievingBot, { SETTINGS as THIEVING_SETTINGS } from './ArdyFighter/ThievingBot.js';
-import TutorialBot from './TutorialBot/TutorialBot.js';
 import WalkToBot, { WALKTO_SETTINGS } from './WalkToBot/WalkToBot.js';
 import WildyAgility, { WILDY_AGILITY_SETTINGS } from './WildyAgility/WildyAgility.js';
 import BrimhavenAgility, { BRIMHAVEN_AGILITY_SETTINGS } from './BrimhavenAgility/BrimhavenAgility.js';
@@ -71,15 +70,6 @@ import Barcrawl from './Barcrawl/Barcrawl.js';
 import DuelArena, { DUEL_ARENA_SETTINGS } from './DuelArena/DuelArena.js';
 
 // First register = panel default when no script is remembered (BotPanel → list()[0]).
-// Keep TutorialBot first so new accounts land on onboarding, not AIO Teleport.
-ScriptRegistry.register({
-    name: 'TutorialBot',
-    description: 'Completes Tutorial Island unassisted (no cheats)',
-    category: 'Tutorial',
-    tags: ['tutorial', 'onboarding'],
-    create: () => new TutorialBot()
-});
-
 ScriptRegistry.register({
     name: 'AIO Teleport',
     description: 'Automated teleportation with intelligent banking and safety features',

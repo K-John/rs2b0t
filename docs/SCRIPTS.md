@@ -5,7 +5,7 @@
 
 # Bundled scripts
 
-- Scripts: 52. Categories: 20.
+- Scripts: 51. Categories: 19.
 - Source: [`src/bot/scripts/`](../src/bot/scripts/). API: [scripting API](API.md).
 - Settings are the parameters the panel exposes before a script starts.
 
@@ -29,7 +29,6 @@
 - [Smithing](#smithing) — 2
 - [Thieving](#thieving) — 3
 - [Treasure Trails](#treasure-trails) — 1
-- [Tutorial](#tutorial) — 1
 - [Woodcutting](#woodcutting) — 1
 
 ## Agility
@@ -866,14 +865,6 @@ Solves the easy clue scroll (or opens the casket) in your pack — banks everyth
 | `foodWithdraw` | number (1–27) | `8` | Food to withdraw |
 | `restorePrayer` | boolean | `true` | Top up prayer between trails |
 | `useTeleports` | boolean | `true` | Use teleports |
-
-## Tutorial
-
-### TutorialBot
-
-Completes Tutorial Island unassisted (no cheats)
-
-- Tags: `tutorial`, `onboarding`
 
 ## Woodcutting
 
