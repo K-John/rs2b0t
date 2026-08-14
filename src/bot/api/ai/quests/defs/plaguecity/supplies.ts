@@ -12,6 +12,9 @@ const ROPE_PRICE = 60;
 const PESTLE_PRICE = 40;
 const CHOCOLATE_PRICE = 60;
 
+/** One float for all three shops, with headroom over their asking prices. */
+const PURSE = 2000;
+
 export function withdrawFrom(items: { name: string; id: number; qty: number }[]): QuestStep {
     return { kind: 'withdraw', items, bank: PC_TILE.BANK };
 }
@@ -68,8 +71,12 @@ export function buyItem(
     if (stocked) {
         return stocked;
     }
-    const gp = (qty - held(snap, item)) * unitGp;
-    return sourcePurse(snap, gp) ?? { kind: 'buy', item: item.name, qty: qty - held(snap, item), shop, estGp: gp };
+    const missing = qty - held(snap, item);
+    const gp = missing * unitGp;
+    // Why: the shops are a rope in Ardougne, a pestle in Taverley and a chocolate bar in
+    // Port Sarim, so the float is drawn once rather than walking back for each price.
+    const purse = held(snap, PC_ITEM.COINS) < gp ? sourcePurse(snap, PURSE) : null;
+    return purse ?? { kind: 'buy', item: item.name, qty: missing, shop, estGp: gp };
 }
 
 // Why: a respawning spawn is worth waiting on, as walking away and back costs more than the respawn timer.
