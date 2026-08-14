@@ -8,6 +8,8 @@ export const MC_TILE = {
     COMMANDER: new Tile(2571, 3463, 0),
     TOWER_LADDER: new Tile(2570, 3441, 0),
     TOWER_L1_LADDER: new Tile(2570, 3443, 1),
+    TOWER_L2_DOWN: new Tile(2570, 3443, 2),
+    TOWER_L1_DOWN: new Tile(2570, 3441, 1),
     REMAINS: new Tile(2567, 3444, 2),
     CAVE_ENTRANCE: new Tile(2622, 3392, 0),
     CAVE_ARRIVE: new Tile(2620, 9797, 0),

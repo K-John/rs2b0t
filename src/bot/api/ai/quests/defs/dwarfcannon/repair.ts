@@ -90,13 +90,26 @@ async function climb(stand: Tile, op: string, toLevel: number, log: (m: string) 
     return Execution.delayUntil(() => Game.tile()?.level === toLevel, 8000);
 }
 
+// Why: neither tower ladder carries a usable transports edge in either direction, so a step that climbs up and stops leaves the walker on a floor it can never route off.
+
+/** Climb back down to ground level from wherever in the tower we are. */
+async function leaveTower(log: (m: string) => void): Promise<boolean> {
+    if ((Game.tile()?.level ?? 0) === 2 && !(await climb(MC_TILE.TOWER_L2_DOWN, 'Climb-down', 1, log))) {
+        return false;
+    }
+    if ((Game.tile()?.level ?? 0) === 1 && !(await climb(MC_TILE.TOWER_L1_DOWN, 'Climb-down', 0, log))) {
+        return false;
+    }
+    return (Game.tile()?.level ?? 0) === 0;
+}
+
 /**
- * Climb the Black Guard watchtower and take the dwarf remains from its top floor.
+ * Climb the Black Guard watchtower, take the dwarf remains, and come back down.
  * @see Server content mcannon_ladders.rs2
  */
 export async function fetchRemains(log: (m: string) => void): Promise<boolean> {
     if (Inventory.contains(MC_OBJ.REMAINS.name)) {
-        return true;
+        return leaveTower(log);
     }
     if ((Game.tile()?.level ?? 0) === 0 && !(await climb(MC_TILE.TOWER_LADDER, 'Climb-up', 1, log))) {
         return false;
@@ -116,7 +129,10 @@ export async function fetchRemains(log: (m: string) => void): Promise<boolean> {
     if (!(await drop.interact('Take'))) {
         return false;
     }
-    return Execution.delayUntil(() => Inventory.contains(MC_OBJ.REMAINS.name), 8000);
+    if (!(await Execution.delayUntil(() => Inventory.contains(MC_OBJ.REMAINS.name), 8000))) {
+        return false;
+    }
+    return leaveTower(log);
 }
 
 export function inCave(tile: { z: number } | null | undefined): boolean {
