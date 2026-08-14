@@ -62,6 +62,9 @@ function sourcePurse(snap: QuestSnapshot, want: number): QuestStep | null {
     return withdrawAnywhere([{ name: PC_ITEM.COINS.name, id: PC_ITEM.COINS.id, qty: Math.min(want, available) }]);
 }
 
+/** Draw the whole shopping float, or null once the pack carries it. */
+export const sourceShoppingFloat = (snap: QuestSnapshot): QuestStep | null => sourcePurse(snap, PURSE);
+
 /** Bank first, then the shop with a purse withdrawn ahead of the trip. */
 export function buyItem(
     snap: QuestSnapshot,

@@ -35,6 +35,7 @@ import {
     sourcePestle,
     sourcePicture,
     sourceRope,
+    sourceShoppingFloat,
     sourceSnapeGrass,
     sourceSpade,
     withdrawFrom
@@ -117,7 +118,11 @@ function cureLeg(snap: QuestSnapshot, area: PlagueArea): QuestStep | null {
     if (held(snap, PC_ITEM.CHOCOLATE_DUST) > 0) {
         return inEast(area, sourceMilk(snap) ?? mix(PC_ITEM.CHOCOLATE_DUST, PC_ITEM.BUCKET_MILK, PC_ITEM.CHOCOLATY_MILK));
     }
-    const raw = sourceMilk(snap) ?? sourceSnapeGrass(snap) ?? sourcePestle(snap) ?? sourceChocolateBar(snap);
+    const raw = sourceShoppingFloat(snap)
+        ?? sourceMilk(snap)
+        ?? sourceSnapeGrass(snap)
+        ?? sourcePestle(snap)
+        ?? sourceChocolateBar(snap);
     return inEast(area, raw ?? mix(PC_ITEM.PESTLE, PC_ITEM.CHOCOLATE_BAR, PC_ITEM.CHOCOLATE_DUST));
 }
 

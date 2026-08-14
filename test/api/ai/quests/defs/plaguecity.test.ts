@@ -115,7 +115,7 @@ describe('plague city decide — East Ardougne', () => {
         expect(name(spade)).toBe("take the spade from Edmond's house");
         const rope = decide(snapshot({
             stage: PC_STAGE.MUD_SOFT,
-            invIds: carrying([PC_ITEM.SPADE, 1], [PC_ITEM.COINS, 500])
+            invIds: carrying([PC_ITEM.SPADE, 1], [PC_ITEM.COINS, 2000])
         }));
         expect(rope.kind === 'buy' && rope.item).toBe(PC_ITEM.ROPE.name);
         const dig = decide(snapshot({
@@ -126,7 +126,7 @@ describe('plague city decide — East Ardougne', () => {
     });
 
     test('stage 8 buys the rope on the mainland and ties it in the sewer', () => {
-        const buy = decide(snapshot({ stage: PC_STAGE.TUNNEL, invIds: carrying([PC_ITEM.COINS, 500]) }));
+        const buy = decide(snapshot({ stage: PC_STAGE.TUNNEL, invIds: carrying([PC_ITEM.COINS, 2000]) }));
         expect(buy.kind === 'buy' && buy.item).toBe(PC_ITEM.ROPE.name);
         const tie = decide(snapshot({
             stage: PC_STAGE.TUNNEL,
@@ -256,12 +256,18 @@ describe('plague city decide — the hangover cure chain', () => {
     const cure = (invIds: Map<number, number>): QuestStep =>
         decide(snapshot({ stage: PC_STAGE.SPOKEN_BRAVEK, invIds }));
 
-    const MILK = carrying([PC_ITEM.COINS, 500], [PC_ITEM.BUCKET_MILK, 1]);
+    const MILK = carrying([PC_ITEM.COINS, 2000], [PC_ITEM.BUCKET_MILK, 1]);
+
+    test('the shopping float is drawn in Ardougne, before the eastward loop', () => {
+        const step = cure(new Map());
+        expect(step.kind === 'withdraw' && step.items[0].name).toBe(PC_ITEM.COINS.name);
+        expect(step.kind === 'withdraw' && step.bank).toBeUndefined();
+    });
 
     test('every raw ingredient is gathered before the first mix', () => {
-        const bucket = cure(carrying([PC_ITEM.COINS, 500]));
+        const bucket = cure(carrying([PC_ITEM.COINS, 2000]));
         expect(bucket.kind === 'grabGround' && bucket.item).toBe(PC_ITEM.BUCKET.name);
-        const cow = cure(carrying([PC_ITEM.COINS, 500], [PC_ITEM.BUCKET, 1]));
+        const cow = cure(carrying([PC_ITEM.COINS, 2000], [PC_ITEM.BUCKET, 1]));
         expect(cow.kind === 'useOn' && cow.product).toBe(PC_ITEM.BUCKET_MILK.name);
         const grass = cure(MILK);
         expect(grass.kind === 'grabGround' && grass.item).toBe(PC_ITEM.SNAPE_GRASS.name);
