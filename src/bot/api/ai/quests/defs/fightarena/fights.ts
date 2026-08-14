@@ -38,6 +38,18 @@ export function fightWon(swings: number, missingTicks: number): boolean {
     return swings > 0 && missingTicks >= MISSING_TO_WIN;
 }
 
+// Why: a caged beast is in the scene and offers Attack, so presence proves nothing — the server drops every op against it and the swing counter climbs to the guard while hitpoints never move.
+
+/** Swings taken with no combat before the target counts as unreachable. */
+export const ENGAGE_PROOF = 12;
+
+/** True when the target answers Attack but never joins combat, which is what a cage looks like. */
+export function unengaged(swings: number, everEngaged: boolean): boolean {
+    return !everEngaged && swings >= ENGAGE_PROOF;
+}
+
+export type FightResult = 'won' | 'stuck' | 'unengaged';
+
 function hungry(): boolean {
     const max = Skills.level('hitpoints');
     return max > 0 && Skills.effective('hitpoints') <= max - EAT_AT_MISSING;
@@ -79,7 +91,7 @@ async function dropPrayer(): Promise<void> {
 // Why: the server decodes one player op per tick and drops the rest, so a pass that eats, prays and swings loses two of the three, and the one it loses is the food.
 
 /** Run one arena fight to its win. */
-export async function runFight(fight: ArenaFight, log: (m: string) => void): Promise<boolean> {
+export async function runFight(fight: ArenaFight, log: (m: string) => void): Promise<FightResult> {
     const canPray = Skills.level('prayer') >= PROTECT_LEVEL;
     if (!canPray) {
         log(`prayer below ${PROTECT_LEVEL} — ${fight.what} will land hits this fight`);
@@ -90,11 +102,12 @@ export async function runFight(fight: ArenaFight, log: (m: string) => void): Pro
     let swings = 0;
     let attacking = -1;
     let missing = 0;
+    let everEngaged = false;
     try {
         for (let i = 0; i < fight.guard; i++) {
             if (EventSignal.pending()) {
                 log(`${fight.what}: yielding to a random event`);
-                return false;
+                return 'stuck';
             }
             const now = Game.tick();
             if (now === lastTick) {
@@ -124,16 +137,21 @@ export async function runFight(fight: ArenaFight, log: (m: string) => void): Pro
                     log(`${fight.what}: down after ${swings} attacks`);
                     await drainWinDialogue();
                     await dropPrayer();
-                    return true;
+                    return 'won';
                 }
                 await Execution.delayTicks(1);
                 continue;
             }
             missing = 0;
+            everEngaged = everEngaged || Game.inCombat();
+            if (unengaged(swings, everEngaged)) {
+                log(`${fight.what}: ${swings} attacks and never in combat at (${npc.tile().x},${npc.tile().z}) — still caged`);
+                return 'unengaged';
+            }
             if (now - reported >= 40) {
                 reported = now;
                 log(`${fight.what}: hp=${Skills.effective('hitpoints')}/${Skills.level('hitpoints')}`
-                    + ` prayer=${Prayer.points()} attacks=${swings}`);
+                    + ` prayer=${Prayer.points()} attacks=${swings} at (${npc.tile().x},${npc.tile().z})`);
             }
             // Why: melee keeps swinging on its own, so re-clicking the same target spends the tick's one action on re-targeting.
             if (npc.index === attacking && Game.inCombat()) {
@@ -147,7 +165,7 @@ export async function runFight(fight: ArenaFight, log: (m: string) => void): Pro
             await Execution.delayTicks(1);
         }
         log(`${fight.what}: gave up after ${fight.guard} ticks (${swings} attacks)`);
-        return false;
+        return 'stuck';
     } finally {
         if (!Game.inCombat()) {
             await dropPrayer();

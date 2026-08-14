@@ -260,17 +260,21 @@ export async function fightWithRelease(
     log: (m: string) => void
 ): Promise<boolean> {
     const loose = (): boolean => Npcs.query().where(n => n.id === fight.npcId).action('Attack').within(20).exists();
-    if (!loose()) {
-        log(`${fight.what} is still caged — asking npc ${releaseNpcId} to bring it on`);
-        if (!(await talkById(releaseNpcId, [], log))) {
-            return false;
-        }
-        if (!(await Execution.delayUntil(loose, 20_000))) {
-            log(`${fight.what} did not come out after the dialogue`);
-            return false;
-        }
+    // Why: a caged beast still renders and still offers Attack, so the first pass may only
+    // learn it is caged by swinging at it — either way the Servil is what lets it out.
+    const result = loose() ? await runFight(fight, log) : 'unengaged';
+    if (result !== 'unengaged') {
+        return result === 'won';
     }
-    return runFight(fight, log);
+    log(`${fight.what} is still caged — asking npc ${releaseNpcId} to bring it on`);
+    if (!(await talkById(releaseNpcId, [], log))) {
+        return false;
+    }
+    if (!(await Execution.delayUntil(loose, 20_000))) {
+        log(`${fight.what} did not come out after the dialogue`);
+        return false;
+    }
+    return (await runFight(fight, log)) === 'won';
 }
 
 const FLEE_EAT_AT = 25;
