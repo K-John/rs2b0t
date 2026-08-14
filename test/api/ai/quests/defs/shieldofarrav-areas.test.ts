@@ -29,6 +29,17 @@ describe('arrav areas', () => {
         expect(SOA_LOC.CHEST_OPEN).toBe(2404);
     });
 
+    // Why: a display name taken from a guide rather than the .npc config matches nothing, and Reach reports only a bare 'retry'.
+    test('every stop names the npc exactly as varrock.npc does', () => {
+        expect(RELDO.npc).toBe('Reldo');
+        expect(BARAEK.npc).toBe('Baraek');
+        expect(TRAMP.npc).toBe('Tramp');
+        expect(STRAVEN_JOIN.npc).toBe('Straven');
+        expect(KATRINE_JOIN.npc).toBe('Katrine');
+        expect(CURATOR.npc).toBe('Curator');
+        expect(ROALD.npc).toBe('King Roald');
+    });
+
     test('every stop prefers a line that exists in the content script', () => {
         expect(RELDO.prefer).toContain("I'm in search of a quest.");
         expect(BARAEK.prefer).toContain('Can you tell me where I can find the Phoenix Gang?');

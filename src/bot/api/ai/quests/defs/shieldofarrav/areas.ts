@@ -122,7 +122,7 @@ export const KATRINE_HANDIN: NpcStop = {
 };
 
 export const CURATOR: NpcStop = {
-    npc: 'Curator Haig Halen',
+    npc: 'Curator',
     anchor: new Tile(3255, 3446, 0),
     leash: 6,
     prefer: []
