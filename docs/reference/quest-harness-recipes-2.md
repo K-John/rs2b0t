@@ -155,6 +155,13 @@ Three details govern this harness:
 It runs on `:8890` even though the quest is free-to-play: bank seeding needs `givebank`
 or `~bankitem`, and the `:8888` sim answers neither.
 
+**`--no-deploy` is only safe when nothing else is deploying.** The engine serves one
+`public/bot/` bundle to every client, so a run that skips its own deploy loads whatever
+the last writer left there. A parallel run here came up executing Rune Mysteries with
+Plague City in its queue and no Pirate's Treasure at all — another branch's bundle,
+landed between the deploy and the page load. The queue line names the build, so read it
+before trusting a `--no-deploy` result.
+
 `--employed 3 --crate-rum 1` is the one state a fresh account cannot reach on its own.
 It is the re-smuggle, and the only run that exercises the `store-job` disambiguation —
 see [Quest pitfalls](../decisions/quest-pitfalls-3.md).
