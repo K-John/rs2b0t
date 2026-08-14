@@ -126,6 +126,10 @@ The bank holds coins and food alone by default. Nothing seeds a pickaxe: mining
 without one raises no refusal at all, so a seeded run would pass while the quest
 could not mine.
 
+Measured end to end at `--tick 200`: **19 minutes, 37 steps, no parks** — walking,
+with no teleports. Roughly half of that is the Mort Myre ↔ Al Kharid round trip the
+silver sickle costs.
+
 ## See also
 
 - [Quest harness recipes (A–F)](quest-harness-recipes.md)
