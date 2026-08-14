@@ -196,14 +196,16 @@ try {
     await setStats(page, args.stats);
     console.log(`stats: ${args.stats} across the board`);
 
-    console.log(`seeding ${BANK_SEED.length} item type(s) into the Varrock West bank`);
-    await seedItemsToBank(page, BANK_SEED, VARROCK_WEST_BANK);
-
     // Why: a Black Arm account needs a weapon-store key it has no way to obtain alone — only Straven issues one, and joining Phoenix makes Katrine refuse you.
+    // Why: it goes through seedItemsToBank rather than a bare `givebank`, because this engine answers only `~bankitem` and a bare cheat fails silently.
+    const seed = args.gang === 'blackarm'
+        ? [...BANK_SEED, { debugName: 'phoenixkey2', displayName: 'Key', qty: 1 }]
+        : BANK_SEED;
     if (args.gang === 'blackarm') {
-        await cheatQuiet(page, 'givebank phoenixkey2 1');
-        console.log('SEEDED: phoenixkey2 — a lone Black Arm account cannot source one, so this stage is not self-sufficient');
+        console.log('SEEDING phoenixkey2 — a lone Black Arm account cannot source one, so this run is not self-sufficient');
     }
+    console.log(`seeding ${seed.length} item type(s) into the Varrock West bank`);
+    await seedItemsToBank(page, seed, VARROCK_WEST_BANK);
 
     // Why: `~completequests` opens a gang-choice dialog nothing here answers and completes nothing (see e2e/dragonslayer-solo-test.ts), so both varps are set one at a time.
     if (args.phoenix > 0 || args.blackarm > 0) {

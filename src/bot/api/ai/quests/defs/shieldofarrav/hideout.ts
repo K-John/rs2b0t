@@ -6,7 +6,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type { WorldTile } from '../../../../../adapter/ClientAdapter.js';
 import type Tile from '../../../../../geometry/Tile.js';
-import { SOA_LOC, SOA_TILE, inBlackArmInner, inBlackArmUpper, inPhoenixHq, inPhoenixInner, inWeaponStore } from './areas.js';
+import { SOA_LOC, SOA_TILE, inBlackArmInner, inBlackArmUpper, inPhoenixHq, inPhoenixInner, inStoreGround, inWeaponStore } from './areas.js';
 import { driveChoice, promptLoc, settleScene } from '../../exec/prompts.js';
 import type { NpcStop } from '../../exec/primitives.js';
 
@@ -228,8 +228,14 @@ export async function leaveBlackArmUpper(log: (m: string) => void): Promise<bool
 }
 
 export async function leaveWeaponStore(log: (m: string) => void): Promise<boolean> {
-    if (!inWeaponStore(Game.tile())) {
+    if (inWeaponStore(Game.tile())
+        && !(await climb(SOA_LOC.STORE_LADDER_TOP, 'Climb-down', SOA_TILE.STORE_LADDER_TOP, SOA_TILE.STORE_LADDER, log))) {
+        return false;
+    }
+    // Why: the ground floor is a ten-tile pocket the store door seals, and that door is out of the nav graph — climbing down alone strands the character with the crossbows.
+    // Why: `unlock_weaponstore_door` lets a leaver through on op1, so no key is needed on the way out.
+    if (!inStoreGround(Game.tile())) {
         return true;
     }
-    return climb(SOA_LOC.STORE_LADDER_TOP, 'Climb-down', SOA_TILE.STORE_LADDER_TOP, SOA_TILE.STORE_LADDER, log);
+    return crossDoor(SOA_LOC.STORE_DOOR, SOA_TILE.STORE_DOOR_INNER, t => t !== null && t.level === 0 && !inStoreGround(t), log);
 }

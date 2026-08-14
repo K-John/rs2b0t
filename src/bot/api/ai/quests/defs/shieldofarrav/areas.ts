@@ -47,6 +47,8 @@ export const SOA_TILE = {
     /** North of the chest, the side `forceapproach=north` leaves legal at angle 0. */
     CHEST_STAND: new Tile(3235, 9762, 0),
     STORE_DOOR: new Tile(3251, 3386, 0),
+    /** Inside the store, beside the door — the only tile the outward Open can be clicked from. */
+    STORE_DOOR_INNER: new Tile(3251, 3384, 0),
     STORE_LADDER: new Tile(3252, 3385, 0),
     STORE_LADDER_TOP: new Tile(3251, 3384, 1),
     CROSSBOW_WEST: new Tile(3243, 3383, 1),
@@ -168,6 +170,12 @@ export function inPhoenixInner(t: WorldTile | null | undefined): boolean {
 
 export function inWeaponStore(t: WorldTile | null | undefined): boolean {
     return within(t, 3240, 3256, 3378, 3392, 1);
+}
+
+// Why: a flood over the pack puts this pocket at exactly ten tiles, and `phoenixdoor2` is its only way in or out.
+/** The weapon store's ground floor, which the store door seals. */
+export function inStoreGround(t: WorldTile | null | undefined): boolean {
+    return within(t, 3250, 3252, 3382, 3385, 0);
 }
 
 /** The stairs half of the Black Arm hideout, past the gang door. Katrine's room is z 3387 and below. */

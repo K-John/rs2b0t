@@ -11,7 +11,7 @@ import { Modals } from '../../../../ui/widgets/Modals.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { promptLoc, settleScene, useOnLoc } from '../../exec/prompts.js';
-import { KATRINE_HANDIN, KATRINE_JOIN, SOA_ID, SOA_LOC, SOA_TILE, TRAMP, inWeaponStore } from './areas.js';
+import { KATRINE_HANDIN, KATRINE_JOIN, SOA_ID, SOA_LOC, SOA_TILE, TRAMP, inStoreGround, inWeaponStore } from './areas.js';
 import { climb, enterBlackArmUpper, leaveBlackArmUpper, leaveWeaponStore, openContainer } from './hideout.js';
 import { SOA_STAGE } from './journal.js';
 import { bankedId, heldId, modalSaid } from './state.js';
@@ -35,10 +35,7 @@ async function unlockStore(log: (m: string) => void): Promise<boolean> {
         return true;
     }
     const mark = GameMessages.mark();
-    const inside = () => {
-        const t = Game.tile();
-        return t !== null && t.level === 0 && t.x >= 3249 && t.x <= 3254 && t.z >= 3381 && t.z <= 3385;
-    };
+    const inside = () => inStoreGround(Game.tile());
     if (inside()) {
         return true;
     }
