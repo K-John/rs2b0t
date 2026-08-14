@@ -92,9 +92,15 @@ describe('pirate decide — the smuggle ladder', () => {
         }));
         expect(s.kind === 'custom' && s.name).toMatch(/ship/i);
     });
-    test('rum in hand goes back to Frank', () => {
+    test('rum in hand on the mainland goes back to Frank', () => {
         const s = decide(snap('inProgress', PT_STAGE.FETCH_RUM, ['rum-in-hand'], [...FUNDED, [PT_ID.RUM, 1]]));
         expect(s.kind === 'talk' && s.stop.npc).toBe('Redbeard Frank');
+    });
+    test('rum in hand on Karamja ships it rather than carrying it past the customs officer', () => {
+        const s = decide(snap('inProgress', PT_STAGE.FETCH_RUM, ['rum-in-hand'], [...FUNDED, [PT_ID.RUM, 1]], {
+            tile: PLANTATION as QuestSnapshot['tile']
+        }));
+        expect(s.kind === 'custom' && s.name).toMatch(/ship/i);
     });
     test('lost rum restarts the smuggle rather than parking', () => {
         const s = decide(snap('inProgress', PT_STAGE.FETCH_RUM, ['rum-lost'], [...FUNDED, [PT_ID.WHITE_APRON, 1]]));

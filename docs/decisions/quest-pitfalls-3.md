@@ -33,6 +33,18 @@ Pirate's Treasure added five, and the first three are not quest facts:
   searches the back room and treats the rum arriving as the proof, falling through to
   the island when it does not — and each side's leg ends by crossing back, so the next
   `decide()` is never stranded on the wrong side of the water.
+- **The same ambiguity turns up twice, and the same oracle settles it.** With the store
+  job held, `hunt_journal.rs2` prints "I have the Karamja Rum. I should take it to
+  Redbeard Frank." for *any* bottle in the pack — including one bought minutes earlier on Karamja
+  that has never been smuggled. Following it walks the rum onto the boat, where the
+  customs officer confiscates it, and the journal then reads lost-rum and buys another
+  forever. Standing on the island is what separates the two, the same way it does for
+  `store-job`. A journal line describes the varps, not the history that produced them.
+- **A permission the quest granted can be revoked by the quest's own progress.** Luthas
+  clears the plantation bit every time he ships a crate, so a second smuggle finds the
+  crate answering "Why would I want to do that?" to a rum it accepted an hour earlier.
+  The refusal is the only signal, so the leg re-hires and retries rather than reading a
+  bit it cannot see.
 - **A loc's own message can carry the varps the client cannot see.** Searching the
   plantation crate prints both the rum and the banana count, which is what lets the
   smuggle resume from any interruption without the module keeping a tally.

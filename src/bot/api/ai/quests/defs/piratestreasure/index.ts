@@ -40,8 +40,9 @@ function smuggle(snap: QuestSnapshot, flag: string | undefined): QuestStep {
             return wornId(snap, PT_ID.WHITE_APRON)
                 ? { kind: 'custom', name: 'search the back room for the rum', run: collectRum }
                 : { kind: 'equip', item: PT_NAME.WHITE_APRON };
+        // Why: this page also renders for a rum bought minutes earlier on Karamja, because `%hunt_store_employed = 2` sends the journal down the "retrieved it from the back room" branch whatever the bottle's history — and carrying it onto the boat is how the customs officer confiscates it.
         case 'rum-in-hand':
-            return talk(FRANK);
+            return onKaramja(snap.tile) ? ship() : talk(FRANK);
         default:
             return heldId(snap, PT_ID.RUM) > 0 ? talk(LUTHAS) : buyRum();
     }
