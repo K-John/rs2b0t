@@ -99,6 +99,10 @@ function buildingStep(snap: QuestSnapshot, stage: number): QuestStep {
         return ENTER_ARENA;
     }
     if (stage === FA_STAGE.GIVEN_KHALI_BREW) {
+        // Why: a death drops the keys, and the drunk guard hands out a spare set below stage 6.
+        if (!held(snap, FA_OBJ.KEYS)) {
+            return disguised(snap) ? DRUNK_GUARD : WEAR_DISGUISE;
+        }
         if (disguised(snap) && combatKitCarried(snap)) {
             return WEAR_COMBAT;
         }

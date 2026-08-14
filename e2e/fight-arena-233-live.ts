@@ -170,6 +170,17 @@ try {
     await mainlandAccount(page, args.base, args.user);
     console.log(`mainland-ready as '${args.user}'`);
 
+    // Why: the engine serves one bundle to every session, so a neighbouring harness that deploys between this one's copy and the page load runs its code under this one's name.
+    const registered = await page.evaluate(() => {
+        const g = globalThis as never as {
+            rs2b0t: { registry: { get(n: string): { settingsSchema?: { quests?: { options?: string[] } } } | undefined } };
+        };
+        return (g.rs2b0t.registry.get('AIOQuester')?.settingsSchema?.quests?.options ?? []).includes('arena');
+    });
+    if (!registered) {
+        fail('the loaded bundle has no Fight Arena — another harness deployed over this one; re-run when the engine is yours');
+    }
+
     await cheatQuiet(page, `speed ${args.tickMs}`);
     console.log(`tick rate: ${args.tickMs}ms`);
 

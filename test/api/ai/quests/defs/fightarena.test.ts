@@ -137,6 +137,15 @@ describe('Fight Arena decide', () => {
         expect(name(step)).toBe('custom:unlock Jeremy\'s cell');
     });
 
+    test('stage 5 with the keys lost reclaims them from the drunk guard', () => {
+        const step = decide(snap({
+            stage: FA_STAGE.GIVEN_KHALI_BREW,
+            wornIds: [FA_OBJ.HELMET, FA_OBJ.ARMOUR],
+            tile: FA_TILE.DOOR1_INSIDE
+        }));
+        expect(name(step)).toBe('custom:talk to the drunk guard');
+    });
+
     test('stage 6 in the arena fights the ogre', () => {
         const step = decide(snap({ stage: FA_STAGE.ENTERED_OGRE_FIGHT, tile: FA_TILE.ARENA_CENTRE }));
         expect(name(step)).toBe('custom:fight Khazard Ogre');
