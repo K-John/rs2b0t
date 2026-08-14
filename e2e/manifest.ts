@@ -8,7 +8,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 120,
-        documentedIn: 'docs/reference/quest-harness-recipes.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-4.md'
     },
     {
         id: 'aio-skip-quest-432-live',
@@ -45,6 +45,15 @@ export const CASES: readonly Case[] = [
         harness: 'clue-trails-live.ts',
         covers: { scripts: ['ClueSolver'] },
         status: 'unvetted'
+    },
+    {
+        id: 'clock-tower-236-live',
+        harness: 'clock-tower-236-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'vetted',
+        budgetMin: 60,
+        provenAt: 'ae6a6bc5',
+        note: 'Clock Tower start to finish in 6 minutes at --tick 200; --stage counts placed cogs'
     },
     {
         id: 'coaltrucks-test',
@@ -103,6 +112,13 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'dwarf-cannon-254-live',
+        harness: 'dwarf-cannon-254-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'unvetted',
+        budgetMin: 60
+    },
+    {
         id: 'entrana-gear-368-live',
         harness: 'entrana-gear-368-live.ts',
         covers: { subsystems: ['world'] },
@@ -114,7 +130,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 45,
-        documentedIn: 'docs/reference/quest-harness-recipes.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-4.md'
     },
     {
         id: 'external-script-test',
@@ -129,7 +145,17 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 75,
-        documentedIn: 'docs/reference/quest-harness-recipes.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-2.md'
+    },
+    {
+        id: 'fight-arena-233-live',
+        harness: 'fight-arena-233-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'vetted',
+        budgetMin: 20,
+        provenAt: 'd708e10e',
+        documentedIn: 'docs/reference/quest-harness-recipes-2.md',
+        note: 'uncheated --stage 0 --until 14 finished in 7 minutes at --tick 150'
     },
     {
         id: 'fight-arena-iron-374-live',
@@ -230,6 +256,14 @@ export const CASES: readonly Case[] = [
         status: 'documented',
         manual: true,
         documentedIn: 'docs/how-to/maintainer-infra.md'
+    },
+    {
+        id: 'imp-catcher-230-live',
+        harness: 'imp-catcher-230-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'documented',
+        budgetMin: 90,
+        documentedIn: 'docs/reference/quest-harness-recipes-3.md'
     },
     {
         id: 'knights-sword-228-live',
@@ -337,7 +371,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 120,
-        documentedIn: 'docs/reference/quest-harness-recipes-2.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-3.md'
     },
     {
         id: 'nav-path-paint-live',
@@ -378,6 +412,22 @@ export const CASES: readonly Case[] = [
         harness: 'nav/route-walk-live.ts',
         covers: { subsystems: ['nav'] },
         status: 'unvetted'
+    },
+    {
+        id: 'piratestreasure-231-live',
+        harness: 'piratestreasure-231-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'unvetted'
+    },
+    {
+        id: 'plague-city-243-live',
+        harness: 'plague-city-243-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'vetted',
+        budgetMin: 45,
+        provenAt: '3ab5d0a4',
+        documentedIn: 'docs/reference/quest-harness-recipes-5.md',
+        note: 'clean account to journal complete in 23min at --tick 300, no parks'
     },
     {
         id: 'plague-pipe-366-live',

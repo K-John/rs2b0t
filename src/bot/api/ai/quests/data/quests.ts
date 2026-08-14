@@ -97,7 +97,9 @@ export const QUESTS: QuestRecord[] = [
         questPoints: 2,
         requirements: {},
         items: [
-            { name: 'Karamjan rum', qty: 1, kind: 'acquirable' }
+            { name: 'Karamjan rum', qty: 1, kind: 'acquirable' },
+            { name: 'White apron', qty: 1, kind: 'acquirable' },
+            { name: 'Spade', qty: 1, kind: 'acquirable' }
         ]
     },
     {
@@ -234,6 +236,7 @@ export const QUESTS: QuestRecord[] = [
     {
         id: 'cog', name: 'Clock Tower', questPoints: 1,
         requirements: {},
+        // Why: the bucket of water that cools the black cog is a quest-internal consumable, so the module fetches it on the leg that needs it rather than the provisioner fetching one on every resume.
         items: []
     },
     {
@@ -358,10 +361,9 @@ export const QUESTS: QuestRecord[] = [
     {
         id: 'elena', name: 'Plague City', questPoints: 1,
         requirements: {},
-        items: [
-            { name: 'Rope', qty: 1, kind: 'mustHave' },
-            { name: 'Dwellberries', qty: 1, kind: 'acquirable' }
-        ]
+        // The rope, spade, buckets, berries and cure ingredients are sourced per
+        // stage by the module, which owns its own inventory.
+        items: []
     },
     {
         id: 'fishingcompo', name: 'Fishing Contest', questPoints: 1,
