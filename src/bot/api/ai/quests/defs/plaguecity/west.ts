@@ -52,6 +52,19 @@ export async function returnBook(log: (m: string) => void): Promise<boolean> {
 export const askParents = (log: (m: string) => void): Promise<boolean> =>
     talkAt(PC_NPC.TED, PC_TILE.REHNISON_TED, [], log);
 
+// Why: the journal renders stages 20 and 21 identically, so one leg covers the book hand-over and the question after it.
+// Why: a shut Rehnison door is the only state where the family refuses to talk, which is what sends this back to Jethick.
+export async function enterRehnisons(log: (m: string) => void): Promise<boolean> {
+    if (heldId(PC_ITEM.TURNIP_BOOK.id) > 0 && !(await returnBook(log))) {
+        return false;
+    }
+    if (await askParents(log)) {
+        return true;
+    }
+    log('the Rehnisons would not talk — asking Jethick for another book');
+    return showPicture(log);
+}
+
 export async function askMilli(log: (m: string) => void): Promise<boolean> {
     if (!(await goUpstairs(log))) {
         return false;

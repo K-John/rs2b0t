@@ -204,10 +204,12 @@ describe('plague city decide — West Ardougne', () => {
     const west = (stage: number, invIds = new Map<number, number>()): QuestStep =>
         decide(snapshot({ stage, tile: WEST, invIds }));
 
-    test('stage 20 returns the book when it is carried and asks for another when it is not', () => {
+    // Stages 20 and 21 render the same journal line, so one leg covers both.
+    test('stage 20 runs the Rehnison leg with or without the book in the pack', () => {
         expect(name(west(PC_STAGE.SHOWN_PICTURE, carrying([PC_ITEM.TURNIP_BOOK, 1]))))
-            .toBe("return Jethick's book to the Rehnisons");
-        expect(name(west(PC_STAGE.SHOWN_PICTURE))).toBe('ask Jethick for the book again');
+            .toBe('get into the Rehnison house and ask about Elena');
+        expect(name(west(PC_STAGE.SHOWN_PICTURE)))
+            .toBe('get into the Rehnison house and ask about Elena');
     });
 
     test('stages 21 to 23 walk the Rehnison chain and then the plague house door', () => {

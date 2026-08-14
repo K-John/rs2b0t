@@ -22,7 +22,7 @@ import {
     getAudience,
     giveHangoverCure,
     rescueElena,
-    returnBook,
+    enterRehnisons,
     showPicture
 } from './west.js';
 import {
@@ -161,12 +161,9 @@ function stageStep(snap: QuestSnapshot, area: PlagueArea, stage: number): QuestS
         }
         case PC_STAGE.SHOWN_PICTURE: {
             const book = reclaim(snap, PC_ITEM.TURNIP_BOOK);
-            if (book) {
-                return inEast(area, book);
-            }
-            return held(snap, PC_ITEM.TURNIP_BOOK) > 0
-                ? inWest(snap, area, custom("return Jethick's book to the Rehnisons", returnBook))
-                : inWest(snap, area, custom('ask Jethick for the book again', showPicture));
+            return book
+                ? inEast(area, book)
+                : inWest(snap, area, custom('get into the Rehnison house and ask about Elena', enterRehnisons));
         }
         case PC_STAGE.RETURNED_BOOK:
             return inWest(snap, area, custom('ask the Rehnisons about Elena', askParents));
