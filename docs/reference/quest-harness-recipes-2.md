@@ -147,6 +147,24 @@ brew from the barman.
 Stage starts: 1 and 2 at the chest, 3 and 5 outside the guard door, 6 and 8 on the arena
 floor, 9 in the prison cell, 10 to 12 on the arena floor.
 
+What the legs proved, at `--tick 150` on `:8890`:
+
+| Leg | Result | What it covered |
+|---|---|---|
+| 0 → 2 | PASS, 1 min | Lady Servil, the journal parse, the chest's north-only stand, the disguise, the guard door |
+| 2 → 5 | PASS, 3 min | the drunk guard, the walk out for a brew (`coins 1000→995`), the keys (`khali brew 1→0, cell keys 0→1`) |
+| 5 → 9 | PASS, 3 min | the keys reclaimed after a death, the cell-gate cutscene, the ogre — 10 attacks, no damage taken under Protect from Melee |
+
+The 5 → 9 leg overshoots its `--until 8` on purpose: killing the ogre with Justin and
+General Khazard both in range chains `justin_servil_saved` straight through
+`general_khazard_belong_nobody`, so stage 8 is never observed. A module that waits for it
+would wait forever.
+
+Two behaviours the logs named that no guide does. A journal read taken during a cutscene
+comes back empty and prints `stage unavailable` for one tick, which the module answers
+with `wait` rather than a guess. And the ogre died to an **unarmed** max-stats account in
+ten attacks, so the arena's difficulty sits entirely in Bouncer.
+
 ## See also
 
 - [Quest harness recipes (A–F)](quest-harness-recipes.md)
