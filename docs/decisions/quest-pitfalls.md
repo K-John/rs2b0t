@@ -28,7 +28,7 @@ fall out of that, and both were found the hard way:
 
 ## Doors, spawns and prompts
 
-Plague City paid for these three in live runs:
+Plague City paid for these five in live runs:
 
 - **A ground spawn indoors is not a ground grab.** `grabGround` clicks Take the moment the
   item is within twelve tiles, and the server's own path search stops dead at the first
@@ -42,6 +42,14 @@ Plague City paid for these three in live runs:
   coord with the loc's along the wall's axis, so the stand that runs the quest branch is
   the tile the door sits on. Bravek's door reads as the clerk's room from `(2529,3314)`
   and as his own from `(2530,3314)`, and the wrong one walks the bot back out every leg.
+- **An op can fail without saying anything.** The plague house door runs every branch of
+  `doors.rs2` inside `npc_find(coord, mournertwb, 14, 0)`, so with no mourner in earshot the op
+  returns having changed nothing a client can read, which a timeout cannot tell from a slow
+  server. Wait for the NPC the script looks for before sending the op.
+- **A door the walker cannot answer is not a baked edge.** `loc_2535` opens for a warrant
+  holder mid-conversation and `loc_2534` never opens at all, so with both baked the navigator
+  alternated between them for two minutes a leg. Both belong in `SCRIPT_REFUSED`, and the
+  crossing after the module's own open is a `DirectNavigator` scene step.
 
 ## See also
 

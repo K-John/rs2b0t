@@ -3,6 +3,7 @@ import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
+import { DirectNavigator } from '../../../../../event/webwalk/DirectNavigator.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { driveChoice, heldId, settleScene } from '../../exec/prompts.js';
 import { PC_ITEM, PC_LOC, PC_NPC, PC_TILE } from './areas.js';
@@ -73,8 +74,35 @@ export async function askMilli(log: (m: string) => void): Promise<boolean> {
     return talkAt(PC_NPC.MILLI, PC_TILE.MILLI, [], log);
 }
 
+// Why: doors.rs2 gates every branch of this door on `npc_find(coord, mournertwb, 14, 0)`, and with
+// no mourner in range the op returns without a message, a door state or a dialogue to wait on.
+const MOURNER_EARSHOT = 14;
+
+async function knockPlagueDoor(prefer: string[], log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(PC_TILE.PLAGUE_DOOR, 0, log))) {
+        return false;
+    }
+    await settleScene();
+    const heard = await Execution.delayUntil(() => {
+        const mourner = Npcs.query().name(PC_NPC.MOURNER).nearest();
+        return mourner !== null && mourner.distance() <= MOURNER_EARSHOT;
+    }, 30_000);
+    if (!heard) {
+        log(`no ${PC_NPC.MOURNER} within ${MOURNER_EARSHOT} tiles of the plague house door — the op does nothing without one`);
+        return false;
+    }
+    const door = locById(PC_LOC.PLAGUE_DOOR, 'Open', 6);
+    if (!door) {
+        return true;
+    }
+    if (!(await door.interact('Open'))) {
+        return false;
+    }
+    return answerPrompt(prefer, log);
+}
+
 export const askAboutClearance = (log: (m: string) => void): Promise<boolean> =>
-    openDoor(PC_LOC.PLAGUE_DOOR, PC_TILE.PLAGUE_DOOR, MOURNER_PREFER, log);
+    knockPlagueDoor(MOURNER_PREFER, log);
 
 // Why: the clerk calls Bravek in only while the player is within 7 tiles of him, and
 // Bravek carries no wanderrange, so he drifts the default five tiles around his desk.
@@ -141,8 +169,19 @@ export async function getAudience(log: (m: string) => void): Promise<boolean> {
     return askBravekForRecipe(log);
 }
 
-const enterPlagueHouse = (log: (m: string) => void): Promise<boolean> =>
-    openDoor(PC_LOC.PLAGUE_DOOR, PC_TILE.PLAGUE_DOOR, [], log);
+// Why: the door is not a baked edge — it opens for a warrant holder mid-conversation, so the last
+// tile is a scene step the pathfinder never sees.
+async function enterPlagueHouse(log: (m: string) => void): Promise<boolean> {
+    if (!(await knockPlagueDoor([], log))) {
+        return false;
+    }
+    await DirectNavigator.walkTo(PC_TILE.PLAGUE_DOOR_INSIDE, 0, 6000);
+    if (insidePlagueHouse()) {
+        return true;
+    }
+    log('the mourner did not turn their back — the plague house door stayed shut');
+    return false;
+}
 
 // Why: the house's north wall steps back a tile east of the door, so a flat box either
 // claims the doorstep as inside or the east strip as outside.
