@@ -128,12 +128,8 @@ export async function shipCrate(log: (m: string) => void): Promise<boolean> {
             await Traversal.walkResilient(PT_TILE.WYDIN, { radius: 4, attempts: 3, timeoutMs: 300_000, log });
             return false;
         }
+        // Why: `banana_crate.rs2` answers "Why would I want to do that?" to anyone not employed at the plantation, and Luthas clears that bit every time he ships a crate — so a second smuggle has to re-hire first, and the crate refusing the rum is the only thing that says so.
         if (!(await stashRum(log))) {
-            return false;
-        }
-        state = await searchBananaCrate(log);
-        // Why: `banana_crate.rs2` answers "Why would I want to do that?" to anyone not employed at the plantation, and the bit is cleared every time Luthas ships a crate — so a second smuggle has to re-hire before it can stash, and the refusal is the only thing that says so.
-        if (!state?.rum) {
             log('the crate refused the rum — re-hiring at the plantation');
             if (!(await Traversal.walkResilient(LUTHAS.anchor, { radius: 2, attempts: 3, timeoutMs: 120_000, log }))) {
                 return false;
@@ -142,10 +138,11 @@ export async function shipCrate(log: (m: string) => void): Promise<boolean> {
                 return false;
             }
             if (!(await stashRum(log))) {
+                log('the crate still refused the rum after re-hiring');
                 return false;
             }
-            state = await searchBananaCrate(log);
         }
+        state = await searchBananaCrate(log);
         if (!state?.rum) {
             log('the rum did not land in the crate');
             return false;
