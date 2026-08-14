@@ -93,6 +93,11 @@ function partnerNear(): { index: number } | null {
 
 export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m: string) => void): Promise<boolean> {
     const want = itemFor(handoff, gang);
+    // Why: an item already moved into the offer is gone from the pack view, so a count taken while the window is open reads a give as done before the partner has confirmed.
+    if (Trade.active()) {
+        await Trade.decline();
+        await Execution.delayUntil(() => !Trade.active(), SCREEN_MS);
+    }
     const before = Inventory.countById(want.id);
     const landed = (): boolean =>
         want.giving ? Inventory.countById(want.id) < before : Inventory.countById(want.id) > before;
@@ -121,6 +126,9 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
     }
 
     const deadline = performance.now() + HANDOFF_MS;
+    let offered = false;
+    let confirmed = false;
+    let last = '';
     while (performance.now() < deadline && Trade.active()) {
         const who = Trade.partner();
         if (who !== null && !namesMatch(who, ArravConfig.partner)) {
@@ -129,22 +137,32 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
             return false;
         }
 
+        const screen = Trade.onConfirmScreen() ? 'confirm' : 'offer';
+        const state = `${screen} mine=${Trade.myOffer().length} theirs=${Trade.theirOffer().length}`;
+        if (state !== last) {
+            log(`${handoff}: ${state}`);
+            last = state;
+        }
+
         if (Trade.onConfirmScreen()) {
             await Trade.accept();
+            confirmed = true;
             await Execution.delayUntil(() => !Trade.active(), SCREEN_MS);
             continue;
         }
 
-        if (want.giving && Trade.myOffer().length === 0) {
+        if (want.giving && !offered) {
             // Why: Broken shield, Key and Certificate each name more than one object, so the slot is chosen by id.
             if (!(await Trade.offer(want.name, 1, slot => slot.id === want.id))) {
                 log(`could not offer ${want.name} (${want.id})`);
                 await Trade.decline();
                 return false;
             }
+            offered = true;
             continue;
         }
 
+        // Why: the taker must not accept an empty offer — the giver may still be walking to the window.
         if (!want.giving && !Trade.theirOffer().some(o => o.id === want.id)) {
             await Execution.delayTicks(1);
             continue;
@@ -154,8 +172,12 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
         await Execution.delayUntil(() => Trade.onConfirmScreen() || !Trade.active(), SCREEN_MS);
     }
 
+    // Why: the pack view only comes back once the window is gone, so nothing is measured before then.
+    await Execution.delayUntil(() => !Trade.active(), SCREEN_MS);
+    await Execution.delayTicks(2);
+
     if (!landed()) {
-        log(`${handoff} did not move a ${want.name}`);
+        log(`${handoff} did not move a ${want.name} (offered=${offered} confirmed=${confirmed})`);
         return false;
     }
     log(`${handoff} moved a ${want.name}`);
