@@ -3,6 +3,7 @@ import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
 import { CAVE_HOPS, COMMANDER, FALADOR_WEST_BANK, MC_FOOD_TARGET, MC_OBJ, NULODION } from './areas.js';
 import { MC_FLAG, MC_STAGE, readDwarfCannonProgress } from './journal.js';
+import { fixRailings } from './repair.js';
 
 export { MCANNON_QUEST, MC_FLAG, MC_STAGE, parseDwarfCannonJournal, readDwarfCannonProgress } from './journal.js';
 export { CANNON_PARTS, MC_OBJ, MC_TILE, RAILINGS } from './areas.js';
@@ -10,6 +11,12 @@ export { CANNON_PARTS, MC_OBJ, MC_TILE, RAILINGS } from './areas.js';
 const heldId = (snap: QuestSnapshot, id: number): number => snap.invIds?.get(id) ?? 0;
 
 const todo = (what: string): QuestStep => ({ kind: 'wait', reason: `not implemented yet: ${what}` });
+
+const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep => ({
+    kind: 'custom',
+    name,
+    run
+});
 
 export function decide(snap: QuestSnapshot): QuestStep {
     const stage = snap.progress?.stage ?? snap.stage;
@@ -29,7 +36,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === MC_STAGE.RAILINGS) {
         return hasFlag(snap.progress, MC_FLAG.RAILINGS_DONE)
             ? { kind: 'talk', stop: COMMANDER }
-            : todo('the railing loop');
+            : custom('replace the six broken railings', fixRailings);
     }
     if (stage === MC_STAGE.GUARD_TOWER) {
         return heldId(snap, MC_OBJ.REMAINS.id) > 0

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import type { WorldTile } from '#/bot/adapter/ClientAdapter.js';
-import { MC_OBJ } from '#/bot/api/ai/quests/defs/dwarfcannon/areas.js';
+import { MC_OBJ, RAILINGS } from '#/bot/api/ai/quests/defs/dwarfcannon/areas.js';
 import { decide, dwarfcannon } from '#/bot/api/ai/quests/defs/dwarfcannon/index.js';
 import { MC_FLAG, MC_STAGE } from '#/bot/api/ai/quests/defs/dwarfcannon/journal.js';
 import { defById } from '#/bot/api/ai/quests/defs/index.js';
@@ -94,6 +94,24 @@ describe('dwarfcannon decide', () => {
         const step = decide(snap({ stage: MC_STAGE.RETURN_NOTES, invIds: [MC_OBJ.NOTES.id] }));
         expect(step.kind).toBe('talk');
         expect(step.kind === 'talk' && step.stop.npc).toBe('Nulodion');
+    });
+});
+
+describe('railings', () => {
+    test('stage 1 without the flag runs the railing loop', () => {
+        const step = decide(snap({ stage: MC_STAGE.RAILINGS }));
+        expect(step.kind).toBe('custom');
+        expect(step.kind === 'custom' && step.name).toContain('railing');
+    });
+
+    test('six railings, each a distinct loc id and tile', () => {
+        expect(RAILINGS).toHaveLength(6);
+        expect(new Set(RAILINGS.map(r => r.id)).size).toBe(6);
+        expect(new Set(RAILINGS.map(r => `${r.at.x},${r.at.z}`)).size).toBe(6);
+    });
+
+    test('the loc ids are the contiguous content block 15..20', () => {
+        expect(RAILINGS.map(r => r.id)).toEqual([15, 16, 17, 18, 19, 20]);
     });
 });
 
