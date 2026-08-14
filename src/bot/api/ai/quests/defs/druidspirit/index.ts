@@ -61,13 +61,14 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === undefined) {
         return { kind: 'wait', reason: 'quest stage not readable' };
     }
-    if (stage === NS_STAGE.NOT_STARTED) {
-        return outside(snap, { kind: 'talk', stop: DREZEL });
-    }
     // Why: without the amulet both spirits answer in gibberish and no dialogue advances, so it is worn before anything else is attempted.
+    // Why: that includes before the first word with Drezel, as nothing about the amulet is quest-gated and starting first sends the bot east to the mausoleum, west to Lumbridge for the amulet, and east again.
     const wearing = amulet(snap);
     if (wearing) {
         return outside(snap, wearing);
+    }
+    if (stage === NS_STAGE.NOT_STARTED) {
+        return outside(snap, { kind: 'talk', stop: DREZEL });
     }
     switch (stage) {
         case NS_STAGE.STARTED:

@@ -56,6 +56,12 @@ describe('nature spirit decide', () => {
         expect(s.kind === 'talk' && s.stop.npc).toBe('Drezel');
     });
 
+    test('the amulet is fetched before the quest is even started', () => {
+        const s = step({ wornIds: [] });
+        expect(s.kind).toBe('talk');
+        expect(s.kind === 'talk' && s.stop.npc).toBe('Father Urhney');
+    });
+
     test('the amulet is worn before the spirit is approached', () => {
         expect(step({ stage: NS_STAGE.STARTED, wornIds: [], invIds: [[NS_ID.GHOSTSPEAK, 1]] }))
             .toEqual({ kind: 'equip', item: 'Ghostspeak amulet' });
