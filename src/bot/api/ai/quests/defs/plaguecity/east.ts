@@ -1,11 +1,12 @@
 import { Execution } from '../../../../execution/Execution.js';
+import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Reach } from '../../../../walking/Reach.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
-import { PC_ITEM, PC_LOC, PC_NPC, PC_TILE } from './areas.js';
+import { PC_ITEM, PC_LOC, PC_NPC, PC_TILE, type PlagueItem } from './areas.js';
 import { locById, walkTo } from './travel.js';
 
 const START_PREFER = ["What's happened to her?", 'Can I help find her?'];
@@ -13,8 +14,14 @@ const START_PREFER = ["What's happened to her?", 'Can I help find her?'];
 /** How many pours the garden takes from a standing start. */
 const POURS = 4;
 
-export async function talkAt(npc: string, near: Tile, prefer: string[], log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(near, 2, log))) {
+export async function talkAt(
+    npc: string,
+    near: Tile,
+    prefer: string[],
+    log: (m: string) => void,
+    radius = 2
+): Promise<boolean> {
+    if (!(await walkTo(near, radius, log))) {
         return false;
     }
     await settleScene();
@@ -90,6 +97,27 @@ export async function pourWater(log: (m: string) => void): Promise<boolean> {
     }
     log(`poured ${poured} bucket(s) onto the garden soil`);
     return poured > 0;
+}
+
+// Why: both spawns sit behind two shut doors, and a plain ground grab clicks Take from
+// the garden, where the server's own path search dead-ends and nothing happens at all.
+export async function takeFromHouse(item: PlagueItem, log: (m: string) => void): Promise<boolean> {
+    if (heldId(item.id) > 0) {
+        return true;
+    }
+    if (!(await walkTo(PC_TILE.HOUSE_FLOOR, 1, log))) {
+        return false;
+    }
+    await settleScene();
+    const drop = GroundItems.query().name(item.name).within(6).nearest();
+    if (!drop) {
+        log(`no ${item.name} on the floor of Edmond's house`);
+        return false;
+    }
+    if (!(await drop.interact('Take'))) {
+        return false;
+    }
+    return Execution.delayUntil(() => heldId(item.id) > 0, 8000);
 }
 
 // Why: Alrena hides a spare mask in the cupboard, and it is the only re-issue in the quest for a mask that was dropped or destroyed.

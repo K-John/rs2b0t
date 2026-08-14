@@ -110,10 +110,18 @@ describe('plague city decide — East Ardougne', () => {
         expect(step.kind === 'withdraw' && step.items[0].qty).toBe(4);
     });
 
-    test('stage 7 needs a spade before it can dig', () => {
+    test('stage 7 buys the spade and the rope before it digs', () => {
         const spade = decide(snapshot({ stage: PC_STAGE.MUD_SOFT, bankIds: new Map() }));
-        expect(spade.kind === 'grabGround' && spade.item).toBe(PC_ITEM.SPADE.name);
-        const dig = decide(snapshot({ stage: PC_STAGE.MUD_SOFT, invIds: carrying([PC_ITEM.SPADE, 1]) }));
+        expect(name(spade)).toBe("take the spade from Edmond's house");
+        const rope = decide(snapshot({
+            stage: PC_STAGE.MUD_SOFT,
+            invIds: carrying([PC_ITEM.SPADE, 1], [PC_ITEM.COINS, 500])
+        }));
+        expect(rope.kind === 'buy' && rope.item).toBe(PC_ITEM.ROPE.name);
+        const dig = decide(snapshot({
+            stage: PC_STAGE.MUD_SOFT,
+            invIds: carrying([PC_ITEM.SPADE, 1], [PC_ITEM.ROPE, 1])
+        }));
         expect(name(dig)).toBe('drop into the Ardougne sewer');
     });
 
@@ -155,7 +163,7 @@ describe('plague city decide — East Ardougne', () => {
 describe('plague city decide — crossing into West Ardougne', () => {
     test('the picture comes off the floor of Edmond house before the crossing', () => {
         const step = decide(snapshot({ stage: PC_STAGE.PIPE_OPEN, bankIds: new Map(), invIds: KIT }));
-        expect(step.kind === 'grabGround' && step.item).toBe(PC_ITEM.PICTURE.name);
+        expect(name(step)).toBe("take the picture from Edmond's house");
     });
 
     test('a missing gas mask is searched out of the cupboard, never skipped', () => {
@@ -219,13 +227,26 @@ describe('plague city decide — West Ardougne', () => {
         expect(name(west(PC_STAGE.CURED_BRAVEK))).toBe('ask Bravek for another warrant');
     });
 
-    test('a banked warrant is enough to head for the plague house', () => {
+    test('a banked warrant is withdrawn rather than asked for again', () => {
         const step = decide(snapshot({
             stage: PC_STAGE.CURED_BRAVEK,
             tile: WEST,
             bankIds: new Map([[PC_ITEM.WARRANT.id, 1]])
         }));
-        expect(name(step)).toBe('free Elena from the plague house');
+        expect(name(step)).toBe('walk back to East Ardougne');
+        const east = decide(snapshot({
+            stage: PC_STAGE.CURED_BRAVEK,
+            bankIds: new Map([[PC_ITEM.WARRANT.id, 1]])
+        }));
+        expect(east.kind === 'withdraw' && east.items[0].name).toBe(PC_ITEM.WARRANT.name);
+    });
+
+    test('a banked book is withdrawn rather than asked for again', () => {
+        const step = decide(snapshot({
+            stage: PC_STAGE.SHOWN_PICTURE,
+            bankIds: new Map([[PC_ITEM.TURNIP_BOOK.id, 1]])
+        }));
+        expect(step.kind === 'withdraw' && step.items[0].name).toBe(PC_ITEM.TURNIP_BOOK.name);
     });
 });
 
@@ -233,33 +254,41 @@ describe('plague city decide — the hangover cure chain', () => {
     const cure = (invIds: Map<number, number>): QuestStep =>
         decide(snapshot({ stage: PC_STAGE.SPOKEN_BRAVEK, invIds }));
 
-    test('an empty pack buys the chocolate bar first', () => {
-        const step = cure(carrying([PC_ITEM.COINS, 500]));
-        expect(step.kind === 'buy' && step.item).toBe(PC_ITEM.CHOCOLATE_BAR.name);
+    const MILK = carrying([PC_ITEM.COINS, 500], [PC_ITEM.BUCKET_MILK, 1]);
+
+    test('every raw ingredient is gathered before the first mix', () => {
+        const bucket = cure(carrying([PC_ITEM.COINS, 500]));
+        expect(bucket.kind === 'grabGround' && bucket.item).toBe(PC_ITEM.BUCKET.name);
+        const cow = cure(carrying([PC_ITEM.COINS, 500], [PC_ITEM.BUCKET, 1]));
+        expect(cow.kind === 'useOn' && cow.product).toBe(PC_ITEM.BUCKET_MILK.name);
+        const grass = cure(MILK);
+        expect(grass.kind === 'grabGround' && grass.item).toBe(PC_ITEM.SNAPE_GRASS.name);
+        const pestle = cure(new Map([...MILK, [PC_ITEM.SNAPE_GRASS.id, 1]]));
+        expect(pestle.kind === 'buy' && pestle.item).toBe(PC_ITEM.PESTLE.name);
+        const bar = cure(new Map([...MILK, [PC_ITEM.SNAPE_GRASS.id, 1], [PC_ITEM.PESTLE.id, 1]]));
+        expect(bar.kind === 'buy' && bar.item).toBe(PC_ITEM.CHOCOLATE_BAR.name);
     });
 
-    test('a bar without a pestle buys the pestle', () => {
-        const step = cure(carrying([PC_ITEM.COINS, 500], [PC_ITEM.CHOCOLATE_BAR, 1]));
-        expect(step.kind === 'buy' && step.item).toBe(PC_ITEM.PESTLE.name);
-    });
-
-    test('bar plus pestle grinds the dust', () => {
-        const step = cure(carrying([PC_ITEM.COINS, 500], [PC_ITEM.CHOCOLATE_BAR, 1], [PC_ITEM.PESTLE, 1]));
-        expect(step.kind === 'useOn' && step.product).toBe(PC_ITEM.CHOCOLATE_DUST.name);
-    });
-
-    test('dust without milk milks a cow, and with milk mixes chocolaty milk', () => {
-        const milk = cure(carrying([PC_ITEM.CHOCOLATE_DUST, 1], [PC_ITEM.BUCKET, 1]));
-        expect(milk.kind === 'useOn' && milk.product).toBe(PC_ITEM.BUCKET_MILK.name);
+    test('a full ingredient set grinds, mixes and finishes in order', () => {
+        const full = new Map([
+            ...MILK,
+            [PC_ITEM.SNAPE_GRASS.id, 1],
+            [PC_ITEM.PESTLE.id, 1],
+            [PC_ITEM.CHOCOLATE_BAR.id, 1]
+        ]);
+        const grind = cure(full);
+        expect(grind.kind === 'useOn' && grind.product).toBe(PC_ITEM.CHOCOLATE_DUST.name);
         const mix = cure(carrying([PC_ITEM.CHOCOLATE_DUST, 1], [PC_ITEM.BUCKET_MILK, 1]));
         expect(mix.kind === 'useOn' && mix.product).toBe(PC_ITEM.CHOCOLATY_MILK.name);
-    });
-
-    test('chocolaty milk fetches snape grass, then finishes the cure', () => {
-        const grass = cure(carrying([PC_ITEM.CHOCOLATY_MILK, 1]));
-        expect(grass.kind === 'grabGround' && grass.item).toBe(PC_ITEM.SNAPE_GRASS.name);
         const finish = cure(carrying([PC_ITEM.CHOCOLATY_MILK, 1], [PC_ITEM.SNAPE_GRASS, 1]));
         expect(finish.kind === 'useOn' && finish.product).toBe(PC_ITEM.HANGOVER_CURE.name);
+    });
+
+    test('a lost ingredient is re-sourced rather than mixed with nothing', () => {
+        const grass = cure(carrying([PC_ITEM.CHOCOLATY_MILK, 1]));
+        expect(grass.kind === 'grabGround' && grass.item).toBe(PC_ITEM.SNAPE_GRASS.name);
+        const milk = cure(carrying([PC_ITEM.CHOCOLATE_DUST, 1], [PC_ITEM.BUCKET, 1]));
+        expect(milk.kind === 'useOn' && milk.product).toBe(PC_ITEM.BUCKET_MILK.name);
     });
 
     test('a finished cure is carried to Bravek', () => {

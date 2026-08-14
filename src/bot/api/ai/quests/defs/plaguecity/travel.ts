@@ -5,7 +5,7 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs, type Loc } from '../../../../locs/Locs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
-import { settleScene } from '../../exec/prompts.js';
+import { driveUntil, settleScene } from '../../exec/prompts.js';
 import { PC_ITEM, PC_LOC, PC_TILE, plagueArea, type PlagueArea } from './areas.js';
 
 export function area(): PlagueArea {
@@ -26,8 +26,10 @@ export async function walkTo(to: Tile, radius: number, log: (m: string) => void)
     return Traversal.walkResilient(to, { radius, attempts: 3, timeoutMs: 180_000, log });
 }
 
-export async function arrive(want: PlagueArea, ms = 15_000): Promise<boolean> {
-    const landed = await Execution.delayUntil(() => area() === want, ms);
+// Why: the garden dig hands the spade objbox before it teleports, so a plain tile poll
+// times out while the crossing waits on a click nobody made.
+export async function arrive(want: PlagueArea, log: (m: string) => void, ms = 20_000): Promise<boolean> {
+    const landed = await driveUntil(() => area() === want, [], log, ms);
     if (landed) {
         await settleScene();
     }
@@ -51,7 +53,7 @@ export async function digIntoSewer(log: (m: string) => void): Promise<boolean> {
     if (!(await spade.useOn(patch))) {
         return false;
     }
-    return arrive('sewer');
+    return arrive('sewer', log);
 }
 
 export async function climbMudPile(log: (m: string) => void): Promise<boolean> {
@@ -67,7 +69,7 @@ export async function climbMudPile(log: (m: string) => void): Promise<boolean> {
         log('no Mud pile offering Climb in the sewer');
         return false;
     }
-    return arrive('east');
+    return arrive('east', log);
 }
 
 export async function squeezePipe(log: (m: string) => void): Promise<boolean> {
@@ -87,7 +89,7 @@ export async function squeezePipe(log: (m: string) => void): Promise<boolean> {
         log('no Sewer pipe offering Search at the west end of the sewer');
         return false;
     }
-    return arrive('west');
+    return arrive('west', log);
 }
 
 // Why: the manhole reverts to its cover 500 ticks after the pipe opened it, and the closed loc offers Open rather than Climb-down.
@@ -111,7 +113,7 @@ export async function dropManhole(log: (m: string) => void): Promise<boolean> {
         log('no open Manhole to climb down in West Ardougne');
         return false;
     }
-    return arrive('sewer');
+    return arrive('sewer', log);
 }
 
 export async function leaveUpstairs(log: (m: string) => void): Promise<boolean> {
@@ -123,7 +125,7 @@ export async function leaveUpstairs(log: (m: string) => void): Promise<boolean> 
         log('no Rehnison stairs down in range');
         return false;
     }
-    return arrive('west');
+    return arrive('west', log);
 }
 
 export async function leaveCellar(log: (m: string) => void): Promise<boolean> {
@@ -135,7 +137,7 @@ export async function leaveCellar(log: (m: string) => void): Promise<boolean> {
         log('no plague house stairs up in the cellar');
         return false;
     }
-    return arrive('west');
+    return arrive('west', log);
 }
 
 export async function goUpstairs(log: (m: string) => void): Promise<boolean> {
@@ -151,7 +153,7 @@ export async function goUpstairs(log: (m: string) => void): Promise<boolean> {
         log('no Rehnison stairs up in range');
         return false;
     }
-    return arrive('upstairs');
+    return arrive('upstairs', log);
 }
 
 export async function goCellar(log: (m: string) => void): Promise<boolean> {
@@ -167,7 +169,7 @@ export async function goCellar(log: (m: string) => void): Promise<boolean> {
         log('no plague house stairs down in range');
         return false;
     }
-    return arrive('cellar');
+    return arrive('cellar', log);
 }
 
 /** Walk out of whatever pocket the bot is standing in and back onto the mainland. */

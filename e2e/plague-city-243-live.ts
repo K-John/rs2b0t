@@ -85,24 +85,16 @@ const STAGE_START: Record<number, { x: number; z: number; level: number }> = {
     9: { x: 2562, z: 9737, level: 0 }
 };
 
-/** Items the seeded stage assumes were already handed over. */
-const STAGE_ITEMS: Record<number, string[]> = {
-    2: ['gasmask'],
-    3: ['gasmask'],
-    7: ['gasmask'],
-    8: ['gasmask'],
-    9: ['gasmask', 'spade'],
-    10: ['gasmask', 'spade'],
-    20: ['gasmask', 'spade', 'turnip_book'],
-    21: ['gasmask', 'spade'],
-    22: ['gasmask', 'spade'],
-    23: ['gasmask', 'spade'],
-    24: ['gasmask', 'spade'],
-    25: ['gasmask', 'spade'],
-    26: ['gasmask', 'spade'],
-    27: ['gasmask', 'spade', 'warrant'],
-    28: ['gasmask', 'spade']
+// Why: a stage seeds only what that stage produced — the spade, buckets, rope and
+// cure ingredients are tools, and handing one over hides whether the bot can find it.
+const HANDED_OVER: Record<number, string[]> = {
+    20: ['turnip_book'],
+    27: ['warrant']
 };
+
+function stageItems(stage: number): string[] {
+    return [...(stage >= 2 ? ['gasmask'] : []), ...(HANDED_OVER[stage] ?? [])];
+}
 
 interface Snapshot {
     pos: { x: number; z: number; level: number } | null;
@@ -183,9 +175,6 @@ try {
     await seedItemsToBank(page, BANK_SEED, ARDOUGNE_BANK);
 
     if (args.stage > 0) {
-        for (const item of STAGE_ITEMS[args.stage] ?? []) {
-            await cheatQuiet(page, `give ${item} 1`);
-        }
         await cheatQuiet(page, `setvar elenaquest ${args.stage}`);
         const set = await getServerVarQuiet(page, 'elenaquest');
         console.log(`elenaquest=${set}`);
@@ -194,8 +183,9 @@ try {
         }
         await relog(page, args.user);
         await clearChatDialogs(page, 'post-relog dialog(s)');
-        for (const item of STAGE_ITEMS[args.stage] ?? []) {
+        for (const item of stageItems(args.stage)) {
             await cheatQuiet(page, `give ${item} 1`);
+            console.log(`  gave ${item}`);
         }
     }
 

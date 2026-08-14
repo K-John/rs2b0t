@@ -62,11 +62,19 @@ export async function askMilli(log: (m: string) => void): Promise<boolean> {
 export const askAboutClearance = (log: (m: string) => void): Promise<boolean> =>
     openDoor(PC_LOC.PLAGUE_DOOR, PC_TILE.PLAGUE_DOOR, MOURNER_PREFER, log);
 
+// Why: the clerk only calls Bravek in when the player is within 7 tiles of him, and every tile more than one west of the stand is 8.
 export const askClerk = (log: (m: string) => void): Promise<boolean> =>
-    talkAt(PC_NPC.CLERK, PC_TILE.CLERK, CLERK_PREFER, log);
+    talkAt(PC_NPC.CLERK, PC_TILE.CLERK, CLERK_PREFER, log, 1);
 
+function inBravekRoom(): boolean {
+    const here = Game.tile();
+    return here !== null && here.level === 0
+        && here.x >= 2530 && here.x <= 2539 && here.z >= 3312 && here.z <= 3316;
+}
+
+// Why: his door reverts two ticks after it lets anyone through, so walking back to the stand from inside would shut it and reopen it every leg.
 async function reachBravek(log: (m: string) => void): Promise<boolean> {
-    return openDoor(PC_LOC.BRAVEK_DOOR, PC_TILE.BRAVEK_DOOR, [], log);
+    return inBravekRoom() || openDoor(PC_LOC.BRAVEK_DOOR, PC_TILE.BRAVEK_DOOR, [], log);
 }
 
 export async function askBravekForRecipe(log: (m: string) => void): Promise<boolean> {
@@ -94,9 +102,14 @@ export async function getAudience(log: (m: string) => void): Promise<boolean> {
 export const enterPlagueHouse = (log: (m: string) => void): Promise<boolean> =>
     openDoor(PC_LOC.PLAGUE_DOOR, PC_TILE.PLAGUE_DOOR, [], log);
 
+// Why: the house's north wall steps back a tile east of the door, so a flat box either
+// claims the doorstep as inside or the east strip as outside.
 function insidePlagueHouse(): boolean {
     const here = Game.tile();
-    return here !== null && here.level === 0 && here.x >= 2530 && here.x <= 2541 && here.z >= 3266 && here.z <= 3271;
+    if (here === null || here.level !== 0 || here.x < 2532 || here.x > 2541) {
+        return false;
+    }
+    return here.z >= 3268 && here.z <= (here.x >= 2535 ? 3272 : 3271);
 }
 
 export async function rescueElena(log: (m: string) => void): Promise<boolean> {

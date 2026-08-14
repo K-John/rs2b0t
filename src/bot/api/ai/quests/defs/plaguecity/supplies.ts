@@ -1,6 +1,7 @@
 import Tile from '../../../../../geometry/Tile.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { PC_ITEM, PC_TILE, banked, held, type PlagueItem } from './areas.js';
+import { takeFromHouse } from './east.js';
 
 // Why: nobody in this game is called 'Shop keeper' — Shop.open matches the display name of the NPC that owns the stock.
 export const AEMAD = { npc: 'Aemad', anchor: PC_TILE.AEMAD };
@@ -28,6 +29,14 @@ function fromBank(snap: QuestSnapshot, item: PlagueItem, qty: number): QuestStep
         return null;
     }
     return withdrawFrom([{ name: item.name, id: item.id, qty: Math.min(qty - held(snap, item), stock) }]);
+}
+
+// Why: Jethick reissues the book and Bravek reissues the warrant only while neither the
+// pack nor the bank holds one, so a banked copy has to come out before anyone is asked again.
+
+/** Withdraw a quest-issued item the bank is holding, or null when it is not banked. */
+export function reclaim(snap: QuestSnapshot, item: PlagueItem): QuestStep | null {
+    return held(snap, item) > 0 ? null : fromBank(snap, item, 1);
 }
 
 export function sourcePurse(snap: QuestSnapshot, want: number): QuestStep | null {
@@ -73,11 +82,20 @@ export function takeSpawn(snap: QuestSnapshot, item: PlagueItem, qty: number, an
     return fromBank(snap, item, qty) ?? { kind: 'grabGround', item: item.name, anchor, waitIfMissing: true };
 }
 
-export const sourceSpade = (snap: QuestSnapshot): QuestStep | null =>
-    takeSpawn(snap, PC_ITEM.SPADE, 1, PC_TILE.HOUSE_FLOOR);
+function fromHouseFloor(snap: QuestSnapshot, item: PlagueItem): QuestStep | null {
+    if (held(snap, item) > 0) {
+        return null;
+    }
+    return fromBank(snap, item, 1) ?? {
+        kind: 'custom',
+        name: `take the ${item.name.toLowerCase()} from Edmond's house`,
+        run: log => takeFromHouse(item, log)
+    };
+}
 
-export const sourcePicture = (snap: QuestSnapshot): QuestStep | null =>
-    takeSpawn(snap, PC_ITEM.PICTURE, 1, PC_TILE.HOUSE_FLOOR);
+export const sourceSpade = (snap: QuestSnapshot): QuestStep | null => fromHouseFloor(snap, PC_ITEM.SPADE);
+
+export const sourcePicture = (snap: QuestSnapshot): QuestStep | null => fromHouseFloor(snap, PC_ITEM.PICTURE);
 
 /** The garden wants four pours, so a stocked bank saves three walks to the fountain. */
 export const BUCKET_TARGET = 4;

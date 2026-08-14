@@ -26,6 +26,7 @@ import {
     showPicture
 } from './west.js';
 import {
+    reclaim,
     scanBank,
     sourceBucket,
     sourceChocolateBar,
@@ -104,6 +105,8 @@ function waterLeg(snap: QuestSnapshot, area: PlagueArea): QuestStep {
     return inEast(area, sourceBucket(snap) ?? { kind: 'wait', reason: 'no bucket for the garden soil' });
 }
 
+// Why: the cow field, the snape grass spawns, Taverley and Port Sarim are one eastward
+// loop, so every raw ingredient is gathered before the first mix rather than between them.
 function cureLeg(snap: QuestSnapshot, area: PlagueArea): QuestStep | null {
     if (held(snap, PC_ITEM.HANGOVER_CURE) > 0) {
         return null;
@@ -114,8 +117,8 @@ function cureLeg(snap: QuestSnapshot, area: PlagueArea): QuestStep | null {
     if (held(snap, PC_ITEM.CHOCOLATE_DUST) > 0) {
         return inEast(area, sourceMilk(snap) ?? mix(PC_ITEM.CHOCOLATE_DUST, PC_ITEM.BUCKET_MILK, PC_ITEM.CHOCOLATY_MILK));
     }
-    const bar = sourceChocolateBar(snap) ?? sourcePestle(snap);
-    return inEast(area, bar ?? mix(PC_ITEM.PESTLE, PC_ITEM.CHOCOLATE_BAR, PC_ITEM.CHOCOLATE_DUST));
+    const raw = sourceMilk(snap) ?? sourceSnapeGrass(snap) ?? sourcePestle(snap) ?? sourceChocolateBar(snap);
+    return inEast(area, raw ?? mix(PC_ITEM.PESTLE, PC_ITEM.CHOCOLATE_BAR, PC_ITEM.CHOCOLATE_DUST));
 }
 
 function mix(item: { name: string }, target: { name: string }, product: { name: string }): QuestStep {
@@ -139,8 +142,9 @@ function stageStep(snap: QuestSnapshot, area: PlagueArea, stage: number): QuestS
             return inEast(area, custom('ask Edmond about the way into West Ardougne', askAboutDigging));
         case PC_STAGE.MUD_START:
             return waterLeg(snap, area);
+        // Why: the rope is only needed below, but it is bought up here, or the bot climbs back out of the sewer for it.
         case PC_STAGE.MUD_SOFT:
-            return area === 'east' ? (sourceSpade(snap) ?? TO_SEWER) : TO_SEWER;
+            return area === 'east' ? (sourceSpade(snap) ?? sourceRope(snap) ?? TO_SEWER) : TO_SEWER;
         case PC_STAGE.TUNNEL: {
             const rope = sourceRope(snap);
             return rope
@@ -155,10 +159,15 @@ function stageStep(snap: QuestSnapshot, area: PlagueArea, stage: number): QuestS
                 ? inEast(area, picture)
                 : inWest(snap, area, custom("show Jethick Elena's picture", showPicture));
         }
-        case PC_STAGE.SHOWN_PICTURE:
+        case PC_STAGE.SHOWN_PICTURE: {
+            const book = reclaim(snap, PC_ITEM.TURNIP_BOOK);
+            if (book) {
+                return inEast(area, book);
+            }
             return held(snap, PC_ITEM.TURNIP_BOOK) > 0
                 ? inWest(snap, area, custom("return Jethick's book to the Rehnisons", returnBook))
                 : inWest(snap, area, custom('ask Jethick for the book again', showPicture));
+        }
         case PC_STAGE.RETURNED_BOOK:
             return inWest(snap, area, custom('ask the Rehnisons about Elena', askParents));
         case PC_STAGE.SPOKEN_PARENTS:
@@ -170,10 +179,15 @@ function stageStep(snap: QuestSnapshot, area: PlagueArea, stage: number): QuestS
             return inWest(snap, area, custom('get an audience with Bravek', getAudience));
         case PC_STAGE.SPOKEN_BRAVEK:
             return cureLeg(snap, area) ?? inWest(snap, area, custom('give Bravek the hangover cure', giveHangoverCure));
-        case PC_STAGE.CURED_BRAVEK:
-            return held(snap, PC_ITEM.WARRANT) === 0 && owned(snap, PC_ITEM.WARRANT) === 0
-                ? inWest(snap, area, custom('ask Bravek for another warrant', giveHangoverCure))
-                : inWest(snap, area, custom('free Elena from the plague house', rescueElena));
+        case PC_STAGE.CURED_BRAVEK: {
+            const warrant = reclaim(snap, PC_ITEM.WARRANT);
+            if (warrant) {
+                return inEast(area, warrant);
+            }
+            return held(snap, PC_ITEM.WARRANT) > 0
+                ? inWest(snap, area, custom('free Elena from the plague house', rescueElena))
+                : inWest(snap, area, custom('ask Bravek for another warrant', giveHangoverCure));
+        }
         case PC_STAGE.FREED_ELENA:
             return inEast(area, custom('tell Edmond his daughter is safe', thankEdmond));
         default:
