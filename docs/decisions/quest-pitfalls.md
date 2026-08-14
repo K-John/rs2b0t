@@ -26,6 +26,23 @@ fall out of that, and both were found the hard way:
   regions look like one. Watch Tower's design concluded a gold bar was unnecessary for
   this reason, and the opposite was true.
 
+## Doors, spawns and prompts
+
+Plague City paid for these three in live runs:
+
+- **A ground spawn indoors is not a ground grab.** `grabGround` clicks Take the moment the
+  item is within twelve tiles, and the server's own path search stops dead at the first
+  shut door, which leaves the player standing still until the step times out. The spade and
+  the picture on Edmond's floor are two rooms deep, so the step walks into the room first
+  and takes the item from there.
+- **A crossing that raises an objbox has not fired yet.** The garden dig shows the spade
+  objbox and only then runs `p_telejump`, so polling the tile times out while the script
+  waits on a click. Every area change drives the prompt rather than watching the tile.
+- **A wall door's outside is the loc's own tile.** `check_axis` compares the player's
+  coord with the loc's along the wall's axis, so the stand that runs the quest branch is
+  the tile the door sits on. Bravek's door reads as the clerk's room from `(2529,3314)`
+  and as his own from `(2530,3314)`, and the wrong one walks the bot back out every leg.
+
 ## See also
 
 - [Engine behaviour](quest-pitfalls-engine.md)
