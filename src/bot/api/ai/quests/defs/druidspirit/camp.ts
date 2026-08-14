@@ -303,8 +303,13 @@ export async function feedStones(flags: ReadonlySet<string>, log: (m: string) =>
 
 // Why: the ritual is judged on the player's own tile — `coord = 0_53_52_48_7` — so the faith stone is stood on rather than used.
 
+// Why: the summon is `Enter` on the grotto door, two tiles off the faith stone, so the spirit is called up first and the stone taken second — the other order puts the puzzle option on screen from the wrong tile.
+
 /** Stand on the faith stone and tell the spirit the puzzle is solved. */
 export async function solvePuzzle(log: (m: string) => void): Promise<boolean> {
+    if (!(await ensureSpirit(log))) {
+        return false;
+    }
     if (!(await Traversal.walkResilient(NS_TILE.FAITH_STONE, { radius: 0, attempts: 4, timeoutMs: 180_000, log }))) {
         log('could not reach the faith stone');
         return false;
@@ -316,7 +321,7 @@ export async function solvePuzzle(log: (m: string) => void): Promise<boolean> {
     }
     await settleScene();
     if (!findSpirit()) {
-        log('no spirit at the camp to solve the puzzle with');
+        log('the spirit despawned between the summon and the stone');
         return false;
     }
     if (!(await openDialogue(FILLIMAN.npc, log))) {
