@@ -4,6 +4,36 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
+## Clock Tower — stage-scoped harness
+
+[`e2e/clock-tower-236-live.ts`](../../e2e/clock-tower-236-live.ts) drives the
+quest from a clean account, or one leg of it. `--stage N` counts **cogs already
+placed**, 0 to 4, and writes `%cogquest` and `%cog_bits` together before
+relogging.
+
+```sh
+HEADED=1 bun e2e/clock-tower-236-live.ts --stage 0 --until 5 --minutes 60 --tick 200   # end to end
+HEADED=1 bun e2e/clock-tower-236-live.ts --stage 0 --until 1 --minutes 20 --tick 200   # black: bucket, water, cool
+HEADED=1 bun e2e/clock-tower-236-live.ts --stage 2 --until 3 --minutes 20 --tick 200   # blue: the secret wall
+HEADED=1 bun e2e/clock-tower-236-live.ts --stage 3 --until 4 --minutes 25 --tick 200   # white: lever, poison, gate
+```
+
+The bank holds coins and food alone. The bucket, its water and the rat poison
+all have sources in the world, and seeding one hides whether the bot finds it.
+
+Three details govern this harness:
+
+- **The two varps have to move together.** `%cogquest` bits 0-3 carry the step
+  and `%cog_bits` carries which spindles are filled, so setting one alone leaves
+  the journal and the world disagreeing. `--stage` writes both, in the module's
+  own fetch order — black, red, blue, white — and sets the cooled bit whenever
+  black is already placed, or the bot pours a second bucket over a cold cog.
+- **Stats are maxed rather than 70.** Ogres stand over the red cog and stay
+  passive only above 106 combat; at 70 they chew on the bot for the length of
+  the leg.
+- **`--until 5` waits for the quest list to go green**, not for the varp: the
+  recolour and the quest point land a tick behind `%cogquest`.
+
 ## Dwarf Cannon — stage-scoped harness
 
 Dwarf Cannon needs no items and no prerequisite quests: the Commander issues the railings
