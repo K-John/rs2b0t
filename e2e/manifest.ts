@@ -335,7 +335,9 @@ export const CASES: readonly Case[] = [
         id: 'naturespirit-239-live',
         harness: 'naturespirit-239-live.ts',
         covers: { scripts: ['AIOQuester'] },
-        status: 'unvetted'
+        status: 'documented',
+        budgetMin: 120,
+        documentedIn: 'docs/reference/quest-harness-recipes-2.md'
     },
     {
         id: 'nav-path-paint-live',

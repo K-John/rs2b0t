@@ -95,6 +95,37 @@ death recovery re-enters with **Push** (no key) and re-withdraws bank tools.
   from the `host.tickCount` delta, which is comparable to the engine's own limits
   (5 user events per tick) and to a 600ms world.
 
+## Nature Spirit — stage-scoped harness
+
+[`e2e/naturespirit-239-live.ts`](../../e2e/naturespirit-239-live.ts), members-only,
+so `:8890`:
+
+```sh
+HEADED=1 bun e2e/naturespirit-239-live.ts --stage 0 --until 110 --minutes 120 --tick 200  # end to end
+HEADED=1 bun e2e/naturespirit-239-live.ts --stage 0 --until 40 --minutes 45 --tick 200    # camp chain
+HEADED=1 bun e2e/naturespirit-239-live.ts --stage 40 --until 75 --minutes 30 --tick 200   # ritual and grotto
+HEADED=1 bun e2e/naturespirit-239-live.ts --stage 70 --until 85 --minutes 20 --stocked    # the sickle
+HEADED=1 bun e2e/naturespirit-239-live.ts --stage 85 --until 110 --minutes 30 --tick 200  # the ghasts
+```
+
+Three things it does beyond the Horror shape:
+
+- **Sets both prerequisites.** Eligibility reads the quest-list colour, so
+  `prieststart` and `priestperil` are set and the run relogs — `update_questlist`
+  only recolours at login. `priestperil` goes to 61, not 60: the Salve barrier the
+  route depends on is `^priestperil_access_holy_barrier`.
+- **Gives the pack what the stage implies.** A mid-quest start hands over the
+  ghostspeak amulet, and from stage 75 the blessed sickle and a druid pouch — both
+  come from Filliman, so a run seeded past him otherwise describes an unreachable
+  state. Stage 0 gets none of it, which is what makes the end-to-end run the proof.
+- **`--stocked` banks a mould and a silver bar** — ordinary clutter on an
+  established account, and the only way to reach the cast without the Al Kharid
+  round trip. Leave it off for anything claiming the quest works.
+
+The bank holds coins and food alone by default. Nothing seeds a pickaxe: mining
+without one raises no refusal at all, so a seeded run would pass while the quest
+could not mine.
+
 ## See also
 
 - [Quest harness recipes (A–F)](quest-harness-recipes.md)
