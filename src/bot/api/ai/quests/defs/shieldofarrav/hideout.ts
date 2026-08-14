@@ -13,11 +13,9 @@ import type { NpcStop } from '../../exec/primitives.js';
 const CLIMB_MS = 12_000;
 const WALK_MS = 120_000;
 
-/**
- * A hideout door opens by teleporting you through, so landing on the far side is the only proof.
- * Why: `isFar` is a component test, not a distance test — the two sides of a one-tile wall are
- * two tiles apart, and a distance check calls a character standing at the door already through.
- */
+// Why: `isFar` is a component test, not a distance test — the two sides of a one-tile wall are two tiles apart.
+
+/** A hideout door teleports you through, so landing on the far side is the only proof. */
 async function crossDoor(
     id: number,
     stand: Tile,
@@ -51,12 +49,9 @@ async function crossDoor(
     return true;
 }
 
-/**
- * Open a shut container and wait for its open twin to appear in the scene.
- * Why: the chest and the cupboard are each two locs, and the scene keeps the shut id for
- * a tick or so after the Open lands — checking straight away reads the old loc and calls
- * a successful open a failure.
- */
+// Why: the scene keeps the shut id for a tick after the Open lands, so one check calls a successful open a failure.
+
+/** Open a shut container and wait for its open twin to appear in the scene. */
 export async function openContainer(
     name: string,
     shutId: number,
@@ -127,7 +122,7 @@ export async function enterHideout(log: (m: string) => void): Promise<boolean> {
         return true;
     }
     // Why: Reach owns the approach — it walks, opens the building's door and retries on one budget, where a pre-walk plus its own walk spends two and wedges for minutes.
-    // Why: two attempts, because the first from outside the building routinely lands on the wrong side of that door and a retry here is far cheaper than a whole quest-engine round trip.
+    // Why: two attempts, because the first from outside the building routinely lands on the wrong side of that door and a retry here is far cheaper than another quest-engine round trip.
     let status = 'retry';
     for (let attempt = 0; attempt < 2 && !inPhoenixHq(Game.tile()); attempt++) {
         status = await Reach.locOp({
@@ -149,11 +144,9 @@ export async function enterHideout(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-/**
- * Walk to a stop and drive its dialogue.
- * Why: `talkThrough` takes a bare name and never walks, and `gotoNpc` routes through the
- * shared hop, whose radius-2 arrival calls a stand two tiles off "arrived" without moving.
- */
+// Why: `talkThrough` never walks, and `gotoNpc`'s shared hop calls a stand two tiles off "arrived" without moving.
+
+/** Walk to a stop and drive its dialogue. */
 export async function walkAndTalk(
     stop: NpcStop,
     prefer: readonly string[],

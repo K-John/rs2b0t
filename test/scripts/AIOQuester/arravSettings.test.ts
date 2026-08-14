@@ -4,7 +4,7 @@ import { ArravConfig } from '#/bot/api/ai/quests/defs/shieldofarrav/config.js';
 import { AIO_SETTINGS } from '#/bot/scripts/AIOQuester/AIOQuester.js';
 import { ARRAV_GANG_OPTIONS, applyArravSettings } from '#/bot/scripts/AIOQuester/AIOQuesterLogic.js';
 
-// Why: ArravConfig is a module singleton the whole suite shares, so a test that leaves it dirty fails an unrelated file.
+// Why: ArravConfig is a module singleton shared across the suite, so a test that leaves it dirty fails an unrelated file.
 function restoreDefaults(): void {
     ArravConfig.gang = 'random';
     ArravConfig.partner = '';

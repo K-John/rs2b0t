@@ -95,11 +95,7 @@ export function resolveSustainPolicy(
 /** The gang settings the panel offers, and the only values `resolveGang` accepts. */
 export const ARRAV_GANG_OPTIONS: readonly ArravGangSetting[] = ['random', 'phoenix', 'blackarm'];
 
-/**
- * Push the Shield of Arrav panel settings onto the module config.
- * Why: an unknown gang falls back to random rather than throwing mid-quest, and the
- * certificate target is clamped so a zero setting still redeems.
- */
+/** Push the panel settings onto the module config; an unknown gang falls back to random and the target is clamped. */
 export function applyArravSettings(raw: { gang: string; partner: string; certs: number }): void {
     ArravConfig.gang = ARRAV_GANG_OPTIONS.find(g => g === raw.gang) ?? 'random';
     ArravConfig.partner = raw.partner.trim();

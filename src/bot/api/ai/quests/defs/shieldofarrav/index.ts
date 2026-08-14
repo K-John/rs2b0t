@@ -73,7 +73,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
 export const shieldofarrav: QuestModule = {
     record: QUESTS.find(r => r.id === 'blackarmgang')!,
-    // Why: the whole quest is inside Varrock, which has two booths.
+    // Why: the quest never leaves Varrock, which has two booths.
     bank: 'nearest',
     // Why: the bribe and the certificate are acquired at the stage that needs them, not up front.
     ownsInventory: true,

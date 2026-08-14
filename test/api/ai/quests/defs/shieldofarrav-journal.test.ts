@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 
 import { SOA_STAGE, parseShieldOfArravJournal } from '#/bot/api/ai/quests/defs/shieldofarrav/journal.js';
 
-/** Lines exactly as blackarmgang_journal.rs2 appends them: colour tags intact, pipes as breaks. */
+/** Lines as blackarmgang_journal.rs2 appends them: colour tags intact, pipes as breaks. */
 const NOT_STARTED = [
     "@dbl@I can start this quest by speaking to @dre@Reldo@dbl@ in @dre@Varrock's|Palace Library@dbl@, or by speaking to the @dre@Tramp@dbl@ near|",
     '@dbl@the @dre@Blue Moon Inn@dbl@ in @dre@Varrock@dbl@.|'

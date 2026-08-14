@@ -28,11 +28,9 @@ export function liveItem(id: number): InvItem | null {
     return Inventory.items().find(item => item.id === id) ?? null;
 }
 
-/**
- * Whether the open main modal says something.
- * Why: `~objbox` and `~mesbox` build a main modal, not a chat line, so the chest's
- * "You find half a shield" and "The chest is empty" never reach `GameMessages`.
- */
+// Why: `~objbox` and `~mesbox` build a main modal, not a chat line, so their text never reaches `GameMessages`.
+
+/** Whether the open main modal says something. */
 export function modalSaid(pattern: RegExp): boolean {
     return reader.mainModalTexts().some(line => pattern.test(line));
 }

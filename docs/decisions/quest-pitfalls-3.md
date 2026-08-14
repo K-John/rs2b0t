@@ -99,6 +99,34 @@ collision pack therefore reports the Commander and all six railings unreachable,
 `findPath` with the baked edges loaded reports them fine. Probe with the pathfinder, not
 with a flood.
 
+Shield of Arrav added seven, and only the last is a quest fact:
+
+- **A reward that deletes one of two is not a reward that needs two.** `king_roald.rs2`
+  tests `inv_total(inv, arravcertificate) > 0` and deletes one, gated on nothing
+  but having *joined* either gang. A certificate obtained by trade finishes the quest for
+  a character that never saw a shield half. Read what the completion script consumes
+  before designing around what the guide says it wants.
+- **A pickup gated on the bank cannot be stockpiled.** The chest and the cupboard refuse
+  while a copy sits in inventory *or* bank, so a spare half is impossible and only the
+  certificate — checked in neither — banks. Which item is farmable is a property of the
+  gate, not of the item.
+- **`~objbox` and `~mesbox` build a main modal, not a chat line.** "You find half a
+  shield, which you take." never reaches `GameMessages`, so a `sawSince` oracle on it is
+  dead code that always reads false. Read `reader.mainModalTexts()`, or count the item.
+- **A loc that transforms keeps its old id for a tick.** The chest and the cupboard are
+  each a shut loc and an open loc; checking for the open id immediately after the Open
+  lands reads the shut one and calls a successful open a failure. Poll it.
+- **`Reach` reporting `retry` is not a crossing that failed.** The cellar ladder lands
+  the character underground and still returns `retry`. Where the character is standing is
+  the oracle; the status is a hint.
+- **A pre-walk in front of `Reach` doubles the budget and wedges.** `Reach.locOp` walks,
+  opens the blocking door and retries on its own 90s budget; a `walkResilient` in front of
+  it spends a second one, and the pair sat at the Phoenix cellar for two and a half
+  minutes. Let `Reach` own the approach.
+- **A leg that did its work and failed to leave should report the work.** Taking the half
+  and then failing the climb out returned false, which threw away a shield half the pack
+  was holding. The next pass's early branch retries the exit for free.
+
 ## See also
 
 - [Quest pitfalls](quest-pitfalls.md)

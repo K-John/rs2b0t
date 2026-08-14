@@ -23,10 +23,7 @@ export function certsBanked(snap: QuestSnapshot): number {
     return snap.bankKnown ? bankedId(snap, SOA_ID.CERTIFICATE) : 0;
 }
 
-/**
- * Both halves in one pack, which is the only thing the curator answers to.
- * Runs before any handoff, so a bot that can mint never trades a half away again.
- */
+/** Both halves in one pack, the only thing the curator answers to; runs before any handoff. */
 export function curatorStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null {
     const mine = heldId(snap, ownHalf(gang));
     const theirs = heldId(snap, otherHalf(gang));
@@ -34,11 +31,9 @@ export function curatorStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | n
     return mine > 0 && theirs > 0 ? { kind: 'talk', stop: CURATOR } : null;
 }
 
-/**
- * Redeeming, withdrawing and banking the surplus. Runs after the handoffs, so the
- * partner gets its certificate before this bot spends the last one it holds.
- * Returns null when nothing is due, and the caller falls through to the gang legs.
- */
+// Why: this runs after the handoffs, so the partner is paid before this bot spends the last certificate it holds.
+
+/** Redeeming, withdrawing and banking the surplus; null when nothing is due. */
 export function certStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null {
     const held = certsHeld(snap);
     const banked = certsBanked(snap);

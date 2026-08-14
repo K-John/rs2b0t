@@ -66,7 +66,7 @@ function jonny(): Npc | null {
     return Npcs.query().where(n => n.id === JONNY_NPC).nearest();
 }
 
-/** Jonny is level 2 and drops the report unconditionally; his respawn is 74 ticks, so a missed window just retries. */
+/** Jonny is level 2 and drops the report unconditionally; his respawn is 74 ticks, so a missed window retries. */
 export async function killJonny(log: (m: string) => void): Promise<boolean> {
     if (Inventory.countById(SOA_ID.REPORT) > 0) {
         return true;
@@ -152,7 +152,7 @@ export async function takePhoenixHalf(log: (m: string) => void): Promise<boolean
         await leaveHideout(log);
         return false;
     }
-    // Why: the half in the pack is the work; a failed climb out is retried by the next pass's early branch, and reporting failure here would throw away real progress.
+    // Why: the half in the pack is the work; a failed climb out is retried by the next pass's early branch, and reporting failure here would throw away a shield half the pack is holding.
     if (!(await leaveHideout(log))) {
         log('half taken, but the climb back to the surface did not land — retrying next pass');
     }

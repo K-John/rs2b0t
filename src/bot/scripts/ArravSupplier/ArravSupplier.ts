@@ -166,11 +166,9 @@ export default class ArravSupplier extends LoopingBot {
         return true;
     }
 
-    /**
-     * Use the intelligence report on Straven rather than talking to him.
-     * Why: `[opnpc1,straven]` sends a Black Arm member to the brush-off branch, and only
-     * `[opnpcu,straven]` reaches the join with `%blackarmgang` already set.
-     */
+    // Why: [opnpc1,straven] sends a Black Arm member to the brush-off branch; only [opnpcu,straven] reaches the join.
+
+    /** Use the intelligence report on Straven rather than talking to him. */
     private async joinPhoenixWithReport(log: (m: string) => void): Promise<boolean> {
         if (!(await enterHideout(log))) {
             return false;

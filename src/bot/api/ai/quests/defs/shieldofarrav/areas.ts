@@ -159,11 +159,9 @@ export function inPhoenixHq(t: WorldTile | null | undefined): boolean {
     return within(t, 3225, 3260, 9750, 9795, 0);
 }
 
-/**
- * The chest half of the hideout, past the gang door.
- * Why: the door is the pocket's only crossing, and a flood over the pack puts the chest
- * side at z 9761..9779 and the ladder side at z 9780 and up — so the split is exact.
- */
+// Why: a flood over the pack puts the chest side at z 9761..9779 and the ladder side at 9780 up, so the split is clean.
+
+/** The chest half of the hideout, past the gang door. */
 export function inPhoenixInner(t: WorldTile | null | undefined): boolean {
     return within(t, 3233, 3254, 9761, 9779, 0);
 }

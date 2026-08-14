@@ -1,9 +1,6 @@
-/**
- * What the supplier can see. The journal is blank for a dual-gang character —
- * `blackarmgang_journal.rs2` renders the Phoenix block only while `%blackarmgang < 3`
- * and the Black Arm block only while `%phoenixgang < 9` — so every field here comes
- * from an item count or a door's own refusal message.
- */
+// Why: the journal is blank for a dual-gang character, so every field here is an item count or a door's own refusal.
+
+/** What the supplier can see. */
 export interface SupplierState {
     inBlackArm: boolean;
     inPhoenix: boolean;
@@ -27,11 +24,9 @@ export type SupplierPhase =
     | 'mint'
     | 'done';
 
-/**
- * The supplier's one decision.
- * Why: it must never redeem — King Roald sets `%phoenixgang` to complete, which
- * seals the chest and stops the curator, ending the faucet permanently.
- */
+// Why: it must never redeem — the king sets %phoenixgang complete, which seals the chest and stops the curator for good.
+
+/** The supplier's one decision. */
 export function supplierPhase(s: SupplierState): SupplierPhase {
     if (s.inBlackArm && s.inPhoenix) {
         if (s.certsBanked >= s.certTarget) {
