@@ -109,6 +109,11 @@ describe('nature spirit decide', () => {
         expect(named(step({ stage: NS_STAGE.CASTED_SPELL, invIds: [[NS_ID.SPELL, 1]] }))).toBe('bloom the swamp for a fungus');
     });
 
+    test('a held fungus outranks a journal that has not caught up', () => {
+        expect(named(step({ stage: NS_STAGE.BLESSED, invIds: [[NS_ID.FUNGI, 1], [NS_ID.SPELL_USED, 1]] })))
+            .toBe('feed the ritual stones');
+    });
+
     test('resuming at the fungus stage with an empty pack blooms again', () => {
         expect(named(step({ stage: NS_STAGE.PICKED_FUNGI, invIds: [[NS_ID.SPELL, 1]] }))).toBe('bloom the swamp for a fungus');
     });

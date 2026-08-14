@@ -94,10 +94,9 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return outside(snap, custom('offer to help', askToHelp));
         case NS_STAGE.RECEIVED_SPELL:
             return outside(snap, { kind: 'talk', stop: DREZEL });
-        // Why: Filliman re-issues the scroll on request and checks the pack for a fresh one alone, so a spent or lost scroll is a conversation rather than a park.
+        // Why: a held fungus is unambiguous evidence the pick landed, and the journal read trails it by a tick — branching on the page alone sent the bot back to Filliman for a scroll it no longer needed.
         case NS_STAGE.BLESSED:
         case NS_STAGE.CASTED_SPELL:
-            return outside(snap, fungus(snap));
         case NS_STAGE.PICKED_FUNGI:
         case NS_STAGE.SPOKEN_FILLIMAN2:
             return outside(snap, ritual(snap));
