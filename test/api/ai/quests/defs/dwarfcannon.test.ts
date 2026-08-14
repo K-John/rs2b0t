@@ -3,6 +3,7 @@ import type { WorldTile } from '#/bot/adapter/ClientAdapter.js';
 import { MC_OBJ, RAILINGS } from '#/bot/api/ai/quests/defs/dwarfcannon/areas.js';
 import { decide, dwarfcannon } from '#/bot/api/ai/quests/defs/dwarfcannon/index.js';
 import { MC_FLAG, MC_STAGE } from '#/bot/api/ai/quests/defs/dwarfcannon/journal.js';
+import { inCave } from '#/bot/api/ai/quests/defs/dwarfcannon/repair.js';
 import { defById } from '#/bot/api/ai/quests/defs/index.js';
 import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
@@ -125,6 +126,33 @@ describe('watchtower', () => {
     test('the remains outrank a journal that has not caught up', () => {
         const step = decide(snap({ stage: MC_STAGE.GUARD_TOWER, invIds: [MC_OBJ.REMAINS.id] }));
         expect(step.kind).toBe('talk');
+    });
+});
+
+describe('goblin cave', () => {
+    test('stage 3 enters the cave', () => {
+        const step = decide(snap({ stage: MC_STAGE.GOBLIN_CAVE }));
+        expect(step.kind).toBe('custom');
+    });
+
+    test('stage 4 searches the crate', () => {
+        const step = decide(snap({ stage: MC_STAGE.FIND_CHILD, tile: { x: 2620, z: 9797, level: 0 } }));
+        expect(step.kind).toBe('custom');
+        expect(step.kind === 'custom' && step.name).toContain('crate');
+    });
+
+    test('the rescued child is walked out of the cave before the Commander', () => {
+        const step = decide(
+            snap({ stage: MC_STAGE.CHILD_RESCUED, tile: { x: 2571, z: 9850, level: 0 } })
+        );
+        expect(step.kind).toBe('custom');
+        expect(step.kind === 'custom' && step.name).toContain('mud pile');
+    });
+
+    test('the cave is recognised by the underground z band', () => {
+        expect(inCave({ z: 9797 })).toBe(true);
+        expect(inCave({ z: 3463 })).toBe(false);
+        expect(inCave(null)).toBe(false);
     });
 });
 

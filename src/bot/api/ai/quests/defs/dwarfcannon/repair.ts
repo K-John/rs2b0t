@@ -6,8 +6,9 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
+import { isUnderground, talkThrough, walkWithHops } from '../../exec/primitives.js';
 import { driveUntil, settleScene } from '../../exec/prompts.js';
-import { MC_OBJ, MC_TILE, RAILINGS } from './areas.js';
+import { CAVE_HOPS, DWARF_CHILD, MC_LOC, MC_OBJ, MC_TILE, RAILINGS } from './areas.js';
 
 const WALK = { attempts: 3, timeoutMs: 180_000 } as const;
 
@@ -107,4 +108,40 @@ export async function fetchRemains(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     return Execution.delayUntil(() => Inventory.contains(MC_OBJ.REMAINS.name), 8000);
+}
+
+export function inCave(tile: { z: number } | null | undefined): boolean {
+    return tile ? isUnderground(tile) : false;
+}
+
+// Why: no transports edge carries either telejump, so findPath reports the cave unreachable from outside and the mainland unreachable from inside — the module's own hops are the only crossing.
+
+/**
+ * Enter the goblin cave, free Gilob's son from the crate, and leave by the mud pile.
+ * @see Server content mcannon_crate.rs2, mcannon_cave.rs2
+ */
+export async function rescueChild(rescued: boolean, log: (m: string) => void): Promise<boolean> {
+    if (rescued) {
+        return walkWithHops(MC_TILE.COMMANDER, 4, [...CAVE_HOPS], log);
+    }
+    if (!inCave(Game.tile()) && !(await walkWithHops(MC_TILE.CAVE_ARRIVE, 6, [...CAVE_HOPS], log))) {
+        return false;
+    }
+    if (!(await walkTo(MC_TILE.CRATE, 2, log))) {
+        return false;
+    }
+    await settleScene();
+    const crate = Locs.query().where(l => l.id === MC_LOC.CRATE).nearest();
+    if (!crate) {
+        log(`no crate loc ${MC_LOC.CRATE} at (${MC_TILE.CRATE.x},${MC_TILE.CRATE.z})`);
+        return false;
+    }
+    if (!(await crate.interact('Search'))) {
+        return false;
+    }
+    // The crate spawns the youngster and opens his dialogue in one script, and the
+    // stage is set by its last line — leaving it undrained loses the rescue.
+    await Execution.delayTicks(2);
+    await talkThrough(DWARF_CHILD.npc, DWARF_CHILD.prefer, log);
+    return true;
 }

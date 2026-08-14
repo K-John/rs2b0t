@@ -3,7 +3,7 @@ import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
 import { CAVE_HOPS, COMMANDER, FALADOR_WEST_BANK, MC_FOOD_TARGET, MC_OBJ, NULODION } from './areas.js';
 import { MC_FLAG, MC_STAGE, readDwarfCannonProgress } from './journal.js';
-import { fetchRemains, fixRailings } from './repair.js';
+import { fetchRemains, fixRailings, inCave, rescueChild } from './repair.js';
 
 export { MCANNON_QUEST, MC_FLAG, MC_STAGE, parseDwarfCannonJournal, readDwarfCannonProgress } from './journal.js';
 export { CANNON_PARTS, MC_OBJ, MC_TILE, RAILINGS } from './areas.js';
@@ -44,10 +44,12 @@ export function decide(snap: QuestSnapshot): QuestStep {
             : custom('take the dwarf remains from the watchtower', fetchRemains);
     }
     if (stage === MC_STAGE.GOBLIN_CAVE || stage === MC_STAGE.FIND_CHILD) {
-        return todo('the goblin cave');
+        return custom("search the goblin cave crate for Gilob's son", log => rescueChild(false, log));
     }
     if (stage === MC_STAGE.CHILD_RESCUED) {
-        return { kind: 'talk', stop: COMMANDER };
+        return inCave(snap.tile)
+            ? custom('leave the goblin cave by the mud pile', log => rescueChild(true, log))
+            : { kind: 'talk', stop: COMMANDER };
     }
     if (stage === MC_STAGE.FIX_CANNON) {
         return todo('the cannon repair loop');
