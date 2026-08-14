@@ -194,6 +194,10 @@ export async function talkUntil(
         }
         await Execution.delayTicks(1);
     }
+    // Why: the closing mesbox stays up after the goal lands, and a main modal blocks the next leg's player interaction.
+    if (reader.modals().main !== -1) {
+        await Modals.close();
+    }
     if (!expect()) {
         log(`${stop.npc} conversation ended without the expected result`);
     }

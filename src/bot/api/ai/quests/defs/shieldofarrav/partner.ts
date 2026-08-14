@@ -1,6 +1,7 @@
 import { reader } from '../../../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
+import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Players } from '../../../../players/Players.js';
 import { Trade } from '../../../../trade/Trade.js';
 import { DEFAULT_TRADE_RANGE, namesMatch } from '../../../../trade/PartnerTrade.js';
@@ -116,6 +117,10 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
         return false;
     }
 
+    // Why: a main modal left over from the curator or the king swallows the Trade-with click, and the window then never opens for either side.
+    if (reader.modals().main !== -1) {
+        await Modals.close();
+    }
     if (!(await Traversal.walkResilient(SOA_TILE.RENDEZVOUS, { radius: 2, attempts: 3, timeoutMs: MEET_MS, log }))) {
         return false;
     }
