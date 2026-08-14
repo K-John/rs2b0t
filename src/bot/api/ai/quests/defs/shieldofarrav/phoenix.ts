@@ -4,7 +4,6 @@ import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
-import { Locs } from '../../../../locs/Locs.js';
 import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { Traversal } from '../../../../walking/Traversal.js';
@@ -12,9 +11,9 @@ import { Modals } from '../../../../ui/widgets/Modals.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { promptLoc } from '../../exec/prompts.js';
 import { BARAEK, RELDO, SOA_ID, SOA_LOC, SOA_TILE, STRAVEN_HANDIN, STRAVEN_JOIN } from './areas.js';
-import { enterPhoenixInner, leaveHideout, talkInHideout } from './hideout.js';
+import { enterPhoenixInner, leaveHideout, openContainer, talkInHideout } from './hideout.js';
 import { SOA_STAGE } from './journal.js';
-import { heldId, liveItem } from './state.js';
+import { heldId, liveItem, modalSaid } from './state.js';
 
 /** Baraek wants 20; the float covers a death and a second attempt. */
 const BRIBE_GP = 20;
@@ -24,7 +23,7 @@ const JONNY_NPC = 645;
 const KILL_MS = 60_000;
 const WALK_MS = 120_000;
 
-const FOUND_HALF = /you find half a shield/i;
+// Why: both land as a main modal from `~objbox` / `~mesbox`, never as a chat line.
 const CHEST_EMPTY = /the chest is empty/i;
 
 /** The bookcase answers Check with a player line and a mesbox before the book lands, which no item-count wait survives on its own. */
@@ -120,52 +119,44 @@ export async function handInReport(log: (m: string) => void): Promise<boolean> {
     return Inventory.countById(SOA_ID.REPORT) === 0;
 }
 
-const chestOpen = () => Locs.query().within(6).where(l => l.id === SOA_LOC.CHEST_OPEN).nearest();
-
 export async function takePhoenixHalf(log: (m: string) => void): Promise<boolean> {
     if (Inventory.countById(SOA_ID.SHIELD_PHOENIX) > 0) {
-        return leaveHideout(log);
+        await leaveHideout(log);
+        return true;
     }
     if (!(await enterPhoenixInner(log))) {
+        log('could not get through the gang door to the chest');
         return false;
     }
     // Why: the chest renders as two locs and only the open one carries Search.
-    if (!chestOpen() && !(await promptLoc({
-        name: 'Chest',
-        op: 'Open',
-        near: SOA_TILE.CHEST_STAND,
-        id: SOA_LOC.CHEST_SHUT,
-        within: 6,
-        expect: () => chestOpen() !== null
-    }, log))) {
+    if (!(await openContainer('Chest', SOA_LOC.CHEST_SHUT, SOA_LOC.CHEST_OPEN, SOA_TILE.CHEST_STAND, log))) {
+        await leaveHideout(log);
         return false;
     }
 
-    const mark = GameMessages.mark();
     await promptLoc({
         name: 'Chest',
         op: 'Search',
         near: SOA_TILE.CHEST_STAND,
         id: SOA_LOC.CHEST_OPEN,
         within: 6,
-        expect: () => Inventory.countById(SOA_ID.SHIELD_PHOENIX) > 0 || GameMessages.sawSince(mark, CHEST_EMPTY)
+        expect: () => Inventory.countById(SOA_ID.SHIELD_PHOENIX) > 0 || modalSaid(CHEST_EMPTY)
     }, log);
+    const empty = modalSaid(CHEST_EMPTY);
     await Modals.close();
 
     if (Inventory.countById(SOA_ID.SHIELD_PHOENIX) === 0) {
-        if (GameMessages.sawSince(mark, CHEST_EMPTY)) {
-            log('the chest is empty — a half is already held or banked, or the quest is complete');
-        } else {
-            log(`chest search landed nothing: ${GameMessages.since(mark).map(m => m.text).join(' · ')}`);
-        }
+        log(empty
+            ? 'the chest is empty — a half is already held or banked, or the quest is complete'
+            : 'the chest search landed nothing');
         await leaveHideout(log);
         return false;
     }
-    if (!GameMessages.sawSince(mark, FOUND_HALF)) {
-        log('half is held but the find line never printed');
+    // Why: the half in the pack is the work; a failed climb out is retried by the next pass's early branch, and reporting failure here would throw away real progress.
+    if (!(await leaveHideout(log))) {
+        log('half taken, but the climb back to the surface did not land — retrying next pass');
     }
-    // Why: the leg has to end on the surface, or the next decide() is stranded in a pocket nothing routes into.
-    return leaveHideout(log);
+    return true;
 }
 
 export function phoenixStep(snap: QuestSnapshot): QuestStep {

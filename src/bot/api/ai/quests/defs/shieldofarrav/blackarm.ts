@@ -4,7 +4,6 @@ import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
-import { Locs } from '../../../../locs/Locs.js';
 import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { Traversal } from '../../../../walking/Traversal.js';
@@ -13,16 +12,16 @@ import type Tile from '../../../../../geometry/Tile.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { promptLoc, settleScene, useOnLoc } from '../../exec/prompts.js';
 import { KATRINE_HANDIN, KATRINE_JOIN, SOA_ID, SOA_LOC, SOA_TILE, TRAMP, inWeaponStore } from './areas.js';
-import { climb, enterBlackArmUpper, leaveBlackArmUpper, leaveWeaponStore } from './hideout.js';
+import { climb, enterBlackArmUpper, leaveBlackArmUpper, leaveWeaponStore, openContainer } from './hideout.js';
 import { SOA_STAGE } from './journal.js';
-import { heldId } from './state.js';
+import { heldId, modalSaid } from './state.js';
 
 const WEAPONSMASTER_NPC = 643;
 const KILL_MS = 90_000;
 /** `opobj3,phoenix_crossbow` refuses inside ten tiles of the Weaponsmaster, gang member or not. */
 const MASTER_BLOCK = 10;
 
-const FOUND_HALF = /you find half a shield/i;
+// Why: the cupboard's lines land as a main modal from `~objbox` / `~mesbox`, never as a chat line; the door's "You unlock" is a plain mes and does reach the chat.
 const CUPBOARD_BARE = /the cupboard is bare/i;
 const UNLOCKED = /you unlock the door/i;
 
@@ -133,51 +132,44 @@ export async function raidWeaponStore(log: (m: string) => void): Promise<boolean
     return leaveWeaponStore(log);
 }
 
-const cupboardOpen = () => Locs.query().within(6).where(l => l.id === SOA_LOC.CUPBOARD_OPEN).nearest();
-
 export async function takeBlackArmHalf(log: (m: string) => void): Promise<boolean> {
     if (Inventory.countById(SOA_ID.SHIELD_BLACKARM) > 0) {
-        return leaveBlackArmUpper(log);
+        await leaveBlackArmUpper(log);
+        return true;
     }
     if (!(await enterBlackArmUpper(log))) {
+        log('could not get through the gang door and up the stairs to the cupboard');
         return false;
     }
     // Why: the cupboard renders as two locs, and Search is op2 of the open one — op1 is Shut.
-    if (!cupboardOpen() && !(await promptLoc({
-        name: 'Cupboard',
-        op: 'Open',
-        near: SOA_TILE.CUPBOARD_STAND,
-        id: SOA_LOC.CUPBOARD_SHUT,
-        within: 6,
-        expect: () => cupboardOpen() !== null
-    }, log))) {
+    if (!(await openContainer('Cupboard', SOA_LOC.CUPBOARD_SHUT, SOA_LOC.CUPBOARD_OPEN, SOA_TILE.CUPBOARD_STAND, log))) {
+        await leaveBlackArmUpper(log);
         return false;
     }
 
-    const mark = GameMessages.mark();
     await promptLoc({
         name: 'Cupboard',
         op: 'Search',
         near: SOA_TILE.CUPBOARD_STAND,
         id: SOA_LOC.CUPBOARD_OPEN,
         within: 6,
-        expect: () => Inventory.countById(SOA_ID.SHIELD_BLACKARM) > 0 || GameMessages.sawSince(mark, CUPBOARD_BARE)
+        expect: () => Inventory.countById(SOA_ID.SHIELD_BLACKARM) > 0 || modalSaid(CUPBOARD_BARE)
     }, log);
+    const bare = modalSaid(CUPBOARD_BARE);
     await Modals.close();
 
     if (Inventory.countById(SOA_ID.SHIELD_BLACKARM) === 0) {
-        if (GameMessages.sawSince(mark, CUPBOARD_BARE)) {
-            log('the cupboard is bare — a half is already held or banked, or the quest is complete');
-        } else {
-            log(`cupboard search landed nothing: ${GameMessages.since(mark).map(m => m.text).join(' · ')}`);
-        }
+        log(bare
+            ? 'the cupboard is bare — a half is already held or banked, or the quest is complete'
+            : 'the cupboard search landed nothing');
         await leaveBlackArmUpper(log);
         return false;
     }
-    if (!GameMessages.sawSince(mark, FOUND_HALF)) {
-        log('half is held but the find line never printed');
+    // Why: the half in the pack is the work; a failed climb down is retried by the next pass's early branch.
+    if (!(await leaveBlackArmUpper(log))) {
+        log('half taken, but the climb down did not land — retrying next pass');
     }
-    return leaveBlackArmUpper(log);
+    return true;
 }
 
 export function blackarmStep(snap: QuestSnapshot): QuestStep {

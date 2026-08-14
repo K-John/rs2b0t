@@ -29,6 +29,8 @@ interface Args {
     phoenix: number;
     blackarm: number;
     until: number;
+    /** Assert the gang's shield half lands in the pack, rather than a varp reaching `until`. */
+    wantHalf: boolean;
     minutes: number;
     tickMs: number;
     stats: number;
@@ -43,6 +45,7 @@ function parse(argv: string[]): Args {
         phoenix: 0,
         blackarm: 0,
         until: 9,
+        wantHalf: false,
         minutes: 45,
         tickMs: 300,
         stats: 99,
@@ -51,6 +54,7 @@ function parse(argv: string[]): Args {
     for (let i = 0; i < argv.length; i++) {
         const flag = argv[i];
         if (flag === '--no-deploy') { out.deploy = false; continue; }
+        if (flag === '--want-half') { out.wantHalf = true; continue; }
         const value = argv[++i];
         if (value === undefined) { break; }
         if (flag === '--base') { out.base = value; }
@@ -101,32 +105,39 @@ async function setStats(page: Page, level: number): Promise<void> {
     await clearChatDialogs(page, 'straggler dialog(s)');
 }
 
+/** Object ids: Broken shield names both halves, so the pack is read by id. */
+const SHIELD_PHOENIX = 763;
+const SHIELD_BLACKARM = 765;
+
 interface Snapshot {
     pos: { x: number; z: number; level: number } | null;
+    halves: number;
     status: string;
     qp: number;
     runner: string;
     logs: { time: number; level: string; msg: string }[];
 }
 
-async function snapshot(page: Page): Promise<Snapshot> {
-    return page.evaluate(quest => {
+async function snapshot(page: Page, halfId: number): Promise<Snapshot> {
+    return page.evaluate(([quest, wanted]) => {
         const g = globalThis as never as {
             __rs2b0t: {
                 reader: { worldTile(): { x: number; z: number; level: number } | null };
                 Quests: { status(n: string): string; points(): number };
+                Inventory: { countById(id: number): number };
             };
             rs2b0t: { runner: { state: string; ctx?: { log?: { time: number; level: string; msg: string }[] } } };
         };
         const ring = g.rs2b0t.runner.ctx?.log ?? [];
         return {
             pos: g.__rs2b0t.reader.worldTile(),
+            halves: g.__rs2b0t.Inventory.countById(wanted as number),
             status: g.__rs2b0t.Quests.status(quest),
             qp: g.__rs2b0t.Quests.points(),
             runner: g.rs2b0t.runner.state,
             logs: ring.slice(-80).map(l => ({ time: l.time, level: l.level, msg: l.msg }))
         };
-    }, QUEST);
+    }, [QUEST, halfId] as const);
 }
 
 /** A live run loads the deployed bundles, never the working tree.
@@ -216,14 +227,18 @@ try {
     await startScript(page, 'AIOQuester');
 
     const varp = args.gang === 'phoenix' ? 'phoenixgang' : 'blackarmgang';
-    console.log(`started AIOQuester as ${args.gang} — watching for ${varp} >= ${args.until}`);
+    const halfId = args.gang === 'phoenix' ? SHIELD_PHOENIX : SHIELD_BLACKARM;
+    console.log(
+        `started AIOQuester as ${args.gang} — watching for `
+        + (args.wantHalf ? `a Broken shield (${halfId}) in the pack` : `${varp} >= ${args.until}`)
+    );
 
     const deadline = Date.now() + args.minutes * 60_000;
     let lastLogTime = 0;
     let reached = 0;
     let sawOurBuild = false;
     while (Date.now() < deadline) {
-        const last = await snapshot(page);
+        const last = await snapshot(page, halfId);
         const phoenix = (await getServerVarQuiet(page, 'phoenixgang')) ?? -1;
         const blackarm = (await getServerVarQuiet(page, 'blackarmgang')) ?? -1;
         const stage = args.gang === 'phoenix' ? phoenix : blackarm;
@@ -231,7 +246,7 @@ try {
         const t = Math.round((Date.now() - t0) / 1000);
         console.log(
             `  t=${t}s pos=${last.pos ? `${last.pos.x},${last.pos.z},${last.pos.level}` : '?'}`
-            + ` phoenixgang=${phoenix} blackarmgang=${blackarm}`
+            + ` phoenixgang=${phoenix} blackarmgang=${blackarm} halves=${last.halves}`
             + ` journal=${last.status} qp=${last.qp} runner=${last.runner}`
         );
         for (const l of last.logs) {
@@ -246,8 +261,12 @@ try {
         if (t > 90 && !sawOurBuild) {
             fail('the queue never named Shield of Arrav in 90s — the deployed bundle is not this branch');
         }
-        if (stage >= args.until) {
-            console.log(`PASS (${varp}=${stage}, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);
+        const done = args.wantHalf ? last.halves > 0 : stage >= args.until;
+        if (done) {
+            console.log(
+                `PASS (${varp}=${stage}, halves=${last.halves}, journal=${last.status},`
+                + ` QP=${last.qp}, ${Math.round(t / 60)}min)`
+            );
             process.exit(0);
         }
         if (last.runner === 'stopped') {
@@ -255,7 +274,11 @@ try {
         }
         await page.waitForTimeout(10_000);
     }
-    fail(`${varp} reached ${reached}, wanted ${args.until}, within ${args.minutes}min`);
+    fail(
+        args.wantHalf
+            ? `no Broken shield (${halfId}) in the pack within ${args.minutes}min (${varp}=${reached})`
+            : `${varp} reached ${reached}, wanted ${args.until}, within ${args.minutes}min`
+    );
 } finally {
     await browser.close();
 }

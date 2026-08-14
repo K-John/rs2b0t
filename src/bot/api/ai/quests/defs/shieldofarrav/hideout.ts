@@ -7,7 +7,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import type { WorldTile } from '../../../../../adapter/ClientAdapter.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { SOA_LOC, SOA_TILE, inBlackArmInner, inBlackArmUpper, inPhoenixHq, inPhoenixInner, inWeaponStore } from './areas.js';
-import { driveChoice, settleScene } from '../../exec/prompts.js';
+import { driveChoice, promptLoc, settleScene } from '../../exec/prompts.js';
 import type { NpcStop } from '../../exec/primitives.js';
 
 const CLIMB_MS = 12_000;
@@ -37,6 +37,7 @@ async function crossDoor(
     }
     const mark = GameMessages.mark();
     if (!(await door.interact('Open'))) {
+        log(`door ${id} refused the Open click`);
         return false;
     }
     const crossed = await Execution.delayUntil(() => isFar(Game.tile()), CLIMB_MS);
@@ -48,6 +49,41 @@ async function crossDoor(
     }
     await settleScene();
     return true;
+}
+
+/**
+ * Open a shut container and wait for its open twin to appear in the scene.
+ * Why: the chest and the cupboard are each two locs, and the scene keeps the shut id for
+ * a tick or so after the Open lands — checking straight away reads the old loc and calls
+ * a successful open a failure.
+ */
+export async function openContainer(
+    name: string,
+    shutId: number,
+    openId: number,
+    stand: Tile,
+    log: (m: string) => void
+): Promise<boolean> {
+    const open = () => Locs.query().within(6).where(l => l.id === openId).nearest();
+    for (let attempt = 0; attempt < 3; attempt++) {
+        if (open()) {
+            return true;
+        }
+        await promptLoc({
+            name,
+            op: 'Open',
+            near: stand,
+            id: shutId,
+            within: 6,
+            expect: () => open() !== null
+        }, log);
+        await settleScene();
+    }
+    if (open()) {
+        return true;
+    }
+    log(`the shut ${name.toLowerCase()} (${shutId}) never became ${openId}`);
+    return false;
 }
 
 /** Climb a loc that changes level, proving the arrival rather than the click. */
@@ -71,43 +107,46 @@ export async function climb(
         return false;
     }
     if (!(await loc.interact(op))) {
+        log(`loc ${locId} refused '${op}'`);
         return false;
     }
-    const landed = await Execution.delayUntil(() => {
+    await Execution.delayUntil(() => {
         const t = Game.tile();
         return t !== null && t.level === arrive.level;
     }, CLIMB_MS);
-    if (!landed) {
-        return false;
-    }
     await settleScene();
-    return true;
+    if (Game.tile()?.level === arrive.level) {
+        return true;
+    }
+    log(`'${op}' on loc ${locId} never reached level ${arrive.level}`);
+    return false;
 }
 
 export async function enterHideout(log: (m: string) => void): Promise<boolean> {
     if (inPhoenixHq(Game.tile())) {
         return true;
     }
-    // Why: radius 1, not the shared hop's 2 — the walker calls a stand two tiles off "arrived" without moving, and the climb then never lands.
-    if (!(await Traversal.walkResilient(SOA_TILE.CELLAR_LADDER, { radius: 1, attempts: 3, timeoutMs: WALK_MS, log }))) {
-        return false;
+    // Why: Reach owns the approach — it walks, opens the building's door and retries on one budget, where a pre-walk plus its own walk spends two and wedges for minutes.
+    // Why: two attempts, because the first from outside the building routinely lands on the wrong side of that door and a retry here is far cheaper than a whole quest-engine round trip.
+    let status = 'retry';
+    for (let attempt = 0; attempt < 2 && !inPhoenixHq(Game.tile()); attempt++) {
+        status = await Reach.locOp({
+            name: 'Ladder',
+            op: 'Climb-down',
+            near: SOA_TILE.CELLAR_LADDER,
+            id: SOA_LOC.CELLAR_LADDER,
+            expect: () => inPhoenixHq(Game.tile()),
+            expectMs: 15_000,
+            log
+        });
+        await settleScene();
     }
-    // Why: by id, because the weapon store's own Ladder shares the display name inside the same scene.
-    const status = await Reach.locOp({
-        name: 'Ladder',
-        op: 'Climb-down',
-        near: SOA_TILE.CELLAR_LADDER,
-        id: SOA_LOC.CELLAR_LADDER,
-        expect: () => inPhoenixHq(Game.tile()),
-        expectMs: 15_000,
-        log
-    });
-    if (status !== 'done') {
-        log(`descent into the hideout returned '${status}'`);
-        return false;
+    // Why: the status is not the oracle — Reach reports 'retry' on a climb that landed, so where the character is standing settles it.
+    if (inPhoenixHq(Game.tile())) {
+        return true;
     }
-    await settleScene();
-    return inPhoenixHq(Game.tile());
+    log(`descent into the hideout returned '${status}' and left the character on the surface`);
+    return false;
 }
 
 /**
@@ -159,13 +198,15 @@ export async function leaveHideout(log: (m: string) => void): Promise<boolean> {
         near: SOA_TILE.HQ_LADDER,
         id: SOA_LOC.HQ_LADDER,
         expect: () => !inPhoenixHq(Game.tile()),
+        expectMs: 15_000,
         log
     });
-    if (status !== 'done') {
-        return false;
-    }
     await settleScene();
-    return !inPhoenixHq(Game.tile());
+    if (!inPhoenixHq(Game.tile())) {
+        return true;
+    }
+    log(`climb out of the hideout returned '${status}' and left the character underground`);
+    return false;
 }
 
 /** Through the gang door into the half of the hideout the chest is in. */
