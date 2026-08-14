@@ -100,6 +100,26 @@ export async function wearKhazard(log: (m: string) => void): Promise<boolean> {
     return ok;
 }
 
+/** Refusals are silent — `Equipment.equip` returns a bare false — so a re-picked item burns the run. */
+export const unwearable = new Set<string>();
+
+// Why: a step per piece pays a task hand-off each, and the engine re-reads the journal between them.
+
+/** Wear a melee kit, shedding whatever the account is not allowed to hold. */
+export async function wearKit(names: readonly string[], log: (m: string) => void): Promise<boolean> {
+    for (const name of names) {
+        if (Equipment.contains(name)) {
+            continue;
+        }
+        if (!(await Equipment.equip(name))) {
+            log(`cannot wear ${name} — level or quest requirement; leaving it behind`);
+            unwearable.add(name.toLowerCase());
+        }
+        await Execution.delayTicks(1);
+    }
+    return true;
+}
+
 /** Put the account's own head and body back on before a fight. */
 export async function wearCombat(log: (m: string) => void): Promise<boolean> {
     const wanted = combatSwap(packIds());

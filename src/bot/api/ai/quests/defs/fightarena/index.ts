@@ -17,8 +17,10 @@ import {
     talkAndLand,
     talkById,
     unlockJeremy,
+    unwearable,
     wearCombat,
-    wearKhazard
+    wearKhazard,
+    wearKit
 } from './legs.js';
 
 const LADY_SERVIL: NpcStop = {
@@ -81,9 +83,90 @@ function combatKitCarried(snap: QuestSnapshot): boolean {
     return combatSwap([...(snap.invIds?.keys() ?? [])]).length > 0;
 }
 
+// Why: the queue keeps its gear banked between quests, so a bot that walks in wearing nothing punches a level-137 dog for 116 hitpoints.
+// Why: Bouncer's damagetype is stab and its defences are flat, so a scimitar is as good as anything and faster than a two-hander.
+const TIERS = ['rune', 'adamant', 'mithril', 'black', 'steel', 'iron', 'bronze'] as const;
+
+// Why: chainbody outranks platebody because rune plate wants Dragon Slayer complete and refuses in silence.
+const KIT_SLOTS: readonly { readonly kinds: readonly string[] }[] = [
+    { kinds: ['scimitar', 'longsword', 'battleaxe', 'mace', 'sword'] },
+    { kinds: ['chainbody', 'platebody'] },
+    { kinds: ['platelegs', 'plateskirt'] },
+    { kinds: ['full helm', 'med helm'] },
+    { kinds: ['kiteshield', 'sq shield'] }
+];
+
+/** Every word `KIT_SLOTS` can pick, so the spillover deposit never banks the kit. */
+export const KIT_KEEP: readonly string[] = KIT_SLOTS.flatMap(s => s.kinds);
+
+function wearingKind(snap: QuestSnapshot, kinds: readonly string[]): boolean {
+    for (const name of snap.worn) {
+        if (kinds.some(kind => name.endsWith(kind))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function bestForSlot(snap: QuestSnapshot, kinds: readonly string[]): string | null {
+    for (const tier of TIERS) {
+        for (const kind of kinds) {
+            const name = `${tier} ${kind}`;
+            if (unwearable.has(name)) {
+                continue;
+            }
+            if ((snap.bank?.get(name) ?? 0) > 0 || (snap.inv.get(name) ?? 0) > 0) {
+                return name[0]!.toUpperCase() + name.slice(1);
+            }
+        }
+    }
+    return null;
+}
+
+/** The best melee kit the account owns for the slots it has not filled. */
+export function kitWanted(snap: QuestSnapshot): string[] {
+    const out: string[] = [];
+    for (const { kinds } of KIT_SLOTS) {
+        if (wearingKind(snap, kinds)) {
+            continue;
+        }
+        // Why: a two-hander would take the shield slot with it, and none of the weapon kinds here is one.
+        const pick = bestForSlot(snap, kinds);
+        if (pick) {
+            out.push(pick);
+        }
+    }
+    return out;
+}
+
+// Why: `snap.bank` is empty until something opens a booth, so "is the scimitar banked?" answers no on the first decide tick.
+
+/** Arm the account from the bank, or null when it is already dressed for the arena. */
+function kitStep(snap: QuestSnapshot): QuestStep | null {
+    const wanted = kitWanted(snap);
+    if (wanted.length === 0) {
+        return snap.bankKnown ? null : { kind: 'scanBank', bank: FA_TILE.YANILLE_BANK };
+    }
+    const carried = wanted.filter(name => (snap.inv.get(name.toLowerCase()) ?? 0) > 0);
+    if (carried.length > 0) {
+        return custom(`wear ${carried.join(', ')}`, log => wearKit(carried, log));
+    }
+    if (!snap.bankKnown) {
+        return { kind: 'scanBank', bank: FA_TILE.YANILLE_BANK };
+    }
+    return { kind: 'withdraw', items: wanted.map(name => ({ name, qty: 1 })), bank: FA_TILE.YANILLE_BANK };
+}
+
 function outsideStep(snap: QuestSnapshot, stage: number): QuestStep {
     if (stage <= FA_STAGE.NOT_STARTED || stage >= FA_STAGE.FREED_SERVILS) {
         return { kind: 'talk', stop: LADY_SERVIL };
+    }
+    // Why: the disguise fills the head and body slots without being a kit item, so a kit check under it wants a second body on every pass.
+    if (!disguised(snap)) {
+        const kit = kitStep(snap);
+        if (kit) {
+            return kit;
+        }
     }
     if (stage >= FA_STAGE.SENT_JAIL) {
         return KNOCK_FOR_GUARD;
@@ -187,7 +270,7 @@ export const fightarena: QuestModule = {
     bank: FA_TILE.YANILLE_BANK,
     food: FOOD,
     grind: ['Khazard Ogre', 'Khazard Scorpion', 'Bouncer'],
-    tools: ['khazard helmet', 'khazard armour', 'khazard cell keys', 'khali brew', 'coins'],
+    tools: ['khazard helmet', 'khazard armour', 'khazard cell keys', 'khali brew', 'coins', ...KIT_KEEP],
     readStage: readFightArenaStage,
     sustain: { foods: ['Lobster', 'Swordfish', 'Shark', 'Tuna'], eatBelowHp: 0.6 },
     warnReadiness: () => 'Fight Arena ends on Bouncer — level 137, 116 hitpoints, 120 attack and defence',

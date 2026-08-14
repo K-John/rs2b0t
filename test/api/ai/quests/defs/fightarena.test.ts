@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import { decide, fightarena } from '#/bot/api/ai/quests/defs/fightarena/index.js';
+import { KIT_KEEP, decide, fightarena } from '#/bot/api/ai/quests/defs/fightarena/index.js';
 import { FA_OBJ, FA_TILE } from '#/bot/api/ai/quests/defs/fightarena/areas.js';
 import { FA_STAGE } from '#/bot/api/ai/quests/defs/fightarena/journal.js';
 import { QUEST_DEFS } from '#/bot/api/ai/quests/defs/index.js';
@@ -9,9 +9,22 @@ import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.
 interface SnapOpts {
     journal?: QuestSnapshot['journal'];
     stage?: number;
+    inv?: string[];
     invIds?: number[];
+    worn?: string[];
     wornIds?: number[];
+    bank?: string[];
+    bankKnown?: boolean;
     tile?: { x: number; z: number; level: number } | null;
+}
+
+function counts(names: string[]): Map<string, number> {
+    const out = new Map<string, number>();
+    for (const name of names) {
+        const key = name.toLowerCase();
+        out.set(key, (out.get(key) ?? 0) + 1);
+    }
+    return out;
 }
 
 function snap(o: SnapOpts = {}): QuestSnapshot {
@@ -21,19 +34,21 @@ function snap(o: SnapOpts = {}): QuestSnapshot {
     }
     return {
         journal: o.journal ?? 'inProgress',
-        inv: new Map(),
+        inv: counts(o.inv ?? []),
         invIds,
-        worn: new Set(),
+        worn: new Set((o.worn ?? []).map(n => n.toLowerCase())),
         wornIds: new Set(o.wornIds ?? []),
         noProgress: 0,
         bankCoins: 0,
         stage: o.stage,
-        bank: new Map(),
-        bankKnown: true,
+        bank: counts(o.bank ?? []),
+        bankKnown: o.bankKnown ?? true,
         tile: (o.tile ?? null) as QuestSnapshot['tile'],
         freeSlots: 20
     };
 }
+
+const RUNE_KIT = ['Rune scimitar', 'Rune chainbody', 'Rune platelegs', 'Rune full helm', 'Rune kiteshield'];
 
 const name = (step: QuestStep): string => (step.kind === 'custom' ? `custom:${step.name}` : step.kind);
 
@@ -198,6 +213,73 @@ describe('Fight Arena decide', () => {
 
     test('inside Jeremy\'s cell nothing routes out, so it waits', () => {
         expect(decide(snap({ stage: FA_STAGE.GIVEN_KHALI_BREW, tile: { x: 2616, z: 3168, level: 0 } })).kind).toBe('wait');
+    });
+});
+
+describe('arming from the bank', () => {
+    test('an unread bank is scanned before anything is concluded about it', () => {
+        const step = decide(snap({ stage: FA_STAGE.STARTED, bankKnown: false, tile: FA_TILE.YANILLE_BANK }));
+        expect(step.kind).toBe('scanBank');
+    });
+
+    test('a banked melee kit is withdrawn, best tier first', () => {
+        const step = decide(snap({ stage: FA_STAGE.STARTED, bank: RUNE_KIT, tile: FA_TILE.YANILLE_BANK }));
+        expect(step.kind).toBe('withdraw');
+        if (step.kind === 'withdraw') {
+            expect(step.items.map(i => i.name)).toEqual(RUNE_KIT);
+        }
+    });
+
+    test('the chainbody outranks the platebody, which wants Dragon Slayer', () => {
+        const step = decide(snap({
+            stage: FA_STAGE.STARTED,
+            bank: ['Rune platebody', 'Rune chainbody'],
+            tile: FA_TILE.YANILLE_BANK
+        }));
+        expect(step.kind).toBe('withdraw');
+        if (step.kind === 'withdraw') {
+            expect(step.items.map(i => i.name)).toEqual(['Rune chainbody']);
+        }
+    });
+
+    test('a lower tier is taken when the higher one is not owned', () => {
+        const step = decide(snap({ stage: FA_STAGE.STARTED, bank: ['Steel scimitar'], tile: FA_TILE.YANILLE_BANK }));
+        expect(step.kind).toBe('withdraw');
+        if (step.kind === 'withdraw') {
+            expect(step.items.map(i => i.name)).toEqual(['Steel scimitar']);
+        }
+    });
+
+    test('a carried kit is worn rather than withdrawn again', () => {
+        const step = decide(snap({ stage: FA_STAGE.STARTED, inv: RUNE_KIT, bank: RUNE_KIT, tile: FA_TILE.YANILLE_BANK }));
+        expect(name(step)).toBe(`custom:wear ${RUNE_KIT.join(', ')}`);
+    });
+
+    test('a dressed account goes straight to the chest', () => {
+        const step = decide(snap({ stage: FA_STAGE.STARTED, worn: RUNE_KIT, bank: RUNE_KIT, tile: FA_TILE.YANILLE_BANK }));
+        expect(name(step)).toBe('custom:search the guards\' chest');
+    });
+
+    test('an account that owns no melee gear is not wedged at the bank', () => {
+        const step = decide(snap({ stage: FA_STAGE.STARTED, tile: FA_TILE.YANILLE_BANK }));
+        expect(name(step)).toBe('custom:search the guards\' chest');
+    });
+
+    test('the disguise is not mistaken for a missing body slot', () => {
+        const step = decide(snap({
+            stage: FA_STAGE.OBTAINED_ARMOUR,
+            wornIds: [FA_OBJ.HELMET, FA_OBJ.ARMOUR],
+            worn: ['Khazard helmet', 'Khazard armour', 'Rune scimitar'],
+            bank: RUNE_KIT,
+            tile: FA_TILE.CHEST_STAND
+        }));
+        expect(name(step)).toBe('custom:enter the arena building');
+    });
+
+    test('every kit word is on the keep list, so the spillover deposit leaves it alone', () => {
+        for (const word of KIT_KEEP) {
+            expect(fightarena.tools).toContain(word);
+        }
     });
 });
 
