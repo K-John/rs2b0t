@@ -216,6 +216,32 @@ describe('Fight Arena decide', () => {
     });
 });
 
+describe('food waits for the kit', () => {
+    test('a banked kit holds the food back, so the pack has room to withdraw it', () => {
+        expect(fightarena.foodReady?.(snap({ stage: FA_STAGE.STARTED, bank: RUNE_KIT }))).toBe(false);
+    });
+
+    test('a carried but unworn kit still holds it back — wearing is what frees the slots', () => {
+        expect(fightarena.foodReady?.(snap({ stage: FA_STAGE.STARTED, inv: RUNE_KIT }))).toBe(false);
+    });
+
+    test('a worn kit releases the food', () => {
+        expect(fightarena.foodReady?.(snap({ stage: FA_STAGE.STARTED, worn: RUNE_KIT }))).toBe(true);
+    });
+
+    test('an account owning no kit is not made to wait for one', () => {
+        expect(fightarena.foodReady?.(snap({ stage: FA_STAGE.STARTED }))).toBe(true);
+    });
+
+    test('the disguise fills the kit slots, and must not hold the food back forever', () => {
+        expect(fightarena.foodReady?.(snap({
+            stage: FA_STAGE.STARTED,
+            bank: RUNE_KIT,
+            wornIds: [FA_OBJ.HELMET, FA_OBJ.ARMOUR]
+        }))).toBe(true);
+    });
+});
+
 describe('arming from the bank', () => {
     test('an unread bank is scanned before anything is concluded about it', () => {
         const step = decide(snap({ stage: FA_STAGE.STARTED, bankKnown: false, tile: FA_TILE.YANILLE_BANK }));
