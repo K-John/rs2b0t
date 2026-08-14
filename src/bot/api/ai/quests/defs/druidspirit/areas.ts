@@ -99,7 +99,8 @@ export const NS_TILE = {
     GHAST_HUNT: new Tile(3424, 3337, 0),
     URHNEY: new Tile(3235, 3154, 0),
     DOMMIK: new Tile(3322, 3194, 0),
-    FURNACE: new Tile(3272, 3185, 0),
+    // Why: the Al Kharid furnace is `forceapproach=east`, which its rotation puts to the south, so this is the stand rather than the loc tile.
+    FURNACE: new Tile(3272, 3183, 0),
     SILVER_ROCKS: new Tile(3294, 3301, 0),
     VARROCK_EAST_BANK: new Tile(3253, 3420, 0),
     ALKHARID_BANK: new Tile(3269, 3167, 0)
