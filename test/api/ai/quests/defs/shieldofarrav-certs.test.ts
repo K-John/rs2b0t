@@ -3,6 +3,7 @@ import { afterEach, describe, expect, test } from 'bun:test';
 import { SOA_ID } from '#/bot/api/ai/quests/defs/shieldofarrav/areas.js';
 import { certStep, certsBanked, certsHeld, curatorStep } from '#/bot/api/ai/quests/defs/shieldofarrav/certs.js';
 import { ArravConfig } from '#/bot/api/ai/quests/defs/shieldofarrav/config.js';
+import { ArravHandoffState } from '#/bot/api/ai/quests/defs/shieldofarrav/partner.js';
 import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
 const VARROCK = { x: 3253, z: 3420, level: 0 };
@@ -26,6 +27,8 @@ function snap(invIds: [number, number][] = [], bankIds: [number, number][] = [],
 
 afterEach(() => {
     ArravConfig.certTarget = 2;
+    ArravConfig.partner = '';
+    ArravHandoffState.gaveCert = false;
 });
 
 describe('arrav certificates', () => {
@@ -77,6 +80,27 @@ describe('arrav certificates', () => {
         const step = certStep(snap([], [[SOA_ID.CERTIFICATE, 2]]), 'phoenix');
         expect(step).toMatchObject({ kind: 'withdraw' });
         expect((step as { items: { id: number }[] }).items[0].id).toBe(SOA_ID.CERTIFICATE);
+    });
+
+    // Why: a trade offers from the pack only, so the one owed to the partner has to come out with the one being redeemed.
+    test('a phoenix bot that still owes its partner withdraws two', () => {
+        ArravConfig.partner = 'Someone';
+        ArravConfig.certTarget = 6;
+        const step = certStep(snap([], [[SOA_ID.CERTIFICATE, 6]]), 'phoenix');
+        expect((step as { items: { qty: number }[] }).items[0].qty).toBe(2);
+    });
+
+    test('once the partner has been paid, one is enough', () => {
+        ArravConfig.partner = 'Someone';
+        ArravConfig.certTarget = 6;
+        ArravHandoffState.gaveCert = true;
+        const step = certStep(snap([], [[SOA_ID.CERTIFICATE, 6]]), 'phoenix');
+        expect((step as { items: { qty: number }[] }).items[0].qty).toBe(1);
+    });
+
+    test('a partnerless bot withdraws one', () => {
+        const step = certStep(snap([], [[SOA_ID.CERTIFICATE, 6]]), 'phoenix');
+        expect((step as { items: { qty: number }[] }).items[0].qty).toBe(1);
     });
 
     test('a held certificate at target is taken to the king', () => {

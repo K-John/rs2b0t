@@ -3,6 +3,7 @@ import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { CURATOR, ROALD, SOA_ID } from './areas.js';
 import { ArravConfig, type ArravGang } from './config.js';
 import { talkUntil } from './hideout.js';
+import { ArravHandoffState } from './partner.js';
 import { bankedId, heldId, otherHalf, ownHalf } from './state.js';
 
 // Why: both conversations run through `~mesbox` / `~objbox`, which build a main modal no chat driver can see.
@@ -66,9 +67,12 @@ export function certStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null
             return { kind: 'custom', name: 'claim the reward from King Roald', run: redeemCertificate };
         }
         if (banked > 0) {
+            // Why: two when a partner is still owed one — the bot redeems one and hands the other over, and a trade can only offer from the pack.
+            const owed = ArravConfig.partner.trim().length > 0 && !ArravHandoffState.gaveCert && gang === 'phoenix';
+            const qty = owed ? Math.min(2, banked) : 1;
             return {
                 kind: 'withdraw',
-                items: [{ name: 'Certificate', qty: 1, id: SOA_ID.CERTIFICATE }]
+                items: [{ name: 'Certificate', qty, id: SOA_ID.CERTIFICATE }]
             };
         }
         return null;

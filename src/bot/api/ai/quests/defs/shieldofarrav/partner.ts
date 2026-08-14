@@ -24,15 +24,19 @@ export interface HandoffInput {
     hasOwnHalf: boolean;
     hasOtherHalf: boolean;
     certs: number;
+    /** Certificates in the pack, which is the only place a trade can offer from. */
+    certsHeld: number;
     certTarget: number;
     partnerConfigured: boolean;
     /** Whether this session has already handed its shield half over. */
     gaveHalf: boolean;
+    /** Whether this session has already handed a certificate over. */
+    gaveCert: boolean;
 }
 
 // Why: "I have not farmed my half yet" and "I gave my half away" are the same snapshot — no half, no certificate, joined — and the cupboard re-arms once the half leaves the pack, so nothing durable tells them apart.
 // Why: session scope is enough — a restart farms another half, which is correct work rather than a wedge.
-export const ArravHandoffState = { gaveHalf: false };
+export const ArravHandoffState = { gaveHalf: false, gaveCert: false };
 
 /**
  * Who owes whom. The phoenix bot is the minter by convention: it is the one that
@@ -52,7 +56,8 @@ export function decideHandoff(input: HandoffInput): ArravHandoff | null {
         if (input.hasOwnHalf && input.hasOtherHalf) {
             return null;
         }
-        if (input.certs >= 2 && input.certs >= target) {
+        // Why: the count that matters is the pack — a stockpile sitting in the bank cannot be offered, and the withdraw that fixes that is the certificate step's job.
+        if (!input.gaveCert && input.certsHeld >= 2 && input.certs >= target) {
             return 'give-cert';
         }
         if (input.hasOwnHalf) {
@@ -217,6 +222,9 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
     }
     if (handoff === 'give-half') {
         ArravHandoffState.gaveHalf = true;
+    }
+    if (handoff === 'give-cert') {
+        ArravHandoffState.gaveCert = true;
     }
     log(`${handoff} moved a ${want.name}`);
     return true;

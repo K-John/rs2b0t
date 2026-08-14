@@ -11,9 +11,11 @@ function input(over: Partial<HandoffInput>): HandoffInput {
         hasOwnHalf: false,
         hasOtherHalf: false,
         certs: 0,
+        certsHeld: 0,
         certTarget: 2,
         partnerConfigured: true,
         gaveHalf: false,
+        gaveCert: false,
         ...over
     };
 }
@@ -59,15 +61,24 @@ describe('arrav handoffs', () => {
     });
 
     test('two certificates at target are split with the partner', () => {
-        expect(decideHandoff(input({ certs: 2, certTarget: 2 }))).toBe('give-cert');
+        expect(decideHandoff(input({ certs: 2, certsHeld: 2, certTarget: 2 }))).toBe('give-cert');
+    });
+
+    // Why: a trade can only offer from the pack, and the withdraw that fixes a banked stockpile is the certificate step's job.
+    test('a banked stockpile is not offerable, so no handoff is asked for', () => {
+        expect(decideHandoff(input({ certs: 6, certsHeld: 0, certTarget: 6 }))).toBeNull();
+    });
+
+    test('the split happens once', () => {
+        expect(decideHandoff(input({ certs: 6, certsHeld: 2, certTarget: 6, gaveCert: true }))).toBeNull();
     });
 
     test('two certificates below target are not split yet', () => {
-        expect(decideHandoff(input({ certs: 2, certTarget: 10 }))).toBeNull();
+        expect(decideHandoff(input({ certs: 2, certsHeld: 2, certTarget: 10 }))).toBeNull();
     });
 
     test('ten certificates at a target of ten are split', () => {
-        expect(decideHandoff(input({ certs: 10, certTarget: 10 }))).toBe('give-cert');
+        expect(decideHandoff(input({ certs: 10, certsHeld: 2, certTarget: 10 }))).toBe('give-cert');
     });
 
     test('a black arm bot that gave its half away collects a certificate', () => {
