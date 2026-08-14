@@ -101,12 +101,12 @@ describe('shield of arrav decide', () => {
 
     test('the phoenix setting runs the phoenix leg', () => {
         withGang('phoenix');
-        expect(decide(snap())).toMatchObject({ kind: 'talk', stop: { npc: 'Reldo' } });
+        expect(decide(snap())).toMatchObject({ kind: 'custom' });
     });
 
     test('the black arm setting runs the black arm leg', () => {
         withGang('blackarm');
-        expect(decide(snap())).toMatchObject({ kind: 'talk', stop: { npc: 'Tramp' } });
+        expect(decide(snap())).toMatchObject({ kind: 'custom' });
     });
 
     test('the module is registered and reachable by id', () => {

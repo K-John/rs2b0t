@@ -34,11 +34,13 @@ function at(
 
 describe('black arm leg', () => {
     test('an unstarted quest talks to the Tramp', () => {
-        expect(blackarmStep(at(SOA_STAGE.NOT_STARTED))).toMatchObject({ kind: 'talk', stop: { npc: 'Tramp' } });
+        expect(blackarmStep(at(SOA_STAGE.NOT_STARTED)))
+            .toMatchObject({ kind: 'custom', name: 'ask the Tramp about the alley' });
     });
 
     test('after the Tramp, Katrine is approached', () => {
-        expect(blackarmStep(at(SOA_STAGE.TRAMP_TOLD))).toMatchObject({ kind: 'talk', stop: { npc: 'Katrine' } });
+        expect(blackarmStep(at(SOA_STAGE.TRAMP_TOLD)))
+            .toMatchObject({ kind: 'custom', name: 'ask Katrine to join the Black Arm Gang' });
     });
 
     test('without the store key the leg waits rather than walking at a locked door', () => {
@@ -70,7 +72,7 @@ describe('black arm leg', () => {
 
     test('two crossbows go back to Katrine', () => {
         expect(blackarmStep(at(SOA_STAGE.KATRINE_TASK, ['crossbows-held'], [[SOA_ID.CROSSBOW, 2]])))
-            .toMatchObject({ kind: 'talk', stop: { npc: 'Katrine' } });
+            .toMatchObject({ kind: 'custom', name: 'hand the crossbows to Katrine' });
     });
 
     test('one crossbow is not two — the raid continues', () => {
@@ -80,7 +82,7 @@ describe('black arm leg', () => {
 
     test('crossbows outrank the key: a hand-in never re-enters the store', () => {
         const both = at(SOA_STAGE.KATRINE_TASK, [], [[SOA_ID.STORE_KEY, 1], [SOA_ID.CROSSBOW, 2]]);
-        expect(blackarmStep(both)).toMatchObject({ kind: 'talk', stop: { npc: 'Katrine' } });
+        expect(blackarmStep(both)).toMatchObject({ kind: 'custom', name: 'hand the crossbows to Katrine' });
     });
 
     test('a joined member without the half searches the cupboard', () => {

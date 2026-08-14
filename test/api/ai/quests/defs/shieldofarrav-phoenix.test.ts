@@ -28,7 +28,7 @@ function at(stage: number, flags: string[] = [], ids: [number, number][] = []): 
 
 describe('phoenix leg', () => {
     test('an unstarted quest talks to Reldo', () => {
-        expect(phoenixStep(at(SOA_STAGE.NOT_STARTED))).toMatchObject({ kind: 'talk', stop: { npc: 'Reldo' } });
+        expect(phoenixStep(at(SOA_STAGE.NOT_STARTED))).toMatchObject({ kind: 'custom', name: 'ask Reldo for a quest' });
     });
 
     test('the book is checked out of the quest bookcase', () => {
@@ -40,7 +40,7 @@ describe('phoenix leg', () => {
     });
 
     test('after reading, Reldo names Baraek', () => {
-        expect(phoenixStep(at(SOA_STAGE.READ_BOOK))).toMatchObject({ kind: 'talk', stop: { npc: 'Reldo' } });
+        expect(phoenixStep(at(SOA_STAGE.READ_BOOK))).toMatchObject({ kind: 'custom', name: 'ask Reldo for a quest' });
     });
 
     test('the bribe is funded before Baraek is approached', () => {
@@ -53,12 +53,12 @@ describe('phoenix leg', () => {
 
     test('with the bribe in the pack Baraek is approached', () => {
         expect(phoenixStep(at(SOA_STAGE.SENT_TO_BARAEK, [], [[SOA_ID.COINS, 500]])))
-            .toMatchObject({ kind: 'talk', stop: { npc: 'Baraek' } });
+            .toMatchObject({ kind: 'custom', name: 'bribe Baraek for the hideout' });
     });
 
     test('the located hideout sends the bot to Straven', () => {
         expect(phoenixStep(at(SOA_STAGE.FIND_STRAVEN, [], [[SOA_ID.COINS, 480]])))
-            .toMatchObject({ kind: 'custom' });
+            .toMatchObject({ kind: 'custom', name: 'offer Straven your services' });
     });
 
     test('the mission stage kills Jonny while no report is held', () => {
@@ -67,12 +67,12 @@ describe('phoenix leg', () => {
 
     test('a held report is handed to Straven', () => {
         expect(phoenixStep(at(SOA_STAGE.KILL_JONNY, [], [[SOA_ID.REPORT, 1]])))
-            .toMatchObject({ kind: 'custom' });
+            .toMatchObject({ kind: 'custom', name: 'hand the report to Straven' });
     });
 
     test('the journal flag alone is enough to hand in, before the pack has synced', () => {
         expect(phoenixStep(at(SOA_STAGE.KILL_JONNY, ['report-held'])))
-            .toMatchObject({ kind: 'custom' });
+            .toMatchObject({ kind: 'custom', name: 'hand the report to Straven' });
     });
 
     test('a joined member without the half searches the chest', () => {

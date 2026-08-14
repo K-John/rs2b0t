@@ -12,7 +12,7 @@ import type Tile from '../../../../../geometry/Tile.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { promptLoc, settleScene, useOnLoc } from '../../exec/prompts.js';
 import { KATRINE_HANDIN, KATRINE_JOIN, SOA_ID, SOA_LOC, SOA_TILE, TRAMP, inStoreGround, inWeaponStore } from './areas.js';
-import { climb, enterBlackArmUpper, leaveBlackArmUpper, leaveWeaponStore, openContainer } from './hideout.js';
+import { climb, enterBlackArmUpper, leaveBlackArmUpper, leaveWeaponStore, openContainer, walkAndTalk } from './hideout.js';
 import { SOA_STAGE } from './journal.js';
 import { bankedId, heldId, modalSaid } from './state.js';
 
@@ -169,19 +169,24 @@ export async function takeBlackArmHalf(log: (m: string) => void): Promise<boolea
     return true;
 }
 
+// Why: every conversation goes through Reach rather than the shared `talk` step — `gotoNpc` approaches on a leash and its crossHops calls a stand two tiles off "arrived", which failed the Katrine hand-in twenty times in a row on one run and worked on the next.
+function say(stop: typeof TRAMP, name: string): QuestStep {
+    return { kind: 'custom', name, run: log => walkAndTalk(stop, stop.prefer, log) };
+}
+
 export function blackarmStep(snap: QuestSnapshot): QuestStep {
     const stage = snap.progress?.stage ?? snap.stage ?? SOA_STAGE.NOT_STARTED;
 
     switch (stage) {
         case SOA_STAGE.NOT_STARTED:
-            return { kind: 'talk', stop: TRAMP };
+            return say(TRAMP, 'ask the Tramp about the alley');
 
         case SOA_STAGE.TRAMP_TOLD:
-            return { kind: 'talk', stop: KATRINE_JOIN };
+            return say(KATRINE_JOIN, 'ask Katrine to join the Black Arm Gang');
 
         case SOA_STAGE.KATRINE_TASK:
             if (heldId(snap, SOA_ID.CROSSBOW) >= 2) {
-                return { kind: 'talk', stop: KATRINE_HANDIN };
+                return say(KATRINE_HANDIN, 'hand the crossbows to Katrine');
             }
             if (heldId(snap, SOA_ID.STORE_KEY) > 0) {
                 return { kind: 'custom', name: 'steal two crossbows from the weapon store', run: raidWeaponStore };

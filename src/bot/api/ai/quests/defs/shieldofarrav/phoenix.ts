@@ -11,7 +11,7 @@ import { Modals } from '../../../../ui/widgets/Modals.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { promptLoc } from '../../exec/prompts.js';
 import { BARAEK, RELDO, SOA_ID, SOA_LOC, SOA_TILE, STRAVEN_HANDIN, STRAVEN_JOIN } from './areas.js';
-import { enterPhoenixInner, leaveHideout, openContainer, talkInHideout } from './hideout.js';
+import { enterPhoenixInner, leaveHideout, openContainer, talkInHideout, walkAndTalk } from './hideout.js';
 import { SOA_STAGE } from './journal.js';
 import { heldId, liveItem, modalSaid } from './state.js';
 
@@ -159,13 +159,18 @@ export async function takePhoenixHalf(log: (m: string) => void): Promise<boolean
     return true;
 }
 
+// Why: every conversation goes through Reach rather than the shared `talk` step, whose gotoNpc approaches on a leash and calls a stand two tiles off "arrived".
+function say(stop: typeof RELDO, name: string): QuestStep {
+    return { kind: 'custom', name, run: log => walkAndTalk(stop, stop.prefer, log) };
+}
+
 export function phoenixStep(snap: QuestSnapshot): QuestStep {
     const stage = snap.progress?.stage ?? snap.stage ?? SOA_STAGE.NOT_STARTED;
     const flags = snap.progress?.flags ?? new Set<string>();
 
     switch (stage) {
         case SOA_STAGE.NOT_STARTED:
-            return { kind: 'talk', stop: RELDO };
+            return say(RELDO, 'ask Reldo for a quest');
 
         case SOA_STAGE.TOLD_OF_BOOK:
             if (heldId(snap, SOA_ID.BOOK) > 0) {
@@ -175,13 +180,13 @@ export function phoenixStep(snap: QuestSnapshot): QuestStep {
             return { kind: 'custom', name: 'check the palace bookcase', run: takeBook };
 
         case SOA_STAGE.READ_BOOK:
-            return { kind: 'talk', stop: RELDO };
+            return say(RELDO, 'ask Reldo for a quest');
 
         case SOA_STAGE.SENT_TO_BARAEK:
             if (heldId(snap, SOA_ID.COINS) < BRIBE_GP) {
                 return { kind: 'withdraw', items: [{ name: 'Coins', qty: COIN_FLOAT, id: SOA_ID.COINS }] };
             }
-            return { kind: 'talk', stop: BARAEK };
+            return say(BARAEK, 'bribe Baraek for the hideout');
 
         // Why: Straven lives in a sealed underground pocket, and the shared hop walks to a stand two tiles off, calls it arrived, and never climbs.
         case SOA_STAGE.FIND_STRAVEN:
