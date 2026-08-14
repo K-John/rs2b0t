@@ -418,7 +418,7 @@ export const CASES: readonly Case[] = [
         status: 'vetted',
         budgetMin: 45,
         provenAt: '3ab5d0a4',
-        documentedIn: 'docs/reference/quest-harness-recipes-3.md',
+        documentedIn: 'docs/reference/quest-harness-recipes-5.md',
         note: 'clean account to journal complete in 23min at --tick 300, no parks'
     },
     {
