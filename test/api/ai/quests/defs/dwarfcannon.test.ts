@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import type { WorldTile } from '#/bot/adapter/ClientAdapter.js';
-import { MC_OBJ, RAILINGS } from '#/bot/api/ai/quests/defs/dwarfcannon/areas.js';
+import { CANNON_PARTS, MC_OBJ, RAILINGS } from '#/bot/api/ai/quests/defs/dwarfcannon/areas.js';
 import { decide, dwarfcannon } from '#/bot/api/ai/quests/defs/dwarfcannon/index.js';
 import { MC_FLAG, MC_STAGE } from '#/bot/api/ai/quests/defs/dwarfcannon/journal.js';
 import { inCave } from '#/bot/api/ai/quests/defs/dwarfcannon/repair.js';
@@ -153,6 +153,24 @@ describe('goblin cave', () => {
         expect(inCave({ z: 9797 })).toBe(true);
         expect(inCave({ z: 3463 })).toBe(false);
         expect(inCave(null)).toBe(false);
+    });
+});
+
+describe('cannon repair', () => {
+    test('stage 6 runs the repair loop', () => {
+        const step = decide(snap({ stage: MC_STAGE.FIX_CANNON, invIds: [MC_OBJ.TOOLKIT.id] }));
+        expect(step.kind).toBe('custom');
+        expect(step.kind === 'custom' && step.name).toContain('cannon');
+    });
+
+    test('a lost toolkit sends the bot back to the Commander, who re-issues one', () => {
+        const step = decide(snap({ stage: MC_STAGE.FIX_CANNON }));
+        expect(step.kind).toBe('talk');
+        expect(step.kind === 'talk' && step.stop.npc).toBe('Dwarf Commander');
+    });
+
+    test('four damaged components, in menu order', () => {
+        expect(CANNON_PARTS).toEqual(['Pipe', 'Barrel', 'Axle', 'Shaft']);
     });
 });
 

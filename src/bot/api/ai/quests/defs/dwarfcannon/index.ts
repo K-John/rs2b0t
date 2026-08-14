@@ -3,14 +3,12 @@ import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
 import { CAVE_HOPS, COMMANDER, FALADOR_WEST_BANK, MC_FOOD_TARGET, MC_OBJ, NULODION } from './areas.js';
 import { MC_FLAG, MC_STAGE, readDwarfCannonProgress } from './journal.js';
-import { fetchRemains, fixRailings, inCave, rescueChild } from './repair.js';
+import { fetchRemains, fixRailings, inCave, repairCannon, rescueChild } from './repair.js';
 
 export { MCANNON_QUEST, MC_FLAG, MC_STAGE, parseDwarfCannonJournal, readDwarfCannonProgress } from './journal.js';
 export { CANNON_PARTS, MC_OBJ, MC_TILE, RAILINGS } from './areas.js';
 
 const heldId = (snap: QuestSnapshot, id: number): number => snap.invIds?.get(id) ?? 0;
-
-const todo = (what: string): QuestStep => ({ kind: 'wait', reason: `not implemented yet: ${what}` });
 
 const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep => ({
     kind: 'custom',
@@ -52,7 +50,10 @@ export function decide(snap: QuestSnapshot): QuestStep {
             : { kind: 'talk', stop: COMMANDER };
     }
     if (stage === MC_STAGE.FIX_CANNON) {
-        return todo('the cannon repair loop');
+        // Why: the Commander hands out another toolkit on both the stage-6 and stage-7 branches, so a lost one is a talk rather than a wedge.
+        return heldId(snap, MC_OBJ.TOOLKIT.id) > 0
+            ? custom('repair the broken multicannon', repairCannon)
+            : { kind: 'talk', stop: COMMANDER };
     }
     if (stage === MC_STAGE.CANNON_FIXED) {
         return { kind: 'talk', stop: COMMANDER };

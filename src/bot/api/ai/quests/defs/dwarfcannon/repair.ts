@@ -8,7 +8,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { isUnderground, talkThrough, walkWithHops } from '../../exec/primitives.js';
 import { driveUntil, settleScene } from '../../exec/prompts.js';
-import { CAVE_HOPS, DWARF_CHILD, MC_LOC, MC_OBJ, MC_TILE, RAILINGS } from './areas.js';
+import { CANNON_PARTS, CAVE_HOPS, DWARF_CHILD, MC_LOC, MC_OBJ, MC_TILE, RAILINGS } from './areas.js';
 
 const WALK = { attempts: 3, timeoutMs: 180_000 } as const;
 
@@ -143,5 +143,40 @@ export async function rescueChild(rescued: boolean, log: (m: string) => void): P
     // stage is set by its last line — leaving it undrained loses the rescue.
     await Execution.delayTicks(2);
     await talkThrough(DWARF_CHILD.npc, DWARF_CHILD.prefer, log);
+    return true;
+}
+
+const CANNON_WORKING = /seems to be in working order/i;
+
+// Why: each Inspect handles at most one part, and after the fourth the stage is still 7 — one further Inspect is what flips it to 8, so the loop bounds attempts rather than counting parts.
+
+/**
+ * Inspect the broken multicannon until every damaged component is fixed.
+ * @see Server content mcannon_broken_cannon.rs2
+ */
+export async function repairCannon(log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(MC_TILE.CANNON, 2, log))) {
+        return false;
+    }
+    for (let attempt = 0; attempt < 24; attempt++) {
+        await settleScene();
+        const cannon = Locs.query().where(l => l.id === MC_LOC.BROKEN_CANNON).nearest();
+        if (!cannon) {
+            log(`no broken cannon loc ${MC_LOC.BROKEN_CANNON} in the shed`);
+            return false;
+        }
+        const mark = GameMessages.mark();
+        if (!(await cannon.interact('Inspect'))) {
+            return false;
+        }
+        const done = (): boolean => GameMessages.sawSince(mark, CANNON_WORKING);
+        await driveUntil(done, [...CANNON_PARTS, 'None'], log, 15_000);
+        if (done()) {
+            log('the cannon is in working order');
+            return true;
+        }
+        await Execution.delayTicks(1);
+    }
+    log('the cannon did not come together in 24 inspections');
     return true;
 }
