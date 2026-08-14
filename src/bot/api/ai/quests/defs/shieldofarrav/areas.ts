@@ -34,21 +34,28 @@ export const SOA_LOC = {
     BLACKARM_STAIRS_TOP: 1723
 } as const;
 
+/** Every tile here is walkable in the collision pack; the six that were not are noted where the geometry forced the choice. */
 export const SOA_TILE = {
-    BOOKCASE: new Tile(3212, 3492, 0),
+    /** East of the bookcase: x 3211 and 3212 are a solid run of shelves from z 3491 to 3496. */
+    BOOKCASE: new Tile(3213, 3493, 0),
     CELLAR_LADDER: new Tile(3244, 3384, 0),
     HQ_LADDER: new Tile(3244, 9784, 0),
+    HQ_SURFACE: new Tile(3244, 3382, 0),
     PHOENIX_DOOR: new Tile(3247, 9780, 0),
+    /** South of the door. Why: the door is the only crossing between the hideout's two components, and opening it teleports rather than steps. */
+    PHOENIX_DOOR_INNER: new Tile(3247, 9778, 0),
+    /** North of the chest, the side `forceapproach=north` leaves legal at angle 0. */
     CHEST_STAND: new Tile(3235, 9762, 0),
     STORE_DOOR: new Tile(3251, 3386, 0),
-    STORE_LADDER: new Tile(3252, 3384, 0),
-    STORE_LADDER_TOP: new Tile(3252, 3384, 1),
+    STORE_LADDER: new Tile(3252, 3385, 0),
+    STORE_LADDER_TOP: new Tile(3251, 3384, 1),
     CROSSBOW_WEST: new Tile(3243, 3383, 1),
     CROSSBOW_EAST: new Tile(3245, 3385, 1),
-    STREET_DOOR: new Tile(3190, 3385, 0),
+    STREET_DOOR: new Tile(3190, 3384, 0),
     BLACKARM_DOOR: new Tile(3185, 3389, 0),
     BLACKARM_STAIRS: new Tile(3188, 3388, 0),
-    BLACKARM_STAIRS_TOP: new Tile(3188, 3391, 1),
+    BLACKARM_STAIRS_TOP: new Tile(3187, 3390, 1),
+    /** West of the cupboard: `forceapproach=east` rotates with its angle 2 placement, so east is west in world space. */
     CUPBOARD_STAND: new Tile(3187, 3385, 1),
     JONNY: new Tile(3223, 3395, 0),
     RENDEZVOUS: new Tile(3253, 3420, 0)
@@ -56,7 +63,7 @@ export const SOA_TILE = {
 
 export const RELDO: NpcStop = {
     npc: 'Reldo',
-    anchor: new Tile(3209, 3493, 0),
+    anchor: new Tile(3209, 3495, 0),
     leash: 8,
     prefer: ["I'm in search of a quest."]
 };
@@ -123,34 +130,22 @@ export const ROALD: NpcStop = {
     prefer: []
 };
 
-// Why: the weapon store's upper floor and the Black Arm upper floor are absent from transports.json, so the module carries its own hops.
-export const STORE_HOP: LadderHop = {
-    stand: SOA_TILE.STORE_LADDER,
-    locName: 'Ladder',
-    op: 'Climb-up',
-    arrive: SOA_TILE.STORE_LADDER_TOP
-};
-
-export const STORE_HOP_DOWN: LadderHop = {
-    stand: SOA_TILE.STORE_LADDER_TOP,
+// Why: `needsHop` compares z against 6400, so a LadderHop can only express a surface-to-underground move — the two upper floors are climbed inside their own legs.
+export const HQ_HOP_DOWN: LadderHop = {
+    stand: SOA_TILE.CELLAR_LADDER,
     locName: 'Ladder',
     op: 'Climb-down',
-    arrive: SOA_TILE.STORE_LADDER
+    arrive: SOA_TILE.HQ_LADDER
 };
 
-export const BLACKARM_HOP: LadderHop = {
-    stand: SOA_TILE.BLACKARM_STAIRS,
-    locName: 'Staircase',
+export const HQ_HOP_UP: LadderHop = {
+    stand: SOA_TILE.HQ_LADDER,
+    locName: 'Ladder',
     op: 'Climb-up',
-    arrive: SOA_TILE.BLACKARM_STAIRS_TOP
+    arrive: SOA_TILE.HQ_SURFACE
 };
 
-export const BLACKARM_HOP_DOWN: LadderHop = {
-    stand: SOA_TILE.BLACKARM_STAIRS_TOP,
-    locName: 'Staircase',
-    op: 'Climb-down',
-    arrive: SOA_TILE.BLACKARM_STAIRS
-};
+export const SOA_HOPS: readonly LadderHop[] = [HQ_HOP_DOWN, HQ_HOP_UP];
 
 function within(t: WorldTile | null | undefined, x0: number, x1: number, z0: number, z1: number, level: number): boolean {
     return !!t && t.level === level && t.x >= x0 && t.x <= x1 && t.z >= z0 && t.z <= z1;
