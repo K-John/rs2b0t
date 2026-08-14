@@ -81,12 +81,14 @@ function warnDwarfCannonReadiness(): string | null {
 }
 
 // Why: `tools` is read at one place in QuestEngine — the spillover keep list — and is never provisioned, so a resume mid-quest does not bank its own state.
+// Why: the quest buys nothing, and the float otherwise walks at the pinned bank on every activation — which from inside the goblin cave is a route that does not exist, so a resume there spends a minute and a half proving it before starting.
 
 export const dwarfcannon: QuestModule = {
     record: QUESTS.find(r => r.id === 'mcannon')!,
     bank: FALADOR_WEST_BANK,
     hops: [...CAVE_HOPS],
     food: MC_FOOD_TARGET,
+    coinFloat: 0,
     tools: ['coins', 'tool kit', 'dwarf remains', "nulodion's notes", 'ammo mould', 'railing'],
     readProgress: readDwarfCannonProgress,
     sustain: { foods: ['Lobster', 'Trout', 'Bread'], eatBelowHp: 0.6 },
