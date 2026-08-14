@@ -1,3 +1,4 @@
+import { reader } from '../../../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Players } from '../../../../players/Players.js';
@@ -130,7 +131,14 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
     let offered = false;
     let confirmed = false;
     let last = '';
-    while (performance.now() < deadline && Trade.active()) {
+    while (performance.now() < deadline) {
+        // Why: the engine shuts the offer screen a tick before it opens the confirm, so one frame with neither up is the handover, not the end of the trade.
+        if (!Trade.active()) {
+            await Execution.delayTicks(3);
+            if (!Trade.active()) {
+                break;
+            }
+        }
         const who = Trade.partner();
         if (who !== null && !namesMatch(who, ArravConfig.partner)) {
             log(`declining a trade from '${who}' — not the configured partner`);
@@ -139,7 +147,10 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
         }
 
         const screen = Trade.onConfirmScreen() ? 'confirm' : 'offer';
-        const state = `${screen} mine=${Trade.myOffer().length} theirs=${Trade.theirOffer().length}`;
+        const ids = (slots: readonly { id: number; count: number }[]): string =>
+            slots.map(s => `${s.id}x${s.count}`).join(',') || '-';
+        const state = `${screen} modal=${reader.modals().main} want=${want.id}`
+            + ` mine=[${ids(Trade.myOffer())}] theirs=[${ids(Trade.theirOffer())}]`;
         if (state !== last) {
             log(`${handoff}: ${state}`);
             last = state;
@@ -169,7 +180,9 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
             continue;
         }
 
-        await Trade.accept();
+        // Why: one accept per screen — the engine sets pending on each click and opens the confirm on the second player's, so hammering it adds nothing and the re-clicks race the handover.
+        const clicked = await Trade.accept();
+        log(`${handoff}: accept on ${screen} -> ${clicked}`);
         await Execution.delayUntil(() => Trade.onConfirmScreen() || !Trade.active(), SCREEN_MS);
     }
 
