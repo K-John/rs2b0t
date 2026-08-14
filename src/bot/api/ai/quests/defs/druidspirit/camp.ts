@@ -8,9 +8,9 @@ import { Npcs } from '../../../../npcs/Npcs.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Traversal } from '../../../../walking/Traversal.js';
-import { driveDialog, openDialogue, talkThrough } from '../../exec/primitives.js';
+import { driveDialog, openDialogue, pickPreferred } from '../../exec/primitives.js';
 import { driveUntil, heldId, promptLoc, settleScene } from '../../exec/prompts.js';
-import { FILLIMAN, NS_ID, NS_LOC, NS_NAME, NS_TILE } from './areas.js';
+import { FILLIMAN, inSwamp, NS_ID, NS_LOC, NS_NAME, NS_TILE } from './areas.js';
 import { NS_FLAG } from './journal.js';
 
 const findSpirit = (): Npc | null => Npcs.query().name(FILLIMAN.npc).within(8).nearest();
@@ -19,17 +19,58 @@ async function reachCamp(log: (m: string) => void): Promise<boolean> {
     return Traversal.walkResilient(NS_TILE.CAMP, { radius: 3, attempts: 4, timeoutMs: 300_000, log });
 }
 
+const LEAVE = ['Ok, thanks.', 'Ok thanks.'];
+
+// Why: every topic in Filliman's tree ends by re-offering the same list, so a prefer list naming one picks it again on every pass and the conversation only ends when the driver gives up.
+// Why: the topic is therefore taken once and the goodbye taken from then on.
+
+/** Drive an open dialogue, taking `topic` once and then leaving. */
+async function driveOnce(topic: string, log: (m: string) => void): Promise<boolean> {
+    let taken = false;
+    for (let i = 0; i < 40; i++) {
+        if (ChatDialog.canContinue()) {
+            await ChatDialog.continue();
+            await Execution.delayTicks(1);
+            continue;
+        }
+        const options = ChatDialog.options();
+        if (options.length > 0) {
+            const leave = pickPreferred(options, LEAVE);
+            const pick = (taken ? null : pickPreferred(options, [topic])) ?? leave;
+            if (!pick) {
+                log(`no '${topic}' and no goodbye in [${options.join(' | ')}]`);
+                return false;
+            }
+            if (pick !== leave) {
+                taken = true;
+            }
+            await ChatDialog.chooseOption(pick);
+            await Execution.delayTicks(2);
+            continue;
+        }
+        if (!ChatDialog.isOpen()) {
+            return true;
+        }
+        await Execution.delayTicks(1);
+    }
+    return !ChatDialog.isOpen();
+}
+
 // Why: the spirit is npc_add'ed by `Enter` on the grotto door and despawns after 100 ticks, so an empty camp is answered by knocking rather than by waiting.
 // Why: below the ritual stage the same op opens his dialogue, which is why the prefer list is driven straight off the door.
 
-/** Summon the spirit and drive whatever he says. */
-export async function talkFilliman(prefer: string[], log: (m: string) => void): Promise<boolean> {
+/** Summon the spirit, take `topic` once if there is one, then leave. */
+export async function talkFilliman(topic: string | null, log: (m: string) => void): Promise<boolean> {
     if (!(await reachCamp(log))) {
         return false;
     }
     await settleScene();
+    const drive = async (): Promise<boolean> => (topic === null ? driveDialog(LEAVE, log) : driveOnce(topic, log));
     if (findSpirit()) {
-        return talkThrough(FILLIMAN.npc, prefer, log);
+        if (!(await openDialogue(FILLIMAN.npc, log))) {
+            return false;
+        }
+        return drive();
     }
     const door = Locs.query().name(NS_LOC.GROTTO_DOOR).action('Enter').within(8).nearest();
     if (!door) {
@@ -40,7 +81,7 @@ export async function talkFilliman(prefer: string[], log: (m: string) => void): 
         return false;
     }
     await Execution.delayUntil(() => findSpirit() !== null || ChatDialog.isOpen() || ChatDialog.canContinue(), 8000);
-    return driveDialog(prefer, log);
+    return drive();
 }
 
 /** The spirit, summoned if he has despawned. */
@@ -48,7 +89,7 @@ async function ensureSpirit(log: (m: string) => void): Promise<boolean> {
     if (findSpirit()) {
         return true;
     }
-    if (!(await talkFilliman(['Ok, thanks.', 'Ok thanks.'], log))) {
+    if (!(await talkFilliman(null, log))) {
         return false;
     }
     await settleScene();
@@ -120,7 +161,7 @@ export async function journalLeg(log: (m: string) => void): Promise<boolean> {
 
 /** The option that hands over the bloom scroll. */
 export async function askToHelp(log: (m: string) => void): Promise<boolean> {
-    if (!(await talkFilliman(['How can I help?', 'Ok thanks.', 'Ok, thanks.'], log))) {
+    if (!(await talkFilliman('How can I help?', log))) {
         return false;
     }
     return Execution.delayUntil(() => heldId(NS_ID.SPELL) > 0, 6000);
@@ -145,8 +186,16 @@ export function pickable(within = 10): { name: string; op: string } | null {
 
 // Why: the bloom affects the eight tiles around the caster and not the caster's own, and every bloomable is blockwalk=no — so standing on one is the way to miss it.
 
+// Why: every bloomable is inside Mort Myre, and the blessing that precedes this leg happens in the mausoleum — a scene query from there sees no swamp at all.
+
 /** Stand next to something bloomable, never on it. */
 export async function standBeside(log: (m: string) => void, names: readonly string[] = BLOOMABLE): Promise<boolean> {
+    if (!inSwamp(Game.tile())) {
+        if (!(await reachCamp(log))) {
+            return false;
+        }
+        await settleScene();
+    }
     const beside = (): boolean => {
         const here = Game.tile();
         if (!here) {
@@ -279,5 +328,5 @@ export async function solvePuzzle(log: (m: string) => void): Promise<boolean> {
         log(`the talk moved the character to (${at?.x},${at?.z}) — off the faith stone`);
         return false;
     }
-    return driveDialog(["I think I've solved the puzzle!", 'Ok, thanks.'], log);
+    return driveOnce("I think I've solved the puzzle!", log);
 }

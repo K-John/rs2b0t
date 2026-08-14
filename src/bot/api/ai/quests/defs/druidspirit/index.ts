@@ -10,7 +10,8 @@ import { amulet, heldId, NS_TOOLS, sickleStep } from './supplies.js';
 const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep =>
     ({ kind: 'custom', name, run });
 
-const GHOST_TOPIC = ["I'm wearing an amulet of ghost speak!", 'Ok, thanks.'];
+const GHOST_TOPIC = "I'm wearing an amulet of ghost speak!";
+const ANOTHER_SCROLL = 'Could I have another bloom scroll please?';
 const THANKS = ['Ok thanks.', 'Ok, thanks.'];
 
 const harvestHeld = (snap: QuestSnapshot): number =>
@@ -86,8 +87,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         case NS_STAGE.BLESSED:
             // Why: Filliman re-issues the scroll on request and checks the pack alone, so a lost one is a conversation rather than a park.
             if (heldId(snap, NS_ID.SPELL) === 0 && heldId(snap, NS_ID.SPELL_USED) === 0) {
-                return outside(snap, custom('ask for another bloom scroll', log =>
-                    talkFilliman(['Could I have another bloom scroll please?', ...THANKS], log)));
+                return outside(snap, custom('ask for another bloom scroll', log => talkFilliman(ANOTHER_SCROLL, log)));
             }
             return outside(snap, custom('bloom the swamp', bloomWithScroll));
         case NS_STAGE.CASTED_SPELL:
