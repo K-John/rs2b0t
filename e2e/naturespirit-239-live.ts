@@ -92,10 +92,9 @@ function bankSeed(): BankSeedItem[] {
         { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
         { debugName: args.food.toLowerCase().replace(/ /g, '_'), displayName: args.food, qty: 40 }
     ];
-    // Why: an account that finished The Restless Ghost years ago still owns the amulet, and a mould and bar are ordinary bank clutter — the common case a from-scratch run never exercises.
+    // Why: a mould and a silver bar are ordinary bank clutter on an established account — the common case a from-scratch run never exercises.
     if (args.stocked) {
         seed.push(
-            { debugName: 'amulet_of_ghostspeak', displayName: 'Ghostspeak amulet', qty: 1 },
             { debugName: 'sickle_mould', displayName: 'Sickle mould', qty: 1 },
             { debugName: 'silver_bar', displayName: 'Silver bar', qty: 1 }
         );
@@ -112,6 +111,8 @@ function bitsFor(stage: number): number {
 const STAGE_START: Record<number, { x: number; z: number; level: number }> = {
     0: VARROCK_EAST_BANK,
     5: GATE_NORTH,
+    10: CAMP,
+    15: CAMP,
     20: CAMP,
     25: CAMP,
     30: CAMP,
@@ -227,7 +228,10 @@ try {
     }
     console.log('prerequisites: The Restless Ghost + Priest in Peril set complete');
 
+    // Why: a mid-quest stage starts inside Mort Myre, and making it walk to Lumbridge for the amulet first would spend the run's budget on a leg the stage-0 run already proves.
     if (args.stage > 0) {
+        await cheatQuiet(page, 'give amulet_of_ghostspeak 1');
+        console.log('gave the pack a Ghostspeak amulet (mid-quest start)');
         await cheatQuiet(page, `setvar druidspirit_bits ${bitsFor(args.stage)}`);
         await cheatQuiet(page, `setvar druidspirit ${args.stage}`);
         const set = await getServerVarQuiet(page, 'druidspirit');
