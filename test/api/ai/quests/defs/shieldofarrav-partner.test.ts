@@ -13,6 +13,7 @@ function input(over: Partial<HandoffInput>): HandoffInput {
         certs: 0,
         certTarget: 2,
         partnerConfigured: true,
+        gaveHalf: false,
         ...over
     };
 }
@@ -71,8 +72,15 @@ describe('arrav handoffs', () => {
 
     test('a black arm bot that gave its half away collects a certificate', () => {
         expect(decideHandoff(input({
-            gang: 'blackarm', stage: SOA_STAGE.BLACKARM_JOINED, hasOwnHalf: false, certs: 0
+            gang: 'blackarm', stage: SOA_STAGE.BLACKARM_JOINED, hasOwnHalf: false, certs: 0, gaveHalf: true
         }))).toBe('take-cert');
+    });
+
+    // Why: the two states look identical in the snapshot, and asking first leaves the bot waiting for a certificate only its own half can buy.
+    test('a black arm bot that has never farmed a half is left to the cupboard leg', () => {
+        expect(decideHandoff(input({
+            gang: 'blackarm', stage: SOA_STAGE.BLACKARM_JOINED, hasOwnHalf: false, certs: 0, gaveHalf: false
+        }))).toBeNull();
     });
 
     test('a black arm bot that already holds a certificate is done trading', () => {

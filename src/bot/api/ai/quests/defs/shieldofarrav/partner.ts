@@ -25,7 +25,13 @@ export interface HandoffInput {
     certs: number;
     certTarget: number;
     partnerConfigured: boolean;
+    /** Whether this session has already handed its shield half over. */
+    gaveHalf: boolean;
 }
+
+// Why: "I have not farmed my half yet" and "I gave my half away" are the same snapshot — no half, no certificate, joined — and the cupboard re-arms once the half leaves the pack, so nothing durable tells them apart.
+// Why: session scope is enough — a restart farms another half, which is correct work rather than a wedge.
+export const ArravHandoffState = { gaveHalf: false };
 
 /**
  * Who owes whom. The phoenix bot is the minter by convention: it is the one that
@@ -60,7 +66,8 @@ export function decideHandoff(input: HandoffInput): ArravHandoff | null {
     if (input.hasOwnHalf) {
         return 'give-half';
     }
-    if (input.stage === SOA_STAGE.BLACKARM_JOINED && input.certs === 0) {
+    // Why: without the flag this fires before the cupboard leg has ever run, and the bot waits for a certificate that only its own half can buy.
+    if (input.stage === SOA_STAGE.BLACKARM_JOINED && input.certs === 0 && input.gaveHalf) {
         return 'take-cert';
     }
     return null;
@@ -193,6 +200,9 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
     if (!landed()) {
         log(`${handoff} did not move a ${want.name} (offered=${offered} confirmed=${confirmed})`);
         return false;
+    }
+    if (handoff === 'give-half') {
+        ArravHandoffState.gaveHalf = true;
     }
     log(`${handoff} moved a ${want.name}`);
     return true;

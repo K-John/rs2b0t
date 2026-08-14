@@ -6,7 +6,7 @@ import { blackarmStep } from './blackarm.js';
 import { certStep, certsBanked, certsHeld, curatorStep } from './certs.js';
 import { ArravConfig, resolveGang, type ArravGang } from './config.js';
 import { readShieldOfArravProgress, SOA_STAGE } from './journal.js';
-import { decideHandoff, handoffStep } from './partner.js';
+import { ArravHandoffState, decideHandoff, handoffStep } from './partner.js';
 import { phoenixStep } from './phoenix.js';
 import { heldId, otherHalf, ownHalf } from './state.js';
 
@@ -61,7 +61,8 @@ export function decide(snap: QuestSnapshot): QuestStep {
         hasOtherHalf: heldId(snap, otherHalf(mine)) > 0,
         certs: certsHeld(snap) + certsBanked(snap),
         certTarget: ArravConfig.certTarget,
-        partnerConfigured: ArravConfig.partner.trim().length > 0
+        partnerConfigured: ArravConfig.partner.trim().length > 0,
+        gaveHalf: ArravHandoffState.gaveHalf
     });
     if (handoff) {
         return handoffStep(handoff, mine);
