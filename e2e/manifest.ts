@@ -139,6 +139,14 @@ export const CASES: readonly Case[] = [
         documentedIn: 'docs/reference/quest-harness-recipes.md'
     },
     {
+        id: 'fight-arena-233-live',
+        harness: 'fight-arena-233-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'documented',
+        budgetMin: 120,
+        documentedIn: 'docs/reference/quest-harness-recipes-2.md'
+    },
+    {
         id: 'fight-arena-iron-374-live',
         harness: 'fight-arena-iron-374-live.ts',
         covers: { scripts: ['GatheringBot'] },

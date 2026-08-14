@@ -122,6 +122,31 @@ South Ardougne is members ground, which costs nothing here: the world runs
 `members: true` with `autoSubscribeMembers`, and the quest itself is
 free-to-play wherever it is farmed.
 
+## Fight Arena — stage-scoped harness
+
+[`e2e/fight-arena-233-live.ts`](../../e2e/fight-arena-233-live.ts). Members content, so
+`:8890` only.
+
+| Flag | Default | Purpose |
+|---|---|---|
+| `--stage N` | 0 | `setvar arenaquest N`, then relog so the quest list recolours |
+| `--until N` | 14 | stop at this stage; 14 waits for the journal to go green |
+| `--tick N` | 150 | server tick in ms; 150 is double speed |
+| `--minutes N` | 120 | wall-clock budget |
+| `--food NAME` | Lobster | the AIO Quester's food setting |
+| `--no-deploy` | off | skip the build and copy |
+
+It deploys `navworker.js` as well as `botclient.js`. Refusing the arena's doors changed
+the transport graph, and a client-only deploy leaves the navigator on the old edges.
+
+The bank seed is coins, food and a rune melee kit — `rune_chainbody` rather than
+`rune_platebody`, which wants Dragon Slayer. Nothing the quest can find in the world is
+seeded: the Khazard disguise comes from the chest, the keys from the drunk guard and the
+brew from the barman.
+
+Stage starts: 1 and 2 at the chest, 3 and 5 outside the guard door, 6 and 8 on the arena
+floor, 9 in the prison cell, 10 to 12 on the arena floor.
+
 ## See also
 
 - [Quest harness recipes (A–F)](quest-harness-recipes.md)
