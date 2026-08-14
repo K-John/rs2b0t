@@ -13,9 +13,9 @@ import { pickable, standBeside } from './camp.js';
 const GHAST = 'Ghast';
 
 /** Pear, stem and fungus all count; three of any of them fill a pouch. */
-export const POUCH_ITEMS: readonly number[] = [NS_ID.PEAR, NS_ID.STEM, NS_ID.FUNGI];
+const POUCH_ITEMS: readonly number[] = [NS_ID.PEAR, NS_ID.STEM, NS_ID.FUNGI];
 
-export const harvestHeld = (): number => POUCH_ITEMS.reduce((sum, id) => sum + heldId(id), 0);
+const harvestHeld = (): number => POUCH_ITEMS.reduce((sum, id) => sum + heldId(id), 0);
 
 // Why: `Cast Bloom` costs prayer points and affects the eight tiles around the caster, choosing one loc at random, so the loop stands beside a bloomable and re-casts until something answers.
 

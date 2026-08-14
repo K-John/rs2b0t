@@ -64,19 +64,19 @@ async function atFurnace(log: (m: string) => void, product: string, expect: () =
     return Execution.delayUntil(expect, 30_000);
 }
 
-export async function smeltSilver(log: (m: string) => void): Promise<boolean> {
+async function smeltSilver(log: (m: string) => void): Promise<boolean> {
     return atFurnace(log, 'Silver', () => Inventory.countById(NS_ID.SILVER_BAR) > 0);
 }
 
 // Why: casting the sickle is a members-only option and this world is members everywhere (`Environment.node.members`), so the Al Kharid furnace serves.
 // Why: the option only appears while the mould is held, so a missing mould reads as "no Silver sickle in the menu" rather than as a refusal.
 
-export async function castSickle(log: (m: string) => void): Promise<boolean> {
+async function castSickle(log: (m: string) => void): Promise<boolean> {
     return atFurnace(log, NS_NAME.SICKLE, () => Inventory.countById(NS_ID.SICKLE) > 0);
 }
 
 /** Bank first, then Al Kharid: mould, ore, bar, cast. Null once a sickle is in hand. */
-export function sickleStep(snap: QuestSnapshot, miningLevel = Skills.level('mining')): QuestStep | null {
+export function sickleStep(snap: QuestSnapshot, miningLevel?: number): QuestStep | null {
     if (heldId(snap, NS_ID.SICKLE_BLESSED) > 0 || heldId(snap, NS_ID.SICKLE) > 0) {
         return null;
     }
@@ -109,6 +109,6 @@ export function sickleStep(snap: QuestSnapshot, miningLevel = Skills.level('mini
         return withdraw(NS_NAME.SILVER_ORE, NS_ID.SILVER_ORE);
     }
     // Why: mining without a pickaxe raises no refusal at all — the rock does not answer — so the tool is sourced before the rocks are walked to.
-    return pickaxeAt(snap, miningLevel)
+    return pickaxeAt(snap, miningLevel ?? Skills.level('mining'))
         ?? { kind: 'mineRock', rock: 'Silver', item: NS_NAME.SILVER_ORE, qty: 1, anchor: NS_TILE.SILVER_ROCKS };
 }

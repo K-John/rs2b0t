@@ -15,7 +15,7 @@ import { NS_FLAG } from './journal.js';
 
 const findSpirit = (): Npc | null => Npcs.query().name(FILLIMAN.npc).within(8).nearest();
 
-export async function reachCamp(log: (m: string) => void): Promise<boolean> {
+async function reachCamp(log: (m: string) => void): Promise<boolean> {
     return Traversal.walkResilient(NS_TILE.CAMP, { radius: 3, attempts: 4, timeoutMs: 300_000, log });
 }
 
