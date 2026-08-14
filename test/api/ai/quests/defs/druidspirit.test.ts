@@ -94,23 +94,23 @@ describe('nature spirit decide', () => {
     });
 
     test('blessed casts the bloom scroll', () => {
-        expect(named(step({ stage: NS_STAGE.BLESSED, invIds: [[NS_ID.SPELL, 1]] }))).toBe('bloom the swamp');
+        expect(named(step({ stage: NS_STAGE.BLESSED, invIds: [[NS_ID.SPELL, 1]] }))).toBe('bloom the swamp for a fungus');
     });
 
     test('a lost scroll is re-issued by Filliman rather than parking', () => {
         expect(named(step({ stage: NS_STAGE.BLESSED }))).toBe('ask for another bloom scroll');
     });
 
-    test('a spent scroll still counts — the spirit stone takes it', () => {
-        expect(named(step({ stage: NS_STAGE.BLESSED, invIds: [[NS_ID.SPELL_USED, 1]] }))).toBe('bloom the swamp');
+    test('a spent scroll cannot be cast again, so another is asked for', () => {
+        expect(named(step({ stage: NS_STAGE.BLESSED, invIds: [[NS_ID.SPELL_USED, 1]] }))).toBe('ask for another bloom scroll');
     });
 
-    test('cast but no fungus picks the harvest', () => {
-        expect(named(step({ stage: NS_STAGE.CASTED_SPELL }))).toBe('pick the fungus');
+    test('cast but no fungus blooms again rather than hunting a reverted log', () => {
+        expect(named(step({ stage: NS_STAGE.CASTED_SPELL, invIds: [[NS_ID.SPELL, 1]] }))).toBe('bloom the swamp for a fungus');
     });
 
-    test('at the fungus stage with nothing held, the harvest is picked first', () => {
-        expect(named(step({ stage: NS_STAGE.PICKED_FUNGI }))).toBe('pick the fungus');
+    test('resuming at the fungus stage with an empty pack blooms again', () => {
+        expect(named(step({ stage: NS_STAGE.PICKED_FUNGI, invIds: [[NS_ID.SPELL, 1]] }))).toBe('bloom the swamp for a fungus');
     });
 
     test('with the fungus and no stones fed, the stones come first', () => {

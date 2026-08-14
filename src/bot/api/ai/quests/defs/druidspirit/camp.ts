@@ -225,25 +225,6 @@ export async function standBeside(log: (m: string) => void, names: readonly stri
     return beside();
 }
 
-/** Cast the paper scroll beside a rotting log until something blooms. */
-export async function bloomWithScroll(log: (m: string) => void): Promise<boolean> {
-    if (pickable()) {
-        return true;
-    }
-    if (!(await standBeside(log, [NS_LOC.LOG]))) {
-        return false;
-    }
-    const scroll = Inventory.items().find(i => i.id === NS_ID.SPELL);
-    if (!scroll) {
-        log('no Druidic spell held — Filliman re-issues one on request');
-        return false;
-    }
-    if (!(await scroll.interact('Cast'))) {
-        return false;
-    }
-    return Execution.delayUntil(() => pickable() !== null, 8000);
-}
-
 /** Take one item off whatever bloomed. */
 export async function pickHarvest(log: (m: string) => void): Promise<boolean> {
     const target = pickable();
@@ -257,6 +238,31 @@ export async function pickHarvest(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     return Execution.delayUntil(() => Inventory.used() > before, 8000);
+}
+
+// Why: a bloomed loc reverts 25 ticks after it grows, so casting and picking cannot be two decide ticks — a resume that finds neither a fungus nor a bloom has to do both in one step.
+
+/** Cast the paper scroll beside a rotting log and take the fungus it grows. */
+export async function bloomWithScroll(log: (m: string) => void): Promise<boolean> {
+    for (let cycle = 0; cycle < 8 && heldId(NS_ID.FUNGI) === 0; cycle++) {
+        if (pickable()) {
+            await pickHarvest(log);
+            continue;
+        }
+        if (!(await standBeside(log, [NS_LOC.LOG]))) {
+            return false;
+        }
+        const scroll = Inventory.items().find(i => i.id === NS_ID.SPELL);
+        if (!scroll) {
+            log('no Druidic spell held — Filliman re-issues one on request');
+            return false;
+        }
+        if (!(await scroll.interact('Cast'))) {
+            return false;
+        }
+        await Execution.delayUntil(() => pickable() !== null, 8000);
+    }
+    return heldId(NS_ID.FUNGI) > 0;
 }
 
 // Why: all three ritual stones render as "Stone" and sit on adjacent tiles, so each is addressed by its own tile rather than by a nearest-match.

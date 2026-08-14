@@ -24,10 +24,20 @@ function outside(snap: QuestSnapshot, step: QuestStep): QuestStep {
     return inGrotto(snap.tile) ? custom('leave the grotto', leaveGrotto) : step;
 }
 
+// Why: the bloomed log reverts 25 ticks after it grows, so a resume with no fungus has to cast again rather than look for one that has gone.
+
+/** A fungus in the pack, by whatever route is open. */
+function fungus(snap: QuestSnapshot): QuestStep {
+    if (heldId(snap, NS_ID.SPELL) === 0) {
+        return custom('ask for another bloom scroll', log => talkFilliman(ANOTHER_SCROLL, log));
+    }
+    return custom('bloom the swamp for a fungus', bloomWithScroll);
+}
+
 function ritual(snap: QuestSnapshot): QuestStep {
     const flags = snap.progress?.flags ?? new Set<string>();
     if (!flags.has(NS_FLAG.NATURE) && heldId(snap, NS_ID.FUNGI) === 0) {
-        return custom('pick the fungus', pickHarvest);
+        return fungus(snap);
     }
     if (!flags.has(NS_FLAG.NATURE) || !flags.has(NS_FLAG.SPIRIT)) {
         return custom('feed the ritual stones', log => feedStones(flags, log));
@@ -84,14 +94,10 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return outside(snap, custom('offer to help', askToHelp));
         case NS_STAGE.RECEIVED_SPELL:
             return outside(snap, { kind: 'talk', stop: DREZEL });
+        // Why: Filliman re-issues the scroll on request and checks the pack for a fresh one alone, so a spent or lost scroll is a conversation rather than a park.
         case NS_STAGE.BLESSED:
-            // Why: Filliman re-issues the scroll on request and checks the pack alone, so a lost one is a conversation rather than a park.
-            if (heldId(snap, NS_ID.SPELL) === 0 && heldId(snap, NS_ID.SPELL_USED) === 0) {
-                return outside(snap, custom('ask for another bloom scroll', log => talkFilliman(ANOTHER_SCROLL, log)));
-            }
-            return outside(snap, custom('bloom the swamp', bloomWithScroll));
         case NS_STAGE.CASTED_SPELL:
-            return outside(snap, custom('pick the fungus', pickHarvest));
+            return outside(snap, fungus(snap));
         case NS_STAGE.PICKED_FUNGI:
         case NS_STAGE.SPOKEN_FILLIMAN2:
             return outside(snap, ritual(snap));
