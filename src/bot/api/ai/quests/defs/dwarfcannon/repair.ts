@@ -1,11 +1,13 @@
 import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
+import { GroundItems } from '../../../../grounditems/GroundItems.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { driveUntil, settleScene } from '../../exec/prompts.js';
-import { RAILINGS } from './areas.js';
+import { MC_OBJ, MC_TILE, RAILINGS } from './areas.js';
 
 const WALK = { attempts: 3, timeoutMs: 180_000 } as const;
 
@@ -56,4 +58,53 @@ export async function fixRailings(log: (m: string) => void): Promise<boolean> {
         await Execution.delayTicks(1);
     }
     return true;
+}
+
+// Why: the tower is not an underground crossing, so `crossHops` never fires for it — `needsHop` is a z >= 5000 test.
+// Why: the landing is the player's own tile one level up, as `~climb_ladder` passes `movecoord(coord(), 0, 1, 0)`, and the tile directly above each ladder loc is blocked by the ladder.
+
+/** Climb one ladder from a stand beside it and wait for the level to change. */
+async function climb(stand: Tile, op: string, toLevel: number, log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(stand, 1, log))) {
+        return false;
+    }
+    await settleScene();
+    const ladder = Locs.query().name('Ladder').action(op).within(4).nearest();
+    if (!ladder) {
+        log(`no Ladder offering '${op}' at (${stand.x},${stand.z},${stand.level})`);
+        return false;
+    }
+    if (!(await ladder.interact(op))) {
+        return false;
+    }
+    return Execution.delayUntil(() => Game.tile()?.level === toLevel, 8000);
+}
+
+/**
+ * Climb the Black Guard watchtower and take the dwarf remains from its top floor.
+ * @see Server content mcannon_ladders.rs2
+ */
+export async function fetchRemains(log: (m: string) => void): Promise<boolean> {
+    if (Inventory.contains(MC_OBJ.REMAINS.name)) {
+        return true;
+    }
+    if ((Game.tile()?.level ?? 0) === 0 && !(await climb(MC_TILE.TOWER_LADDER, 'Climb-up', 1, log))) {
+        return false;
+    }
+    if ((Game.tile()?.level ?? 0) === 1 && !(await climb(MC_TILE.TOWER_L1_LADDER, 'Climb-up', 2, log))) {
+        return false;
+    }
+    if (!(await walkTo(MC_TILE.REMAINS, 2, log))) {
+        return false;
+    }
+    await settleScene();
+    const drop = GroundItems.query().name(MC_OBJ.REMAINS.name).within(8).nearest();
+    if (!drop) {
+        log('no Dwarf remains on the tower floor');
+        return false;
+    }
+    if (!(await drop.interact('Take'))) {
+        return false;
+    }
+    return Execution.delayUntil(() => Inventory.contains(MC_OBJ.REMAINS.name), 8000);
 }

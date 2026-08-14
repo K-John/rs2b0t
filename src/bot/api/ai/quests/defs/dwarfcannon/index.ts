@@ -3,7 +3,7 @@ import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
 import { CAVE_HOPS, COMMANDER, FALADOR_WEST_BANK, MC_FOOD_TARGET, MC_OBJ, NULODION } from './areas.js';
 import { MC_FLAG, MC_STAGE, readDwarfCannonProgress } from './journal.js';
-import { fixRailings } from './repair.js';
+import { fetchRemains, fixRailings } from './repair.js';
 
 export { MCANNON_QUEST, MC_FLAG, MC_STAGE, parseDwarfCannonJournal, readDwarfCannonProgress } from './journal.js';
 export { CANNON_PARTS, MC_OBJ, MC_TILE, RAILINGS } from './areas.js';
@@ -41,7 +41,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === MC_STAGE.GUARD_TOWER) {
         return heldId(snap, MC_OBJ.REMAINS.id) > 0
             ? { kind: 'talk', stop: COMMANDER }
-            : todo('the watchtower climb');
+            : custom('take the dwarf remains from the watchtower', fetchRemains);
     }
     if (stage === MC_STAGE.GOBLIN_CAVE || stage === MC_STAGE.FIND_CHILD) {
         return todo('the goblin cave');

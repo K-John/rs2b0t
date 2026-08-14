@@ -115,6 +115,19 @@ describe('railings', () => {
     });
 });
 
+describe('watchtower', () => {
+    test('stage 2 without the remains climbs the tower', () => {
+        const step = decide(snap({ stage: MC_STAGE.GUARD_TOWER }));
+        expect(step.kind).toBe('custom');
+        expect(step.kind === 'custom' && step.name).toContain('watchtower');
+    });
+
+    test('the remains outrank a journal that has not caught up', () => {
+        const step = decide(snap({ stage: MC_STAGE.GUARD_TOWER, invIds: [MC_OBJ.REMAINS.id] }));
+        expect(step.kind).toBe('talk');
+    });
+});
+
 describe('dwarfcannon module', () => {
     test('is registered', () => {
         expect(defById('mcannon')).toBe(dwarfcannon);
