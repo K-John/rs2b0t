@@ -27,6 +27,28 @@ const WALK_MS = 120_000;
 const FOUND_HALF = /you find half a shield/i;
 const CHEST_EMPTY = /the chest is empty/i;
 
+/** The bookcase answers Check with a player line and a mesbox before the book lands, which no item-count wait survives on its own. */
+export async function takeBook(log: (m: string) => void): Promise<boolean> {
+    if (Inventory.countById(SOA_ID.BOOK) > 0) {
+        return true;
+    }
+    const took = await promptLoc({
+        name: 'Bookcase',
+        op: 'Check',
+        near: SOA_TILE.BOOKCASE,
+        id: SOA_LOC.BOOKCASE,
+        within: 6,
+        expect: () => Inventory.countById(SOA_ID.BOOK) > 0,
+        expectMs: 15_000
+    }, log);
+    await Modals.close();
+    if (!took && Inventory.countById(SOA_ID.BOOK) === 0) {
+        log('the quest bookcase gave up no book');
+        return false;
+    }
+    return true;
+}
+
 export async function readBook(log: (m: string) => void): Promise<boolean> {
     const book = liveItem(SOA_ID.BOOK);
     if (!book) {
@@ -147,13 +169,7 @@ export function phoenixStep(snap: QuestSnapshot): QuestStep {
                 return { kind: 'custom', name: 'read The Shield of Arrav', run: readBook };
             }
             // Why: nine other Bookcase locs stand within four tiles, and only this one carries Check.
-            return {
-                kind: 'pickLoc',
-                loc: 'Bookcase',
-                op: 'Check',
-                item: 'Book',
-                anchor: SOA_TILE.BOOKCASE
-            };
+            return { kind: 'custom', name: 'check the palace bookcase', run: takeBook };
 
         case SOA_STAGE.READ_BOOK:
             return { kind: 'talk', stop: RELDO };

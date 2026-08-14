@@ -31,8 +31,8 @@ describe('phoenix leg', () => {
         expect(phoenixStep(at(SOA_STAGE.NOT_STARTED))).toMatchObject({ kind: 'talk', stop: { npc: 'Reldo' } });
     });
 
-    test('the book is checked out of the bookcase', () => {
-        expect(phoenixStep(at(SOA_STAGE.TOLD_OF_BOOK))).toMatchObject({ kind: 'pickLoc', loc: 'Bookcase', op: 'Check' });
+    test('the book is checked out of the quest bookcase', () => {
+        expect(phoenixStep(at(SOA_STAGE.TOLD_OF_BOOK))).toMatchObject({ kind: 'custom' });
     });
 
     test('a held book is read rather than re-taken', () => {
