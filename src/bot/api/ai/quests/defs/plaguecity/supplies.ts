@@ -19,6 +19,12 @@ export function withdrawFrom(items: { name: string; id: number; qty: number }[])
     return { kind: 'withdraw', items, bank: PC_TILE.BANK };
 }
 
+// Why: one bank inventory serves every booth, and the shopping float is asked for beside
+// the snape grass spawns, five hundred tiles from the Ardougne booth this quest banks at.
+function withdrawAnywhere(items: { name: string; id: number; qty: number }[]): QuestStep {
+    return { kind: 'withdraw', items };
+}
+
 export function scanBank(): QuestStep {
     return { kind: 'scanBank', bank: PC_TILE.BANK };
 }
@@ -53,7 +59,7 @@ function sourcePurse(snap: QuestSnapshot, want: number): QuestStep | null {
     if (available <= 0) {
         return { kind: 'wait', reason: 'no coins banked for the rope, pestle and chocolate bar' };
     }
-    return withdrawFrom([{ name: PC_ITEM.COINS.name, id: PC_ITEM.COINS.id, qty: Math.min(want, available) }]);
+    return withdrawAnywhere([{ name: PC_ITEM.COINS.name, id: PC_ITEM.COINS.id, qty: Math.min(want, available) }]);
 }
 
 /** Bank first, then the shop with a purse withdrawn ahead of the trip. */
