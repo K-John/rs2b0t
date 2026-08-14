@@ -126,6 +126,10 @@ HEADED=1 bun e2e/plague-city-243-live.ts --stage 10 --until 23 --minutes 40  # W
 HEADED=1 bun e2e/plague-city-243-live.ts --stage 26 --until 29 --minutes 40  # cure, warrant, rescue
 ```
 
+Measured at the default `--tick 300`: stage 0 to 3 in 4 minutes, 7 to 10 in 3, and
+20 to 23 in 2. The cure block from stage 26 is the long one — a cow, the snape grass
+beach, Taverley and Port Sarim.
+
 The bank holds coins and food and nothing else. The spade and the picture sit on
 Edmond's floor, the buckets and berries are ground spawns, the rope comes from
 Aemad and the cure ingredients from Wydin, Jatix, a cow and the snape grass spawns
