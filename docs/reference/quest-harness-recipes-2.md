@@ -139,7 +139,8 @@ HEADED=1 bun e2e/piratestreasure-231-live.ts --stage 1 --employed 3 --crate-rum 
 
 Measured at `--tick 300`, no parks: **9 minutes** from a clean account to quest
 complete. Per leg — stage 0 to the start 1 min, the smuggle 5 min, chest to dig 4 min,
-the dig alone 2 min, and the re-smuggle of `--employed 3 --crate-rum 1` 6 min.
+the dig alone 2 min, and each recovery path — `--employed 3 --crate-rum 1` and
+`--employed 2 --crate-rum 0` — 6 min.
 
 Three details govern this harness:
 
