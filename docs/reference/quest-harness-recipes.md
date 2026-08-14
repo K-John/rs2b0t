@@ -24,7 +24,7 @@ four components and `2031` for both.
 | `--stage 3 --multi 2016 --until 5` | The goblin cave, the crate, the mud-pile exit | **PASS** (3min) |
 | `--stage 5 --multi 2016 --until 9` | The tool kit, the shed door, the repair menu | **PASS** (7min) |
 | `--stage 9 --multi 2031 --until 11` | Nulodion, and the hand-back | **PASS** (4min) |
-| `--stage 4 --multi 2016 --at 2620,9797,0` | Resuming from inside the cave | not run yet |
+| `--stage 4 --multi 2016 --at 2620,9797,0` | Resuming from inside the cave | **PASS** (12min, QP 0→1) |
 | `--stage 0` | Start to finish | **PASS** (17min, QP 0→1) |
 
 ## Elemental Workshop — harness recipes and combat floor search
