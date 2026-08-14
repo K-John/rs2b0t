@@ -236,7 +236,10 @@ export const QUESTS: QuestRecord[] = [
     {
         id: 'cog', name: 'Clock Tower', questPoints: 1,
         requirements: {},
-        items: []
+        // Why: the black cog is red hot and ice gloves are behind Heroes' Quest, so a bucket of water is the only way to lift it.
+        items: [
+            { name: 'Bucket of water', qty: 1, kind: 'acquirable' }
+        ]
     },
     {
         id: 'crest', name: 'Family Crest', questPoints: 1,
