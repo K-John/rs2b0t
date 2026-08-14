@@ -136,7 +136,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 75,
-        documentedIn: 'docs/reference/quest-harness-recipes.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-2.md'
     },
     {
         id: 'fight-arena-233-live',
@@ -254,7 +254,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 90,
-        documentedIn: 'docs/reference/quest-harness-recipes-2.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-3.md'
     },
     {
         id: 'knights-sword-228-live',
