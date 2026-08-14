@@ -221,10 +221,15 @@ export async function enterBlackArmUpper(log: (m: string) => void): Promise<bool
 }
 
 export async function leaveBlackArmUpper(log: (m: string) => void): Promise<boolean> {
-    if (!inBlackArmUpper(Game.tile())) {
+    if (inBlackArmUpper(Game.tile())
+        && !(await climb(SOA_LOC.BLACKARM_STAIRS_TOP, 'Climb-down', SOA_TILE.BLACKARM_STAIRS_TOP, SOA_TILE.BLACKARM_STAIRS, log))) {
+        return false;
+    }
+    // Why: the stairs sit in a pocket the gang door seals, and that door is out of the nav graph — climbing down alone strands the character with the half, and every route out reads unreachable.
+    if (!inBlackArmInner(Game.tile())) {
         return true;
     }
-    return climb(SOA_LOC.BLACKARM_STAIRS_TOP, 'Climb-down', SOA_TILE.BLACKARM_STAIRS_TOP, SOA_TILE.BLACKARM_STAIRS, log);
+    return crossDoor(SOA_LOC.BLACKARM_DOOR, SOA_TILE.BLACKARM_DOOR_INNER, t => t !== null && t.level === 0 && !inBlackArmInner(t), log);
 }
 
 export async function leaveWeaponStore(log: (m: string) => void): Promise<boolean> {
