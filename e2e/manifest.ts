@@ -332,6 +332,12 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'naturespirit-239-live',
+        harness: 'naturespirit-239-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'unvetted'
+    },
+    {
         id: 'nav-path-paint-live',
         harness: 'nav-path-paint-live.ts',
         covers: { subsystems: ['nav'] },
