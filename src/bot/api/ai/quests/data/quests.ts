@@ -236,10 +236,8 @@ export const QUESTS: QuestRecord[] = [
     {
         id: 'cog', name: 'Clock Tower', questPoints: 1,
         requirements: {},
-        // Why: the black cog is red hot and ice gloves are behind Heroes' Quest, so a bucket of water is the only way to lift it.
-        items: [
-            { name: 'Bucket of water', qty: 1, kind: 'acquirable' }
-        ]
+        // Why: the bucket of water that cools the black cog is a quest-internal consumable, so the module fetches it on the leg that needs it rather than the provisioner fetching one on every resume.
+        items: []
     },
     {
         id: 'crest', name: 'Family Crest', questPoints: 1,

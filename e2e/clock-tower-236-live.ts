@@ -229,8 +229,17 @@ try {
     const deadline = Date.now() + args.minutes * 60_000;
     let lastLogTime = 0;
     let reached = 0;
+    let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
+        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without Clock Tower in it spends the budget on somebody else's quest.
+        const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
+        if (!queueChecked && queue) {
+            queueChecked = true;
+            if (!queue.msg.includes(QUEST)) {
+                fail(`the loaded bundle has no ${QUEST} — another session redeployed over it (${queue.msg})`);
+            }
+        }
         const cogquest = (await getServerVarQuiet(page, 'cogquest')) ?? 0;
         const placed = placedCount(cogquest);
         reached = Math.max(reached, placed);

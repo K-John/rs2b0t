@@ -21,7 +21,9 @@ HEADED=1 bun e2e/clock-tower-236-live.ts --stage 3 --until 4 --minutes 25 --tick
 The bank holds coins and food alone. The bucket, its water and the rat poison
 all have sources in the world, and seeding one hides whether the bot finds it.
 
-Three details govern this harness:
+Measured end to end at `--tick 200`: **6 minutes** from a clean account.
+
+Four details govern this harness:
 
 - **The two varps have to move together.** `%cogquest` bits 0-3 carry the step
   and `%cog_bits` carries which spindles are filled, so setting one alone leaves
@@ -33,6 +35,9 @@ Three details govern this harness:
   the leg.
 - **`--until 5` waits for the quest list to go green**, not for the varp: the
   recolour and the quest point land a tick behind `%cogquest`.
+- **It fails in the first minute if the loaded bundle has no Clock Tower in its
+  queue.** The engine serves one `public/bot`, and a concurrent session that
+  deploys while this harness boots hands the run their branch instead.
 
 ## Dwarf Cannon — stage-scoped harness
 

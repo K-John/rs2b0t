@@ -46,6 +46,7 @@ interface SnapshotOptions {
     inv?: string[];
     invIds?: number[];
     bank?: string[];
+    bankKnown?: boolean;
     progress?: QuestProgress | undefined;
 }
 
@@ -82,7 +83,7 @@ function snap(options: SnapshotOptions = {}): QuestSnapshot {
         stage: progress?.stage,
         progress,
         bank: counts(options.bank ?? []),
-        bankKnown: true,
+        bankKnown: options.bankKnown ?? true,
         freeSlots: 28
     };
 }
@@ -184,11 +185,22 @@ describe('Clock Tower decide', () => {
         });
     });
 
-    test('fetches a bucket when it has none at all', () => {
+    test('fetches a bucket from the ground when the bank has been read and holds none', () => {
         const step = decide(snap({}));
 
         expect(step.kind).toBe('grabGround');
         expect(step.kind === 'grabGround' && step.item).toBe('Bucket');
+    });
+
+    test('takes the banked bucket rather than the single ground spawn', () => {
+        const step = decide(snap({ bank: ['Bucket'] }));
+
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' && step.items[0].name).toBe('Bucket');
+    });
+
+    test('reads the bank before believing it has no bucket', () => {
+        expect(decide(snap({ bankKnown: false })).kind).toBe('scanBank');
     });
 
     test('fetches the black cog once the water is carried', () => {
@@ -211,9 +223,8 @@ describe('Clock Tower decide', () => {
 });
 
 describe('Clock Tower module', () => {
-    test('carries the bucket of water as a provisioned item with a gather', () => {
-        expect(clocktower.record.items.some(i => i.name === 'Bucket of water')).toBe(true);
-        expect(clocktower.gather?.['bucket of water']).toBeDefined();
+    test('leaves the bucket off the record, so a resume past the black cog fetches no water', () => {
+        expect(clocktower.record.items).toEqual([]);
     });
 
     test('keeps every cog and the poison off the deposit list', () => {
@@ -222,11 +233,9 @@ describe('Clock Tower module', () => {
         }
     });
 
-    test('names a ladder hop out of each sealed cog room', () => {
+    test('hops name the cellar ladder alone, since a sealed room is nearer than it from most of the dungeon', () => {
         const stands = (clocktower.hops ?? []).map(h => `${h.stand.x},${h.stand.z}`);
 
-        expect(stands).toContain('2575,9656');
-        expect(stands).toContain('2572,9632');
-        expect(stands).toContain('2566,9643');
+        expect(stands.sort()).toEqual(['2566,3243', '2566,9643']);
     });
 });
