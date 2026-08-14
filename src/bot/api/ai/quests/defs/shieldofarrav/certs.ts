@@ -20,7 +20,7 @@ export function certsHeld(snap: QuestSnapshot): number {
 }
 
 export function certsBanked(snap: QuestSnapshot): number {
-    return snap.bankKnown ? bankedId(snap, SOA_ID.CERTIFICATE) : 0;
+    return bankedId(snap, SOA_ID.CERTIFICATE);
 }
 
 /** Both halves in one pack, the only thing the curator answers to; runs before any handoff. */

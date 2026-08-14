@@ -14,7 +14,7 @@ import { promptLoc, settleScene, useOnLoc } from '../../exec/prompts.js';
 import { KATRINE_HANDIN, KATRINE_JOIN, SOA_ID, SOA_LOC, SOA_TILE, TRAMP, inWeaponStore } from './areas.js';
 import { climb, enterBlackArmUpper, leaveBlackArmUpper, leaveWeaponStore, openContainer } from './hideout.js';
 import { SOA_STAGE } from './journal.js';
-import { heldId, modalSaid } from './state.js';
+import { bankedId, heldId, modalSaid } from './state.js';
 
 const WEAPONSMASTER_NPC = 643;
 const KILL_MS = 90_000;
@@ -188,6 +188,10 @@ export function blackarmStep(snap: QuestSnapshot): QuestStep {
             }
             if (heldId(snap, SOA_ID.STORE_KEY) > 0) {
                 return { kind: 'custom', name: 'steal two crossbows from the weapon store', run: raidWeaponStore };
+            }
+            // Why: a key traded over on an earlier run gets banked with everything else, and an unread bank is not an empty one.
+            if (bankedId(snap, SOA_ID.STORE_KEY) > 0) {
+                return { kind: 'withdraw', items: [{ name: 'Key', qty: 1, id: SOA_ID.STORE_KEY }] };
             }
             // Why: the store door yields only to phoenixkey2, which only Straven issues, so a keyless bot has to be given one.
             return { kind: 'wait', reason: 'needs a Phoenix weapon-store key from a partner' };

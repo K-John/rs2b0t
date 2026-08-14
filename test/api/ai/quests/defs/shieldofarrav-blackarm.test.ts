@@ -7,7 +7,13 @@ import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
 const ALLEY = { x: 3208, z: 3391, level: 0 };
 
-function at(stage: number, flags: string[] = [], ids: [number, number][] = []): QuestSnapshot {
+function at(
+    stage: number,
+    flags: string[] = [],
+    ids: [number, number][] = [],
+    bankIds: [number, number][] = [],
+    bankKnown = true
+): QuestSnapshot {
     return {
         journal: 'inProgress',
         inv: new Map(),
@@ -17,8 +23,8 @@ function at(stage: number, flags: string[] = [], ids: [number, number][] = []): 
         noProgress: 0,
         bankCoins: 2_000_000,
         bank: new Map(),
-        bankIds: new Map(),
-        bankKnown: true,
+        bankIds: new Map(bankIds),
+        bankKnown,
         tile: ALLEY as QuestSnapshot['tile'],
         freeSlots: 20,
         stage,
@@ -39,6 +45,22 @@ describe('black arm leg', () => {
         const step = blackarmStep(at(SOA_STAGE.KATRINE_TASK));
         expect(step.kind).toBe('wait');
         expect((step as { reason: string }).reason).toContain('key');
+    });
+
+    test('a banked key is withdrawn rather than waited on', () => {
+        const step = blackarmStep(at(SOA_STAGE.KATRINE_TASK, [], [], [[SOA_ID.STORE_KEY, 1]]));
+        expect(step).toMatchObject({ kind: 'withdraw' });
+        expect((step as { items: { id: number }[] }).items[0].id).toBe(SOA_ID.STORE_KEY);
+    });
+
+    test('an unread bank does not count as a banked key', () => {
+        const step = blackarmStep(at(SOA_STAGE.KATRINE_TASK, [], [], [[SOA_ID.STORE_KEY, 1]], false));
+        expect(step.kind).toBe('wait');
+    });
+
+    test('a held key outranks a banked one', () => {
+        const step = blackarmStep(at(SOA_STAGE.KATRINE_TASK, [], [[SOA_ID.STORE_KEY, 1]], [[SOA_ID.STORE_KEY, 1]]));
+        expect(step).toMatchObject({ kind: 'custom' });
     });
 
     test('with the store key the weapon store is raided', () => {
