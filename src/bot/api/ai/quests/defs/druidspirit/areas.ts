@@ -99,6 +99,7 @@ export const NS_TILE = {
     GHAST_HUNT: new Tile(3424, 3337, 0),
     URHNEY: new Tile(3235, 3154, 0),
     DOMMIK: new Tile(3322, 3194, 0),
+    BOB: new Tile(3232, 3203, 0),
     // Why: the Al Kharid furnace is `forceapproach=east`, which its rotation puts to the south, so this is the stand rather than the loc tile.
     FURNACE: new Tile(3272, 3183, 0),
     SILVER_ROCKS: new Tile(3294, 3301, 0),
@@ -145,6 +146,7 @@ export const NATURE_SPIRIT: NpcStop = {
 };
 
 export const DOMMIK = { npc: 'Dommik', anchor: NS_TILE.DOMMIK };
+export const BOB = { npc: 'Bob', anchor: NS_TILE.BOB };
 
 interface Pos {
     x: number;

@@ -6,7 +6,7 @@ import { Skills } from '../../../../skills/Skills.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { pickaxeAt } from '../knightssword/supplies.js';
-import { DOMMIK, NS_ID, NS_LOC, NS_NAME, NS_TILE, URHNEY } from './areas.js';
+import { BOB, DOMMIK, NS_ID, NS_LOC, NS_NAME, NS_TILE, URHNEY } from './areas.js';
 
 /** Kept through any deposit this quest issues. */
 export const NS_TOOLS: readonly string[] = [
@@ -75,6 +75,18 @@ async function castSickle(log: (m: string) => void): Promise<boolean> {
     return atFurnace(log, NS_NAME.SICKLE, () => Inventory.countById(NS_ID.SICKLE) > 0);
 }
 
+// Why: the shared helper's last resort is the bronze pickaxe ground spawn at Rimmington, 360 tiles the wrong side of Al Kharid.
+// Why: Bob stocks five of them 70 tiles from the mine, and this quest carries coin for the mould anyway.
+
+/** A pickaxe, bank first, then Bob's counter in Lumbridge. */
+function pickaxe(snap: QuestSnapshot, miningLevel: number): QuestStep | null {
+    const step = pickaxeAt(snap, miningLevel);
+    if (!step || step.kind !== 'grabGround') {
+        return step;
+    }
+    return { kind: 'buy', item: 'Bronze pickaxe', qty: 1, shop: BOB, estGp: 500 };
+}
+
 /** Bank first, then Al Kharid: mould, ore, bar, cast. Null once a sickle is in hand. */
 export function sickleStep(snap: QuestSnapshot, miningLevel?: number): QuestStep | null {
     if (heldId(snap, NS_ID.SICKLE_BLESSED) > 0 || heldId(snap, NS_ID.SICKLE) > 0) {
@@ -109,6 +121,6 @@ export function sickleStep(snap: QuestSnapshot, miningLevel?: number): QuestStep
         return withdraw(NS_NAME.SILVER_ORE, NS_ID.SILVER_ORE);
     }
     // Why: mining without a pickaxe raises no refusal at all — the rock does not answer — so the tool is sourced before the rocks are walked to.
-    return pickaxeAt(snap, miningLevel ?? Skills.level('mining'))
+    return pickaxe(snap, miningLevel ?? Skills.level('mining'))
         ?? { kind: 'mineRock', rock: 'Silver', item: NS_NAME.SILVER_ORE, qty: 1, anchor: NS_TILE.SILVER_ROCKS };
 }

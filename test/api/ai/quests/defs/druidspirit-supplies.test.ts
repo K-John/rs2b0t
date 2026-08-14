@@ -85,9 +85,16 @@ describe('nature spirit sickle chain', () => {
             .toEqual({ kind: 'withdraw', items: [{ name: 'Sickle mould', qty: 1, id: NS_ID.MOULD }] });
     });
 
-    test('a mould and no silver sources a pickaxe first', () => {
+    test('a mould and no silver buys a pickaxe from Bob rather than walking to Rimmington', () => {
         const step = sickleStep(snap({ invIds: [[NS_ID.MOULD, 1]] }), MAX_MINING);
-        expect(step?.kind).toBe('grabGround');
+        expect(step?.kind).toBe('buy');
+        expect(step?.kind === 'buy' && step.shop.npc).toBe('Bob');
+        expect(step?.kind === 'buy' && step.item).toBe('Bronze pickaxe');
+    });
+
+    test('a banked pickaxe beats buying one', () => {
+        const step = sickleStep(snap({ invIds: [[NS_ID.MOULD, 1]], bankIds: [[BRONZE_PICKAXE, 1]] }), MAX_MINING);
+        expect(step?.kind).toBe('withdraw');
     });
 
     test('a mould and a pickaxe mine silver', () => {
