@@ -199,8 +199,8 @@ try {
     console.log(`seeding ${BANK_SEED.length} item type(s) into the Varrock West bank`);
     await seedItemsToBank(page, BANK_SEED, VARROCK_WEST_BANK);
 
-    // Why: a Black Arm account past the Tramp needs a weapon-store key it has no way to obtain alone — only Straven issues one, and joining Phoenix makes Katrine refuse you.
-    if (args.gang === 'blackarm' && args.blackarm >= 2) {
+    // Why: a Black Arm account needs a weapon-store key it has no way to obtain alone — only Straven issues one, and joining Phoenix makes Katrine refuse you.
+    if (args.gang === 'blackarm') {
         await cheatQuiet(page, 'givebank phoenixkey2 1');
         console.log('SEEDED: phoenixkey2 — a lone Black Arm account cannot source one, so this stage is not self-sufficient');
     }
