@@ -93,16 +93,17 @@ function partnerNear(): { index: number } | null {
 
 export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m: string) => void): Promise<boolean> {
     const want = itemFor(handoff, gang);
-    // Why: an item already moved into the offer is gone from the pack view, so a count taken while the window is open reads a give as done before the partner has confirmed.
-    if (Trade.active()) {
-        await Trade.decline();
-        await Execution.delayUntil(() => !Trade.active(), SCREEN_MS);
-    }
-    const before = Inventory.countById(want.id);
-    const landed = (): boolean =>
-        want.giving ? Inventory.countById(want.id) < before : Inventory.countById(want.id) > before;
+    // Why: the tests are absolute rather than a before/after delta, because a leg that restarts mid-handshake would otherwise need a baseline it cannot take — and taking one by declining the open window kills the partner's trade.
+    // Why: an item already moved into the offer is gone from the pack view, so a give is only believed once the window is shut and the pack reads back.
+    const packReadable = (): boolean => Inventory.used() > 0;
+    const landed = (): boolean => want.giving
+        ? !Trade.active() && packReadable() && Inventory.countById(want.id) === 0
+        : Inventory.countById(want.id) > 0;
 
-    if (want.giving && before === 0) {
+    if (landed()) {
+        return true;
+    }
+    if (want.giving && Inventory.countById(want.id) === 0 && !Trade.active()) {
         log(`nothing to give: no ${want.name} (${want.id}) in the pack`);
         return false;
     }

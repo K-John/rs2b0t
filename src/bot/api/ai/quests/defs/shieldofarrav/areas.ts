@@ -172,7 +172,7 @@ export function inWeaponStore(t: WorldTile | null | undefined): boolean {
     return within(t, 3240, 3256, 3378, 3392, 1);
 }
 
-// Why: a flood over the pack puts this pocket at exactly ten tiles, and `phoenixdoor2` is its only way in or out.
+// Why: a flood over the pack puts this pocket at ten tiles, and `phoenixdoor2` is its only way in or out.
 /** The weapon store's ground floor, which the store door seals. */
 export function inStoreGround(t: WorldTile | null | undefined): boolean {
     return within(t, 3250, 3252, 3382, 3385, 0);
