@@ -491,6 +491,23 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'shield-of-arrav-232-live',
+        harness: 'shield-of-arrav-232-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 45,
+        note: 'one gang side only — a lone account cannot redeem, so this never turns the journal green'
+    },
+    {
+        id: 'shield-of-arrav-pair-232-live',
+        harness: 'shield-of-arrav-pair-232-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 90,
+        manual: true,
+        note: 'two accounts trading certificates; the only run that completes the quest'
+    },
+    {
         id: 'shilo-solo-test',
         harness: 'shilo-solo-test.ts',
         covers: { scripts: ['AIOQuester'] },
