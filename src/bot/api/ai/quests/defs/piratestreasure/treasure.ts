@@ -126,6 +126,11 @@ export async function digTreasure(log: (m: string) => void): Promise<boolean> {
         }
         await settleScene();
         await clearGardener(log);
+        // Why: the attack walks the character to the gardener, and `spade.rs2` fires only within one tile of the X — digging where the fight ended answers "Nothing interesting happens." and the retry kills and walks away again.
+        if (!(await Traversal.walkResilient(PT_TILE.DIG_SITE, { radius: 0, attempts: 3, timeoutMs: 60_000, log }))) {
+            log('could not get back onto the dig tile after the gardener');
+            continue;
+        }
         const spade = Inventory.items().find(item => item.id === PT_ID.SPADE);
         if (!spade) {
             return false;

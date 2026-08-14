@@ -11,6 +11,12 @@ Pirate's Treasure added five, and the first three are not quest facts:
   exceeds ten and there is no moment to wait for. Killing him is the only route, and
   the dig has to land inside his fifty-tick respawn. Read the spawn offset against
   `maxrange` before assuming patience is a strategy.
+- **Clearing a blocker moves you off the tile the action needs.** The attack that
+  removes the gardener walks the character to him, and `spade.rs2` fires only within
+  one tile of the X, so the dig that follows answers "Nothing interesting happens." —
+  and the retry kills the respawn and walks away again, a loop that never converges.
+  It only looked fine on the first run because the gardener happened to be out of
+  range. Anything that fights before acting has to walk back before it acts.
 - **Same-named locs are the rule, and `nearest()` picks the wrong one.** Four ordinary
   crates answer `Search` within six tiles of Wydin's grocery crate, and three more
   stand beside the Blue Moon chest, so `Locs.query().name('Crate')` searches an empty
