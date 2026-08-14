@@ -50,10 +50,10 @@ export const CASES: readonly Case[] = [
         id: 'clock-tower-236-live',
         harness: 'clock-tower-236-live.ts',
         covers: { scripts: ['AIOQuester'] },
-        status: 'documented',
+        status: 'vetted',
         budgetMin: 60,
-        documentedIn: 'docs/reference/quest-harness-recipes.md',
-        note: 'Clock Tower start to finish; --stage counts placed cogs'
+        provenAt: 'ae6a6bc5',
+        note: 'Clock Tower start to finish in 6 minutes at --tick 200; --stage counts placed cogs'
     },
     {
         id: 'coaltrucks-test',
