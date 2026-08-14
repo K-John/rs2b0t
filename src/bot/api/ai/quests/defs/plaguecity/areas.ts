@@ -90,7 +90,7 @@ export const PC_TILE = {
     REHNISON_TOP: new Tile(2527, 3331, 1),
     MILLI: new Tile(2530, 3331, 1),
     PLAGUE_DOOR: new Tile(2533, 3273, 0),
-    CLERK: new Tile(2529, 3316, 0),
+    CLERK: new Tile(2529, 3317, 0),
     BRAVEK_DOOR: new Tile(2529, 3314, 0),
     BRAVEK: new Tile(2535, 3314, 0),
     BARREL: new Tile(2535, 3269, 0),
