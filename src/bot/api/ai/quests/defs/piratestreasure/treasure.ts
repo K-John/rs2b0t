@@ -7,7 +7,7 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { driveChoice, promptLoc, settleScene, useOnLoc } from '../../exec/prompts.js';
-import { PT_ID, PT_TILE } from './areas.js';
+import { PT_ID, PT_LOC, PT_TILE } from './areas.js';
 
 const held = (id: number): number => Inventory.countById(id);
 
@@ -25,6 +25,7 @@ export async function collectRum(log: (m: string) => void): Promise<boolean> {
         op: 'Search',
         near: PT_TILE.GROCERY_CRATE,
         within: 6,
+        id: PT_LOC.GROCERY_CRATE,
         prefer: ['No'],
         expect: () => held(PT_ID.RUM) > 0,
         expectMs: 15_000
@@ -52,7 +53,7 @@ export async function openChest(log: (m: string) => void): Promise<boolean> {
     await Sustain.run();
     return useOnLoc(
         PT_ID.CHEST_KEY,
-        { name: 'Chest', near: PT_TILE.PIRATE_CHEST, within: 6 },
+        { name: 'Chest', near: PT_TILE.PIRATE_CHEST, within: 6, id: PT_LOC.PIRATE_CHEST },
         [],
         () => held(PT_ID.PIRATE_MESSAGE) > 0,
         log

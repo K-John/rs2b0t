@@ -36,6 +36,13 @@ export const PT_NAME = {
     BANANA: 'Banana'
 } as const;
 
+// Why: ordinary `crate` and `crate3` also render "Crate" with op1=Search, and four of them stand within six tiles of Wydin's grocery crate — the nearest is rarely the one the quest means.
+export const PT_LOC = {
+    GROCERY_CRATE: 2071,
+    BANANA_CRATE: 2072,
+    PIRATE_CHEST: 2079
+} as const;
+
 export const PT_TILE = {
     DRAYNOR_BANK: new Tile(3093, 3243, 0),
     FRANK: new Tile(3053, 3250, 0),

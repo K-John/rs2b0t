@@ -5,7 +5,7 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { settleScene, useOnLoc } from '../../exec/prompts.js';
-import { LUTHAS, PT_ID, PT_TILE } from './areas.js';
+import { LUTHAS, PT_ID, PT_LOC, PT_TILE } from './areas.js';
 import { CRATE_FULL, searchBananaCrate } from './crate.js';
 
 const KARAMJA_BOX = { minX: 2870, maxX: 2970, minZ: 3110, maxZ: 3210 };
@@ -35,7 +35,7 @@ async function stashRum(log: (m: string) => void): Promise<boolean> {
     }
     return useOnLoc(
         PT_ID.RUM,
-        { name: 'Crate', near: PT_TILE.BANANA_CRATE, within: 6 },
+        { name: 'Crate', near: PT_TILE.BANANA_CRATE, within: 6, id: PT_LOC.BANANA_CRATE },
         [],
         () => held(PT_ID.RUM) === 0,
         log
@@ -98,7 +98,7 @@ async function fillCrate(log: (m: string) => void): Promise<boolean> {
             const before = held(PT_ID.BANANA);
             if (!(await useOnLoc(
                 PT_ID.BANANA,
-                { name: 'Crate', near: PT_TILE.BANANA_CRATE, within: 6 },
+                { name: 'Crate', near: PT_TILE.BANANA_CRATE, within: 6, id: PT_LOC.BANANA_CRATE },
                 [],
                 () => held(PT_ID.BANANA) < before,
                 log
