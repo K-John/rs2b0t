@@ -136,8 +136,12 @@ free-to-play wherever it is farmed.
 | `--food NAME` | Lobster | the AIO Quester's food setting |
 | `--no-deploy` | off | skip the build and copy |
 
-It deploys `navworker.js` as well as `botclient.js`. Refusing the arena's doors changed
-the transport graph, and a client-only deploy leaves the navigator on the old edges.
+It deploys **its own copy of the client** through `deployIsolatedClient`: everything in
+`out/` lands in `public/bot/<user>/`, and a generated `bot-<user>.html` points at it. Two
+runs on one engine no longer overwrite each other, and the copy is swept on exit. That
+also carries `navworker.js` and `collision.lcnav.gz`, both of which this quest needs —
+refusing the arena's doors changed the transport graph, and a client-only deploy leaves
+the navigator on the old edges.
 
 The bank seed is coins, food and a rune melee kit — `rune_chainbody` rather than
 `rune_platebody`, which wants Dragon Slayer. Nothing the quest can find in the world is

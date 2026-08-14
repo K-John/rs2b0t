@@ -42,11 +42,18 @@ Two more that are the engine rather than the quest:
   provisioned before it ever went in, and a death puts the account in Lumbridge where
   banking works, so this is a harness artefact — but it is three minutes of every
   mid-quest leg.
-- **The engine serves one bundle to every session on the machine.** A neighbouring
-  harness that deploys between this one's copy and the page load runs its own code under
-  this one's name, and the symptom is a quest queue full of quests you did not implement.
-  A harness that checks the bundle it loaded is the one it deployed turns twenty silent
-  minutes into a fifteen-second failure.
+- **The engine serves one bundle to every session on the machine.** `bot.html` hardcodes
+  `./bot/botclient.js`, and `navworker.js`, `ondemandworker.js` and `collision.lcnav.gz`
+  are all fetched relative to that URL, so every harness deploying into `public/bot/`
+  overwrites the others and the last writer decides what everyone runs. A neighbour that
+  deployed between this harness's copy and its page load ran its own branch under this
+  harness's name from one end of a leg to the other, and the symptom was a quest queue
+  full of quests this branch does not implement. Nothing about the game server is involved: it speaks the same
+  protocol to any client. `deployIsolatedClient` in
+  [`e2e/lib/harness.ts`](../../e2e/lib/harness.ts) gives each run `public/bot/<tag>/` and
+  a `bot-<tag>.html` that points at it, which removes the race instead of detecting it.
+  The page is still served by the engine, so the origin, the websocket and the on-demand
+  stream are unchanged.
 
 ## See also
 

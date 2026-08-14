@@ -3,12 +3,9 @@
 
 //   HEADED=1 bun e2e/fight-arena-233-live.ts --stage 0 --until 14 --minutes 120 --tick 150
 //   HEADED=1 bun e2e/fight-arena-233-live.ts --stage 9 --until 12 --minutes 45 --tick 150
-import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
-
 import type { Page } from 'playwright-core';
 
-import { launchBrowser } from './lib/harness.js';
+import { deployIsolatedClient, launchBrowser } from './lib/harness.js';
 import {
     cheatQuiet,
     clearChatDialogs,
@@ -130,30 +127,11 @@ async function snapshot(page: Page): Promise<Snapshot> {
     }, QUEST);
 }
 
-// Why: the arena's doors were dropped from the baked graph, so a client-only deploy leaves the navigator routing through walls it can no longer pass.
-
-/** A live run loads the deployed bundles, never the working tree. */
-function deployBundle(): void {
-    const engine = process.env.ENGINE_DIR ?? `${homedir()}/code/rs2b2t-engine`;
-    const botDir = `${engine}/public/bot`;
-    if (!existsSync(botDir)) {
-        fail(`deploy: ${botDir} not found — set ENGINE_DIR to the engine serving ${args.base}`);
-    }
-    const build = Bun.spawnSync(['bun', 'run', 'build:bot'], { stdout: 'pipe', stderr: 'pipe' });
-    if (build.exitCode !== 0) {
-        fail(`deploy: build:bot failed\n${build.stderr.toString()}`);
-    }
-    const copy = Bun.spawnSync(['sh', '-c',
-        `cp out/botclient.js out/botclient.js.map out/navworker.js out/navworker.js.map "${botDir}/"`]);
-    if (copy.exitCode !== 0) {
-        fail(`deploy: could not copy the bundles into ${botDir}`);
-    }
-    console.log(`deploy: fresh botclient.js + navworker.js -> ${botDir}`);
-}
-
-if (args.deploy) {
-    deployBundle();
-}
+// Why: this run gets its own copy of the client, so a neighbouring harness deploying mid-boot cannot decide which branch this one exercises.
+const client = args.deploy ? deployIsolatedClient(args.user) : null;
+const clientPage = client?.page ?? '/bot.html';
+// Why: a PASS leaves through `process.exit`, which skips `finally`, so the sweep hangs off the exit itself.
+process.on('exit', () => client?.cleanup());
 
 const browser = await launchBrowser({ swiftshader: true });
 try {
@@ -167,10 +145,10 @@ try {
         }
     });
 
-    await mainlandAccount(page, args.base, args.user);
+    await mainlandAccount(page, args.base, args.user, clientPage);
     console.log(`mainland-ready as '${args.user}'`);
 
-    // Why: the engine serves one bundle to every session, so a neighbouring harness that deploys between this one's copy and the page load runs its code under this one's name.
+    // Why: this should not fire now that the client is per-run, so if it ever does the isolation broke rather than a neighbour winning a race.
     const registered = await page.evaluate(() => {
         const g = globalThis as never as {
             rs2b0t: { registry: { get(n: string): { settingsSchema?: { quests?: { options?: string[] } } } | undefined } };
@@ -178,7 +156,7 @@ try {
         return (g.rs2b0t.registry.get('AIOQuester')?.settingsSchema?.quests?.options ?? []).includes('arena');
     });
     if (!registered) {
-        fail('the loaded bundle has no Fight Arena — another harness deployed over this one; re-run when the engine is yours');
+        fail(`the client at ${clientPage} has no Fight Arena — this run's deploy did not land`);
     }
 
     await cheatQuiet(page, `speed ${args.tickMs}`);
