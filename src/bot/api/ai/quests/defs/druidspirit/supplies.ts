@@ -56,7 +56,9 @@ async function atFurnace(
         return false;
     }
     await settleScene();
-    const furnace = Locs.query().name(NS_LOC.FURNACE).within(8).nearest();
+    // Why: the furnace is two locs and only one carries `op2=Smelt`, so the op-bearing half is preferred and the other is only a use-on target.
+    const furnace = Locs.query().name(NS_LOC.FURNACE).action('Smelt').within(8).nearest()
+        ?? Locs.query().name(NS_LOC.FURNACE).within(8).nearest();
     if (!furnace) {
         log('no Furnace in reach of the Al Kharid stand');
         return false;
