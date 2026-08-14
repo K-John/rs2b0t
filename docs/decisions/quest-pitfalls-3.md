@@ -142,6 +142,21 @@ Shield of Arrav added fourteen, and only the first two are quest facts:
   is `Curator`; every walkthrough calls him Curator Haig Halen, and a name that matches
   nothing makes `Reach` report a bare `retry` with no hint that the name is the problem.
 
+Three came from stockpiling, and none of them is reachable at the default target — one
+cycle hides every one of them, so the loop needs its own run:
+
+- **A predicate that reads where an item sits, rather than how many there are, makes two
+  branches undo each other.** "Minting is done" tested the split between pack and bank, so
+  banking the surplus flipped it true, the withdraw pulled the same pair straight back, and
+  the pair took turns every 1.2 seconds. This is the coin-float lesson again: a threshold
+  on a total is stable, a target on a location is not.
+- **A trade offers from the pack, so a stockpile in the bank is not offerable.** The bot
+  reached the hand-over holding zero and reported "nothing to give" while its own bank held
+  six. Whatever a handoff needs has to be withdrawn before the handoff decides.
+- **A flag where the work is a count stops the supplier after one unit.** Each shield half
+  buys the pair two certificates, so a boolean "I gave my half" left the supplier waiting
+  for a certificate while its partner waited for the second half.
+
 Four more came from the two-account trade, and they generalise to any partner handoff:
 
 - **The engine shuts the offer screen a tick before it opens the confirm.** A loop gated on
