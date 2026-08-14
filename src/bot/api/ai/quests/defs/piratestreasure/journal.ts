@@ -23,7 +23,7 @@ function readStage(text: string): number | undefined {
 }
 
 // Why: the page keeps every earlier line struck through, so an early needle still matches in a late state and this order is the only thing that separates them.
-// Why: `rum-lost` leads because the lost-rum page is reachable with the whole shipping history behind it.
+// Why: `rum-lost` leads because the lost-rum page is reachable with every shipping line already behind it.
 const SMUGGLE: readonly [string, string][] = [
     ['but i seem to have lost it', 'rum-lost'],
     ['i should take it to redbeard frank', 'rum-in-hand'],
