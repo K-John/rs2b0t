@@ -1,6 +1,7 @@
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
+import { Npcs } from '../../../../npcs/Npcs.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { driveChoice, heldId, settleScene } from '../../exec/prompts.js';
@@ -75,9 +76,24 @@ export async function askMilli(log: (m: string) => void): Promise<boolean> {
 export const askAboutClearance = (log: (m: string) => void): Promise<boolean> =>
     openDoor(PC_LOC.PLAGUE_DOOR, PC_TILE.PLAGUE_DOOR, MOURNER_PREFER, log);
 
-// Why: the clerk only calls Bravek in when the player is within 7 tiles of him, and every tile more than one west of the stand is 8.
-const askClerk = (log: (m: string) => void): Promise<boolean> =>
-    talkAt(PC_NPC.CLERK, PC_TILE.CLERK, CLERK_PREFER, log, 1);
+// Why: the clerk calls Bravek in only while the player is within 7 tiles of him, and
+// Bravek carries no wanderrange, so he drifts the default five tiles around his desk.
+const CLERK_LEASH = 7;
+
+async function askClerk(log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(PC_TILE.CLERK, 1, log))) {
+        return false;
+    }
+    const near = await Execution.delayUntil(() => {
+        const bravek = Npcs.query().name(PC_NPC.BRAVEK).nearest();
+        return bravek !== null && bravek.distance() <= CLERK_LEASH;
+    }, 30_000);
+    if (!near) {
+        log('Bravek has wandered out of earshot of the clerk — waiting for him to drift back');
+        return false;
+    }
+    return talkAt(PC_NPC.CLERK, PC_TILE.CLERK, CLERK_PREFER, log, 1);
+}
 
 function inBravekRoom(): boolean {
     const here = Game.tile();
@@ -86,8 +102,19 @@ function inBravekRoom(): boolean {
 }
 
 // Why: his door reverts two ticks after it lets anyone through, so walking back to the stand from inside would shut it and reopen it every leg.
+// Why: it also refuses everyone until the clerk calls him in, and the walker will otherwise spend minutes retrying the crossing.
 async function reachBravek(log: (m: string) => void): Promise<boolean> {
-    return inBravekRoom() || openDoor(PC_LOC.BRAVEK_DOOR, PC_TILE.BRAVEK_DOOR, [], log);
+    if (inBravekRoom()) {
+        return true;
+    }
+    if (!(await openDoor(PC_LOC.BRAVEK_DOOR, PC_TILE.BRAVEK_DOOR, [], log))) {
+        return false;
+    }
+    if (inBravekRoom()) {
+        return true;
+    }
+    log('Bravek is still busy — the clerk has not called him in yet');
+    return false;
 }
 
 async function askBravekForRecipe(log: (m: string) => void): Promise<boolean> {
