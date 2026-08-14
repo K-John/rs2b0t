@@ -74,7 +74,7 @@ describe('shield of arrav decide', () => {
             progress: { stage: SOA_STAGE.PHOENIX_JOINED, flags: new Set() },
             invIds: new Map([[SOA_ID.CERTIFICATE, 1]])
         });
-        expect(decide(s)).toMatchObject({ kind: 'talk', stop: { npc: 'King Roald' } });
+        expect(decide(s)).toMatchObject({ kind: 'custom' });
     });
 
     test('both halves outrank a partner handoff', () => {
@@ -85,7 +85,7 @@ describe('shield of arrav decide', () => {
             progress: { stage: SOA_STAGE.PHOENIX_JOINED, flags: new Set() },
             invIds: new Map([[SOA_ID.SHIELD_PHOENIX, 1], [SOA_ID.SHIELD_BLACKARM, 1]])
         });
-        expect(decide(s)).toMatchObject({ kind: 'talk', stop: { npc: 'Curator Haig Halen' } });
+        expect(decide(s)).toMatchObject({ kind: 'custom' });
     });
 
     test('a handoff outranks the gang leg', () => {

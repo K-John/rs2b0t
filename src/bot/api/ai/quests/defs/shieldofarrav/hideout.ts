@@ -1,4 +1,7 @@
+import { reader } from '../../../../../adapter/ClientAdapter.js';
 import { GameMessages } from '../../../../chatbox/gameMessages.js';
+import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
+import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { Locs } from '../../../../locs/Locs.js';
@@ -162,6 +165,39 @@ export async function walkAndTalk(
         return false;
     }
     return driveChoice([...prefer], log);
+}
+
+// Why: `~mesbox` and `~objbox` build a MAIN modal that no dialogue driver can see, and the curator and the king both use them mid-conversation — a chat-only driver stalls on the first one.
+
+/** Drive a conversation that mixes chat with mesboxes, until the goal lands. */
+export async function talkUntil(
+    stop: NpcStop,
+    prefer: readonly string[],
+    expect: () => boolean,
+    log: (m: string) => void,
+    ms = 45_000
+): Promise<boolean> {
+    if (expect()) {
+        return true;
+    }
+    await walkAndTalk(stop, prefer, log);
+    const deadline = performance.now() + ms;
+    while (performance.now() < deadline && !expect()) {
+        if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
+            await driveChoice([...prefer], log);
+            continue;
+        }
+        if (reader.modals().main !== -1) {
+            await Modals.close();
+            await Execution.delayTicks(1);
+            continue;
+        }
+        await Execution.delayTicks(1);
+    }
+    if (!expect()) {
+        log(`${stop.npc} conversation ended without the expected result`);
+    }
+    return expect();
 }
 
 /** Reach an NPC that lives inside the hideout, entering it first. */

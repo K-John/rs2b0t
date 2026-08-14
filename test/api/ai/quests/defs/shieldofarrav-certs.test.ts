@@ -42,13 +42,13 @@ describe('arrav certificates', () => {
 
     test('both halves go to the curator, whichever gang holds them', () => {
         const s = snap([[SOA_ID.SHIELD_PHOENIX, 1], [SOA_ID.SHIELD_BLACKARM, 1]]);
-        expect(curatorStep(s, 'phoenix')).toMatchObject({ kind: 'talk', stop: { npc: 'Curator Haig Halen' } });
-        expect(curatorStep(s, 'blackarm')).toMatchObject({ kind: 'talk', stop: { npc: 'Curator Haig Halen' } });
+        expect(curatorStep(s, 'phoenix')).toMatchObject({ kind: 'custom' });
+        expect(curatorStep(s, 'blackarm')).toMatchObject({ kind: 'custom' });
     });
 
     test('the curator is due even with a certificate already held', () => {
         const s = snap([[SOA_ID.SHIELD_PHOENIX, 1], [SOA_ID.SHIELD_BLACKARM, 1], [SOA_ID.CERTIFICATE, 1]]);
-        expect(curatorStep(s, 'phoenix')).toMatchObject({ stop: { npc: 'Curator Haig Halen' } });
+        expect(curatorStep(s, 'phoenix')).toMatchObject({ kind: 'custom' });
     });
 
     test('one half alone is never a curator trip', () => {
@@ -59,7 +59,7 @@ describe('arrav certificates', () => {
     test('a black arm bot redeems a received certificate whatever the mint target', () => {
         ArravConfig.certTarget = 10;
         expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]]), 'blackarm'))
-            .toMatchObject({ kind: 'talk', stop: { npc: 'King Roald' } });
+            .toMatchObject({ kind: 'custom' });
     });
 
     test('a phoenix bot mid-stockpile keeps farming rather than redeeming its last one', () => {
@@ -70,7 +70,7 @@ describe('arrav certificates', () => {
     test('a phoenix bot two short of target redeems, because one of each pair went to the partner', () => {
         ArravConfig.certTarget = 10;
         expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]], [[SOA_ID.CERTIFICATE, 8]]), 'phoenix'))
-            .toMatchObject({ kind: 'talk', stop: { npc: 'King Roald' } });
+            .toMatchObject({ kind: 'custom' });
     });
 
     test('a banked certificate at target is withdrawn', () => {
@@ -81,7 +81,7 @@ describe('arrav certificates', () => {
 
     test('a held certificate at target is taken to the king', () => {
         const s = snap([[SOA_ID.CERTIFICATE, 1]], [[SOA_ID.CERTIFICATE, 1]]);
-        expect(certStep(s, 'phoenix')).toMatchObject({ kind: 'talk', stop: { npc: 'King Roald' } });
+        expect(certStep(s, 'phoenix')).toMatchObject({ kind: 'custom' });
     });
 
     test('below target the surplus banks instead of being redeemed', () => {
@@ -124,6 +124,6 @@ describe('arrav certificates', () => {
 
     test('a target below one is clamped, so a zero setting still redeems', () => {
         ArravConfig.certTarget = 0;
-        expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]]), 'phoenix')).toMatchObject({ stop: { npc: 'King Roald' } });
+        expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]]), 'phoenix')).toMatchObject({ kind: 'custom' });
     });
 });

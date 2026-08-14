@@ -1,7 +1,23 @@
+import { Inventory } from '../../../../inventory/Inventory.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { CURATOR, ROALD, SOA_ID } from './areas.js';
 import { ArravConfig, type ArravGang } from './config.js';
+import { talkUntil } from './hideout.js';
 import { bankedId, heldId, otherHalf, ownHalf } from './state.js';
+
+// Why: both conversations run through `~mesbox` / `~objbox`, which build a main modal no chat driver can see.
+
+/** Hand both halves over for two certificates. */
+export async function mintCertificates(log: (m: string) => void): Promise<boolean> {
+    const before = Inventory.countById(SOA_ID.CERTIFICATE);
+    return talkUntil(CURATOR, [], () => Inventory.countById(SOA_ID.CERTIFICATE) > before, log);
+}
+
+/** Redeem one certificate with the king, which is what completes the quest. */
+export async function redeemCertificate(log: (m: string) => void): Promise<boolean> {
+    const before = Inventory.countById(SOA_ID.CERTIFICATE);
+    return talkUntil(ROALD, [], () => Inventory.countById(SOA_ID.CERTIFICATE) < before, log);
+}
 
 /** `ownsInventory` skips the engine's food provisioning, so the module's own deposits have to spare it. */
 export const SUSTAIN_KEEP: readonly string[] = ['lobster', 'swordfish', 'tuna', 'trout', 'salmon'];
@@ -28,7 +44,9 @@ export function curatorStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | n
     const mine = heldId(snap, ownHalf(gang));
     const theirs = heldId(snap, otherHalf(gang));
     // Why: he mints two per pair and stops the moment either varp goes complete, so this is the only window.
-    return mine > 0 && theirs > 0 ? { kind: 'talk', stop: CURATOR } : null;
+    return mine > 0 && theirs > 0
+        ? { kind: 'custom', name: 'mint two certificates at the curator', run: mintCertificates }
+        : null;
 }
 
 // Why: this runs after the handoffs, so the partner is paid before this bot spends the last certificate it holds.
@@ -45,7 +63,7 @@ export function certStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null
 
     if (doneMinting) {
         if (held > 0) {
-            return { kind: 'talk', stop: ROALD };
+            return { kind: 'custom', name: 'claim the reward from King Roald', run: redeemCertificate };
         }
         if (banked > 0) {
             return {
