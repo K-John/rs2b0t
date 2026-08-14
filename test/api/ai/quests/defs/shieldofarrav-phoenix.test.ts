@@ -58,7 +58,7 @@ describe('phoenix leg', () => {
 
     test('the located hideout sends the bot to Straven', () => {
         expect(phoenixStep(at(SOA_STAGE.FIND_STRAVEN, [], [[SOA_ID.COINS, 480]])))
-            .toMatchObject({ kind: 'talk', stop: { npc: 'Straven' } });
+            .toMatchObject({ kind: 'custom' });
     });
 
     test('the mission stage kills Jonny while no report is held', () => {
@@ -67,12 +67,12 @@ describe('phoenix leg', () => {
 
     test('a held report is handed to Straven', () => {
         expect(phoenixStep(at(SOA_STAGE.KILL_JONNY, [], [[SOA_ID.REPORT, 1]])))
-            .toMatchObject({ kind: 'talk', stop: { npc: 'Straven' } });
+            .toMatchObject({ kind: 'custom' });
     });
 
     test('the journal flag alone is enough to hand in, before the pack has synced', () => {
         expect(phoenixStep(at(SOA_STAGE.KILL_JONNY, ['report-held'])))
-            .toMatchObject({ kind: 'talk', stop: { npc: 'Straven' } });
+            .toMatchObject({ kind: 'custom' });
     });
 
     test('a joined member without the half searches the chest', () => {

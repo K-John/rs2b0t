@@ -5,7 +5,7 @@
 
 # Bundled scripts
 
-- Scripts: 51. Categories: 19.
+- Scripts: 52. Categories: 19.
 - Source: [`src/bot/scripts/`](../src/bot/scripts/). API: [scripting API](API.md).
 - Settings are the parameters the panel exposes before a script starts.
 
@@ -24,7 +24,7 @@
 - [Money making](#money-making) — 2
 - [Navigation](#navigation) — 1
 - [Prayer](#prayer) — 1
-- [Quest](#quest) — 2
+- [Quest](#quest) — 3
 - [Runecrafting](#runecrafting) — 3
 - [Smithing](#smithing) — 2
 - [Thieving](#thieving) — 3
@@ -720,6 +720,17 @@ All-in-one quest completer — queues the implemented quests (empty selection = 
 | `arravPartner` | string | `""` | Shield of Arrav partner |
 | `arravCerts` | number (1–50) | `2` | Shield of Arrav certificates |
 | `verbose` | boolean | `true` | Verbose step log |
+
+### ArravSupplier
+
+Shield of Arrav certificate faucet — joins both gangs from one account, farms both shield halves and banks certificates for other bots; never redeems, so the chest and the curator keep working
+
+- Tags: `quest`, `shield of arrav`, `certificate`, `supplier`
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| `certTarget` | number (2–200) | `10` | Certificates to bank |
+| `partner` | string | `""` | Bootstrap key partner |
 
 ### Barcrawl
 

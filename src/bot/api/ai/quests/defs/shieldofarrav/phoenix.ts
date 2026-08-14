@@ -12,7 +12,7 @@ import { Modals } from '../../../../ui/widgets/Modals.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { promptLoc } from '../../exec/prompts.js';
 import { BARAEK, RELDO, SOA_ID, SOA_LOC, SOA_TILE, STRAVEN_HANDIN, STRAVEN_JOIN } from './areas.js';
-import { enterPhoenixInner, leaveHideout } from './hideout.js';
+import { enterPhoenixInner, leaveHideout, talkInHideout } from './hideout.js';
 import { SOA_STAGE } from './journal.js';
 import { heldId, liveItem } from './state.js';
 
@@ -108,6 +108,18 @@ export async function killJonny(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
+export async function joinPhoenixGang(log: (m: string) => void): Promise<boolean> {
+    return talkInHideout(STRAVEN_JOIN, STRAVEN_JOIN.prefer, log);
+}
+
+/** Straven takes the report by dialogue and hands back the weapon-store key, which is what proves the join. */
+export async function handInReport(log: (m: string) => void): Promise<boolean> {
+    if (!(await talkInHideout(STRAVEN_HANDIN, [], log))) {
+        return false;
+    }
+    return Inventory.countById(SOA_ID.REPORT) === 0;
+}
+
 const chestOpen = () => Locs.query().within(6).where(l => l.id === SOA_LOC.CHEST_OPEN).nearest();
 
 export async function takePhoenixHalf(log: (m: string) => void): Promise<boolean> {
@@ -180,12 +192,13 @@ export function phoenixStep(snap: QuestSnapshot): QuestStep {
             }
             return { kind: 'talk', stop: BARAEK };
 
+        // Why: Straven lives in a sealed underground pocket, and the shared hop walks to a stand two tiles off, calls it arrived, and never climbs.
         case SOA_STAGE.FIND_STRAVEN:
-            return { kind: 'talk', stop: STRAVEN_JOIN };
+            return { kind: 'custom', name: 'offer Straven your services', run: joinPhoenixGang };
 
         case SOA_STAGE.KILL_JONNY:
             if (heldId(snap, SOA_ID.REPORT) > 0 || flags.has('report-held')) {
-                return { kind: 'talk', stop: STRAVEN_HANDIN };
+                return { kind: 'custom', name: 'hand the report to Straven', run: handInReport };
             }
             return { kind: 'custom', name: 'kill Jonny the beard for the report', run: killJonny };
 

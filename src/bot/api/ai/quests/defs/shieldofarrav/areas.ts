@@ -52,7 +52,10 @@ export const SOA_TILE = {
     CROSSBOW_WEST: new Tile(3243, 3383, 1),
     CROSSBOW_EAST: new Tile(3245, 3385, 1),
     STREET_DOOR: new Tile(3190, 3384, 0),
-    BLACKARM_DOOR: new Tile(3185, 3389, 0),
+    /** Katrine's side of the gang door — the side an unjoined character is stuck on. */
+    BLACKARM_DOOR: new Tile(3185, 3387, 0),
+    /** The stairs side, past the gang door. */
+    BLACKARM_DOOR_INNER: new Tile(3185, 3389, 0),
     BLACKARM_STAIRS: new Tile(3188, 3388, 0),
     BLACKARM_STAIRS_TOP: new Tile(3187, 3390, 1),
     /** West of the cupboard: `forceapproach=east` rotates with its angle 2 placement, so east is west in world space. */
@@ -156,8 +159,22 @@ export function inPhoenixHq(t: WorldTile | null | undefined): boolean {
     return within(t, 3225, 3260, 9750, 9795, 0);
 }
 
+/**
+ * The chest half of the hideout, past the gang door.
+ * Why: the door is the pocket's only crossing, and a flood over the pack puts the chest
+ * side at z 9761..9779 and the ladder side at z 9780 and up — so the split is exact.
+ */
+export function inPhoenixInner(t: WorldTile | null | undefined): boolean {
+    return within(t, 3233, 3254, 9761, 9779, 0);
+}
+
 export function inWeaponStore(t: WorldTile | null | undefined): boolean {
     return within(t, 3240, 3256, 3378, 3392, 1);
+}
+
+/** The stairs half of the Black Arm hideout, past the gang door. Katrine's room is z 3387 and below. */
+export function inBlackArmInner(t: WorldTile | null | undefined): boolean {
+    return within(t, 3182, 3189, 3388, 3398, 0);
 }
 
 export function inBlackArmUpper(t: WorldTile | null | undefined): boolean {
