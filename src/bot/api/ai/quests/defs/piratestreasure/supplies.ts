@@ -7,7 +7,7 @@ export const COIN_TARGET = 2000;
 export const COIN_LOW = 300;
 export const FOOD_TARGET = 8;
 export const FOOD_LOW = 3;
-export const APRON_GP = 50;
+const APRON_GP = 50;
 
 export function heldId(snap: QuestSnapshot, id: number): number {
     return snap.invIds?.get(id) ?? 0;

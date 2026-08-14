@@ -43,6 +43,9 @@ export const PT_LOC = {
     PIRATE_CHEST: 2079
 } as const;
 
+// Why: a tree keeps the name "Banana Tree" and its Search op through every stage down to empty, so matching by name re-picks a bare tree forever — 2078 is the empty one and the five that still bear fruit are the only valid targets.
+export const BANANA_TREE_IDS: readonly number[] = [2073, 2074, 2075, 2076, 2077];
+
 export const PT_TILE = {
     DRAYNOR_BANK: new Tile(3093, 3243, 0),
     FRANK: new Tile(3053, 3250, 0),

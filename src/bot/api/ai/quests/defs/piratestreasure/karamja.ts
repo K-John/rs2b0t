@@ -5,7 +5,7 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { settleScene, useOnLoc } from '../../exec/prompts.js';
-import { LUTHAS, PT_ID, PT_LOC, PT_TILE } from './areas.js';
+import { BANANA_TREE_IDS, LUTHAS, PT_ID, PT_LOC, PT_TILE } from './areas.js';
 import { CRATE_FULL, searchBananaCrate } from './crate.js';
 
 const KARAMJA_BOX = { minX: 2870, maxX: 2970, minZ: 3110, maxZ: 3210 };
@@ -54,19 +54,20 @@ async function pickBananas(want: number, log: (m: string) => void): Promise<numb
     for (let attempt = 0; attempt < 40 && held(PT_ID.BANANA) < want; attempt++) {
         await Sustain.run();
         await settleScene();
-        const tree = Locs.query().name('Banana Tree').action('Search').within(20).nearest();
+        const tree = Locs.query()
+            .action('Search')
+            .where(l => BANANA_TREE_IDS.includes(l.id))
+            .within(20)
+            .nearest();
         if (!tree) {
-            log('no Banana Tree in range of the grove anchor');
+            log('no bearing Banana Tree in range of the grove anchor');
             break;
         }
         const before = held(PT_ID.BANANA);
         if (!(await tree.interact('Search'))) {
             continue;
         }
-        if (!(await Execution.delayUntil(() => held(PT_ID.BANANA) > before, 4000))) {
-            // Why: every stage of the tree keeps the same name and op, so a picked-out one answers "There are no bananas left" forever — stepping away re-rolls which tree is nearest.
-            await Traversal.walkResilient(PT_TILE.BANANA_GROVE, { radius: 6, attempts: 1, timeoutMs: 30_000, log });
-        }
+        await Execution.delayUntil(() => held(PT_ID.BANANA) > before, 4000);
     }
     log(`picked ${held(PT_ID.BANANA)} bananas`);
     return held(PT_ID.BANANA);

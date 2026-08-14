@@ -5,7 +5,7 @@ import { Locs } from '../../../../locs/Locs.js';
 import { settleScene } from '../../exec/prompts.js';
 import { PT_LOC, PT_TILE } from './areas.js';
 
-export interface CrateState {
+interface CrateState {
     rum: boolean;
     bananas: number;
 }
