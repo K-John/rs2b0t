@@ -113,6 +113,35 @@ before trusting a `--no-deploy` result.
 It is the re-smuggle, and the only run that exercises the `store-job` disambiguation —
 see [Quest pitfalls](../decisions/quest-pitfalls-3.md).
 
+## Plague City — stage-scoped harness
+
+[`e2e/plague-city-243-live.ts`](../../e2e/plague-city-243-live.ts) drives the quest
+from a clean account, or one stage of it. `--stage N` sets `%elenaquest`, hands over
+the items that stage assumes were already given, and relogs.
+
+```sh
+HEADED=1 bun e2e/plague-city-243-live.ts --stage 0 --until 29 --minutes 120  # end to end
+HEADED=1 bun e2e/plague-city-243-live.ts --stage 3 --until 8 --minutes 30    # water and the dig
+HEADED=1 bun e2e/plague-city-243-live.ts --stage 10 --until 23 --minutes 40  # West Ardougne chain
+HEADED=1 bun e2e/plague-city-243-live.ts --stage 26 --until 29 --minutes 40  # cure, warrant, rescue
+```
+
+The bank holds coins and food and nothing else. The spade and the picture sit on
+Edmond's floor, the buckets and berries are ground spawns, the rope comes from
+Aemad and the cure ingredients from Wydin, Jatix, a cow and the snape grass spawns
+south of the Crafting Guild — seeding any of them hides whether the bot can find it.
+
+Three details govern this harness:
+
+- **It is members-only (`map_members`), so it needs the :8890 world.** The :8888
+  sim also answers neither `givebank` nor `~bankitem`, so a run there starts with
+  an empty bank and parks on the coin float.
+- **Stages 20/21 and 24/25 render the same journal text.** The module reads the
+  Book and the clerk's own answer to tell them apart, so a `--stage 21` seed that
+  leaves a Book in the pack tests the wrong branch.
+- **Stage 9 starts in the sewer.** `%elenaquest 9` means the rope is already tied,
+  which only makes sense below ground, so that stage teleports to the mud pile.
+
 ## See also
 
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)

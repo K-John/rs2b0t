@@ -1,0 +1,123 @@
+import Tile from '../../../../../geometry/Tile.js';
+import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
+import { PC_ITEM, PC_TILE, banked, held, type PlagueItem } from './areas.js';
+
+// Why: nobody in this game is called 'Shop keeper' — Shop.open matches the display name of the NPC that owns the stock.
+export const AEMAD = { npc: 'Aemad', anchor: PC_TILE.AEMAD };
+export const JATIX = { npc: 'Jatix', anchor: PC_TILE.JATIX };
+export const WYDIN = { npc: 'Wydin', anchor: PC_TILE.WYDIN };
+
+const ROPE_PRICE = 60;
+const PESTLE_PRICE = 40;
+const CHOCOLATE_PRICE = 60;
+
+export function withdrawFrom(items: { name: string; id: number; qty: number }[]): QuestStep {
+    return { kind: 'withdraw', items, bank: PC_TILE.BANK };
+}
+
+export function scanBank(): QuestStep {
+    return { kind: 'scanBank', bank: PC_TILE.BANK };
+}
+
+function fromBank(snap: QuestSnapshot, item: PlagueItem, qty: number): QuestStep | null {
+    if (!snap.bankKnown) {
+        return scanBank();
+    }
+    const stock = banked(snap, item);
+    if (stock <= 0) {
+        return null;
+    }
+    return withdrawFrom([{ name: item.name, id: item.id, qty: Math.min(qty - held(snap, item), stock) }]);
+}
+
+export function sourcePurse(snap: QuestSnapshot, want: number): QuestStep | null {
+    if (held(snap, PC_ITEM.COINS) >= want) {
+        return null;
+    }
+    if (!snap.bankKnown) {
+        return scanBank();
+    }
+    const available = banked(snap, PC_ITEM.COINS);
+    if (available <= 0) {
+        return { kind: 'wait', reason: 'no coins banked for the rope, pestle and chocolate bar' };
+    }
+    return withdrawFrom([{ name: PC_ITEM.COINS.name, id: PC_ITEM.COINS.id, qty: Math.min(want, available) }]);
+}
+
+/** Bank first, then the shop with a purse withdrawn ahead of the trip. */
+export function buyItem(
+    snap: QuestSnapshot,
+    item: PlagueItem,
+    qty: number,
+    shop: { npc: string; anchor: Tile },
+    unitGp: number
+): QuestStep | null {
+    if (held(snap, item) >= qty) {
+        return null;
+    }
+    const stocked = fromBank(snap, item, qty);
+    if (stocked) {
+        return stocked;
+    }
+    const gp = (qty - held(snap, item)) * unitGp;
+    return sourcePurse(snap, gp) ?? { kind: 'buy', item: item.name, qty: qty - held(snap, item), shop, estGp: gp };
+}
+
+// Why: a respawning spawn is worth waiting on, as walking away and back costs more than the respawn timer.
+
+/** Bank first, then the ground spawn. Null once the pack already holds enough. */
+export function takeSpawn(snap: QuestSnapshot, item: PlagueItem, qty: number, anchor: Tile): QuestStep | null {
+    if (held(snap, item) >= qty) {
+        return null;
+    }
+    return fromBank(snap, item, qty) ?? { kind: 'grabGround', item: item.name, anchor, waitIfMissing: true };
+}
+
+export const sourceSpade = (snap: QuestSnapshot): QuestStep | null =>
+    takeSpawn(snap, PC_ITEM.SPADE, 1, PC_TILE.HOUSE_FLOOR);
+
+export const sourcePicture = (snap: QuestSnapshot): QuestStep | null =>
+    takeSpawn(snap, PC_ITEM.PICTURE, 1, PC_TILE.HOUSE_FLOOR);
+
+/** The garden wants four pours, so a stocked bank saves three walks to the fountain. */
+export const BUCKET_TARGET = 4;
+
+export function sourceBucket(snap: QuestSnapshot): QuestStep | null {
+    if (held(snap, PC_ITEM.BUCKET) > 0) {
+        return null;
+    }
+    return fromBank(snap, PC_ITEM.BUCKET, BUCKET_TARGET)
+        ?? { kind: 'grabGround', item: PC_ITEM.BUCKET.name, anchor: PC_TILE.BUCKET_SPAWN, waitIfMissing: true };
+}
+
+export const sourceDwellberries = (snap: QuestSnapshot): QuestStep | null =>
+    takeSpawn(snap, PC_ITEM.DWELLBERRIES, 1, PC_TILE.DWELLBERRIES);
+
+export const sourceSnapeGrass = (snap: QuestSnapshot): QuestStep | null =>
+    takeSpawn(snap, PC_ITEM.SNAPE_GRASS, 1, PC_TILE.SNAPE_GRASS);
+
+export const sourceRope = (snap: QuestSnapshot): QuestStep | null =>
+    buyItem(snap, PC_ITEM.ROPE, 1, AEMAD, ROPE_PRICE);
+
+export const sourcePestle = (snap: QuestSnapshot): QuestStep | null =>
+    buyItem(snap, PC_ITEM.PESTLE, 1, JATIX, PESTLE_PRICE);
+
+export const sourceChocolateBar = (snap: QuestSnapshot): QuestStep | null =>
+    buyItem(snap, PC_ITEM.CHOCOLATE_BAR, 1, WYDIN, CHOCOLATE_PRICE);
+
+/** Milk a cow in the field north-east of Ardougne; the empty bucket comes first. */
+export function sourceMilk(snap: QuestSnapshot): QuestStep | null {
+    if (held(snap, PC_ITEM.BUCKET_MILK) > 0) {
+        return null;
+    }
+    return fromBank(snap, PC_ITEM.BUCKET_MILK, 1)
+        ?? sourceBucket(snap)
+        ?? {
+            kind: 'useOn',
+            item: PC_ITEM.BUCKET.name,
+            targetKind: 'npc',
+            target: 'Cow',
+            anchor: PC_TILE.COW_FIELD,
+            product: PC_ITEM.BUCKET_MILK.name
+        };
+}
