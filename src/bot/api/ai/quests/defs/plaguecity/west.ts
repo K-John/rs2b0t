@@ -89,7 +89,9 @@ async function askClerk(log: (m: string) => void): Promise<boolean> {
         return bravek !== null && bravek.distance() <= CLERK_LEASH;
     }, 30_000);
     if (!near) {
-        log('Bravek has wandered out of earshot of the clerk — waiting for him to drift back');
+        const here = Game.tile();
+        const bravek = Npcs.query().name(PC_NPC.BRAVEK).nearest();
+        log(`Bravek is ${bravek?.distance() ?? '?'} tiles from (${here?.x},${here?.z}) — too far for the clerk to call him in`);
         return false;
     }
     return talkAt(PC_NPC.CLERK, PC_TILE.CLERK, CLERK_PREFER, log, 1);
