@@ -102,17 +102,27 @@ function partnerNear(): { index: number } | null {
 
 export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m: string) => void): Promise<boolean> {
     const want = itemFor(handoff, gang);
-    // Why: the tests are absolute rather than a before/after delta, because a leg that restarts mid-handshake would otherwise need a baseline it cannot take — and taking one by declining the open window kills the partner's trade.
+    let confirmed = false;
     // Why: an item already moved into the offer is gone from the pack view, so a give is only believed once the window is shut and the pack reads back.
+    // Why: the baseline is taken only with no window open — grabbing one by declining an open trade kills the handshake the partner is in — and a leg that restarts mid-trade falls back to having clicked the confirm.
+    const before = Trade.active() ? null : Inventory.countById(want.id);
     const packReadable = (): boolean => Inventory.used() > 0;
-    const landed = (): boolean => want.giving
-        ? !Trade.active() && packReadable() && Inventory.countById(want.id) === 0
-        : Inventory.countById(want.id) > 0;
+    const landed = (): boolean => {
+        const now = Inventory.countById(want.id);
+        if (!want.giving) {
+            return before === null ? now > 0 : now > before;
+        }
+        if (Trade.active() || !packReadable()) {
+            return false;
+        }
+        // Why: the giver keeps the certificate it redeems, so "gone from the pack" is the wrong test — one fewer is the test.
+        return before === null ? confirmed : now < before;
+    };
 
     if (landed()) {
         return true;
     }
-    if (want.giving && Inventory.countById(want.id) === 0 && !Trade.active()) {
+    if (want.giving && before === 0) {
         log(`nothing to give: no ${want.name} (${want.id}) in the pack`);
         return false;
     }
@@ -141,7 +151,6 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
 
     const deadline = performance.now() + HANDOFF_MS;
     let offered = false;
-    let confirmed = false;
     let last = '';
     while (performance.now() < deadline) {
         // Why: the engine shuts the offer screen a tick before it opens the confirm, so one frame with neither up is the handover, not the end of the trade.
