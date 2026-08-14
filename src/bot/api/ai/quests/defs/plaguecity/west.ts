@@ -42,7 +42,7 @@ async function openDoor(id: number, near: Tile, prefer: string[], log: (m: strin
 export const showPicture = (log: (m: string) => void): Promise<boolean> =>
     talkAt(PC_NPC.JETHICK, PC_TILE.JETHICK, JETHICK_PREFER, log);
 
-export async function returnBook(log: (m: string) => void): Promise<boolean> {
+async function returnBook(log: (m: string) => void): Promise<boolean> {
     if (!(await openDoor(PC_LOC.REHNISON_DOOR, PC_TILE.REHNISON_DOOR, [], log))) {
         return false;
     }
@@ -76,7 +76,7 @@ export const askAboutClearance = (log: (m: string) => void): Promise<boolean> =>
     openDoor(PC_LOC.PLAGUE_DOOR, PC_TILE.PLAGUE_DOOR, MOURNER_PREFER, log);
 
 // Why: the clerk only calls Bravek in when the player is within 7 tiles of him, and every tile more than one west of the stand is 8.
-export const askClerk = (log: (m: string) => void): Promise<boolean> =>
+const askClerk = (log: (m: string) => void): Promise<boolean> =>
     talkAt(PC_NPC.CLERK, PC_TILE.CLERK, CLERK_PREFER, log, 1);
 
 function inBravekRoom(): boolean {
@@ -90,7 +90,7 @@ async function reachBravek(log: (m: string) => void): Promise<boolean> {
     return inBravekRoom() || openDoor(PC_LOC.BRAVEK_DOOR, PC_TILE.BRAVEK_DOOR, [], log);
 }
 
-export async function askBravekForRecipe(log: (m: string) => void): Promise<boolean> {
+async function askBravekForRecipe(log: (m: string) => void): Promise<boolean> {
     if (!(await reachBravek(log))) {
         return false;
     }
@@ -112,7 +112,7 @@ export async function getAudience(log: (m: string) => void): Promise<boolean> {
     return askBravekForRecipe(log);
 }
 
-export const enterPlagueHouse = (log: (m: string) => void): Promise<boolean> =>
+const enterPlagueHouse = (log: (m: string) => void): Promise<boolean> =>
     openDoor(PC_LOC.PLAGUE_DOOR, PC_TILE.PLAGUE_DOOR, [], log);
 
 // Why: the house's north wall steps back a tile east of the door, so a flat box either
@@ -135,7 +135,7 @@ export async function rescueElena(log: (m: string) => void): Promise<boolean> {
     return freeElena(log);
 }
 
-export async function searchBarrel(log: (m: string) => void): Promise<boolean> {
+async function searchBarrel(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(PC_TILE.BARREL, 1, log))) {
         return false;
     }
@@ -148,7 +148,7 @@ export async function searchBarrel(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => heldId(PC_ITEM.ELENA_KEY.id) > 0, 10_000);
 }
 
-export async function freeElena(log: (m: string) => void): Promise<boolean> {
+async function freeElena(log: (m: string) => void): Promise<boolean> {
     if (!(await goCellar(log))) {
         return false;
     }

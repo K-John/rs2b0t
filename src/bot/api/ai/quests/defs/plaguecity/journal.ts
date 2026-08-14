@@ -25,7 +25,7 @@ export const PC_STAGE = {
     READ_SCROLL: 30
 } as const;
 
-export const PLAGUE_CITY = 'Plague City';
+const PLAGUE_CITY = 'Plague City';
 
 function normalize(lines: readonly string[] | string): string {
     return (typeof lines === 'string' ? lines : lines.join(' '))

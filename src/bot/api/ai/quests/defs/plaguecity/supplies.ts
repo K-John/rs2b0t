@@ -39,7 +39,7 @@ export function reclaim(snap: QuestSnapshot, item: PlagueItem): QuestStep | null
     return held(snap, item) > 0 ? null : fromBank(snap, item, 1);
 }
 
-export function sourcePurse(snap: QuestSnapshot, want: number): QuestStep | null {
+function sourcePurse(snap: QuestSnapshot, want: number): QuestStep | null {
     if (held(snap, PC_ITEM.COINS) >= want) {
         return null;
     }
@@ -98,7 +98,7 @@ export const sourceSpade = (snap: QuestSnapshot): QuestStep | null => fromHouseF
 export const sourcePicture = (snap: QuestSnapshot): QuestStep | null => fromHouseFloor(snap, PC_ITEM.PICTURE);
 
 /** The garden wants four pours, so a stocked bank saves three walks to the fountain. */
-export const BUCKET_TARGET = 4;
+const BUCKET_TARGET = 4;
 
 export function sourceBucket(snap: QuestSnapshot): QuestStep | null {
     if (held(snap, PC_ITEM.BUCKET) > 0) {

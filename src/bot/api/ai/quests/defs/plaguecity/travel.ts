@@ -36,7 +36,7 @@ export async function arrive(want: PlagueArea, log: (m: string) => void, ms = 20
     return landed;
 }
 
-export async function digIntoSewer(log: (m: string) => void): Promise<boolean> {
+async function digIntoSewer(log: (m: string) => void): Promise<boolean> {
     if (area() === 'sewer') {
         return true;
     }
@@ -56,7 +56,7 @@ export async function digIntoSewer(log: (m: string) => void): Promise<boolean> {
     return arrive('sewer', log);
 }
 
-export async function climbMudPile(log: (m: string) => void): Promise<boolean> {
+async function climbMudPile(log: (m: string) => void): Promise<boolean> {
     if (area() === 'east') {
         return true;
     }
@@ -72,7 +72,7 @@ export async function climbMudPile(log: (m: string) => void): Promise<boolean> {
     return arrive('east', log);
 }
 
-export async function squeezePipe(log: (m: string) => void): Promise<boolean> {
+async function squeezePipe(log: (m: string) => void): Promise<boolean> {
     if (area() === 'west') {
         return true;
     }
@@ -93,7 +93,7 @@ export async function squeezePipe(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: the manhole reverts to its cover 500 ticks after the pipe opened it, and the closed loc offers Open rather than Climb-down.
-export async function dropManhole(log: (m: string) => void): Promise<boolean> {
+async function dropManhole(log: (m: string) => void): Promise<boolean> {
     if (area() === 'sewer') {
         return true;
     }
@@ -116,7 +116,7 @@ export async function dropManhole(log: (m: string) => void): Promise<boolean> {
     return arrive('sewer', log);
 }
 
-export async function leaveUpstairs(log: (m: string) => void): Promise<boolean> {
+async function leaveUpstairs(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(PC_TILE.REHNISON_TOP, 2, log))) {
         return false;
     }
@@ -128,7 +128,7 @@ export async function leaveUpstairs(log: (m: string) => void): Promise<boolean> 
     return arrive('west', log);
 }
 
-export async function leaveCellar(log: (m: string) => void): Promise<boolean> {
+async function leaveCellar(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(PC_TILE.HOUSE_STAIRS_UP, 2, log))) {
         return false;
     }
