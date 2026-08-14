@@ -99,7 +99,7 @@ collision pack therefore reports the Commander and all six railings unreachable,
 `findPath` with the baked edges loaded reports them fine. Probe with the pathfinder, not
 with a flood.
 
-Shield of Arrav added seven, and only the last is a quest fact:
+Shield of Arrav added fourteen, and only the first two are quest facts:
 
 - **A reward that deletes one of two is not a reward that needs two.** `king_roald.rs2`
   tests `inv_total(inv, arravcertificate) > 0` and deletes one, gated on nothing
@@ -126,6 +126,37 @@ Shield of Arrav added seven, and only the last is a quest fact:
 - **A leg that did its work and failed to leave should report the work.** Taking the half
   and then failing the climb out returned false, which threw away a shield half the pack
   was holding. The next pass's early branch retries the exit for free.
+- **Putting a door in `SCRIPT_REFUSED` makes whatever it guards a one-way trap.** All
+  three hideout doors had to be removed from the graph, and each sealed a pocket the bot
+  then could not leave: the Phoenix chest room, the weapon store's ten-tile ground floor,
+  and the Black Arm stairs. Every one showed up only once a bot was inside *holding the
+  quest item*, because until then nothing needed to walk out. Removing a door is half the
+  work; the module owes both directions.
+- **A component test, not a distance test, says which side of a door you are on.** The two
+  sides of a one-tile wall are two tiles apart, so a proximity check calls a character
+  standing at the door already through it. Flood the pack once and box each side.
+- **`ownsInventory` means nothing ever opens a booth.** No banked item is visible at all —
+  `snap.bankIds` stays empty all run — so a quest that reads the bank has to ask
+  for a `scanBank` itself. Ours parked beside a bank holding the key it was waiting for.
+- **An npc's display name comes from the `.npc` config, never from a guide.** The curator
+  is `Curator`; every walkthrough calls him Curator Haig Halen, and a name that matches
+  nothing makes `Reach` report a bare `retry` with no hint that the name is the problem.
+
+Four more came from the two-account trade, and they generalise to any partner handoff:
+
+- **The engine shuts the offer screen a tick before it opens the confirm.** A loop gated on
+  "is a trade open" exits on that one frame, reads a pack view that is still swapped, and
+  walks away — which closes the window the partner is confirming in. Tolerate the gap.
+- **The pack view hides whatever is sitting in the offer.** A giver that counts its own
+  items mid-trade sees them already gone and calls the trade done before the partner has
+  confirmed. Measure once the window is shut.
+- **A giver that keeps one of two is still a giver.** "Gone from the pack" is the wrong
+  test wherever the giver keeps one — one fewer than the baseline is the test, and the
+  baseline can only be taken with no window open. Taking it by declining an open trade
+  kills the partner's handshake, and two bots then deadlock closing each other's windows.
+- **A main modal swallows the Trade-with click.** A conversation driver that returns the
+  moment its goal lands leaves the closing mesbox up, and the next leg's trade never opens
+  for either side — with no refusal to say why.
 
 ## See also
 
