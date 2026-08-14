@@ -226,7 +226,7 @@ export async function standBeside(log: (m: string) => void, names: readonly stri
 }
 
 /** Take one item off whatever bloomed. */
-export async function pickHarvest(log: (m: string) => void): Promise<boolean> {
+async function pickHarvest(log: (m: string) => void): Promise<boolean> {
     const target = pickable();
     if (!target) {
         log('nothing bloomed within reach');

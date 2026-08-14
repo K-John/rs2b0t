@@ -1,10 +1,11 @@
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
-import { Locs } from '../../../../locs/Locs.js';
+import { Locs, type Loc } from '../../../../locs/Locs.js';
 import { Skills } from '../../../../skills/Skills.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
+import { settleScene } from '../../exec/prompts.js';
 import { pickaxeAt } from '../knightssword/supplies.js';
 import { BOB, DOMMIK, NS_ID, NS_LOC, NS_NAME, NS_TILE, URHNEY } from './areas.js';
 
@@ -41,20 +42,31 @@ export function amulet(snap: QuestSnapshot): QuestStep | null {
     return { kind: 'talk', stop: URHNEY };
 }
 
-async function atFurnace(log: (m: string) => void, product: string, expect: () => boolean): Promise<boolean> {
+/** Walk to the furnace and answer the make menu whatever opened it. */
+async function atFurnace(
+    log: (m: string) => void,
+    open: (furnace: Loc) => Promise<boolean>,
+    product: string,
+    expect: () => boolean
+): Promise<boolean> {
     if (expect()) {
         return true;
     }
     if (!(await Traversal.walkResilient(NS_TILE.FURNACE, { radius: 2, attempts: 4, timeoutMs: 300_000, log }))) {
         return false;
     }
-    const furnace = Locs.query().name(NS_LOC.FURNACE).action('Smelt').within(8).nearest();
-    if (!furnace || !(await furnace.interact('Smelt'))) {
+    await settleScene();
+    const furnace = Locs.query().name(NS_LOC.FURNACE).within(8).nearest();
+    if (!furnace) {
+        log('no Furnace in reach of the Al Kharid stand');
+        return false;
+    }
+    if (!(await open(furnace))) {
         log('the Al Kharid furnace did not answer');
         return false;
     }
     if (!(await Execution.delayUntil(() => ChatDialog.isMakeMenu(), 8000))) {
-        log('the smelting menu never opened');
+        log('the make menu never opened');
         return false;
     }
     if (!(await ChatDialog.makeX(product, 1))) {
@@ -65,14 +77,28 @@ async function atFurnace(log: (m: string) => void, product: string, expect: () =
 }
 
 async function smeltSilver(log: (m: string) => void): Promise<boolean> {
-    return atFurnace(log, 'Silver', () => Inventory.countById(NS_ID.SILVER_BAR) > 0);
+    return atFurnace(
+        log,
+        furnace => Promise.resolve(furnace.interact('Smelt')),
+        'Silver',
+        () => Inventory.countById(NS_ID.SILVER_BAR) > 0
+    );
 }
 
+// Why: the furnace's `Smelt` op opens the ore-to-bar menu alone — silver craft is an `oplocu`, so the bar is used on the furnace and no op expresses it.
 // Why: casting the sickle is a members-only option and this world is members everywhere (`Environment.node.members`), so the Al Kharid furnace serves.
 // Why: the option only appears while the mould is held, so a missing mould reads as "no Silver sickle in the menu" rather than as a refusal.
 
 async function castSickle(log: (m: string) => void): Promise<boolean> {
-    return atFurnace(log, NS_NAME.SICKLE, () => Inventory.countById(NS_ID.SICKLE) > 0);
+    return atFurnace(
+        log,
+        async furnace => {
+            const bar = Inventory.items().find(i => i.id === NS_ID.SILVER_BAR);
+            return bar ? bar.useOn(furnace) : false;
+        },
+        NS_NAME.SICKLE,
+        () => Inventory.countById(NS_ID.SICKLE) > 0
+    );
 }
 
 // Why: the shared helper's last resort is the bronze pickaxe ground spawn at Rimmington, 360 tiles the wrong side of Al Kharid.

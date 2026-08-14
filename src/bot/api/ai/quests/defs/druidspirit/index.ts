@@ -1,7 +1,7 @@
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { DREZEL, inGrotto, NS_HOPS, NS_ID, NS_STAGE } from './areas.js';
-import { askToHelp, bloomWithScroll, feedStones, journalLeg, mirrorLeg, pickHarvest, solvePuzzle, talkFilliman } from './camp.js';
+import { askToHelp, bloomWithScroll, feedStones, journalLeg, mirrorLeg, solvePuzzle, talkFilliman } from './camp.js';
 import { bloomWithSickle, fillPouch, killGhast } from './ghasts.js';
 import { blessSickle, enterGrotto, exitAfterQuest, leaveGrotto, talkInGrotto } from './grotto.js';
 import { NS_FLAG, readDruidProgress } from './journal.js';
