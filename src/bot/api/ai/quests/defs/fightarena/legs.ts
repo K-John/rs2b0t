@@ -15,7 +15,7 @@ import type Tile from '../../../../../geometry/Tile.js';
 import { driveDialog } from '../../exec/primitives.js';
 import { settleScene } from '../../exec/prompts.js';
 import { FA_LOC, FA_OBJ, FA_TILE, pocketOf, type FaPocket } from './areas.js';
-import { PROTECT_LEVEL, PROTECT_MELEE } from './fights.js';
+import { PROTECT_LEVEL, PROTECT_MELEE, runFight, type ArenaFight } from './fights.js';
 
 const SLOT_BY_ID = new Map(ITEM_DB.filter(r => r.slot !== undefined).map(r => [r.id, r.slot]));
 const DISGUISE = new Set<number>([FA_OBJ.HELMET, FA_OBJ.ARMOUR]);
@@ -209,6 +209,48 @@ export async function talkById(npcId: number, prefer: string[], log: (m: string)
         return false;
     }
     return driveDialog(prefer, log);
+}
+
+// Why: `driveDialog` returns at the `if_close` that starts a cutscene, and the next decide would open the quest log on top of forty ticks of forced movement.
+
+/** Talk to an npc whose dialogue ends in a cutscene, and wait out the ride. */
+export async function talkAndLand(
+    npcId: number,
+    pocket: FaPocket,
+    ms: number,
+    log: (m: string) => void
+): Promise<boolean> {
+    if (!(await talkById(npcId, [], log))) {
+        return false;
+    }
+    if (await Execution.delayUntil(() => pocketOf(Game.tile()) === pocket, ms)) {
+        return true;
+    }
+    log(`npc ${npcId} did not put us in the ${pocket}`);
+    return false;
+}
+
+// Why: each beast is caged until a script lets it out, and only the entry cutscenes do that — a bot that walked back in after a death has to ask a Servil instead.
+// Why: swinging at an empty arena burns every tick of the fight's budget and then repeats, which is a wedge rather than a slow start.
+
+/** Make sure the beast is out, asking the Servils if it is not, then fight it. */
+export async function fightWithRelease(
+    fight: ArenaFight,
+    releaseNpcId: number,
+    log: (m: string) => void
+): Promise<boolean> {
+    const loose = (): boolean => Npcs.query().where(n => n.id === fight.npcId).action('Attack').within(20).exists();
+    if (!loose()) {
+        log(`${fight.what} is still caged — asking npc ${releaseNpcId} to bring it on`);
+        if (!(await talkById(releaseNpcId, [], log))) {
+            return false;
+        }
+        if (!(await Execution.delayUntil(loose, 20_000))) {
+            log(`${fight.what} did not come out after the dialogue`);
+            return false;
+        }
+    }
+    return runFight(fight, log);
 }
 
 const FLEE_EAT_AT = 25;

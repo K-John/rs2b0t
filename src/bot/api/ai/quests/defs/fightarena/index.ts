@@ -3,16 +3,18 @@ import { talkStrict, type NpcStop } from '../../exec/primitives.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { QUESTS } from '../../data/quests.js';
 import { FA_NPC, FA_OBJ, FA_TILE, pocketOf, type FaPocket } from './areas.js';
-import { FA_FIGHT, runFight } from './fights.js';
+import { FA_FIGHT } from './fights.js';
 import { FA_STAGE, readFightArenaStage } from './journal.js';
 import {
     combatSwap,
     enterArenaByDoor2,
     enterArenaByGuard,
     enterBuilding,
+    fightWithRelease,
     fleeArena,
     leaveBuilding,
     searchChest,
+    talkAndLand,
     talkById,
     unlockJeremy,
     wearCombat,
@@ -50,9 +52,13 @@ const FLEE = custom('run from General Khazard', fleeArena);
 
 const DRUNK_GUARD = custom('talk to the drunk guard', log =>
     talkById(FA_NPC.DRUNK_GUARD, ['Do you still fancy a drink?', 'Yes'], log, FA_TILE.DRUNK_GUARD));
-const HENGRAD = custom('talk to Hengrad', log => talkById(FA_NPC.HENGRAD, [], log));
+const CUTSCENE_MS = 60_000;
+
+const HENGRAD = custom('talk to Hengrad', log =>
+    talkAndLand(FA_NPC.HENGRAD, 'arena', CUTSCENE_MS, log));
 const ASK_SERVILS = custom('ask the Servils about Khazard', log => talkById(FA_NPC.JEREMY_ARENA, [], log));
-const RELEASE_BEAST = custom('ask Justin what comes next', log => talkById(FA_NPC.JUSTIN, [], log));
+const RELEASE_BEAST = custom('ask Justin what comes next', log =>
+    talkAndLand(FA_NPC.JUSTIN, 'prisonCell', CUTSCENE_MS, log));
 
 // Why: the barman runs no shop, and buying a beer by mistake is what an unmatched option costs here.
 const BUY_BREW = custom('buy a Khali brew', async log => {
@@ -62,9 +68,13 @@ const BUY_BREW = custom('buy a Khali brew', async log => {
     return talkStrict('Khazard barman', ['I\'d like a Khali brew please.'], log);
 });
 
-const FIGHT_OGRE = custom(`fight ${FA_FIGHT.ogre.what}`, log => runFight(FA_FIGHT.ogre, log));
-const FIGHT_SCORPION = custom(`fight ${FA_FIGHT.scorpion.what}`, log => runFight(FA_FIGHT.scorpion, log));
-const FIGHT_BOUNCER = custom(`fight ${FA_FIGHT.bouncer.what}`, log => runFight(FA_FIGHT.bouncer, log));
+// Why: `jeremy_servil_arena` is the one who queues the ogre, and Justin is the one who opens the scorpion's and Bouncer's gates.
+const FIGHT_OGRE = custom(`fight ${FA_FIGHT.ogre.what}`, log =>
+    fightWithRelease(FA_FIGHT.ogre, FA_NPC.JEREMY_ARENA, log));
+const FIGHT_SCORPION = custom(`fight ${FA_FIGHT.scorpion.what}`, log =>
+    fightWithRelease(FA_FIGHT.scorpion, FA_NPC.JUSTIN, log));
+const FIGHT_BOUNCER = custom(`fight ${FA_FIGHT.bouncer.what}`, log =>
+    fightWithRelease(FA_FIGHT.bouncer, FA_NPC.JUSTIN, log));
 
 /** True once the pack holds a head or body that is not the disguise. */
 function combatKitCarried(snap: QuestSnapshot): boolean {
