@@ -3,7 +3,7 @@ import type { WorldTile } from '#/bot/adapter/ClientAdapter.js';
 import { CANNON_PARTS, MC_OBJ, RAILINGS } from '#/bot/api/ai/quests/defs/dwarfcannon/areas.js';
 import { decide, dwarfcannon } from '#/bot/api/ai/quests/defs/dwarfcannon/index.js';
 import { MC_FLAG, MC_STAGE } from '#/bot/api/ai/quests/defs/dwarfcannon/journal.js';
-import { inCave } from '#/bot/api/ai/quests/defs/dwarfcannon/repair.js';
+import { CANNON_CYCLE, cannonOutcome, inCave } from '#/bot/api/ai/quests/defs/dwarfcannon/repair.js';
 import { defById } from '#/bot/api/ai/quests/defs/index.js';
 import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
@@ -171,6 +171,29 @@ describe('cannon repair', () => {
 
     test('four damaged components, in menu order', () => {
         expect(CANNON_PARTS).toEqual(['Pipe', 'Barrel', 'Axle', 'Shaft']);
+    });
+
+    test('the contraption line ends the loop, because the stage has moved past the repair', () => {
+        expect(cannonOutcome("It's a strange dwarf contraption.")).toBe('done');
+    });
+
+    test('the repair outcomes still read off their own messages', () => {
+        expect(cannonOutcome('After some tinkering you manage to fix it.')).toBe('fixed');
+        expect(cannonOutcome("You've already fixed this part of the cannon.")).toBe('already');
+        expect(cannonOutcome("You try, but can't quite find the problem.")).toBe('retry');
+        expect(cannonOutcome("It's too hard you fail to fix it.")).toBe('retry');
+    });
+
+    test('every outcome message also ends the drive, or the step waits out its timeout', () => {
+        for (const line of [
+            "It's a strange dwarf contraption.",
+            'After some tinkering you manage to fix it.',
+            "You've already fixed this part of the cannon.",
+            "You try, but can't quite find the problem.",
+            "It's too hard you fail to fix it."
+        ]) {
+            expect(CANNON_CYCLE.test(line)).toBe(true);
+        }
     });
 });
 

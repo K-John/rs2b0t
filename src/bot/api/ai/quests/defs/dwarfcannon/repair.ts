@@ -173,12 +173,25 @@ export async function rescueChild(rescued: boolean, log: (m: string) => void): P
 
 // Why: only `mes` lines reach GameMessages, and the "working order" line that ends this leg is a `~chatplayer` dialogue — so the stage reaching 8 is the terminal oracle, read by the next decide() rather than watched for here.
 
+// Why: `oploc1` falls to its else branch, and this line, only when %mcannon is neither 6 nor 7 — so it is the one client-visible proof that the repair leg is over.
+const CANNON_DONE = /strange dwarf contraption/i;
 const CANNON_FIXED = /manage to fix it/i;
 const CANNON_ALREADY = /already fixed this part/i;
 /** One Inspect resolves at most one component, and each of these ends that cycle. */
-const CANNON_CYCLE = /manage to fix it|already fixed this part|too hard you fail to fix|can't quite find the problem/i;
+export const CANNON_CYCLE = /manage to fix it|already fixed this part|too hard you fail to fix|can't quite find the problem|strange dwarf contraption/i;
 
-type PartOutcome = 'fixed' | 'already' | 'retry';
+export type PartOutcome = 'fixed' | 'already' | 'done' | 'retry';
+
+const OUTCOMES: readonly (readonly [RegExp, PartOutcome])[] = [
+    [CANNON_DONE, 'done'],
+    [CANNON_FIXED, 'fixed'],
+    [CANNON_ALREADY, 'already']
+];
+
+/** Classify one Inspect's message; anything else is worth another Inspect. */
+export function cannonOutcome(text: string): PartOutcome {
+    return OUTCOMES.find(([pattern]) => pattern.test(text))?.[1] ?? 'retry';
+}
 
 // Why: the repair menu offers all five components on every Inspect, whatever is already done, so a preference list re-picks its first entry forever — the Pipe is fixed once and every later pass answers "You've already fixed this part of the cannon."
 
@@ -195,10 +208,7 @@ async function inspectFor(part: string | null, log: (m: string) => void): Promis
         return 'retry';
     }
     await driveUntil(() => GameMessages.sawSince(mark, CANNON_CYCLE), part === null ? ['None'] : [part], log, 8000);
-    if (GameMessages.sawSince(mark, CANNON_FIXED)) {
-        return 'fixed';
-    }
-    return GameMessages.sawSince(mark, CANNON_ALREADY) ? 'already' : 'retry';
+    return OUTCOMES.find(([pattern]) => GameMessages.sawSince(mark, pattern))?.[1] ?? 'retry';
 }
 
 /**
@@ -212,6 +222,10 @@ export async function repairCannon(log: (m: string) => void): Promise<boolean> {
     for (const part of CANNON_PARTS) {
         for (let attempt = 0; attempt < 5; attempt++) {
             const outcome = await inspectFor(part, log);
+            if (outcome === 'done') {
+                log('the cannon is repaired and the stage has moved on — leaving the loop');
+                return true;
+            }
             if (outcome !== 'retry') {
                 log(`${part.toLowerCase()}: ${outcome}`);
                 break;
