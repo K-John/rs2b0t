@@ -8,7 +8,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 120,
-        documentedIn: 'docs/reference/quest-harness-recipes.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-4.md'
     },
     {
         id: 'aio-skip-quest-432-live',
@@ -130,7 +130,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 45,
-        documentedIn: 'docs/reference/quest-harness-recipes.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-4.md'
     },
     {
         id: 'external-script-test',
