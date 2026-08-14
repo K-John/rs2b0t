@@ -28,15 +28,16 @@ export interface HandoffInput {
     certsHeld: number;
     certTarget: number;
     partnerConfigured: boolean;
-    /** Whether this session has already handed its shield half over. */
-    gaveHalf: boolean;
+    /** Shield halves this session has handed over. Each one buys the pair two certificates. */
+    halvesGiven: number;
     /** Whether this session has already handed a certificate over. */
     gaveCert: boolean;
 }
 
 // Why: "I have not farmed my half yet" and "I gave my half away" are the same snapshot — no half, no certificate, joined — and the cupboard re-arms once the half leaves the pack, so nothing durable tells them apart.
+// Why: a count rather than a flag, because a stockpile needs one half per two certificates and a flag stops the supplier after the first.
 // Why: session scope is enough — a restart farms another half, which is correct work rather than a wedge.
-export const ArravHandoffState = { gaveHalf: false, gaveCert: false };
+export const ArravHandoffState = { halvesGiven: 0, gaveCert: false };
 
 /**
  * Who owes whom. The phoenix bot is the minter by convention: it is the one that
@@ -72,8 +73,9 @@ export function decideHandoff(input: HandoffInput): ArravHandoff | null {
     if (input.hasOwnHalf) {
         return 'give-half';
     }
-    // Why: without the flag this fires before the cupboard leg has ever run, and the bot waits for a certificate that only its own half can buy.
-    if (input.stage === SOA_STAGE.BLACKARM_JOINED && input.certs === 0 && input.gaveHalf) {
+    // Why: each half the pair mints from buys two certificates, so the supplier keeps farming until the target is covered — and asking before the cupboard leg has ever run waits for a certificate only its own half can buy.
+    const covered = input.halvesGiven * 2 >= Math.max(1, input.certTarget);
+    if (input.stage === SOA_STAGE.BLACKARM_JOINED && input.certs === 0 && covered) {
         return 'take-cert';
     }
     return null;
@@ -221,7 +223,7 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
         return false;
     }
     if (handoff === 'give-half') {
-        ArravHandoffState.gaveHalf = true;
+        ArravHandoffState.halvesGiven++;
     }
     if (handoff === 'give-cert') {
         ArravHandoffState.gaveCert = true;

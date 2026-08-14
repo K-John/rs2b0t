@@ -63,7 +63,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         certsHeld: certsHeld(snap),
         certTarget: ArravConfig.certTarget,
         partnerConfigured: ArravConfig.partner.trim().length > 0,
-        gaveHalf: ArravHandoffState.gaveHalf,
+        halvesGiven: ArravHandoffState.halvesGiven,
         gaveCert: ArravHandoffState.gaveCert
     });
     if (handoff) {

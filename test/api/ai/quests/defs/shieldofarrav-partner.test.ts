@@ -14,7 +14,7 @@ function input(over: Partial<HandoffInput>): HandoffInput {
         certsHeld: 0,
         certTarget: 2,
         partnerConfigured: true,
-        gaveHalf: false,
+        halvesGiven: 0,
         gaveCert: false,
         ...over
     };
@@ -83,14 +83,25 @@ describe('arrav handoffs', () => {
 
     test('a black arm bot that gave its half away collects a certificate', () => {
         expect(decideHandoff(input({
-            gang: 'blackarm', stage: SOA_STAGE.BLACKARM_JOINED, hasOwnHalf: false, certs: 0, gaveHalf: true
+            gang: 'blackarm', stage: SOA_STAGE.BLACKARM_JOINED, hasOwnHalf: false, certs: 0, halvesGiven: 1
         }))).toBe('take-cert');
     });
 
     // Why: the two states look identical in the snapshot, and asking first leaves the bot waiting for a certificate only its own half can buy.
+    // Why: each half buys the pair two certificates, so a stockpile needs the supplier to keep going rather than stop after one.
+    test('a black arm bot keeps supplying halves until the target is covered', () => {
+        const stocking = {
+            gang: 'blackarm' as const, stage: SOA_STAGE.BLACKARM_JOINED,
+            hasOwnHalf: false, certs: 0, certTarget: 6
+        };
+        expect(decideHandoff(input({ ...stocking, halvesGiven: 1 }))).toBeNull();
+        expect(decideHandoff(input({ ...stocking, halvesGiven: 2 }))).toBeNull();
+        expect(decideHandoff(input({ ...stocking, halvesGiven: 3 }))).toBe('take-cert');
+    });
+
     test('a black arm bot that has never farmed a half is left to the cupboard leg', () => {
         expect(decideHandoff(input({
-            gang: 'blackarm', stage: SOA_STAGE.BLACKARM_JOINED, hasOwnHalf: false, certs: 0, gaveHalf: false
+            gang: 'blackarm', stage: SOA_STAGE.BLACKARM_JOINED, hasOwnHalf: false, certs: 0, halvesGiven: 0
         }))).toBeNull();
     });
 
