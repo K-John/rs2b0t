@@ -232,6 +232,12 @@ try {
     if (args.stage > 0) {
         await cheatQuiet(page, 'give amulet_of_ghostspeak 1');
         console.log('gave the pack a Ghostspeak amulet (mid-quest start)');
+        // Why: Filliman hands the blessed sickle and the empty pouch over at stage 75, so a run seeded past it describes a state the quest cannot otherwise reach.
+        if (args.stage >= 75) {
+            await cheatQuiet(page, 'give silver_sickle_blessed 1');
+            await cheatQuiet(page, args.stage >= 90 ? 'give druid_pouch 6' : 'give druid_pouch_empty 1');
+            console.log('gave the pack the blessed sickle and a druid pouch');
+        }
         await cheatQuiet(page, `setvar druidspirit_bits ${bitsFor(args.stage)}`);
         await cheatQuiet(page, `setvar druidspirit ${args.stage}`);
         const set = await getServerVarQuiet(page, 'druidspirit');
