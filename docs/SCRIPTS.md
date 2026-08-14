@@ -716,6 +716,9 @@ All-in-one quest completer — queues the implemented quests (empty selection = 
 | `quests` | string[] | `[]` | Quest queue (empty = all) — one of: Rune Mysteries Quest, Doric's Quest, The Knight's Sword, Sheep Shearer, The Restless Ghost, Cook's Assistant, Imp Catcher, Ernest the Chicken, Witch's Potion, Romeo & Juliet, Prince Ali Rescue, Pirate's Treasure, Shield of Arrav, Waterfall Quest, Goblin Diplomacy, Demon Slayer, Witch's House, Dwarf Cannon, Clock Tower, Merlin's Crystal, Priest in Peril, Nature Spirit, Black Knight's Fortress, Druidic Ritual, Lost City, The Tourist Trap, Watch Tower, Vampire Slayer, Jungle Potion, Shilo Village, Elemental Workshop, Death Plateau, Troll Stronghold, Plague City, Family Crest, Horror from the Deep, Fight Arena, Dragon Slayer |
 | `loadout` | string | `""` | Loadout — one of:  |
 | `food` | string | `"Lobster"` | Food — one of: Shark, Lobster, Swordfish, Tuna, Salmon, Trout, Pike, Bass, Herring, Sardine, Anchovies, Shrimps, Cooked meat, Cooked chicken, Bread, Stew, Cake, Chocolate cake, Plain pizza, Meat pizza, Anchovy pizza, Pineapple pizza, Redberry pie, Meat pie, Apple pie |
+| `arravGang` | string | `"random"` | Shield of Arrav gang — one of: random, phoenix, blackarm |
+| `arravPartner` | string | `""` | Shield of Arrav partner |
+| `arravCerts` | number (1–50) | `2` | Shield of Arrav certificates |
 | `verbose` | boolean | `true` | Verbose step log |
 
 ### Barcrawl
