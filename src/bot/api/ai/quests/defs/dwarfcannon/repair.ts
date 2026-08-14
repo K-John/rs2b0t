@@ -22,29 +22,38 @@ export async function walkTo(tile: Tile, radius: number, log: (m: string) => voi
 
 // Why: nothing in the scene tells a fixed railing from a broken one — the content sets a `%mcannonmulti` bit and leaves the loc alone — so the message is the only oracle.
 
-const RAILING_SETTLED = /already fixed this railing|replace the railing with no problems/i;
+const RAILING_DONE = /already fixed this railing|replace the railing with no problems/i;
+// Why: `stat_random` can refuse below max Crafting, and the refusal costs a few hitpoints rather than the railing, so the attempt is worth repeating.
+const RAILING_FAILED = /fail and cut yourself trying/i;
 
 /** Repair one railing; true when it is fixed or was already. */
 async function fixOne(entry: { id: number; at: Tile }, log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(entry.at, 2, log))) {
         return false;
     }
-    await settleScene();
-    const railing = Locs.query().where(l => l.id === entry.id).nearest();
-    if (!railing) {
-        log(`no railing loc ${entry.id} at (${entry.at.x},${entry.at.z})`);
-        return false;
+    for (let attempt = 0; attempt < 6; attempt++) {
+        await settleScene();
+        const railing = Locs.query().where(l => l.id === entry.id).nearest();
+        if (!railing) {
+            log(`no railing loc ${entry.id} at (${entry.at.x},${entry.at.z})`);
+            return false;
+        }
+        const mark = GameMessages.mark();
+        if (!(await railing.interact('Inspect'))) {
+            return false;
+        }
+        await driveUntil(
+            () => GameMessages.sawSince(mark, RAILING_DONE) || GameMessages.sawSince(mark, RAILING_FAILED),
+            ['Try to replace the railing.'],
+            log,
+            20_000
+        );
+        if (GameMessages.sawSince(mark, RAILING_DONE)) {
+            return true;
+        }
+        await Execution.delayTicks(1);
     }
-    const mark = GameMessages.mark();
-    if (!(await railing.interact('Inspect'))) {
-        return false;
-    }
-    return driveUntil(
-        () => GameMessages.sawSince(mark, RAILING_SETTLED),
-        ['Try to replace the railing.'],
-        log,
-        20_000
-    );
+    return false;
 }
 
 /**
@@ -146,37 +155,30 @@ export async function rescueChild(rescued: boolean, log: (m: string) => void): P
     return true;
 }
 
-const CANNON_WORKING = /seems to be in working order/i;
+// Why: only `mes` lines reach GameMessages, and the "working order" line that ends this leg is a `~chatplayer` dialogue — so the terminal oracle is the journal reaching stage 8, read by the next decide() rather than watched for here.
 
-// Why: each Inspect handles at most one part, and after the fourth the stage is still 7 — one further Inspect is what flips it to 8, so the loop bounds attempts rather than counting parts.
+/** One Inspect resolves at most one component, and each of these ends that cycle. */
+const CANNON_CYCLE = /manage to fix it|already fixed this part|too hard you fail to fix|can't quite find the problem/i;
 
 /**
- * Inspect the broken multicannon until every damaged component is fixed.
+ * Inspect the broken multicannon once and repair whichever component it offers.
  * @see Server content mcannon_broken_cannon.rs2
  */
 export async function repairCannon(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(MC_TILE.CANNON, 2, log))) {
         return false;
     }
-    for (let attempt = 0; attempt < 24; attempt++) {
-        await settleScene();
-        const cannon = Locs.query().where(l => l.id === MC_LOC.BROKEN_CANNON).nearest();
-        if (!cannon) {
-            log(`no broken cannon loc ${MC_LOC.BROKEN_CANNON} in the shed`);
-            return false;
-        }
-        const mark = GameMessages.mark();
-        if (!(await cannon.interact('Inspect'))) {
-            return false;
-        }
-        const done = (): boolean => GameMessages.sawSince(mark, CANNON_WORKING);
-        await driveUntil(done, [...CANNON_PARTS, 'None'], log, 15_000);
-        if (done()) {
-            log('the cannon is in working order');
-            return true;
-        }
-        await Execution.delayTicks(1);
+    await settleScene();
+    const cannon = Locs.query().where(l => l.id === MC_LOC.BROKEN_CANNON).nearest();
+    if (!cannon) {
+        log(`no broken cannon loc ${MC_LOC.BROKEN_CANNON} in the shed`);
+        return false;
     }
-    log('the cannon did not come together in 24 inspections');
+    const mark = GameMessages.mark();
+    if (!(await cannon.interact('Inspect'))) {
+        return false;
+    }
+    // Why: the fourth component leaves the stage at 7, and the Inspect after it is what flips it to 8, so this returns after every cycle and lets the journal say when to stop.
+    await driveUntil(() => GameMessages.sawSince(mark, CANNON_CYCLE), [...CANNON_PARTS, 'None'], log, 15_000);
     return true;
 }
