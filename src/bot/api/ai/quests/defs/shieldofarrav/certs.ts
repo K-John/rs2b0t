@@ -24,29 +24,41 @@ export function certsBanked(snap: QuestSnapshot): number {
 }
 
 /**
- * Everything certificate-shaped, in priority order. Returns null when nothing is
- * due, so the caller falls through to the gang legs.
+ * Both halves in one pack, which is the only thing the curator answers to.
+ * Runs before any handoff, so a bot that can mint never trades a half away again.
  */
-export function certStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null {
+export function curatorStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null {
     const mine = heldId(snap, ownHalf(gang));
     const theirs = heldId(snap, otherHalf(gang));
-    // Why: the curator wants both halves in one pack and mints two, and he stops the moment either varp goes complete.
-    if (mine > 0 && theirs > 0) {
-        return { kind: 'talk', stop: CURATOR };
-    }
+    // Why: he mints two per pair and stops the moment either varp goes complete, so this is the only window.
+    return mine > 0 && theirs > 0 ? { kind: 'talk', stop: CURATOR } : null;
+}
 
+/**
+ * Redeeming, withdrawing and banking the surplus. Runs after the handoffs, so the
+ * partner gets its certificate before this bot spends the last one it holds.
+ * Returns null when nothing is due, and the caller falls through to the gang legs.
+ */
+export function certStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null {
     const held = certsHeld(snap);
-    const total = held + certsBanked(snap);
+    const banked = certsBanked(snap);
     const target = Math.max(1, ArravConfig.certTarget);
+    // Why: only the phoenix bot mints — it is the one that reaches Straven and the curator unaided — so only it is held to the stockpile target.
+    const minting = gang === 'phoenix';
+    // Why: `target` counts certificates minted, and one of every pair goes to the partner, so the bank is two short at the end.
+    const doneMinting = !minting || held + banked >= target || banked >= Math.max(0, target - 2);
 
-    if (total >= target) {
+    if (doneMinting) {
         if (held > 0) {
             return { kind: 'talk', stop: ROALD };
         }
-        return {
-            kind: 'withdraw',
-            items: [{ name: 'Certificate', qty: 1, id: SOA_ID.CERTIFICATE }]
-        };
+        if (banked > 0) {
+            return {
+                kind: 'withdraw',
+                items: [{ name: 'Certificate', qty: 1, id: SOA_ID.CERTIFICATE }]
+            };
+        }
+        return null;
     }
 
     // Why: a spare half cannot be banked — the chest and cupboard re-check the bank — so only the certificate stockpiles.

@@ -19,7 +19,6 @@ import { heldId } from './state.js';
 
 const WEAPONSMASTER_NPC = 643;
 const KILL_MS = 90_000;
-const WALK_MS = 120_000;
 /** `opobj3,phoenix_crossbow` refuses inside ten tiles of the Weaponsmaster, gang member or not. */
 const MASTER_BLOCK = 10;
 

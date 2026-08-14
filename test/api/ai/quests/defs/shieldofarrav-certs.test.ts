@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test';
 
 import { SOA_ID } from '#/bot/api/ai/quests/defs/shieldofarrav/areas.js';
-import { certStep, certsBanked, certsHeld } from '#/bot/api/ai/quests/defs/shieldofarrav/certs.js';
+import { certStep, certsBanked, certsHeld, curatorStep } from '#/bot/api/ai/quests/defs/shieldofarrav/certs.js';
 import { ArravConfig } from '#/bot/api/ai/quests/defs/shieldofarrav/config.js';
 import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
@@ -40,15 +40,37 @@ describe('arrav certificates', () => {
         expect(certsBanked(s)).toBe(0);
     });
 
-    test('both halves go to the curator', () => {
+    test('both halves go to the curator, whichever gang holds them', () => {
         const s = snap([[SOA_ID.SHIELD_PHOENIX, 1], [SOA_ID.SHIELD_BLACKARM, 1]]);
-        expect(certStep(s, 'phoenix')).toMatchObject({ kind: 'talk', stop: { npc: 'Curator Haig Halen' } });
-        expect(certStep(s, 'blackarm')).toMatchObject({ kind: 'talk', stop: { npc: 'Curator Haig Halen' } });
+        expect(curatorStep(s, 'phoenix')).toMatchObject({ kind: 'talk', stop: { npc: 'Curator Haig Halen' } });
+        expect(curatorStep(s, 'blackarm')).toMatchObject({ kind: 'talk', stop: { npc: 'Curator Haig Halen' } });
     });
 
-    test('the curator outranks a certificate already held', () => {
+    test('the curator is due even with a certificate already held', () => {
         const s = snap([[SOA_ID.SHIELD_PHOENIX, 1], [SOA_ID.SHIELD_BLACKARM, 1], [SOA_ID.CERTIFICATE, 1]]);
-        expect(certStep(s, 'phoenix')).toMatchObject({ stop: { npc: 'Curator Haig Halen' } });
+        expect(curatorStep(s, 'phoenix')).toMatchObject({ stop: { npc: 'Curator Haig Halen' } });
+    });
+
+    test('one half alone is never a curator trip', () => {
+        expect(curatorStep(snap([[SOA_ID.SHIELD_PHOENIX, 1]]), 'phoenix')).toBeNull();
+        expect(curatorStep(snap([[SOA_ID.SHIELD_BLACKARM, 1]]), 'blackarm')).toBeNull();
+    });
+
+    test('a black arm bot redeems a received certificate whatever the mint target', () => {
+        ArravConfig.certTarget = 10;
+        expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]]), 'blackarm'))
+            .toMatchObject({ kind: 'talk', stop: { npc: 'King Roald' } });
+    });
+
+    test('a phoenix bot mid-stockpile keeps farming rather than redeeming its last one', () => {
+        ArravConfig.certTarget = 10;
+        expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]]), 'phoenix')).toBeNull();
+    });
+
+    test('a phoenix bot two short of target redeems, because one of each pair went to the partner', () => {
+        ArravConfig.certTarget = 10;
+        expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]], [[SOA_ID.CERTIFICATE, 8]]), 'phoenix'))
+            .toMatchObject({ kind: 'talk', stop: { npc: 'King Roald' } });
     });
 
     test('a banked certificate at target is withdrawn', () => {
@@ -91,7 +113,7 @@ describe('arrav certificates', () => {
         expect(certStep(snap(), 'phoenix')).toBeNull();
     });
 
-    test('one half alone is not a curator trip, for either gang', () => {
+    test('one half alone leaves the certificate step idle', () => {
         expect(certStep(snap([[SOA_ID.SHIELD_PHOENIX, 1]]), 'phoenix')).toBeNull();
         expect(certStep(snap([[SOA_ID.SHIELD_BLACKARM, 1]]), 'blackarm')).toBeNull();
     });
