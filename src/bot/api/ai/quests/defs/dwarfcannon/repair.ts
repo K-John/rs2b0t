@@ -171,30 +171,55 @@ export async function rescueChild(rescued: boolean, log: (m: string) => void): P
     return true;
 }
 
-// Why: only `mes` lines reach GameMessages, and the "working order" line that ends this leg is a `~chatplayer` dialogue — so the terminal oracle is the journal reaching stage 8, read by the next decide() rather than watched for here.
+// Why: only `mes` lines reach GameMessages, and the "working order" line that ends this leg is a `~chatplayer` dialogue — so the stage reaching 8 is the terminal oracle, read by the next decide() rather than watched for here.
 
+const CANNON_FIXED = /manage to fix it/i;
+const CANNON_ALREADY = /already fixed this part/i;
 /** One Inspect resolves at most one component, and each of these ends that cycle. */
 const CANNON_CYCLE = /manage to fix it|already fixed this part|too hard you fail to fix|can't quite find the problem/i;
 
+type PartOutcome = 'fixed' | 'already' | 'retry';
+
+// Why: the repair menu offers all five components on every Inspect, whatever is already done, so a preference list re-picks its first entry forever — the Pipe is fixed once and every later pass answers "You've already fixed this part of the cannon."
+
+/** Inspect once and answer for one named component; `null` drives no menu. */
+async function inspectFor(part: string | null, log: (m: string) => void): Promise<PartOutcome> {
+    await settleScene();
+    const cannon = Locs.query().where(l => l.id === MC_LOC.BROKEN_CANNON).nearest();
+    if (!cannon) {
+        log(`no broken cannon loc ${MC_LOC.BROKEN_CANNON} in the shed`);
+        return 'retry';
+    }
+    const mark = GameMessages.mark();
+    if (!(await cannon.interact('Inspect'))) {
+        return 'retry';
+    }
+    await driveUntil(() => GameMessages.sawSince(mark, CANNON_CYCLE), part === null ? ['None'] : [part], log, 8000);
+    if (GameMessages.sawSince(mark, CANNON_FIXED)) {
+        return 'fixed';
+    }
+    return GameMessages.sawSince(mark, CANNON_ALREADY) ? 'already' : 'retry';
+}
+
 /**
- * Inspect the broken multicannon once and repair whichever component it offers.
+ * Repair all four damaged components, then Inspect once more to close the stage.
  * @see Server content mcannon_broken_cannon.rs2
  */
 export async function repairCannon(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(MC_TILE.CANNON, 2, log))) {
         return false;
     }
-    await settleScene();
-    const cannon = Locs.query().where(l => l.id === MC_LOC.BROKEN_CANNON).nearest();
-    if (!cannon) {
-        log(`no broken cannon loc ${MC_LOC.BROKEN_CANNON} in the shed`);
-        return false;
+    for (const part of CANNON_PARTS) {
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const outcome = await inspectFor(part, log);
+            if (outcome !== 'retry') {
+                log(`${part.toLowerCase()}: ${outcome}`);
+                break;
+            }
+            await Execution.delayTicks(1);
+        }
     }
-    const mark = GameMessages.mark();
-    if (!(await cannon.interact('Inspect'))) {
-        return false;
-    }
-    // Why: the fourth component leaves the stage at 7, and the Inspect after it is what flips it to 8, so this returns after every cycle and lets the journal say when to stop.
-    await driveUntil(() => GameMessages.sawSince(mark, CANNON_CYCLE), [...CANNON_PARTS, 'None'], log, 15_000);
+    // Why: the fourth component leaves the stage at 7, and it is the Inspect after it, finding all four bits set, that flips it to 8.
+    await inspectFor(null, log);
     return true;
 }
