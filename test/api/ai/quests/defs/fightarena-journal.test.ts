@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import { FA_STAGE, normalizeJournal, parseFightArenaJournal } from '#/bot/api/ai/quests/defs/fightarena/journal.js';
+import { FA_STAGE, normalizeJournal, parseFightArenaJournal, resetFightArenaStage } from '#/bot/api/ai/quests/defs/fightarena/journal.js';
 
 const INTRO = '@str@I encountered a distraught Lady Servil who said that her|@str@son and husband have been kidnapped by the evil General|'
     + '@str@Khazard, and are being forced to fight in his Fight Arena.||';
@@ -71,5 +71,9 @@ describe('parseFightArenaJournal', () => {
 
     test('accepts the lines array the client hands back', () => {
         expect(parseFightArenaJournal([INTRO, '@dbl@I should go to the @dre@Fight Arena@dbl@ and try to find her family.'])).toBe(FA_STAGE.STARTED);
+    });
+
+    test('the cache can be cleared, so one account does not inherit another', () => {
+        expect(resetFightArenaStage()).toBeUndefined();
     });
 });

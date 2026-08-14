@@ -156,24 +156,11 @@ What the legs proved, at `--tick 150` on `:8890`:
 | 5 → 9 | PASS, 3 min | the keys reclaimed after a death, the cell-gate cutscene, the ogre — 10 attacks, no damage taken under Protect from Melee |
 | 9 → 12 | PASS, 5 min | Hengrad's cutscene out of the cell, the scorpion, Bouncer, the agreement — hitpoints never left 99, prayer 99 → 53 |
 | 12 → 14 | PASS, 2 min | both scripted doors outward, the walk to Lady Servil, `QUEST COMPLETE`, 2 quest points |
+| 0 → 14 | PASS, 7 min | the uncheated run: 26 steps, no parks, nothing seeded but coins, food and a banked rune kit |
 
-The 5 → 9 leg overshoots its `--until 8` on purpose: killing the ogre with Justin and
-General Khazard both in range chains `justin_servil_saved` straight through
-`general_khazard_belong_nobody`, so stage 8 is never observed. A module that waits for it
-would wait forever.
-
-Three behaviours the logs named that no guide does.
-
-- A journal read taken during a cutscene comes back empty and prints `stage unavailable`
-  for one tick, which the module answers with `wait` rather than a guess.
-- All three beasts died to an **unarmed** max-stats account without landing a hit, under
-  Protect from Melee. The prayer is what the fight rests on; the weapon only sets how long
-  it takes.
-- A leg that starts inside the arena or a cell spends its first three minutes watching the
-  engine fail to reach a bank, because provisioning runs before the first `decide()` and
-  the pocket has no booth. That is a cold-start artefact of `--stage`: a run that started
-  outside was provisioned before it ever went in, and a death puts the account in
-  Lumbridge where banking works.
+The 5 → 9 leg overshoots its `--until 8` on purpose, and a leg that starts inside a pocket
+spends its first three minutes watching the engine fail to reach a bank. Both are
+explained in [Fight Arena's pitfalls](../decisions/quest-pitfalls-4.md).
 
 ## See also
 

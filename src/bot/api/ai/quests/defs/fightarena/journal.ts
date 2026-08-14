@@ -55,24 +55,39 @@ export function parseFightArenaJournal(lines: readonly string[] | string): numbe
     return NEEDLES.find(([needle]) => text.includes(needle))?.[1];
 }
 
+// Why: a read taken while something is swinging comes back empty, and standing still to re-read it is the one thing the arena punishes.
+// Why: the stage only ever moves forward, so the last one read is a sound floor to act on until the next read lands.
+let lastRead: number | undefined;
+
+/** Forget the cached stage. Tests and a fresh account want a clean slate. */
+export function resetFightArenaStage(): void {
+    lastRead = undefined;
+}
+
 // Why: the journal body is built only when the player opens the quest, and it is a main modal that hides every later read until it is closed.
 
 /** The stage, read from the quest list colour and the journal scroll. */
 export async function readFightArenaStage(): Promise<number | undefined> {
     const status = Quests.status(FIGHT_ARENA_QUEST);
     if (status === 'complete') {
+        lastRead = FA_STAGE.COMPLETE;
         return FA_STAGE.COMPLETE;
     }
     if (status === 'notStarted') {
+        lastRead = FA_STAGE.NOT_STARTED;
         return FA_STAGE.NOT_STARTED;
     }
     if (status !== 'inProgress') {
-        return undefined;
+        return lastRead;
     }
     const stage = parseFightArenaJournal(await Quests.journal(FIGHT_ARENA_QUEST));
     if (reader.modals().main !== -1) {
         actions.closeModal();
         await Execution.delayTicks(1);
     }
-    return stage;
+    if (stage !== undefined) {
+        lastRead = stage;
+        return stage;
+    }
+    return lastRead;
 }
