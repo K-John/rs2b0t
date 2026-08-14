@@ -69,8 +69,17 @@ describe('plague city decide — terminal and guard cases', () => {
 });
 
 describe('plague city decide — East Ardougne', () => {
-    test('stage 0 asks Edmond about his daughter', () => {
-        expect(name(decide(snapshot({ stage: PC_STAGE.NOT_STARTED })))).toBe('ask Edmond about his daughter');
+    test('stage 0 draws the shopping float, then asks Edmond about his daughter', () => {
+        const float = decide(snapshot({ stage: PC_STAGE.NOT_STARTED }));
+        expect(float.kind === 'withdraw' && float.items[0].name).toBe(PC_ITEM.COINS.name);
+        expect(float.kind === 'withdraw' && float.items[0].qty).toBe(2000);
+        const ask = decide(snapshot({ stage: PC_STAGE.NOT_STARTED, invIds: carrying([PC_ITEM.COINS, 2000]) }));
+        expect(name(ask)).toBe('ask Edmond about his daughter');
+    });
+
+    test('an empty bank does not park the quest on its first step', () => {
+        const step = decide(snapshot({ stage: PC_STAGE.NOT_STARTED, bankIds: new Map() }));
+        expect(name(step)).toBe('ask Edmond about his daughter');
     });
 
     test('stage 1 fetches dwellberries, then hands them to Alrena', () => {
@@ -93,13 +102,31 @@ describe('plague city decide — East Ardougne', () => {
         expect(name(decide(snapshot({ stage: PC_STAGE.GASMASK })))).toBe('ask Edmond about the way into West Ardougne');
     });
 
-    test('the water block sources a bucket, fills it, then pours it', () => {
+    test('the water block gathers four buckets, fills them, then pours them', () => {
         const empty = decide(snapshot({ stage: PC_STAGE.MUD_START, bankIds: new Map() }));
         expect(empty.kind).toBe('grabGround');
-        const fill = decide(snapshot({ stage: PC_STAGE.MUD_START, invIds: carrying([PC_ITEM.BUCKET, 2]) }));
+        const short = decide(snapshot({ stage: PC_STAGE.MUD_START, bankIds: new Map(), invIds: carrying([PC_ITEM.BUCKET, 2]) }));
+        expect(short.kind === 'grabGround' && short.item).toBe(PC_ITEM.BUCKET.name);
+        const fill = decide(snapshot({ stage: PC_STAGE.MUD_START, invIds: carrying([PC_ITEM.BUCKET, 4]) }));
         expect(name(fill)).toBe('fill buckets at the Ardougne fountain');
-        const pour = decide(snapshot({ stage: PC_STAGE.MUD_START, invIds: carrying([PC_ITEM.BUCKET_WATER, 2]) }));
+        const pour = decide(snapshot({ stage: PC_STAGE.MUD_START, invIds: carrying([PC_ITEM.BUCKET_WATER, 4]) }));
         expect(name(pour)).toBe('pour water on the garden soil');
+    });
+
+    test('a part-filled pack tops the water up before it walks to the garden', () => {
+        const step = decide(snapshot({
+            stage: PC_STAGE.MUD_START,
+            invIds: carrying([PC_ITEM.BUCKET_WATER, 2], [PC_ITEM.BUCKET, 2])
+        }));
+        expect(name(step)).toBe('fill buckets at the Ardougne fountain');
+    });
+
+    test('the milk bucket is sourced one at a time, not four', () => {
+        const step = decide(snapshot({
+            stage: PC_STAGE.SPOKEN_BRAVEK,
+            invIds: carrying([PC_ITEM.COINS, 2000], [PC_ITEM.BUCKET, 1])
+        }));
+        expect(step.kind === 'useOn' && step.product).toBe(PC_ITEM.BUCKET_MILK.name);
     });
 
     test('a stocked bank fills the pack with buckets in one trip', () => {

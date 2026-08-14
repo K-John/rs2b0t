@@ -81,7 +81,12 @@ Edmond's floor, the buckets and berries are ground spawns, the rope comes from
 Aemad and the cure ingredients from Wydin, Jatix, a cow and the snape grass spawns
 south of the Crafting Guild — seeding any of them hides whether the bot can find it.
 
-Three details govern this harness:
+The garden leg is the one place a seeded bank changes the shape of a run: the soil
+takes four pours, the only bucket spawn in reach is the single one at (2616,3255),
+and `--stage 3` on an unseeded bank spends three respawn waits on it before the
+fountain trip. Bank four buckets to time the fill and pour legs alone.
+
+Five details govern this harness:
 
 - **It is members-only (`map_members`), so it needs the :8890 world.** The :8888
   sim also answers neither `givebank` nor `~bankitem`, so a run there starts with
@@ -94,6 +99,9 @@ Three details govern this harness:
 - **One engine serves every worktree.** A second harness deploying its own bundle
   replaces this one mid-run, and the AIOQuester queue line is where it shows; the
   harness reads that line and fails fast rather than running the wrong quest list.
+- **Stage 27 needs a mourner outside the plague house.** The door's op returns in
+  silence when none is within 14 tiles, so a `--stage 27` leg that lands on an empty
+  street logs the wait rather than the crossing.
 
 ## See also
 

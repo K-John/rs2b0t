@@ -48,8 +48,13 @@ export function reclaim(snap: QuestSnapshot, item: PlagueItem): QuestStep | null
     return held(snap, item) > 0 ? null : fromBank(snap, item, 1);
 }
 
-function sourcePurse(snap: QuestSnapshot, want: number): QuestStep | null {
-    if (held(snap, PC_ITEM.COINS) >= want) {
+/** What the rope, pestle and chocolate bar cost between them. */
+const SHOPPING_NEED = ROPE_PRICE + PESTLE_PRICE + CHOCOLATE_PRICE;
+
+// Why: the float is drawn once and spent down, so the trigger is the shopping still to do —
+// a purse topped back up to 2000 after every price walks to a bank between each shop.
+function sourcePurse(snap: QuestSnapshot, floor: number, blocking: boolean): QuestStep | null {
+    if (held(snap, PC_ITEM.COINS) >= floor) {
         return null;
     }
     if (!snap.bankKnown) {
@@ -57,13 +62,13 @@ function sourcePurse(snap: QuestSnapshot, want: number): QuestStep | null {
     }
     const available = banked(snap, PC_ITEM.COINS);
     if (available <= 0) {
-        return { kind: 'wait', reason: 'no coins banked for the rope, pestle and chocolate bar' };
+        return blocking ? { kind: 'wait', reason: 'no coins banked for the rope, pestle and chocolate bar' } : null;
     }
-    return withdrawAnywhere([{ name: PC_ITEM.COINS.name, id: PC_ITEM.COINS.id, qty: Math.min(want, available) }]);
+    return withdrawAnywhere([{ name: PC_ITEM.COINS.name, id: PC_ITEM.COINS.id, qty: Math.min(PURSE, available) }]);
 }
 
-/** Draw the float for all three shops, or null once the pack carries it. */
-export const sourceShoppingFloat = (snap: QuestSnapshot): QuestStep | null => sourcePurse(snap, PURSE);
+/** Draw the float for all three shops, or null once the pack carries the shopping money. */
+export const sourceShoppingFloat = (snap: QuestSnapshot): QuestStep | null => sourcePurse(snap, SHOPPING_NEED, false);
 
 /** Bank first, then the shop with a purse withdrawn ahead of the trip. */
 export function buyItem(
@@ -84,7 +89,7 @@ export function buyItem(
     const gp = missing * unitGp;
     // Why: the shops are a rope in Ardougne, a pestle in Taverley and a chocolate bar in
     // Port Sarim, so the float is drawn once rather than walking back for each price.
-    const purse = held(snap, PC_ITEM.COINS) < gp ? sourcePurse(snap, PURSE) : null;
+    const purse = sourcePurse(snap, gp, true);
     return purse ?? { kind: 'buy', item: item.name, qty: missing, shop, estGp: gp };
 }
 
@@ -113,14 +118,17 @@ export const sourceSpade = (snap: QuestSnapshot): QuestStep | null => fromHouseF
 
 export const sourcePicture = (snap: QuestSnapshot): QuestStep | null => fromHouseFloor(snap, PC_ITEM.PICTURE);
 
-/** The garden wants four pours, so a stocked bank saves three walks to the fountain. */
-const BUCKET_TARGET = 4;
+// Why: the garden takes four pours and hands the bucket back empty each time, so one bucket
+// is four fountain-to-garden round trips; four buckets is one.
 
-export function sourceBucket(snap: QuestSnapshot): QuestStep | null {
-    if (held(snap, PC_ITEM.BUCKET) > 0) {
+/** How many buckets the garden leg carries. */
+export const BUCKET_TARGET = 4;
+
+export function sourceBucket(snap: QuestSnapshot, qty = BUCKET_TARGET): QuestStep | null {
+    if (held(snap, PC_ITEM.BUCKET) >= qty) {
         return null;
     }
-    return fromBank(snap, PC_ITEM.BUCKET, BUCKET_TARGET)
+    return fromBank(snap, PC_ITEM.BUCKET, qty)
         ?? { kind: 'grabGround', item: PC_ITEM.BUCKET.name, anchor: PC_TILE.BUCKET_SPAWN, waitIfMissing: true };
 }
 
@@ -145,7 +153,7 @@ export function sourceMilk(snap: QuestSnapshot): QuestStep | null {
         return null;
     }
     return fromBank(snap, PC_ITEM.BUCKET_MILK, 1)
-        ?? sourceBucket(snap)
+        ?? sourceBucket(snap, 1)
         ?? {
             kind: 'useOn',
             item: PC_ITEM.BUCKET.name,
