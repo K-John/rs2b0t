@@ -15,10 +15,12 @@ export interface ArenaFight {
     guard: number;
 }
 
+// Why: running out mid-fight hands the tick back to the engine, which reads the journal, and that opens a main modal on top of a boss.
+// Why: the budgets are generous for that reason; a fight that has stalled is the watchdog's problem, not this loop's.
 export const FA_FIGHT: Record<'ogre' | 'scorpion' | 'bouncer', ArenaFight> = {
-    ogre: { what: 'Khazard Ogre', npcId: FA_NPC.OGRE, guard: 300 },
-    scorpion: { what: 'Khazard Scorpion', npcId: FA_NPC.SCORPION, guard: 300 },
-    bouncer: { what: 'Bouncer', npcId: FA_NPC.BOUNCER, guard: 600 }
+    ogre: { what: 'Khazard Ogre', npcId: FA_NPC.OGRE, guard: 600 },
+    scorpion: { what: 'Khazard Scorpion', npcId: FA_NPC.SCORPION, guard: 600 },
+    bouncer: { what: 'Bouncer', npcId: FA_NPC.BOUNCER, guard: 1500 }
 };
 
 export const PROTECT_MELEE = 'protect from melee';
