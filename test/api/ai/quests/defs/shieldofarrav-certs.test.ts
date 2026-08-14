@@ -70,10 +70,19 @@ describe('arrav certificates', () => {
         expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]]), 'phoenix')).toBeNull();
     });
 
-    test('a phoenix bot two short of target redeems, because one of each pair went to the partner', () => {
+    // Why: giving the partner its certificate drops the total back below target, and without this the bot would go and farm another half.
+    test('a phoenix bot that has paid its partner stops minting whatever the total reads', () => {
         ArravConfig.certTarget = 10;
-        expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]], [[SOA_ID.CERTIFICATE, 8]]), 'phoenix'))
+        ArravHandoffState.gaveCert = true;
+        expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]], [[SOA_ID.CERTIFICATE, 4]]), 'phoenix'))
             .toMatchObject({ kind: 'custom' });
+    });
+
+    // Why: a predicate that flips when the certificates move between pack and bank makes the deposit and the withdraw undo each other every tick.
+    test('banking the surplus does not make the bot withdraw it straight back', () => {
+        ArravConfig.certTarget = 6;
+        const afterDeposit = certStep(snap([], [[SOA_ID.CERTIFICATE, 4]]), 'phoenix');
+        expect(afterDeposit).toBeNull();
     });
 
     test('a banked certificate at target is withdrawn', () => {

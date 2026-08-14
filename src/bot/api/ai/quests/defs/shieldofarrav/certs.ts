@@ -59,8 +59,9 @@ export function certStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null
     const target = Math.max(1, ArravConfig.certTarget);
     // Why: only the phoenix bot mints — it is the one that reaches Straven and the curator unaided — so only it is held to the stockpile target.
     const minting = gang === 'phoenix';
-    // Why: `target` counts certificates minted, and one of every pair goes to the partner, so the bank is two short at the end.
-    const doneMinting = !minting || held + banked >= target || banked >= Math.max(0, target - 2);
+    // Why: the test is the total, never the split between pack and bank — a predicate that flips when the certificates move makes the deposit and the withdraw undo each other every tick.
+    // Why: handing the partner its certificate ends the minting whatever the total then reads, since giving one away drops it back below target.
+    const doneMinting = !minting || ArravHandoffState.gaveCert || held + banked >= target;
 
     if (doneMinting) {
         if (held > 0) {
