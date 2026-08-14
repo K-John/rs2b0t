@@ -141,6 +141,9 @@ Three details govern this harness:
   leaves a Book in the pack tests the wrong branch.
 - **Stage 9 starts in the sewer.** `%elenaquest 9` means the rope is already tied,
   which only makes sense below ground, so that stage teleports to the mud pile.
+- **One engine serves every worktree.** A second harness deploying its own bundle
+  replaces this one mid-run, and the AIOQuester queue line is where it shows; the
+  harness reads that line and fails fast rather than running the wrong quest list.
 
 ## See also
 

@@ -206,8 +206,18 @@ try {
     const deadline = Date.now() + args.minutes * 60_000;
     let lastLogTime = 0;
     let reached = 0;
+    let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
+        // Why: one engine serves every worktree, so a concurrent session's deploy silently
+        // replaces this bundle and the queue line is the first place it shows.
+        const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
+        if (!queueChecked && queue) {
+            queueChecked = true;
+            if (!queue.msg.includes(QUEST)) {
+                fail(`the deployed bundle has no ${QUEST} — another worktree deployed over it; rerun this harness`);
+            }
+        }
         const stage = (await getServerVarQuiet(page, 'elenaquest')) ?? -1;
         reached = Math.max(reached, stage);
         const t = Math.round((Date.now() - t0) / 1000);
