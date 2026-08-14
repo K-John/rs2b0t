@@ -56,6 +56,17 @@ describe('shield of arrav decide', () => {
         expect(decide(snap({ stage: undefined, progress: undefined }))).toMatchObject({ kind: 'wait' });
     });
 
+    // Why: ownsInventory skips the engine's provisioning, so nothing else opens a booth and a banked certificate or key stays invisible.
+    test('an unread bank is scanned before anything else is decided', () => {
+        withGang('phoenix');
+        expect(decide(snap({ bankKnown: false }))).toMatchObject({ kind: 'scanBank' });
+    });
+
+    test('the scan happens once — a read bank falls straight through to the quest', () => {
+        withGang('phoenix');
+        expect(decide(snap({ bankKnown: true })).kind).not.toBe('scanBank');
+    });
+
     test('a held certificate outranks every gang leg', () => {
         withGang('phoenix');
         const s = snap({
