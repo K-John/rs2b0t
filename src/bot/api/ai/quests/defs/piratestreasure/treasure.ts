@@ -86,13 +86,17 @@ const GARDENER_RANGE = 10;
 /** Clear the gardener if he is inside the dig's refusal radius. */
 async function clearGardener(log: (m: string) => void): Promise<void> {
     const near = () => Npcs.query().where(n => n.id === PT_ID.GARDENER).within(GARDENER_RANGE).nearest();
-    if (!near()) {
+    const first = near();
+    if (!first) {
+        log('no gardener within the dig radius');
         return;
     }
+    log(`gardener ${first.distance()} tiles off — clearing him before the dig`);
     Game.setCombatStyle('strength');
     for (let attempt = 0; attempt < 6; attempt++) {
         const gardener = near();
         if (!gardener) {
+            log('gardener down');
             return;
         }
         await Sustain.run();
