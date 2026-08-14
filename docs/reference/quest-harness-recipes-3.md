@@ -135,6 +135,7 @@ Measured at the default `--tick 300`, no parks:
 | 20 → 23 | 2 | the Rehnisons and Milli |
 | 23 → 27 | 13 | clearance, the clerk, Bravek, the cure loop |
 | 27 → 29 | 2 | the plague house, Elena, Edmond, the scroll |
+| 0 → 29 | 23 | a clean account to `QUEST COMPLETE!` |
 
 The cure block is the long one — a cow, the snape grass beach, Taverley and Port Sarim.
 
