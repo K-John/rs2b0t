@@ -185,13 +185,21 @@ export async function unlockJeremy(log: (m: string) => void): Promise<boolean> {
     return landedIn('arena', 40_000);
 }
 
+// Why: `Reach.entityOp` lets the server walk the last stretch, and its five-second window is short for a target thirty tiles across the corridor.
+
 /** Talk to an npc found by id, then drive whatever it opens. */
-export async function talkById(npcId: number, prefer: string[], log: (m: string) => void): Promise<boolean> {
+export async function talkById(npcId: number, prefer: string[], log: (m: string) => void, near?: Tile): Promise<boolean> {
     const ready = (): boolean => ChatDialog.isOpen() || ChatDialog.canContinue();
+    const found = (): boolean => Npcs.query().where(n => n.id === npcId).within(6).exists();
+    if (near && !found() && !(await Traversal.walkResilient(near, { radius: 4, attempts: 3, timeoutMs: 120_000, log }))) {
+        log(`could not walk to (${near.x},${near.z}) for npc ${npcId}`);
+        return false;
+    }
     const status = await Reach.entityOp({
         find: () => Npcs.query().where(n => n.id === npcId).nearest(),
         op: 'Talk-to',
         expect: ready,
+        expectMs: 15_000,
         openWhenUnreachable: true,
         what: `npc ${npcId}`,
         log

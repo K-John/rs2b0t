@@ -30,6 +30,11 @@ const held = (snap: QuestSnapshot, id: number): boolean => (snap.invIds?.get(id)
 const worn = (snap: QuestSnapshot, id: number): boolean => snap.wornIds?.has(id) ?? false;
 const disguised = (snap: QuestSnapshot): boolean => worn(snap, FA_OBJ.HELMET) || worn(snap, FA_OBJ.ARMOUR);
 
+// Why: door1 lets one piece through, but the drunk guard's `~wearing_khazard_armour` wants both, so half a disguise loops at him forever.
+const hasBoth = (snap: QuestSnapshot): boolean =>
+    (held(snap, FA_OBJ.HELMET) || worn(snap, FA_OBJ.HELMET))
+    && (held(snap, FA_OBJ.ARMOUR) || worn(snap, FA_OBJ.ARMOUR));
+
 const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep =>
     ({ kind: 'custom', name, run });
 
@@ -44,7 +49,7 @@ const UNLOCK_JEREMY = custom('unlock Jeremy\'s cell', unlockJeremy);
 const FLEE = custom('run from General Khazard', fleeArena);
 
 const DRUNK_GUARD = custom('talk to the drunk guard', log =>
-    talkById(FA_NPC.DRUNK_GUARD, ['Do you still fancy a drink?', 'Yes'], log));
+    talkById(FA_NPC.DRUNK_GUARD, ['Do you still fancy a drink?', 'Yes'], log, FA_TILE.DRUNK_GUARD));
 const HENGRAD = custom('talk to Hengrad', log => talkById(FA_NPC.HENGRAD, [], log));
 const ASK_SERVILS = custom('ask the Servils about Khazard', log => talkById(FA_NPC.JEREMY_ARENA, [], log));
 const RELEASE_BEAST = custom('ask Justin what comes next', log => talkById(FA_NPC.JUSTIN, [], log));
@@ -73,7 +78,7 @@ function outsideStep(snap: QuestSnapshot, stage: number): QuestStep {
     if (stage >= FA_STAGE.SENT_JAIL) {
         return KNOCK_FOR_GUARD;
     }
-    if (!held(snap, FA_OBJ.HELMET) && !held(snap, FA_OBJ.ARMOUR) && !disguised(snap)) {
+    if (!hasBoth(snap)) {
         return CHEST;
     }
     if (stage === FA_STAGE.SPOKEN_DRUNKGUARD && !held(snap, FA_OBJ.BREW)) {
@@ -99,7 +104,7 @@ function buildingStep(snap: QuestSnapshot, stage: number): QuestStep {
         }
         return UNLOCK_JEREMY;
     }
-    if (stage === FA_STAGE.SPOKEN_DRUNKGUARD && !held(snap, FA_OBJ.BREW)) {
+    if ((stage === FA_STAGE.SPOKEN_DRUNKGUARD && !held(snap, FA_OBJ.BREW)) || !hasBoth(snap)) {
         return LEAVE_BUILDING;
     }
     if (!disguised(snap)) {
