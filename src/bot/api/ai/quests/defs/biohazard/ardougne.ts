@@ -1,11 +1,11 @@
 import { Execution } from '../../../../execution/Execution.js';
+import { Game } from '../../../../game/Game.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { driveUntil, settleScene } from '../../exec/prompts.js';
 import { BIO_ITEM, BIO_LOC, BIO_NPC, BIO_TILE, inPigeonZone } from './areas.js';
 import { heldId } from './gear.js';
 import { locById, talkAt, walkTo } from './travel.js';
-import { Game } from '../../../../game/Game.js';
 
 const START_PREFER = ["I'll try to retrieve it for you."];
 const REISSUE_PREFER = ["I'm afraid I've lost some of the stuff that you gave me"];
