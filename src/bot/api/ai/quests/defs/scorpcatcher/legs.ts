@@ -41,12 +41,15 @@ async function cageScorpion(key: ScorpionKey, log: (m: string) => void): Promise
         log(`scorpcatcher: no Kharid Scorpion ${npcId} within 10 tiles`);
         return false;
     }
-    if (scorpion.distance() > 1
-        && !(await Traversal.walkResilient(scorpion.tile(), { radius: 1, attempts: 2, timeoutMs: 60_000, log }))) {
+    // Why: a scorpion with no `wanderrange` drifts five tiles, which in the monastery is through a door into the next room — and the use-on is then queued against a walk the server cannot make, so it sits silent until its 10s runs out.
+    // Why: the walk is unconditional because tile distance counts through walls, so "already adjacent" is not "already reachable".
+    if (!(await Traversal.walkResilient(scorpion.tile(), { radius: 1, attempts: 2, timeoutMs: 60_000, log }))) {
+        log(`scorpcatcher: could not reach the ${key.toUpperCase()} scorpion at (${scorpion.tile().x},${scorpion.tile().z})`);
         return false;
     }
     const target = Npcs.query().where(npc => npc.id === npcId).within(10).nearest();
     if (!target || !(await cage.useOn(target))) {
+        log(`scorpcatcher: the ${key.toUpperCase()} scorpion refused the cage`);
         return false;
     }
     // Why: the catch swaps the cage for a heavier obj rather than adding one, so the id changing is the only proof it landed.
@@ -54,9 +57,9 @@ async function cageScorpion(key: ScorpionKey, log: (m: string) => void): Promise
         const now = heldCageId();
         return now !== undefined && caughtIn(now).has(key);
     }, [], log, CATCH_MS);
-    if (caught) {
-        log(`scorpcatcher: caught the ${key.toUpperCase()} scorpion`);
-    }
+    log(caught
+        ? `scorpcatcher: caught the ${key.toUpperCase()} scorpion`
+        : `scorpcatcher: the cage never closed on the ${key.toUpperCase()} scorpion — it has wandered off`);
     return caught;
 }
 
