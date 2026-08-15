@@ -3,6 +3,7 @@ import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
+import { Reachability } from '../../../../../event/webwalk/geometry/Reachability.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
@@ -67,6 +68,8 @@ const MIN_GAIN = 3;
 // tiles from where the bridge lands — so the search has to cover the pocket, not the neighbourhood. Drift is
 // held off by the gain threshold and by spending an obstacle that led away, not by looking less far.
 const HOP_SEARCH = 32;
+// Why: the pockets wind, so a thirty-tile obstacle is well past the flood's default four hundred steps.
+const REACH = { adjacentOk: true, maxSteps: 2_000 } as const;
 
 function here(): { x: number; z: number; level: number } | null {
     return Game.tile();
@@ -117,8 +120,13 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
     // still does — sorting by the target's distance from the obstacle is what encodes "forward".
     // Why: "any obstacle closer than I am" picks marginal ones that cross sideways and drift the route —
     // three of them in a row carried a run twenty tiles the wrong way before the loop gave up.
+    // Why: and an obstacle in the scene is not one this pocket can walk to. The stone bridges of the second
+    // cavern sit behind its locked cages, closer to the target than the cages are, so the search chose them
+    // first and burned eighteen seconds each proving it could not get there. The scene's own collision flags
+    // answer that for free.
     return found
         .filter(loc => chebyshev(loc.tile(), dest) + MIN_GAIN <= chebyshev(from, dest))
+        .filter(loc => Reachability.canReach(loc.tile(), REACH))
         .sort((a, b) => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest));
 }
 
@@ -201,7 +209,7 @@ async function ropeSwingToward(dest: Tile, log: (m: string) => void): Promise<bo
         .where(loc => loc.id === UP_LOC.ROCKSWING || loc.id === UP_LOC.ROCKSWING_ANCHOR)
         .within(HOP_SEARCH)
         .nearest();
-    if (!rock || chebyshev(rock.tile(), dest) + MIN_GAIN > chebyshev(from, dest)) {
+    if (!rock || chebyshev(rock.tile(), dest) + MIN_GAIN > chebyshev(from, dest) || !Reachability.canReach(rock.tile(), REACH)) {
         return false;
     }
     // Why: the op-click walks the player to the rock before the use resolves, so "the tile changed" fires on
