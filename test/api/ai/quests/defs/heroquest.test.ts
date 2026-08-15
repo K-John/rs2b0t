@@ -11,12 +11,13 @@ import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
 const VARROCK = { x: 3210, z: 3490, level: 0 };
 
+// Why: the quest keeps a coin float for the 30gp ferry, so every snapshot carries one — a test that
+// leaves the pack empty gets the withdrawal rather than the branch it is asking about.
 function snap(over: Partial<QuestSnapshot> = {}): QuestSnapshot {
     const stage = over.stage ?? HERO_STAGE.STARTED;
     return {
         journal: 'inProgress',
         inv: new Map(),
-        invIds: new Map(),
         worn: new Set(),
         wornIds: new Set(),
         noProgress: 0,
@@ -28,7 +29,8 @@ function snap(over: Partial<QuestSnapshot> = {}): QuestSnapshot {
         freeSlots: 20,
         stage,
         progress: { stage, flags: new Set() },
-        ...over
+        ...over,
+        invIds: new Map([[HERO_ID.COINS, 5_000], ...(over.invIds ?? [])])
     };
 }
 
@@ -48,6 +50,39 @@ afterEach(() => {
     ArravConfig.gang = 'random';
     HeroConfig.partner = '';
     resetHeroGangCache();
+});
+
+// Why: `no path to (2793,3180,0): unreachable without 30x Coins` is the whole failure — the Ardougne
+// ferry is 30 coins and the pathfinder refuses the route without them in the pack.
+describe("hero's quest coin float", () => {
+    test('an empty pack withdraws before anything else', () => {
+        withGang('blackarm');
+        const step = decide(snap({ invIds: new Map([[HERO_ID.COINS, 0]]), stage: HERO_STAGE.BLACKARM_SPOKEN }));
+        expect(step).toMatchObject({ kind: 'withdraw' });
+    });
+
+    test('a float already carried is left alone', () => {
+        withGang('blackarm');
+        HeroConfig.partner = 'rival';
+        expect(decide(snap({ stage: HERO_STAGE.BLACKARM_SPOKEN }))).not.toMatchObject({ kind: 'withdraw' });
+    });
+
+    // Why: a float restored on every pass costs a bank trip after every shop, so the mark is low.
+    test('the change left after a purchase is enough', () => {
+        withGang('blackarm');
+        HeroConfig.partner = 'rival';
+        const step = decide(snap({
+            stage: HERO_STAGE.BLACKARM_SPOKEN,
+            invIds: new Map([[HERO_ID.COINS, 660]])
+        }));
+        expect(step).not.toMatchObject({ kind: 'withdraw' });
+    });
+
+    test('an empty bank does not send the bot to a booth for nothing', () => {
+        withGang('blackarm');
+        const step = decide(snap({ invIds: new Map([[HERO_ID.COINS, 0]]), bankCoins: 0, stage: HERO_STAGE.BLACKARM_SPOKEN }));
+        expect(step).not.toMatchObject({ kind: 'withdraw' });
+    });
 });
 
 describe("hero's quest decide", () => {

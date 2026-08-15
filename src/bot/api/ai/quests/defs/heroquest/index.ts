@@ -62,6 +62,14 @@ export function inSealedPocket(snap: QuestSnapshot): boolean {
 // such plan reads `unreachable` — the custom legs cross their own doors, these steps cannot.
 const NEEDS_STREET = new Set(['buy', 'withdraw', 'deposit', 'scanBank', 'mineRock']);
 
+// Why: the Ardougne ferry is 30 coins and the pathfinder refuses the route without them —
+// `no path to (2793,3180,0): unreachable without 30x Coins` is the whole failure. A purchase pays its
+// own way in, but the legs between purchases do not, so the quest keeps a float.
+// Why: a low-water mark rather than a target, because a float restored on every pass costs a bank trip
+// after every shop.
+const LOW_COINS = 200;
+const COIN_TOP_UP = 10_000;
+
 export function decide(snap: QuestSnapshot): QuestStep {
     if (snap.journal === 'unknown') {
         return { kind: 'wait', reason: 'quest journal not loaded' };
@@ -77,6 +85,12 @@ export function decide(snap: QuestSnapshot): QuestStep {
     // armband or a feather banked by an earlier run stays invisible until one read happens.
     if (!snap.bankKnown) {
         return egress(snap, { kind: 'scanBank' });
+    }
+    if (heldId(snap, HERO_ID.COINS) < LOW_COINS && snap.bankCoins > 0) {
+        return egress(snap, {
+            kind: 'withdraw',
+            items: [{ name: HERO_NAMED.COINS, qty: Math.min(COIN_TOP_UP, snap.bankCoins), id: HERO_ID.COINS }]
+        });
     }
     if (stage === HERO_STAGE.NOT_STARTED) {
         return {
