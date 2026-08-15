@@ -45,21 +45,6 @@ export async function descendToDwarves(log: (m: string) => void): Promise<boolea
     return driveThroughBoxes(() => (Game.tile()?.z ?? 0) > 9700, [], log, 20_000);
 }
 
-/** Down the other wall tunnel, into Kalrag's cave. */
-export async function descendToKalrag(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.TUNNEL_TO_KALRAG, 3, log))) {
-        return false;
-    }
-    await settleScene();
-    const tunnel = locById(UP_LOC.TUNNEL_DOWN, null, 8);
-    const op = tunnel?.actions()[0];
-    if (!tunnel || !op || !(await tunnel.interact(op))) {
-        log("no wall tunnel down to Kalrag's cave");
-        return false;
-    }
-    return driveUntil(() => (Game.tile()?.z ?? 0) > 9850, [], log, 15_000);
-}
-
 /** Back up the tunnel to the level-1 platforms. */
 export async function ascendFromDwarves(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(UP_TILE.TUNNEL_FROM_DWARVES, 3, log))) {

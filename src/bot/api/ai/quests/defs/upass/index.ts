@@ -29,7 +29,6 @@ import {
     askKlank,
     askNilhoof,
     descendToDwarves,
-    descendToKalrag,
     leaveWitchHouse,
     stealTheDoll,
     wearGauntlets
@@ -208,7 +207,9 @@ function dollLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
     if (!flag(snap, UP_FLAG.BLOOD_ON_DOLL)) {
         return area === 'kalrag' || area === 'dwarves'
             ? custom('kill Kalrag with the doll in hand', killKalrag)
-            : custom("climb down the wall tunnel to Kalrag's cave", descendToKalrag);
+            // Why: a flood of the pack puts Klank, Nilhoof and Kalrag in one level-0 pocket, and the tunnel
+            // beside Kalrag is on no bridge the platform graph knows — routing at it strands the character.
+            : custom('climb down the wall tunnel to the dwarves', descendToDwarves);
     }
     return custom("open Iban's temple doors", openIbanDoor);
 }
