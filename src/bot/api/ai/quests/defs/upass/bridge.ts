@@ -1,5 +1,6 @@
 import { Equipment } from '../../../../equipment/Equipment.js';
 import { Execution } from '../../../../execution/Execution.js';
+import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
@@ -197,11 +198,15 @@ export async function shootGuiderope(log: (m: string) => void): Promise<boolean>
         log('no bridge guide rope in range of the shooting stand');
         return false;
     }
+    // Why: the script answers with one of five distinct `mes` lines — wrong side, no clear shot, no bow, no
+    // lit ammo, or the shot itself — and the tile alone cannot tell a miss from a refusal that spent nothing.
+    const mark = GameMessages.mark();
     if (!(await rope.interact('Fire-at'))) {
         log(`the guide rope refused Fire-at (ops: ${rope.actions().join(' | ')})`);
         return false;
     }
     const crossed = await driveUntil(() => (Game.tile()?.x ?? 9999) < UP_TILE.GUIDEROPE_SHOT.x - 3, [], log, 12_000);
-    log(crossed ? 'the arrow impaled the rope' : 'the arrow missed — another cloth is needed');
+    const said = GameMessages.since(mark).map(m => m.text).join(' | ');
+    log(crossed ? 'the arrow impaled the rope' : `the shot did not carry — server said: ${said || '(nothing)'}`);
     return crossed;
 }

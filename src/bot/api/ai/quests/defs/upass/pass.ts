@@ -116,19 +116,26 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
  */
 export async function travelTo(dest: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
     const spent = new Set<string>();
+    // Why: once the navigator has said there is no route to this tile, saying it again costs a full walk
+    // timeout per obstacle and changes nothing — only crossing one can change the answer.
+    let navWorthTrying = true;
     for (let hop = 0; hop < MAX_HOPS; hop++) {
         const at = here();
         if (at && at.level === dest.level && dest.distanceTo(at) <= radius) {
             return true;
         }
-        if (await Traversal.walkResilient(dest, { radius, attempts: 1, timeoutMs: 60_000, log })) {
-            return true;
+        if (navWorthTrying) {
+            if (await Traversal.walkResilient(dest, { radius, attempts: 1, timeoutMs: 60_000, log })) {
+                return true;
+            }
+            navWorthTrying = false;
         }
         if (!(await hopToward(dest, log, spent))) {
             const stuck = here();
             log(`pass: no obstacle from (${stuck?.x},${stuck?.z}) makes progress toward (${dest.x},${dest.z})`);
             return false;
         }
+        navWorthTrying = true;
     }
     log(`pass: ${MAX_HOPS} obstacles crossed without reaching (${dest.x},${dest.z})`);
     return false;
