@@ -1,0 +1,170 @@
+import { Equipment } from '../../../../equipment/Equipment.js';
+import { Execution } from '../../../../execution/Execution.js';
+import { Game } from '../../../../game/Game.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
+import { Locs } from '../../../../locs/Locs.js';
+import type { Loc } from '../../../../model/Loc.js';
+import { Npcs } from '../../../../npcs/Npcs.js';
+import { Reach } from '../../../../walking/Reach.js';
+import { Traversal } from '../../../../walking/Traversal.js';
+import type Tile from '../../../../../geometry/Tile.js';
+import { talkStrict } from '../../exec/primitives.js';
+import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
+import { goEast, goWest } from '../plaguecity/travel.js';
+import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE } from './areas.js';
+
+const KOFTIK = 'Koftik';
+
+export async function walkTo(to: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
+    const here = Game.tile();
+    if (here && here.level === to.level && to.distanceTo(here) <= radius) {
+        return true;
+    }
+    return Traversal.walkResilient(to, { radius, attempts: 3, timeoutMs: 180_000, log });
+}
+
+export function locById(id: number, op: string | null, within = 12): Loc | null {
+    const base = Locs.query().where(loc => loc.id === id);
+    return (op === null ? base : base.action(op)).within(within).nearest();
+}
+
+async function talkAt(npcId: number, near: Tile, prefer: string[], log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(near, 2, log))) {
+        return false;
+    }
+    await settleScene();
+    // Why: five separate NPCs all render as "Koftik", so the guide is found by id and only then talked to by name.
+    const guide = Npcs.query().where(npc => npc.id === npcId).within(12).nearest();
+    if (!guide) {
+        log(`no npc ${npcId} near (${near.x},${near.z})`);
+        return false;
+    }
+    if ((await Reach.npcDialog({ name: guide.name ?? KOFTIK, near, log })) !== 'done') {
+        log(`no dialogue with npc ${npcId} near (${near.x},${near.z})`);
+        return false;
+    }
+    return talkStrict(guide.name ?? KOFTIK, prefer, log);
+}
+
+// Why: the wall crossing is Plague City's, reused rather than rebuilt — it is the same dig, the same pipe
+// and the same manhole, and a second copy would drift from the one the other quest keeps working.
+
+/** Into West Ardougne through the Plague City sewer. */
+export const crossToWest = (log: (m: string) => void): Promise<boolean> => goWest(log);
+
+/** Back out of West Ardougne to the mainland. */
+export const crossToEast = (log: (m: string) => void): Promise<boolean> => goEast(log);
+
+/** King Lathas starts the quest; his branch needs Biohazard complete and base Ranged 25. */
+export async function startQuest(log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(UP_TILE.LATHAS, 2, log))) {
+        return false;
+    }
+    await settleScene();
+    return talkStrict('King Lathas', [], log);
+}
+
+/** Koftik at the cave mouth — the "I'll take my chances" branch moves the stage without the lore detour. */
+export function meetKoftik(log: (m: string) => void): Promise<boolean> {
+    return talkAt(UP_NPC.KOFTIK_SURFACE, UP_TILE.CAVE_MOUTH, ["I'll take my chances"], log);
+}
+
+export async function enterCave(log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(UP_TILE.CAVE_ENTRANCE, 2, log))) {
+        return false;
+    }
+    await settleScene();
+    const mouth = locById(UP_LOC.CAVE_ENTRANCE, 'Enter', 10);
+    if (!mouth) {
+        log('no cave entrance at the far west of West Ardougne');
+        return false;
+    }
+    if (!(await mouth.interact('Enter'))) {
+        return false;
+    }
+    return driveUntil(() => (Game.tile()?.z ?? 0) > 9000, [], log, 20_000);
+}
+
+/** Koftik by the bridge hands over the damp cloth. */
+export function getDampCloth(log: (m: string) => void): Promise<boolean> {
+    return talkAt(UP_NPC.KOFTIK_BRIDGE, UP_TILE.KOFTIK_BRIDGE, ['Not to worry'], log);
+}
+
+/** Damp cloth on a bronze arrow, then the tinderbox on the result. */
+export async function makeFireArrow(log: (m: string) => void): Promise<boolean> {
+    if (heldId(UP_ITEM.LIT_ARROW.id) > 0) {
+        return true;
+    }
+    if (heldId(UP_ITEM.UNLIT_ARROW.id) === 0) {
+        const cloth = Inventory.items().find(item => item.id === UP_ITEM.DAMP_CLOTH.id);
+        const arrow = Inventory.items().find(item => item.id === UP_ITEM.BRONZE_ARROW.id);
+        if (!cloth || !arrow) {
+            log(`missing ${cloth ? 'a bronze arrow' : 'the damp cloth'} for the fire arrow`);
+            return false;
+        }
+        if (!(await cloth.useOn(arrow))) {
+            return false;
+        }
+        if (!(await driveUntil(() => heldId(UP_ITEM.UNLIT_ARROW.id) > 0, [], log, 10_000))) {
+            log('the damp cloth would not wrap an arrow');
+            return false;
+        }
+    }
+    const unlit = Inventory.items().find(item => item.id === UP_ITEM.UNLIT_ARROW.id);
+    const tinderbox = Inventory.items().find(item => item.id === UP_ITEM.TINDERBOX.id);
+    if (!unlit || !tinderbox) {
+        log(`missing ${unlit ? 'the tinderbox' : 'the unlit arrow'} to light the fire arrow`);
+        return false;
+    }
+    // Why: `[opheldu,tinderbox]` fires off the TARGET, so the arrow is the item used and the tinderbox is the target.
+    if (!(await unlit.useOn(tinderbox))) {
+        return false;
+    }
+    return driveUntil(() => heldId(UP_ITEM.LIT_ARROW.id) > 0, [], log, 10_000);
+}
+
+/** Bow in hand, lit arrow in the quiver — the rope shot reads both off `worn`. */
+export async function armFireArrow(log: (m: string) => void): Promise<boolean> {
+    if (heldId(UP_ITEM.SHORTBOW.id) > 0 && !(await Equipment.equip(UP_ITEM.SHORTBOW.name))) {
+        log('could not wield the shortbow');
+        return false;
+    }
+    if (heldId(UP_ITEM.LIT_ARROW.id) > 0) {
+        const lit = Inventory.items().find(item => item.id === UP_ITEM.LIT_ARROW.id);
+        if (!lit || !(await lit.interact('Wield'))) {
+            log('could not equip the lit arrow');
+            return false;
+        }
+        await Execution.delayTicks(2);
+    }
+    return true;
+}
+
+// Why: the shot is refused from west of the rope and from anything south of z 9720, and the
+// hit itself is a `stat_random(ranged, 160, 300)` roll — so it is fired from the stand until it lands.
+const SHOT_ATTEMPTS = 8;
+
+/** Fire the lit arrow at the bridge stay rope; the script walks the player across on a hit. */
+export async function shootGuiderope(log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(UP_TILE.GUIDEROPE_SHOT, 1, log))) {
+        return false;
+    }
+    await settleScene();
+    for (let shot = 0; shot < SHOT_ATTEMPTS; shot++) {
+        const rope = locById(UP_LOC.GUIDEROPE, null, 12);
+        if (!rope) {
+            log('no bridge guide rope in range of the shooting stand');
+            return false;
+        }
+        if (!(await rope.interact('Fire-at'))) {
+            log(`the guide rope refused Fire-at (ops: ${rope.actions().join(' | ')})`);
+            return false;
+        }
+        if (await driveUntil(() => (Game.tile()?.x ?? 9999) < UP_TILE.GUIDEROPE_SHOT.x - 3, [], log, 12_000)) {
+            log(`the arrow impaled the rope on shot ${shot + 1}`);
+            return true;
+        }
+    }
+    log('eight arrows missed the stay rope');
+    return false;
+}

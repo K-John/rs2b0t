@@ -14,6 +14,7 @@ export const UP_ITEM = {
     BUCKET: { id: 1925, name: 'Bucket' },
     ROPE: { id: 954, name: 'Rope' },
     SPADE: { id: 952, name: 'Spade' },
+    GAS_MASK: { id: 1506, name: 'Gas mask' },
     SHORTBOW: { id: 841, name: 'Shortbow' },
     BRONZE_ARROW: { id: 882, name: 'Bronze arrow' },
     DAMP_CLOTH: { id: 1485, name: 'Damp cloth' },
@@ -97,6 +98,9 @@ export const UP_LOC = {
     TUNNEL_UP: 3223,
     LEDGE: 3238,
     ROCK_BRIDGE: 3276,
+    ROCKSWING: 2275,
+    ROCKSWING_ANCHOR: 2276,
+    ROCKSWING_BACK: 2274,
     ROCKSLIDE: 3309,
     COLLAPSED_A: 3254,
     COLLAPSED_B: 3255,
@@ -106,6 +110,8 @@ export const UP_LOC = {
     CAGE_DOVE: 3351,
     CAGE_EMPTY: 3352,
     BREW_BARREL: 3344,
+    IBAN_TOMB_L: 3353,
+    IBAN_TOMB_R: 3354,
     IBAN_DOOR_R: 3333,
     IBAN_DOOR_L: 3334,
     IBAN_ALTAR: 3359,
@@ -131,6 +137,8 @@ export const UP_TILE = {
     BRIDGE_WEST: new Tile(2442, 9716, 0),
     BRIDGE_LEVER: new Tile(2436, 9716, 0),
 
+    ROCKSWING_WEST: new Tile(2462, 9699, 0),
+    ROCKSWING_EAST: new Tile(2466, 9699, 0),
     GRID_EAST: new Tile(2477, 9677, 0),
     // Why: the stall is launched from Koftik's lip, not the handhold return tile — a tile further out is
     // needed so the journal is up before the player is on the trapped ground, and nothing east of here routes.
@@ -187,6 +195,7 @@ export const UP_TILE = {
 
 export type UpassArea =
     | 'mainland'
+    | 'westardougne'
     | 'area1'
     | 'area2'
     | 'gridpit'
@@ -224,7 +233,12 @@ export function upassArea(tile: QuestSnapshot['tile']): UpassArea {
     if (z >= 9536 && z <= 9599) return 'gridpit';
     if (z >= 9600 && z <= 9663) return 'area2';
     if (z >= 9664 && z <= 9727) return 'area1';
-    return z < 5000 ? 'mainland' : 'unknown';
+    if (z >= 5000) {
+        return 'unknown';
+    }
+    // Why: West Ardougne is sealed behind the wall — the only way in is the Plague City sewer pipe, so it
+    // is its own region rather than part of the mainland the navigator can route across.
+    return level === 0 && x >= 2433 && x <= 2556 && z >= 3266 && z <= 3334 ? 'westardougne' : 'mainland';
 }
 
 export function held(snap: QuestSnapshot, item: UpassItem): number {

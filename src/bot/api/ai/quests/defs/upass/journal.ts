@@ -3,23 +3,26 @@ import { Execution } from '../../../../execution/Execution.js';
 import { Quests } from '../../../../ui/questlog/Quests.js';
 import type { QuestProgress } from '../../engine/types.js';
 
+// Why: these are the `%upass` values themselves, so `--stage N` in the harness and the number the module
+// decides on are the same scale. "Started" is not a stage — it is bit 11 of `%ibanmulti`, carried as a flag.
 export const UP_STAGE = {
     NOT_STARTED: 0,
-    STARTED: 1,
-    SPOKEN_KOFTIK: 2,
-    PASSED_BRIDGE: 3,
-    ENTERED_SECOND_AREA: 4,
-    KILLED_UNICORN: 5,
-    ENTERED_MAIN_AREA: 6,
-    SPOKEN_NILHOOF: 7,
-    FOUND_DOLL: 8,
-    CONFRONTED_IBAN: 9,
-    DEFEATED_IBAN: 10,
-    COMPLETE: 11
+    SPOKEN_KOFTIK: 1,
+    PASSED_BRIDGE: 2,
+    ENTERED_SECOND_AREA: 3,
+    KILLED_UNICORN: 4,
+    ENTERED_MAIN_AREA: 5,
+    SPOKEN_NILHOOF: 6,
+    FOUND_DOLL: 7,
+    CONFRONTED_IBAN: 8,
+    DEFEATED_IBAN: 9,
+    COMPLETE: 10
 } as const;
 
 /** Journal-visible sub-progress the stage number cannot carry. */
 export const UP_FLAG = {
+    /** King Lathas has sent the player to Koftik — bit 11, not a stage. */
+    STARTED: 'started',
     /** Koftik has handed over the damp cloth, or an arrow is already part-made. */
     ARROW_PARTS: 'arrowParts',
     RANDAS_DIARY: 'randasDiary',
@@ -56,11 +59,12 @@ const STAGE_LINES: readonly [string, number][] = [
     ['i managed to cross the bridge', UP_STAGE.PASSED_BRIDGE],
     ['i have met koftik at an underground river', UP_STAGE.SPOKEN_KOFTIK],
     ['i have met koftik', UP_STAGE.SPOKEN_KOFTIK],
-    ['asked me to meet a tracker named koftik', UP_STAGE.STARTED],
+    ['asked me to meet a tracker named koftik', UP_STAGE.NOT_STARTED],
     ['i can start this quest', UP_STAGE.NOT_STARTED]
 ];
 
 const FLAG_LINES: readonly [string, string][] = [
+    ['asked me to meet a tracker named koftik', UP_FLAG.STARTED],
     ['charred remains of some arrows', UP_FLAG.ARROW_PARTS],
     ['it tells of a well that i must enter', UP_FLAG.RANDAS_DIARY],
     ["an inscription says that i must 'feed'", UP_FLAG.WELL_INSCRIPTION],
