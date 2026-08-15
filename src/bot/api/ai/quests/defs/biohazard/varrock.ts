@@ -10,7 +10,13 @@ import { locById, talkAt, walkTo } from './travel.js';
 // Why: the first option hands the chemist the plague sample and he confiscates it, and the
 // touch-paper-for-the-sample line does the same — only the Guidor errand keeps it.
 const CHEMIST_PREFER = ["It's ok, I'm Elena's friend.", 'for a guy called Guidor'];
-const GUIDOR_PREFER = ["I've come to ask your assistance in stopping a plague.", "I've been sent by your old pupil Elena."];
+// Why: the third page comes after the stage has already moved, so a run that abandons it still
+// finishes the quest — and reports the leg failed, which is a lie the next leg has to walk back.
+const GUIDOR_PREFER = [
+    "I've come to ask your assistance in stopping a plague.",
+    "I've been sent by your old pupil Elena.",
+    'So what does that mean exactly?'
+];
 // Why: the boys who lost a vial open a two-way choice whose branches are both harmless, and
 // `talkStrict` abandons the dialogue rather than guessing.
 const COLLECT_PREFER = ['No! Nothing could be further from the truth!', "I'm getting a bad feeling about this."];
