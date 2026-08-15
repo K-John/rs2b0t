@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Hero's Quest
 
-Twelve, and the first one is a wall the quest cannot be finished through.
+Thirteen, and the first one is a wall the quest cannot be finished through.
 
 - **An area with a one-way exit has no entrance.** The Ice Queen's lair is reachable from the surface
   only by eight `ladder_cellar_inside_down` locs, and every one of them stands on a White Wolf Mountain
@@ -46,7 +46,6 @@ Twelve, and the first one is a wall the quest cannot be finished through.
 - **A trapdoor model is not a trapdoor.** `trapdoor_nonactive` and `ikov_trapdoor` carry a model and
   nothing else — no name, no ops, no script. Three of them sit exactly where the Ice Queen lair's
   one-way exits surface, which is what makes the sealed plateau look like it has entrances.
-
 - **A bought-out shop is a dead shop.** `World.restock` reads `inv.items[index]` and skips a null
   slot, and a shared `allstock=no` shop that sells its last unit loses the slot — so Valaine's one
   pair of black platelegs never came back, and the bot spent 188 attempts over four minutes buying
@@ -57,6 +56,12 @@ Twelve, and the first one is a wall the quest cannot be finished through.
   partner calls `returnToStreet()` before it plans. Without that, the Black Arm bot took Trobert's
   papers inside the hideout and then read `no path to (2774,3187,0): unreachable` at Garv's door
   forever — the way in was fine and the way out was missing.
+- **A paid crossing is a pathfinding requirement, not a step.** `no path to (2793,3180,0):
+  unreachable without 30x Coins` is the whole failure: the Ardougne ferry costs 30 coins and the
+  planner refuses the route without them in the pack. A quest that buys things pays its own way in by
+  accident and stalls the moment a leg between purchases needs the boat, so `ownsInventory` owes a
+  float of its own — topped up below a low-water mark, never restored to a target, or every shop
+  costs a bank trip.
 
 ## See also
 
