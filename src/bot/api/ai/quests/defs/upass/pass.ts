@@ -211,7 +211,9 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
     }
     const sides = ring
         .map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level))
-        .filter(tile => Reachability.canReach(tile, REACH))
+        // Why: `adjacentOk` accepts a tile the character can only get *next to*, which is exactly the tile a
+        // radius-zero walk then refuses. A stand has to be stood on, so the candidate filter is the strict one.
+        .filter(tile => Reachability.canReach(tile, { adjacentOk: false, maxSteps: REACH.maxSteps }))
         .sort((a, b) => chebyshev(a, me ?? a) - chebyshev(b, me ?? b));
     if (sides.length === 0) {
         note(`nowhere to stand beside ${at.x},${at.z}`);
