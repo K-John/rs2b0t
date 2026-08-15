@@ -98,6 +98,22 @@ describe('Regicide decide()', () => {
         expect(step.kind === 'wait' && step.reason).toContain('melee weapon');
     });
 
+    // Why: the gate is re-asked every cycle and the pass is walked with the pack in hand, so anything keyed
+    // on the full float blocks the moment the pass spends some of it — the run parked at the bridge's west
+    // foot, across the chasm, on "have 49" of fifty arrows.
+    const SPENT: [string, [number, number]][] = [
+        ['an arrow on the guide-rope shot', [RG_ITEM.BRONZE_ARROW.id, ARROW_TARGET - 1]],
+        ['a rope on the rock swing', [RG_ITEM.ROPE.id, 1]],
+        ['lobsters on the traps', [RG_ITEM.LOBSTER.id, 1]]
+    ];
+
+    test.each(SPENT)('a pack that spent %s still walks on', (_what, left) => {
+        const spent: Stack[] = KIT.map(s => ((Array.isArray(s) ? s[0] : s) === left[0] ? left : s));
+        expect(name(decide(snapshot({ stage: RG_STAGE.SPOKEN_LATHAS, tile: PASS, carried: spent })))).toContain(
+            'Underground Pass'
+        );
+    });
+
     test('the scouts are waited for inside the forest', () => {
         expect(name(decide(snapshot({ stage: RG_STAGE.SPOKEN_LATHAS })))).toContain('elf scouts');
     });

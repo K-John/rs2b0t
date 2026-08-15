@@ -66,6 +66,13 @@ interface Supply {
     item: RegicideItem;
     qty: number;
     reason: string;
+    /**
+     * What the crossing refuses to go on without, when that is less than the float bought for it.
+     * Why: the gate is re-asked every cycle and the pass is walked with the pack in hand, so a gate keyed on
+     * the full float blocks the moment anything is spent — the guide-rope shot costs an arrow, the rock swing
+     * a rope, a trap a lobster, and the run parked at the bridge's west foot on "have 49" of fifty arrows.
+     */
+    min?: number;
     /** Where to buy it when neither the pack nor the bank has one. */
     shop?: { npc: string; anchor: Tile };
     estGp?: number;
@@ -101,6 +108,7 @@ export const KIT: readonly Supply[] = [
         item: RG_ITEM.ROPE,
         qty: ROPE_TARGET,
         reason: "the pass's rope swing, which eats one per attempt",
+        min: 1,
         shop: ARDOUGNE_STORE,
         estGp: 120
     },
@@ -118,6 +126,7 @@ export const KIT: readonly Supply[] = [
         item: RG_ITEM.BRONZE_ARROW,
         qty: ARROW_TARGET,
         reason: 'the fire arrow, one spent per shot whether it lands or not',
+        min: 1,
         shop: ARDOUGNE_STORE,
         estGp: 600
     },
@@ -128,7 +137,7 @@ export const KIT: readonly Supply[] = [
         shop: ARDOUGNE_STORE,
         estGp: 150
     },
-    { item: RG_ITEM.LOBSTER, qty: FOOD_TARGET, reason: 'the traps, the soldiers and the elf warriors' }
+    { item: RG_ITEM.LOBSTER, qty: FOOD_TARGET, reason: 'the traps, the soldiers and the elf warriors', min: 1 }
 ];
 
 export const KEEP_IDS: readonly number[] = Object.values(RG_ITEM).map(item => item.id);
@@ -158,8 +167,8 @@ export function sourceKit(snap: QuestSnapshot): QuestStep | null {
 
 /** What the kit is still short of, for an honest stop rather than a silent retry loop. */
 export function kitShortfall(snap: QuestSnapshot): string[] {
-    return KIT.filter(supply => carried(snap, supply.item) < supply.qty).map(
-        supply => `${supply.qty}x ${supply.item.name} (${supply.reason}), have ${carried(snap, supply.item)}`
+    return KIT.filter(supply => carried(snap, supply.item) < (supply.min ?? supply.qty)).map(
+        supply => `${supply.min ?? supply.qty}x ${supply.item.name} (${supply.reason}), have ${carried(snap, supply.item)}`
     );
 }
 
