@@ -52,6 +52,39 @@ acts, never both in one call. The valve tour and the cupboard each retry inside 
 leg rather than handing the retry back to the engine — see
 [Hazeel Cult's pitfalls](../decisions/quest-pitfalls-12.md).
 
+## Holy Grail — stage-scoped harness
+
+[`e2e/holy-grail-246-live.ts`](../../e2e/holy-grail-246-live.ts) drives the quest from a
+clean account or from any point inside it. `--stage N` takes the values
+`quest_grail.constant` uses — 0, 2, 3, 4, 7, 8, 9 — writes `%grail`, and relogs, because
+`update_questlist` only recolours the list at login.
+
+```sh
+HEADED=1 bun e2e/holy-grail-246-live.ts --stage 0 --until 10 --minutes 120 --tick 200 # end to end
+HEADED=1 bun e2e/holy-grail-246-live.ts --stage 0 --until 3 --minutes 20 --tick 200   # Arthur and Merlin
+HEADED=1 bun e2e/holy-grail-246-live.ts --stage 3 --until 4 --minutes 25 --tick 200   # the Entrana strip
+HEADED=1 bun e2e/holy-grail-246-live.ts --stage 4 --until 8 --minutes 45 --tick 200   # napkin to Fisher King
+HEADED=1 bun e2e/holy-grail-246-live.ts --stage 8 --until 10 --minutes 45 --tick 200  # Percival and the Grail
+```
+
+Three things govern this harness:
+
+- **`%arthur` is written on every run.** Merlin's Crystal is the quest's only
+  prerequisite, and King Arthur offers the Grail to nobody else. The harness fails loudly
+  when the `setvar` does not read back.
+- **The bank holds coins, food and a melee kit alone.** Excalibur is bought back from the
+  Lady of the Lake for 500 gp, the napkin comes from Galahad and the whistles from Draynor
+  Manor, so a pass proves the bot can source all three. Only `--stage 8` and up seed
+  the napkin, because neither Galahad branch replaces one past stage 7.
+- **`--stats` defaults to 70, not 99.** The Black Knight Titan is level 120 with 142
+  hitpoints and 91 defence, and 70 across the board in rune with Lobsters takes him in five
+  attacks for 12 damage.
+
+Measured at `--tick 200`, no parks: **26 minutes** from a clean account to quest complete.
+Per leg — stage 0 to 3 **5 min**, 3 to 4 **4 min**, 4 to 8 **14 min**, 8 to complete
+**8 min**. The thirteen pitfalls the live runs paid for are in
+[Holy Grail's pitfalls](../decisions/quest-pitfalls-16.md).
+
 ## Horror from the Deep — stage-scoped harness
 
 [`e2e/horror-deep-216-live.ts`](../../e2e/horror-deep-216-live.ts), same shape,
