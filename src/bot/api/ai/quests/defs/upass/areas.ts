@@ -207,31 +207,40 @@ export const UP_TILE = {
     WELL_OF_VOYAGE: new Tile(2008, 4711, 1)
 } as const;
 
-// Why: the level-1 platforms are joined by twenty collapsed bridges, and the one that leaves the main
-// cavern landing is a hundred and forty tiles from where the temple doors drop the character — far outside
-// any loaded scene, so a sweep that can only walk at what it can see will never find it. These are their
-// placements, straight out of `m3x_7y.jm2`, and the traveller walks at them when the scene has nothing.
-export const PLATFORM_BRIDGES: readonly { x: number; z: number; level: number }[] = [
-    { x: 2136, z: 4584, level: 1 },
-    { x: 2142, z: 4562, level: 1 },
-    { x: 2143, z: 4604, level: 1 },
-    { x: 2147, z: 4583, level: 1 },
-    { x: 2156, z: 4582, level: 1 },
-    { x: 2161, z: 4599, level: 1 },
-    { x: 2123, z: 4616, level: 1 },
-    { x: 2127, z: 4610, level: 1 },
-    { x: 2148, z: 4614, level: 1 },
-    { x: 2160, z: 4625, level: 1 },
-    { x: 2161, z: 4637, level: 1 },
-    { x: 2161, z: 4654, level: 1 },
-    { x: 2162, z: 4663, level: 1 },
-    { x: 2121, z: 4686, level: 1 },
-    { x: 2145, z: 4717, level: 1 },
-    { x: 2154, z: 4690, level: 1 },
-    { x: 2155, z: 4704, level: 1 },
-    { x: 2155, z: 4718, level: 1 },
-    { x: 2158, z: 4724, level: 1 },
-    { x: 2164, z: 4686, level: 1 }
+// Why: the level-1 platforms are a graph of pockets joined by identical collapsed bridges, and a runtime
+// search over it wanders — one run crossed four of them in thirty-five minutes, none toward its target. The
+// graph is static, so `tools/nav/upass-platform-route.ts` solves it against the collision pack and emits
+// this. Each link names the bridge, the tile to stand on for each side, and which pocket that side is in.
+export interface PlatformLink {
+    bridge: Tile;
+    a: { tile: Tile; pocket: string };
+    b: { tile: Tile; pocket: string };
+}
+
+export const PLATFORM_LINKS: readonly PlatformLink[] = [
+    { bridge: new Tile(2123, 4582, 1), a: { tile: new Tile(2123, 4581, 1), pocket: '84811d6' }, b: { tile: new Tile(2123, 4585, 1), pocket: '84b11e9' } },
+    { bridge: new Tile(2126, 4566, 1), a: { tile: new Tile(2125, 4566, 1), pocket: '84811d6' }, b: { tile: new Tile(2129, 4566, 1), pocket: '85111c9' } },
+    { bridge: new Tile(2127, 4592, 1), a: { tile: new Tile(2127, 4591, 1), pocket: '84b11e9' }, b: { tile: new Tile(2130, 4592, 1), pocket: '84711f5' } },
+    { bridge: new Tile(2136, 4584, 1), a: { tile: new Tile(2135, 4584, 1), pocket: '85211e7' }, b: { tile: new Tile(2139, 4584, 1), pocket: '84711f5' } },
+    { bridge: new Tile(2142, 4562, 1), a: { tile: new Tile(2142, 4561, 1), pocket: '85111c9' }, b: { tile: new Tile(2142, 4565, 1), pocket: '84711f5' } },
+    { bridge: new Tile(2143, 4604, 1), a: { tile: new Tile(2142, 4604, 1), pocket: '84711f5' }, b: { tile: new Tile(2146, 4604, 1), pocket: '86211fc' } },
+    { bridge: new Tile(2147, 4583, 1), a: { tile: new Tile(2146, 4583, 1), pocket: '84711f5' }, b: { tile: new Tile(2150, 4583, 1), pocket: '86311db' } },
+    { bridge: new Tile(2156, 4582, 1), a: { tile: new Tile(2155, 4582, 1), pocket: '86311db' }, b: { tile: new Tile(2159, 4582, 1), pocket: '84111c4' } },
+    { bridge: new Tile(2161, 4599, 1), a: { tile: new Tile(2161, 4598, 1), pocket: '86811f4' }, b: { tile: new Tile(2161, 4602, 1), pocket: '86211fc' } },
+    { bridge: new Tile(2121, 4686, 1), a: { tile: new Tile(2120, 4686, 1), pocket: '84111c4' }, b: { tile: new Tile(2124, 4686, 1), pocket: '84c124e' } },
+    { bridge: new Tile(2145, 4717, 1), a: { tile: new Tile(2145, 4716, 1), pocket: '84c124e' }, b: { tile: new Tile(2145, 4720, 1), pocket: '8601270' } },
+    { bridge: new Tile(2154, 4690, 1), a: { tile: new Tile(2154, 4689, 1), pocket: '84c124e' }, b: { tile: new Tile(2154, 4693, 1), pocket: '869125a' } },
+    { bridge: new Tile(2155, 4704, 1), a: { tile: new Tile(2155, 4703, 1), pocket: '869125a' }, b: { tile: new Tile(2155, 4707, 1), pocket: '86b1263' } },
+    { bridge: new Tile(2155, 4718, 1), a: { tile: new Tile(2155, 4717, 1), pocket: '86b1263' }, b: { tile: new Tile(2155, 4721, 1), pocket: '8601270' } },
+    { bridge: new Tile(2158, 4724, 1), a: { tile: new Tile(2157, 4724, 1), pocket: '8601270' }, b: { tile: new Tile(2161, 4724, 1), pocket: '84111c4' } },
+    { bridge: new Tile(2164, 4686, 1), a: { tile: new Tile(2163, 4686, 1), pocket: '869125a' }, b: { tile: new Tile(2167, 4686, 1), pocket: '84111c4' } },
+    { bridge: new Tile(2123, 4616, 1), a: { tile: new Tile(2123, 4615, 1), pocket: '8491201' }, b: { tile: new Tile(2123, 4619, 1), pocket: '84a120f' } },
+    { bridge: new Tile(2127, 4610, 1), a: { tile: new Tile(2126, 4610, 1), pocket: '8491201' }, b: { tile: new Tile(2130, 4610, 1), pocket: '84a120f' } },
+    { bridge: new Tile(2148, 4614, 1), a: { tile: new Tile(2147, 4614, 1), pocket: '84a120f' }, b: { tile: new Tile(2151, 4614, 1), pocket: '86211fc' } },
+    { bridge: new Tile(2160, 4625, 1), a: { tile: new Tile(2160, 4624, 1), pocket: '86211fc' }, b: { tile: new Tile(2160, 4628, 1), pocket: '86f1218' } },
+    { bridge: new Tile(2161, 4637, 1), a: { tile: new Tile(2161, 4636, 1), pocket: '86f1218' }, b: { tile: new Tile(2161, 4640, 1), pocket: '8611226' } },
+    { bridge: new Tile(2161, 4654, 1), a: { tile: new Tile(2161, 4653, 1), pocket: '8611226' }, b: { tile: new Tile(2161, 4657, 1), pocket: '8701233' } },
+    { bridge: new Tile(2162, 4663, 1), a: { tile: new Tile(2162, 4662, 1), pocket: '8701233' }, b: { tile: new Tile(2162, 4666, 1), pocket: '84c124e' } },
 ];
 
 export type UpassArea =

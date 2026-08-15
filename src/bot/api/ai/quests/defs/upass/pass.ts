@@ -9,7 +9,7 @@ import { Reachability } from '../../../../../event/webwalk/geometry/Reachability
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
-import { PLATFORM_BRIDGES, UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
+import { PLATFORM_LINKS, UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
 
 // Why: the pass is not one map the navigator can route across — a component report over its own seam
 // endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision
@@ -442,6 +442,76 @@ const SWEEP_DIRS: readonly [number, number][] = [
     [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]
 ];
 
+// Why: which platform pocket anything is in cannot be read off the map at runtime, but the navigator can
+// answer "can I walk there" against the full collision pack in a millisecond — so the character's pocket is
+// whichever side tile it can reach, and the target's is whichever side tile can reach the target.
+async function platformPocket(from: { x: number; z: number; level: number }): Promise<string | null> {
+    for (const link of PLATFORM_LINKS) {
+        for (const side of [link.a, link.b]) {
+            if ((await Navigator.findPath(from, side.tile, { policy: { useTeleports: false } })).ok) {
+                return side.pocket;
+            }
+        }
+    }
+    return null;
+}
+
+async function pocketOfTarget(dest: Tile): Promise<string | null> {
+    for (const link of PLATFORM_LINKS) {
+        for (const side of [link.a, link.b]) {
+            if ((await Navigator.findPath(side.tile, dest, { policy: { useTeleports: false } })).ok) {
+                return side.pocket;
+            }
+        }
+    }
+    return null;
+}
+
+/** The tile to stand on for the next crossing along the shortest chain of bridges toward `dest`. */
+async function platformStep(
+    from: { x: number; z: number; level: number },
+    dest: Tile,
+    log: (m: string) => void
+): Promise<Tile | null> {
+    const here = await platformPocket(from);
+    const goal = await pocketOfTarget(dest);
+    if (here === null || goal === null || here === goal) {
+        return null;
+    }
+    // Breadth-first over the bridge graph, so the first crossing is the first step of a shortest chain.
+    const seen = new Set<string>([here]);
+    let frontier: { pocket: string; first: Tile }[] = [];
+    for (const link of PLATFORM_LINKS) {
+        for (const [side, far] of [[link.a, link.b], [link.b, link.a]] as const) {
+            if (side.pocket === here && !seen.has(far.pocket)) {
+                seen.add(far.pocket);
+                frontier.push({ pocket: far.pocket, first: side.tile });
+            }
+        }
+    }
+    while (frontier.length > 0) {
+        const hit = frontier.find(f => f.pocket === goal);
+        if (hit) {
+            log(`pass: platform route ${here} → ${goal}, standing at (${hit.first.x},${hit.first.z})`);
+            return hit.first;
+        }
+        const next: { pocket: string; first: Tile }[] = [];
+        for (const step of frontier) {
+            for (const link of PLATFORM_LINKS) {
+                for (const [side, far] of [[link.a, link.b], [link.b, link.a]] as const) {
+                    if (side.pocket === step.pocket && !seen.has(far.pocket)) {
+                        seen.add(far.pocket);
+                        next.push({ pocket: far.pocket, first: step.first });
+                    }
+                }
+            }
+        }
+        frontier = next;
+    }
+    log(`pass: no chain of bridges from ${here} to ${goal}`);
+    return null;
+}
+
 /** Walk to the pocket's edge in each direction, looking for a crossing that was out of sight. */
 async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<string>): Promise<boolean> {
     const from = here();
@@ -467,34 +537,9 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
     // scene — so the known bridge placements are walked at too, nearest the target first. The walker
     // refuses the ones in other components in a second each, which is what makes trying them all cheap.
     if (from.level === 1) {
-        // Why: an unreachable bridge does not always fail fast — the walker falls through to its unstick
-        // ladder and burns the whole budget — so the six closest to the target get twenty seconds each and
-        // the rest are left alone. A real walk across a platform is a hundred ticks, well inside that.
-        // Why: NOT filtered on being closer to the target. The one crossing that leaves the main cavern
-        // landing is eighty-four tiles from the witch's cat while the character stands fifty-six away, so
-        // "must shorten the distance" is exactly the rule that hides it — the same trap as the second
-        // cavern's pipe. It is also the LAST of the twenty by that ordering, so a cap on how many to try
-        // hides it just as well.
-        // Why: which is why the navigator is asked first. `findPath` is the collision pack in the worker and
-        // answers in a millisecond, where walking at a bridge in another component costs twenty seconds of
-        // unstick ladder. Nineteen of the twenty are ruled out before anyone takes a step.
-        const candidates: { x: number; z: number; level: number }[] = [];
-        for (const bridge of PLATFORM_BRIDGES) {
-            if (chebyshev(bridge, from) <= 2) {
-                continue;
-            }
-            if ((await Navigator.findPath(from, bridge, { policy: { useTeleports: false } })).ok) {
-                candidates.push(bridge);
-            }
-        }
-        candidates.sort((a, b) => chebyshev(a, dest) - chebyshev(b, dest));
-        log(`pass: ${candidates.length} of ${PLATFORM_BRIDGES.length} bridge(s) reachable from (${from.x},${from.z})`);
-        for (const bridge of candidates) {
-            const tile = new Tile(bridge.x, bridge.z, bridge.level);
-            if (!(await Traversal.walkResilient(tile, { radius: 6, attempts: 1, timeoutMs: 20_000 }))) {
-                continue;
-            }
-            log(`pass: walked to the bridge at (${bridge.x},${bridge.z}) — now at (${here()?.x},${here()?.z})`);
+        const next = await platformStep(from, dest, log);
+        if (next && (await Traversal.walkResilient(next, { radius: 1, attempts: 2, timeoutMs: 60_000 }))) {
+            log(`pass: at the platform crossing (${next.x},${next.z}) — now at (${here()?.x},${here()?.z})`);
             if (await hopToward(dest, log, spent)) {
                 return true;
             }
