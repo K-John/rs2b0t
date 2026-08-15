@@ -9,7 +9,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
-import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE } from './areas.js';
+import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE, upassArea } from './areas.js';
 import { travelTo } from './pass.js';
 
 const KOFTIK = 'Koftik';
@@ -72,10 +72,12 @@ async function openWallGate(from: Tile, to: Tile, log: (m: string) => void): Pro
     }, [], log, 12_000);
 }
 
+// Why: the gate teleport lands one tile short of the stand on either side, so "am I across yet" cannot be
+// a comparison against the stand's own x — it is the region test, which is what the rest of the module uses.
+
 /** Through the Ardougne wall gates into West Ardougne. */
 export async function crossToWest(log: (m: string) => void): Promise<boolean> {
-    const here = Game.tile();
-    if (here !== null && here.x <= UP_TILE.WALL_GATE_WEST.x && here.level === 0) {
+    if (upassArea(Game.tile()) === 'westardougne') {
         return true;
     }
     return openWallGate(UP_TILE.WALL_GATE_EAST, UP_TILE.WALL_GATE_WEST, log);
@@ -83,8 +85,7 @@ export async function crossToWest(log: (m: string) => void): Promise<boolean> {
 
 /** Back out through the same gates. */
 export async function crossToEast(log: (m: string) => void): Promise<boolean> {
-    const here = Game.tile();
-    if (here !== null && here.x >= UP_TILE.WALL_GATE_EAST.x && here.level === 0) {
+    if (upassArea(Game.tile()) === 'mainland') {
         return true;
     }
     return openWallGate(UP_TILE.WALL_GATE_WEST, UP_TILE.WALL_GATE_EAST, log);

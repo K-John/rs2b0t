@@ -69,12 +69,16 @@ function opOf(loc: Loc): string | null {
  * Why: the arrival test is "the tile changed", because every one of these is a forced move of one or two
  * tiles — an agility roll that fails leaves the player where they were, which is a retry rather than a stop.
  */
-async function hopToward(dest: Tile, log: (m: string) => void): Promise<boolean> {
+async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string>): Promise<boolean> {
     const from = here();
     if (!from) {
         return false;
     }
     for (const obstacle of hopsToward(dest, from)) {
+        const key = `${obstacle.id}@${obstacle.tile().x},${obstacle.tile().z}`;
+        if (spent.has(key)) {
+            continue;
+        }
         const op = opOf(obstacle);
         if (!op) {
             continue;
@@ -86,12 +90,21 @@ async function hopToward(dest: Tile, log: (m: string) => void): Promise<boolean>
             const now = here();
             return now !== null && (now.x !== from.x || now.z !== from.z || now.level !== from.level);
         }, HOP_TIMEOUT_MS);
-        if (moved) {
-            const now = here();
-            log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now?.x},${now?.z})`);
-            await settleScene();
-            return true;
+        if (!moved) {
+            continue;
         }
+        const now = here();
+        await settleScene();
+        // Why: an obstacle can sit closer to the target than the player does and still put them on its far
+        // side going backwards — crossing one that did not shorten the distance is what makes the loop
+        // oscillate between two sides of the same rock, so it is spent for the rest of this journey.
+        if (now && chebyshev(now, dest) >= chebyshev(from, dest)) {
+            spent.add(key);
+            log(`pass: ${op} ${obstacle.name ?? obstacle.id} led away from (${dest.x},${dest.z}) — not using it again`);
+            continue;
+        }
+        log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now?.x},${now?.z})`);
+        return true;
     }
     return false;
 }
@@ -102,6 +115,7 @@ async function hopToward(dest: Tile, log: (m: string) => void): Promise<boolean>
  * the obstacle search only runs once the navigator has said there is no route.
  */
 export async function travelTo(dest: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
+    const spent = new Set<string>();
     for (let hop = 0; hop < MAX_HOPS; hop++) {
         const at = here();
         if (at && at.level === dest.level && dest.distanceTo(at) <= radius) {
@@ -110,7 +124,7 @@ export async function travelTo(dest: Tile, radius: number, log: (m: string) => v
         if (await Traversal.walkResilient(dest, { radius, attempts: 1, timeoutMs: 60_000, log })) {
             return true;
         }
-        if (!(await hopToward(dest, log))) {
+        if (!(await hopToward(dest, log, spent))) {
             const stuck = here();
             log(`pass: no obstacle from (${stuck?.x},${stuck?.z}) makes progress toward (${dest.x},${dest.z})`);
             return false;
