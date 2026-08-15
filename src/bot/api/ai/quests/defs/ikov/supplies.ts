@@ -32,6 +32,8 @@ const AMMO_SLOT = 13;
 const FARM_FOOD = 10;
 /** Lobsters left in the pack before the farm walks back for more. */
 const FARM_FOOD_FLOOR = 3;
+/** Quiver below which the bow is not worth farming with; the warrior fight leaves single digits. */
+const FARM_ARROWS = 20;
 /** Aemad's asking price for an iron axe, with headroom for his stock markup. */
 const AXE_GP = 300;
 const CHOP_MS = 120_000;
@@ -245,7 +247,7 @@ function armedForMelee(): boolean {
     if (!/bow$/i.test(weapon.name ?? '')) {
         return true;
     }
-    return worn.some(item => item.slot === AMMO_SLOT && item.count > 0);
+    return worn.some(item => item.slot === AMMO_SLOT && item.count >= FARM_ARROWS);
 }
 
 /** Drop the spent bow so the fists the farm falls back on are at least fists. */

@@ -91,7 +91,9 @@ Eight are the quest's own shape:
   two legs later the hobgoblin farm answered every Attack click with "There is no ammo
   left in your quiver" until the camp killed the bot and its kit hit the floor. The arm
   check tests the quiver behind the bow rather than the weapon slot alone, and both
-  fights take the bow off on the way out.
+  fights take the bow off on the way out. A near-empty quiver counts as unarmed too:
+  the four arrows the warrior fight left over bought one timed-out hobgoblin and a walk
+  back to the booth for the axe.
 - **The engine's food float is provisioned once, not maintained.** `provisioned.add(id)`
   retires the withdrawal for the run, so a module whose grind outlasts six lobsters has
   to ask for more itself. The roots farm restocks below three and takes ten, because the
