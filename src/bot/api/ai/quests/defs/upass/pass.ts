@@ -302,6 +302,37 @@ async function useSeamToward(dest: Tile, log: (m: string) => void): Promise<bool
     return false;
 }
 
+// Why: an op-click can only name a loc the client already holds in its build area, and that area follows the
+// player — so a seam at the far side of a pocket is invisible from the near side. The mud pocket's only exit
+// is a ledge eighteen tiles west while its target lies south, so walking "toward the target" never brought it
+// into view and the leg stopped in a room with a door in it. When nothing crosses, the pocket is swept.
+const SWEEP_STEP = 16;
+const SWEEP_DIRS: readonly [number, number][] = [
+    [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]
+];
+
+/** Walk to the pocket's edge in each direction, looking for a crossing that was out of sight. */
+async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<string>): Promise<boolean> {
+    const from = here();
+    if (!from) {
+        return false;
+    }
+    const probes = SWEEP_DIRS
+        .map(([dx, dz]) => new Tile(from.x + dx * SWEEP_STEP, from.z + dz * SWEEP_STEP, from.level))
+        .filter(tile => Reachability.canReach(tile, REACH))
+        .sort((a, b) => chebyshev(a, dest) - chebyshev(b, dest));
+    for (const probe of probes) {
+        if (!(await Traversal.walkResilient(probe, { radius: 4, attempts: 1, timeoutMs: 30_000, log }))) {
+            continue;
+        }
+        log(`pass: swept to (${here()?.x},${here()?.z}) looking for a crossing out of sight`);
+        if (await hopToward(dest, log, spent)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /**
  * Walk to `dest`, crossing whatever obstacles stand between its pocket and this one.
  * Why: a plain `walkResilient` is tried first every round, because inside a pocket it is the right tool —
@@ -323,7 +354,7 @@ export async function travelTo(dest: Tile, radius: number, log: (m: string) => v
             }
             navWorthTrying = false;
         }
-        if (!(await hopToward(dest, log, spent))) {
+        if (!(await hopToward(dest, log, spent)) && !(await sweepPocket(dest, log, spent))) {
             const stuck = here();
             log(`pass: no obstacle from (${stuck?.x},${stuck?.z}) makes progress toward (${dest.x},${dest.z})`);
             if (stuck) {
