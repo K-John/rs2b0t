@@ -20,8 +20,6 @@ import { climbOutOfPit, travelTirannwn } from './pockets.js';
 // `%regicide_quest >= ^regicide_spoken_lathas` that teleports the player `loc + (-129, +64)` — the Well of
 // Voyage room — instead of into the temple.
 
-/** Where in the pass the crossing legs branch. */
-const GRID_EAST_X = 2467;
 /** The paladins' shelf is the north end of the first cavern; the orb corridor is everything below it. */
 const SHELF_Z = 9700;
 
@@ -125,8 +123,12 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
             return crossToWest(log);
         case 'westardougne':
             return enterCave(log);
+        // Why: the first cavern is three places at once and only `pastGridTile` tells them apart. The bridge
+        // shelf and the orb corridor overlap on x — the shelf runs 2431-2464 and the corridor 2380-2466 —
+        // so an x test reads the shelf as the corridor, sends the leg at the temple doors on the paladins'
+        // shelf, and the walk to them has no route: forty minutes standing at (2464,9726).
         case 'area1':
-            if ((here?.x ?? 0) > GRID_EAST_X && !pastGridTile(here)) {
+            if (!pastGridTile(here)) {
                 return crossGrid(log);
             }
             return (here?.z ?? 0) > SHELF_Z ? enterMainCavern(log) : climbWell(log);
