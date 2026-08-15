@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Thirty-one, and the first three are engine behaviour the quest only happens to expose.
+Thirty-two, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -124,6 +124,12 @@ Thirty-one, and the first three are engine behaviour the quest only happens to e
   produced four "I can't reach that!" and the leg spent every ledge it had. Ask for a Manhattan distance of
   one when the op has to reach.
 
+- **Proximity is not reach, for NPCs as well as locs.** Thirteen Iban disciples line the temple approach and
+  `nearest()` returned one through the temple wall. The attack sent, nothing happened, and the step spent its
+  whole three-minute wait in silence — twice, because one long wait looks exactly like a slow fight. Filter
+  the query by whether a cardinal neighbour can be stood on, take them in distance order, and give each a
+  short wait: a level-thirteen NPC with twenty hitpoints that is not dead in forty-five seconds is not being
+  fought at all.
 - **Iban's temple has no floor in the collision pack.** A flood over x 2130-2143 by z 4640-4655 at level 1
   finds one isolated tile: not the altar, not Iban's own tile, not the tile the doors force-move the player
   onto. So every distance-based approach inside answers "unreachable" from a tile the character is standing

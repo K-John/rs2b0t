@@ -5,8 +5,9 @@ import { Game } from '../../../../game/Game.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
+import { Reachability } from '../../../../../event/webwalk/geometry/Reachability.js';
 import type { Npc } from '../../../../model/Npc.js';
-import type Tile from '../../../../../geometry/Tile.js';
+import Tile from '../../../../../geometry/Tile.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import type { QuestSnapshot } from '../../engine/types.js';
 import { UP_AMULETS, UP_ITEM, UP_LOC, UP_NPC, UP_TILE, countHeld, insideIbanTemple, type UpassItem } from './areas.js';
@@ -215,24 +216,62 @@ export async function searchCages(log: (m: string) => void): Promise<boolean> {
 // worn slots and wants exactly two — so the armour comes off here and goes back on after the throw. The
 // robes come off an Iban disciple: level thirteen, twenty hitpoints, and a dozen of them line the approach.
 
+// Why: thirteen disciples line the approach and `nearest()` picked one through the temple wall — the attack
+// sent, nothing happened, and the step sat out its whole three-minute wait in silence, twice. Proximity is
+// not reach. Take them in order of distance but only where a cardinal neighbour can be stood on, give each
+// one a short wait rather than one long one, and say what happened when none of them dies.
+
 /** Kill a disciple for both halves of the robe of Zamorak. */
 async function robeFromDisciple(log: (m: string) => void): Promise<boolean> {
     const dressed = (): boolean => heldId(UP_ITEM.ZAM_TOP.id) > 0 && heldId(UP_ITEM.ZAM_BOTTOM.id) > 0;
-    for (let tries = 0; tries < 3 && !dressed(); tries++) {
-        if (!(await killNpc(UP_NPC.DISCIPLE, UP_TILE.DISCIPLE, 'an Iban disciple', log))) {
+    if (dressed()) {
+        return true;
+    }
+    if (!(await walkTo(UP_TILE.DISCIPLE, 6, log))) {
+        return false;
+    }
+    await settleScene();
+    const standable = (npc: Npc): boolean => {
+        const t = npc.tile();
+        return [[1, 0], [-1, 0], [0, 1], [0, -1]]
+            .some(([dx, dz]) => Reachability.canReach(new Tile(t.x + dx!, t.z + dz!, t.level),
+                { adjacentOk: true, maxSteps: 600 }));
+    };
+    const tried: string[] = [];
+    for (let round = 0; round < 4 && !dressed(); round++) {
+        const target = Npcs.query()
+            .where(npc => npc.id === UP_NPC.DISCIPLE)
+            .within(20)
+            .results()
+            .filter(standable)
+            .sort((a, b) => a.distance() - b.distance())[0];
+        if (!target) {
+            const at = Game.tile();
+            log(`no Iban disciple in reach of (${at?.x},${at?.z}) — tried ${tried.join(' ') || 'none'}`);
             return false;
         }
-        for (const robe of [UP_ITEM.ZAM_TOP, UP_ITEM.ZAM_BOTTOM]) {
-            const drop = GroundItems.query().where(item => item.id === robe.id).within(10).nearest();
-            if (drop && await drop.interact('Take')) {
-                await driveUntil(() => heldId(robe.id) > 0, [], log, 10_000);
+        const where = target.tile();
+        const mark = GameMessages.mark();
+        const gone = (): boolean => Npcs.query()
+            .where(npc => npc.id === UP_NPC.DISCIPLE && npc.tile().x === where.x && npc.tile().z === where.z)
+            .nearest() === null;
+        if (await target.interact('Attack') && await driveUntil(gone, [], log, 45_000)) {
+            for (const robe of [UP_ITEM.ZAM_TOP, UP_ITEM.ZAM_BOTTOM]) {
+                const drop = GroundItems.query().where(item => item.id === robe.id).within(10).nearest();
+                if (drop && await drop.interact('Take')) {
+                    await driveUntil(() => heldId(robe.id) > 0, [], log, 10_000);
+                }
             }
+            tried.push(`(${where.x},${where.z})dead`);
+            continue;
         }
+        const said = GameMessages.since(mark).map(m => m.text).filter(t => !t.startsWith('get ')).slice(-1).join('');
+        tried.push(`(${where.x},${where.z})${said || 'nothing'}`);
     }
     if (dressed()) {
         return true;
     }
-    log('three disciples and still no pair of robes');
+    log(`no pair of robes off four disciples — ${tried.join(' | ')}`);
     return false;
 }
 
