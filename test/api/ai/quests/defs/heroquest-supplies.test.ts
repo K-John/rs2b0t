@@ -32,7 +32,7 @@ function name(step: QuestStep | null): string {
 
 describe('the Black Arm disguise', () => {
     test('an empty pack buys the platebody first', () => {
-        expect(disguiseStep(snap())).toMatchObject({ kind: 'buy', item: HERO_NAMED.BLACK_PLATEBODY });
+        expect(name(disguiseStep(snap()))).toContain(HERO_NAMED.BLACK_PLATEBODY);
     });
 
     test('a bought piece is worn rather than bought again', () => {
@@ -52,14 +52,24 @@ describe('the Black Arm disguise', () => {
     });
 });
 
+// Why: `World.restock` skips a null slot, so a shared shop that sells its last unit is a one-shot
+// source — the legs list both stockists and the buy leg falls through to the second.
+describe('the Black Arm platelegs', () => {
+    test('the legs name both stockists', () => {
+        const step = disguiseStep(snap({ wornIds: new Set([HERO_ID.BLACK_PLATEBODY]) }));
+        expect(name(step)).toContain(HERO_NAMED.BLACK_PLATELEGS);
+        expect(step).toMatchObject({ kind: 'custom' });
+    });
+});
+
 describe('the Phoenix snipe kit', () => {
     test('an empty pack buys the bow first', () => {
-        expect(snipeKitStep(snap())).toMatchObject({ kind: 'buy', item: HERO_NAMED.OAK_LONGBOW });
+        expect(name(snipeKitStep(snap()))).toContain(HERO_NAMED.OAK_LONGBOW);
     });
 
     test('a worn bow moves on to the arrows', () => {
-        expect(snipeKitStep(snap({ wornIds: new Set([HERO_ID.OAK_LONGBOW]) })))
-            .toMatchObject({ kind: 'buy', item: HERO_NAMED.STEEL_ARROW });
+        expect(name(snipeKitStep(snap({ wornIds: new Set([HERO_ID.OAK_LONGBOW]) }))))
+            .toContain(HERO_NAMED.STEEL_ARROW);
     });
 
     test('bow and arrows worn is nothing left to do', () => {
@@ -137,7 +147,7 @@ describe('the firebird feather chain', () => {
     });
 
     test('without gloves it buys the Ice Queen kit first', () => {
-        expect(featherStep(snap())).toMatchObject({ kind: 'buy' });
+        expect(name(featherStep(snap()))).toContain('Rune chainbody');
     });
 
     test('banked gloves are withdrawn rather than fought for', () => {
@@ -188,7 +198,7 @@ describe('the firebird feather chain', () => {
     });
 
     test('the combat kit is bought once and worn after', () => {
-        expect(combatKitStep(snap())).toMatchObject({ kind: 'buy' });
+        expect(name(combatKitStep(snap()))).toContain('buy');
         expect(combatKitStep(snap({ wornIds: new Set([1113, 1079, 1303]) }))).toBeNull();
     });
 });

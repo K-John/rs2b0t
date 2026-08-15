@@ -152,6 +152,7 @@ export const HERO_TILE = {
     GERRANT: new Tile(3013, 3226, 0),
     JATIX: new Tile(2899, 3428, 0),
     LOWE: new Tile(3232, 3424, 0),
+    LOUIE: new Tile(3316, 3176, 0),
     HORVIK: new Tile(3229, 3439, 0),
     VALAINE: new Tile(3193, 3362, 1),
     SCAVVO: new Tile(3191, 3352, 1),
@@ -268,6 +269,7 @@ export const HERO_SHOP = {
     VALAINE: { npc: 'Valaine', anchor: HERO_TILE.VALAINE },
     SCAVVO: { npc: 'Scavvo', anchor: HERO_TILE.SCAVVO },
     AEMAD: { npc: 'Aemad', anchor: new Tile(2613, 3294, 0) },
+    LOUIE: { npc: 'Louie legs', anchor: HERO_TILE.LOUIE },
     GERRANT: { npc: 'Gerrant', anchor: HERO_TILE.GERRANT },
     JATIX: { npc: 'Jatix', anchor: HERO_TILE.JATIX }
 } as const;

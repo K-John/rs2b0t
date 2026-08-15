@@ -27,40 +27,44 @@ import {
 import { crossTreasureDoorIn, crossTreasureDoorOut, enterBrimhavenHq, enterMansion, returnToStreet } from './doors.js';
 import { HERO_STAGE } from './journal.js';
 import { HeroHandoffState, shouldFetchKey } from './partner.js';
-import { anywhere, bankedId, heldId, wornId } from './state.js';
+import { kitOwned, kitStep, type Purchasable } from './shops.js';
+import { heldId } from './state.js';
 
-/** Hartigen's disguise: Garv checks all three worn, and refuses silently otherwise. */
-const DISGUISE = [
-    { id: HERO_ID.BLACK_PLATEBODY, name: HERO_NAMED.BLACK_PLATEBODY, shop: HERO_SHOP.HORVIK, gp: 4_500 },
-    { id: HERO_ID.BLACK_PLATELEGS, name: HERO_NAMED.BLACK_PLATELEGS, shop: HERO_SHOP.VALAINE, gp: 30_000 },
-    { id: HERO_ID.BLACK_FULL_HELM, name: HERO_NAMED.BLACK_FULL_HELM, shop: HERO_SHOP.VALAINE, gp: 2_000 }
-] as const;
+// Why: Garv checks all three worn and refuses silently otherwise, and a shop that sells its last unit
+// never restocks it — the legs are listed with both stockists because two shops carry them.
+/** Hartigen's disguise. */
+const DISGUISE: readonly Purchasable[] = [
+    {
+        id: HERO_ID.BLACK_PLATEBODY,
+        name: HERO_NAMED.BLACK_PLATEBODY,
+        qty: 1,
+        sources: [{ ...HERO_SHOP.HORVIK, gp: 4_500 }]
+    },
+    {
+        id: HERO_ID.BLACK_PLATELEGS,
+        name: HERO_NAMED.BLACK_PLATELEGS,
+        qty: 1,
+        sources: [{ ...HERO_SHOP.LOUIE, gp: 3_000 }, { ...HERO_SHOP.VALAINE, gp: 30_000 }]
+    },
+    {
+        id: HERO_ID.BLACK_FULL_HELM,
+        name: HERO_NAMED.BLACK_FULL_HELM,
+        qty: 1,
+        sources: [{ ...HERO_SHOP.VALAINE, gp: 2_000 }]
+    }
+];
 
 const LURE_WAIT_MS = 60_000;
 const GROUND_RANGE = 12;
 
 /** The disguise, in whatever state it is in: bought, withdrawn, then worn. */
 export function disguiseStep(snap: QuestSnapshot): QuestStep | null {
-    for (const piece of DISGUISE) {
-        if (wornId(snap, piece.id)) {
-            continue;
-        }
-        if (heldId(snap, piece.id) > 0) {
-            return { kind: 'equip', item: piece.name };
-        }
-        if (bankedId(snap, piece.id) > 0) {
-            return { kind: 'withdraw', items: [{ name: piece.name, qty: 1, id: piece.id }] };
-        }
-        // Why: Valaine is upstairs in the Champions' Guild, which is the only shop that stocks the
-        // helm and the legs; the stairs are baked, so the buy step's own walk gets there.
-        return { kind: 'buy', item: piece.name, qty: 1, shop: piece.shop, estGp: piece.gp };
-    }
-    return null;
+    return kitStep(snap, DISGUISE);
 }
 
 /** True once all three pieces are somewhere the bot can reach them. */
 export function disguiseOwned(snap: QuestSnapshot): boolean {
-    return DISGUISE.every(piece => anywhere(snap, piece.id) > 0);
+    return kitOwned(snap, DISGUISE);
 }
 
 export async function talkToTrobert(log: (m: string) => void): Promise<boolean> {

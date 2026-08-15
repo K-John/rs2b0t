@@ -23,14 +23,15 @@ import {
 } from './areas.js';
 import { crossSideDoorIn, enterKitchen, pushPanel, returnToStreet } from './doors.js';
 import { HERO_STAGE } from './journal.js';
-import { anywhere, bankedId, heldId, wornId } from './state.js';
+import { kitOwned, kitStep, type Purchasable } from './shops.js';
+import { heldId } from './state.js';
 
 // Why: the side room is sealed from the mansion by a `snipable_wall`, which carries blockrange=no —
 // Grip is shootable through it and unreachable by every other means, so this branch needs a bow.
-const SNIPE_KIT = [
-    { id: HERO_ID.OAK_LONGBOW, name: HERO_NAMED.OAK_LONGBOW, qty: 1, gp: 1_000 },
-    { id: HERO_ID.STEEL_ARROW, name: HERO_NAMED.STEEL_ARROW, qty: 150, gp: 15_000 }
-] as const;
+const SNIPE_KIT: readonly Purchasable[] = [
+    { id: HERO_ID.OAK_LONGBOW, name: HERO_NAMED.OAK_LONGBOW, qty: 1, sources: [{ ...HERO_SHOP.LOWE, gp: 1_000 }] },
+    { id: HERO_ID.STEEL_ARROW, name: HERO_NAMED.STEEL_ARROW, qty: 150, sources: [{ ...HERO_SHOP.LOWE, gp: 15_000 }] }
+];
 
 const SNIPE_MS = 180_000;
 /** An oak longbow reaches nine tiles; Grip is lured to three, which leaves the row clear. */
@@ -39,23 +40,11 @@ const GROUND_RANGE = 12;
 
 /** The bow and the arrows, in whatever state they are in: bought, withdrawn, then worn. */
 export function snipeKitStep(snap: QuestSnapshot): QuestStep | null {
-    for (const piece of SNIPE_KIT) {
-        if (wornId(snap, piece.id)) {
-            continue;
-        }
-        if (heldId(snap, piece.id) > 0) {
-            return { kind: 'equip', item: piece.name };
-        }
-        if (bankedId(snap, piece.id) > 0) {
-            return { kind: 'withdraw', items: [{ name: piece.name, qty: piece.qty, id: piece.id }] };
-        }
-        return { kind: 'buy', item: piece.name, qty: piece.qty, shop: HERO_SHOP.LOWE, estGp: piece.gp };
-    }
-    return null;
+    return kitStep(snap, SNIPE_KIT);
 }
 
 export function snipeKitOwned(snap: QuestSnapshot): boolean {
-    return SNIPE_KIT.every(piece => anywhere(snap, piece.id) > 0);
+    return kitOwned(snap, SNIPE_KIT);
 }
 
 export function talkToStraven(log: (m: string) => void): Promise<boolean> {

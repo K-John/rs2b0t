@@ -12,15 +12,16 @@ import { fight } from '../trollstronghold/combat.js';
 import { talkThrough } from '../../exec/primitives.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { HERO_ID, HERO_NAMED, HERO_NPC, HERO_SHOP, HERO_TILE, onEntrana } from './areas.js';
+import { kitStep, type Purchasable } from './shops.js';
 import { anywhere, bankedId, foodName, heldFood, heldId, wornId } from './state.js';
 
 // Why: the Ice Queen is level 111 with 104 hitpoints and hits through anything less; the kit is bought
 // on the Champions' Guild upper floor, where Valaine's shop already takes the Black Arm bot.
-const COMBAT_KIT = [
-    { id: 1113, name: 'Rune chainbody', gp: 25_000 },
-    { id: 1079, name: 'Rune platelegs', gp: 20_000 },
-    { id: 1303, name: 'Rune longsword', gp: 24_000 }
-] as const;
+const COMBAT_KIT: readonly Purchasable[] = [
+    { id: 1113, name: 'Rune chainbody', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 25_000 }] },
+    { id: 1079, name: 'Rune platelegs', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 20_000 }] },
+    { id: 1303, name: 'Rune longsword', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 24_000 }] }
+];
 
 const FOOD_TARGET = 12;
 const FIREBIRD_MS = 90_000;
@@ -49,19 +50,7 @@ async function unequipAll(_log: (m: string) => void): Promise<boolean> {
 }
 
 export function combatKitStep(snap: QuestSnapshot): QuestStep | null {
-    for (const piece of COMBAT_KIT) {
-        if (wornId(snap, piece.id)) {
-            continue;
-        }
-        if (heldId(snap, piece.id) > 0) {
-            return { kind: 'equip', item: piece.name };
-        }
-        if (bankedId(snap, piece.id) > 0) {
-            return { kind: 'withdraw', items: [{ name: piece.name, qty: 1, id: piece.id }] };
-        }
-        return { kind: 'buy', item: piece.name, qty: 1, shop: HERO_SHOP.SCAVVO, estGp: piece.gp };
-    }
-    return null;
+    return kitStep(snap, COMBAT_KIT);
 }
 
 function iceQueen(): Npc | null {

@@ -126,14 +126,14 @@ describe("hero's quest gang branches", () => {
         withGang('blackarm');
         HeroConfig.partner = 'rival';
         const step = decide(snap({ stage: HERO_STAGE.BLACKARM_SPOKEN }));
-        expect(step).toMatchObject({ kind: 'buy' });
+        expect((step as { name: string }).name).toContain('Black platebody');
     });
 
     test('the Phoenix bot buys a bow before crossing to Brimhaven', () => {
         withGang('phoenix');
         HeroConfig.partner = 'rival';
         const step = decide(snap({ stage: HERO_STAGE.PHOENIX_SPOKEN }));
-        expect(step).toMatchObject({ kind: 'buy' });
+        expect((step as { name: string }).name).toContain('Oak longbow');
     });
 
     test('a kitted Black Arm bot goes for the hideout password', () => {
@@ -204,17 +204,16 @@ describe("hero's quest sealed pockets", () => {
         expect((step as { name: string }).name).toContain('sealed');
     });
 
-    test('a shop trip from inside the mansion leaves it first', () => {
+    // Why: a withdraw is a walk the navigator plans, where a buy leg crosses its own doors first.
+    test('a bank withdrawal from inside the mansion leaves it first', () => {
         withGang('blackarm');
         HeroConfig.partner = 'rival';
-        const step = decide(snap({ stage: HERO_STAGE.BLACKARM_SPOKEN, tile: MANSION }));
+        const step = decide(snap({
+            stage: HERO_STAGE.BLACKARM_SPOKEN,
+            tile: MANSION,
+            bankIds: new Map([[HERO_ID.BLACK_PLATEBODY, 1]])
+        }));
         expect((step as { name: string }).name).toContain('sealed');
-    });
-
-    test('the same shop trip from the street is the buy itself', () => {
-        withGang('blackarm');
-        HeroConfig.partner = 'rival';
-        expect(decide(snap({ stage: HERO_STAGE.BLACKARM_SPOKEN }))).toMatchObject({ kind: 'buy' });
     });
 
     test('a custom leg is left alone — it crosses its own doors', () => {
