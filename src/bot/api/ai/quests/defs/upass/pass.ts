@@ -8,7 +8,7 @@ import { Reachability } from '../../../../../event/webwalk/geometry/Reachability
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
-import { UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
+import { PLATFORM_BRIDGES, UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
 
 // Why: the pass is not one map the navigator can route across — a component report over its own seam
 // endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision
@@ -448,6 +448,24 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
         log(`pass: closed on ${loc.name ?? loc.id} at (${loc.tile().x},${loc.tile().z}) — now at (${here()?.x},${here()?.z})`);
         if (await hopToward(dest, log, spent)) {
             return true;
+        }
+    }
+    // Why: and the crossing that leaves a platform can be a hundred and forty tiles off, well past any
+    // scene — so the known bridge placements are walked at too, nearest the target first. The walker
+    // refuses the ones in other components in a second each, which is what makes trying them all cheap.
+    if (from.level === 1) {
+        for (const bridge of [...PLATFORM_BRIDGES].sort((a, b) => chebyshev(a, dest) - chebyshev(b, dest))) {
+            if (chebyshev(bridge, from) <= 2 || chebyshev(bridge, dest) >= chebyshev(from, dest)) {
+                continue;
+            }
+            const tile = new Tile(bridge.x, bridge.z, bridge.level);
+            if (!(await Traversal.walkResilient(tile, { radius: 6, attempts: 1, timeoutMs: 60_000 }))) {
+                continue;
+            }
+            log(`pass: walked to the bridge at (${bridge.x},${bridge.z}) — now at (${here()?.x},${here()?.z})`);
+            if (await hopToward(dest, log, spent)) {
+                return true;
+            }
         }
     }
     const probes = SWEEP_DIRS

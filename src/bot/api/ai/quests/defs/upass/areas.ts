@@ -207,6 +207,33 @@ export const UP_TILE = {
     WELL_OF_VOYAGE: new Tile(2008, 4711, 1)
 } as const;
 
+// Why: the level-1 platforms are joined by twenty collapsed bridges, and the one that leaves the main
+// cavern landing is a hundred and forty tiles from where the temple doors drop the character — far outside
+// any loaded scene, so a sweep that can only walk at what it can see will never find it. These are their
+// placements, straight out of `m3x_7y.jm2`, and the traveller walks at them when the scene has nothing.
+export const PLATFORM_BRIDGES: readonly { x: number; z: number; level: number }[] = [
+    { x: 2136, z: 4584, level: 1 },
+    { x: 2142, z: 4562, level: 1 },
+    { x: 2143, z: 4604, level: 1 },
+    { x: 2147, z: 4583, level: 1 },
+    { x: 2156, z: 4582, level: 1 },
+    { x: 2161, z: 4599, level: 1 },
+    { x: 2123, z: 4616, level: 1 },
+    { x: 2127, z: 4610, level: 1 },
+    { x: 2148, z: 4614, level: 1 },
+    { x: 2160, z: 4625, level: 1 },
+    { x: 2161, z: 4637, level: 1 },
+    { x: 2161, z: 4654, level: 1 },
+    { x: 2162, z: 4663, level: 1 },
+    { x: 2121, z: 4686, level: 1 },
+    { x: 2145, z: 4717, level: 1 },
+    { x: 2154, z: 4690, level: 1 },
+    { x: 2155, z: 4704, level: 1 },
+    { x: 2155, z: 4718, level: 1 },
+    { x: 2158, z: 4724, level: 1 },
+    { x: 2164, z: 4686, level: 1 }
+];
+
 export type UpassArea =
     | 'mainland'
     | 'westardougne'
