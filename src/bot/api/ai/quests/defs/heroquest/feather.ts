@@ -10,6 +10,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { fight } from '../trollstronghold/combat.js';
 import { talkThrough } from '../../exec/primitives.js';
+import { settleScene } from '../../exec/prompts.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { HERO_ID, HERO_NAMED, HERO_NPC, HERO_SHOP, HERO_TILE, onEntrana } from './areas.js';
 import { kitStep, type Purchasable } from './shops.js';
@@ -28,6 +29,7 @@ const COMBAT_KIT: readonly Purchasable[] = [
 const FOOD_TARGET = 12;
 const FIREBIRD_MS = 90_000;
 const ICE_QUEEN_TICKS = 600;
+const PLANK_TRIES = 6;
 
 /** Everything Entrana's monks allow: the gloves carry no `armour_*` category, coins and food never did. */
 function entranaKeep(): string[] {
@@ -104,7 +106,31 @@ export async function killIceQueen(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => Inventory.countById(HERO_ID.ICE_GLOVES) > 0, 8_000);
 }
 
+// Why: every ferry lands on the ship's deck at level 1, and the Gangplank loc is absent from the scene
+// for a tick or two after the region change — one click at the wrong moment leaves a bot on the deck,
+// where `onEntrana` reads false and the leg walks it back to the monk it just paid.
+
+/** Cross the gangplank off whatever deck the character is standing on. */
+async function stepOffShip(log: (m: string) => void): Promise<boolean> {
+    if (Game.tile()?.level === 0) {
+        return true;
+    }
+    for (let attempt = 0; attempt < PLANK_TRIES; attempt++) {
+        await settleScene();
+        const plank = Locs.query().name('Gangplank').action('Cross').within(12).nearest();
+        if (plank && (await plank.interact('Cross'))
+            && (await Execution.delayUntil(() => Game.tile()?.level === 0, 10_000))) {
+            return true;
+        }
+    }
+    log('still on the ship deck: no Gangplank offered Cross');
+    return false;
+}
+
 export async function sailToEntrana(log: (m: string) => void): Promise<boolean> {
+    if (!(await stepOffShip(log))) {
+        return false;
+    }
     if (onEntrana(Game.tile())) {
         return true;
     }
@@ -118,19 +144,16 @@ export async function sailToEntrana(log: (m: string) => void): Promise<boolean> 
         const tile = Game.tile();
         return tile !== null && tile.x >= 2790 && tile.x <= 2880 && tile.z >= 3290 && tile.z <= 3440;
     }, 30_000);
-    if (!landed) {
+    if (!landed || !(await stepOffShip(log))) {
         return false;
-    }
-    // Why: the ferry lands on the ship's deck at level 1, and the gangplank is the only way off it.
-    const plank = Locs.query().name('Gangplank').action('Cross').within(10).nearest();
-    if (plank && Game.tile()?.level !== 0) {
-        await plank.interact('Cross');
-        await Execution.delayUntil(() => Game.tile()?.level === 0, 10_000);
     }
     return onEntrana(Game.tile());
 }
 
 export async function sailFromEntrana(log: (m: string) => void): Promise<boolean> {
+    if (!(await stepOffShip(log))) {
+        return false;
+    }
     if (!onEntrana(Game.tile())) {
         return true;
     }
@@ -141,10 +164,8 @@ export async function sailFromEntrana(log: (m: string) => void): Promise<boolean
         return false;
     }
     await Execution.delayUntil(() => !onEntrana(Game.tile()), 30_000);
-    const plank = Locs.query().name('Gangplank').action('Cross').within(10).nearest();
-    if (plank && Game.tile()?.level !== 0) {
-        await plank.interact('Cross');
-        await Execution.delayUntil(() => Game.tile()?.level === 0, 10_000);
+    if (!(await stepOffShip(log))) {
+        return false;
     }
     return !onEntrana(Game.tile());
 }
