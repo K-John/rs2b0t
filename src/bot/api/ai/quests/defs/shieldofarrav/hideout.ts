@@ -31,9 +31,11 @@ async function crossDoor(
     if (!(await Traversal.walkResilient(stand, { radius: 1, attempts: 3, timeoutMs: WALK_MS, log }))) {
         return false;
     }
-    const door = Locs.query().action('Open').within(4).where(l => l.id === id).nearest();
+    // Why: `~open_hideout_door` calls `~door_open`, which swings the loc onto a different tile and id, so the shut id is not what stands there after anyone has opened it — and a sealed pocket has one door, so the Open-actioned neighbour is it.
+    const door = Locs.query().action('Open').within(4).where(l => l.id === id).nearest()
+        ?? Locs.query().action('Open').within(2).where(l => l.name === 'Door').nearest();
     if (!door) {
-        log(`no door ${id} within four tiles of (${stand.x},${stand.z})`);
+        log(`no door ${id} or Door within four tiles of (${stand.x},${stand.z})`);
         return false;
     }
     const mark = GameMessages.mark();
@@ -250,11 +252,19 @@ export async function enterPhoenixInner(log: (m: string) => void): Promise<boole
     return crossDoor(SOA_LOC.PHOENIX_DOOR, SOA_TILE.PHOENIX_DOOR, inPhoenixInner, log);
 }
 
+/** Through the gang door only — the stairs are a leg further on. */
+async function enterBlackArmInner(log: (m: string) => void): Promise<boolean> {
+    if (inBlackArmInner(Game.tile()) || inBlackArmUpper(Game.tile())) {
+        return true;
+    }
+    return crossDoor(SOA_LOC.BLACKARM_DOOR, SOA_TILE.BLACKARM_DOOR, inBlackArmInner, log);
+}
+
 export async function enterBlackArmUpper(log: (m: string) => void): Promise<boolean> {
     if (inBlackArmUpper(Game.tile())) {
         return true;
     }
-    if (!(await crossDoor(SOA_LOC.BLACKARM_DOOR, SOA_TILE.BLACKARM_DOOR, inBlackArmInner, log))) {
+    if (!(await enterBlackArmInner(log))) {
         return false;
     }
     return climb(SOA_LOC.BLACKARM_STAIRS, 'Climb-up', SOA_TILE.BLACKARM_STAIRS, SOA_TILE.BLACKARM_STAIRS_TOP, log);

@@ -185,6 +185,10 @@ export function blackarmStep(snap: QuestSnapshot): QuestStep {
             return say(KATRINE_JOIN, 'ask Katrine to join the Black Arm Gang');
 
         case SOA_STAGE.KATRINE_TASK:
+            // Why: the store door is out of the nav graph, so a bot that took the crossbows and then failed the crossing has no route to Katrine and every path reads unreachable — the way out is owed before the hand-in, not only inside the raid step.
+            if (inStoreGround(snap.tile) || inWeaponStore(snap.tile)) {
+                return { kind: 'custom', name: 'leave the weapon store', run: leaveWeaponStore };
+            }
             if (heldId(snap, SOA_ID.CROSSBOW) >= 2) {
                 return say(KATRINE_HANDIN, 'hand the crossbows to Katrine');
             }
