@@ -208,6 +208,26 @@ describe('Temple of Ikov decide', () => {
         expect(step.kind).toBe('withdraw');
     });
 
+    // Why: the ice-chest circuit spends the engine's one-shot float, and the bot walked up to his door on an empty pack and stood there.
+    test('an empty pack is refilled before the Fire Warrior', () => {
+        const step = decide(snap(IKOV_STAGE.PULLED_LEVER, {
+            inv: [...KIT, [IKOV_OBJ.BOOTS, 1]],
+            invNames: [[ARROWS, ARROWS_WANTED]],
+            bankNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 20]]
+        }));
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' && step.items[0].name).toBe(IKOV_NAME.LOBSTER);
+    });
+
+    test('food in the pack goes straight to the Fire Warrior', () => {
+        const step = decide(snap(IKOV_STAGE.PULLED_LEVER, {
+            inv: [...KIT, [IKOV_OBJ.BOOTS, 1]],
+            invNames: [[ARROWS, ARROWS_WANTED], [IKOV_NAME.LOBSTER.toLowerCase(), 4]],
+            bankNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 20]]
+        }));
+        expect(label(step)).toBe('custom:shoot the Fire Warrior of Lesarkus');
+    });
+
     // Why: the candle only lights the stairs to the boots, so demanding one after they are found sends the bot shopping mid-dungeon.
     test('boots in hand stop the candle being part of the kit', () => {
         const step = decide(snap(IKOV_STAGE.PULLED_LEVER, {

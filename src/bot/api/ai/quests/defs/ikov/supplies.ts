@@ -276,23 +276,24 @@ function armForTheFarm(snap: QuestSnapshot): QuestStep | null {
     return null;
 }
 
-// Why: the engine's food float is a one-shot at provisioning time, and this grind outlasts it — a starved bot dies at the camp and drops the kit on the floor.
-function restockFood(snap: QuestSnapshot): QuestStep | null {
+// Why: the engine's food float is a one-shot at provisioning time and both fights outlast it — a starved bot dies at the hobgoblin camp and stands in front of the Fire Warrior doing nothing.
+/** Walk to a booth for more lobsters once the pack is down to `floor`, or null when it is stocked. */
+export function restockStep(snap: QuestSnapshot, want: number, floor: number): QuestStep | null {
     const food = IKOV_NAME.LOBSTER.toLowerCase();
     const held = snap.inv.get(food) ?? 0;
-    if (held >= FARM_FOOD_FLOOR) {
+    if (held >= floor) {
         return null;
     }
-    const want = Math.min(FARM_FOOD - held, snap.bank?.get(food) ?? 0);
-    if (want <= 0) {
+    const qty = Math.min(want - held, snap.bank?.get(food) ?? 0);
+    if (qty <= 0) {
         return null;
     }
-    return { kind: 'withdraw', items: [{ name: IKOV_NAME.LOBSTER, qty: want }] };
+    return { kind: 'withdraw', items: [{ name: IKOV_NAME.LOBSTER, qty }] };
 }
 
 // Why: 20 unstackable roots plus food fill the pack, so the farm banks in batches rather than holding the lot.
 function rootStep(snap: QuestSnapshot): QuestStep {
-    const arm = armForTheFarm(snap) ?? restockFood(snap);
+    const arm = armForTheFarm(snap) ?? restockStep(snap, FARM_FOOD, FARM_FOOD_FLOOR);
     if (arm) {
         return arm;
     }

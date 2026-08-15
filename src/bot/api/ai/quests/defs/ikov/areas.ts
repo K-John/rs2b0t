@@ -88,6 +88,9 @@ export const IKOV_NAME = {
     LOBSTER: 'Lobster'
 } as const;
 
+/** Everything this quest will eat, best first. */
+export const IKOV_FOODS = ['lobster', 'swordfish', 'tuna'];
+
 /** Roots Winelda wants, and the ferry across the lava is the only way past her. */
 export const ROOTS_WANTED = 20;
 // Why: he has 59 hitpoints, four shots in five land recoverable on the floor, and the leg sweeps them mid-fight — so this is a comfortable floor rather than a stockpile, and one chest circuit clears it.

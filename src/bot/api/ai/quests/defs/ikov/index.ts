@@ -5,6 +5,7 @@ import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.j
 import { talkStrict } from '../../exec/primitives.js';
 import {
     ARROWS_WANTED,
+    IKOV_FOODS,
     IKOV_NAME,
     IKOV_OBJ,
     IKOV_TILE,
@@ -15,7 +16,7 @@ import {
 import { arrowsSecured, dungeonPrepStep, escapePocket, pullTrapLever, templeWalk, wearFearPendant, wearingBoots } from './dungeon.js';
 import { fightFireWarrior, killLucien } from './fight.js';
 import { IKOV_STAGE, readIkovStage } from './journal.js';
-import { heldOrBanked, sourcingShortfall, suppliesStep } from './supplies.js';
+import { heldOrBanked, restockStep, sourcingShortfall, suppliesStep } from './supplies.js';
 import { joinTheGuardians, leaveTheFarSide } from './temple.js';
 
 const IKOV_ID = 'ikov';
@@ -39,8 +40,9 @@ const IKOV_TOOLS = [
     'shiny key'
 ];
 
-/** Foods this quest eats; the trim keeps them, and `sustain` declares the same list. */
-const IKOV_FOODS = ['lobster', 'swordfish', 'tuna'];
+/** Lobsters the bot takes to the Fire Warrior's door, and the pack size that sends it back for more. */
+const WARRIOR_FOOD = 8;
+const WARRIOR_FOOD_FLOOR = 2;
 
 // Why: the lava bridge weighs the pack, and stackables are free — so the trim is about the non-stackables the surface legs leave behind, the yew shortbow (3lb) and the iron axe most of all.
 const BRIDGE_KEEP = ['coins', 'candle', 'tinderbox', 'knife', 'pendant', 'boots of lightness', 'ice arrows', 'lever', ...IKOV_FOODS];
@@ -101,6 +103,11 @@ function warKitStep(snap: QuestSnapshot): QuestStep | null {
     const bow = withdrawFor(snap, [{ name: IKOV_NAME.YEW_SHORTBOW, id: IKOV_OBJ.YEW_SHORTBOW, qty: 1 }]);
     if (bow) {
         return bow;
+    }
+    // Why: the ice-chest circuit is four minutes of hobgoblin-free but not damage-free dungeon and it eats the engine's one-shot float, so the bot reaches the Fire Warrior's door on an empty pack unless this leg refills it — and the walk from the door back is nothing beside dying at it.
+    const food = restockStep(snap, WARRIOR_FOOD, WARRIOR_FOOD_FLOOR);
+    if (food) {
+        return food;
     }
     const key = IKOV_NAME.ICE_ARROWS.toLowerCase();
     if (snap.worn.has(key) || (snap.inv.get(key) ?? 0) > 0) {

@@ -14,7 +14,7 @@ import { Sustain } from '../../../../sustain/Sustain.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Traversal } from '../../../../walking/Traversal.js';
-import { IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_TILE, LAVA_BRIDGE_ZONE } from './areas.js';
+import { IKOV_FOODS, IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_TILE, LAVA_BRIDGE_ZONE } from './areas.js';
 import { escapePocket, pullTrapLever, wearFearPendant } from './dungeon.js';
 
 /** Ticks the Fire Warrior is given before the leg hands the tick back to the engine. */
@@ -33,6 +33,11 @@ const REPORT_TICKS = 40;
 function hungry(): boolean {
     const max = Skills.level('hitpoints');
     return max > 0 && Skills.effective('hitpoints') <= max - EAT_AT_MISSING;
+}
+
+// Why: `Sustain.run()` returns nothing whether it ate or found an empty pack, so a fight loop that yields to it on hunger alone spins out its guard doing nothing once the food is gone — which is how the first end-to-end run stood in front of the Fire Warrior for three minutes at 30 hitpoints.
+function canEat(): boolean {
+    return IKOV_FOODS.some(food => Inventory.contains(food));
 }
 
 /** Every ice-arrow stack size renders under one display name, so the pack is counted by name. */
@@ -210,7 +215,7 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
             reported = now;
             const target = warrior();
             log(`ikov: warrior fight hp=${Skills.effective('hitpoints')}/${Skills.level('hitpoints')}`
-                + ` arrows=${iceArrowsHeld()} shots=${swings} refused=${refused} engaged=${engaged}`
+                + ` arrows=${iceArrowsHeld()} shots=${swings} refused=${refused} engaged=${engaged} food=${canEat()}`
                 + ` target=${target ? `${target.tile().x},${target.tile().z}` : 'none'}`
                 + ` chat=${ChatDialog.isOpen() ? 'open' : 'closed'}`);
         }
@@ -218,7 +223,7 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
             await drainDialogue(log);
             continue;
         }
-        if (hungry()) {
+        if (hungry() && canEat()) {
             await Sustain.run();
             continue;
         }
@@ -311,7 +316,7 @@ export async function killLucien(log: (m: string) => void): Promise<boolean> {
             await drainDialogue(log);
             continue;
         }
-        if (hungry()) {
+        if (hungry() && canEat()) {
             await Sustain.run();
             continue;
         }

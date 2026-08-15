@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Eighteen, and the first seven are engine behaviour rather than quest facts.
+Nineteen, and the first seven are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
@@ -94,7 +94,14 @@ Eight are the quest's own shape:
   fights take the bow off on the way out.
 - **The engine's food float is provisioned once, not maintained.** `provisioned.add(id)`
   retires the withdrawal for the run, so a module whose grind outlasts six lobsters has
-  to ask for more itself. The roots farm restocks below three and takes ten, because the nearest booth is a minute's round trip from the camp.
+  to ask for more itself. The roots farm restocks below three and takes ten, because the
+  nearest booth is a minute's round trip from the camp, and the leg before the Fire
+  Warrior takes eight, because the ice-chest circuit spends the float underground.
+- **A hunger branch that yields the tick is a stall once the food runs out.** `Sustain.run()`
+  returns nothing whether it ate or found an empty pack, so `if (hungry()) { await
+  Sustain.run(); continue; }` spun the Fire Warrior guard out at 30 hitpoints without
+  a single click — three minutes of a fight that never started. Both fight loops test
+  the pack before they yield to it.
 - **A fight loop that counts its own Attack clicks misses a kill it did not click for.**
   Auto-retaliate fought the Fire Warrior to death while every `interact('Attack')` came
   back false — he stands behind the door that summoned him and the path to him is
