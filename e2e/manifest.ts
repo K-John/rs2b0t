@@ -56,7 +56,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
         status: 'documented',
         budgetMin: 90,
-        documentedIn: 'docs/reference/quest-harness-recipes.md',
+        documentedIn: 'docs/reference/quest-harness-recipes-17.md',
         note: 'members-only, so it needs the :8890 world; --stage seeds %chompybird and relogs'
     },
     {

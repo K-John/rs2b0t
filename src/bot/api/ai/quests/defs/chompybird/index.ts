@@ -32,9 +32,7 @@ const hasBellows = (snap: QuestSnapshot): boolean => ANY_BELLOWS.some(id => held
 const bankHasBellows = (snap: QuestSnapshot): number | null =>
     ANY_BELLOWS.find(id => (snap.bankIds?.get(id) ?? 0) > 0) ?? null;
 
-// Why: the chompy takes several shots and every one spends an arrow, so three in the pack is a fight that
-// runs dry with the bird alive. The quiver has no count on the wire, so a quivered stack is trusted and the
-// pack is what has to reach the floor before one is loaded.
+// Why: three in the pack is a fight that runs dry with the bird alive, and the quiver has no count on the wire — so a quivered stack is trusted and the pack is what has to reach this floor.
 
 /** Enough ogre arrows to see a chompy off. */
 const HUNT_ARROWS = 6;
@@ -252,9 +250,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === CB_STAGE.STARTED) {
         return arrowLeg(snap);
     }
-    // Why: a resume past the loan finds Rantz selling the replacement bow for 500-550 coins, and he
-    // answers an empty purse with "come back when you have" — a refusal no oracle here can tell from
-    // a dropped click. The axe is left out, since only the arrow leg needs one.
+    // Why: a resume past the loan finds Rantz selling the replacement bow for 500-550 coins, and he answers an empty purse with "come back when you have" — a refusal no oracle here can tell from a dropped click; the axe is left out, since only the arrow leg needs one.
     const provisions = loadoutStep(snap, false);
     if (provisions) {
         return provisions;
