@@ -138,11 +138,17 @@ the papers, and `open_and_close_door` teleports the actor rather than opening, s
 crosses the side door only on the spare key its rival trades over.
 
 ```
---stage armband|full   stop at both armbands, or run to two green journals
---stats N              setstat every skill to N (default 70)
---tick MS              engine tick, default 300
---minutes N            wall-clock budget
+--stage grip|armband|full   where to start and stop
+--stats N                   setstat every skill to N (default 70)
+--tick MS                   engine tick, default 300
+--minutes N                 wall-clock budget
 ```
+
+`--stage grip` is the iteration loop: it sets `%heroquest` to 11 and 4 — the two stages the Brimhaven
+dance begins at — banks the Phoenix bot's bow and arrows, and skips the shopping and the gang legs,
+which take ten minutes a side and are proven on their own. Both bots still start at the Varrock booth
+and walk the crossing, because `ownsInventory` makes the first step a bank read and Karamja has no
+bank at all.
 
 One `browser.newContext()` per account, as for Shield of Arrav. The gang is **not** a setting of
 this quest — `heroGang()` reads Shield of Arrav's `arravGang`, so a character walks the same side in
