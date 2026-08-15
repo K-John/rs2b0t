@@ -1,0 +1,677 @@
+import { DirectNavigator } from '../../../../../event/webwalk/DirectNavigator.js';
+import { Execution } from '../../../../execution/Execution.js';
+import { Game } from '../../../../game/Game.js';
+import { GameMessages } from '../../../../chatbox/gameMessages.js';
+import { GroundItems, type GroundItem } from '../../../../grounditems/GroundItems.js';
+import { Locs } from '../../../../locs/Locs.js';
+import type { Loc } from '../../../../model/Loc.js';
+import { Traversal } from '../../../../walking/Traversal.js';
+import type Tile from '../../../../../geometry/Tile.js';
+import { GEM_ROCKS, LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_TILE, WALL_RUNES, inOctagram, legendsArea } from './areas.js';
+import { legendsPocket, type LegendsPocket } from './pockets.js';
+import { driveUntil, heldId, modalText, promptLoc, settleScene, useOnLoc } from './scene.js';
+
+/** Which sealed pocket of the cave complex we are standing in. */
+export function pocket(): LegendsPocket | null {
+    return legendsPocket(Game.tile());
+}
+
+// Why: every rung of the descent is a one-way crossing, so a leg resumed below one must not walk back at the stand above it.
+const DESCENT: readonly LegendsPocket[] = [
+    'shamanCave', 'crevice', 'outerGate', 'boulderOne', 'boulderTwo', 'innerGate',
+    'trials', 'wallRoom', 'gemRoom', 'winchRoom', 'viyeldiLedge'
+];
+
+/** Standing at or below the named rung of the descent. */
+function past(want: LegendsPocket): boolean {
+    const at = pocket();
+    return at !== null && DESCENT.indexOf(at) >= DESCENT.indexOf(want);
+}
+
+function locById(id: number, within = 10, op?: string): Loc | null {
+    const query = Locs.query().where(l => l.id === id).within(within);
+    return (op ? query.action(op) : query).nearest();
+}
+
+// Why: the outer and inner gates are both out of `doors.json`, as one answers Open with "they're really shut" and the other with a brute-strength prompt, so the crossing after the open is a scene step the pathfinder never sees.
+
+/** Walk the last tile through a gate the module has just opened. */
+async function stepThrough(to: Tile, want: LegendsPocket, log: (m: string) => void, quiet = false): Promise<boolean> {
+    await DirectNavigator.walkTo(to, 0, 8000);
+    await settleScene();
+    if (pocket() === want) {
+        return true;
+    }
+    if (!quiet) {
+        log(`the gate did not let us through to ${want}`);
+    }
+    return false;
+}
+
+// Why: `stat_random(agility, 60, 254)` decides the crawl and a failure only costs a few ticks, so this retries rather than parking.
+
+/** Squeeze through the crevice behind the shaman's bookcase. */
+export async function crawlBookcase(log: (m: string) => void): Promise<boolean> {
+    if (past('crevice')) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(LQ_TILE.SHAMAN_BOOKCASE, { radius: 2, attempts: 3, timeoutMs: 120_000, log }))) {
+        return false;
+    }
+    await settleScene();
+    for (let i = 0; i < 6; i++) {
+        if (pocket() === 'crevice') {
+            await settleScene();
+            return true;
+        }
+        const ok = await promptLoc(
+            {
+                name: LQ_LOC.BOOKCASE,
+                op: 'Search',
+                near: LQ_TILE.SHAMAN_BOOKCASE,
+                prefer: ['Yes please!'],
+                expect: () => pocket() === 'crevice',
+                expectMs: 25_000
+            },
+            log
+        );
+        if (ok) {
+            await settleScene();
+            return true;
+        }
+    }
+    log('six squeezes and the crevice still would not take us');
+    return false;
+}
+
+/** Crawl back west through the crevice into the shaman cave. */
+export async function crawlBackFromCrevice(log: (m: string) => void): Promise<boolean> {
+    if (pocket() !== 'crevice') {
+        return true;
+    }
+    const ok = await promptLoc(
+        {
+            name: LQ_LOC.CREVICE,
+            op: 'Search',
+            near: LQ_TILE.SHAMAN_CREVICE,
+            prefer: ['Yes please!'],
+            expect: () => pocket() === 'shamanCave',
+            expectMs: 20_000
+        },
+        log
+    );
+    if (ok) {
+        await settleScene();
+    }
+    return ok;
+}
+
+const PICK_ATTEMPTS = 10;
+
+// Why: only Search with a lockpick opens the outer gate, and it rolls against thieving each time; Open answers "You push on the doors, they're really shut" from the entering side for ever.
+
+/** Pick the outer ancient gate and step through it. */
+export async function openOuterGate(log: (m: string) => void): Promise<boolean> {
+    if (past('outerGate')) {
+        return true;
+    }
+    if (!(await crawlBookcase(log))) {
+        return false;
+    }
+    if (heldId(LQ_ID.LOCKPICK) === 0) {
+        log('no lockpick in the pack for the outer ancient gate');
+        return false;
+    }
+    if (!(await Traversal.walkResilient(LQ_TILE.LOCKPICK_GATE_NORTH, { radius: 0, attempts: 4, timeoutMs: 120_000, log }))) {
+        return false;
+    }
+    // Why: `search_outer_ancient_gate` is a seven-box chain and each box is gone the tick after the driver clicks it, so the open is read off the gate losing its Search op rather than off the text.
+    const shut = (): boolean =>
+        (locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Search') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Search')) !== null;
+    for (let i = 0; i < PICK_ATTEMPTS; i++) {
+        const gate = locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Search') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Search');
+        if (gate && (await gate.interact('Search'))) {
+            await driveUntil(() => !shut() || /tumble the lock mechanism|fail to pick the lock/.test(modalText()), [], log, 30_000);
+            await driveUntil(() => modalText() === '', [], log, 8000);
+        }
+        if (await stepThrough(LQ_TILE.LOCKPICK_GATE_SOUTH, 'outerGate', log, true)) {
+            return true;
+        }
+        await Traversal.walkResilient(LQ_TILE.LOCKPICK_GATE_NORTH, { radius: 0, attempts: 2, timeoutMs: 30_000, log });
+    }
+    log('ten lockpick attempts and the outer gate is still shut');
+    return false;
+}
+
+/** Open the outer gate from the inside, where it needs no lockpick at all. */
+export async function leaveOuterGate(log: (m: string) => void): Promise<boolean> {
+    if (pocket() !== 'outerGate') {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(LQ_TILE.LOCKPICK_GATE_SOUTH, { radius: 0, attempts: 4, timeoutMs: 60_000, log }))) {
+        return false;
+    }
+    // Why: the lever swings the doors shut again behind whoever pulled it, so one open and one step is a coin toss — the crossing is retried until it lands.
+    for (let i = 0; i < 6; i++) {
+        const gate = locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Open') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Open');
+        if (gate && (await gate.interact('Open'))) {
+            await driveUntil(() => modalText() !== '', [], log, 6000);
+            await driveUntil(() => modalText() === '', [], log, 8000);
+        }
+        if (await stepThrough(LQ_TILE.LOCKPICK_GATE_NORTH, 'crevice', log, true)) {
+            return true;
+        }
+        await Traversal.walkResilient(LQ_TILE.LOCKPICK_GATE_SOUTH, { radius: 0, attempts: 2, timeoutMs: 30_000, log });
+    }
+    log('six pulls and the outer gate would not let us back out');
+    return false;
+}
+
+const MINE_ATTEMPTS = 20;
+const WINCH_ATTEMPTS = 6;
+
+const BOULDERS: readonly { id: number; from: LegendsPocket; north: Tile; to: LegendsPocket; south: Tile }[] = [
+    { id: LQ_LOC_ID.BOULDER_1, from: 'outerGate', north: LQ_TILE.BOULDER_1_NORTH, to: 'boulderOne', south: LQ_TILE.BOULDER_1_SOUTH },
+    { id: LQ_LOC_ID.BOULDER_2, from: 'boulderOne', north: LQ_TILE.BOULDER_1_SOUTH, to: 'boulderTwo', south: LQ_TILE.BOULDER_2_SOUTH },
+    { id: LQ_LOC_ID.BOULDER_3, from: 'boulderTwo', north: LQ_TILE.BOULDER_2_SOUTH, to: 'innerGate', south: LQ_TILE.BOULDER_3_SOUTH }
+];
+
+// Why: mining a boulder teleports the miner past it and drops another behind, so each of the three is a one-shot crossing that has to be re-mined from the other side to come back.
+// Why: `stat_random(mining, 90, 255)` decides each swing and a failure costs a mining level, so the loop is generous.
+
+/** Smash one trial boulder and land on the far side of it. */
+async function mineBoulder(boulder: (typeof BOULDERS)[number], reverse: boolean, log: (m: string) => void): Promise<boolean> {
+    const want = reverse ? boulder.from : boulder.to;
+    const stand = reverse ? boulder.south : boulder.north;
+    if (pocket() === want || (!reverse && past(want))) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(stand, { radius: 0, attempts: 4, timeoutMs: 60_000, log }))) {
+        return false;
+    }
+    await settleScene();
+    for (let i = 0; i < MINE_ATTEMPTS; i++) {
+        if (pocket() === want) {
+            await settleScene();
+            return true;
+        }
+        const rock = locById(boulder.id, 6, 'Smash-to-bits');
+        if (!rock) {
+            log(`boulder ${boulder.id} is not in the scene from (${stand.x},${stand.z})`);
+            return false;
+        }
+        if (!(await rock.interact('Smash-to-bits'))) {
+            continue;
+        }
+        await Execution.delayUntil(() => pocket() === want, 15_000);
+    }
+    log(`twenty swings and boulder ${boulder.id} is still in the way`);
+    return false;
+}
+
+const STRENGTH_ATTEMPTS = 10;
+
+// Why: the inner gate rolls against strength on every push and drains a level on a miss, so the loop retries rather than parking on one bad roll.
+
+/** Force the inner ancient gate open and step through it. */
+export async function openInnerGate(reverse: boolean, log: (m: string) => void): Promise<boolean> {
+    const want: LegendsPocket = reverse ? 'innerGate' : 'trials';
+    const stand = reverse ? LQ_TILE.STRENGTH_GATE_SOUTH : LQ_TILE.STRENGTH_GATE_NORTH;
+    const landing = reverse ? LQ_TILE.STRENGTH_GATE_NORTH : LQ_TILE.STRENGTH_GATE_SOUTH;
+    if (pocket() === want || (!reverse && past(want))) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(stand, { radius: 0, attempts: 4, timeoutMs: 60_000, log }))) {
+        return false;
+    }
+    // Why: a forced gate keeps its Open op — that is how it is shut again — and the success box is gone the tick after the driver clicks it, so the crossing itself is the only oracle.
+    for (let i = 0; i < STRENGTH_ATTEMPTS; i++) {
+        const gate = locById(LQ_LOC_ID.STRENGTH_GATE_L, 6, 'Open') ?? locById(LQ_LOC_ID.STRENGTH_GATE_R, 6, 'Open');
+        if (gate && (await gate.interact('Open'))) {
+            await driveUntil(
+                () => /manage to force the doors open|run out of steam/.test(modalText()),
+                ["Yes, I'm very strong"],
+                log,
+                25_000
+            );
+            await driveUntil(() => modalText() === '', [], log, 8000);
+        }
+        if (await stepThrough(landing, want, log, true)) {
+            return true;
+        }
+        await Traversal.walkResilient(stand, { radius: 0, attempts: 2, timeoutMs: 30_000, log });
+    }
+    log('ten pushes and the inner gate has not budged');
+    return false;
+}
+
+const JUMP_ATTEMPTS = 8;
+
+// Why: the jump is `stat_random(agility, 50, 200)`, which misses often enough at the quest's own requirement that one attempt is not a leg.
+
+/** Jump the jagged wall between the trials corridor and the rune wall room. */
+export async function jumpJaggedWall(reverse: boolean, log: (m: string) => void): Promise<boolean> {
+    const want: LegendsPocket = reverse ? 'trials' : 'wallRoom';
+    const stand = reverse ? LQ_TILE.JAGGED_WALL_NORTH : LQ_TILE.JAGGED_WALL_SOUTH;
+    if (pocket() === want || (!reverse && past(want))) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(stand, { radius: 0, attempts: 4, timeoutMs: 90_000, log }))) {
+        return false;
+    }
+    await settleScene();
+    for (let i = 0; i < JUMP_ATTEMPTS; i++) {
+        if (pocket() === want) {
+            await settleScene();
+            return true;
+        }
+        const wall = Locs.query().name(LQ_LOC.JAGGED_WALL).action('Jump-over').within(6).nearest();
+        if (!wall) {
+            log('no jagged wall offering Jump-over from the stand');
+            return false;
+        }
+        if (!(await wall.interact('Jump-over'))) {
+            continue;
+        }
+        await Execution.delayUntil(() => pocket() === want, 15_000);
+        if (pocket() !== want) {
+            await Traversal.walkResilient(stand, { radius: 0, attempts: 2, timeoutMs: 30_000, log });
+        }
+    }
+    log('eight jumps and the jagged wall is still between us and the rune wall');
+    return false;
+}
+
+const SLID = /slide the .* into the .* depression/;
+const BURNED = /burns red hot in your hand/;
+
+// Why: the five depressions take soul, mind, earth, law and law in that order and nothing else, and a rune offered out of turn burns and drops to the floor rather than saying which one is next.
+// Why: the message box is the only oracle for which depression was filled, so each rune is offered once and a burn moves on to the next.
+
+/** Feed the marked wall its five runes and walk into the gem room. */
+async function placeWallRunes(wall: Tile, want: LegendsPocket, log: (m: string) => void): Promise<boolean> {
+    for (const rune of WALL_RUNES) {
+        if (pocket() === want) {
+            return true;
+        }
+        if (heldId(rune.id) === 0) {
+            log(`no ${rune.name} left for the marked wall`);
+            continue;
+        }
+        const mark = GameMessages.mark();
+        await useOnLoc(
+            rune.id,
+            { name: LQ_LOC.MARKED_WALL, near: wall, within: 6, id: LQ_LOC_ID.MARKED_WALL },
+            ["Yes, I'll go through!"],
+            () => SLID.test(modalText()) || pocket() === want || GameMessages.sawSince(mark, BURNED),
+            log
+        );
+        await driveUntil(() => pocket() === want || modalText() === '', ["Yes, I'll go through!"], log, 10_000);
+    }
+    return pocket() === want;
+}
+
+/** Cross the marked wall in the named direction. */
+export async function crossMarkedWall(reverse: boolean, log: (m: string) => void): Promise<boolean> {
+    const want: LegendsPocket = reverse ? 'wallRoom' : 'gemRoom';
+    const stand = reverse ? LQ_TILE.MARKED_WALL_OUT : LQ_TILE.MARKED_WALL_IN;
+    if (pocket() === want || (!reverse && past(want))) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(stand, { radius: 1, attempts: 4, timeoutMs: 90_000, log }))) {
+        return false;
+    }
+    await settleScene();
+    // Why: once the fifth rune is in, both walls answer a plain Use, which is also the only way back.
+    const opened = await promptLoc(
+        {
+            name: LQ_LOC.MARKED_WALL,
+            op: 'Use',
+            near: stand,
+            within: 6,
+            id: LQ_LOC_ID.MARKED_WALL,
+            prefer: ["Yes, I'll go through!"],
+            expect: () => pocket() === want,
+            expectMs: 15_000
+        },
+        log
+    );
+    if (opened) {
+        await settleScene();
+        return true;
+    }
+    if (reverse) {
+        log('the marked wall will not open from the gem room');
+        return false;
+    }
+    const placed = await placeWallRunes(stand, want, log);
+    if (placed) {
+        await settleScene();
+    }
+    return placed;
+}
+
+// Why: each gem answers only its own carved rock, and a gem already hovering there is refused without being consumed — so a resume simply re-offers every gem and lets the wall sort them out.
+
+/** Hover all seven gems over their rocks, which is what conjures the Book of Binding. */
+export async function placeGems(log: (m: string) => void): Promise<boolean> {
+    for (const gem of GEM_ROCKS) {
+        if (heldId(gem.id) === 0) {
+            continue;
+        }
+        // Why: both the placement and the refusal are `mes` game messages rather than boxes, so a gem already hovering is invisible to the modal text and the leg would wait out its whole budget on it.
+        const mark = GameMessages.mark();
+        const placed = await useOnLoc(
+            gem.id,
+            { name: LQ_LOC.CARVED_ROCK, near: gem.rock, within: 4, id: LQ_LOC_ID.GEM_ROCK },
+            [],
+            () => heldId(gem.id) === 0 || GameMessages.sawSince(mark, GEM_SETTLED),
+            log
+        );
+        if (!placed) {
+            log(`the ${gem.name} would not settle over its rock at (${gem.rock.x},${gem.rock.z})`);
+            return false;
+        }
+        await driveUntil(() => modalText() === '', [], log, 6000);
+    }
+    return true;
+}
+
+const GEM_SETTLED = /glows and starts spinning|already placed/;
+const BOOK_MS = 90_000;
+
+function findBook(): GroundItem | null {
+    return GroundItems.query().where(item => item.id === LQ_ID.BOOK_OF_BINDING).within(20).nearest();
+}
+
+/** Take the Book of Binding once the seventh gem has conjured it. */
+export async function takeBookOfBinding(log: (m: string) => void): Promise<boolean> {
+    if (heldId(LQ_ID.BOOK_OF_BINDING) > 0) {
+        return true;
+    }
+    if (!findBook() && !(await placeGems(log))) {
+        return false;
+    }
+    // The conjuring is a thirteen-tick cutscene that blows the player to the middle of the room.
+    if (!(await Execution.delayUntil(() => findBook() !== null, BOOK_MS))) {
+        log('the seven gems are placed but no book appeared');
+        return false;
+    }
+    if (!(await Traversal.walkResilient(LQ_TILE.BOOK_SPAWN, { radius: 2, attempts: 3, timeoutMs: 60_000, log }))) {
+        return false;
+    }
+    const book = findBook();
+    if (!book || !(await book.interact('Take'))) {
+        return false;
+    }
+    return Execution.delayUntil(() => heldId(LQ_ID.BOOK_OF_BINDING) > 0, 8000);
+}
+
+// Why: the magic gate takes any charge-orb spell with an unpowered orb in the pack, and the four differ only in level and element — water is the one this quest's magic requirement buys.
+const ORB_SPELLS = ['Charge water orb', 'Charge earth orb', 'Charge fire orb', 'Charge air orb'] as const;
+
+/** Cast a charge-orb spell at the magic gate and be blown into the winch room. */
+export async function castMagicGate(log: (m: string) => void): Promise<boolean> {
+    if (past('winchRoom')) {
+        return true;
+    }
+    if (heldId(LQ_ID.UNPOWERED_ORB) === 0) {
+        log('no unpowered orb in the pack for the magic gate');
+        return false;
+    }
+    if (!(await Traversal.walkResilient(LQ_TILE.MAGIC_GATE_SOUTH, { radius: 1, attempts: 4, timeoutMs: 90_000, log }))) {
+        return false;
+    }
+    await settleScene();
+    for (const spell of ORB_SPELLS) {
+        const gate = locById(LQ_LOC_ID.MAGIC_GATE, 8, 'Open');
+        if (!gate) {
+            log('no ancient gate in range of the magic trial stand');
+            return false;
+        }
+        if (!(await Game.castOnLoc(spell, gate))) {
+            continue;
+        }
+        if (await Execution.delayUntil(() => pocket() === 'winchRoom', 20_000)) {
+            await settleScene();
+            return true;
+        }
+    }
+    log('no charge-orb spell moved the magic gate — level, runes or orb short');
+    return false;
+}
+
+// Why: from the north the gate pulls anyone who touches it straight through for free, which is the whole return trip.
+
+/** Let the magic gate pull us back south into the gem room. */
+export async function fallThroughMagicGate(log: (m: string) => void): Promise<boolean> {
+    if (pocket() === 'gemRoom') {
+        return true;
+    }
+    const ok = await promptLoc(
+        {
+            name: LQ_LOC.ANCIENT_GATE,
+            op: 'Open',
+            near: LQ_TILE.MAGIC_GATE_NORTH,
+            within: 8,
+            id: LQ_LOC_ID.MAGIC_GATE,
+            expect: () => pocket() === 'gemRoom',
+            expectMs: 20_000
+        },
+        log
+    );
+    if (ok) {
+        await settleScene();
+    }
+    return ok;
+}
+
+/** Tie the rope to the winch and climb down into the Viyeldi caves. */
+export async function climbDownWinch(log: (m: string) => void): Promise<boolean> {
+    if (legendsPocket(Game.tile()) === 'viyeldiLedge') {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(LQ_TILE.WINCH, { radius: 3, attempts: 4, timeoutMs: 90_000, log }))) {
+        return false;
+    }
+    await settleScene();
+    const roped = (): Loc | null => locById(LQ_LOC_ID.WINCH_ROPE, 8, 'Climb-down');
+    // Why: the rope is thrown over for thirty ticks and then falls off again, so tying it and climbing it are one pass rather than two steps.
+    // Why: the tie is what sets `legends_tied_rope_winch`, and from then on the beams hand the rope back to a Search rather than wanting another one.
+    for (let i = 0; i < WINCH_ATTEMPTS; i++) {
+        if (legendsPocket(Game.tile()) === 'viyeldiLedge') {
+            return true;
+        }
+        if (!roped()) {
+            const beams = locById(LQ_LOC_ID.WINCH_NO_ROPE, 8, 'Search');
+            if (beams && (await beams.interact('Search'))) {
+                await Execution.delayUntil(() => roped() !== null, 6000);
+            }
+        }
+        if (!roped() && heldId(LQ_ID.ROPE) > 0) {
+            await useOnLoc(
+                LQ_ID.ROPE,
+                { name: LQ_LOC.WINCH, near: LQ_TILE.WINCH, within: 8, id: LQ_LOC_ID.WINCH_NO_ROPE },
+                [],
+                () => roped() !== null,
+                log
+            );
+        }
+        if (!roped()) {
+            log('the winch will not hold a rope');
+            await Execution.delayTicks(2);
+            continue;
+        }
+        const ok = await promptLoc(
+            {
+                name: LQ_LOC.WINCH,
+                op: 'Climb-down',
+                near: LQ_TILE.WINCH,
+                within: 8,
+                id: LQ_LOC_ID.WINCH_ROPE,
+                prefer: ["Yes, I'll shimmy down the rope"],
+                expect: () => legendsPocket(Game.tile()) === 'viyeldiLedge',
+                expectMs: 25_000
+            },
+            log
+        );
+        if (ok) {
+            await settleScene();
+            return true;
+        }
+    }
+    log('six goes at the winch and the rope never took us down');
+    return false;
+}
+
+/** Climb the rope back out of the Viyeldi caves into the winch room. */
+export async function climbUpRope(log: (m: string) => void): Promise<boolean> {
+    if (pocket() === 'winchRoom') {
+        return true;
+    }
+    const ok = await promptLoc(
+        {
+            name: LQ_LOC.CLIMB_ROPE,
+            op: 'Climb',
+            near: LQ_TILE.VIYELDI_LEDGE,
+            within: 6,
+            expect: () => pocket() === 'winchRoom',
+            expectMs: 20_000
+        },
+        log
+    );
+    if (ok) {
+        await settleScene();
+    }
+    return ok;
+}
+
+// Why: the descent is nine one-way crossings and every one of them is a scripted teleport, so the leg is written once as an ordered chain and each rung is a no-op when it is already behind us.
+
+/** The trials descent as far as the gem room, where the Book of Binding is conjured. */
+export async function descendToGemRoom(log: (m: string) => void): Promise<boolean> {
+    if (past('gemRoom')) {
+        return true;
+    }
+    // Why: the flames are as solid to the pathfinder as they are to the player, so a descent that starts beside Ungadulu steps out of his octagram first.
+    if (!(await leaveOctagram(log))) {
+        return false;
+    }
+    if (!(await openOuterGate(log))) {
+        return false;
+    }
+    for (const boulder of BOULDERS) {
+        if (!(await mineBoulder(boulder, false, log))) {
+            return false;
+        }
+    }
+    if (!(await openInnerGate(false, log))) {
+        return false;
+    }
+    if (!(await jumpJaggedWall(false, log))) {
+        return false;
+    }
+    return crossMarkedWall(false, log);
+}
+
+// Why: the magic gate is the one-way crossing out of the gem room, so anything that still needs the gems has to stop short of it.
+
+/** The whole trials descent, from the shaman cave to the winch. */
+export async function descendToWinch(log: (m: string) => void): Promise<boolean> {
+    if (past('winchRoom')) {
+        return true;
+    }
+    if (!(await descendToGemRoom(log))) {
+        return false;
+    }
+    return castMagicGate(log);
+}
+
+/** The whole trials ascent, from the winch back to the shaman cave. */
+export async function climbOutOfTrials(log: (m: string) => void): Promise<boolean> {
+    const at = pocket();
+    if (at === null || at === 'shamanCave' || at === 'octagram') {
+        return true;
+    }
+    if (at === 'viyeldiLedge' && !(await climbUpRope(log))) {
+        return false;
+    }
+    if (pocket() === 'winchRoom' && !(await fallThroughMagicGate(log))) {
+        return false;
+    }
+    if (pocket() === 'gemRoom' && !(await crossMarkedWall(true, log))) {
+        return false;
+    }
+    if (pocket() === 'wallRoom' && !(await jumpJaggedWall(true, log))) {
+        return false;
+    }
+    if (pocket() === 'trials' && !(await openInnerGate(true, log))) {
+        return false;
+    }
+    for (const boulder of [...BOULDERS].reverse()) {
+        if (pocket() === boulder.to && !(await mineBoulder(boulder, true, log))) {
+            return false;
+        }
+    }
+    if (pocket() === 'outerGate' && !(await leaveOuterGate(log))) {
+        return false;
+    }
+    return crawlBackFromCrevice(log);
+}
+
+/** Walk back out of the cave mouth into the jungle. */
+export async function leaveShamanCave(log: (m: string) => void): Promise<boolean> {
+    if (legendsArea(Game.tile()) !== 'shamanCaves') {
+        return true;
+    }
+    const ok = await promptLoc(
+        {
+            name: LQ_LOC.CAVE_ENTRANCE,
+            op: 'Walk through',
+            near: LQ_TILE.CAVE_EXIT,
+            expect: () => legendsArea(Game.tile()) === 'jungle'
+        },
+        log
+    );
+    if (ok) {
+        await settleScene();
+    }
+    return ok;
+}
+
+// Why: Touch only crosses once the demon is dead — before that `legends_touch_fire_wall` just burns you for four — and the bowl crosses either way, so a dose is spent when one is carried.
+// Why: the bowl holds ten doses rather than one, so spending one on the way out costs nothing the quest needs back.
+
+/** Step back out of the octagram. */
+export async function leaveOctagram(log: (m: string) => void): Promise<boolean> {
+    if (!inOctagram(Game.tile())) {
+        return true;
+    }
+    if (heldId(LQ_ID.GOLD_BOWL_BLESSED_PURE) > 0) {
+        const splashed = await useOnLoc(
+            LQ_ID.GOLD_BOWL_BLESSED_PURE,
+            { name: LQ_LOC.FIRE_WALL, near: LQ_TILE.OCTAGRAM_INSIDE, within: 6 },
+            [],
+            () => !inOctagram(Game.tile()),
+            log
+        );
+        if (splashed) {
+            await settleScene();
+            return true;
+        }
+    }
+    const ok = await promptLoc(
+        {
+            name: LQ_LOC.FIRE_WALL,
+            op: 'Touch',
+            near: LQ_TILE.OCTAGRAM_INSIDE,
+            within: 6,
+            expect: () => !inOctagram(Game.tile())
+        },
+        log
+    );
+    if (ok) {
+        await settleScene();
+    }
+    return ok;
+}

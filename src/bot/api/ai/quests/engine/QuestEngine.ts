@@ -12,6 +12,7 @@ import { Inventory } from '../../../inventory/Inventory.js';
 import { Modals } from '../../../ui/widgets/Modals.js';
 import { Quests } from '../../../ui/questlog/Quests.js';
 import { evaluate } from '../EligibilityEvaluator.js';
+import { QUESTS } from '../data/quests.js';
 import { QUEST_DEFS, defById } from '../defs/index.js';
 import { executeStep } from '../exec/steps.js';
 import type { BankInventorySnapshot, PlayerState, QuestEligibility, QuestRecord } from '../types.js';
@@ -602,8 +603,10 @@ export class QuestEngine implements Task {
         for (const name of skillNames) {
             skillLevels.set(name, Skills.level(name));
         }
+        // Why: whether a prerequisite is complete is a fact about the account, not about whether this bot can run that quest.
+        // Why: reading only the implemented records made Legends permanently BLOCKED on an account that had finished Heroes' Quest and Underground Pass by hand, as neither has a module and neither could ever land in the set.
         const completedQuests = new Set<string>();
-        for (const r of this.records) {
+        for (const r of QUESTS) {
             if (Quests.status(r.name) === 'complete') {
                 completedQuests.add(r.id);
             }

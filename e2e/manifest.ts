@@ -273,6 +273,13 @@ export const CASES: readonly Case[] = [
         budgetMin: 60
     },
     {
+        id: 'legends-quest-253-live',
+        harness: 'legends-quest-253-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'unvetted',
+        budgetMin: 180
+    },
+    {
         id: 'loadout-panel-live',
         harness: 'loadout-panel-live.ts',
         covers: { subsystems: ['panel'] },

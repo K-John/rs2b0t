@@ -212,7 +212,8 @@ export async function executeStep(step: QuestStep, hops: LadderHop[], log: (m: s
         case 'buy': {
             const before = Inventory.count(step.item);
             if (Inventory.count('Coins') < step.estGp) {
-                if (!(await openBankLeg('buy: no known bank for coins', undefined, log))) {
+                // Why: `reachableBank` picks by walking cost, and a bank the map claims but the content never built — Shilo Village has an icon, no booth and no banker — wins that race from Karamja and never opens.
+                if (!(await openBankLeg('buy: no known bank for coins', step.bank, log))) {
                     return false;
                 }
                 await Bank.withdrawX('Coins', step.estGp);

@@ -102,6 +102,70 @@ Measured end to end at `--tick 200`: **19 minutes, 37 steps, no parks** — walk
 with no teleports. Roughly half of that is the Mort Myre ↔ Al Kharid round trip the
 silver sickle costs.
 
+## Legends Quest — stage-scoped harness
+
+[`e2e/legends-quest-253-live.ts`](../../e2e/legends-quest-253-live.ts), members-only,
+so `:8890`:
+
+```sh
+HEADED=1 bun e2e/legends-quest-253-live.ts --stage 0 --minutes 180 --tick 200          # end to end
+HEADED=1 bun e2e/legends-quest-253-live.ts --stage 0 --until 2 --minutes 30 --kit      # guild and the map
+HEADED=1 bun e2e/legends-quest-253-live.ts --stage 5 --until 12 --minutes 60 --kit     # the cave, the bowl, the trials
+HEADED=1 bun e2e/legends-quest-253-live.ts --stage 15 --until 25 --minutes 60 --kit    # the Viyeldi caves
+HEADED=1 bun e2e/legends-quest-253-live.ts --stage 25 --until 45 --minutes 45 --kit    # the totem pole
+```
+
+Four things it does beyond the Family Crest shape:
+
+- **Sets seven prerequisite varps and the quest-point total.** The Legends guard checks
+  Family Crest, Heroes' Quest, Shilo Village, Underground Pass and Waterfall Quest before
+  he opens the gate, and 107 quest points on top; two of those quests have no module yet.
+  The run sets all of them and relogs — `update_questlist` only recolours at login, and
+  eligibility reads the tab.
+- **`setstat` rather than `~maxme`.** Every skill goes to 70, which clears all ten of the
+  quest's own gates with headroom and is the only combat profile a headed run has proved.
+  `setstat` is an engine branch with no level-up cascade, so unlike `~maxme` it leaves the
+  player undelayed and the next command lands.
+- **Banks at Ardougne West, not on Karamja.** Nothing on the island banks in this content:
+  the map icon in Shilo Village has no booth and no banker behind it, and every tile of
+  that village is behind Vigroy's cart anyway.
+- **Seeds only what has no source.** The rune axe, the lockpick, the unpowered orb, three
+  cosmic runes and the seven gems have neither a counter nor a rock the walker can reach.
+  Everything else — papyrus, charcoal, the machete, the knife, the rope, the five wall
+  runes, thirty water runes and two gold bars — the module buys at Jiminua's or the Magic
+  Guild, or mines at Brimhaven and smelts at Ardougne. `--kit` seeds those too, which makes
+  a stage leg the thing under test; leave it off for anything claiming the quest works.
+
+The pack is full to its last slot through the trials, so a stage jump that seeds more than
+the leg needs will fail to withdraw rather than fail to walk.
+
+Measured on `:8890` at 200ms ticks, 70 in every skill, lobsters for food:
+
+| Leg | Varp | Wall clock |
+| --- | --- | --- |
+| Guild, machete, three thirds of the map | 0 → 2 | 820s |
+| Bullroarer, Gujuo, the cave mouth | 2 → 7 | 452s |
+| Gujuo names the sacred water | 7 → 8 | 320s |
+| Two gold bars, the anvil, the bless, the syphon | 8 → 10 | 603s |
+| Trials descent, seven gems, the book, Nezikchened | 10 → 12 | 1086s |
+| Ungadulu's seeds, germinated | 12 → 13 | 310s |
+| The pool is found fouled | 13 → 14 | 321s |
+| Gujuo's bravery recipe | 14 → 15 | 343s |
+| Two herbs, the potion, the winch | 15 → 16 | 899s |
+| Three guardians, the dragon heart smelted | 16 → 17 | 605s |
+| The heart in the recess, Echned's dagger | 17 → 20 | 649s |
+| The Holy Force, the demon at the source, the water | 20 → 25 | 1055s |
+| The Yommi tree grown and the totem carved | 25 → 30 | 660s |
+| The evil totem replaced | 30 → 32 | 692s |
+| Nezikchened for the last time | 32 → 35 | 725s |
+| Gujuo's gilded totem | 35 → 45 | 736s |
+| Radimus takes the totem | 45 → 50 | 221s |
+| Four training sessions, quest complete | 50 → 75 | 232s |
+
+The trials descent is the longest single step in the quest: the outer gate rolls against
+thieving, three boulders roll against mining, the jagged wall rolls against agility, and
+every one of them is retried rather than parked.
+
 ## Shield of Arrav
 
 Two harnesses, because one account cannot finish the quest.

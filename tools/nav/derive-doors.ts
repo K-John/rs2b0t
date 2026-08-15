@@ -78,7 +78,9 @@ function main(): void {
             // Why: baked as edges the pathfinder alternates between the two and crosses neither.
             'loc_2534', 'loc_2535',
             // Shield of Arrav's three hideout doors. Why: the weapon store answers Open with "The door is securely locked" and yields only to an oplocu with the key, while the other two refuse until you have joined and then p_teleport you through — none is an edge the walker can step.
-            'phoenixdoor', 'phoenixdoor2', 'blackarmdoor'
+            'phoenixdoor', 'phoenixdoor2', 'blackarmdoor',
+            // The Legends Quest trials. Why: the outer gate answers Open with "You push on the doors, they're really shut" and yields only to a Search with a lockpick, and the inner one raises a brute-strength prompt and a roll that a walker cannot answer. Baked as edges the pathfinder routes into both and the walker loops a tile short.
+            'lglockpickgatebottoml', 'lglockpickgatebottomr', 'lgstrengthtrialgatel', 'lgstrengthtrialgater'
         ]);
         const label = `${type.name ?? ''} ${type.debugname ?? ''}`.toLowerCase();
         if (label.includes('locked') || (type.debugname ?? '').startsWith('macro_') || SCRIPT_REFUSED.has(type.debugname ?? '')) {
