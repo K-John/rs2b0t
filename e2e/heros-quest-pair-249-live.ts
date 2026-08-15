@@ -72,11 +72,9 @@ function fail(msg: string): never {
 
 const QUEST = "Hero's Quest";
 const VARROCK_WEST_BANK = { x: 3185, z: 3440, level: 0 };
-/** The street outside the Shrimp and Parrot, which is where both bots meet to trade. */
-const BRIMHAVEN = { x: 2793, z: 3180, level: 0 };
-
 // Why: the walk-and-shop half of this quest takes ten minutes a side and is proven on its own; the
-// two-bot dance is the part worth iterating on, so `--stage grip` starts on its doorstep.
+// two-bot dance is the part worth iterating on, so `--stage grip` starts at the stage that begins it
+// with the kit already banked — the crossing to Brimhaven is still walked.
 const GRIP_STAGE: Record<'phoenix' | 'blackarm', number> = { phoenix: 4, blackarm: 11 };
 const GRIP_SEED: Record<'phoenix' | 'blackarm', BankSeedItem[]> = {
     phoenix: [
@@ -189,11 +187,12 @@ async function bringUp(page: Page, user: string, gang: 'phoenix' | 'blackarm', p
     await cheatQuiet(page, 'setvar qp 55');
     const seed = args.stage === 'grip' ? [...BANK_SEED, ...GRIP_SEED[gang]] : BANK_SEED;
     await seedItemsToBank(page, seed, VARROCK_WEST_BANK);
-    const start = args.stage === 'grip' ? BRIMHAVEN : VARROCK_WEST_BANK;
-    if (!(await teleTo(page, start, 10, 25_000))) {
+    // Why: every stage starts at a booth, because `ownsInventory` makes the first step a bank read and
+    // Karamja has none — a bot dropped in Brimhaven waits out its budget on a booth that is not there.
+    if (!(await teleTo(page, VARROCK_WEST_BANK, 10, 25_000))) {
         await clearChatDialogs(page, 'pre-tele dialog(s)');
-        if (!(await teleTo(page, start, 10, 25_000))) {
-            fail(`tele to the start tile failed for '${user}'`);
+        if (!(await teleTo(page, VARROCK_WEST_BANK, 10, 25_000))) {
+            fail(`tele to the Varrock West bank failed for '${user}'`);
         }
     }
     await setHero(page, gang, partner);
