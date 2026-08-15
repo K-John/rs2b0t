@@ -10,7 +10,7 @@ import { homedir } from 'node:os';
 
 import type { Page } from 'playwright-core';
 
-import { launchBrowser } from './lib/harness.js';
+import { deployIsolatedClient, launchBrowser, type IsolatedClient } from './lib/harness.js';
 import {
     cheatQuiet,
     clearChatDialogs,
@@ -137,35 +137,31 @@ async function snapshot(page: Page): Promise<Snapshot> {
     }, QUEST);
 }
 
-/** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
-const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
+const ENGINE_DIR = process.env.ENGINE_DIR ?? `${homedir()}/code/rs2b2t-engine`;
 
-function deployBundle(): void {
-    const engine = process.env.ENGINE_DIR ?? `${homedir()}/code/rs2b2t-engine`;
-    const botDir = `${engine}/public/bot`;
-    if (!existsSync(botDir)) {
-        fail(`deploy: ${botDir} not found — set ENGINE_DIR to the engine serving ${args.base}`);
+// Why: `build:bot` does not bake the collision pack, and `deployIsolatedClient` refuses without it — building it here keeps the run a single command.
+function bakeCollision(): void {
+    if (existsSync('out/collision.lcnav.gz')) {
+        return;
     }
-    const build = Bun.spawnSync(['bun', 'run', 'build:bot'], { stdout: 'pipe', stderr: 'pipe' });
-    if (build.exitCode !== 0) {
-        fail(`deploy: build:bot failed\n${build.stderr.toString()}`);
+    console.log('deploy: baking out/collision.lcnav.gz');
+    const baked = Bun.spawnSync(['bun', 'tools/nav/build-collision.ts', '--engine', ENGINE_DIR, '--no-verify'], { stdout: 'pipe', stderr: 'pipe' });
+    if (baked.exitCode !== 0) {
+        fail(`deploy: build-collision failed\n${baked.stderr.toString()}`);
     }
-    const files = DEPLOYED.map(f => `out/${f}`).join(' ');
-    const copy = Bun.spawnSync(['sh', '-c', `cp ${files} "${botDir}/"`]);
-    if (copy.exitCode !== 0) {
-        fail(`deploy: could not copy the bundles into ${botDir}`);
-    }
-    console.log(`deploy: fresh ${DEPLOYED.join(', ')} -> ${botDir}`);
 }
 
 if (args.stage < 0 || args.stage > 5) {
     fail('--stage writes %fluffs and runs 0 (not started) to 5 (rescued)');
 }
 
+// Why: `bot.html` hardcodes one bundle path, so a concurrent session's deploy decides what this run executes — a copy per run removes the race instead of detecting it.
+let isolated: IsolatedClient | null = null;
 if (args.deploy) {
-    deployBundle();
+    bakeCollision();
+    isolated = deployIsolatedClient(args.user, ENGINE_DIR);
 }
+const clientPage = isolated?.page ?? '/bot.html';
 
 const browser = await launchBrowser({ swiftshader: true });
 try {
@@ -179,7 +175,7 @@ try {
         }
     });
 
-    await mainlandAccount(page, args.base, args.user);
+    await mainlandAccount(page, args.base, args.user, clientPage);
     console.log(`mainland-ready as '${args.user}'`);
 
     await cheatQuiet(page, `speed ${args.tickMs}`);
@@ -230,12 +226,12 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without Gertrude's Cat in it spends the budget on somebody else's quest.
+        // Why: `--no-deploy` runs on the shared bundle, where another session's deploy decides what this run executes.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;
             if (!queue.msg.includes(QUEST)) {
-                fail(`the loaded bundle has no ${QUEST} — another session redeployed over it (${queue.msg})`);
+                fail(`the loaded bundle has no ${QUEST} — it is somebody else's (${queue.msg})`);
             }
         }
         const stage = (await getServerVarQuiet(page, 'fluffs')) ?? 0;
@@ -265,4 +261,5 @@ try {
     fail(`%fluffs reached ${reached}, wanted ${args.until}, within ${args.minutes}min`);
 } finally {
     await browser.close();
+    isolated?.cleanup();
 }

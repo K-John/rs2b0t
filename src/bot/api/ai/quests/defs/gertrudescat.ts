@@ -1,11 +1,13 @@
 // docs/QUESTS.md
 import { actions, reader } from '../../../../adapter/ClientAdapter.js';
+import { DirectNavigator } from '../../../../event/webwalk/DirectNavigator.js';
 import Tile from '../../../../geometry/Tile.js';
 import { Execution } from '../../../execution/Execution.js';
 import { Game } from '../../../game/Game.js';
 import { GameMessages } from '../../../chatbox/gameMessages.js';
 import { Inventory } from '../../../inventory/Inventory.js';
 import { Locs } from '../../../locs/Locs.js';
+import { Modals } from '../../../ui/widgets/Modals.js';
 import { Npcs, type Npc } from '../../../npcs/Npcs.js';
 import { Quests } from '../../../ui/questlog/Quests.js';
 import { Traversal } from '../../../walking/Traversal.js';
@@ -61,28 +63,46 @@ const PAY_PREFER = ['What will make you tell me?', "I'll pay"];
 const DOOGLE_WOODS = new Tile(3153, 3400, 0);
 const SARDINE_SHOP = { npc: 'Gerrant', anchor: new Tile(3016, 3223, 0) };
 
+const YARD_ENTRY = new Tile(3305, 3496, 0);
 const LADDER_BASE = new Tile(3310, 3509, 0);
 const LADDER_TOP = new Tile(3310, 3509, 1);
 const CAT_STAND = new Tile(3306, 3512, 1);
 
+// Why: the sixth crate sits in the corner behind the yard's shed, and the route round it is long enough that the server's own finder gives up and walks the character to the closest tile it liked — nine tiles short, with no refusal.
+// Why: it is searched first for the same reason, since the walk in is only reliable from the open ground by the fence and not from the tile the previous crate leaves the character on.
+/** Waypoints into and back out of that corner, each a leg short enough for the server to route in one go. */
+const NW_CORNER_IN: Tile[] = [YARD_ENTRY, new Tile(3305, 3504, 0), new Tile(3304, 3511, 0), new Tile(3300, 3512, 0), new Tile(3298, 3513, 0)];
+const NW_CORNER_OUT: Tile[] = [new Tile(3300, 3512, 0), new Tile(3304, 3511, 0), new Tile(3305, 3504, 0)];
+
+interface CrateStop {
+    tile: Tile;
+    /** Legs to walk before the Search, and back out afterwards. */
+    approach?: { in: Tile[]; out: Tile[] };
+}
+
 /** `%fluffs_crate` picks one of these six at random when the sardine is eaten. */
-const CRATES: Tile[] = [
-    new Tile(3307, 3507, 0),
-    new Tile(3311, 3511, 0),
-    new Tile(3303, 3506, 0),
-    new Tile(3305, 3500, 0),
-    new Tile(3310, 3499, 0),
-    new Tile(3298, 3514, 0)
+const CRATES: CrateStop[] = [
+    { tile: new Tile(3298, 3514, 0), approach: { in: NW_CORNER_IN, out: NW_CORNER_OUT } },
+    { tile: new Tile(3307, 3507, 0) },
+    { tile: new Tile(3311, 3511, 0) },
+    { tile: new Tile(3303, 3506, 0) },
+    { tile: new Tile(3305, 3500, 0) },
+    { tile: new Tile(3310, 3499, 0) }
 ];
 
 /** The wrong crate answers with a chat line and no modal, so waiting on the kitten alone costs a timeout per crate. */
 const FOUND_NOTHING = /you find nothing/i;
+
+/** Long enough for the server to walk the yard's full width before the four-tick search starts. */
+const CRATE_SEARCH_MS = 30_000;
 
 // Why: `npc_find` measures the brothers against each other, not against us, and both wander two tiles from their own spawn.
 /** How close the brothers must stand before the dialogue offers anything; the script's own limit is 3. */
 const BROTHER_GAP = 2;
 
 const PAY_ATTEMPTS = 3;
+const SEASON_ATTEMPTS = 3;
+const OFFER_ATTEMPTS = 3;
 
 function normalize(lines: readonly string[] | string): string {
     return (typeof lines === 'string' ? lines : lines.join(' '))
@@ -139,9 +159,31 @@ export async function readGertrudesCatProgress(): Promise<QuestProgress | undefi
     return progress;
 }
 
+function inYard(t: { x: number; z: number; level: number }): boolean {
+    return t.level === 0 && t.x >= 3288 && t.x <= 3327 && t.z >= 3494 && t.z <= 3527;
+}
+
+/** Walk in through the broken fence, the yard's only way in. */
+async function enterYard(log: (m: string) => void): Promise<boolean> {
+    if (!(await climbDownToYard(log))) {
+        return false;
+    }
+    const here = Game.tile();
+    if (here && inYard(here)) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(YARD_ENTRY, { radius: 2, attempts: 3, timeoutMs: 180_000, log }))) {
+        return false;
+    }
+    await settleScene();
+    const landed = Game.tile();
+    return landed !== null && inYard(landed);
+}
+
+/** Fluffs sits on the yard's raised walkway, which the baked graph has no edge onto. */
 function onPlatform(): boolean {
     const here = Game.tile();
-    return here !== null && here.level === LADDER_TOP.level;
+    return here !== null && here.level === LADDER_TOP.level && LADDER_TOP.distanceTo(here) <= 20;
 }
 
 async function climbToCat(log: (m: string) => void): Promise<boolean> {
@@ -204,51 +246,95 @@ function offerToCat(objId: number, what: string): (log: (m: string) => void) => 
             await Traversal.walkResilient(CAT_STAND, { radius: 2, attempts: 2, timeoutMs: 30_000, log });
             await settleScene();
         }
-        const cat = findCat();
-        const held = Inventory.items().find(item => item.id === objId);
-        if (!cat || !held) {
-            log(`gertrudescat: no Fluffs in reach, or no ${what} to offer her`);
-            return false;
+        // Why: the first use lands while the ladder still has the character delayed, where the engine drops it — and a dropped use is indistinguishable from a refused one.
+        for (let attempt = 0; attempt < OFFER_ATTEMPTS && !gone(); attempt++) {
+            const cat = findCat();
+            const held = Inventory.items().find(item => item.id === objId);
+            if (!cat || !held) {
+                log(`gertrudescat: no Fluffs in reach, or no ${what} to offer her`);
+                return false;
+            }
+            log(`gertrudescat: offering Fluffs the ${what}`);
+            if (!(await held.useOn(cat))) {
+                return false;
+            }
+            await driveUntil(gone, [], log, 12_000);
         }
-        log(`gertrudescat: offering Fluffs the ${what}`);
-        if (!(await held.useOn(cat))) {
-            return false;
-        }
-        return driveUntil(gone, [], log, 20_000);
+        return gone();
     };
 }
 
 // Why: which crate holds the kitten is a server-side coord the client never sees, so the only way through is to search them all.
+// Why: the whole yard sits in one scene and every crate blocks its own tile, so the Search op is sent from wherever the bot stands and the server walks it the rest of the way.
 async function searchCratesForKitten(log: (m: string) => void): Promise<boolean> {
     const found = (): boolean => heldId(FLUFFS_OBJ.kitten) > 0;
     if (found()) {
         return true;
     }
-    if (!(await climbDownToYard(log))) {
+    if (!(await enterYard(log))) {
         return false;
     }
-    for (const spot of CRATES) {
-        if (!(await Traversal.walkResilient(spot, { radius: 1, attempts: 3, timeoutMs: 120_000, log }))) {
-            continue;
+    for (const stop of CRATES) {
+        if (await walkVia(stop.approach?.in ?? [], log)) {
+            await searchCrate(stop.tile, found, log);
         }
-        await settleScene();
-        const crate = Npcs.query().where(n => n.id === CRATE_NPC).withinOf(spot, 0).nearest();
-        if (!crate) {
-            log(`gertrudescat: no crate standing at (${spot.x},${spot.z})`);
-            continue;
-        }
-        log(`gertrudescat: searching the crate at (${spot.x},${spot.z})`);
-        const mark = GameMessages.mark();
-        if (!(await crate.interact('Search'))) {
-            continue;
-        }
-        await driveUntil(() => found() || GameMessages.sawSince(mark, FOUND_NOTHING), [], log, 12_000);
+        // Why: the corner is as hard to leave as it was to enter, and leaving it is what the next leg's walk assumes has happened.
+        await walkVia(stop.approach?.out ?? [], log);
         if (found()) {
             return true;
         }
     }
     log('gertrudescat: none of the six crates held the kitten');
     return false;
+}
+
+// Why: inside the yard the planner's route and the server's disagree, and the raw walk packet is the server's own answer to a leg the planner has already given up on.
+async function walkVia(waypoints: readonly Tile[], log: (m: string) => void): Promise<boolean> {
+    for (const wp of waypoints) {
+        if (await Traversal.walkResilient(wp, { radius: 1, attempts: 2, timeoutMs: 45_000, log })) {
+            continue;
+        }
+        log(`gertrudescat: the planner gave up short of (${wp.x},${wp.z}) — walking there directly`);
+        if (!(await DirectNavigator.walkTo(wp, 1, 12_000))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+async function searchCrate(spot: Tile, found: () => boolean, log: (m: string) => void): Promise<void> {
+    const crate = Npcs.query().where(n => n.id === CRATE_NPC).withinOf(spot, 0).nearest();
+    if (!crate) {
+        log(`gertrudescat: no crate standing at (${spot.x},${spot.z})`);
+        return;
+    }
+    log(`gertrudescat: searching the crate at (${spot.x},${spot.z})`);
+    const mark = GameMessages.mark();
+    if (!(await crate.interact('Search'))) {
+        return;
+    }
+    await driveUntil(() => found() || GameMessages.sawSince(mark, FOUND_NOTHING), [], log, CRATE_SEARCH_MS);
+}
+
+// Why: this runs the tick after Gerrant's shop closes, and a shop screen that has not finished shutting swallows the use with no refusal — the pack is untouched and the wait times out.
+async function seasonSardine(log: (m: string) => void): Promise<boolean> {
+    const seasoned = (): boolean => heldId(FLUFFS_OBJ.seasonedSardine) > 0;
+    for (let attempt = 0; attempt < SEASON_ATTEMPTS && !seasoned(); attempt++) {
+        await Modals.closeIfOpen();
+        await Execution.delayTicks(1);
+        const leaves = Inventory.items().find(item => item.id === FLUFFS_OBJ.doogleLeaves);
+        const raw = Inventory.items().find(item => item.id === FLUFFS_OBJ.rawSardine);
+        if (!leaves || !raw) {
+            log('gertrudescat: no doogle leaves or no raw sardine to rub them over');
+            return false;
+        }
+        if (!(await leaves.useOn(raw))) {
+            return false;
+        }
+        // Why: "You rub the doogle leaves over the sardine." is a mesbox, and the seasoned sardine only lands once it is dismissed.
+        await driveUntil(seasoned, [], log, 8000);
+    }
+    return seasoned();
 }
 
 async function payBrothers(log: (m: string) => void): Promise<boolean> {
@@ -293,14 +379,7 @@ function gatherSeasonedSardine(snap: QuestSnapshot): QuestStep | null {
     if ((snap.invIds?.get(FLUFFS_OBJ.rawSardine) ?? 0) === 0) {
         return { kind: 'buy', item: 'Raw sardine', qty: 1, shop: SARDINE_SHOP, estGp: SARDINE_GP };
     }
-    return {
-        kind: 'useOn',
-        item: 'Doogle leaves',
-        targetKind: 'item',
-        target: 'Raw sardine',
-        anchor: DOOGLE_WOODS,
-        product: 'Seasoned sardine'
-    };
+    return { kind: 'custom', name: 'season the sardine with doogle leaves', run: seasonSardine };
 }
 
 export function decide(snap: QuestSnapshot): QuestStep {
@@ -346,6 +425,8 @@ export function decide(snap: QuestSnapshot): QuestStep {
 export const gertrudescat: QuestModule = {
     record: QUESTS.find(r => r.id === 'fluffs')!,
     bank: BANK,
+    // Why: nothing here fights, but the legs cross Port Sarim and the Lumbridge farms, and a death mid-quest costs the whole item chain.
+    food: 4,
     // Why: the milk, the herb and the sardine are all consumed mid-quest, so the module fetches each on the leg that needs it rather than the provisioner refetching all three on every resume.
     tools: ['coins', 'bucket', 'doogle leaves', 'sardine', "fluffs' kitten"],
     readProgress: readGertrudesCatProgress,

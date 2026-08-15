@@ -102,6 +102,8 @@ const SCENE_REBUILD_MS = 3000;
 const SCENE_STEP_MS = 8000;
 /** Walking the last tiles onto a hop's planned approach after a server can't-reach. */
 const APPROACH_STEP_MS = 4000;
+/** Walking off a shortcut's real landing tile onto the one the graph planned. */
+const SHORTCUT_LANDING_MS = 6000;
 /** Continues/choices to drive on a post-quest unlock conversation. */
 const POST_QUEST_TALK_STEPS = 60;
 /** How long a talked-to NPC has to put its dialogue on screen. */
@@ -1283,6 +1285,7 @@ class WalkExecutorImpl {
                     await Execution.delayTicks(2);
                 }
                 log(`${transport.action} ${transport.locName} at (${transport.locX},${transport.locZ}) ok`);
+                await this.settleShortcutLanding(transport, step, log);
                 RouteState.noteTransport(approach, step);
                 // Catalog entry edges (Teleport wizard) when not routed through specialCrossing.
                 if (/^teleport$/i.test(transport.action ?? '')) {
@@ -1345,6 +1348,23 @@ class WalkExecutorImpl {
             }
         }
         return false;
+    }
+
+    // Why: a vault can park the character on the loc's own tile — Gertrude's lumber-yard fence teleports onto the fence and stops there — and the planner refuses to route out of a tile the pack calls solid, so every repath plans the same crossing again and the two take turns forever.
+    // Why: the raw walk packet is the way out, as the server pathfinds from where the character actually stands rather than from what the pack believes.
+
+    /** Walk from a shortcut's real landing tile onto the one its edge planned. */
+    private async settleShortcutLanding(transport: TransportInfo, step: PathStep, log: (msg: string) => void): Promise<void> {
+        const landing = transport.toTile;
+        if (transport.kind !== 'shortcut' || landing === undefined) {
+            return;
+        }
+        const here = reader.worldTile();
+        if (!here || (here.x === landing.x && here.z === landing.z && here.level === step.level)) {
+            return;
+        }
+        log(`${transport.locName} landed at (${here.x},${here.z}) — stepping onto the planned (${landing.x},${landing.z})`);
+        await DirectNavigator.walkTo({ x: landing.x, z: landing.z, level: step.level }, 0, SHORTCUT_LANDING_MS);
     }
 
     // Why: some crossings open only after a conversation the journal cannot show — the Salve barrier wants `%priestperil` one stage past complete.

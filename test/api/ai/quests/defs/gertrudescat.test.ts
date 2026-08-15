@@ -150,14 +150,7 @@ describe("Gertrude's Cat decide", () => {
             inv: ['Doogle leaves', 'Raw sardine']
         }));
 
-        expect(step).toEqual({
-            kind: 'useOn',
-            item: 'Doogle leaves',
-            targetKind: 'item',
-            target: 'Raw sardine',
-            anchor: expect.anything(),
-            product: 'Seasoned sardine'
-        });
+        expect(customName(step)).toBe('season the sardine with doogle leaves');
     });
 
     // Why: the milk is used first, but its cow is a detour off the Port Sarim road, so the sardine is bought on the way past rather than fetched on a second lap.
