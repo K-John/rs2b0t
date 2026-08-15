@@ -174,6 +174,22 @@ export async function makeGoldenBowl(log: (m: string) => void): Promise<boolean>
     return heldId(LQ_ID.GOLD_BOWL) > 0;
 }
 
+// Why: the trials kit and the float together fill the pack to its last slot, and the reed needs one of its own — the lobster count is the only number here that is a float rather than a requirement.
+
+/** Eat a lobster to make room, when nothing spent or junk is left to shed. */
+async function eatForRoom(log: (m: string) => void): Promise<void> {
+    if (Inventory.free() > 0) {
+        return;
+    }
+    const food = Inventory.items().find(item => item.id === LQ_ID.LOBSTER);
+    if (!food) {
+        log('pack full and no lobster to eat for the slot');
+        return;
+    }
+    await food.interact('Eat');
+    await Execution.delayTicks(2);
+}
+
 /** Cut a hollow reed at the sacred pool; the knife and the machete both work. */
 export async function cutReed(log: (m: string) => void): Promise<boolean> {
     if (heldId(LQ_ID.HOLLOW_REED) > 0) {
@@ -182,6 +198,7 @@ export async function cutReed(log: (m: string) => void): Promise<boolean> {
     if (!(await enterJungle(log))) {
         return false;
     }
+    await eatForRoom(log);
     const tool = heldId(LQ_ID.KNIFE) > 0 ? LQ_ID.KNIFE : LQ_ID.MACHETE;
     return useOnLoc(
         tool,

@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Twenty, and the first three are map and engine facts rather than quest ones.
+Twenty-one, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -119,6 +119,13 @@ Twenty, and the first three are map and engine facts rather than quest ones.
   away — "unreachable from here", for ever. A stage-jumped leg never sees it, because it
   starts on the surface; only the continuous run does. Where the area is one name and the
   map is many rooms, the pocket is what the guard has to read.
+
+- **A pack of twenty-eight wanted things still has no room.** The trials kit, the armour,
+  the coin and three lobsters come to exactly twenty-eight slots, every one of them on the
+  keep list — so nothing is spent, nothing is junk, and the reed that the quest cannot go
+  on without has nowhere to land. The seeded leg never showed it: a random event had taken
+  a slot, and dropping that gift left the one the reed needed. The lobster count is the
+  only number in the pack that is a float rather than a requirement, so the leg eats one.
 
 ## See also
 
