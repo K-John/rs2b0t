@@ -40,8 +40,13 @@ Three details govern this harness:
   and the dagger are all at the mansion, and the pot is a gold piece in Catherby, so
   seeding any of them hides whether the bot can find it.
 
+It serves its own client through `deployIsolatedClient`, so a neighbouring harness
+deploying mid-boot cannot decide which branch this run exercises; the queue-line check
+that remains proves this run's own deploy landed.
+
 Measured at `--tick 200`, no parks and no failed steps. The seeded legs pin `--sus 4`;
-the end-to-end run takes whatever the guard rolls, and two of them rolled Bob and David:
+the end-to-end run takes whatever the guard rolls, and three of them rolled Bob, David
+and David:
 
 | Legs | Minutes | Covers |
 |---|---|---|
@@ -49,7 +54,7 @@ the end-to-end run takes whatever the guard rolls, and two of them rolled Bob an
 | 2 → 3 | 3 | the dagger, Anna cleared, David matched, both floors |
 | 3 → 4 | 2 | the salesman, David's answer, the spiders' nest |
 | 4 → 5 | 2 | the hand-in and `QUEST COMPLETE!` |
-| 0 → 5 | 4 | a clean account to `QUEST COMPLETE!`, twice |
+| 0 → 5 | 4 | a clean account to `QUEST COMPLETE!`, three times |
 
 The end-to-end run is shorter than the sum of its legs because a seeded leg pays for a
 walk out to wherever the previous leg would already have left the bot standing.

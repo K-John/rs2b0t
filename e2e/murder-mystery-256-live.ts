@@ -4,12 +4,9 @@
 
 //   HEADED=1 bun e2e/murder-mystery-256-live.ts --stage 0 --until 5 --minutes 90 --tick 200
 //   HEADED=1 bun e2e/murder-mystery-256-live.ts --stage 2 --until 3 --minutes 40 --tick 200
-import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
-
 import type { Page } from 'playwright-core';
 
-import { launchBrowser } from './lib/harness.js';
+import { deployIsolatedClient, launchBrowser } from './lib/harness.js';
 import {
     cheatQuiet,
     clearChatDialogs,
@@ -171,31 +168,11 @@ async function readLeg(page: Page): Promise<number> {
     return evidence & EVIDENCE_THREAD ? LEG.THREAD : LEG.STARTED;
 }
 
-/** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
-const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
+// Why: this run gets its own copy of the client, so a neighbouring harness deploying mid-boot cannot decide which branch this one exercises.
+const client = args.deploy ? deployIsolatedClient(args.user) : null;
+const clientPage = client?.page ?? '/bot.html';
 
-function deployBundle(): void {
-    const engine = process.env.ENGINE_DIR ?? `${homedir()}/code/rs2b2t-engine`;
-    const botDir = `${engine}/public/bot`;
-    if (!existsSync(botDir)) {
-        fail(`deploy: ${botDir} not found — set ENGINE_DIR to the engine serving ${args.base}`);
-    }
-    const build = Bun.spawnSync(['bun', 'run', 'build:bot'], { stdout: 'pipe', stderr: 'pipe' });
-    if (build.exitCode !== 0) {
-        fail(`deploy: build:bot failed\n${build.stderr.toString()}`);
-    }
-    const files = DEPLOYED.map(f => `out/${f}`).join(' ');
-    const copy = Bun.spawnSync(['sh', '-c', `cp ${files} "${botDir}/"`]);
-    if (copy.exitCode !== 0) {
-        fail(`deploy: could not copy the bundles into ${botDir}`);
-    }
-    console.log(`deploy: fresh ${DEPLOYED.join(', ')} -> ${botDir}`);
-}
-
-if (args.deploy) {
-    deployBundle();
-}
+process.on('exit', () => client?.cleanup());
 
 const browser = await launchBrowser({ swiftshader: true });
 try {
@@ -209,7 +186,7 @@ try {
         }
     });
 
-    await mainlandAccount(page, args.base, args.user);
+    await mainlandAccount(page, args.base, args.user, clientPage);
     console.log(`mainland-ready as '${args.user}'`);
 
     await cheatQuiet(page, `speed ${args.tickMs}`);
@@ -266,13 +243,13 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: one engine serves every worktree, so a concurrent session's deploy silently
-        // replaces this bundle and the queue line is the first place it shows.
+        // Why: the isolated client removes the race, so a queue line without this quest is
+        // this run's own deploy failing rather than a neighbour's landing on top of it.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;
             if (!queue.msg.includes(QUEST)) {
-                fail(`the deployed bundle has no ${QUEST} — another worktree deployed over it; rerun this harness`);
+                fail(`the client at ${clientPage} has no ${QUEST} — this run's deploy did not land`);
             }
         }
         const leg = await readLeg(page);
