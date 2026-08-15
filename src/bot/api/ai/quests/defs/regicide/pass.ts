@@ -1,12 +1,20 @@
 import { Game } from '../../../../game/Game.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { driveUntil, settleScene } from '../../exec/prompts.js';
-import { UP_LOC, UP_TILE, pastGridTile, upassArea } from '../upass/areas.js';
+import { UP_ITEM, UP_LOC, UP_TILE, pastGridTile, upassArea } from '../upass/areas.js';
 import { enterMainCavern } from '../upass/area2.js';
-import { crossToWest, enterCave } from '../upass/bridge.js';
+import {
+    armFireArrow,
+    crossToWest,
+    enterCave,
+    getDampCloth,
+    makeFireArrow,
+    shootGuiderope
+} from '../upass/bridge.js';
 import { crossGrid } from '../upass/grid.js';
 import { travelTo } from '../upass/pass.js';
 import { RG_LOC, RG_TILE, regicideArea } from './areas.js';
@@ -22,6 +30,41 @@ import { climbOutOfPit, travelTirannwn } from './pockets.js';
 
 /** The paladins' shelf is the north end of the first cavern; the orb corridor is everything below it. */
 const SHELF_Z = 9700;
+
+// Why: the chasm splits area1 in two and nothing walks across it. Flooding the collision pack from the cave
+// landing and from the bridge's west foot gives two tile sets that do not share a single tile, and this is
+// the line between them: the east side is z 9710-9726 and never reaches west of x 2446, the west side never
+// reaches east of x 2442 in that band. A bare x test would read the grid approach (2479,9679) as east.
+const BRIDGE_EAST_Z = 9710;
+const BRIDGE_EAST_X = 2446;
+
+export function eastOfChasm(tile: { x: number; z: number } | null): boolean {
+    return tile !== null && tile.z >= BRIDGE_EAST_Z && tile.x >= BRIDGE_EAST_X;
+}
+
+function heldId(id: number): number {
+    return Inventory.items().filter(item => item.id === id).length;
+}
+
+/**
+ * The bridge over the chasm, shot down with a lit arrow.
+ * Why: `upass_bridge` leaves no permanent state — the crossing is `loc_change(old_bridge_animated, 8)` and a
+ * `p_teleport`, both temporary, and the lever that lowers it again stands on the WEST bank and only sends
+ * the player east. So a finished Underground Pass buys nothing here: every westbound walk builds the fire
+ * arrow again. Koftik hands over a fresh damp cloth whenever the pack holds none, and the shot spends the
+ * arrow whether or not the ranged roll lands.
+ */
+async function crossBridge(log: (m: string) => void): Promise<boolean> {
+    const staged = heldId(UP_ITEM.LIT_ARROW.id) + heldId(UP_ITEM.UNLIT_ARROW.id) + heldId(UP_ITEM.DAMP_CLOTH.id);
+    if (staged === 0 && !(await getDampCloth(log))) {
+        log('Koftik would not hand over a damp cloth at the bridge');
+        return false;
+    }
+    if (!(await makeFireArrow(log)) || !(await armFireArrow(log))) {
+        return false;
+    }
+    return shootGuiderope(log);
+}
 
 function locById(id: number, op: string | null, within = 12): Loc | null {
     const base = Locs.query().where(loc => loc.id === id);
@@ -128,6 +171,9 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
         // so an x test reads the shelf as the corridor, sends the leg at the temple doors on the paladins'
         // shelf, and the walk to them has no route: forty minutes standing at (2464,9726).
         case 'area1':
+            if (eastOfChasm(here)) {
+                return crossBridge(log);
+            }
             if (!pastGridTile(here)) {
                 return crossGrid(log);
             }

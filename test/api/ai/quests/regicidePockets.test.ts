@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 
 import { RG_TILE } from '#/bot/api/ai/quests/defs/regicide/areas.js';
 import { ARDOUGNE, FOREST_STAGE, GATE_STAGE, planRoute, pocketAt } from '#/bot/api/ai/quests/defs/regicide/pockets.js';
+import { eastOfChasm } from '#/bot/api/ai/quests/defs/regicide/pass.js';
 import { REGICIDE_POCKETS, REGICIDE_SEAMS } from '#/bot/api/ai/quests/defs/regicide/seams.js';
 import { RG_STAGE } from '#/bot/api/ai/quests/defs/regicide/journal.js';
 
@@ -127,5 +128,31 @@ describe('planRoute', () => {
 
     test('a route that starts where it ends is no legs at all', () => {
         expect(planRoute('elf-camp', 'elf-camp', late)).toEqual([]);
+    });
+});
+
+// Why: the chasm is derived, not eyeballed — flooding the collision pack from the cave landing (2494,9716)
+// and from the bridge's west foot (2442,9716) gives two tile sets sharing no tile, and these cases pin the
+// line between them. Tiles from both floods' extremes, plus the grid approach a bare x test misreads.
+describe('the Underground Pass chasm', () => {
+    const CASES: [string, { x: number; z: number }, boolean][] = [
+        ['the cave landing', { x: 2494, z: 9716 }, true],
+        ["Koftik's lip by the bridge", { x: 2449, z: 9716 }, true],
+        ['the guide-rope shooting stand', { x: 2448, z: 9721 }, true],
+        ['the east side at its westmost', { x: 2446, z: 9720 }, true],
+        ['the east side at its southmost', { x: 2466, z: 9710 }, true],
+        ["the bridge's west foot", { x: 2442, z: 9716 }, false],
+        ['the west bank lever', { x: 2436, z: 9716 }, false],
+        ['the west side at its eastmost in the bridge band', { x: 2442, z: 9717 }, false],
+        ['the rock swing, south of the bridge band', { x: 2462, z: 9699 }, false],
+        ['the grid approach, which a bare x test reads as east', { x: 2479, z: 9679 }, false]
+    ];
+
+    test.each(CASES)('%s', (_name, tile, east) => {
+        expect(eastOfChasm(tile)).toBe(east);
+    });
+
+    test('an unknown tile is not assumed to be east of it', () => {
+        expect(eastOfChasm(null)).toBe(false);
     });
 });

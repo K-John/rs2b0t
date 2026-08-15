@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { RG_ITEM } from '#/bot/api/ai/quests/defs/regicide/areas.js';
 import { decide } from '#/bot/api/ai/quests/defs/regicide/index.js';
 import { RG_FLAG, RG_STAGE } from '#/bot/api/ai/quests/defs/regicide/journal.js';
-import { ROPE_TARGET, WOOL_TARGET } from '#/bot/api/ai/quests/defs/regicide/supplies.js';
+import { ARROW_TARGET, FOOD_TARGET, ROPE_TARGET, WOOL_TARGET } from '#/bot/api/ai/quests/defs/regicide/supplies.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
 // Why: decide() reads only a snapshot, so the routing table is testable end to end without a client.
@@ -21,7 +21,10 @@ const KIT: Stack[] = [
     RG_ITEM.PICKAXE.id,
     RG_ITEM.PESTLE.id,
     [RG_ITEM.ROPE.id, ROPE_TARGET],
-    [RG_ITEM.LOBSTER.id, 14]
+    RG_ITEM.SHORTBOW.id,
+    [RG_ITEM.BRONZE_ARROW.id, ARROW_TARGET],
+    RG_ITEM.TINDERBOX.id,
+    [RG_ITEM.LOBSTER.id, FOOD_TARGET]
 ];
 const WEAPON = 'rune scimitar';
 
@@ -76,6 +79,19 @@ describe('Regicide decide()', () => {
     test('a kitted pack outside Tirannwn walks the pass', () => {
         expect(name(decide(snapshot({ stage: RG_STAGE.SPOKEN_LATHAS, tile: PASS })))).toContain('Underground Pass');
     });
+
+    // Why: `upass_bridge` writes no permanent state and its lever only sends the player east, so a finished
+    // Underground Pass still owes a fire arrow on every westbound walk — a pack without one crosses nothing.
+    const BRIDGE_KIT = [RG_ITEM.SHORTBOW, RG_ITEM.BRONZE_ARROW, RG_ITEM.TINDERBOX] as const;
+
+    for (const item of BRIDGE_KIT) {
+        test(`the palisade waits for the ${item.name.toLowerCase()}`, () => {
+            const short = KIT.filter(s => (Array.isArray(s) ? s[0] : s) !== item.id);
+            const step = decide(snapshot({ stage: RG_STAGE.SPOKEN_LATHAS, tile: PASS, carried: short }));
+            expect(step.kind).toBe('wait');
+            expect(step.kind === 'wait' && step.reason.toLowerCase()).toContain(item.name.toLowerCase());
+        });
+    }
 
     test('a melee weapon is part of what the palisade waits for', () => {
         const step = decide(snapshot({ stage: RG_STAGE.SPOKEN_LATHAS, tile: PASS, wornNames: [] }));

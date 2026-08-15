@@ -11,16 +11,23 @@ import { RG_ITEM, RG_TILE, banked, carried, type RegicideItem } from './areas.js
 export const ARDOUGNE_STORE = { npc: 'Aemad', anchor: new Tile(2613, 3293, 0) };
 /** Jatix's Herblore Shop in Taverley — the nearest pestle and mortar to Ardougne. */
 export const TAVERLEY_HERBLORE = { npc: 'Jatix', anchor: new Tile(2899, 3428, 0) };
+/** Hickton's Archery Emporium in Catherby — Aemad's sells the arrows but no bow to fire them from. */
+export const CATHERBY_ARCHERY = { npc: 'Hickton', anchor: new Tile(2825, 3442, 0) };
 /** The coal trucks site north-east of Ardougne. */
 export const COAL_ROCKS = new Tile(2581, 3480, 0);
 /** The range beside the Ardougne bank, for the rabbit the lazy guard wants. */
 export const ARDOUGNE_RANGE = new Tile(2648, 3298, 0);
 
-export const FOOD_TARGET = 14;
+// Why: the bow, the arrows and the tinderbox are three more slots, and the pack was one short of the
+// twenty-eight at Koftik — `make_clotharrow` refuses outright when the pack is full and the arrow stack is
+// more than one, so the fire arrow could never be built. Two lobsters buy the headroom.
+export const FOOD_TARGET = 12;
 /** Four balls of wool weave one strip of cloth, and the loom takes them in one go. */
 export const WOOL_TARGET = 4;
 /** Three ropes: the swing spends one per attempt, and the walk back in takes it a second time. */
 export const ROPE_TARGET = 3;
+/** Arrows stack, so the float is free — one is spent per shot at the bridge stay rope, hit or miss. */
+export const ARROW_TARGET = 50;
 // Why: a clean distillation costs six coal under the module's own control law, and a blown pressure gauge
 // resets the tally to zero — so the float covers two failed runs before a trip back to the rocks.
 export const COAL_TARGET = 18;
@@ -96,6 +103,30 @@ export const KIT: readonly Supply[] = [
         reason: "the pass's rope swing, which eats one per attempt",
         shop: ARDOUGNE_STORE,
         estGp: 120
+    },
+    // Why: the chasm before the rope swing is crossed by shooting the bridge stay rope, and `upass_bridge`
+    // stores nothing — the lever that lowers the bridge again sits on the west bank and only sends the player
+    // east. So a completed Underground Pass still leaves the fire arrow to build on every westbound walk.
+    {
+        item: RG_ITEM.SHORTBOW,
+        qty: 1,
+        reason: "firing the bridge stay rope; Aemad's stocks no bow",
+        shop: CATHERBY_ARCHERY,
+        estGp: 150
+    },
+    {
+        item: RG_ITEM.BRONZE_ARROW,
+        qty: ARROW_TARGET,
+        reason: 'the fire arrow, one spent per shot whether it lands or not',
+        shop: ARDOUGNE_STORE,
+        estGp: 600
+    },
+    {
+        item: RG_ITEM.TINDERBOX,
+        qty: 1,
+        reason: 'lighting the cloth-wrapped arrow',
+        shop: ARDOUGNE_STORE,
+        estGp: 150
     },
     { item: RG_ITEM.LOBSTER, qty: FOOD_TARGET, reason: 'the traps, the soldiers and the elf warriors' }
 ];

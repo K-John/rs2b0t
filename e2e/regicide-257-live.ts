@@ -169,7 +169,12 @@ const PACK_SEED: { debugName: string; qty: number }[] = [
     // Why: the rope swing onto the grid shelf is the pass's one item-use seam, and a stage seeded inside
     // Tirannwn still needs them for the walk back in with the bomb.
     { debugName: 'rope', qty: 3 },
-    { debugName: 'lobster', qty: 14 },
+    // Why: the chasm before it is shot down with a fire arrow, and `upass_bridge` keeps no state — a seeded
+    // start still builds the arrow on every westbound walk.
+    { debugName: 'shortbow', qty: 1 },
+    { debugName: 'bronze_arrow', qty: 50 },
+    { debugName: 'tinderbox', qty: 1 },
+    { debugName: 'lobster', qty: 12 },
     { debugName: 'rune_scimitar', qty: 1 },
     { debugName: 'rune_chainbody', qty: 1 },
     { debugName: 'rune_platelegs', qty: 1 },
