@@ -59,8 +59,12 @@ function bridgeTrimStep(snap: QuestSnapshot): QuestStep | null {
 /** Winelda's twenty roots are twenty slots; only coins, food and the pendant ride with them. */
 const ROOTS_KEEP = ['coins', 'pendant', 'limpwurt root', ...IKOV_FOODS];
 
-function rootsTrimStep(snap: QuestSnapshot): QuestStep | null {
-    return trimStep(snap, ROOTS_KEEP);
+// Why: the farm's own food is what fills the pack, and keeping it leaves nineteen slots for a twenty-root withdraw that then retries for as long as the watchdog allows — the fight it was for is over by the time this runs.
+/** Nothing rides to Winelda but her roots and the pendant. */
+const FERRY_KEEP = ['coins', 'pendant', 'limpwurt root'];
+
+function rootsTrimStep(snap: QuestSnapshot, keep: readonly string[] = ROOTS_KEEP): QuestStep | null {
+    return trimStep(snap, keep);
 }
 
 function trimStep(snap: QuestSnapshot, keep: readonly string[]): QuestStep | null {
@@ -190,7 +194,8 @@ export function decide(snap: QuestSnapshot): QuestStep {
             }
         }
         // Why: twenty unstackable roots plus coins and food fill the pack, so anything else has to go before the withdraw can land.
-        const room = rootsTrimStep(snap);
+        const gathered = heldOrBanked(snap, IKOV_OBJ.LIMPWURT_ROOT) >= ROOTS_WANTED;
+        const room = rootsTrimStep(snap, gathered ? FERRY_KEEP : ROOTS_KEEP);
         if (room) {
             return room;
         }

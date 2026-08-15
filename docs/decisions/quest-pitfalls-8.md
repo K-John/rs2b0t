@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Twenty-one, and the first seven are engine behaviour rather than quest facts.
+Twenty-two, and the first seven are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
@@ -121,6 +121,11 @@ Eight are the quest's own shape:
 - **Aggression outlives the decision to stop fighting.** A farm that runs out of food and
   stands still is still standing in the camp: the retreat has to clear the aggro
   radius, so the module walks to the Ardougne road before it hands the tick back.
+- **The food that survives one leg is what blocks the next.** Winelda's twenty roots are
+  twenty unstackable slots, and the fifteen lobsters the farm was carrying left nineteen
+  free — the withdraw retried for five minutes without ever fitting. The trim before that
+  withdraw keeps the roots, the coins and the pendant and nothing else, because the fight
+  the food was for is over by the time it runs.
 
 ## See also
 

@@ -331,6 +331,18 @@ describe('Temple of Ikov decide', () => {
         expect(label(step)).toBe('custom:pay Winelda her twenty limpwurt roots');
     });
 
+    // Why: the farm's own lobsters are what fill the pack, and a twenty-root withdraw into nineteen free slots retries until the watchdog gives up.
+    test('the farm food is banked before the twenty roots are drawn', () => {
+        const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
+            invNames: [['pendant of lucien', 1], [IKOV_NAME.LOBSTER.toLowerCase(), 15]],
+            bank: [[IKOV_OBJ.LIMPWURT_ROOT, ROOTS_WANTED]],
+            bankNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 40]]
+        }));
+        expect(step.kind).toBe('deposit');
+        expect(step.kind === 'deposit' && step.keep).not.toContain(IKOV_NAME.LOBSTER.toLowerCase());
+    });
+
     // Why: past the ferry the roots are gone, and re-reading them as missing would send the bot back to the hobgoblins forever.
     test('the spent roots never re-open the farm', () => {
         const step = decide(snap(IKOV_STAGE.PAID_WINELDA, { inv: [] }));
