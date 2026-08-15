@@ -102,18 +102,20 @@ const STATS = [
     'smithing', 'mining', 'herblore', 'agility', 'thieving', 'runecraft'
 ];
 
-/** Where each seeded stage drops the account, so a leg starts at its own obstacle. */
+/** Where each seeded stage drops the account, so a leg starts at its own obstacle.
+ *  Why: keyed by the `%upass` value itself, and every one of these is the tile that stage's own script
+ *  leaves the player on — the pass is sealed pockets, so a tele to the wrong side of a seam is unrecoverable. */
 const STAGE_TELE: Record<number, { x: number; z: number; level: number }> = {
     0: ARDOUGNE_BANK,
-    1: ARDOUGNE_BANK,
-    2: { x: 2436, z: 3315, level: 0 },
-    3: { x: 2494, z: 9716, level: 0 },
-    4: { x: 2423, z: 9660, level: 0 },
-    5: { x: 2423, z: 9660, level: 0 },
-    6: { x: 2173, z: 4725, level: 1 },
-    7: { x: 2315, z: 9806, level: 0 },
-    8: { x: 2157, z: 4564, level: 1 },
-    9: { x: 2144, z: 4647, level: 1 },
+    1: { x: 2436, z: 3315, level: 0 },
+    2: { x: 2442, z: 9716, level: 0 },
+    3: { x: 2423, z: 9660, level: 0 },
+    4: { x: 2371, z: 9603, level: 0 },
+    5: { x: 2173, z: 4725, level: 1 },
+    6: { x: 2315, z: 9806, level: 0 },
+    7: { x: 2157, z: 4564, level: 1 },
+    8: { x: 2144, z: 4647, level: 1 },
+    9: { x: 2482, z: 9607, level: 0 },
     10: ARDOUGNE_BANK
 };
 
