@@ -70,8 +70,8 @@ export function makeSpace(snap: QuestSnapshot, slots: number): QuestStep | null 
 
 // Why: `ownsInventory` retires the engine's provisioning, so coins, food and the axe are this module's own bank trip.
 
-/** Coins, food and an axe. Null once the pack is dressed for the arrow leg. */
-export function loadoutStep(snap: QuestSnapshot): QuestStep | null {
+/** Coins, food and — when `wantAxe` — an axe. Null once the pack is dressed. */
+export function loadoutStep(snap: QuestSnapshot, wantAxe = true): QuestStep | null {
     if (!snap.bankKnown) {
         return scanBank();
     }
@@ -100,7 +100,7 @@ export function loadoutStep(snap: QuestSnapshot): QuestStep | null {
             wants.push({ name: food, qty: take });
         }
     }
-    if (heldAxe(snap) === null) {
+    if (wantAxe && heldAxe(snap) === null) {
         const fromBank = bankedAxe(snap);
         if (fromBank) {
             wants.push({ name: fromBank, qty: 1 });
@@ -109,7 +109,7 @@ export function loadoutStep(snap: QuestSnapshot): QuestStep | null {
     if (wants.length > 0) {
         return withdraw(wants);
     }
-    if (heldAxe(snap) === null) {
+    if (wantAxe && heldAxe(snap) === null) {
         // Why: nothing in the ogre area sells an axe, and the achey trees answer nothing without one.
         return { kind: 'buy', item: 'Bronze axe', qty: 1, shop: BOB_AXES, estGp: 100 };
     }

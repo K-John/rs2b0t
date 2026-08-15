@@ -208,6 +208,19 @@ describe('big chompy bird hunting decide', () => {
         expect(named(step({ stage: CB_STAGE.RANTZ_MISSED }))).toBe('borrow the ogre bow from Rantz');
     });
 
+    // Why: past the loan Rantz sells the replacement for 500-550 coins and answers an empty purse with "come back when you have".
+    test('coins come out of the bank before the bow is asked for', () => {
+        const s = step({ stage: CB_STAGE.GOT_BOW, inv: [['coins', 0]] });
+        expect(s.kind).toBe('withdraw');
+        expect(s.kind === 'withdraw' && s.items.some(i => i.name === 'Coins')).toBe(true);
+    });
+
+    test('the empty-purse withdrawal leaves the axe alone', () => {
+        const s = step({ stage: CB_STAGE.GOT_BOW, inv: [['coins', 0], ['bronze axe', 0]] });
+        expect(s.kind).toBe('withdraw');
+        expect(s.kind === 'withdraw' && s.items.every(i => !i.name.endsWith('axe'))).toBe(true);
+    });
+
     test('bow, arrows and bellows in hand hunt the chompy', () => {
         const s = step({
             stage: CB_STAGE.GOT_BOW,

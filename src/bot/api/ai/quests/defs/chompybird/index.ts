@@ -246,6 +246,13 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === CB_STAGE.STARTED) {
         return arrowLeg(snap);
     }
+    // Why: a resume past the loan finds Rantz selling the replacement bow for 500-550 coins, and he
+    // answers an empty purse with "come back when you have" — a refusal no oracle here can tell from
+    // a dropped click. The axe is left out, since only the arrow leg needs one.
+    const provisions = loadoutStep(snap, false);
+    if (provisions) {
+        return provisions;
+    }
     if (stage === CB_STAGE.GIVEN_ARROWS && heldId(snap, CB_ID.TOAD) === 0) {
         return custom('ask Rantz how to make the chompys come', askToadies);
     }
