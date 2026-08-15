@@ -45,8 +45,9 @@ What the legs proved, at `--tick 200` on `:8890`:
 | 2 → 3 | PASS, 5 min | the doogle spawns, Gerrant's sardine, the Lumbridge bucket and cow, the fence, the ladder, the milk |
 | 3 → 4 | PASS, 4 min | the sardine chain on its own, and the doogle sardine |
 | 4 → 5 | PASS, 2 min | the corner crate, the kitten, the hand-over |
+| 4 → 6 | PASS, 4 min | the same, plus the walk out of the yard and a Maze random event on the way |
 | 5 → 6 | PASS, 1 min | the reward talk, the pet kitten, the chocolate cake and stew, 1 quest point |
-| 0 → 6 | END_TO_END | the uncheated run: nothing seeded but coins and food |
+| 0 → 6 | PASS, 7 min | the uncheated run: 16 steps, no parks, nothing seeded but coins and food |
 
 ## See also
 

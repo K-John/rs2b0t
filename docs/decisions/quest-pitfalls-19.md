@@ -63,8 +63,9 @@ every bot that walks into the lumber yard.
   crate under the ladder, the server walks to (3305,3504) and to (3303,3508) and
   refuses (3305,3496), (3306,3505) and (3306,3506) — all of them tiles the pack
   routes to happily. A refused walk is not a refusal: the character stands still,
-  the walker calls it a stall, and five repaths later it gives up. The way south
-  is (3305,3504) first, and only then the fence.
+  the walker calls it a stall, and five repaths later it gives up. One tile,
+  (3305,3504), answers from every crate, the ladder and the fence alike, so every
+  leg inside the yard is routed through it rather than tile to tile.
 - **The crates that mew are NPCs; the crates that do not are locs.** Both render
   "Crate" and both offer Search, and the yard is full of the loc kind. Searching
   those answers "You find nothing." forever, which is also what the five wrong
