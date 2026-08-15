@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Hero's Quest
 
-Ten, and the first one is a wall the quest cannot be finished through.
+Twelve, and the first one is a wall the quest cannot be finished through.
 
 - **An area with a one-way exit has no entrance.** The Ice Queen's lair is reachable from the surface
   only by eight `ladder_cellar_inside_down` locs, and every one of them stands on a White Wolf Mountain
@@ -46,6 +46,17 @@ Ten, and the first one is a wall the quest cannot be finished through.
 - **A trapdoor model is not a trapdoor.** `trapdoor_nonactive` and `ikov_trapdoor` carry a model and
   nothing else — no name, no ops, no script. Three of them sit exactly where the Ice Queen lair's
   one-way exits surface, which is what makes the sealed plateau look like it has entrances.
+
+- **A bought-out shop is a dead shop.** `World.restock` reads `inv.items[index]` and skips a null
+  slot, and a shared `allstock=no` shop that sells its last unit loses the slot — so Valaine's one
+  pair of black platelegs never came back, and the bot spent 188 attempts over four minutes buying
+  from an empty shelf. A purchase needs a list of stockists, not a shop; the legs also come from
+  Louie in Al Kharid. Only the black full helm is single-sourced, and that is a known fragility.
+- **A pocket the module owns is a pocket the module owes both ways.** Every `enter*` here leaves
+  whichever other pocket it is standing in first, and every leg that walks to a bank, a shop or a
+  partner calls `returnToStreet()` before it plans. Without that, the Black Arm bot took Trobert's
+  papers inside the hideout and then read `no path to (2774,3187,0): unreachable` at Garv's door
+  forever — the way in was fine and the way out was missing.
 
 ## See also
 
