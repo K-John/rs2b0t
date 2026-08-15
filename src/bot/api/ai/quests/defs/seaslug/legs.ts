@@ -25,7 +25,6 @@ export type Region = 'platform' | 'island' | 'mainland';
 
 const WALK = { radius: 1, attempts: 3, timeoutMs: 120_000 } as const;
 
-/** Firemaking 70 lands the rub roughly three times in four, so a single attempt is not a result. */
 const RUB_ATTEMPTS = 12;
 
 export function regionOf(tile: { x: number; z: number } | null | undefined): Region {
@@ -39,9 +38,6 @@ function heldId(id: number): number {
     return Inventory.items().filter(item => item.id === id).reduce((sum, item) => sum + item.count, 0);
 }
 
-// Why: `slugladder` and `laddertop` both render "Ladder" and sit on the same tile one deck apart, so the op is what separates them.
-
-/** Move between the platform's two decks. */
 export async function climbTo(level: 0 | 1, log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
     if (!here) {
@@ -89,9 +85,6 @@ async function boardFrom(region: Region, log: (m: string) => void): Promise<bool
     return Execution.delayUntil(() => regionOf(Game.tile()) !== region, 20_000);
 }
 
-// Why: no boat runs platform → island once Kent has been found, and none runs island → Ardougne at all, so a crossing can need the shore as a staging post.
-
-/** Ride Holgart's row boat until the bot stands in `target`. */
 export async function sailTo(target: Region, log: (m: string) => void): Promise<boolean> {
     for (let hop = 0; hop < 3; hop++) {
         const here = regionOf(Game.tile());
@@ -106,7 +99,6 @@ export async function sailTo(target: Region, log: (m: string) => void): Promise<
     return regionOf(Game.tile()) === target;
 }
 
-// Why: the crates are inside a walled room whose only way in is a shut door, so the walk has to open it — `Reach` does that and a bare `walkResilient` plus click does not.
 async function pickLoc(
     id: number,
     op: string,
@@ -122,7 +114,6 @@ async function pickLoc(
     if (status === 'done') {
         return true;
     }
-    // Why: `retry` is the first pass closing in on a loc that was out of query range, not a leg that failed.
     const note = status === 'retry' ? 'still closing in' : 'no route';
     log(`seaslug: '${op}' on ${what} (loc ${id}) from (${stand.x},${stand.z},${stand.level}) — ${note}`);
     return false;
@@ -150,7 +141,6 @@ export async function callKennith(log: (m: string) => void): Promise<boolean> {
     return shoutAcross(log);
 }
 
-// Why: kicking a panel that is already open only prints "nothing interesting happens", so the two halves run as one leg and the pair covers both of the stages the journal cannot separate.
 export async function openPanelAndCall(log: (m: string) => void): Promise<boolean> {
     if (!(await sailTo('platform', log))) {
         return false;
@@ -204,7 +194,6 @@ export async function findKent(log: (m: string) => void): Promise<boolean> {
     return talkThrough(KENT.npc, KENT.prefer, log);
 }
 
-// Why: the dry sticks survive a failed rub, so the only cost of a miss is the tick it took.
 export async function rubSticks(log: (m: string) => void): Promise<boolean> {
     for (let attempt = 0; attempt < RUB_ATTEMPTS; attempt++) {
         const sticks = Inventory.items().find(item => item.id === SS_OBJ.DRY_STICKS);

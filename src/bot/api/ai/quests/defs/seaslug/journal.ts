@@ -5,7 +5,6 @@ import type { QuestProgress } from '../../engine/types.js';
 
 export const QUEST = 'Sea Slug Quest';
 
-/** `%seaslugquest`, as named in `quest_seaslug.constant`. */
 export const SS_STAGE = {
     NOT_STARTED: 0,
     STARTED: 1,
@@ -22,9 +21,6 @@ export const SS_STAGE = {
     COMPLETE: 12
 } as const;
 
-// Why: `seaslug_journal.rs2` writes one page for stages 4 and 5 and one for 8 and 9, so the scroll cannot separate either pair.
-
-/** The pairs the journal collapses. The parser returns the lower of each; `decide` resolves it from where the bot is standing. */
 const AMBIGUOUS: Record<number, string> = {
     [SS_STAGE.SPOKEN_KENNITH]: 'kennith-or-kent',
     [SS_STAGE.KENNITH_NEED_ESCAPE]: 'panel-or-call'

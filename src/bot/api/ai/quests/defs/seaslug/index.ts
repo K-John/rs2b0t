@@ -15,7 +15,6 @@ import {
 import { SS_STAGE, readSeaSlugProgress } from './journal.js';
 import { callKennith, climbTo, findKent, openPanelAndCall, rotateCrane, rubSticks, sailTo } from './legs.js';
 
-/** The paste is 42gp at the counter; this is the float the buy step tops the pack up to. */
 const PASTE_GP = 1000;
 
 function held(snap: QuestSnapshot, id: number): number {
@@ -26,7 +25,6 @@ function sailStep(): QuestStep {
     return { kind: 'custom', name: 'sail to the fishing platform', run: log => sailTo('platform', log) };
 }
 
-/** Bank first, then Khazard's counter: a resumed run often has the paste already. */
 export function sourcePaste(snap: QuestSnapshot): QuestStep | null {
     if (held(snap, SS_OBJ.SWAMP_PASTE) > 0) {
         return null;
@@ -40,9 +38,6 @@ export function sourcePaste(snap: QuestSnapshot): QuestStep | null {
     return { kind: 'buy', item: SS_ITEM.SWAMP_PASTE, qty: 1, shop: KHAZARD_SHOP, estGp: PASTE_GP };
 }
 
-// Why: a successful rub sets stage 7 whether or not a torch is in the pack, so stage 6 runs this chain even when the torch is already lit.
-
-/** Bailey's torch, the two deck spawns that dry it out, and the rub that lights it. */
 export function torchStep(snap: QuestSnapshot): QuestStep {
     if (!onPlatform(snap.tile)) {
         return sailStep();
@@ -51,7 +46,6 @@ export function torchStep(snap: QuestSnapshot): QuestStep {
         return { kind: 'custom', name: 'climb down to the lower deck', run: log => climbTo(0, log) };
     }
     if (held(snap, SS_OBJ.TORCH_LIT) + held(snap, SS_OBJ.TORCH_UNLIT) === 0) {
-        // Why: Bailey has no line at all on stage 10, so a torchless resume there has nothing left to ask.
         if (snap.stage === SS_STAGE.NEED_KENNITH_PATH) {
             return { kind: 'wait', reason: 'no torch, and Bailey has no stage-10 line to hand one over' };
         }
@@ -91,7 +85,6 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === SS_STAGE.BOAT_REPAIRED) {
         return { kind: 'custom', name: 'call to Kennith behind the crates', run: callKennith };
     }
-    // Why: the journal writes one page for "spoken to Kennith" and "sailed to Kent", so the leg covers the crossing and the talk together.
     if (stage === SS_STAGE.SPOKEN_KENNITH || stage === SS_STAGE.SAILED_KENT) {
         return { kind: 'custom', name: 'find Kent on the island', run: findKent };
     }

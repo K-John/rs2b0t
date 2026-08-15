@@ -1,8 +1,3 @@
-/** Live Sea Slug harness (#259): --stage N --until N --minutes N, base :8890.
- *  Why: `--stage` writes `%seaslugquest` straight, since every step of this quest is a varp write and none of it is inferable from the pack; it relogs because update_questlist only recolours the list at login.
- *  Why: the bank holds coins and food alone — the swamp paste is bought at the Khazard counter and the torch, sticks and glass are all sourced on the platform.
- *  Why: stages 7-10 are seeded with an unlit torch, as Bailey has no line on stage 10 to replace one. */
-
 //   HEADED=1 bun e2e/sea-slug-259-live.ts --stage 0 --until 12 --minutes 45 --tick 200
 //   HEADED=1 bun e2e/sea-slug-259-live.ts --stage 6 --until 7 --minutes 20 --tick 200
 import { existsSync } from 'node:fs';
@@ -76,7 +71,6 @@ const VARP = 'seaslugquest';
 const COMPLETE = 12;
 const ARDOUGNE_BANK = { x: 2655, z: 3283, level: 0 };
 
-/** Coins and food only: the paste has a counter, and the torch chain has three deck spawns. */
 const BANK_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
     { debugName: 'lobster', displayName: 'Lobster', qty: 40 }
@@ -125,8 +119,6 @@ async function snapshot(page: Page): Promise<Snapshot> {
     }, QUEST);
 }
 
-/** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {
@@ -188,7 +180,6 @@ try {
         if (read !== args.stage) {
             fail(`setvar did not take (${VARP} ${read}/${args.stage})`);
         }
-        // Why: Bailey's switch has no stage-10 case, so a torchless resume there has nothing left to ask for.
         if (args.stage >= 7 && args.stage <= 10) {
             await cheatQuiet(page, 'give torch_unlit 1');
             console.log('seeded an unlit Torch — the deck chain relights it');
@@ -217,7 +208,6 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without Sea Slug in it spends the budget on somebody else's quest.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;
@@ -237,7 +227,6 @@ try {
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
-        // Why: a full run waits for the list to go green rather than the varp — the recolour and the QP award land a tick behind %seaslugquest.
         const done = args.until >= COMPLETE ? last.status === 'complete' : stage >= args.until;
         if (done) {
             console.log(`PASS (stage=${stage}/${COMPLETE}, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);

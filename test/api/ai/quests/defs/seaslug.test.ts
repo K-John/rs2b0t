@@ -234,7 +234,6 @@ describe('Sea Slug decide', () => {
         expect(customName(step)).toBe('rub the dry sticks together');
     });
 
-    // Why: the rub is what writes stage 7, so a lit torch on stage 6 still has to rub.
     test('still rubs on stage 6 when the torch is already lit', () => {
         const step = decide(snap({
             stage: SS_STAGE.SPOKEN_KENT,
@@ -277,7 +276,6 @@ describe('Sea Slug decide', () => {
         expect(customName(step)).toBe('swing the crane over to Kennith');
     });
 
-    // Why: Bailey's switch has no stage-10 case, so nothing on the platform can replace a torch lost there.
     test('stops rather than looping when stage 10 has no torch to climb with', () => {
         const step = decide(snap({ stage: SS_STAGE.NEED_KENNITH_PATH, tile: ON_DECK }));
 
@@ -290,7 +288,6 @@ describe('Sea Slug decide', () => {
         expect(customName(step)).toBe('sail back to the Ardougne shore');
     });
 
-    // Why: no boat runs island → Ardougne, so a resume stranded out there has to stage through the platform.
     test('sails home from the island too, rather than walking at Caroline', () => {
         const step = decide(snap({ stage: SS_STAGE.SAVED_KENNITH, tile: ON_ISLAND }));
 
