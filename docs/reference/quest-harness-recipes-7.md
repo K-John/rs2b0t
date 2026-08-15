@@ -86,8 +86,9 @@ Measured at `--tick 200` on 70 stats, no parks:
 
 | Stages | Minutes | Covers |
 |---|---|---|
+| 1 → 3 | 1 | the address label, the relabel, the R.P.D.T. delivery |
 | 4 → 5 | 3 | the KURT lock, the stairs trap, the chest, the ferry home |
-| 0 → 5 | 5 | a clean account to `QUEST COMPLETE!` |
+| 0 → 5 | 4-5 | a clean account to `QUEST COMPLETE!` |
 
 Four details govern this harness:
 

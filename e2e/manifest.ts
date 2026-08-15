@@ -595,8 +595,8 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'vetted',
         budgetMin: 45,
-        provenAt: 'PROVEN_SHA',
-        note: 'Tribal Totem start to finish at --tick 200 on 70 stats; --stage is %totemquest and --combo skips the KURT lock'
+        provenAt: 'ea865e4d',
+        note: 'Tribal Totem start to finish in 5 minutes at --tick 200 on 70 stats; --stage is %totemquest and --combo skips the KURT lock'
     },
     {
         id: 'trollstronghold-264-live',
