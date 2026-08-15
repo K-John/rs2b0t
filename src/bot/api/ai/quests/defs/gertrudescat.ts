@@ -13,7 +13,7 @@ import { Quests } from '../../../ui/questlog/Quests.js';
 import { Traversal } from '../../../walking/Traversal.js';
 import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from '../engine/types.js';
-import { talkStrict, type NpcStop } from '../exec/primitives.js';
+import { gotoNpc, talkStrict, talkThrough, type NpcStop } from '../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../exec/prompts.js';
 import { gatherMilk } from './cooksassistant.js';
 
@@ -73,6 +73,8 @@ const CAT_STAND = new Tile(3306, 3512, 1);
 /** Waypoints into and back out of that corner, each a leg short enough for the server to route in one go. */
 const NW_CORNER_IN: Tile[] = [YARD_ENTRY, new Tile(3305, 3504, 0), new Tile(3304, 3511, 0), new Tile(3300, 3512, 0), new Tile(3298, 3513, 0)];
 const NW_CORNER_OUT: Tile[] = [new Tile(3300, 3512, 0), new Tile(3304, 3511, 0), new Tile(3305, 3504, 0)];
+/** The way south, in hops short enough that each one plans. */
+const YARD_EXIT: Tile[] = [new Tile(3306, 3505, 0), new Tile(3306, 3501, 0), YARD_ENTRY];
 
 interface CrateStop {
     tile: Tile;
@@ -161,6 +163,15 @@ export async function readGertrudesCatProgress(): Promise<QuestProgress | undefi
 
 function inYard(t: { x: number; z: number; level: number }): boolean {
     return t.level === 0 && t.x >= 3288 && t.x <= 3327 && t.z >= 3494 && t.z <= 3527;
+}
+
+// Why: the yard's inner walls leave the walk south unplannable from the tiles the crate legs end on — the walker spent five repaths clicking the fence approach from nine tiles away and never moved.
+/** Walk back to the fence side, which is where a route out of the yard can be planned from. */
+async function leaveYard(log: (m: string) => void): Promise<boolean> {
+    if (!(await climbDownToYard(log))) {
+        return false;
+    }
+    return walkVia(YARD_EXIT, log);
 }
 
 /** Walk in through the broken fence, the yard's only way in. */
@@ -337,6 +348,19 @@ async function seasonSardine(log: (m: string) => void): Promise<boolean> {
     return seasoned();
 }
 
+async function reportToGertrude(log: (m: string) => void): Promise<boolean> {
+    const here = Game.tile();
+    if (onPlatform() || (here !== null && inYard(here))) {
+        if (!(await leaveYard(log))) {
+            return false;
+        }
+    }
+    if (!(await gotoNpc(GERTRUDE, [], log))) {
+        return false;
+    }
+    return talkThrough(GERTRUDE.npc, GERTRUDE.prefer, log);
+}
+
 async function payBrothers(log: (m: string) => void): Promise<boolean> {
     const paired = (): Npc | null => {
         const shilop = Npcs.query().name('Shilop').nearest();
@@ -416,7 +440,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return { kind: 'custom', name: 'give Fluffs her kitten', run: offerToCat(FLUFFS_OBJ.kitten, 'kitten') };
         }
         case FLUFFS_STAGE.RESCUED:
-            return { kind: 'talk', stop: GERTRUDE };
+            return { kind: 'custom', name: 'take the news back to Gertrude', run: reportToGertrude };
         default:
             return { kind: 'wait', reason: `unexpected ${QUEST} stage ${progress.stage}` };
     }

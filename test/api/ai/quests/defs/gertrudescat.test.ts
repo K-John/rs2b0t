@@ -204,10 +204,7 @@ describe("Gertrude's Cat decide", () => {
     });
 
     test('claims the reward from Gertrude once Fluffs has run home', () => {
-        const step = decide(snap({ stage: FLUFFS_STAGE.RESCUED }));
-
-        expect(step.kind).toBe('talk');
-        expect(step.kind === 'talk' && step.stop.npc).toBe('Gertrude');
+        expect(customName(decide(snap({ stage: FLUFFS_STAGE.RESCUED })))).toBe('take the news back to Gertrude');
     });
 });
 
