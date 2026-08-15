@@ -63,12 +63,11 @@ const HOP_KINDS: readonly HopKind[] = [
     // cages, the swamp and a pipe, and every one of them reads "unreachable" to the navigator.
     { loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', tries: LOCK_TRIES },
     { loc: UP_LOC.RAILINGS_HARD, op: 'Pick-lock', tries: LOCK_TRIES },
-    // Why: `upass_swampbubbles1` is scenery in the first cavern and a crossing in the second, and taking it
-    // for a seam on the bridge shelf walked a run twenty tiles off the grid approach. The z bound is what
-    // separates the two — the second cavern is everything below 9664.
-    { loc: UP_LOC.SWAMP, op: 'Cross', below: 9664 },
-    { loc: UP_LOC.ROCKPILE, op: 'Climb', below: 9664 }
 ];
+// Why: two locs that look like seams and are not. `upass_swampbubbles1` offers Cross and then drags the
+// player into a crevasse at (2485,9649) for fifteen per cent of their hitpoints — it is a trap wearing a
+// crossing's op. `caverockpile` does climb, but out to the first cavern's landing chamber at (2482,9715),
+// which is behind the bridge and the grid: a way home, not a way on.
 // Why: `cavewalltunnel_upass_tocells` carries an Enter it has no script for — it is the scenery the mud dig
 // teleports the player out beside, so crossing it can only waste the hop it is chosen for.
 
