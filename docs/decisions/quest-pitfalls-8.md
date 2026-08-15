@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Twenty-seven, and the first three are engine behaviour the quest only happens to expose.
+Twenty-nine, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -124,6 +124,15 @@ Twenty-seven, and the first three are engine behaviour the quest only happens to
   produced four "I can't reach that!" and the leg spent every ledge it had. Ask for a Manhattan distance of
   one when the op has to reach.
 
+- **A radius counts distance, not walls.** Kardia's chest is two tiles from her door and on the other side
+  of it, so `walkTo(chest, 3)` returned arrived from the street and the click that followed was refused by a
+  server that could not path there. The door was only opened on the branch where that walk failed — which it
+  never did. Anything indoors wants the reach helper that opens what stands in the way, not a distance test.
+- **The one-shot obstacle that reports itself as a failure.** Knocking with the cat sets a bit that is never
+  cleared, and every later knock answers "Inside you can hear the witch talking to her cat." That sentence is
+  the distraction holding. Reading it as a failure sent the leg back for the cat that had respawned behind
+  it, and it knocked at a door that would not take a second one for five minutes at a time. Three runs of
+  "Kardia would not come to the door" were three reports of a step that had already worked.
 - **Iban's temple is a dress code, not a door.** `@open_iban_door` wants both halves of the robe of Zamorak
   worn and `inv_freespace(worn) = inv_size(worn) - 2` — exactly two worn slots, nothing else — or it answers
   "Only followers of Zamorak may enter." A module that armours up for the paladins and the demons arrives at
