@@ -26,6 +26,12 @@ const IKOV_SOURCING_SKILLS: readonly { skill: string; level: number }[] = [
 
 /** Worn right hand: the slot a weapon occupies. */
 const WEAPON_SLOT = 3;
+/** Worn quiver: the slot arrows occupy. */
+const AMMO_SLOT = 13;
+/** Lobsters kept in the pack while grinding hobgoblins. */
+const FARM_FOOD = 6;
+/** Aemad's asking price for an iron axe, with headroom for his stock markup. */
+const AXE_GP = 300;
 const CHOP_MS = 120_000;
 const PICK_MS = 20_000;
 const KILL_MS = 60_000;
@@ -227,10 +233,29 @@ async function farmRoots(log: (m: string) => void): Promise<boolean> {
     return Traversal.walkResilient(IKOV_TILE.HOBGOBLINS, { radius: 4, attempts: 3, timeoutMs: 420_000, log });
 }
 
+// Why: the warrior fight ends with the yew shortbow worn over a quiver the fight emptied, and a bow with no arrows answers every Attack click with "There is no ammo left in your quiver" until the hobgoblins finish the job.
+function armedForMelee(): boolean {
+    const worn = Equipment.items();
+    const weapon = worn.find(item => item.slot === WEAPON_SLOT);
+    if (!weapon) {
+        return false;
+    }
+    if (!/bow$/i.test(weapon.name ?? '')) {
+        return true;
+    }
+    return worn.some(item => item.slot === AMMO_SLOT && item.count > 0);
+}
+
+/** Drop the spent bow so the fists the farm falls back on are at least fists. */
+async function stowEmptyBow(log: (m: string) => void): Promise<boolean> {
+    log('ikov: stowing the empty yew shortbow — it cannot swing at a hobgoblin');
+    return Equipment.unequip(IKOV_NAME.YEW_SHORTBOW);
+}
+
 // Why: the crossing kit leaves the bot bare-handed, and a hundred-odd level-42 hobgoblins is not a fight to take with fists — the axe the yew was cut with is already banked and is a weapon.
 function armForTheFarm(snap: QuestSnapshot): QuestStep | null {
     // Why: the right-hand slot is what the loadout would have filled, so an armed bot keeps whatever it is already holding.
-    if (Equipment.items().some(item => item.slot === WEAPON_SLOT)) {
+    if (armedForMelee()) {
         return null;
     }
     if ((snap.invIds?.get(IKOV_OBJ.IRON_AXE) ?? 0) > 0) {
@@ -239,12 +264,33 @@ function armForTheFarm(snap: QuestSnapshot): QuestStep | null {
     if ((snap.bankIds?.get(IKOV_OBJ.IRON_AXE) ?? 0) > 0) {
         return { kind: 'withdraw', items: [{ name: IKOV_NAME.IRON_AXE, id: IKOV_OBJ.IRON_AXE, qty: 1 }] };
     }
+    if (Equipment.contains(IKOV_NAME.YEW_SHORTBOW)) {
+        return { kind: 'custom', name: 'stow the empty bow', run: stowEmptyBow };
+    }
+    // Why: a run resumed at this stage never walked the sourcing leg, so the axe it would have banked was never bought.
+    if (snap.bankCoins + (snap.inv.get('coins') ?? 0) >= AXE_GP) {
+        return { kind: 'buy', item: IKOV_NAME.IRON_AXE, qty: 1, shop: { npc: 'Aemad', anchor: IKOV_TILE.AEMAD }, estGp: AXE_GP };
+    }
     return null;
+}
+
+// Why: the engine's food float is a one-shot at provisioning time, and this grind outlasts it — a starved bot dies at the camp and drops the kit on the floor.
+function restockFood(snap: QuestSnapshot): QuestStep | null {
+    const food = IKOV_NAME.LOBSTER.toLowerCase();
+    const held = snap.inv.get(food) ?? 0;
+    if (held >= 2) {
+        return null;
+    }
+    const want = Math.min(FARM_FOOD - held, snap.bank?.get(food) ?? 0);
+    if (want <= 0) {
+        return null;
+    }
+    return { kind: 'withdraw', items: [{ name: IKOV_NAME.LOBSTER, qty: want }] };
 }
 
 // Why: 20 unstackable roots plus food fill the pack, so the farm banks in batches rather than holding the lot.
 function rootStep(snap: QuestSnapshot): QuestStep {
-    const arm = armForTheFarm(snap);
+    const arm = armForTheFarm(snap) ?? restockFood(snap);
     if (arm) {
         return arm;
     }
@@ -270,7 +316,7 @@ export function suppliesStep(snap: QuestSnapshot, wants: SupplyWants): QuestStep
     const needBow = wants.bow && heldOrBanked(snap, IKOV_OBJ.YEW_SHORTBOW) === 0;
     // Why: Aemad's is in East Ardougne and the rest of the kit is a Catherby-Seers loop, so the axe is bought on the way out rather than walked back for.
     if (needBow && axeOutstanding(snap)) {
-        return { kind: 'buy', item: IKOV_NAME.IRON_AXE, qty: 1, shop: { npc: 'Aemad', anchor: IKOV_TILE.AEMAD }, estGp: 300 };
+        return { kind: 'buy', item: IKOV_NAME.IRON_AXE, qty: 1, shop: { npc: 'Aemad', anchor: IKOV_TILE.AEMAD }, estGp: AXE_GP };
     }
     if (wants.candle && !kitCandleReady(snap)) {
         if (heldOrBanked(snap, IKOV_OBJ.TINDERBOX) === 0) {

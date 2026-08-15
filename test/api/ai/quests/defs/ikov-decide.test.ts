@@ -15,6 +15,7 @@ interface Held {
     worn?: string[];
     tile?: { x: number; z: number; level: number };
     bankKnown?: boolean;
+    bankCoins?: number;
 }
 
 function snap(stage: number, held: Held = {}): QuestSnapshot {
@@ -27,7 +28,7 @@ function snap(stage: number, held: Held = {}): QuestSnapshot {
         worn: new Set(held.worn ?? []),
         wornIds: new Set<number>(),
         noProgress: 0,
-        bankCoins: 5000,
+        bankCoins: held.bankCoins ?? 5000,
         stage,
         bank: new Map(held.bankNames ?? []),
         bankIds,
@@ -221,8 +222,9 @@ describe('Temple of Ikov decide', () => {
         expect(label(step)).toBe('custom:ask Winelda for the ferry across the lava');
     });
 
+    // Why: with money in the bank an axeless bot buys one first, so the farm itself is only reachable once it is both unarmed and broke.
     test('Winelda asked and no roots: the hobgoblin farm runs', () => {
-        const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, { inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]] }));
+        const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, { inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]], bankCoins: 0 }));
         expect(label(step)).toBe(`custom:farm limpwurt roots (0/${ROOTS_WANTED})`);
     });
 
@@ -238,6 +240,35 @@ describe('Temple of Ikov decide', () => {
         }));
         expect(held.kind).toBe('equip');
         expect(held.kind === 'equip' && held.item).toBe(IKOV_NAME.IRON_AXE);
+    });
+
+    // Why: a run resumed past the sourcing leg never bought the axe it would have banked, and Aemad sells one for pocket change.
+    test('a bot resumed at the ferry with no axe buys one from Aemad', () => {
+        const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, { inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]] }));
+        expect(step.kind).toBe('buy');
+        expect(step.kind === 'buy' && step.item).toBe(IKOV_NAME.IRON_AXE);
+        expect(step.kind === 'buy' && step.shop.npc).toBe('Aemad');
+    });
+
+    // Why: the engine's food float is provisioned once, and this grind outlasts it — the last live run starved at the camp and dropped the kit on the floor.
+    test('an empty larder is restocked before the farm', () => {
+        const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
+            bankNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 10]],
+            bankCoins: 0
+        }));
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' && step.items[0].name).toBe(IKOV_NAME.LOBSTER);
+    });
+
+    test('two lobsters in the pack keep the farm running', () => {
+        const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
+            invNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 2]],
+            bankNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 10]],
+            bankCoins: 0
+        }));
+        expect(label(step)).toBe(`custom:farm limpwurt roots (0/${ROOTS_WANTED})`);
     });
 
     // Why: twenty unstackable roots plus coins and food fill the pack, so the withdraw cannot land on a pack still holding the dungeon kit.

@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Fifteen, and the first seven are engine behaviour rather than quest facts.
+Eighteen, and the first seven are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
@@ -86,6 +86,20 @@ Eight are the quest's own shape:
   the walk happened to land on and was dropped in silence for the rest — two of six on the
   first run. Every chest carries its own stand, one tile off, and the leg walks onto it
   rather than near it.
+- **A bow over an empty quiver is not a weapon, and nothing says so but the chat box.**
+  The warrior fight ends with the yew shortbow still worn and every ice arrow spent, and
+  two legs later the hobgoblin farm answered every Attack click with "There is no ammo
+  left in your quiver" until the camp killed the bot and its kit hit the floor. The arm
+  check tests the quiver behind the bow rather than the weapon slot alone, and both
+  fights take the bow off on the way out.
+- **The engine's food float is provisioned once, not maintained.** `provisioned.add(id)`
+  retires the withdrawal for the run, so a module whose grind outlasts six lobsters has
+  to ask for more itself. The roots farm restocks below two.
+- **A fight loop that counts its own Attack clicks misses a kill it did not click for.**
+  Auto-retaliate fought the Fire Warrior to death while every `interact('Attack')` came
+  back false — he stands behind the door that summoned him and the path to him is
+  through it — so a "down after N shots" test gated on N spun out the full guard twice
+  over a corpse. `Game.inCombat()` is what proves the fight happened.
 
 ## See also
 

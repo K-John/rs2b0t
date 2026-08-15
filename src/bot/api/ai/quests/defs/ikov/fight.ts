@@ -1,4 +1,5 @@
 // docs/QUESTS.md
+import { actions } from '../../../../../adapter/ClientAdapter.js';
 import { DirectNavigator } from '../../../../../event/webwalk/DirectNavigator.js';
 import { Equipment } from '../../../../equipment/Equipment.js';
 import { EventSignal } from '../../../../execution/EventSignal.js';
@@ -26,6 +27,8 @@ const LUCIEN_GUARD = 400;
 const EAT_AT_MISSING = 18;
 const ARROW_RADIUS = 12;
 const WALK_MS = 300_000;
+/** Ticks between progress lines while a fight is running. */
+const REPORT_TICKS = 40;
 
 function hungry(): boolean {
     const max = Skills.level('hitpoints');
@@ -85,6 +88,16 @@ async function pickUpArrows(log: (m: string) => void): Promise<void> {
     log(`ikov: recovered arrows, ${iceArrowsHeld()} held`);
 }
 
+// Why: an empty bow answers every later Attack click with "There is no ammo left in your quiver", and the hobgoblin farm two legs on is what pays for it.
+/** Take the bow off once the quiver behind it is empty. */
+async function stowSpentBow(log: (m: string) => void): Promise<void> {
+    if (!Equipment.contains(IKOV_NAME.YEW_SHORTBOW) || iceArrowsHeld() > 0) {
+        return;
+    }
+    log('ikov: the quiver is spent — stowing the yew shortbow');
+    await Equipment.unequip(IKOV_NAME.YEW_SHORTBOW);
+}
+
 function walkToFireDoor(log: (m: string) => void): Promise<boolean> {
     return Traversal.walkResilient(IKOV_TILE.FIRE_DOOR_SOUTH, {
         radius: 2,
@@ -127,7 +140,10 @@ function tallyNearby(): string {
     return names.length === 0 ? 'nothing' : [...new Set(names)].join(', ');
 }
 
-async function drainDialogue(): Promise<void> {
+// Why: a chat modal with no continue button never drains, and a fight loop that keeps yielding to it spins out the guard in silence.
+
+/** Click through what the last op raised; close it outright if it will not drain. */
+async function drainDialogue(log?: (m: string) => void): Promise<void> {
     for (let i = 0; i < 20; i++) {
         if (ChatDialog.canContinue()) {
             await ChatDialog.continue();
@@ -138,6 +154,11 @@ async function drainDialogue(): Promise<void> {
             return;
         }
         await Execution.delayTicks(1);
+    }
+    if (ChatDialog.isOpen()) {
+        log?.('ikov: a chat modal would not drain — closing it and fighting on');
+        actions.closeModal();
+        await Execution.delayTicks(2);
     }
 }
 
@@ -167,6 +188,9 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
     let attacking = -1;
     let missing = 0;
     let swings = 0;
+    let refused = 0;
+    // Why: auto-retaliate fights the warrior whether or not our Attack clicks land, so "did a shot go out" is the wrong test for whether the fight happened.
+    let engaged = false;
     let lastTick = -1;
     let reported = -1;
     for (let i = 0; i < WARRIOR_GUARD; i++) {
@@ -180,8 +204,18 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
             continue;
         }
         lastTick = now;
+        engaged = engaged || Game.inCombat();
+        // Why: every branch below can yield the tick, and a report that only prints on the shooting one leaves a stalled fight silent to the last tick of the guard.
+        if (now - reported >= REPORT_TICKS) {
+            reported = now;
+            const target = warrior();
+            log(`ikov: warrior fight hp=${Skills.effective('hitpoints')}/${Skills.level('hitpoints')}`
+                + ` arrows=${iceArrowsHeld()} shots=${swings} refused=${refused} engaged=${engaged}`
+                + ` target=${target ? `${target.tile().x},${target.tile().z}` : 'none'}`
+                + ` chat=${ChatDialog.isOpen() ? 'open' : 'closed'}`);
+        }
         if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
-            await drainDialogue();
+            await drainDialogue(log);
             continue;
         }
         if (hungry()) {
@@ -192,14 +226,15 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
         if (!npc) {
             attacking = -1;
             missing++;
-            if (swings > 0 && missing >= 4) {
+            if (engaged && missing >= 4) {
                 log(`ikov: the Fire Warrior is down after ${swings} shots`);
                 await drainDialogue();
                 await pickUpArrows(log);
+                await stowSpentBow(log);
                 return true;
             }
             // Why: spinning out the full guard on an empty scene costs three minutes and says nothing; the tally names what is standing there.
-            if (swings === 0 && missing >= NEVER_APPEARED) {
+            if (!engaged && missing >= NEVER_APPEARED) {
                 log(`ikov: the Fire Warrior never joined the fight — scene holds ${tallyNearby()}`);
                 return false;
             }
@@ -218,10 +253,6 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
             attacking = -1;
             continue;
         }
-        if (now - reported >= 40) {
-            reported = now;
-            log(`ikov: warrior fight hp=${Skills.effective('hitpoints')}/${Skills.level('hitpoints')} arrows=${iceArrowsHeld()} shots=${swings}`);
-        }
         if (npc.index === attacking && Game.inCombat()) {
             await Execution.delayTicks(1);
             continue;
@@ -229,6 +260,10 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
         if (await npc.interact('Attack')) {
             attacking = npc.index;
             swings++;
+            engaged = true;
+        } else if (refused++ === 0) {
+            const at = npc.tile();
+            log(`ikov: the Fire Warrior refused an Attack click at (${at.x},${at.z}), ${npc.distance()} away`);
         }
         await Execution.delayTicks(1);
     }
@@ -251,10 +286,7 @@ export async function killLucien(log: (m: string) => void): Promise<boolean> {
             return false;
         }
     }
-    // Why: a bow with an empty quiver refuses every swing, and the ice arrows are usually spent by now.
-    if (Equipment.contains(IKOV_NAME.YEW_SHORTBOW) && iceArrowsHeld() === 0) {
-        await Equipment.unequip(IKOV_NAME.YEW_SHORTBOW);
-    }
+    await stowSpentBow(log);
     if (!(await Traversal.walkResilient(IKOV_TILE.LUCIEN_HUT, { radius: 4, attempts: 3, timeoutMs: 600_000, log }))) {
         return false;
     }
@@ -262,6 +294,7 @@ export async function killLucien(log: (m: string) => void): Promise<boolean> {
     let attacking = -1;
     let missing = 0;
     let swings = 0;
+    let engaged = false;
     let lastTick = -1;
     for (let i = 0; i < LUCIEN_GUARD; i++) {
         if (EventSignal.pending()) {
@@ -273,8 +306,9 @@ export async function killLucien(log: (m: string) => void): Promise<boolean> {
             continue;
         }
         lastTick = now;
+        engaged = engaged || Game.inCombat();
         if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
-            await drainDialogue();
+            await drainDialogue(log);
             continue;
         }
         if (hungry()) {
@@ -285,7 +319,7 @@ export async function killLucien(log: (m: string) => void): Promise<boolean> {
         if (!npc) {
             attacking = -1;
             missing++;
-            if (swings > 0 && missing >= 5) {
+            if (engaged && missing >= 5) {
                 log(`ikov: Lucien is banished after ${swings} attacks`);
                 await drainDialogue();
                 // Why: the completion scroll is a main modal, and one left up stops the retreat to a bank dead.
@@ -303,6 +337,7 @@ export async function killLucien(log: (m: string) => void): Promise<boolean> {
         if (await npc.interact('Attack')) {
             attacking = npc.index;
             swings++;
+            engaged = true;
         }
         await Execution.delayTicks(1);
     }
