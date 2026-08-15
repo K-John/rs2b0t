@@ -188,9 +188,16 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
             continue;
         }
         missing = 0;
+        // Why: 80% of every shot lands on the floor, so an empty quiver mid-fight is a sweep rather than a loss.
         if (iceArrowsHeld() === 0) {
-            log('ikov: out of ice arrows mid-fight');
-            return false;
+            log('ikov: the quiver is empty — sweeping the spent arrows');
+            await pickUpArrows(log);
+            if (Inventory.count(IKOV_NAME.ICE_ARROWS) === 0 || !(await Equipment.equip(IKOV_NAME.ICE_ARROWS))) {
+                log('ikov: nothing left to shoot the Fire Warrior with');
+                return false;
+            }
+            attacking = -1;
+            continue;
         }
         if (now - reported >= 40) {
             reported = now;

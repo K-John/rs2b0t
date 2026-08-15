@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Twelve, and the first six are engine behaviour rather than quest facts.
+Fourteen, and the first seven are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
@@ -16,6 +16,9 @@ Twelve, and the first six are engine behaviour rather than quest facts.
   `UpdateRunWeight` sends `trunc(grams / 1000)` — a client reading 0 is anywhere from
   -999g to +999g. The server tests grams, so the guard demands a client-visible
   *negative* rather than a non-positive.
+- **A use-on sent while a booth is still closing opens nothing.** The first knife-on-logs
+  after a withdraw failed on three separate runs and the retry worked every time, so the
+  fletch closes whatever main modal is up and settles before it sends the op.
 - **A shop behind a quest gate is not a shop.** The Ardougne Armoury stocks the iron
   axe the yew needs and sits inside the Combat Training Camp, whose gates answer "This
   is a restricted area" until Biohazard is complete. They are baked as ordinary door
@@ -69,7 +72,13 @@ Six are the quest's own shape:
   `%ikov_icearrowchest_coord` names the one holding arrows, re-rolled after every find,
   so the search is a circuit rather than a chest. Each find is one to five arrows, 80%
   of every shot lands recoverable on the floor, and the Fire Warrior has 59 hitpoints —
-  the module banks thirty before it opens his door and sweeps the spent ones afterwards.
+  the module banks thirty before it opens his door, sweeps the spent ones afterwards,
+  and sweeps mid-fight rather than walking out if the quiver empties.
+- **All six chests are `forceapproach=north`, and each placement rotates that.** Walking
+  to within two tiles of the chest and clicking Open worked for the ones whose legal side
+  the walk happened to land on and was dropped in silence for the rest — two of six on the
+  first run. Every chest carries its own stand, one tile off, and the leg walks onto it
+  rather than near it.
 
 ## See also
 
