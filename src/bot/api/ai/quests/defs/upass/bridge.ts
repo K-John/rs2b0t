@@ -1,13 +1,13 @@
 import { Equipment } from '../../../../equipment/Equipment.js';
 import { Execution } from '../../../../execution/Execution.js';
-import { GameMessages } from '../../../../chatbox/gameMessages.js';
+import { CANT_REACH, GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { Reach } from '../../../../walking/Reach.js';
-import type Tile from '../../../../../geometry/Tile.js';
+import Tile from '../../../../../geometry/Tile.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE, upassArea } from './areas.js';
@@ -184,29 +184,53 @@ export async function armFireArrow(log: (m: string) => void): Promise<boolean> {
 
 // Why: the shot spends the arrow whether or not it lands — `inv_del(worn, $worn_ammo, 1)` runs before the
 // `stat_random(ranged, 160, 300)` roll — and one damp cloth makes exactly one. Firing in a loop therefore
-// spends seven attempts on an empty quiver. Koftik hands over another cloth whenever the pack holds none,
-// so the retry is the decide() cycle rebuilding the arrow, and this step fires once.
+// spends every attempt after the first on an empty quiver. Koftik hands over another cloth whenever the
+// pack holds none, so the retry is the decide() cycle rebuilding the arrow, and this step fires once.
+// Why: the trigger is `aploc1`, which the engine only runs within ten tiles AND with line of sight
+// (`inApproachDistance`). A stand that fails either test produces no script at all — no message, no arrow
+// spent, no movement — which is indistinguishable from a miss unless the chat is read. Line of sight is not
+// something the map data answers, so the stands are probed until one draws a reply.
+const SHOT_STANDS: readonly Tile[] = [
+    new Tile(2448, 9721, 0),
+    new Tile(2447, 9720, 0),
+    new Tile(2450, 9720, 0),
+    new Tile(2446, 9722, 0),
+    new Tile(2452, 9721, 0)
+];
 
 /** Fire the lit arrow at the bridge stay rope; the script walks the player across on a hit. */
 export async function shootGuiderope(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.GUIDEROPE_SHOT, 1, log))) {
+    for (const stand of SHOT_STANDS) {
+        if (!(await walkTo(stand, 0, log))) {
+            continue;
+        }
+        await settleScene();
+        const rope = locById(UP_LOC.GUIDEROPE, null, 12);
+        if (!rope) {
+            log('no bridge guide rope in range of the shooting stand');
+            return false;
+        }
+        const mark = GameMessages.mark();
+        if (!(await rope.interact('Fire-at'))) {
+            log(`the guide rope refused Fire-at (ops: ${rope.actions().join(' | ')})`);
+            return false;
+        }
+        const crossed = await driveUntil(() => (Game.tile()?.x ?? 9999) < 2445, [], log, 12_000);
+        if (crossed) {
+            log(`the arrow impaled the rope from (${stand.x},${stand.z})`);
+            return true;
+        }
+        const replies = GameMessages.since(mark).map(m => m.text);
+        const said = replies.join(' | ');
+        // Why: "I can't reach that!" is the server's own path search dead-ending, so the script never ran and
+        // no arrow was spent — it means this stand is wrong, not that the shot missed.
+        if (said.length === 0 || replies.some(text => CANT_REACH.test(text))) {
+            log(`(${stand.x},${stand.z}) cannot reach the rope — trying the next stand`);
+            continue;
+        }
+        log(`the shot did not carry from (${stand.x},${stand.z}) — server said: ${said}`);
         return false;
     }
-    await settleScene();
-    const rope = locById(UP_LOC.GUIDEROPE, null, 12);
-    if (!rope) {
-        log('no bridge guide rope in range of the shooting stand');
-        return false;
-    }
-    // Why: the script answers with one of five distinct `mes` lines — wrong side, no clear shot, no bow, no
-    // lit ammo, or the shot itself — and the tile alone cannot tell a miss from a refusal that spent nothing.
-    const mark = GameMessages.mark();
-    if (!(await rope.interact('Fire-at'))) {
-        log(`the guide rope refused Fire-at (ops: ${rope.actions().join(' | ')})`);
-        return false;
-    }
-    const crossed = await driveUntil(() => (Game.tile()?.x ?? 9999) < UP_TILE.GUIDEROPE_SHOT.x - 3, [], log, 12_000);
-    const said = GameMessages.since(mark).map(m => m.text).join(' | ');
-    log(crossed ? 'the arrow impaled the rope' : `the shot did not carry — server said: ${said || '(nothing)'}`);
-    return crossed;
+    log('no shooting stand drew a reply from the guide rope');
+    return false;
 }
