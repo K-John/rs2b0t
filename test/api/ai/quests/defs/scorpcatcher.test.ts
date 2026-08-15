@@ -74,8 +74,11 @@ describe('Scorpion Catcher decide', () => {
         expect(talkTarget(decide(snap({ invIds: [CAGE_ID.FULL], stage: SC_STAGE.SECOND_HINT })))).toBe('Thormac');
     });
 
+    // Why: the Seer's own leg drives the conversation, because `seer_looking_glass` shuts the chat and spends three `p_delay(3)` lines before reopening it.
     test('an empty cage before the first hint walks to the Seer', () => {
-        expect(talkTarget(decide(snap({ invIds: [CAGE_ID.EMPTY], stage: SC_STAGE.STARTED })))).toBe('Seer');
+        const step = decide(snap({ invIds: [CAGE_ID.EMPTY], stage: SC_STAGE.STARTED }));
+        expect(step.kind).toBe('custom');
+        expect(step.kind === 'custom' && step.name).toContain('Seer');
     });
 
     test('a missing journal stage waits rather than guessing', () => {

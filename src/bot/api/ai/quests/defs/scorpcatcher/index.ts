@@ -5,10 +5,10 @@ import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.j
 import { BARCRAWL_CARD, BARCRAWL_GP } from '../../barcrawl/BarcrawlLogic.js';
 import {
     CAGE_ID, CAGE_NAME, EVERY_CAGE, EVERY_SCORPION, SC_ITEM, SC_STAGE, SC_TILE, SCORPION_LABEL,
-    SEER, THORMAC, caughtIn
+    THORMAC, caughtIn
 } from './areas.js';
 import { readScorpionProgress } from './journal.js';
-import { CATCH_LEG } from './legs.js';
+import { CATCH_LEG, askTheSeer } from './legs.js';
 
 function firstCage(counts: ReadonlyMap<number, number> | undefined): number | undefined {
     for (const id of EVERY_CAGE) {
@@ -53,7 +53,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     }
     // Why: the seer's first hint is what makes the Taverley wall searchable, and the other two scorpions are already where they will be.
     if (progress.stage < SC_STAGE.FIRST_HINT) {
-        return { kind: 'talk', stop: SEER };
+        return { kind: 'custom', name: 'ask the Seer where the scorpions are', run: askTheSeer };
     }
 
     const caught = caughtIn(held);

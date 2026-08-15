@@ -5,17 +5,71 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
+import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { ensureBarcrawl } from '../../barcrawl/RunBarcrawl.js';
-import { talkThrough } from '../../exec/primitives.js';
+import { gotoNpc, openDialogue, pickPreferred, talkThrough } from '../../exec/primitives.js';
 import { driveUntil, settleScene } from '../../exec/prompts.js';
 import {
-    ABBOT, EVERY_CAGE, SC_ID, SC_TILE, SCORPION_NPC, caughtIn, type ScorpionKey
+    ABBOT, EVERY_CAGE, SC_ID, SC_TILE, SCORPION_NPC, SEER, caughtIn, type ScorpionKey
 } from './areas.js';
 import { crossSecretWall, enterDeepDungeon, leaveDeepDungeon } from './dungeon.js';
 
 const WALK_MS = 300_000;
 const CATCH_MS = 10_000;
 const CLIMB_MS = 8000;
+const SEER_MS = 45_000;
+
+/** The seer's closing line, once the looking glass has placed the first scorpion. */
+const HINT_GIVEN = 'see if you can find that scorpion';
+
+function spoken(lines: readonly string[]): string {
+    return lines.join(' ').replace(/@[a-z0-9]{3}@/gi, ' ').replace(/[|\s]+/g, ' ').trim().toLowerCase();
+}
+
+// Why: `seer_looking_glass` runs `if_close` and then three `mes` lines a `p_delay(3)` apart before it reopens the chat, and the shared driver gives a shut dialogue 1.5 seconds before it calls the conversation over.
+// Why: it then reports success with the hint ungiven, so the leg re-walks to Seers' Village and bails at the same gap for as long as the engine will retry it.
+
+/** Ask a Seer where the first scorpion is, sitting through the looking-glass pauses. */
+export async function askTheSeer(log: (m: string) => void): Promise<boolean> {
+    if (!(await gotoNpc(SEER, [], log))) {
+        return false;
+    }
+    if (!(await openDialogue(SEER.npc, log))) {
+        return false;
+    }
+    let heard = false;
+    const deadline = performance.now() + SEER_MS;
+    while (performance.now() < deadline) {
+        const texts = ChatDialog.texts();
+        if (texts.length > 0 && spoken(texts).includes(HINT_GIVEN)) {
+            heard = true;
+        }
+        if (ChatDialog.canContinue()) {
+            await ChatDialog.continue();
+            await Execution.delayTicks(1);
+            continue;
+        }
+        const options = ChatDialog.options();
+        if (options.length > 0) {
+            const pick = pickPreferred(options, SEER.prefer);
+            if (!pick) {
+                log(`scorpcatcher: the Seer offered [${options.join(' | ')}] and none of it asks about the scorpions`);
+                return false;
+            }
+            await ChatDialog.chooseOption(pick);
+            await Execution.delayTicks(2);
+            continue;
+        }
+        if (heard && !ChatDialog.isOpen()) {
+            break;
+        }
+        await Execution.delayTicks(1);
+    }
+    log(heard
+        ? 'scorpcatcher: the Seer has placed the first scorpion'
+        : 'scorpcatcher: the Seer never got as far as the hint');
+    return heard;
+}
 
 /** The cage in the pack, whichever of the eight it is. */
 function heldCageId(): number | undefined {
