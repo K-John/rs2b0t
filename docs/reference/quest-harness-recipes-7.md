@@ -82,6 +82,12 @@ are ground spawns beside them, the water is the Mort'ton sink, the logs are the
 two spawns beside the Varrock east bank, the tinderbox is the Varrock general
 store, and every building material is Razmire's.
 
+Measured end to end at `--tick 200`: **9 minutes, 38 steps, no parks** — walking,
+with no teleports, from a clean account. Two steps failed and recovered on their
+own: the swamp crossing outran its 90-second walk budget once (and paid two
+lobsters to the ghasts), and the first strike at the altar spent its budget
+climbing sanctity from a cold start.
+
 The temple is world state, and its walls hold for 9000 ticks — so a leg run soon
 after another leg finds it already rebuilt, and one run later finds the shades
 have knocked it back down. Both are states the module has to handle, and both

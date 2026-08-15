@@ -21,8 +21,9 @@ const EAT_AT_MISSING = 12;
 const BUILD_GUARD = 3000;
 /** Consecutive idle ticks that mean the server-side build loop has stopped. */
 const IDLE_TO_RECLICK = 3;
-/** Ticks the altar's own three-tick firemaking loop is given to catch. */
-const LIGHT_GUARD = 200;
+// Why: the leg builds sanctity before it strikes, and climbing from a cold start to the target is about two hundred ticks on its own — a budget that only covers the climb spends itself and reports a flame that never caught.
+/** Ticks the sanctity climb and the altar's own three-tick firemaking loop share. */
+const LIGHT_GUARD = 500;
 const OUT_OF_RESOURCES = /material resource pool/i;
 
 export const templeRepaired = (): number => reader.varp(SM_VARP.TEMPLE_REPAIRED);
