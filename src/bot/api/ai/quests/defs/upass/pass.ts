@@ -209,22 +209,31 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
     for (let d = 1; d <= 4; d++) {
         ring.push([d, 0], [-d, 0], [0, d], [0, -d]);
     }
-    const sides = ring
-        .map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level))
-        // Why: `adjacentOk` accepts a tile the character can only get *next to*, which is exactly the tile a
-        // radius-zero walk then refuses. A stand has to be stood on, so the candidate filter is the strict one.
+    const nearMe = (a: Tile, b: Tile): number => chebyshev(a, me ?? a) - chebyshev(b, me ?? b);
+    const candidates = ring.map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level));
+    // Why: a tile the character can stand *on* is the one worth having — `adjacentOk` accepts tiles it can
+    // only get next to, and a radius-zero walk then refuses exactly those. But strict as a veto is worse than
+    // the disease: it threw away the rope swing's stand and left the route with nothing at all. So strict
+    // first, loose behind it, and the walk's radius follows which list the tile came from.
+    const strict = candidates
         .filter(tile => Reachability.canReach(tile, { adjacentOk: false, maxSteps: REACH.maxSteps }))
-        .sort((a, b) => chebyshev(a, me ?? a) - chebyshev(b, me ?? b));
+        .sort(nearMe);
+    const loose = candidates
+        .filter(tile => !strict.some(s => s.x === tile.x && s.z === tile.z))
+        .filter(tile => Reachability.canReach(tile, REACH))
+        .sort(nearMe);
+    const sides = [...strict, ...loose];
     if (sides.length === 0) {
         note(`nowhere to stand beside ${at.x},${at.z}`);
         return false;
     }
     const pick = sides[skip % sides.length]!;
+    const exact = skip % sides.length < strict.length;
     // Why: the ring is cardinal because `reachRectangle` takes nothing else, and a radius of one throws that
     // away — it lands next to the tile that was chosen, which is the diagonal, and the op answers "You can't
     // do that from here." Four tries at the second cavern's ledge all came from one diagonal tile that way.
     // Why: walkResilient's own logging is a dozen lines a walk, and the caller keeps one line.
-    if (await Traversal.walkResilient(pick, { radius: 0, attempts: 1, timeoutMs: 20_000 })) {
+    if (await Traversal.walkResilient(pick, { radius: exact ? 0 : 1, attempts: 1, timeoutMs: 20_000 })) {
         note(`stood@${here()?.x},${here()?.z}`);
         return true;
     }
