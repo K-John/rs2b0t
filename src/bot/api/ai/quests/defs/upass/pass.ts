@@ -173,25 +173,24 @@ function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string
 // op-click dead-ends and answers "I can't reach that!" — the script never runs, and the step reads it as a
 // failed agility roll. `inOperableDistance` is `reachedEntity || reachedObj`, which a CARDINAL neighbour
 // satisfies, so the walk is made explicit before the op is sent.
+// Why: and the client's own walkability for that tile is not the test. It disagrees with the server on a
+// bridge structure, so trusting it short-circuited the walk and sent the op from twenty tiles away again.
 async function standBeside(at: Tile, log: (m: string) => void): Promise<boolean> {
-    if (Reachability.walkable(at)) {
+    const me = here();
+    if (me && me.level === at.level && chebyshev(me, at) <= 1) {
         return true;
     }
     const sides = [[1, 0], [-1, 0], [0, 1], [0, -1]]
         .map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level))
-        .filter(tile => Reachability.canReach(tile, REACH));
-    const me = here();
-    const pick = me
-        ? sides.sort((a, b) => chebyshev(a, me) - chebyshev(b, me))[0]
-        : sides[0];
+        .filter(tile => Reachability.canReach(tile, REACH))
+        .sort((a, b) => chebyshev(a, me ?? a) - chebyshev(b, me ?? b));
+    const pick = sides[0];
     if (!pick) {
         log(`pass: no walkable tile beside (${at.x},${at.z}) — cannot send an op at it`);
         return false;
     }
-    if (chebyshev(pick, me ?? pick) === 0) {
-        return true;
-    }
     if (await Traversal.walkResilient(pick, { radius: 0, attempts: 2, timeoutMs: 30_000, log })) {
+        log(`pass: standing at (${here()?.x},${here()?.z}) beside (${at.x},${at.z})`);
         return true;
     }
     log(`pass: could not stand at (${pick.x},${pick.z}) beside (${at.x},${at.z})`);
@@ -262,9 +261,11 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
                 break;
             }
             if (!(await obstacle.interact(op))) {
+                log(`pass: '${op}' would not send at ${obstacle.name ?? obstacle.id}`);
                 break;
             }
             now = (await settleWalk()) ?? now;
+            log(`pass:   ${op} try ${attempt + 1} settled at (${now.x},${now.z})`);
             if (chebyshev(now, dest) + MIN_GAIN <= chebyshev(from, dest)) {
                 break;
             }
