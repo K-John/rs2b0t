@@ -54,9 +54,10 @@ const HOP_KINDS: readonly HopKind[] = [
     // for a seam on the bridge shelf walked a run twenty tiles off the grid approach. The z bound is what
     // separates the two — the second cavern is everything below 9664.
     { loc: UP_LOC.SWAMP, op: 'Cross', below: 9664 },
-    { loc: UP_LOC.ROCKPILE, op: 'Climb', below: 9664 },
-    { loc: UP_LOC.CELL_TUNNEL, op: 'Enter', below: 9664 }
+    { loc: UP_LOC.ROCKPILE, op: 'Climb', below: 9664 }
 ];
+// Why: `cavewalltunnel_upass_tocells` carries an Enter it has no script for — it is the scenery the mud dig
+// teleports the player out beside, so crossing it can only waste the hop it is chosen for.
 
 const HOP_TIMEOUT_MS = 12_000;
 /** How long the crossing script itself gets, once the op-click's walk has stopped. */
