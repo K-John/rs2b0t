@@ -58,6 +58,8 @@ const HOP_KINDS: readonly HopKind[] = [
 ];
 
 const HOP_TIMEOUT_MS = 12_000;
+/** How long the crossing script itself gets, once the op-click's walk has stopped. */
+const CROSS_TIMEOUT_MS = 6_000;
 const MAX_HOPS = 24;
 /** How much closer to the target an obstacle must sit before it is worth crossing. */
 const MIN_GAIN = 3;
@@ -72,6 +74,28 @@ function here(): { x: number; z: number; level: number } | null {
 
 function chebyshev(a: { x: number; z: number }, b: { x: number; z: number }): number {
     return Math.max(Math.abs(a.x - b.x), Math.abs(a.z - b.z));
+}
+
+// Why: an op-click walks the player before its script resolves, so nothing can be judged until the walk has
+// stopped. Two unchanged ticks is what "stopped" means here; the forced move of the crossing itself comes
+// after, and shows up as the distance the caller then measures.
+async function settleWalk(): Promise<{ x: number; z: number; level: number } | null> {
+    let last = here();
+    let still = 0;
+    const deadline = performance.now() + HOP_TIMEOUT_MS;
+    while (performance.now() < deadline) {
+        await Execution.delayTicks(1);
+        const now = here();
+        if (now && last && now.x === last.x && now.z === last.z && now.level === last.level) {
+            if (++still >= 2) {
+                return now;
+            }
+        } else {
+            still = 0;
+        }
+        last = now;
+    }
+    return here();
 }
 
 function held(id: number): number {
@@ -104,8 +128,10 @@ function kindOf(loc: Loc): HopKind | null {
 
 /**
  * Cross one obstacle toward `dest`. Returns false when there is none that makes progress.
- * Why: the arrival test is "the tile changed", because every one of these is a forced move of one or two
- * tiles — an agility roll that fails leaves the player where they were, which is a retry rather than a stop.
+ * Why: the test is the distance to `dest`, not "the tile changed". An op-click walks the player before its
+ * script resolves, so a tile change is usually the approach — one run read a one-tile drift toward a cage it
+ * never reached as a crossing and spent seventy seconds a round on it. A roll that fails leaves the player
+ * where they were, which is a retry rather than a stop, so the locks get theirs.
  */
 async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string>): Promise<boolean> {
     const from = here();
@@ -122,30 +148,41 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
             continue;
         }
         const op = kind.op;
-        let moved = false;
-        for (let attempt = 0; attempt < (kind.tries ?? 1) && !moved; attempt++) {
+        let now = from;
+        for (let attempt = 0; attempt < (kind.tries ?? 1); attempt++) {
             if (!(await obstacle.interact(op))) {
                 break;
             }
-            moved = await Execution.delayUntil(() => {
-                const now = here();
-                return now !== null && (now.x !== from.x || now.z !== from.z || now.level !== from.level);
-            }, HOP_TIMEOUT_MS);
+            now = (await settleWalk()) ?? now;
+            if (chebyshev(now, dest) + MIN_GAIN <= chebyshev(from, dest)) {
+                break;
+            }
+            // Why: the walk can stop on the near side while the crossing script is still running — the two
+            // locked cages roll thieving over a two-tick delay before moving anyone. So a walk that landed
+            // nowhere useful is given the script's own time before it is called a failure.
+            const staged = now;
+            await Execution.delayUntil(() => {
+                const t = here();
+                return t !== null && (t.x !== staged.x || t.z !== staged.z || t.level !== staged.level);
+            }, CROSS_TIMEOUT_MS);
+            now = here() ?? now;
+            if (chebyshev(now, dest) + MIN_GAIN <= chebyshev(from, dest)) {
+                break;
+            }
         }
-        if (!moved) {
-            continue;
-        }
-        const now = here();
         await settleScene();
         // Why: an obstacle can sit closer to the target than the player does and still put them on its far
         // side going backwards — crossing one that did not shorten the distance is what makes the loop
         // oscillate between two sides of the same rock, so it is spent for the rest of this journey.
-        if (now && chebyshev(now, dest) >= chebyshev(from, dest)) {
+        // Why: the same gain the search demands, because the op-click walks the player before the script
+        // resolves — a one-tile drift toward the obstacle is a walk, not a crossing, and reading it as one
+        // burned seventy seconds per round on a cage the player never reached.
+        if (chebyshev(now, dest) + MIN_GAIN > chebyshev(from, dest)) {
             spent.add(key);
-            log(`pass: ${op} ${obstacle.name ?? obstacle.id} led away from (${dest.x},${dest.z}) — not using it again`);
+            log(`pass: ${op} ${obstacle.name ?? obstacle.id} did not cross toward (${dest.x},${dest.z}) — not using it again`);
             continue;
         }
-        log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now?.x},${now?.z})`);
+        log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now.x},${now.z})`);
         return true;
     }
     return ropeSwingToward(dest, log);

@@ -219,9 +219,25 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(step)).toContain('pit of the damned');
     });
 
-    test('an unimplemented stage waits with the stage named, never a silent retry', () => {
-        const step = decide(snapshot({ stage: UP_STAGE.DEFEATED_IBAN, tile: AREA1 }));
+    // Why: the temple throws the player into the second cavern, which has no walkable way back up — Koftik's
+    // dialogue is the transport. Each step of the walk out is keyed on where the last one landed.
+    test('the walk out is keyed on where the last step landed', () => {
+        const legs: [{ x: number; z: number; level: number }, string][] = [
+            [{ x: 2482, z: 9607, level: 0 }, 'Koftik'],
+            [AREA1, 'leave the underground pass'],
+            [WEST_ARDOUGNE, 'East Ardougne'],
+            [ARDOUGNE, 'King Lathas']
+        ];
+        for (const [tile, expected] of legs) {
+            expect(nameOf(decide(snapshot({ stage: UP_STAGE.DEFEATED_IBAN, tile })))).toContain(expected);
+        }
+    });
+
+    // Why: every value the journal can report is now routed, so this guards the shape of the fallback —
+    // a stage the module does not know has to name itself and stop, not retry the last step it did know.
+    test('a stage the module does not know waits with the stage named', () => {
+        const step = decide(snapshot({ stage: -1, tile: AREA1 }));
         expect(kindOf(step)).toBe('wait');
-        expect(reasonOf(step)).toContain('Iban is dead');
+        expect(reasonOf(step)).toContain('-1');
     });
 });

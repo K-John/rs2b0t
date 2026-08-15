@@ -7,6 +7,10 @@ import {
     crossToWest,
     enterCave,
     getDampCloth,
+    crossToEast,
+    leavePass,
+    leaveWithKoftik,
+    reportToLathas,
     makeFireArrow,
     meetKoftik,
     shootGuiderope,
@@ -220,6 +224,23 @@ function dollLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
     return custom("open Iban's temple doors", openIbanDoor);
 }
 
+// Why: the temple throws the player into the second cavern, which has no walkable way back up — Koftik's
+// own dialogue is the transport, so the walk out is four steps keyed on where the last one landed.
+function finishLeg(area: UpassArea): QuestStep {
+    switch (area) {
+        case 'area2':
+            return custom('find Koftik and let him lead the way out', leaveWithKoftik);
+        case 'area1':
+            return custom('leave the underground pass', leavePass);
+        case 'westardougne':
+            return custom('cross the wall back into East Ardougne', crossToEast);
+        case 'mainland':
+            return custom('report to King Lathas', reportToLathas);
+        default:
+            return { kind: 'wait', reason: `thrown out of Iban's temple into ${area}` };
+    }
+}
+
 function stageStep(snap: QuestSnapshot, area: UpassArea, stage: number): QuestStep {
     // Why: the bow owns the right hand until the stay rope is shot, so the melee kit only goes on past the
     // bridge — and it goes on before the orb sweep, which needs the five slots the armour would otherwise sit in.
@@ -251,7 +272,7 @@ function stageStep(snap: QuestSnapshot, area: UpassArea, stage: number): QuestSt
                 ? custom('throw the doll into the pit of the damned', throwDoll)
                 : dollLeg(snap, area);
         case UP_STAGE.DEFEATED_IBAN:
-            return { kind: 'wait', reason: 'Iban is dead — the walk out and the report to Lathas are not implemented' };
+            return finishLeg(area);
         default:
             return { kind: 'wait', reason: `Underground Pass stage ${stage} is not implemented` };
     }

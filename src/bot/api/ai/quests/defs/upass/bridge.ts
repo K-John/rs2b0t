@@ -127,6 +127,41 @@ export async function enterCave(log: (m: string) => void): Promise<boolean> {
     return driveUntil(() => (Game.tile()?.z ?? 0) > 9000, [], log, 20_000);
 }
 
+// Why: the way out is not walked. Koftik leads it — `koftik_whereami` teleports the player from the second
+// cavern up to the landing chamber, and the cave exit there is the only loc that leaves the pass.
+
+/** Koftik, sane again once Iban is dead, leads the way up to the landing chamber. */
+export function leaveWithKoftik(log: (m: string) => void): Promise<boolean> {
+    return talkAt(UP_NPC.KOFTIK_LAST, UP_TILE.LAST_OUT, [], log);
+}
+
+/** Out through the cave exit at the top of the landing chamber. */
+export async function leavePass(log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(UP_TILE.CAVE_EXIT, 3, log))) {
+        return false;
+    }
+    await settleScene();
+    const exit = locById(UP_LOC.CAVE_EXIT, null, 12);
+    const op = exit?.actions()[0];
+    if (!exit || !op) {
+        log('no cave exit in the landing chamber');
+        return false;
+    }
+    if (!(await exit.interact(op))) {
+        return false;
+    }
+    return driveUntil(() => (Game.tile()?.z ?? 9999) < 9000, [], log, 20_000);
+}
+
+/** King Lathas takes the report; his `upass_defeated_iban` branch closes the quest with no choices. */
+export async function reportToLathas(log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(UP_TILE.LATHAS, 2, log))) {
+        return false;
+    }
+    await settleScene();
+    return talkStrict('King Lathas', [], log);
+}
+
 /** Koftik by the bridge hands over the damp cloth. */
 export function getDampCloth(log: (m: string) => void): Promise<boolean> {
     return talkAt(UP_NPC.KOFTIK_BRIDGE, UP_TILE.KOFTIK_BRIDGE, ['Not to worry'], log);

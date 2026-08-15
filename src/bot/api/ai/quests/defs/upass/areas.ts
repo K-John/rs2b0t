@@ -203,6 +203,8 @@ export const UP_TILE = {
     IBAN_DOOR: new Tile(2144, 4647, 1),
     IBAN_ALTAR: new Tile(2136, 4647, 1),
     IBAN_THROWN_OUT: new Tile(2482, 9607, 0),
+    LAST_OUT: new Tile(2438, 9607, 0),
+    CAVE_EXIT: new Tile(2496, 9714, 0),
     WELL_OF_VOYAGE: new Tile(2008, 4711, 1)
 } as const;
 
