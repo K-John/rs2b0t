@@ -252,6 +252,33 @@ export async function climbToPillars(log: Log): Promise<boolean> {
     return true;
 }
 
+// Why: the pillar floor is a seven-tile pocket whose only ways off are the tree back down and the trapdoor, and neither is a baked edge — so a bank step decided up here has no route and spends the whole budget proving it.
+
+/** Climb out of Glough's tree, back to the ground the bank is on. */
+export async function descendGloughTree(log: Log): Promise<boolean> {
+    const t = here();
+    if (!t || t.level === 0) {
+        return true;
+    }
+    if (t.level >= 2) {
+        if (!(await Traversal.walkResilient(GT_TILE.downTreeStand, { radius: 1, attempts: 3, timeoutMs: 60_000, log }))) {
+            return false;
+        }
+        await settleScene();
+        const tree = Locs.query().where(l => l.id === GT_LOC.DOWN_TREE).action('Climb-down').within(4).nearest();
+        if (!tree || !(await tree.interact('Climb-down'))) {
+            log(`no tree down from the pillar floor at (${GT_TILE.downTreeStand.x},${GT_TILE.downTreeStand.z})`);
+            return false;
+        }
+        if (!(await Execution.delayUntil(() => (here()?.level ?? 2) < 2, 10_000))) {
+            return false;
+        }
+        await settleScene();
+    }
+    // Glough's own ladder is baked, so the last leg down is an ordinary walk.
+    return Traversal.walkResilient(GT_TILE.gloughHouseFoot, { radius: 2, attempts: 3, timeoutMs: 90_000, log });
+}
+
 /** Lay each twig on the pillar the trapdoor's own `obj_find` checks for it. */
 export function placeTwig(index: number): (log: Log) => Promise<boolean> {
     const pillar = GT_PILLARS[index]!;

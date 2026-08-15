@@ -51,6 +51,7 @@ export const GT_LOC = {
     PILLAR_O: 2443,
     TRAPDOOR_SHUT: 2444,
     CLIMB_TREE: 2447,
+    DOWN_TREE: 2448,
     ROOT_A: 1985,
     ROOT_B: 1986
 } as const;
@@ -85,6 +86,8 @@ export const GT_TILE = {
     chestStand: new Tile(2482, 3463, 1),
     /** East of the tree that climbs to Glough's top floor; the loc's own tile is blocked. */
     climbTreeStand: new Tile(2484, 3463, 1),
+    /** North of the tree back down off the pillar floor. */
+    downTreeStand: new Tile(2485, 3465, 2),
     /** Where `~agility_climb_up` lands, on the pillar floor. */
     pillarFloor: new Tile(2486, 3465, 2),
     /** The trapdoor is ground decor and blocks its own tile, so this is the tile north of it. */

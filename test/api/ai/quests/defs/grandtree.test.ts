@@ -173,6 +173,26 @@ describe('The Grand Tree decide()', () => {
         expect(step.kind === 'withdraw' && step.items[0]?.name).toBe('Lobster');
     });
 
+    test('the kit is bought at stage 120, before the first climb to the pillars', () => {
+        QuestFood.name = 'Lobster';
+        const step = decide(snap({
+            stage: GT_STAGE.GIVEN_TWIGS,
+            invIds: [GT_OBJ.TWIG_T],
+            bank: ['lobster', 'lobster', 'lobster']
+        }));
+
+        expect(step.kind).toBe('withdraw');
+    });
+
+    test('a kit still owed from the pillar floor climbs down for it rather than banking in the pocket', () => {
+        QuestFood.name = 'Lobster';
+        const pillars = { x: 2486, z: 3465, level: 2 };
+        expect(customName(decide(snap({ stage: GT_STAGE.GIVEN_TWIGS, tile: pillars, bank: ['lobster'] }))))
+            .toBe("climb down out of Glough's tree for the kit");
+        expect(customName(decide(snap({ stage: GT_STAGE.UNLOCKED_TRAPDOOR, tile: pillars, bank: ['lobster'] }))))
+            .toBe("climb down out of Glough's tree for the kit");
+    });
+
     test('an unknown bank is scanned before the demon rather than guessed at', () => {
         QuestFood.name = 'Lobster';
         const step = decide(snap({ stage: GT_STAGE.UNLOCKED_TRAPDOOR, bankKnown: false }));

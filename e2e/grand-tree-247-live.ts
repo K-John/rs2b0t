@@ -91,6 +91,12 @@ function startTile(stage: number): { x: number; z: number; level: number } {
     return stage >= 100 ? STRONGHOLD_BANK : ARDOUGNE_BANK;
 }
 
+// Why: no bank on Karamja answers a path without the 30gp ferry fare, so a `--stage 90` jump
+// lands with an empty pack, cannot provision, and walks the jungle on no food until it dies.
+// Why: a run that reached stage 90 by playing arrives carrying both, so the jump hands them over.
+// Why: this is the engine's float, not a quest item — nothing the quest has to find is seeded.
+const KARAMJA_PACK = ['give coins 2000', 'give lobster 10'];
+
 /**
  * Coins, lobsters and a rune melee kit. Every quest item — the bark sample, the
  * scroll, the journal, the lumber order, Anita's key, the twigs and the rock —
@@ -244,6 +250,12 @@ try {
             }
         }
         console.log(`start tile → ${start.x},${start.z},${start.level}`);
+        if (start === KARAMJA_CRASH) {
+            for (const cmd of KARAMJA_PACK) {
+                await cheatQuiet(page, cmd);
+            }
+            console.log(`Karamja start: ${KARAMJA_PACK.join(', ')} — no bank there answers a path without the fare`);
+        }
     }
 
     await page.evaluate(id => sessionStorage.setItem('rs2b0t:set:AIOQuester:quests', id), QUEST_ID);

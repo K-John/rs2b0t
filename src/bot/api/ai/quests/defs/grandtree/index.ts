@@ -24,6 +24,7 @@ import { descendTrapdoor, fightBlackDemon } from './fight.js';
 import { readGrandTreeStage } from './journal.js';
 import {
     anitaKey,
+    descendGloughTree,
     femiCart,
     foremanOrder,
     jailedByGlough,
@@ -139,9 +140,15 @@ export function decide(snap: QuestSnapshot): QuestStep {
     const stage = snap.stage;
     if (stage === undefined) { return { kind: 'wait', reason: 'The Grand Tree journal stage unavailable' }; }
 
-    if (stage === GT_STAGE.UNLOCKED_TRAPDOOR && !inCaves(snap.tile)) {
+    // Why: the twig legs live on Glough's pillar floor, a seven-tile pocket with no baked way off it, so the kit is bought on the ground before the first climb rather than beside the trapdoor.
+    // Why: a run that arrives up there still owing gear climbs back down for it — a bank step decided in the pocket has no route and burns the whole budget proving so.
+    if ((stage === GT_STAGE.GIVEN_TWIGS || stage === GT_STAGE.UNLOCKED_TRAPDOOR) && !inCaves(snap.tile)) {
         const kit = demonKit(snap);
-        if (kit) { return kit; }
+        if (kit) {
+            return (snap.tile?.level ?? 0) > 0
+                ? custom("climb down out of Glough's tree for the kit", descendGloughTree)
+                : kit;
+        }
     }
 
     // Why: everything past the demon happens in the root caves, whose only mouth before the quest ends is Glough's trapdoor — so a death, or a run resumed on the surface, climbs back down before it can act.
