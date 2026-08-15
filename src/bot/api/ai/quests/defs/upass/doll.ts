@@ -1,3 +1,4 @@
+import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
@@ -94,7 +95,7 @@ async function killNpc(npcId: number, near: Tile, name: string, log: (m: string)
         return false;
     }
     await settleScene();
-    const find = (): Npc | null => Npcs.query().where(npc => npc.id === npcId).within(14).nearest();
+    const find = (): Npc | null => Npcs.query().where(npc => npc.id === npcId).within(20).nearest();
     const target = find();
     if (!target) {
         log(`no ${name} near (${near.x},${near.z}) — already dead this spawn`);
@@ -104,7 +105,17 @@ async function killNpc(npcId: number, near: Tile, name: string, log: (m: string)
         log(`could not attack ${name}`);
         return false;
     }
-    return driveUntil(() => find() === null, [], log, 180_000);
+    if (!(await driveUntil(() => find() === null, [], log, 180_000))) {
+        return false;
+    }
+    // Why: these all wander, so one absent poll is "walked out of the query", not "dead" — and a false kill
+    // sends the leg on to look for a drop that was never made. It has to still be gone a moment later.
+    await Execution.delayTicks(3);
+    if (find() !== null) {
+        log(`${name} only wandered out of range`);
+        return false;
+    }
+    return true;
 }
 
 /** Kalrag's fluids smear onto the doll on her death, so the doll has to be in the pack. */
