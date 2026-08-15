@@ -7,12 +7,9 @@
 
 //   HEADED=1 bun e2e/upass-265-live.ts --stage 0 --until 2 --minutes 30 --tick 200
 //   HEADED=1 bun e2e/upass-265-live.ts --stage 2 --until 3 --minutes 25 --tick 200
-import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
-
 import type { Page } from 'playwright-core';
 
-import { launchBrowser } from './lib/harness.js';
+import { deployIsolatedClient, launchBrowser } from './lib/harness.js';
 import {
     cheatQuiet,
     clearChatDialogs,
@@ -157,32 +154,18 @@ async function snapshot(page: Page): Promise<Snapshot> {
     }, QUEST);
 }
 
-const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
-
-function deployBundle(): void {
-    const engine = process.env.ENGINE_DIR ?? `${homedir()}/code/rs2b2t-engine`;
-    const botDir = `${engine}/public/bot`;
-    if (!existsSync(botDir)) {
-        fail(`deploy: ${botDir} not found — set ENGINE_DIR to the engine serving ${args.base}`);
-    }
-    const build = Bun.spawnSync(['bun', 'run', 'build:bot'], { stdout: 'pipe', stderr: 'pipe' });
-    if (build.exitCode !== 0) {
-        fail(`deploy: build:bot failed\n${build.stderr.toString()}`);
-    }
-    const copy = Bun.spawnSync(['sh', '-c', `cp ${DEPLOYED.map(f => `out/${f}`).join(' ')} "${botDir}/"`]);
-    if (copy.exitCode !== 0) {
-        fail(`deploy: could not copy the bundles into ${botDir}`);
-    }
-    console.log(`deploy: fresh ${DEPLOYED.join(', ')} -> ${botDir}`);
-}
-
 if (args.stage < 0 || args.stage > 10) {
     fail('--stage is the %upass value and runs 0 to 10');
 }
 
-if (args.deploy) {
-    deployBundle();
-}
+// Why: `public/bot` is shared, so another session's deploy landing inside this run's boot window would
+// hand it their branch. The isolated client also refuses to start without the collision pack, which is
+// what a fresh worktree is missing — the navigator dies on boot and every walk degrades in silence to the
+// scene stepper, presenting as a per-destination "unreachable" rather than a missing artefact.
+const client = args.deploy ? deployIsolatedClient(args.user) : null;
+const clientPage = client?.page ?? '/bot.html';
+// Why: a PASS leaves through `process.exit`, which skips `finally`, so the sweep hangs off the exit itself.
+process.on('exit', () => client?.cleanup());
 
 const browser = await launchBrowser({ swiftshader: true });
 try {
@@ -196,7 +179,7 @@ try {
         }
     });
 
-    await mainlandAccount(page, args.base, args.user);
+    await mainlandAccount(page, args.base, args.user, clientPage);
     console.log(`mainland-ready as '${args.user}'`);
 
     await cheatQuiet(page, `speed ${args.tickMs}`);
