@@ -181,9 +181,10 @@ export async function armFireArrow(log: (m: string) => void): Promise<boolean> {
     return true;
 }
 
-// Why: the shot is refused from west of the rope and from anything south of z 9720, and the
-// hit itself is a `stat_random(ranged, 160, 300)` roll — so it is fired from the stand until it lands.
-const SHOT_ATTEMPTS = 8;
+// Why: the shot spends the arrow whether or not it lands — `inv_del(worn, $worn_ammo, 1)` runs before the
+// `stat_random(ranged, 160, 300)` roll — and one damp cloth makes exactly one. Firing in a loop therefore
+// spends seven attempts on an empty quiver. Koftik hands over another cloth whenever the pack holds none,
+// so the retry is the decide() cycle rebuilding the arrow, and this step fires once.
 
 /** Fire the lit arrow at the bridge stay rope; the script walks the player across on a hit. */
 export async function shootGuiderope(log: (m: string) => void): Promise<boolean> {
@@ -191,21 +192,16 @@ export async function shootGuiderope(log: (m: string) => void): Promise<boolean>
         return false;
     }
     await settleScene();
-    for (let shot = 0; shot < SHOT_ATTEMPTS; shot++) {
-        const rope = locById(UP_LOC.GUIDEROPE, null, 12);
-        if (!rope) {
-            log('no bridge guide rope in range of the shooting stand');
-            return false;
-        }
-        if (!(await rope.interact('Fire-at'))) {
-            log(`the guide rope refused Fire-at (ops: ${rope.actions().join(' | ')})`);
-            return false;
-        }
-        if (await driveUntil(() => (Game.tile()?.x ?? 9999) < UP_TILE.GUIDEROPE_SHOT.x - 3, [], log, 12_000)) {
-            log(`the arrow impaled the rope on shot ${shot + 1}`);
-            return true;
-        }
+    const rope = locById(UP_LOC.GUIDEROPE, null, 12);
+    if (!rope) {
+        log('no bridge guide rope in range of the shooting stand');
+        return false;
     }
-    log('eight arrows missed the stay rope');
-    return false;
+    if (!(await rope.interact('Fire-at'))) {
+        log(`the guide rope refused Fire-at (ops: ${rope.actions().join(' | ')})`);
+        return false;
+    }
+    const crossed = await driveUntil(() => (Game.tile()?.x ?? 9999) < UP_TILE.GUIDEROPE_SHOT.x - 3, [], log, 12_000);
+    log(crossed ? 'the arrow impaled the rope' : 'the arrow missed — another cloth is needed');
+    return crossed;
 }
