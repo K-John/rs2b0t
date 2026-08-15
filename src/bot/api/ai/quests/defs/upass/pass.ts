@@ -138,14 +138,19 @@ function seamReachable(at: Tile): boolean {
     );
 }
 
+// Why: the sweep looks further than the hop search does. The main cavern's own exit is a collapsed bridge
+// forty-three tiles off, while the one inside thirty-two belongs to a pocket this one cannot reach — so a
+// sweep bounded by the hop radius only ever saw the wrong bridge.
+const SWEEP_SEARCH = 52;
+
 /** Every seam loc in the scene, whether or not it is worth crossing — the log for a stuck pocket. */
-function seamsInScene(): Loc[] {
+function seamsInScene(within = HOP_SEARCH): Loc[] {
     const found: Loc[] = [];
     for (const kind of HOP_KINDS) {
-        found.push(...Locs.query().where(loc => loc.id === kind.loc).action(kind.op).within(HOP_SEARCH).results());
+        found.push(...Locs.query().where(loc => loc.id === kind.loc).action(kind.op).within(within).results());
     }
     for (const seam of USE_SEAMS) {
-        found.push(...Locs.query().where(loc => seam.locs.includes(loc.id)).within(HOP_SEARCH).results());
+        found.push(...Locs.query().where(loc => seam.locs.includes(loc.id)).within(within).results());
     }
     return found;
 }
@@ -155,7 +160,7 @@ function seamsInScene(): Loc[] {
 // that costs a whole run, so it says what it could see and what it made of each one.
 function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string) => void): void {
     const mine = chebyshev(from, dest);
-    const seams = seamsInScene()
+    const seams = seamsInScene(SWEEP_SEARCH)
         .slice(0, 12)
         .map(loc => {
             const at = loc.tile();
@@ -436,7 +441,7 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
     // Why: the client's own flood is not the authority on this — it called the collapsed bridge walled off
     // from twenty-nine tiles away inside the same pocket, which the collision pack says is one walk. So every
     // seam in the scene is walked at, and the budget is the length of that walk rather than a short probe.
-    for (const loc of seamsInScene().sort((a, b) => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest))) {
+    for (const loc of seamsInScene(SWEEP_SEARCH).sort((a, b) => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest))) {
         if (!(await Traversal.walkResilient(loc.tile(), { radius: 8, attempts: 2, timeoutMs: 60_000 }))) {
             continue;
         }
