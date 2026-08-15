@@ -153,12 +153,23 @@ export async function distractWitch(log: (m: string) => void): Promise<boolean> 
         return false;
     }
     await settleScene();
-    const door = locById(UP_LOC.WITCH_DOOR, 'Knock', 8);
-    if (!door || !(await door.interact('Knock'))) {
-        log("no knockable door on Kardia's house");
+    const door = locById(UP_LOC.WITCH_DOOR, 'Knock', 16);
+    if (!door) {
+        const at = Game.tile();
+        log(`no knockable door within sixteen of (${at?.x},${at?.z})`);
         return false;
     }
-    return driveUntil(() => heldId(UP_ITEM.WITCH_CAT.id) === 0, [], log, 20_000);
+    if (!(await door.interact('Knock'))) {
+        log(`the knock would not send at the door (${door.tile().x},${door.tile().z})`);
+        return false;
+    }
+    // Why: the knock puts the cat down, so the cat leaving the pack is what says Kardia came out.
+    if (await driveUntil(() => heldId(UP_ITEM.WITCH_CAT.id) === 0, [], log, 20_000)) {
+        return true;
+    }
+    const at = Game.tile();
+    log(`knocked from (${at?.x},${at?.z}) and kept the cat`);
+    return false;
 }
 
 /** Open the house and take the doll out of the chest. */
