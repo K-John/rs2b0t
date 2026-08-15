@@ -26,7 +26,11 @@ export const CASES: readonly Case[] = [
         id: 'biohazard-234-live',
         harness: 'biohazard-234-live.ts',
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
-        status: 'unvetted'
+        status: 'vetted',
+        budgetMin: 30,
+        provenAt: '8b1c5e06',
+        documentedIn: 'docs/reference/quest-harness-recipes.md',
+        note: 'clean account to journal complete in 14min at --tick 100, no parks'
     },
     {
         id: 'brimhaven-agility-test',

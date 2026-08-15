@@ -30,6 +30,7 @@ Measured at `--tick 100`, no parks:
 | 10 → 12 | 3 | the walk to Rimmington and the chemist |
 | 12 → 14 | 5 | the errand boys, Thessalia, the gate, the inn, Guidor |
 | 14 → 16 | 2 | Elena and King Lathas |
+| 0 → 16 | 14 | a clean account to `QUEST COMPLETE!` |
 
 The Rimmington and Varrock legs are the long ones, and both are walking rather than work.
 

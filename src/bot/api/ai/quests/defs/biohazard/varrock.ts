@@ -38,8 +38,8 @@ export const ERRANDS: readonly Errand[] = [
 
 const PRIEST_SUIT: readonly BioItem[] = [BIO_ITEM.PRIEST_GOWN, BIO_ITEM.PRIEST_ROBE];
 
-/** What the two priest-gown halves cost between them, with headroom over the shop's markup. */
-export const PRIEST_SUIT_GP = 400;
+/** Coins in the pack below which the priest-suit float is redrawn; the halves cost ten. */
+export const PRIEST_SUIT_GP = 200;
 
 export const getTouchPaper = (log: (m: string) => void): Promise<boolean> =>
     talkAt(BIO_NPC.CHEMIST, BIO_TILE.CHEMIST, CHEMIST_PREFER, log);

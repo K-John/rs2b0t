@@ -40,8 +40,11 @@ export function reclaim(snap: QuestSnapshot, item: BioItem, qty = 1): QuestStep 
     return withdraw([{ name: item.name, id: item.id, qty: Math.min(qty - held(snap, item), stock) }]);
 }
 
-// Why: the float is drawn beside the Ardougne booth on the distraction leg, so the walk from
-// Rimmington to Thessalia is one leg rather than a detour to whichever bank is nearest Rimmington.
+// Why: the float is drawn beside the Ardougne booth on the distraction leg, so the walk from Rimmington to Thessalia is one leg rather than a detour to whichever bank is nearest Rimmington.
+// Why: a draw is much larger than the trigger, or the sixty coins spent on the way to the chemist put the purse back under the threshold and buy a second bank trip.
+
+/** What a draw takes out; the suit itself is ten. */
+const PURSE = 1000;
 
 /** Coins for Thessalia. `blocking` waits when the bank has none; otherwise it lets the leg run on. */
 export function sourceCoins(snap: QuestSnapshot, floor: number, blocking = true): QuestStep | null {
@@ -55,7 +58,7 @@ export function sourceCoins(snap: QuestSnapshot, floor: number, blocking = true)
     if (available <= 0) {
         return blocking ? { kind: 'wait', reason: 'no coins banked for the priest gown' } : null;
     }
-    return withdraw([{ name: BIO_ITEM.COINS.name, id: BIO_ITEM.COINS.id, qty: Math.min(floor, available) }]);
+    return withdraw([{ name: BIO_ITEM.COINS.name, id: BIO_ITEM.COINS.id, qty: Math.min(PURSE, available) }]);
 }
 
 /** A few lobsters for the mourner, when the bank has them. Never blocks. */
