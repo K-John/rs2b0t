@@ -31,8 +31,12 @@ import { climbOutOfPit, travelTirannwn } from './pockets.js';
 /** The paladins' shelf is the north end of the first cavern; the orb corridor is everything below it. */
 const SHELF_Z = 9700;
 
-/** The one loc that opens onto the paladins' shelf, at the north end of the second cavern. */
-const UNICORN_DOORS = new Tile(2370, 9664, 0);
+// Why: `upass_area_2_3_entrance` is a hub, not a door — from its south face it `p_telejump`s to (2371,9666)
+// on the paladins' shelf, and from the other to (2376,9610) beside the unicorn cage. The shelf is what this
+// leg wants, and the walkways below the ledge are the way up to the hub: a leg aimed straight at the doors
+// walks the maze backwards, and the mover crossed the same two rock bridges for six minutes saying
+// "...and make it" each time.
+const UNICORN_AREA = UP_TILE.UNICORN_CAGE;
 
 // Why: the chasm splits area1 in two and nothing walks across it. Flooding the collision pack from the cave
 // landing and from the bridge's west foot gives two tile sets that do not share a single tile, and this is
@@ -225,7 +229,7 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
             // walked at `PALADINS` instead asked for a tile in another pocket: the mover swept for anything
             // that gained ground, picked a slave-cage door, and "the cage slams shut behind you" left the run
             // in an eight-tile cell with no edge out.
-            return inSlaveCages(here) ? digOutOfCages(log) : travelTo(UNICORN_DOORS, 3, log);
+            return inSlaveCages(here) ? digOutOfCages(log) : travelTo(UNICORN_AREA, 4, log);
         case 'gridpit':
             return travelTo(UP_TILE.GRID_APPROACH, 3, log);
         case 'voyage':
