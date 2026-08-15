@@ -90,8 +90,10 @@ export const IKOV_NAME = {
 
 /** Roots Winelda wants, and the ferry across the lava is the only way past her. */
 export const ROOTS_WANTED = 20;
-/** Ice arrows banked before the Fire Warrior is engaged; he has 59 hitpoints and 80% of shots are recoverable. */
-export const ARROWS_WANTED = 30;
+// Why: he has 59 hitpoints, four shots in five land recoverable on the floor, and the leg sweeps them mid-fight — so this is a comfortable floor rather than a stockpile, and one chest circuit clears it.
+
+/** Ice arrows held before the Fire Warrior is engaged. */
+export const ARROWS_WANTED = 20;
 
 export const IKOV_TILE = {
     /** Lucien in the Flying Horse Inn, East Ardougne. */

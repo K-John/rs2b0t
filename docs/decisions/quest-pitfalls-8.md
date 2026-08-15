@@ -72,8 +72,10 @@ Six are the quest's own shape:
   `%ikov_icearrowchest_coord` names the one holding arrows, re-rolled after every find,
   so the search is a circuit rather than a chest. Each find is one to five arrows, 80%
   of every shot lands recoverable on the floor, and the Fire Warrior has 59 hitpoints —
-  the module banks thirty before it opens his door, sweeps the spent ones afterwards,
-  and sweeps mid-fight rather than walking out if the quiver empties.
+  the module holds twenty before it opens his door, sweeps the spent ones afterwards,
+  and sweeps mid-fight rather than walking out if the quiver empties. Twenty is a floor
+  rather than a stockpile on purpose: one circuit of the six chests takes three minutes
+  and clears it, where a target of thirty spent a second circuit collecting one arrow.
 - **All six chests are `forceapproach=north`, and each placement rotates that.** Walking
   to within two tiles of the chest and clicking Open worked for the ones whose legal side
   the walk happened to land on and was dropped in silence for the rest — two of six on the
