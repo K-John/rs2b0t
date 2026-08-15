@@ -1,6 +1,6 @@
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { UP_ITEM, UP_TILE, carried, held, pastGridTile, upassArea, worn, type UpassArea } from './areas.js';
+import { UP_ITEM, UP_TILE, carried, held, insideIbanTemple, pastGridTile, upassArea, worn, type UpassArea } from './areas.js';
 import { UP_FLAG, UP_STAGE, readUpassProgress } from './journal.js';
 import {
     armFireArrow,
@@ -195,17 +195,11 @@ function dollLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
         if (area === 'dwarves') {
             return custom('climb back up out of the dwarves cave', ascendFromDwarves);
         }
-        if (area !== 'main') {
-            return { kind: 'wait', reason: `the soulless cages are in the main cavern, standing in ${area}` };
-        }
         return held(snap, UP_ITEM.GAUNTLETS) > 0 && !worn(snap, UP_ITEM.GAUNTLETS)
             ? custom("wear Klank's gauntlets", wearGauntlets)
             : custom('search the soulless cages for the dove', searchCages);
     }
     if (!flag(snap, UP_FLAG.SHADOW_ON_DOLL)) {
-        if (area !== 'witch') {
-            return { kind: 'wait', reason: `the demons are on the witch's platform, standing in ${area}` };
-        }
         return amuletsHeld(snap) < 3
             ? custom('kill a demon for its amulet', killDemon)
             : custom('open the sealed chest for the shadow', openSealedChest);
@@ -261,9 +255,12 @@ function stageStep(snap: QuestSnapshot, area: UpassArea, stage: number): QuestSt
             return witchLeg(snap, area);
         case UP_STAGE.FOUND_DOLL:
         case UP_STAGE.CONFRONTED_IBAN:
-            return stage === UP_STAGE.CONFRONTED_IBAN && flag(snap, UP_FLAG.DOLL_COMPLETE)
-                ? custom('throw the doll into the pit of the damned', throwDoll)
-                : dollLeg(snap, area);
+            if (flag(snap, UP_FLAG.DOLL_COMPLETE)) {
+                return insideIbanTemple(snap.tile)
+                    ? custom('throw the doll into the pit of the damned', throwDoll)
+                    : custom("open Iban's temple doors", openIbanDoor);
+            }
+            return dollLeg(snap, area);
         case UP_STAGE.DEFEATED_IBAN:
             return finishLeg(area);
         default:

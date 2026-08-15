@@ -327,6 +327,14 @@ export const GRID_ZONE = { minX: 2467, maxX: 2476, minZ: 9673, maxZ: 9682 } as c
 const CORRIDOR = { maxX: 2464, westOfShelf: 2430, belowShelf: 9685, minZ: 9664 } as const;
 
 /** West of the spiked grid, in the corridor it opens onto — the crossing is behind the character. */
+// Why: stage 7 and stage 8 print the same journal text, so the doors being open is not readable — the
+// only honest answer to "am I past them" is standing west of them on the temple floor.
+export function insideIbanTemple(tile: QuestSnapshot['tile']): boolean {
+    return tile !== null && tile !== undefined && tile.level === 1
+        && tile.x < UP_TILE.IBAN_DOOR.x && tile.x >= 2128
+        && tile.z >= 4640 && tile.z <= 4656;
+}
+
 export function pastGridTile(tile: QuestSnapshot['tile']): boolean {
     return tile !== null
         && tile !== undefined

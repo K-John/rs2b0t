@@ -1,4 +1,5 @@
 import { Equipment } from '../../../../equipment/Equipment.js';
+import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
@@ -159,16 +160,21 @@ export async function distractWitch(log: (m: string) => void): Promise<boolean> 
         log(`no knockable door within sixteen of (${at?.x},${at?.z})`);
         return false;
     }
-    if (!(await door.interact('Knock'))) {
-        log(`the knock would not send at the door (${door.tile().x},${door.tile().z})`);
-        return false;
-    }
     // Why: the knock puts the cat down, so the cat leaving the pack is what says Kardia came out.
-    if (await driveUntil(() => heldId(UP_ITEM.WITCH_CAT.id) === 0, [], log, 20_000)) {
+    const gone = (): boolean => heldId(UP_ITEM.WITCH_CAT.id) === 0;
+    const mark = GameMessages.mark();
+    if (await door.interact('Knock') && await driveUntil(gone, [], log, 20_000)) {
+        return true;
+    }
+    // Why: the door is a wall, so a knock sent from the wrong side is refused rather than run, and the
+    // refusal reads as the witch ignoring it. `oplocu` reaches the same label with no op to resolve.
+    const cat = Inventory.items().find(item => item.id === UP_ITEM.WITCH_CAT.id);
+    if (cat && await cat.useOn(door) && await driveUntil(gone, [], log, 20_000)) {
         return true;
     }
     const at = Game.tile();
-    log(`knocked from (${at?.x},${at?.z}) and kept the cat`);
+    const said = GameMessages.since(mark).map(m => m.text).slice(-6).join(' / ') || 'nothing';
+    log(`kept the cat at (${at?.x},${at?.z}) beside the door (${door.tile().x},${door.tile().z}) — said: ${said}`);
     return false;
 }
 
