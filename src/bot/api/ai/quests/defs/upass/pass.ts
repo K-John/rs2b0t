@@ -12,6 +12,10 @@ import { UP_ITEM, UP_LOC } from './areas.js';
 // endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision
 // pack marks blocked, so `walkResilient` toward anything past one reports "unreachable" and the step reads
 // as a missing loc. Movement here is therefore: walk inside the pocket, cross one obstacle, repeat.
+// Why: measured pocket counts, so the next leg knows what it is walking into — the first cavern is five
+// pockets, the second five, and the level-1 platforms six, of which only the main landing reaches both wall
+// tunnels on foot (costs 60 and 194). The soulless cages, the witch's cat, her door, the demons' platform
+// and Iban's temple are each sealed behind their own crossing.
 
 /** An obstacle that joins two pockets. All of these move the player across a tile the pack calls blocked. */
 interface HopKind {
