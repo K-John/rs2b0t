@@ -275,11 +275,20 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
             if (!(await standBeside(obstacle.tile(), m => trace.push(m), attempt))) {
                 break;
             }
-            // Why: a seam is often a row of identical locs — the ledge is six — and the one the search
-            // picked is not always the one the character ended up beside. `reachRectangle` only accepts a
-            // cardinal side, so the op goes to whichever of the row is actually adjacent now.
-            const adjacent = Locs.query().where(loc => loc.id === obstacle.id).action(op).within(2).nearest()
-                ?? obstacle;
+            // Why: a seam is often a row of identical locs — the ledge is six — and the one the search picked
+            // is not the one the character ended up beside. `reachRectangle` takes a cardinal side and nothing
+            // else, and `nearest()` cannot tell a diagonal neighbour from a cardinal one: both are distance
+            // one, so it kept returning the diagonal and the server kept answering "I can't reach that!".
+            const me = here();
+            const cardinal = me === null
+                ? null
+                : Locs.query()
+                    .where(loc => loc.id === obstacle.id)
+                    .action(op)
+                    .within(2)
+                    .results()
+                    .find(loc => Math.abs(loc.tile().x - me.x) + Math.abs(loc.tile().z - me.z) === 1);
+            const adjacent = cardinal ?? obstacle;
             if (!(await adjacent.interact(op))) {
                 trace.push('the op would not send');
                 break;
