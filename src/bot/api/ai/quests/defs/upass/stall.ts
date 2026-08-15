@@ -37,11 +37,12 @@ export async function releaseJournal(): Promise<void> {
     }
 }
 
-export interface StalledWalk {
-    /** The loc to op-click; walking to it is what carries the player across the traps. */
-    find: () => Loc | null;
-    op: string;
-    /** True once the player is clear of the trapped ground. */
+export interface StalledApproach {
+    /** Sends the op-click whose walk carries the player across the traps. Any `op*` packet will do. */
+    send: () => Promise<boolean>;
+    /** What was clicked, for the log. */
+    what: string;
+    /** True once the walk has carried far enough for the caller's purposes. */
     arrived: () => boolean;
     /** True once the attempt is lost — polled so a fall does not sit out the whole timeout. */
     abort?: () => boolean;
@@ -49,25 +50,25 @@ export interface StalledWalk {
     timeoutMs?: number;
 }
 
+export interface StalledWalk extends Omit<StalledApproach, 'send' | 'what'> {
+    /** The loc to op-click; walking to it is what carries the player across the traps. */
+    find: () => Loc | null;
+    op: string;
+}
+
 /**
- * Walk across timer-trapped ground by op-clicking a loc on the far side and holding
- * the quest journal open for the whole walk.
- * Leaves the modal closed and does not perform the op — the caller re-clicks on arrival.
+ * Cross timer-trapped ground on an op-click, holding the quest journal open for the whole walk.
+ * Leaves the modal closed; whether the op itself then ran is the caller's `arrived` to decide.
  */
-export async function stalledWalk(opts: StalledWalk): Promise<boolean> {
-    const { find, op, arrived, log } = opts;
+export async function stalledApproach(opts: StalledApproach): Promise<boolean> {
+    const { send, what, arrived, log } = opts;
     const timeoutMs = opts.timeoutMs ?? 30_000;
     if (arrived()) {
         return true;
     }
-    const target = find();
-    if (!target) {
-        log('stall: no target loc on the far side to walk to');
-        return false;
-    }
     const from = tileNow();
-    if (!(await target.interact(op))) {
-        log(`stall: '${op}' would not send to ${target.name ?? target.id}`);
+    if (!(await send())) {
+        log(`stall: ${what} would not send`);
         return false;
     }
     // Why: the journal must land in a tick of its own. `moveClickRequest` is settled after a whole tick is
@@ -81,8 +82,9 @@ export async function stalledWalk(opts: StalledWalk): Promise<boolean> {
         return now !== null && from !== null && (now.x !== from.x || now.z !== from.z);
     }, 8);
     if (!moved) {
-        log('stall: the op-click never moved the player — nothing to stall');
-        return false;
+        // Why: standing on the target already means no walk and so no trap tiles — the op just needs
+        // waiting out. Holding the journal up here would only hide the script that is meant to run.
+        return Execution.delayUntilTicks(arrived, Math.ceil(timeoutMs / 600));
     }
     if (!pressJournal()) {
         log('stall: the quest journal button never sent — traps are live');
@@ -102,7 +104,7 @@ export async function stalledWalk(opts: StalledWalk): Promise<boolean> {
             }
             if (modalOpen()) {
                 opened = true;
-            } else if (opened) {
+            } else if (opened && !arrived()) {
                 // Why: anything the server pushes closes the modal and re-arms the traps, so it goes straight back up.
                 pressJournal();
             }
@@ -114,6 +116,19 @@ export async function stalledWalk(opts: StalledWalk): Promise<boolean> {
     } finally {
         await releaseJournal();
     }
+}
+
+/** `stalledApproach` where the op-click is an op on a loc found on the far side. */
+export function stalledWalk(opts: StalledWalk): Promise<boolean> {
+    const { find, op } = opts;
+    return stalledApproach({
+        ...opts,
+        what: `'${op}' on the far side`,
+        send: async () => {
+            const target = find();
+            return target !== null && target.interact(op);
+        }
+    });
 }
 
 /** `stalledWalk` against a loc looked up by id. */

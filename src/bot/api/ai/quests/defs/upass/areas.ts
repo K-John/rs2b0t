@@ -81,6 +81,11 @@ export const UP_LOC = {
     SPRINGTRAP: 3230,
     FURNACE: 3294,
     WELL: 3264,
+    // Why: `Read` on a stone tablet only prints a plaque, which makes it the one op-click in the orb
+    // corridor with no cost — the walk to it is what the stall is for. The west tablet is the only loc
+    // within one loaded scene of every orb, the furnace and the well at once.
+    TABLET_WEST: 3298,
+    TABLET_EAST: 3297,
     PORTCULLIS_LEVER: 3337,
     PORTCULLIS: 3303,
     GRID_HANDHOLDS: 3365,
@@ -156,7 +161,8 @@ export const UP_TILE = {
     ORB3: new Tile(2385, 9685, 0),
     ORB4: new Tile(2416, 9698, 0),
     LOGTRAP: new Tile(2382, 9668, 0),
-    WELL: new Tile(2414, 9674, 0),
+    WELL: new Tile(2416, 9674, 0),
+    CORRIDOR_HUB: new Tile(2422, 9671, 0),
 
     AREA2_LANDING: new Tile(2423, 9660, 0),
     RAILINGS_LOOSE: new Tile(2397, 9605, 0),
