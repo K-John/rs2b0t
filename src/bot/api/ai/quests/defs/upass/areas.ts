@@ -199,6 +199,19 @@ export const UP_TILE = {
     WELL_OF_VOYAGE: new Tile(2008, 4711, 1)
 } as const;
 
+// Why: `[timer,upass_trap]` fires on the spear traps and the double spring traps whenever the player stands
+// on one, and the navigator routes straight over them — a full orb sweep took enough of that to kill outright
+// at 70 hitpoints with eighteen lobsters. These rects are the trap tiles from `upass.loc`, given to every
+// walk inside the pass so the route goes round rather than through.
+export const UPASS_TRAP_ZONES: readonly { minX: number; maxX: number; minZ: number; maxZ: number }[] = [
+    // spear traps, area 1 corridor
+    { minX: 2429, maxX: 2445, minZ: 9674, maxZ: 9679 },
+    // double spring traps, area 1 west
+    { minX: 2392, maxX: 2420, minZ: 9673, maxZ: 9691 },
+    // spring traps by the bridge shelf
+    { minX: 2405, maxX: 2420, minZ: 9718, maxZ: 9727 }
+];
+
 export type UpassArea =
     | 'mainland'
     | 'westardougne'
