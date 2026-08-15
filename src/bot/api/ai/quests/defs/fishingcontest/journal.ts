@@ -9,7 +9,7 @@ export const FC_STAGE = {
     STARTED: 1,
     /** Entered, fishing the willow-tree spot — sardines, which lose. */
     IN_COMP: 2,
-    /** The garlic drove the stranger off the pipes, so that spot is ours. */
+    /** The garlic has driven the stranger off the pipes; that spot is the bot's. */
     GARLIC_COMP: 3,
     /** Three giant carp handed over; the trophy is the reward. */
     WON_COMP: 4,

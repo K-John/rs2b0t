@@ -1,15 +1,14 @@
 /** Live Fishing Contest harness (#244): --stage N --until N --minutes N, base :8890.
  *  Why: `--stage` writes `%fishingcompo` and the two companion varps together — the contest stage and the fee/catch counter have to agree or Bonzo re-seats a contest the journal says is already under way — then relogs, since update_questlist only recolours the list at login.
- *  Why: the bank holds coins and food alone, so the garlic, the spade, the rod and the worms are all sourced in the world; stats are max because the road crosses White Wolf Mountain. */
+ *  Why: the bank holds coins and food alone, so the garlic, the spade, the rod and the worms are all sourced in the world; stats are max because the road crosses White Wolf Mountain.
+ *  Why: it deploys its own copy of the client through `deployIsolatedClient`, so a neighbouring harness cannot decide mid-boot which branch this run exercises. */
 
-//   HEADED=1 bun e2e/fishing-contest-244-live.ts --stage 0 --until 5 --minutes 75 --tick 200
-//   HEADED=1 bun e2e/fishing-contest-244-live.ts --stage 3 --until 4 --minutes 20 --tick 200
-import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
-
+//   HEADED=1 bun e2e/fishing-contest-244-live.ts --stage 0 --until 5 --minutes 90 --tick 150
+//   HEADED=1 bun e2e/fishing-contest-244-live.ts --stage 2 --until 4 --minutes 20 --tick 150
+//   HEADED=1 bun e2e/fishing-contest-244-live.ts --stage 3 --until 4 --minutes 30 --tick 150
 import type { Page } from 'playwright-core';
 
-import { launchBrowser } from './lib/harness.js';
+import { deployIsolatedClient, launchBrowser } from './lib/harness.js';
 import {
     cheatQuiet,
     clearChatDialogs,
@@ -156,35 +155,15 @@ async function snapshot(page: Page): Promise<Snapshot> {
     }, QUEST);
 }
 
-/** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
-const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
-
-function deployBundle(): void {
-    const engine = process.env.ENGINE_DIR ?? `${homedir()}/code/rs2b2t-engine`;
-    const botDir = `${engine}/public/bot`;
-    if (!existsSync(botDir)) {
-        fail(`deploy: ${botDir} not found — set ENGINE_DIR to the engine serving ${args.base}`);
-    }
-    const build = Bun.spawnSync(['bun', 'run', 'build:bot'], { stdout: 'pipe', stderr: 'pipe' });
-    if (build.exitCode !== 0) {
-        fail(`deploy: build:bot failed\n${build.stderr.toString()}`);
-    }
-    const files = DEPLOYED.map(f => `out/${f}`).join(' ');
-    const copy = Bun.spawnSync(['sh', '-c', `cp ${files} "${botDir}/"`]);
-    if (copy.exitCode !== 0) {
-        fail(`deploy: could not copy the bundles into ${botDir}`);
-    }
-    console.log(`deploy: fresh ${DEPLOYED.join(', ')} -> ${botDir}`);
-}
-
 if (args.stage < 0 || args.stage > 4) {
     fail('--stage is the %fishingcompo value and runs 0 to 4');
 }
 
-if (args.deploy) {
-    deployBundle();
-}
+// Why: this run gets its own copy of the client — all of `out/`, so the navworker and the collision pack travel with it — and a neighbouring harness deploying mid-boot cannot decide which branch this one exercises.
+const client = args.deploy ? deployIsolatedClient(args.user) : null;
+const clientPage = client?.page ?? '/bot.html';
+// Why: a PASS leaves through `process.exit`, which skips `finally`, so the sweep hangs off the exit itself.
+process.on('exit', () => client?.cleanup());
 
 // Why: past the entry fee the quest never leaves Kandarin, so a jumped run starts at the bank it would have used.
 const START = args.stage >= 2 ? CATHERBY_BANK : DRAYNOR_BANK;
@@ -201,7 +180,7 @@ try {
         }
     });
 
-    await mainlandAccount(page, args.base, args.user);
+    await mainlandAccount(page, args.base, args.user, clientPage);
     console.log(`mainland-ready as '${args.user}'`);
 
     await cheatQuiet(page, `speed ${args.tickMs}`);
@@ -251,12 +230,12 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without Fishing Contest in it spends the budget on somebody else's quest.
+        // Why: this should not fire now that the client is per-run, so if it ever does the isolation broke rather than a neighbour winning a race.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;
             if (!queue.msg.includes(QUEST)) {
-                fail(`the loaded bundle has no ${QUEST} — another session redeployed over it (${queue.msg})`);
+                fail(`the loaded bundle has no ${QUEST} — the per-run client isolation broke (${queue.msg})`);
             }
         }
         const stage = (await getServerVarQuiet(page, 'fishingcompo')) ?? 0;

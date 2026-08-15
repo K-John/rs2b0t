@@ -89,6 +89,12 @@ content, so `:8890` only.
 | `--stats N` | 99 | every skill, since the road crosses White Wolf Mountain |
 | `--no-deploy` | off | skip the build and copy |
 
+It deploys **its own copy of the client** through `deployIsolatedClient`: everything in
+`out/` lands in `public/bot/<user>/` and a generated `bot-<user>.html` points at it, so a
+neighbouring harness cannot decide mid-boot which branch this run exercises. The copy is
+swept on exit, and it carries `navworker.js` and `collision.lcnav.gz` — this quest walks
+from Draynor to Kandarin, so a client-only deploy would leave the navigator on old edges.
+
 `--stage` writes three varps rather than one. `%fishingcompo` is the contest stage,
 `%hemenster_comp_stage` counts the fee and the catches, and `%hemenster_pipe_stashed`
 records the clove — and Bonzo re-seats a contest whose fee counter disagrees with the
