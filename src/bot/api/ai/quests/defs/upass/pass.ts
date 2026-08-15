@@ -26,7 +26,13 @@ interface HopKind {
     tries?: number;
     /** Only treat it as a seam below this z — the same loc is scenery elsewhere in the pass. */
     below?: number;
+    /** Only offer it when the journey actually wants what it joins. */
+    when?: (dest: Tile, from: { x: number; z: number; level: number }) => boolean;
 }
+
+/** The first cavern is everything at or above this z; the second is everything below it. */
+const CAVERN_SPLIT = 9664;
+const inFirstCavern = (t: { z: number }): boolean => t.z >= CAVERN_SPLIT;
 
 // Why: the two locked cages roll `stat_random(thieving, …)` and leave the player where they were on a
 // failure, so one send is not a verdict on the obstacle — it is one roll.
@@ -44,8 +50,11 @@ const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.ROCKSWING_BACK, op: 'Swing-on' },
     // Why: a component report over leg 3's anchors puts the unicorn cage and the paladins' shelf in
     // different pockets joined only by these — `upass_area_2_3_entrance` telejumps between them.
-    { loc: UP_LOC.UNICORN_DOOR_L, op: 'Pass-through' },
-    { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through' },
+    // Why: and only between them. The doors sit sixteen tiles from the boulder with a gain that reads as
+    // progress, so without this an errand inside the second cavern takes one and lands on the paladins'
+    // shelf, four seams and a well behind where it started.
+    { loc: UP_LOC.UNICORN_DOOR_L, op: 'Pass-through', when: (dest, from) => inFirstCavern(dest) !== inFirstCavern(from) },
+    { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through', when: (dest, from) => inFirstCavern(dest) !== inFirstCavern(from) },
     // Why: the second cavern's own seams. The route from the well down to the boulder crosses the slave
     // cages, the swamp and a pipe, and every one of them reads "unreachable" to the navigator.
     { loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', tries: LOCK_TRIES },
@@ -160,6 +169,9 @@ function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string
 function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
     const found: Loc[] = [];
     for (const kind of HOP_KINDS) {
+        if (kind.when && !kind.when(dest, { ...from, level: dest.level })) {
+            continue;
+        }
         const locs = Locs.query()
             .where(loc => loc.id === kind.loc && (kind.below === undefined || loc.tile().z < kind.below))
             .action(kind.op)
