@@ -4,6 +4,7 @@ import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type Tile from '../../../../../geometry/Tile.js';
+import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { driveDialog } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import type { QuestSnapshot } from '../../engine/types.js';
@@ -45,8 +46,19 @@ export async function takeTrappedOrb(log: (m: string) => void): Promise<boolean>
     }
     // Why: the disarm asks "Do you want to try and disarm it?" before it rolls thieving — declining is the
     // default option, so the yes branch has to be named.
+    const mark = GameMessages.mark();
     await driveDialog(["Yes, I'll give it a go"], log);
-    return driveUntil(() => heldId(UP_ITEM.ORB1.id) > 0, [], log, 12_000);
+    if (await driveUntil(() => heldId(UP_ITEM.ORB1.id) > 0, [], log, 12_000)) {
+        return true;
+    }
+    // Why: the trap keeps its orb once that orb's bit is set, and answers "you hear it resetting" instead —
+    // which is the only way to tell "already burned" from "the disarm failed", since the bit is not on the
+    // wire and the trap respawns fifty ticks after it is taken.
+    if (GameMessages.sawSince(mark, /resetting/i)) {
+        log('the log trap has already given up its orb');
+        return true;
+    }
+    return false;
 }
 
 // Why: nothing records which orbs are already dark — the varp is untransmitted and the journal only says

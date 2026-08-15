@@ -127,7 +127,7 @@ const PACK_SEED: { debugName: string; qty: number }[] = [
     { debugName: 'tinderbox', qty: 1 },
     { debugName: 'bucket_empty', qty: 1 },
     { debugName: 'rope', qty: 3 },
-    { debugName: 'lobster', qty: 12 }
+    { debugName: 'lobster', qty: 18 }
 ];
 
 async function seedPack(page: Page): Promise<void> {
