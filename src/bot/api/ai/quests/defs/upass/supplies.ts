@@ -7,7 +7,7 @@ export const ARROW_TARGET = 50;
 // traps below are timer-driven damage the module walks into rather than fights. The pass hands out food of
 // its own — Koftik, the paladins and Nilhoof between them give a dozen — but those arrive as separate stacks
 // that each take a slot, so the float is what has to cover the trapped stretches.
-export const FOOD_TARGET = 18;
+export const FOOD_TARGET = 14;
 
 export function scanBank(): QuestStep {
     return { kind: 'scanBank', bank: UP_TILE.ARDOUGNE_BANK };

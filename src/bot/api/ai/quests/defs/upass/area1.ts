@@ -2,6 +2,7 @@ import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
+import { Skills } from '../../../../skills/Skills.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { GameMessages } from '../../../../chatbox/gameMessages.js';
@@ -132,7 +133,7 @@ export async function burnOrbs(log: (m: string) => void): Promise<boolean> {
 // whole sweep is one step that keeps its own tally, rather than one site per decide cycle re-picking the
 // orb it just burned. The well at the end is the oracle: it descends only once all four are dark.
 
-/** Take each orb and burn it, then climb the well. */
+/** Take every orb the pack can hold, then burn the lot in one trip, then climb the well. */
 export async function sweepOrbs(log: (m: string) => void): Promise<boolean> {
     for (const site of ORB_SITES) {
         const took = site.fromTrap
@@ -142,9 +143,16 @@ export async function sweepOrbs(log: (m: string) => void): Promise<boolean> {
             log(`could not settle the orb at (${site.tile.x},${site.tile.z})`);
             return false;
         }
-        if (heldId(site.orb.id) > 0 && !(await burnOrbs(log))) {
+        // Why: two runs died mid-sweep with no sign of it in the log — the corridor traps are the only
+        // damage source down here, so the sweep says what it has left after each site.
+        log(`orb sweep: ${Skills.effective('hitpoints')}/${Skills.level('hitpoints')} hp, ${Inventory.free()} free`);
+        // Why: a full pack cannot take the next orb, so the furnace trip happens early rather than losing one.
+        if (Inventory.free() === 0 && !(await burnOrbs(log))) {
             return false;
         }
+    }
+    if (UP_ORBS.some(orb => heldId(orb.id) > 0) && !(await burnOrbs(log))) {
+        return false;
     }
     return enterWell(log);
 }

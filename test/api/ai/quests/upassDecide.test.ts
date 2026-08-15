@@ -21,7 +21,7 @@ const KIT: Stack[] = [
     [UP_ITEM.BRONZE_ARROW.id, 50],
     UP_ITEM.TINDERBOX.id,
     UP_ITEM.BUCKET.id,
-    [UP_ITEM.LOBSTER.id, 18]
+    [UP_ITEM.LOBSTER.id, 14]
 ];
 
 function snapshot(over: Partial<QuestSnapshot> & {
