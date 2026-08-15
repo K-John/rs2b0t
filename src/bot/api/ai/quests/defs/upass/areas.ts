@@ -195,6 +195,7 @@ export const UP_TILE = {
     KALRAG: new Tile(2356, 9911, 0),
 
     WITCH_DOOR: new Tile(2158, 4566, 1),
+    WITCH_DOOR_OUT: new Tile(2158, 4567, 1),
     WITCH_CHEST: new Tile(2157, 4564, 1),
     WITCH_CAT: new Tile(2131, 4602, 1),
     SEALED_CHEST: new Tile(2136, 4578, 1),
@@ -331,6 +332,17 @@ export const GRID_ZONE = { minX: 2467, maxX: 2476, minZ: 9673, maxZ: 9682 } as c
 const CORRIDOR = { maxX: 2464, westOfShelf: 2430, belowShelf: 9685, minZ: 9664 } as const;
 
 /** West of the spiked grid, in the corridor it opens onto — the crossing is behind the character. */
+// Why: Kardia's house is a sealed fifteen-tile pocket — a flood of the collision pack from inside gives
+// x 2151-2157 by z 4565-4567 and stops at her door, which the pack calls blocked because it is a door. The
+// chest is in there, so every leg that lifts the doll ends shut in, and every walk out reads as unreachable.
+const WITCH_HOUSE = { minX: 2151, maxX: 2157, minZ: 4565, maxZ: 4567 } as const;
+
+export function insideWitchHouse(tile: QuestSnapshot['tile']): boolean {
+    return tile !== null && tile !== undefined && tile.level === 1
+        && tile.x >= WITCH_HOUSE.minX && tile.x <= WITCH_HOUSE.maxX
+        && tile.z >= WITCH_HOUSE.minZ && tile.z <= WITCH_HOUSE.maxZ;
+}
+
 // Why: stage 7 and stage 8 print the same journal text, so the doors being open is not readable — the
 // only honest answer to "am I past them" is standing west of them on the temple floor.
 export function insideIbanTemple(tile: QuestSnapshot['tile']): boolean {

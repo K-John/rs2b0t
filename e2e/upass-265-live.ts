@@ -125,7 +125,9 @@ const STAGE_TELE: Record<number, { x: number; z: number; level: number }> = {
     4: { x: 2375, z: 9604, level: 0 },
     5: { x: 2173, z: 4725, level: 1 },
     6: { x: 2315, z: 9806, level: 0 },
-    7: { x: 2157, z: 4564, level: 1 },
+    // Why: (2157,4564) is the chest's own tile and the pack calls it blocked. This is where leg four
+    // actually ends — shut in Kardia's house, which is the state stage seven has to start from.
+    7: { x: 2156, z: 4566, level: 1 },
     8: { x: 2144, z: 4647, level: 1 },
     9: { x: 2482, z: 9607, level: 0 },
     10: ARDOUGNE_BANK

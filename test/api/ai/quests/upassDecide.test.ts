@@ -249,6 +249,30 @@ describe('Underground Pass decide()', () => {
         }
     });
 
+    // Why: the doll comes out of a chest in a fifteen-tile pocket whose only exit is a door the collision
+    // pack calls blocked, so a leg that lifts it ends shut in and every later step answers "unreachable".
+    // A live run spent fifty-five minutes there. The way out has to come before anything else, at any stage.
+    test('being shut in Kardia\'s house outranks every other step', () => {
+        const inside = [
+            { x: 2156, z: 4566, level: 1 },
+            { x: 2151, z: 4566, level: 1 },
+            { x: 2157, z: 4565, level: 1 }
+        ];
+        for (const tile of inside) {
+            const step = decide(snapshot({ stage: UP_STAGE.FOUND_DOLL, carried: [UP_ITEM.DOLL.id], tile }));
+            expect(nameOf(step)).toContain("out of Kardia's house");
+        }
+    });
+
+    // Why: the door tile and the platform outside it are one tile apart from the pocket and must not be
+    // read as inside it, or the module lets itself out of a house it is already standing outside, forever.
+    test('the door tile and the platform outside it are not the house', () => {
+        for (const tile of [{ x: 2158, z: 4566, level: 1 }, { x: 2158, z: 4567, level: 1 }]) {
+            const step = decide(snapshot({ stage: UP_STAGE.FOUND_DOLL, carried: [UP_ITEM.DOLL.id], tile }));
+            expect(nameOf(step)).not.toContain("out of Kardia's house");
+        }
+    });
+
     // Why: every value the journal can report is now routed, so this guards the shape of the fallback —
     // a stage the module does not know has to name itself and stop, not retry the last step it did know.
     test('a stage the module does not know waits with the stage named', () => {

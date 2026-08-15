@@ -1,6 +1,6 @@
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { UP_ITEM, UP_TILE, carried, held, insideIbanTemple, pastGridTile, upassArea, worn, type UpassArea } from './areas.js';
+import { UP_ITEM, UP_TILE, carried, held, insideIbanTemple, insideWitchHouse, pastGridTile, upassArea, worn, type UpassArea } from './areas.js';
 import { UP_FLAG, UP_STAGE, readUpassProgress } from './journal.js';
 import {
     armFireArrow,
@@ -30,6 +30,7 @@ import {
     askNilhoof,
     descendToDwarves,
     descendToKalrag,
+    leaveWitchHouse,
     stealTheDoll,
     wearGauntlets
 } from './cavern.js';
@@ -230,6 +231,11 @@ function finishLeg(area: UpassArea): QuestStep {
 }
 
 function stageStep(snap: QuestSnapshot, area: UpassArea, stage: number): QuestStep {
+    // Why: the doll is lifted from a chest inside a pocket whose only exit is a door the nav pack calls
+    // blocked, so a leg that ends there has every later step answer "unreachable" until it lets itself out.
+    if (insideWitchHouse(snap.tile)) {
+        return custom("let yourself out of Kardia's house", leaveWitchHouse);
+    }
     // Why: the bow owns the right hand until the stay rope is shot, so the melee kit only goes on past the
     // bridge — and it goes on before the orb sweep, which needs the five slots the armour would otherwise sit in.
     // Why: a complete doll means the next door wants the robes of Zamorak and exactly nothing else on, so

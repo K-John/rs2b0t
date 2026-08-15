@@ -8,7 +8,8 @@ import { Reach } from '../../../../walking/Reach.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
-import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE } from './areas.js';
+import { DirectNavigator } from '../../../../../event/webwalk/DirectNavigator.js';
+import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE, insideWitchHouse } from './areas.js';
 import { driveThroughBoxes, locById, walkTo } from './bridge.js';
 
 async function talkTo(npcId: number, name: string, near: Tile, prefer: string[], log: (m: string) => void): Promise<boolean> {
@@ -154,6 +155,27 @@ export async function stealTheDoll(log: (m: string) => void): Promise<boolean> {
 // A wall is operated from a side, and which side is not knowable from here, so every side gets a turn and
 // each one reports what the game said. The chat is joined into one line because the harness only surfaces a
 // few log lines per poll, and a per-side report reads as silence.
+
+/** Out of Kardia's house, which the navigator has no way out of. */
+export async function leaveWitchHouse(log: (m: string) => void): Promise<boolean> {
+    for (let tries = 0; tries < 4 && insideWitchHouse(Game.tile()); tries++) {
+        const shut = locById(UP_LOC.WITCH_DOOR, 'Open', 8);
+        if (shut && !(await shut.interact('Open'))) {
+            log("the way out of Kardia's house would not open");
+        }
+        await driveUntil(() => locById(UP_LOC.WITCH_DOOR, 'Open', 8) === null, [], log, 6_000);
+        // Why: the collision pack still calls the door tile blocked, so every tile outside reads as
+        // unreachable and the navigator will not click. A raw walk leaves the pathing to the server, which
+        // is looking at the door that was just opened — the same reason an op-click got the character in.
+        await DirectNavigator.walkTo(UP_TILE.WITCH_DOOR_OUT, 0, 15_000);
+    }
+    if (!insideWitchHouse(Game.tile())) {
+        return true;
+    }
+    const at = Game.tile();
+    log(`still shut in Kardia's house at (${at?.x},${at?.z})`);
+    return false;
+}
 
 /** Knock with the cat in the pack, which puts it down and takes her away from the chest. */
 export async function distractWitch(log: (m: string) => void): Promise<boolean> {

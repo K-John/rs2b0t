@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Twenty-nine, and the first three are engine behaviour the quest only happens to expose.
+Thirty, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -124,6 +124,13 @@ Twenty-nine, and the first three are engine behaviour the quest only happens to 
   produced four "I can't reach that!" and the leg spent every ledge it had. Ask for a Manhattan distance of
   one when the op has to reach.
 
+- **Getting in is not getting out.** Kardia's house is a sealed fifteen-tile pocket — a flood from inside
+  gives x 2151-2157 by z 4565-4567 and stops at her door, because the collision pack calls a door tile
+  blocked. The doll is in there, so the leg that lifts it ends shut in, and every step after it answers
+  "unreachable" for fifty-five minutes. What got the character *in* was an op-click, where the server does
+  the pathing and can see the open door; the navigator, reading a static pack, never can. So the way out is
+  open the door and then `DirectNavigator`, which clicks rather than routes — and it has to outrank every
+  other step, because none of them can run until it does.
 - **A radius counts distance, not walls.** Kardia's chest is two tiles from her door and on the other side
   of it, so `walkTo(chest, 3)` returned arrived from the street and the click that followed was refused by a
   server that could not path there. The door was only opened on the branch where that walk failed — which it
