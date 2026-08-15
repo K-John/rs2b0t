@@ -75,7 +75,11 @@ export async function pushSecretWall(intoTemple: boolean, log: (m: string) => vo
         if (!(await wall.interact('Push'))) {
             return false;
         }
-        await Execution.delayTicks(2);
+        // Why: `open_and_close_door2` teleports the player through rather than opening a leaf to walk past.
+        if (await Execution.delayUntil(arrived, 8000)) {
+            await settleScene();
+            return true;
+        }
     }
     await DirectNavigator.walkTo(through, 0, 8000);
     if (!arrived()) {

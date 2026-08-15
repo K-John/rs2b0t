@@ -240,6 +240,17 @@ describe('Temple of Ikov decide', () => {
         expect(held.kind === 'equip' && held.item).toBe(IKOV_NAME.IRON_AXE);
     });
 
+    // Why: twenty unstackable roots plus coins and food is the whole pack, so the withdraw cannot land on a pack still holding the dungeon kit.
+    test('the dungeon kit is banked before the roots are withdrawn', () => {
+        const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1], [IKOV_OBJ.IRON_AXE, 1]],
+            invNames: [['pendant of lucien', 1], ['knife', 1], ['lit candle', 1], ['iron axe', 1]],
+            bank: [[IKOV_OBJ.LIMPWURT_ROOT, ROOTS_WANTED]]
+        }));
+        expect(step.kind).toBe('deposit');
+        expect(step.kind === 'deposit' && step.keep).toContain('limpwurt root');
+    });
+
     test('roots banked are withdrawn before the hand-over', () => {
         const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
             inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],

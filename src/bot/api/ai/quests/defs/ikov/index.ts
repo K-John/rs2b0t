@@ -51,11 +51,22 @@ function held(snap: QuestSnapshot, id: number): number {
 
 /** Bank whatever the crossing cannot afford to carry, before the bot is underground with no booth. */
 function bridgeTrimStep(snap: QuestSnapshot): QuestStep | null {
-    const heavy = [...snap.inv.keys()].filter(name => !BRIDGE_KEEP.some(keep => name.includes(keep)));
-    if (heavy.length === 0) {
+    return trimStep(snap, BRIDGE_KEEP);
+}
+
+/** Winelda's twenty roots are twenty slots; only coins, food and the pendant ride with them. */
+const ROOTS_KEEP = ['coins', 'pendant', 'limpwurt root', ...IKOV_FOODS];
+
+function rootsTrimStep(snap: QuestSnapshot): QuestStep | null {
+    return trimStep(snap, ROOTS_KEEP);
+}
+
+function trimStep(snap: QuestSnapshot, keep: readonly string[]): QuestStep | null {
+    const spare = [...snap.inv.keys()].filter(name => !keep.some(k => name.includes(k)));
+    if (spare.length === 0) {
         return null;
     }
-    return { kind: 'deposit', keep: BRIDGE_KEEP };
+    return { kind: 'deposit', keep: [...keep] };
 }
 
 /** Withdraw anything the next leg needs that the pack does not already hold. */
@@ -171,6 +182,11 @@ export function decide(snap: QuestSnapshot): QuestStep {
                 return roots;
             }
         }
+        // Why: twenty unstackable roots plus coins and food is the whole pack, so anything else has to go before the withdraw can land.
+        const room = rootsTrimStep(snap);
+        if (room) {
+            return room;
+        }
         const carry = withdrawFor(snap, [{ name: IKOV_NAME.LIMPWURT_ROOT, id: IKOV_OBJ.LIMPWURT_ROOT, qty: ROOTS_WANTED }]);
         if (carry) {
             return carry;
@@ -219,7 +235,8 @@ export const ikov: QuestModule = {
     record: QUESTS.find(r => r.id === IKOV_ID)!,
     // Why: the quest touches Ardougne, Catherby, Seers and the temple, so no one booth is close to every leg.
     bank: 'nearest',
-    food: 8,
+    // Why: Winelda's twenty unstackable roots plus coins and the pendant leave seven slots, and the float has to fit inside them.
+    food: 6,
     grind: ['Hobgoblin', 'Fire Warrior of Lesarkus', 'Lucien'],
     tools: IKOV_TOOLS,
     sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.55 },
