@@ -1,5 +1,6 @@
 import { Equipment } from '../../../../equipment/Equipment.js';
 import { Game } from '../../../../game/Game.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { Reach } from '../../../../walking/Reach.js';
 import type Tile from '../../../../../geometry/Tile.js';
@@ -100,10 +101,18 @@ export async function catchCat(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     await settleScene();
-    const cat = Npcs.query().where(n => n.id === UP_NPC.WITCH_CAT).within(10).nearest();
+    // Why: the cat wanders its platform, so the query reaches further than the walk's own radius — and it
+    // says what it found, because a silent false here alternates the whole step between fetching a cat and
+    // knocking with nothing, re-routing across a bridge every time.
+    const cat = Npcs.query().where(n => n.id === UP_NPC.WITCH_CAT).within(20).nearest();
     const op = cat?.actions()[0];
-    if (!cat || !op || !(await cat.interact(op))) {
-        log('no witches cat on the platform');
+    if (!cat || !op) {
+        const at = Game.tile();
+        log(`no witches cat within twenty of (${at?.x},${at?.z}) — free slots ${Inventory.free()}`);
+        return false;
+    }
+    if (!(await cat.interact(op))) {
+        log(`'${op}' would not send at the cat`);
         return false;
     }
     return driveUntil(() => heldId(UP_ITEM.WITCH_CAT.id) > 0, [], log, 12_000);
