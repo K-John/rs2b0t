@@ -4,6 +4,7 @@ import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
+import { Navigator } from '../../../../../event/webwalk/Navigator.js';
 import { Reachability } from '../../../../../event/webwalk/geometry/Reachability.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
@@ -460,11 +461,22 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
         // Why: NOT filtered on being closer to the target. The one crossing that leaves the main cavern
         // landing is eighty-four tiles from the witch's cat while the character stands fifty-six away, so
         // "must shorten the distance" is exactly the rule that hides it — the same trap as the second
-        // cavern's pipe. Distance to the target orders the tries; it does not veto them.
-        const candidates = [...PLATFORM_BRIDGES]
-            .filter(bridge => chebyshev(bridge, from) > 2)
-            .sort((a, b) => chebyshev(a, dest) - chebyshev(b, dest))
-            .slice(0, 8);
+        // cavern's pipe. It is also the LAST of the twenty by that ordering, so a cap on how many to try
+        // hides it just as well.
+        // Why: which is why the navigator is asked first. `findPath` is the collision pack in the worker and
+        // answers in a millisecond, where walking at a bridge in another component costs twenty seconds of
+        // unstick ladder. Nineteen of the twenty are ruled out before anyone takes a step.
+        const candidates: { x: number; z: number; level: number }[] = [];
+        for (const bridge of PLATFORM_BRIDGES) {
+            if (chebyshev(bridge, from) <= 2) {
+                continue;
+            }
+            if ((await Navigator.findPath(from, bridge, { policy: { useTeleports: false } })).ok) {
+                candidates.push(bridge);
+            }
+        }
+        candidates.sort((a, b) => chebyshev(a, dest) - chebyshev(b, dest));
+        log(`pass: ${candidates.length} of ${PLATFORM_BRIDGES.length} bridge(s) reachable from (${from.x},${from.z})`);
         for (const bridge of candidates) {
             const tile = new Tile(bridge.x, bridge.z, bridge.level);
             if (!(await Traversal.walkResilient(tile, { radius: 6, attempts: 1, timeoutMs: 20_000 }))) {
