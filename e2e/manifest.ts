@@ -51,6 +51,15 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'chompy-bird-235-live',
+        harness: 'chompy-bird-235-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'documented',
+        budgetMin: 90,
+        documentedIn: 'docs/reference/quest-harness-recipes.md',
+        note: 'members-only, so it needs the :8890 world; --stage seeds %chompybird and relogs'
+    },
+    {
         id: 'clue-guardian-eat-live',
         harness: 'clue-guardian-eat-live.ts',
         covers: { scripts: ['ClueSolver'] },

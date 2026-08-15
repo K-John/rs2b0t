@@ -240,15 +240,22 @@ export async function watchRantzShoot(log: (m: string) => void): Promise<boolean
 
 /** Pick the spent arrows up off the floor. */
 async function recoverArrows(): Promise<boolean> {
-    const spent = GroundItems.query().name(CB_NAME.ARROW).within(12).nearest();
-    if (!spent) {
-        return false;
+    let taken = false;
+    for (let stack = 0; stack < 4; stack++) {
+        const spent = GroundItems.query().name(CB_NAME.ARROW).within(16).nearest();
+        if (!spent) {
+            break;
+        }
+        const before = held(CB_ID.ARROW);
+        if (!(await spent.interact('Take'))) {
+            break;
+        }
+        if (!(await Execution.delayUntil(() => held(CB_ID.ARROW) > before, 8000))) {
+            break;
+        }
+        taken = true;
     }
-    const before = held(CB_ID.ARROW);
-    if (!(await spent.interact('Take'))) {
-        return false;
-    }
-    return Execution.delayUntil(() => held(CB_ID.ARROW) > before, 8000);
+    return taken;
 }
 
 /** Bow in hand and ogre arrows in the quiver. */
@@ -326,7 +333,23 @@ export async function huntChompy(log: (m: string) => void): Promise<boolean> {
         if (bird && !(await bird.interact('Attack'))) {
             return false;
         }
-        if (await Execution.delayUntil(() => chompyDead(), 45_000)) {
+        // Why: every shot spends an arrow and the quiver holds what the fletching leg could make, so a dry
+        // quiver mid-fight is answered by picking the spent arrows back up rather than waiting out the window.
+        const deadline = performance.now() + 60_000;
+        while (performance.now() < deadline && !chompyDead()) {
+            if (!Equipment.contains(CB_NAME.ARROW)) {
+                await recoverArrows();
+                if (!(await armForChompy(log))) {
+                    break;
+                }
+                const again = Npcs.query().name(CB_NPC.CHOMPY).action('Attack').within(16).nearest();
+                if (again) {
+                    await again.interact('Attack');
+                }
+            }
+            await Execution.delayTicks(2);
+        }
+        if (chompyDead()) {
             return pluckChompy(log);
         }
         log('the chompy outlasted its shot window');

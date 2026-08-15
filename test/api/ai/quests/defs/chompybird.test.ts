@@ -252,8 +252,17 @@ describe('big chompy bird hunting decide', () => {
     });
 
     test('the killed stage hunts again when the carcass was lost', () => {
-        const s = step({ stage: CB_STAGE.KILLED_CHOMPY, invIds: [[CB_ID.BOW, 1], [CB_ID.ARROW, 4], [CB_ID.BELLOWS3, 1]] });
+        const s = step({ stage: CB_STAGE.KILLED_CHOMPY, invIds: [[CB_ID.BOW, 1], [CB_ID.ARROW, 6], [CB_ID.BELLOWS3, 1]] });
         expect(named(s)).toBe('shoot and pluck a chompy bird');
+    });
+
+    // Why: the chompy takes several shots, so a handful of arrows is a fight that runs dry with the bird alive.
+    test('a short quiver goes back to the fletching chain rather than hunting', () => {
+        const s = step({
+            stage: CB_STAGE.GOT_BOW,
+            invIds: [...TOOLED, [CB_ID.BOW, 1], [CB_ID.ARROW, 3], [CB_ID.BELLOWS3, 1]]
+        });
+        expect(named(s)).toBe('chop an achey tree');
     });
 
     test('the cook stage asks the children first', () => {

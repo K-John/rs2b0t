@@ -32,9 +32,15 @@ const hasBellows = (snap: QuestSnapshot): boolean => ANY_BELLOWS.some(id => held
 const bankHasBellows = (snap: QuestSnapshot): number | null =>
     ANY_BELLOWS.find(id => (snap.bankIds?.get(id) ?? 0) > 0) ?? null;
 
-/** An ogre arrow anywhere the chompy fight can reach — the quiver has no count on the wire. */
+// Why: the chompy takes several shots and every one spends an arrow, so three in the pack is a fight that
+// runs dry with the bird alive. The quiver has no count on the wire, so a quivered stack is trusted and the
+// pack is what has to reach the floor before one is loaded.
+
+/** Enough ogre arrows to see a chompy off. */
+const HUNT_ARROWS = 6;
+
 const hasArrows = (snap: QuestSnapshot): boolean =>
-    heldId(snap, CB_ID.ARROW) > 0 || (snap.wornIds?.has(CB_ID.ARROW) ?? false);
+    heldId(snap, CB_ID.ARROW) >= HUNT_ARROWS || (snap.wornIds?.has(CB_ID.ARROW) ?? false);
 
 const hasBow = (snap: QuestSnapshot): boolean =>
     heldId(snap, CB_ID.BOW) > 0 || (snap.wornIds?.has(CB_ID.BOW) ?? false);
