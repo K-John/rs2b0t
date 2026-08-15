@@ -18,7 +18,7 @@ import { heldId } from '../../exec/prompts.js';
 import { IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_OBJ, IKOV_TILE, ROOTS_WANTED } from './areas.js';
 
 /** Levels the sourcing route needs but the server never gates on the quest. */
-export const IKOV_SOURCING_SKILLS: readonly { skill: string; level: number }[] = [
+const IKOV_SOURCING_SKILLS: readonly { skill: string; level: number }[] = [
     { skill: 'woodcutting', level: 60 },
     { skill: 'fletching', level: 65 },
     { skill: 'crafting', level: 10 }
@@ -38,13 +38,8 @@ export function heldOrBanked(snap: QuestSnapshot, id: number): number {
     return (snap.invIds?.get(id) ?? 0) + (snap.bankIds?.get(id) ?? 0) + (snap.wornIds?.has(id) === true ? 1 : 0);
 }
 
-export function heldOrBankedNamed(snap: QuestSnapshot, name: string): number {
-    const key = name.toLowerCase();
-    return (snap.inv.get(key) ?? 0) + (snap.bank?.get(key) ?? 0);
-}
-
 /** True once the bank or the pack can produce a lit candle for the dark stairs. */
-export function kitCandleReady(snap: QuestSnapshot): boolean {
+function kitCandleReady(snap: QuestSnapshot): boolean {
     if (heldOrBanked(snap, IKOV_OBJ.LIT_CANDLE) > 0) {
         return true;
     }
@@ -261,7 +256,7 @@ function rootStep(snap: QuestSnapshot): QuestStep {
     return { kind: 'custom', name: `farm limpwurt roots (${banked + held}/${ROOTS_WANTED})`, run: farmRoots };
 }
 
-export interface SupplyWants {
+interface SupplyWants {
     candle: boolean;
     bow: boolean;
     roots: boolean;

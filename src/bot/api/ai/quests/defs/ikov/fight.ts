@@ -13,7 +13,7 @@ import { Sustain } from '../../../../sustain/Sustain.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Traversal } from '../../../../walking/Traversal.js';
-import { IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_OBJ, IKOV_TILE, LAVA_BRIDGE_ZONE, onWineldaLedge } from './areas.js';
+import { IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_TILE, LAVA_BRIDGE_ZONE } from './areas.js';
 import { escapePocket, pullTrapLever, wearFearPendant } from './dungeon.js';
 
 /** Ticks the Fire Warrior is given before the leg hands the tick back to the engine. */
@@ -33,7 +33,7 @@ function hungry(): boolean {
 }
 
 /** Every ice-arrow stack size renders under one display name, so the pack is counted by name. */
-export function iceArrowsHeld(): number {
+function iceArrowsHeld(): number {
     return Inventory.count(IKOV_NAME.ICE_ARROWS) + (Equipment.contains(IKOV_NAME.ICE_ARROWS) ? wornArrows() : 0);
 }
 
@@ -44,7 +44,7 @@ function wornArrows(): number {
 }
 
 /** The Fire Warrior refuses anything but ranged, and only with ice arrows in the quiver. */
-export async function armForTheWarrior(log: (m: string) => void): Promise<boolean> {
+async function armForTheWarrior(log: (m: string) => void): Promise<boolean> {
     if (!Equipment.contains(IKOV_NAME.YEW_SHORTBOW) && !(await Equipment.equip(IKOV_NAME.YEW_SHORTBOW))) {
         log('ikov: no yew shortbow to wield');
         return false;
@@ -310,10 +310,3 @@ export async function killLucien(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-/** True while the bot is on Winelda's side of the lava, where the Fire Warrior's door is behind it. */
-export function onLedge(): boolean {
-    const here = Game.tile();
-    return here !== null && onWineldaLedge(here);
-}
-
-export { IKOV_OBJ };

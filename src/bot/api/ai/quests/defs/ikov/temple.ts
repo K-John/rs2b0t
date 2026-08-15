@@ -5,7 +5,6 @@ import { Equipment } from '../../../../equipment/Equipment.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
-import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { heldId, settleScene } from '../../exec/prompts.js';
@@ -64,7 +63,7 @@ async function ensureAcrossTheLava(log: (m: string) => void): Promise<boolean> {
     return crossed;
 }
 
-export async function takeShinyKey(log: (m: string) => void): Promise<boolean> {
+async function takeShinyKey(log: (m: string) => void): Promise<boolean> {
     if (heldId(IKOV_OBJ.SHINY_KEY) > 0) {
         return true;
     }
@@ -83,7 +82,7 @@ export async function takeShinyKey(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: the wall is a "Wall" with a `Push`, not a door, so `derive-doors` never baked it and no route crosses it on its own.
-export async function pushSecretWall(intoTemple: boolean, log: (m: string) => void): Promise<boolean> {
+async function pushSecretWall(intoTemple: boolean, log: (m: string) => void): Promise<boolean> {
     const arrived = (): boolean => {
         const t = Game.tile();
         return t !== null && inGuardianTemple(t) === intoTemple;
@@ -121,7 +120,7 @@ export async function pushSecretWall(intoTemple: boolean, log: (m: string) => vo
 }
 
 /** Everything the guardians must not see: Lucien's pendant worn, or the staff carried. */
-export async function shedLucienColours(log: (m: string) => void): Promise<boolean> {
+async function shedLucienColours(log: (m: string) => void): Promise<boolean> {
     if (Equipment.contains(IKOV_NAME.PENDANT_LUCIEN)) {
         log("ikov: stowing Lucien's pendant before the guardians see it");
         if (!(await Equipment.unequip(IKOV_NAME.PENDANT_LUCIEN))) {
@@ -203,8 +202,4 @@ export async function leaveTheFarSide(log: (m: string) => void): Promise<boolean
         await settleScene();
     }
     return out;
-}
-
-export function rootsHeld(): number {
-    return Inventory.countById(IKOV_OBJ.LIMPWURT_ROOT);
 }

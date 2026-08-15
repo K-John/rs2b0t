@@ -48,11 +48,6 @@ export function parseIkovJournal(lines: readonly string[] | string): number | un
 /** A failed read is not evidence the quest went backwards. */
 let lastGood: number | undefined;
 
-/** Test seam: the memo survives the process, and a test that walks the ladder has to clear it. */
-export function resetIkovJournalMemo(): void {
-    lastGood = undefined;
-}
-
 export async function readIkovStage(): Promise<number | undefined> {
     const status = Quests.status(IKOV_QUEST);
     if (status === 'complete') {

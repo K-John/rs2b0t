@@ -22,7 +22,6 @@ import {
     LAVA_BRIDGE_ZONE,
     inDarkRoom,
     inIceCavern,
-    inTemple,
     inTrapPit,
     westOfBridge
 } from './areas.js';
@@ -80,12 +79,6 @@ export async function wearFearPendant(log: (m: string) => void): Promise<boolean
     return Equipment.equip(IKOV_NAME.PENDANT_LUCIEN);
 }
 
-/** True once the player is standing anywhere inside the temple. */
-export function insideTemple(): boolean {
-    const here = Game.tile();
-    return here !== null && inTemple(here);
-}
-
 async function climbDarkStairsUp(log: (m: string) => void): Promise<boolean> {
     if (!(await templeWalk(IKOV_TILE.DARK_STAIRS_UP, 1, log))) {
         return false;
@@ -125,7 +118,7 @@ async function climbTrapLadder(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: the crossing is a zone timer rather than a loc, so there is no op to send — stepping onto the bridge is the action, and the far side is the only oracle.
-export async function crossBridge(goWest: boolean, log: (m: string) => void): Promise<boolean> {
+async function crossBridge(goWest: boolean, log: (m: string) => void): Promise<boolean> {
     const start = goWest ? IKOV_TILE.BRIDGE_EAST : IKOV_TILE.BRIDGE_WEST;
     const step = goWest ? IKOV_TILE.BRIDGE_ZONE_EAST : IKOV_TILE.BRIDGE_ZONE_WEST;
     const landed = (): boolean => {
@@ -233,7 +226,7 @@ async function takeBoots(log: (m: string) => void): Promise<boolean> {
 }
 
 /** Fetch and wear the boots; everything past the lava bridge depends on the negative weight. */
-export async function fetchBoots(log: (m: string) => void): Promise<boolean> {
+async function fetchBoots(log: (m: string) => void): Promise<boolean> {
     if (wearingBoots()) {
         return true;
     }
@@ -331,7 +324,7 @@ async function takeIkovLever(log: (m: string) => void): Promise<boolean> {
 }
 
 /** Cross the lava, take the Lever, cross back. */
-export async function fetchIkovLever(log: (m: string) => void): Promise<boolean> {
+async function fetchIkovLever(log: (m: string) => void): Promise<boolean> {
     if (heldId(IKOV_OBJ.LEVER) > 0) {
         const held = Game.tile();
         return held !== null && westOfBridge(held) ? crossBridge(false, log) : true;
@@ -358,7 +351,7 @@ export async function fetchIkovLever(log: (m: string) => void): Promise<boolean>
 }
 
 /** Fit the Lever into its bracket and pull it; the south gate opens off the bit it sets. */
-export async function mendAndPullLever(log: (m: string) => void): Promise<boolean> {
+async function mendAndPullLever(log: (m: string) => void): Promise<boolean> {
     if (!(await escapePocket(log))) {
         return false;
     }
@@ -431,7 +424,7 @@ async function searchChest(chest: { loc: Tile; stand: Tile }, log: (m: string) =
 }
 
 // Why: one chest holds the arrows and it is re-rolled after every find, so the search is a circuit rather than a chest — and returning on the first find would restart the circuit from the west every time.
-export async function searchIceChests(log: (m: string) => void): Promise<boolean> {
+async function searchIceChests(log: (m: string) => void): Promise<boolean> {
     const before = Inventory.count(IKOV_NAME.ICE_ARROWS);
     for (let round = 0; round < CHEST_ROUNDS; round++) {
         for (const chest of ICE_CHESTS) {
@@ -479,16 +472,6 @@ function crossedIntoCavern(): boolean {
     return t !== null && inIceCavern(t);
 }
 
-export function leaveTemple(log: (m: string) => void): Promise<boolean> {
-    return Traversal.walkResilient(IKOV_TILE.TEMPLE_LADDER, {
-        radius: 2,
-        attempts: 3,
-        timeoutMs: WALK_MS,
-        avoidZones: [LAVA_BRIDGE_ZONE],
-        log
-    });
-}
-
 // Why: a stack of two to five arrows carries its own object id, and all five share one display name — so arrows are counted by name, never by id.
 export function arrowsSecured(snap: QuestSnapshot): boolean {
     const key = IKOV_NAME.ICE_ARROWS.toLowerCase();
@@ -510,7 +493,7 @@ export function dungeonPrepStep(snap: QuestSnapshot): QuestStep | null {
 }
 
 /** Boots, then the south gate; a gate that refuses is what sends the leg after the lever. */
-export async function iceArrowLeg(log: (m: string) => void): Promise<boolean> {
+async function iceArrowLeg(log: (m: string) => void): Promise<boolean> {
     if (!(await escapePocket(log))) {
         return false;
     }
