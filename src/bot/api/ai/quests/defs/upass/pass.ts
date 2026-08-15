@@ -182,28 +182,30 @@ function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string
 // satisfies, so the walk is made explicit before the op is sent.
 // Why: and the client's own walkability for that tile is not the test. It disagrees with the server on a
 // bridge structure, so trusting it short-circuited the walk and sent the op from twenty tiles away again.
-async function standBeside(at: Tile, note: (m: string) => void): Promise<boolean> {
+async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promise<boolean> {
     const me = here();
-    if (me && me.level === at.level && chebyshev(me, at) <= 1) {
+    if (skip === 0 && me && me.level === at.level && chebyshev(me, at) <= 1) {
         return true;
     }
     // Why: the client's flood and the walker disagree about single tiles — the ledge's east neighbour at
-    // z 9643 floods as reachable and the walker answers "unreachable beyond (2375,9644)". So every side is
-    // tried in turn rather than one being chosen and trusted.
+    // z 9643 floods as reachable and the walker answers "unreachable beyond (2375,9644)".
+    // Why: and `reached` can still refuse from a side the walk reaches, because a cavern wall stands between
+    // them. So a retry takes the NEXT side rather than sending the same op from the same tile again.
     const sides = [[1, 0], [-1, 0], [0, 1], [0, -1]]
         .map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level))
         .filter(tile => Reachability.canReach(tile, REACH))
         .sort((a, b) => chebyshev(a, me ?? a) - chebyshev(b, me ?? b));
-    for (const pick of sides) {
-        // Why: walkResilient's own logging is a dozen lines a walk, and the caller keeps one line.
-        // Why: radius 1, because the walker lands on the nearest reachable tile and says so — asking for
-        // exactly (2375,9643) failed while (2375,9644) beside it was open the whole time.
-        if (await Traversal.walkResilient(pick, { radius: 1, attempts: 1, timeoutMs: 20_000 })) {
-            note(`stood@${here()?.x},${here()?.z}`);
-            return true;
-        }
+    if (sides.length === 0) {
+        note(`nowhere to stand beside ${at.x},${at.z}`);
+        return false;
     }
-    note(`nowhere to stand beside ${at.x},${at.z}`);
+    const pick = sides[skip % sides.length]!;
+    // Why: walkResilient's own logging is a dozen lines a walk, and the caller keeps one line.
+    if (await Traversal.walkResilient(pick, { radius: 1, attempts: 1, timeoutMs: 20_000 })) {
+        note(`stood@${here()?.x},${here()?.z}`);
+        return true;
+    }
+    note(`could not stand at ${pick.x},${pick.z}`);
     return false;
 }
 
@@ -270,7 +272,7 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         // log lines per tick, and four tries plus their walks arrive as the last of them and nothing else.
         const trace: string[] = [];
         for (let attempt = 0; attempt < (kind.tries ?? 1); attempt++) {
-            if (!(await standBeside(obstacle.tile(), m => trace.push(m)))) {
+            if (!(await standBeside(obstacle.tile(), m => trace.push(m), attempt))) {
                 break;
             }
             // Why: a seam is often a row of identical locs — the ledge is six — and the one the search
