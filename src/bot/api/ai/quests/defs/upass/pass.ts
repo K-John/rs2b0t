@@ -430,6 +430,21 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
     if (!from) {
         return false;
     }
+    // Why: a compass probe walks where the pocket happens to extend, which in the main cavern is a corridor
+    // running the wrong way — eight rounds of it never came within sight of the bridge fifteen tiles north.
+    // Walking AT a seam the scene can see but not reach is what carries the build area to it.
+    for (const loc of seamsInScene().sort((a, b) => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest))) {
+        if (seamReachable(loc.tile())) {
+            continue;
+        }
+        if (!(await Traversal.walkResilient(loc.tile(), { radius: 8, attempts: 1, timeoutMs: 30_000 }))) {
+            continue;
+        }
+        log(`pass: closed on ${loc.name ?? loc.id} at (${loc.tile().x},${loc.tile().z}) — now at (${here()?.x},${here()?.z})`);
+        if (await hopToward(dest, log, spent)) {
+            return true;
+        }
+    }
     const probes = SWEEP_DIRS
         .map(([dx, dz]) => SWEEP_STEPS
             .map(step => new Tile(from.x + dx * step, from.z + dz * step, from.level))
