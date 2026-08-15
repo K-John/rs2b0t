@@ -126,6 +126,7 @@ export const UP_LOC = {
     PIPE_AREA2: 3237,
     SWAMP: 3263,
     ROCKPILE: 3265,
+    CELL_TUNNEL: 3217,
     MUD_DIG: 3216,
     WALL_DOOR_L: 2048,
     WALL_DOOR_R: 2049

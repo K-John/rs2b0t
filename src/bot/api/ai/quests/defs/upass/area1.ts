@@ -12,7 +12,7 @@ import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import type { QuestSnapshot } from '../../engine/types.js';
 import { UP_ITEM, UP_LOC, UP_ORBS, UP_TILE, countHeld, type UpassItem } from './areas.js';
 import { locById } from './bridge.js';
-import { stalledApproach, stalledWalkToLoc } from './stall.js';
+import { stalledJourney, type Stone } from './stall.js';
 
 /** Where each orb of light is, and how it is taken. */
 export const ORB_SITES: readonly { orb: UpassItem; tile: Tile; fromTrap: boolean }[] = [
@@ -35,43 +35,68 @@ export function orbsHeld(snap: QuestSnapshot): number {
 // Nothing may be a plain walk down here: `MoveClickHandler` clears the modal on any move that is not an
 // op-click, and the walker re-clicks every few tiles.
 
-/** Op-click reach — the loaded scene is 104x104, so a target beyond this cannot be clicked at all. */
-const HOP_RANGE = 44;
+// Why: an op-click can only name what the client already holds in its build area, and that area lags the
+// player by up to two zones — a target forty tiles off reads as absent and the click never sends. So the
+// corridor is walked over stepping stones: the traps' own `Search` and the two stone tablets, which are the
+// only ops down here and happen to sit at every chokepoint. Standing on a trap costs nothing while the
+// journal is up, so the journey holds it from the first leg to the last.
+const STONES: readonly { id: number; op: string }[] = [
+    { id: UP_LOC.SPEARTRAP, op: 'Search' },
+    { id: UP_LOC.SPRINGTRAP, op: 'Search' },
+    { id: UP_LOC.LOGTRAP_TRIGGER, op: 'Search' },
+    { id: UP_LOC.TABLET_EAST, op: 'Read' },
+    { id: UP_LOC.TABLET_WEST, op: 'Read' }
+];
+
+/** How near a stepping stone's target must bring the player before the leg is worth taking. */
+const STONE_GAIN = 3;
+const STONE_SEARCH = 40;
+
+function cheb(a: { x: number; z: number }, b: { x: number; z: number }): number {
+    return Math.max(Math.abs(a.x - b.x), Math.abs(a.z - b.z));
+}
 
 function near(tile: Tile, radius: number): boolean {
     const now = Game.tile();
-    return now !== null && Math.max(Math.abs(now.x - tile.x), Math.abs(now.z - tile.z)) <= radius;
+    return now !== null && cheb(now, tile) <= radius;
 }
 
-function beyondReach(tile: Tile): boolean {
-    const now = Game.tile();
-    return now === null || Math.max(Math.abs(now.x - tile.x), Math.abs(now.z - tile.z)) > HOP_RANGE;
-}
-
-// Why: the west stone tablet is the only op-clickable loc within one scene of all four orbs, the furnace
-// and the well at once, and reading it costs nothing — so anything out of reach is reached in two hops
-// through it rather than by a plain walk the modal cannot survive.
-async function hopToHub(log: (m: string) => void): Promise<boolean> {
-    if (near(UP_TILE.CORRIDOR_HUB, 6)) {
-        return true;
+function stoneToward(dest: Tile, spent: Set<string>, log: (m: string) => void): Stone | null {
+    const from = Game.tile();
+    if (!from) {
+        return null;
     }
-    const reached = await stalledWalkToLoc(
-        UP_LOC.TABLET_WEST,
-        'Read',
-        () => near(UP_TILE.CORRIDOR_HUB, 6),
-        log,
-        52
-    );
-    if (!reached) {
-        log('could not reach the stone tablet the corridor hops stage from');
+    const mine = cheb(from, dest);
+    const reachable = STONES.flatMap(stone =>
+        Locs.query()
+            .where(loc => loc.id === stone.id)
+            .action(stone.op)
+            .within(STONE_SEARCH)
+            .results()
+            .map(loc => ({ loc, op: stone.op }))
+    )
+        .filter(({ loc }) => cheb(loc.tile(), dest) + STONE_GAIN <= mine)
+        .filter(({ loc }) => !spent.has(`${loc.tile().x},${loc.tile().z}`))
+        .sort((a, b) => cheb(a.loc.tile(), dest) - cheb(b.loc.tile(), dest));
+    const pick = reachable[0];
+    if (!pick) {
+        return null;
     }
-    return reached;
+    const at = pick.loc.tile();
+    spent.add(`${at.x},${at.z}`);
+    log(`stall: stepping to ${pick.loc.name ?? pick.loc.id} at (${at.x},${at.z})`);
+    return {
+        send: async () => pick.loc.interact(pick.op),
+        arrived: () => near(at, 1),
+        what: `${pick.loc.name ?? pick.loc.id} at (${at.x},${at.z})`
+    };
 }
 
-/** One stalled op-click at `dest`, staged through the hub when `dest` is out of clicking range. */
+/** Reach `dest` and do its op-click, stepping over the traps with the journal held open throughout. */
 async function corridorHop(
     dest: Tile,
     what: string,
+    inRange: () => boolean,
     send: () => Promise<boolean>,
     arrived: () => boolean,
     log: (m: string) => void
@@ -79,11 +104,13 @@ async function corridorHop(
     if (arrived()) {
         return true;
     }
-    if (beyondReach(dest) && !(await hopToHub(log))) {
-        return false;
-    }
     await settleScene();
-    return stalledApproach({ send, what, arrived, log });
+    const spent = new Set<string>();
+    return stalledJourney({
+        goal: { send, arrived, what, inRange },
+        nextStone: () => stoneToward(dest, spent, log),
+        log
+    });
 }
 
 // Why: the disarm is a `stat_random(thieving, 160, 300)` roll and a failed one springs the log — a stun, a
@@ -96,20 +123,23 @@ export async function takeTrappedOrb(log: (m: string) => void): Promise<boolean>
     if (heldId(UP_ITEM.ORB1.id) > 0) {
         return true;
     }
-    const findTrigger = () => locById(UP_LOC.LOGTRAP_TRIGGER, null, 52);
+    const findTrigger = () => locById(UP_LOC.LOGTRAP_TRIGGER, null, STONE_SEARCH);
     const arrived = await corridorHop(
         UP_TILE.LOGTRAP,
         'the hanging-log trigger',
+        () => findTrigger() !== null,
         async () => {
             const trigger = findTrigger();
             const op = trigger?.actions()[0];
             return trigger !== null && op !== undefined && trigger.interact(op);
         },
-        () => near(UP_TILE.LOGTRAP, 3),
+        () => near(UP_TILE.LOGTRAP, 1),
         log
     );
     if (!arrived) {
-        if (findTrigger() === null) {
+        // Why: the trigger is deleted for fifty ticks once its orb is taken, so absent while standing on
+        // top of it means burned — absent from across the corridor only means out of the build area.
+        if (near(UP_TILE.LOGTRAP, 8) && findTrigger() === null) {
             log('no hanging-log trigger rock at the orb — already burned');
             return true;
         }
@@ -155,12 +185,14 @@ export async function takeGroundOrb(orb: UpassItem, tile: Tile, log: (m: string)
     if (heldId(orb.id) > 0) {
         return true;
     }
+    // Why: all four orbs display as "Orb of light", so the ground pile is matched on the exact id.
+    const findDrop = () => GroundItems.query().where(item => item.id === orb.id).within(STONE_SEARCH).nearest();
     const took = await corridorHop(
         tile,
         `the Orb of light at (${tile.x},${tile.z})`,
+        () => findDrop() !== null,
         async () => {
-            // Why: all four orbs display as "Orb of light", so the ground pile is matched on the exact id.
-            const drop = GroundItems.query().where(item => item.id === orb.id).within(52).nearest();
+            const drop = findDrop();
             return drop !== null && drop.interact('Take');
         },
         () => heldId(orb.id) > 0,
@@ -169,7 +201,9 @@ export async function takeGroundOrb(orb: UpassItem, tile: Tile, log: (m: string)
     if (took) {
         return true;
     }
-    if (GroundItems.query().where(item => item.id === orb.id).within(52).nearest() === null) {
+    // Why: an orb absent from its own floor tile has already gone into the furnace — absent from across
+    // the corridor only means the client has not loaded that far.
+    if (near(tile, 8) && findDrop() === null) {
         log(`no Orb of light on the floor at (${tile.x},${tile.z}) — already burned`);
         return true;
     }
@@ -190,11 +224,14 @@ export async function burnOrbs(log: (m: string) => void): Promise<boolean> {
     }
     for (let pass = 0; pass < 3 && held().length > 0; pass++) {
         for (const orb of held()) {
+            const findFurnace = () =>
+                Locs.query().where(loc => loc.id === UP_LOC.FURNACE).within(STONE_SEARCH).nearest();
             const gone = await corridorHop(
                 UP_TILE.FURNACE,
                 `the ${orb.name} on the furnace`,
+                () => findFurnace() !== null,
                 async () => {
-                    const furnace = Locs.query().where(loc => loc.id === UP_LOC.FURNACE).within(52).nearest();
+                    const furnace = findFurnace();
                     const item = Inventory.items().find(inv => inv.id === orb.id);
                     return furnace !== null && item !== undefined && item.useOn(furnace);
                 },
@@ -244,11 +281,13 @@ export async function sweepOrbs(log: (m: string) => void): Promise<boolean> {
 /** The well only takes the player down once all four orbs are dark. */
 export async function enterWell(log: (m: string) => void): Promise<boolean> {
     const down = () => (Game.tile()?.z ?? 9999) < 9664;
+    const findWell = () => locById(UP_LOC.WELL, null, STONE_SEARCH);
     const climbed = await corridorHop(
         UP_TILE.WELL,
         'the well',
+        () => findWell() !== null,
         async () => {
-            const well = locById(UP_LOC.WELL, null, 52);
+            const well = findWell();
             const op = well?.actions()[0];
             return well !== null && op !== undefined && well.interact(op);
         },
@@ -258,10 +297,8 @@ export async function enterWell(log: (m: string) => void): Promise<boolean> {
     if (climbed) {
         return true;
     }
-    if (locById(UP_LOC.WELL, null, 52) === null) {
-        log('no well at the west end of the first cavern');
-    } else {
-        log('the well blasted the player back out — an orb is still lit');
-    }
+    log(findWell() === null
+        ? 'never got within sight of the well at the west end of the first cavern'
+        : 'the well blasted the player back out — an orb is still lit');
     return false;
 }

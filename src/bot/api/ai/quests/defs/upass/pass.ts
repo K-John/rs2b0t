@@ -21,7 +21,13 @@ import { UP_ITEM, UP_LOC } from './areas.js';
 interface HopKind {
     loc: number;
     op: string;
+    /** How many times to send the op before giving up on this obstacle. */
+    tries?: number;
 }
+
+// Why: the two locked cages roll `stat_random(thieving, …)` and leave the player where they were on a
+// failure, so one send is not a verdict on the obstacle — it is one roll.
+const LOCK_TRIES = 5;
 
 // Why: ordered by how often the route meets them, so the nearest-first search below settles quickly.
 const HOP_KINDS: readonly HopKind[] = [
@@ -36,7 +42,14 @@ const HOP_KINDS: readonly HopKind[] = [
     // Why: a component report over leg 3's anchors puts the unicorn cage and the paladins' shelf in
     // different pockets joined only by these — `upass_area_2_3_entrance` telejumps between them.
     { loc: UP_LOC.UNICORN_DOOR_L, op: 'Pass-through' },
-    { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through' }
+    { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through' },
+    // Why: the second cavern's own seams. The route from the well down to the boulder crosses the slave
+    // cages, the swamp and a pipe, and every one of them reads "unreachable" to the navigator.
+    { loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', tries: LOCK_TRIES },
+    { loc: UP_LOC.RAILINGS_HARD, op: 'Pick-lock', tries: LOCK_TRIES },
+    { loc: UP_LOC.SWAMP, op: 'Cross' },
+    { loc: UP_LOC.ROCKPILE, op: 'Climb' },
+    { loc: UP_LOC.CELL_TUNNEL, op: 'Enter' }
 ];
 
 const HOP_TIMEOUT_MS = 12_000;
@@ -80,9 +93,8 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
         .sort((a, b) => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest));
 }
 
-function opOf(loc: Loc): string | null {
-    const kind = HOP_KINDS.find(k => k.loc === loc.id);
-    return kind ? kind.op : null;
+function kindOf(loc: Loc): HopKind | null {
+    return HOP_KINDS.find(k => k.loc === loc.id) ?? null;
 }
 
 /**
@@ -100,17 +112,21 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         if (spent.has(key)) {
             continue;
         }
-        const op = opOf(obstacle);
-        if (!op) {
+        const kind = kindOf(obstacle);
+        if (!kind) {
             continue;
         }
-        if (!(await obstacle.interact(op))) {
-            continue;
+        const op = kind.op;
+        let moved = false;
+        for (let attempt = 0; attempt < (kind.tries ?? 1) && !moved; attempt++) {
+            if (!(await obstacle.interact(op))) {
+                break;
+            }
+            moved = await Execution.delayUntil(() => {
+                const now = here();
+                return now !== null && (now.x !== from.x || now.z !== from.z || now.level !== from.level);
+            }, HOP_TIMEOUT_MS);
         }
-        const moved = await Execution.delayUntil(() => {
-            const now = here();
-            return now !== null && (now.x !== from.x || now.z !== from.z || now.level !== from.level);
-        }, HOP_TIMEOUT_MS);
         if (!moved) {
             continue;
         }

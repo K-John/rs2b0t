@@ -46,6 +46,13 @@ export interface StalledApproach {
     arrived: () => boolean;
     /** True once the attempt is lost — polled so a fall does not sit out the whole timeout. */
     abort?: () => boolean;
+    /**
+     * Leave the modal up on the way out.
+     * Why: a chain of these ends each leg standing on the next stepping stone, and down here the stepping
+     * stones are the trap tiles themselves — closing the journal to open it again a tick later is the
+     * whole exposure. The op-click that starts the next leg closes it anyway.
+     */
+    hold?: boolean;
     log: (m: string) => void;
     timeoutMs?: number;
 }
@@ -113,6 +120,55 @@ export async function stalledApproach(opts: StalledApproach): Promise<boolean> {
         const here = tileNow();
         log(`stall: timed out at (${here?.x},${here?.z}) — never reached the far side`);
         return false;
+    } finally {
+        if (opts.hold !== true) {
+            await releaseJournal();
+        }
+    }
+}
+
+/** One op-click that can carry a leg of a journey, and where its target sits. */
+export interface Stone {
+    send: () => Promise<boolean>;
+    arrived: () => boolean;
+    what: string;
+}
+
+export interface StalledJourney {
+    /** The last op-click, once its target is in range. */
+    goal: Stone & { inRange: () => boolean };
+    /** The next stepping stone toward the goal, or null when nothing in range makes progress. */
+    nextStone: () => Stone | null;
+    log: (m: string) => void;
+    legs?: number;
+}
+
+/**
+ * Reach `goal` over a chain of stalled op-clicks, holding the journal across the whole journey.
+ * Why: an op-click can only name a loc the client has in its build area, and that area lags the player,
+ * so the reach is far shorter than the corridor. The chain is what closes the gap.
+ */
+export async function stalledJourney(opts: StalledJourney): Promise<boolean> {
+    const { goal, nextStone, log } = opts;
+    const legs = opts.legs ?? 14;
+    try {
+        for (let leg = 0; leg < legs; leg++) {
+            if (goal.arrived()) {
+                return true;
+            }
+            if (goal.inRange() && (await stalledApproach({ ...goal, hold: true, log }))) {
+                return true;
+            }
+            const stone = nextStone();
+            if (!stone) {
+                const at = tileNow();
+                log(`stall: nothing at (${at?.x},${at?.z}) steps toward ${goal.what}`);
+                return false;
+            }
+            await stalledApproach({ ...stone, hold: true, log });
+        }
+        log(`stall: ${legs} legs without reaching ${goal.what}`);
+        return goal.arrived();
     } finally {
         await releaseJournal();
     }
