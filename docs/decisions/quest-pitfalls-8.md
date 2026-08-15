@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Twenty-one, and the first three are engine behaviour the quest only happens to expose.
+Twenty-two, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -111,6 +111,12 @@ Twenty-one, and the first three are engine behaviour the quest only happens to e
   out of ledges to try while standing at the door of the room it could not leave.
 - **Drops are not deliveries.** `ai_queue3` puts the paladin's coat of arms on its own tile, so a step waiting
   for it to appear in the pack waits forever. The kill and the pickup are two separate things.
+
+- **An op-click on a ground-decor seam has to be sent from beside it.** The ledge is shape 22 on a tile the
+  collision pack calls blocked, so the server paths toward that tile, dead-ends, and answers "I can't reach
+  that!" — the crossing script never runs, and the step reads it as the agility roll failing. Twenty rolls at
+  ninety-five per cent each "failed" before the refusal was logged. `inOperableDistance` is
+  `reachedEntity || reachedObj`, which a cardinal neighbour satisfies: walk there at radius 0 first.
 
 ## See also
 
