@@ -1,5 +1,7 @@
 // docs/reference/quest-primitives.md
+import { reader } from '../../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../execution/Execution.js';
+import { Modals } from '../../../ui/widgets/Modals.js';
 import { Reach } from '../../../walking/Reach.js';
 import type Tile from '../../../../geometry/Tile.js';
 import { Traversal } from '../../../walking/Traversal.js';
@@ -119,6 +121,11 @@ export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
     const { id, stand, isFar, log } = door;
     if (isFar()) {
         return true;
+    }
+    // Why: a `~mesbox` left over from the door's own challenge — "You hear the door being unbarred from
+    // inside." — swallows the next Open click with no refusal to say why.
+    if (reader.modals().main !== -1) {
+        await Modals.close();
     }
     if (!(await Traversal.walkResilient(stand, { radius: 1, attempts: 3, timeoutMs: DOOR_WALK_MS, log }))) {
         return false;
