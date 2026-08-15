@@ -43,6 +43,13 @@ mentions.
   that for the rest of the session — which would strand the third scorpion for good. Ask
   Abbot Langley first, every pass; the redundant conversation costs two seconds and the
   blacklist costs the quest.
+- **A modal the client has closed is one the server still has open.** The barcrawl card's
+  first Read after a read of its own opened nothing: the client clears the main modal on
+  the close it sends, the server clears it a tick or more later, and an `opheld` that
+  arrives in between is dropped with no refusal. `drinkAt` had always survived it by
+  reading three times; every other caller read once, called the card unreadable and failed
+  a quest step — once per bar, ten bars. A send that can be dropped needs its own retry,
+  not a caller who happens to have one.
 - **`huntmode=cowardly` is not shy.** Its `check_nottoostrong=outside_wilderness` is the
   double-combat-level rule, so the level 111 blue dragons between the gate and the coffins
   attack anything under 222. Their fire is a 30 max hit, 50 through a failed defence roll
