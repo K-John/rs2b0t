@@ -236,8 +236,34 @@ async function robeFromDisciple(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
+// Why: everything the pass asked to be carried has been used by now — the rope, the spade, the bucket, the
+// bow and its arrows, and the book that came out of Kardia's chest with the doll. The pack arrives at the
+// temple with four or five slots and the strip needs six, so the spent kit goes on the floor to make room.
+const SPENT: readonly UpassItem[] = [
+    UP_ITEM.ROPE, UP_ITEM.SPADE, UP_ITEM.BUCKET, UP_ITEM.SHORTBOW, UP_ITEM.BRONZE_ARROW, UP_ITEM.HISTORY
+];
+
+async function shedSpentKit(need: number, log: (m: string) => void): Promise<void> {
+    const dropped: string[] = [];
+    for (const spent of SPENT) {
+        if (Inventory.free() >= need) {
+            break;
+        }
+        const item = Inventory.items().find(i => i.id === spent.id);
+        const op = item?.actions().find(o => /drop/i.test(o));
+        if (item && op && await item.interact(op)) {
+            await Execution.delayTicks(1);
+            dropped.push(spent.name);
+        }
+    }
+    if (dropped.length > 0) {
+        log(`dropped ${dropped.join(', ')} to make room for the robes`);
+    }
+}
+
 /** Strip to the robes: the door counts worn slots, so everything else has to come off first. */
 async function wearOnlyRobes(log: (m: string) => void): Promise<boolean> {
+    await shedSpentKit(Equipment.items().length, log);
     for (const worn of Equipment.items()) {
         const name = worn.name;
         if (name !== null && !(await Equipment.unequip(name))) {
