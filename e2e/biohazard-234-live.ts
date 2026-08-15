@@ -4,8 +4,8 @@
  *  pigeons, the apples, the gown, the key and the priest suit are all sourced in the world.
  *  Why: the quest is members-only, so the :8888 sim answers neither the dialogue nor `~bankitem`. */
 
-//   HEADED=1 bun e2e/biohazard-234-live.ts --stage 0 --until 16 --minutes 150
-//   HEADED=1 bun e2e/biohazard-234-live.ts --stage 6 --until 7 --minutes 30
+//   HEADED=1 bun e2e/biohazard-234-live.ts --stage 0 --until 16 --minutes 90 --tick 100
+//   HEADED=1 bun e2e/biohazard-234-live.ts --stage 5 --until 7 --minutes 25 --tick 100
 import type { Page } from 'playwright-core';
 
 import { deployIsolatedClient, launchBrowser } from './lib/harness.js';
