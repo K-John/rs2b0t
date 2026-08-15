@@ -542,7 +542,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
         status: 'unvetted',
         budgetMin: 180,
-        documentedIn: 'docs/reference/quest-harness-recipes-5.md',
+        documentedIn: 'docs/reference/quest-harness-recipes-6.md',
         note: 'members-only, :8890 — the default kit is coins and lobsters, so the run sources its own bow, arrows, boots and roots'
     },
     {

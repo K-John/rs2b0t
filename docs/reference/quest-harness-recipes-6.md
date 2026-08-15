@@ -37,7 +37,7 @@ seeded by default: the axe, the knife, the flax, the yew logs, the bow string, t
 candle, the arrows, the boots and the roots each have a source the bot walks to, and
 seeding one hides whether it can find it.
 
-Four facts govern this harness:
+Five facts govern this harness:
 
 - **`--stats 70` is the default**, not 99. Thieving 42 and Ranged 40 are the server
   gates; woodcutting 60, fletching 65 and crafting 10 are what the yew shortbow costs,
@@ -47,6 +47,9 @@ Four facts govern this harness:
   bow is 3lb and never goes near it.
 - **The Fire Warrior refuses anything but ranged with ice arrows in the quiver.** A run
   that reaches him without both stands there swinging and never lands a hit.
+- **A seeded stage never walked the sourcing leg.** A run started at 50 has no axe
+  banked, and bare fists against level-42 hobgoblins is what killed the first attempt,
+  so the farm's arm check falls through to Aemad's counter when the bank is empty.
 - **Winelda's teleport is one-way.** Past it the shiny key is the only way out, so a
   stage test seeded at 60 or 70 has to let the bot pick the key up before it can walk
   to Lucien.
