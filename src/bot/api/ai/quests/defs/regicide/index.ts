@@ -39,7 +39,7 @@ import {
 } from './isafdar.js';
 import { RG_FLAG, RG_STAGE, readRegicideProgress } from './journal.js';
 import { enterTirannwn, leaveTirannwn } from './pass.js';
-import { COAL_TARGET, kitShortfall, sourceCoal, sourceKit } from './supplies.js';
+import { COAL_TARGET, KEEP_IDS, kitShortfall, sourceCoal, sourceKit } from './supplies.js';
 
 const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep =>
     ({ kind: 'custom', name, run });
@@ -48,9 +48,20 @@ function flag(snap: QuestSnapshot, name: string): boolean {
     return snap.progress?.flags.has(name) ?? false;
 }
 
+// Why: the pack has to have room before it crosses. `[if_close,regicide_still]` adds the naphtha BEFORE it
+// deletes the empty barrel, so a full pack loses the whole distillation, and the forest hands over a barrel,
+// a pot, a lump of sulphur and a rock of limestone with nowhere to put any of them.
+const SLOTS_NEEDED = 10;
+
 /** Everything Tirannwn consumes, drawn and worn while a bank is still reachable. */
 function outfit(snap: QuestSnapshot, area: RegicideArea): QuestStep | null {
-    return area === 'mainland' ? sourceKit(snap) ?? wearGear(snap) : null;
+    if (area !== 'mainland') {
+        return null;
+    }
+    if ((snap.freeSlots ?? SLOTS_NEEDED) < SLOTS_NEEDED) {
+        return { kind: 'deposit', keep: [RG_ITEM.LOBSTER.name], keepIds: KEEP_IDS, bank: RG_TILE.ARDOUGNE_BANK };
+    }
+    return sourceKit(snap) ?? wearGear(snap);
 }
 
 // Why: past the Arandar palisade there is one shop and no bank, and the way back in is the Underground Pass
