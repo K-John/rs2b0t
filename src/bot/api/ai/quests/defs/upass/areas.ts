@@ -260,3 +260,20 @@ export function worn(snap: QuestSnapshot, item: UpassItem): boolean {
 export function carried(snap: QuestSnapshot, item: UpassItem): number {
     return held(snap, item) + (worn(snap, item) ? 1 : 0);
 }
+
+/** How many of a set the pack holds — the orbs, the badges and the amulets all share a display name. */
+export function countHeld(snap: QuestSnapshot, items: readonly UpassItem[]): number {
+    return items.filter(item => held(snap, item) > 0).length;
+}
+
+/** The trapped rectangle of the spiked grid: `inzone(upass_grid_col5, upass_grid_col1 + (1,0,9))`. */
+export const GRID_ZONE = { minX: 2467, maxX: 2476, minZ: 9673, maxZ: 9682 } as const;
+
+/** West of the spiked grid, on the portcullis side — the crossing is behind the character. */
+export function pastGridTile(tile: QuestSnapshot['tile']): boolean {
+    return tile !== null
+        && tile !== undefined
+        && tile.x < GRID_ZONE.minX
+        && tile.z >= GRID_ZONE.minZ - 4
+        && tile.z <= GRID_ZONE.maxZ + 4;
+}

@@ -1,6 +1,6 @@
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { UP_ITEM, UP_TILE, carried, held, upassArea, worn, type UpassArea } from './areas.js';
+import { UP_ITEM, UP_TILE, carried, held, pastGridTile, upassArea, worn, type UpassArea } from './areas.js';
 import { UP_FLAG, UP_STAGE, readUpassProgress } from './journal.js';
 import {
     armFireArrow,
@@ -13,7 +13,7 @@ import {
     startQuest
 } from './bridge.js';
 import { ORB_SITES, burnOrbs, enterWell, orbsHeld, swingEast, takeGroundOrb, takeTrappedOrb } from './area1.js';
-import { crossGrid, pastGrid } from './grid.js';
+import { crossGrid } from './grid.js';
 import {
     badgesHeld,
     climbToPaladins,
@@ -81,7 +81,9 @@ function readyToDescend(snap: QuestSnapshot): QuestStep | null {
 
 function bridgeLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
     if (area === 'mainland' || area === 'westardougne') {
-        return inWest(snap, area, custom('enter the underground pass', enterCave));
+        // Why: the kit is checked here too, not only at the crossing — a pack that lost something inside
+        // West Ardougne would otherwise walk into a one-way dungeon without it.
+        return readyToDescend(snap) ?? inWest(snap, area, custom('enter the underground pass', enterCave));
     }
     if (area !== 'area1') {
         return { kind: 'wait', reason: `bridge leg reached from ${area}` };
@@ -101,7 +103,7 @@ function bridgeLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
 // Why: the four orbs are gathered before any of them is burned, because the furnace sits between the grid
 // and the well and a per-orb round trip crosses the spear-trap corridor four times over.
 function orbLeg(snap: QuestSnapshot): QuestStep {
-    if (!pastGrid()) {
+    if (!pastGridTile(snap.tile)) {
         return held(snap, UP_ITEM.ROPE) > 0
             ? custom('swing east onto the grid shelf', swingEast)
             : custom('cross the spiked grid with the journal held open', crossGrid);
@@ -112,7 +114,7 @@ function orbLeg(snap: QuestSnapshot): QuestStep {
             ? custom('disarm the hanging-log trap for its orb', takeTrappedOrb)
             : custom(`take the orb of light at (${missing.tile.x},${missing.tile.z})`, log => takeGroundOrb(missing.orb, missing.tile, log));
     }
-    if (orbsHeld() > 0) {
+    if (orbsHeld(snap) > 0) {
         return custom('burn the orbs in the furnace', burnOrbs);
     }
     // Why: the well is the oracle for the sweep — it only takes the player down once all four orbs are
@@ -128,16 +130,16 @@ function unicornLeg(snap: QuestSnapshot): QuestStep {
 }
 
 function paladinLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
-    if (held(snap, UP_ITEM.UNICORN_HORN) === 0 && badgesHeld() === 0 && area === 'area2') {
+    if (held(snap, UP_ITEM.UNICORN_HORN) === 0 && badgesHeld(snap) === 0 && area === 'area2') {
         return custom('take the unicorn horn from the crushed cage', takeUnicornHorn);
     }
     if (area === 'area2') {
         return custom('climb the mud pile back up to the shelf', climbToPaladins);
     }
-    if (badgesHeld() < 3) {
+    if (badgesHeld(snap) < 3) {
         return custom('kill a paladin for its coat of arms', killPaladin);
     }
-    if (held(snap, UP_ITEM.UNICORN_HORN) > 0 || badgesHeld() > 0) {
+    if (held(snap, UP_ITEM.UNICORN_HORN) > 0 || badgesHeld(snap) > 0) {
         return custom('feed the crests and horn to the blood well', feedBloodWell);
     }
     return custom('pass the temple doors into the main cavern', enterMainCavern);
@@ -191,7 +193,7 @@ function dollLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
             : custom('search the soulless cages for the dove', searchCages);
     }
     if (!flag(snap, UP_FLAG.SHADOW_ON_DOLL)) {
-        return amuletsHeld() < 3
+        return amuletsHeld(snap) < 3
             ? custom('kill a demon for its amulet', killDemon)
             : custom('open the sealed chest for the shadow', openSealedChest);
     }

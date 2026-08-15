@@ -79,6 +79,8 @@ function fail(msg: string): never {
 const QUEST = 'Underground Pass';
 const ARDOUGNE_BANK = { x: 2655, z: 3283, level: 0 };
 const BIOHAZARD_COMPLETE = 16;
+/** Plague City — its sewer is the only way through the Ardougne wall, and it gates Biohazard anyway. */
+const PLAGUE_CITY_COMPLETE = 29;
 /** Bit 11 of `%ibanmulti` — King Lathas has sent the player to Koftik. */
 const UPASS_STARTED_BIT = 1 << 11;
 
@@ -211,6 +213,9 @@ try {
 
     // Why: Biohazard gates both King Lathas's Underground Pass branch and the cave mouth itself, and it has
     // no module yet — seeding it complete is what makes this quest reachable at all.
+    // Why: Plague City is seeded with it. Its dug tunnel is the only way through the Ardougne wall, and the
+    // real chain reaches this quest through it, so an unfinished garden is a harness artefact, not a case.
+    await cheatQuiet(page, `setvar elenaquest ${PLAGUE_CITY_COMPLETE}`);
     await cheatQuiet(page, `setvar biohazard ${BIOHAZARD_COMPLETE}`);
     const bio = await getServerVarQuiet(page, 'biohazard');
     if (bio !== BIOHAZARD_COMPLETE) {
@@ -247,11 +252,15 @@ try {
     const gates = await page.evaluate(() => {
         const g = globalThis as never as { __rs2b0t: { Quests: { status(n: string): string } } };
         return {
+            plague: g.__rs2b0t.Quests.status('Plague City'),
             biohazard: g.__rs2b0t.Quests.status('Biohazard'),
             upass: g.__rs2b0t.Quests.status('Underground Pass')
         };
     });
-    console.log(`journal gates → Biohazard ${gates.biohazard}, Underground Pass ${gates.upass}`);
+    console.log(`journal gates → Plague City ${gates.plague}, Biohazard ${gates.biohazard}, Underground Pass ${gates.upass}`);
+    if (gates.plague !== 'complete') {
+        fail(`Plague City reads ${gates.plague} after the seed — the wall crossing needs its dug tunnel`);
+    }
     if (gates.biohazard !== 'complete') {
         fail(`Biohazard reads ${gates.biohazard} after the seed — the prerequisite gate will block the queue`);
     }

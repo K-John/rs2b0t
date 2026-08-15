@@ -2,15 +2,12 @@ import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
-import { UP_LOC, UP_TILE } from './areas.js';
+import { GRID_ZONE, UP_LOC, UP_TILE, pastGridTile } from './areas.js';
 import { stalledCrossing } from './stall.js';
 
 // Why: the safe path through the spiked grid is three digits in `%ibanmulti` bits 22-31, and `ibanmulti` is
 // `scope=perm` with no `transmit` — the client cannot read it. The journal stall walks over the whole thing
 // instead, so the combination never has to be guessed.
-
-/** The trapped rectangle: `inzone(upass_grid_col5, upass_grid_col1 + (1,0,9))`. */
-const GRID = { minX: 2467, maxX: 2476, minZ: 9673, maxZ: 9682 } as const;
 
 /** Where a fall lands, and where `upass_grilltrap_hand_holds` climbs back to. */
 const PIT = { minZ: 9536, maxZ: 9599 } as const;
@@ -22,7 +19,7 @@ function here(): { x: number; z: number; level: number } | null {
 
 export function inGrid(): boolean {
     const t = here();
-    return t !== null && t.x >= GRID.minX && t.x <= GRID.maxX && t.z >= GRID.minZ && t.z <= GRID.maxZ;
+    return t !== null && t.x >= GRID_ZONE.minX && t.x <= GRID_ZONE.maxX && t.z >= GRID_ZONE.minZ && t.z <= GRID_ZONE.maxZ;
 }
 
 export function inPit(): boolean {
@@ -32,8 +29,7 @@ export function inPit(): boolean {
 
 /** West of the grid, on the portcullis side — the crossing is done. */
 export function pastGrid(): boolean {
-    const t = here();
-    return t !== null && t.x < GRID.minX && t.z >= GRID.minZ - 4 && t.z <= GRID.maxZ + 4;
+    return pastGridTile(here());
 }
 
 async function climbOutOfPit(log: (m: string) => void): Promise<boolean> {

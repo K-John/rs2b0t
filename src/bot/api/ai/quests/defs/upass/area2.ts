@@ -2,7 +2,8 @@ import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
-import { UP_BADGES, UP_ITEM, UP_LOC, UP_NPC, UP_TILE, type UpassItem } from './areas.js';
+import type { QuestSnapshot } from '../../engine/types.js';
+import { UP_BADGES, UP_ITEM, UP_LOC, UP_NPC, UP_TILE, countHeld, type UpassItem } from './areas.js';
 import { locById, walkTo } from './bridge.js';
 
 /** Search the middle cage for the loose railing that levers the boulder. */
@@ -83,8 +84,8 @@ const PALADINS: readonly { npc: number; badge: UpassItem }[] = [
     { npc: UP_NPC.PALADIN_HARRY, badge: UP_ITEM.BADGE_HARRY }
 ];
 
-export function badgesHeld(): number {
-    return UP_BADGES.filter(badge => heldId(badge.id) > 0).length;
+export function badgesHeld(snap: QuestSnapshot): number {
+    return countHeld(snap, UP_BADGES);
 }
 
 // Why: the three paladins only turn hostile once the main cavern has been entered, so before that they are

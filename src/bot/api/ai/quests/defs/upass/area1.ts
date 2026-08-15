@@ -6,7 +6,8 @@ import { Locs } from '../../../../locs/Locs.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { driveDialog } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
-import { UP_ITEM, UP_LOC, UP_ORBS, UP_TILE, type UpassItem } from './areas.js';
+import type { QuestSnapshot } from '../../engine/types.js';
+import { UP_ITEM, UP_LOC, UP_ORBS, UP_TILE, countHeld, type UpassItem } from './areas.js';
 import { locById, walkTo } from './bridge.js';
 import { crossGrid } from './grid.js';
 
@@ -18,9 +19,9 @@ export const ORB_SITES: readonly { orb: UpassItem; tile: Tile; fromTrap: boolean
     { orb: UP_ITEM.ORB4, tile: UP_TILE.ORB4, fromTrap: false }
 ];
 
-/** How many orbs are in the pack right now. */
-export function orbsHeld(): number {
-    return UP_ORBS.filter(orb => heldId(orb.id) > 0).length;
+/** How many orbs the snapshot's pack holds. */
+export function orbsHeld(snap: QuestSnapshot): number {
+    return countHeld(snap, UP_ORBS);
 }
 
 // Why: the rope swing east is the only link from the bridge shelf down to the grid, and it eats the rope

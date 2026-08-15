@@ -49,11 +49,26 @@ async function talkAt(npcId: number, near: Tile, prefer: string[], log: (m: stri
 // Why: the wall crossing is Plague City's, reused rather than rebuilt — it is the same dig, the same pipe
 // and the same manhole, and a second copy would drift from the one the other quest keeps working.
 
+// Why: Plague City's region test only knows ground level around Ardougne, so from the castle's upper floor
+// — where King Lathas leaves the character — it answers "unknown" and the crossing refuses in 0ms. Getting
+// down to the bank first is what gives it a region it can route from.
+async function toGroundLevel(log: (m: string) => void): Promise<boolean> {
+    const here = Game.tile();
+    if (here !== null && here.level === 0) {
+        return true;
+    }
+    return walkTo(UP_TILE.ARDOUGNE_BANK, 6, log);
+}
+
 /** Into West Ardougne through the Plague City sewer. */
-export const crossToWest = (log: (m: string) => void): Promise<boolean> => goWest(log);
+export async function crossToWest(log: (m: string) => void): Promise<boolean> {
+    return (await toGroundLevel(log)) && goWest(log);
+}
 
 /** Back out of West Ardougne to the mainland. */
-export const crossToEast = (log: (m: string) => void): Promise<boolean> => goEast(log);
+export async function crossToEast(log: (m: string) => void): Promise<boolean> {
+    return (await toGroundLevel(log)) && goEast(log);
+}
 
 /** King Lathas starts the quest; his branch needs Biohazard complete and base Ranged 25. */
 export async function startQuest(log: (m: string) => void): Promise<boolean> {

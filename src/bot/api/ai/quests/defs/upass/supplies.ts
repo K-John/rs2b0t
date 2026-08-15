@@ -3,7 +3,9 @@ import { UP_ITEM, UP_TILE, banked, carried, held, type UpassItem } from './areas
 
 /** Bronze arrows are what the fire arrow is built from — a stack covers every missed shot. */
 export const ARROW_TARGET = 50;
-export const FOOD_TARGET = 20;
+// Why: the pass hands out food of its own - Koftik, the paladins and Nilhoof between them give more
+// than a dozen - and the pack has to hold four orbs, three badges, three amulets and the doll at once.
+export const FOOD_TARGET = 12;
 
 export function scanBank(): QuestStep {
     return { kind: 'scanBank', bank: UP_TILE.ARDOUGNE_BANK };

@@ -5,7 +5,8 @@ import { Npcs } from '../../../../npcs/Npcs.js';
 import type { Npc } from '../../../../model/Npc.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
-import { UP_AMULETS, UP_ITEM, UP_LOC, UP_NPC, UP_TILE, type UpassItem } from './areas.js';
+import type { QuestSnapshot } from '../../engine/types.js';
+import { UP_AMULETS, UP_ITEM, UP_LOC, UP_NPC, UP_TILE, countHeld, type UpassItem } from './areas.js';
 import { locById, walkTo } from './bridge.js';
 
 /** Rub an element into the doll. */
@@ -121,8 +122,8 @@ const DEMONS: readonly { npc: number; amulet: UpassItem; tile: Tile; name: strin
     { npc: UP_NPC.OTHAINIAN, amulet: UP_ITEM.AMULET_OTHAINIAN, tile: UP_TILE.OTHAINIAN, name: 'Othainian' }
 ];
 
-export function amuletsHeld(): number {
-    return UP_AMULETS.filter(amulet => heldId(amulet.id) > 0).length;
+export function amuletsHeld(snap: QuestSnapshot): number {
+    return countHeld(snap, UP_AMULETS);
 }
 
 /** Kill whichever demon still owes an amulet, then take it off the floor. */
