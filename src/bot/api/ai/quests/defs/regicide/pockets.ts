@@ -2,6 +2,7 @@ import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
+import { Sustain } from '../../../../sustain/Sustain.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
@@ -167,6 +168,10 @@ async function crossSeam(leg: SeamLeg, log: (m: string) => void): Promise<boolea
         if ((Game.tile()?.z ?? 0) > 9000 && !(await climbOutOfPit(log))) {
             return false;
         }
+        // Why: a failed jump is 15 damage and a fall, the tripwires poison, and the sticks throw the player
+        // ten tiles back for 8 — a crossing retried eight times is a fight the walk between attempts is too
+        // short to pay for on its own.
+        await Sustain.run();
         if (!(await Traversal.walkResilient(stand, { radius: 1, attempts: 3, timeoutMs: 90_000, log }))) {
             log(`could not stand at (${stand.x},${stand.z}) to take ${leg.seam.op} ${leg.seam.loc}`);
             return false;

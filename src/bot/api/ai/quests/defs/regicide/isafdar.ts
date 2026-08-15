@@ -3,6 +3,7 @@ import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Skills } from '../../../../skills/Skills.js';
+import { Sustain } from '../../../../sustain/Sustain.js';
 import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Reach } from '../../../../walking/Reach.js';
@@ -134,31 +135,38 @@ function soldierNear(): Npc | null {
         .nearest();
 }
 
-// Why: the soldier is level 110 with 110 hitpoints and a halberd, against an account the quest only asks
-// for 56 Agility from — so this is a long fight that the host's own eat policy has to carry, and one
-// `Attack` click is not enough. A halberd out-ranges the player, so the walk in and every knockback break
-// the interaction off, and a fight left un-renewed is a character standing still being hit.
+// Why: the soldier is level 110 with 110 hitpoints, 95 strength and a halberd, against an account this
+// quest only asks 56 Agility of. Two runs died to it in under a minute wearing the full rune set, because
+// `Sustain.run()` is not a background task — `Traversal` calls it on every walk and a step that stands
+// still fighting calls it never, so the character took the whole fight without eating once.
+// Why: and one `Attack` click is not enough either. A halberd out-ranges the player, so the walk in and
+// every knockback break the interaction off, and a fight left un-renewed is a character being hit for free.
 
-/** Fight until the soldier is gone, renewing the attack whenever it lapses. */
+/** Fight until the soldier is gone, eating every tick and renewing the attack whenever it lapses. */
 async function fightSoldier(log: (m: string) => void): Promise<boolean> {
     log("fighting one of King Tyras's men");
     const deadline = performance.now() + FIGHT_MS;
+    let renewAt = 0;
     while (performance.now() < deadline) {
         const target = soldierNear();
         if (!target) {
             return true;
         }
-        // Why: the eat policy runs in the host loop, so a pack with nothing left in it is the one thing
-        // this step has to notice for itself — carrying on from here is how a run ends at a Lumbridge grave
-        // with its whole kit on the far side of the palisade.
+        await Sustain.run();
+        // Why: a pack with nothing left in it is the one thing this step has to notice for itself —
+        // carrying on from here is how a run ends at a Lumbridge grave with its kit on the far side of the
+        // palisade, and there is no walking back for it.
         if (Skills.hpFraction() < BAIL_HP && Inventory.count(RG_ITEM.LOBSTER.name) === 0) {
             log(`breaking off the fight at ${Math.round(Skills.hpFraction() * 100)}% with no food left`);
             return false;
         }
-        if (!(await target.interact('Attack'))) {
-            return false;
+        if (performance.now() >= renewAt) {
+            if (!(await target.interact('Attack'))) {
+                return false;
+            }
+            renewAt = performance.now() + RENEW_MS;
         }
-        await Execution.delayUntil(() => soldierNear() === null, RENEW_MS);
+        await Execution.delayTicks(1);
     }
     return soldierNear() === null;
 }
@@ -197,7 +205,11 @@ export async function killSoldier(log: (m: string) => void): Promise<boolean> {
     return fightSoldier(log);
 }
 
-/** Squeeze into Tyras's camp — the crossing itself sets the stage once the guard is dead. */
+// Why: the stage moves on the crossing itself, not on reaching the tents — `_regicide_cross_over` sets
+// `^regicide_entered_camp` as it puts the player down on the far side. Walking on to the king's pavilion
+// would be four more crossings there and four back for a stage already banked.
+
+/** Squeeze past the camp guard's post, which is what the journal counts as finding the camp. */
 export async function enterCamp(log: (m: string) => void): Promise<boolean> {
-    return walkTo(RG_TILE.TYRAS_CAMP, 3, RG_STAGE.DEFEATED_GUARD, log);
+    return walkTo(RG_TILE.CAMP_INSIDE, 1, RG_STAGE.DEFEATED_GUARD, log);
 }

@@ -210,7 +210,9 @@ const STILL = {
     /** Tar regulator, one step up. */
     regulatorUp: 6177,
     /** Shovel a lump of coal into the firebox: `%temp` + 60. */
-    coal: 5061
+    coal: 5061,
+    /** `com_89`, whose handler is a bare `if_close` — the only button that ends the run. */
+    close: 5030
 } as const;
 
 const VARP_STILL_TOTAL = 330;
@@ -320,15 +322,28 @@ export async function distilNaphtha(log: (m: string) => void): Promise<boolean> 
         }
         await Execution.delayTicks(1);
     }
-    if (readStill().total < STILL_TARGET) {
-        log(`the still stopped at ${readStill().total}/${STILL_TARGET}`);
-        await Modals.close();
-        return false;
-    }
+    const finished = readStill().total >= STILL_TARGET;
     // Why: `[if_close,regicide_still]` is what swaps the empty barrel for the naphtha — the tally alone
     // hands over nothing, so the run is only finished once the interface has been shut.
-    await Modals.close();
+    if (!(await closeStill())) {
+        log('the still interface would not close');
+        return false;
+    }
+    if (!finished) {
+        log(`the still stopped at ${readStill().total}/${STILL_TARGET}`);
+        return false;
+    }
     return Execution.delayUntil(() => heldId(RG_ITEM.BARREL_NAPHTHA.id) > 0, 10_000);
+}
+
+async function closeStill(): Promise<boolean> {
+    if (await Modals.close()) {
+        return true;
+    }
+    // Why: the generic close is a CLOSE_BUTTON menu action, and this root's own shut is `com_89` —
+    // `[if_button,regicide_still:com_89] if_close`.
+    actions.ifButton(STILL.close);
+    return Execution.delayUntil(() => reader.modals().main !== STILL.root, 5_000);
 }
 
 // Why: the two powders go into the naphtha in either order and the barrel seals itself on the second, so

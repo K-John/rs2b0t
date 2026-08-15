@@ -112,6 +112,8 @@ export const RG_TILE = {
     CATAPULT: new Tile(2185, 3182, 0),
     LAZY_GUARD: new Tile(2181, 3184, 0),
     CAMP_ENTRANCE: new Tile(2188, 3171, 0),
+    /** The far side of the camp crossing — taking it is what sets `^regicide_entered_camp`. */
+    CAMP_INSIDE: new Tile(2188, 3168, 0),
     TYRAS_CAMP: new Tile(2188, 3162, 0),
     FURNACE: new Tile(2193, 3147, 0),
     QUARTERMASTER: new Tile(2190, 3155, 0),
