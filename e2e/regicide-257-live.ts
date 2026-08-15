@@ -46,6 +46,8 @@ interface Args {
 
     /** `--until-obj <id>` — pass as soon as this obj id is in the pack. */
     untilObj: number | null;
+    /** `--no-pack` — skip the standing kit, for a leg that brings its own with `--give`. */
+    pack: boolean;
 }
 
 function parseGive(value: string): { debugName: string; qty: number }[] {
@@ -72,12 +74,14 @@ function parse(argv: string[]): Args {
         deploy: true,
         give: [],
         start: null,
-        untilObj: null
+        untilObj: null,
+        pack: true
     };
     for (let i = 0; i < argv.length; i++) {
         const flag = argv[i];
         if (flag === '--no-deploy') { out.deploy = false; continue; }
         if (flag === '--no-tele') { out.tele = false; continue; }
+        if (flag === '--no-pack') { out.pack = false; continue; }
         const value = argv[++i];
         if (value === undefined) { break; }
         if (flag === '--base') { out.base = value; }
@@ -303,7 +307,7 @@ try {
     }
 
     // Why: stage 3 is the first that begins past the palisade, where there is no bank to draw from.
-    if (args.stage >= 3 && args.stage <= 13) {
+    if (args.pack && args.stage >= 3 && args.stage <= 13) {
         await seedPack(page);
     }
     // Why: the bomb is a dozen steps in three regions, so a leg part-way along it has to be handed the
