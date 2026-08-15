@@ -4,6 +4,9 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
+The end-to-end command below is vetted: uncheated `--until 100` finished in 70 minutes at
+`--tick 200`, and the hobgoblin farm is 55 of them.
+
 ## Temple of Ikov — stage-scoped harness
 
 [`e2e/temple-of-ikov-250-live.ts`](../../e2e/temple-of-ikov-250-live.ts), members-only,
