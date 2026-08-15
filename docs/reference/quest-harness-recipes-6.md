@@ -14,7 +14,7 @@ HEADED=1 bun e2e/temple-of-ikov-250-live.ts --until 100 --tick 200 --minutes 180
 HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 10 --kit dungeon --until 30 --minutes 45  # boots, lever, arrows
 HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 30 --kit warrior --until 40 --minutes 30  # the Fire Warrior
 HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 40 --kit roots --until 60 --minutes 30    # Winelda
-HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 60 --kit warrior --until 100 --minutes 45 # guardians and Lucien
+HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 60 --kit guardian --until 100 --minutes 45 # guardians and Lucien
 ```
 
 `--stage N` sets `%ikov` and relogs. `--lever` sets bit 0 of `%ikov_dungeon`, the
@@ -28,6 +28,7 @@ permanent unlock the south gate reads, so a stage test can skip the lava bridge.
 | `dungeon` | pendant, candle, tinderbox, knife | the Catherby shops and the Seers knife spawn |
 | `warrior` | + yew shortbow, 40 ice arrows, boots of lightness | the fletching chain, the ice chests, the webbed alcove |
 | `roots` | + 20 limpwurt roots | the hobgoblin farm |
+| `guardian` | + shiny key | Winelda's ferry — the key is what walks a seeded stage-60 run in through McGrubor's Wood |
 
 The bank holds two million coins and sixty lobsters at every kit. Nothing else is
 seeded by default: the axe, the knife, the flax, the yew logs, the bow string, the

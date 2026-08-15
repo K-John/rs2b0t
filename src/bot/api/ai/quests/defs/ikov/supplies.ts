@@ -244,6 +244,11 @@ export interface SupplyWants {
  * @see docs/decisions/quest-pitfalls-8.md
  */
 export function suppliesStep(snap: QuestSnapshot, wants: SupplyWants): QuestStep | null {
+    const needBow = wants.bow && heldOrBanked(snap, IKOV_OBJ.YEW_SHORTBOW) === 0;
+    // Why: Aemad's is in East Ardougne and the rest of the kit is a Catherby-Seers loop, so the axe is bought on the way out rather than walked back for.
+    if (needBow && axeOutstanding(snap)) {
+        return { kind: 'buy', item: IKOV_NAME.IRON_AXE, qty: 1, shop: { npc: 'Aemad', anchor: IKOV_TILE.AEMAD }, estGp: 300 };
+    }
     if (wants.candle && !kitCandleReady(snap)) {
         if (heldOrBanked(snap, IKOV_OBJ.TINDERBOX) === 0) {
             return { kind: 'buy', item: IKOV_NAME.TINDERBOX, qty: 1, shop: { npc: 'Arhein', anchor: IKOV_TILE.ARHEIN }, estGp: 100 };
@@ -251,7 +256,7 @@ export function suppliesStep(snap: QuestSnapshot, wants: SupplyWants): QuestStep
         return { kind: 'buy', item: IKOV_NAME.CANDLE, qty: 1, shop: { npc: 'Candle maker', anchor: IKOV_TILE.CANDLE_MAKER }, estGp: 100 };
     }
 
-    if (wants.bow && heldOrBanked(snap, IKOV_OBJ.YEW_SHORTBOW) === 0) {
+    if (needBow) {
         const bowStep = bowChainStep(snap);
         if (bowStep) {
             return bowStep;
@@ -264,6 +269,14 @@ export function suppliesStep(snap: QuestSnapshot, wants: SupplyWants): QuestStep
     return null;
 }
 
+/** True while an axe still has to be bought: no bow stave in sight, no logs, and nothing to cut one with. */
+function axeOutstanding(snap: QuestSnapshot): boolean {
+    return heldOrBanked(snap, IKOV_OBJ.UNSTRUNG_YEW_SHORTBOW) === 0
+        && heldOrBanked(snap, IKOV_OBJ.YEW_LOGS) === 0
+        && heldOrBanked(snap, IKOV_OBJ.IRON_AXE) === 0;
+}
+
+// Why: the order is a west-to-east sweep — the Armoury, then Catherby for the candle and the yews, then Seers for the knife, the flax and the wheel.
 function bowChainStep(snap: QuestSnapshot): QuestStep | null {
     const stave = heldOrBanked(snap, IKOV_OBJ.UNSTRUNG_YEW_SHORTBOW);
     const string = heldOrBanked(snap, IKOV_OBJ.BOW_STRING);
@@ -279,6 +292,17 @@ function bowChainStep(snap: QuestSnapshot): QuestStep | null {
             };
         }
         return { kind: 'custom', name: 'string the yew shortbow', run: stringBow };
+    }
+
+    if (stave === 0 && heldOrBanked(snap, IKOV_OBJ.YEW_LOGS) === 0) {
+        if ((snap.invIds?.get(IKOV_OBJ.IRON_AXE) ?? 0) === 0) {
+            return { kind: 'withdraw', items: [{ name: IKOV_NAME.IRON_AXE, id: IKOV_OBJ.IRON_AXE, qty: 1 }] };
+        }
+        return { kind: 'custom', name: 'chop a yew log', run: chopYew };
+    }
+
+    if (heldOrBanked(snap, IKOV_OBJ.KNIFE) === 0) {
+        return { kind: 'grabGround', item: IKOV_NAME.KNIFE, anchor: IKOV_TILE.KNIFE_SPAWN, waitIfMissing: true };
     }
 
     if (string === 0) {
@@ -298,28 +322,19 @@ function bowChainStep(snap: QuestSnapshot): QuestStep | null {
         };
     }
 
-    if (heldOrBanked(snap, IKOV_OBJ.KNIFE) === 0) {
-        return { kind: 'grabGround', item: IKOV_NAME.KNIFE, anchor: IKOV_TILE.KNIFE_SPAWN, waitIfMissing: true };
-    }
-    if (heldOrBanked(snap, IKOV_OBJ.YEW_LOGS) === 0) {
-        if (heldOrBanked(snap, IKOV_OBJ.IRON_AXE) === 0) {
-            return { kind: 'buy', item: IKOV_NAME.IRON_AXE, qty: 1, shop: { npc: 'Shop keeper', anchor: IKOV_TILE.ARMOURY }, estGp: 300 };
+    if (stave === 0) {
+        if ((snap.invIds?.get(IKOV_OBJ.YEW_LOGS) ?? 0) === 0 || (snap.invIds?.get(IKOV_OBJ.KNIFE) ?? 0) === 0) {
+            return {
+                kind: 'withdraw',
+                items: [
+                    { name: IKOV_NAME.YEW_LOGS, id: IKOV_OBJ.YEW_LOGS, qty: 1 },
+                    { name: IKOV_NAME.KNIFE, id: IKOV_OBJ.KNIFE, qty: 1 }
+                ]
+            };
         }
-        if ((snap.invIds?.get(IKOV_OBJ.IRON_AXE) ?? 0) === 0) {
-            return { kind: 'withdraw', items: [{ name: IKOV_NAME.IRON_AXE, id: IKOV_OBJ.IRON_AXE, qty: 1 }] };
-        }
-        return { kind: 'custom', name: 'chop a yew log', run: chopYew };
+        return { kind: 'custom', name: 'fletch a yew shortbow', run: fletchBow };
     }
-    if ((snap.invIds?.get(IKOV_OBJ.YEW_LOGS) ?? 0) === 0 || (snap.invIds?.get(IKOV_OBJ.KNIFE) ?? 0) === 0) {
-        return {
-            kind: 'withdraw',
-            items: [
-                { name: IKOV_NAME.YEW_LOGS, id: IKOV_OBJ.YEW_LOGS, qty: 1 },
-                { name: IKOV_NAME.KNIFE, id: IKOV_OBJ.KNIFE, qty: 1 }
-            ]
-        };
-    }
-    return { kind: 'custom', name: 'fletch a yew shortbow', run: fletchBow };
+    return null;
 }
 
 export function sourcingShortfall(): string | null {

@@ -8,9 +8,10 @@ import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs, type Loc } from '../../../../locs/Locs.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
+import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { heldId, settleScene } from '../../exec/prompts.js';
+import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import {
     ARROWS_WANTED,
     ICE_CHESTS,
@@ -28,6 +29,8 @@ import {
 import { heldOrBanked, lightCandle } from './supplies.js';
 
 const WALK_MS = 300_000;
+/** Circuits of the six chests per invocation, before the tick goes back to the engine. */
+const CHEST_ROUNDS = 3;
 
 // Why: the bridge is not a baked edge and its tiles are walkable, so any route the pathfinder draws across them ferries the bot to the wrong side.
 export function templeWalk(dest: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
@@ -42,6 +45,23 @@ export function templeWalk(dest: Tile, radius: number, log: (m: string) => void)
 
 function locById(id: number, within = 8): Loc | null {
     return Locs.query().where(l => l.id === id).within(within).nearest();
+}
+
+// Why: `~mesbox` blocks on `p_pausebutton`, so the script that raised it has not run its `inv_del` or its `setbit` yet, and the next op is swallowed while the box is up.
+
+/** Click through whatever message box the last op raised. */
+async function clearBox(): Promise<void> {
+    for (let i = 0; i < 12; i++) {
+        if (ChatDialog.canContinue()) {
+            await ChatDialog.continue();
+            await Execution.delayTicks(1);
+            continue;
+        }
+        if (!ChatDialog.isOpen()) {
+            return;
+        }
+        await Execution.delayTicks(1);
+    }
 }
 
 export function wearingBoots(): boolean {
@@ -117,6 +137,11 @@ export async function crossBridge(goWest: boolean, log: (m: string) => void): Pr
     }
     if (!wearingBoots()) {
         log('ikov: refusing the lava bridge without the boots of lightness');
+        return false;
+    }
+    // Why: the server tests `weight >= 0` in grams and the client is sent truncated kilograms, so anything that reads 0 could still be a hundred grams over.
+    if (Game.weight() >= 0) {
+        log(`ikov: the pack reads ${Game.weight()}kg — the bridge gives way at anything but negative weight`);
         return false;
     }
     if (!(await templeWalk(start, 1, log))) {
@@ -244,7 +269,8 @@ export async function fetchBoots(log: (m: string) => void): Promise<boolean> {
         return t !== null && inDarkRoom(t);
     }, 10_000);
     if (!arrived) {
-        // Why: without a lit source the stairs drop you into a walled dead end instead, which reads as "did not arrive".
+        // Why: without a lit source the stairs drop you into a walled dead end and raise a box, which reads as "did not arrive".
+        await clearBox();
         log('ikov: the dark stairs left us short — the candle was not lit');
         return false;
     }
@@ -273,11 +299,13 @@ export async function pullTrapLever(log: (m: string) => void): Promise<boolean> 
         return false;
     }
     await Execution.delayTicks(3);
+    await clearBox();
     const again = locById(IKOV_LOC.TRAP_LEVER, 6);
     if (!again || !(await again.interact('Pull'))) {
         return false;
     }
     await Execution.delayTicks(4);
+    await clearBox();
     // Why: an undisarmed pull drops the player down a shaft, and the ladder out is the only way back.
     const here = Game.tile();
     if (here && inTrapPit(here)) {
@@ -349,9 +377,12 @@ export async function mendAndPullLever(log: (m: string) => void): Promise<boolea
         if (!(await lever.useOn(bracket))) {
             return false;
         }
-        if (!(await Execution.delayUntil(() => heldId(IKOV_OBJ.LEVER) === 0, 8000))) {
+        // Why: the fit runs `~mesbox` before its `inv_del`, so the lever is still in the pack until the box is answered.
+        if (!(await driveUntil(() => heldId(IKOV_OBJ.LEVER) === 0, [], log, 15_000))) {
+            log('ikov: the bracket never took the lever');
             return false;
         }
+        await settleScene();
     }
     const mended = locById(IKOV_LOC.MENDED_LEVER, 6);
     if (!mended) {
@@ -363,6 +394,7 @@ export async function mendAndPullLever(log: (m: string) => void): Promise<boolea
         return false;
     }
     await Execution.delayTicks(6);
+    await clearBox();
     return true;
 }
 
@@ -387,25 +419,28 @@ async function searchChest(chest: Tile, log: (m: string) => void): Promise<boole
     if (!(await open.interact('Search'))) {
         return false;
     }
-    const found = await Execution.delayUntil(() => Inventory.count(IKOV_NAME.ICE_ARROWS) > before, 5000);
+    // Why: a find raises an `~objbox`, which is a chat modal that has to be answered before anything else lands.
+    const found = await driveUntil(() => Inventory.count(IKOV_NAME.ICE_ARROWS) > before, [], log, 6000);
+    await clearBox();
     if (found) {
         log(`ikov: ${Inventory.count(IKOV_NAME.ICE_ARROWS)} ice arrows`);
     }
     return found;
 }
 
-// Why: one chest holds the arrows and it is re-rolled after every find, so the round trip is the search rather than any single chest.
+// Why: one chest holds the arrows and it is re-rolled after every find, so the search is a circuit rather than a chest — and returning on the first find would restart the circuit from the west every time.
 export async function searchIceChests(log: (m: string) => void): Promise<boolean> {
-    for (const chest of ICE_CHESTS) {
-        await Sustain.run();
-        if (Inventory.count(IKOV_NAME.ICE_ARROWS) >= ARROWS_WANTED) {
-            return true;
-        }
-        if (await searchChest(chest, log)) {
-            return true;
+    const before = Inventory.count(IKOV_NAME.ICE_ARROWS);
+    for (let round = 0; round < CHEST_ROUNDS; round++) {
+        for (const chest of ICE_CHESTS) {
+            await Sustain.run();
+            if (Inventory.count(IKOV_NAME.ICE_ARROWS) >= ARROWS_WANTED) {
+                return true;
+            }
+            await searchChest(chest, log);
         }
     }
-    return false;
+    return Inventory.count(IKOV_NAME.ICE_ARROWS) > before;
 }
 
 // Why: `%ikov_dungeon` is untransmitted, so whether the south gate opens is the only client-visible answer to "has the lever been pulled".
@@ -424,9 +459,13 @@ async function enterIceCavern(log: (m: string) => void): Promise<boolean> {
     }
     const gate = locById(IKOV_LOC.SOUTH_GATE_LEFT, 4) ?? locById(IKOV_LOC.SOUTH_GATE_RIGHT, 4);
     if (gate && (await gate.interact('Open'))) {
+        await Execution.delayTicks(2);
+        // Why: the refusal is a `~mesbox`, and a box left up swallows every op the next leg sends.
+        await clearBox();
         await DirectNavigator.walkTo(IKOV_TILE.SOUTH_GATE_SOUTH, 0, 8000);
     }
     if (!crossedIntoCavern()) {
+        await clearBox();
         return false;
     }
     await settleScene();

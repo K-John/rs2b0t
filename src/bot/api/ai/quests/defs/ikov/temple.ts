@@ -9,7 +9,7 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { heldId, settleScene } from '../../exec/prompts.js';
-import { talkStrict } from '../../exec/primitives.js';
+import { isUnderground, talkStrict } from '../../exec/primitives.js';
 import {
     GUARDIAN_STOP,
     IKOV_LOC,
@@ -17,7 +17,6 @@ import {
     IKOV_OBJ,
     IKOV_TILE,
     LAVA_BRIDGE_ZONE,
-    acrossTheLava,
     inGuardianTemple
 } from './areas.js';
 import { escapePocket } from './dungeon.js';
@@ -140,13 +139,14 @@ export async function leaveTheFarSide(log: (m: string) => void): Promise<boolean
     if (!here) {
         return false;
     }
-    if (!inGuardianTemple(here) && !acrossTheLava(here)) {
+    // Why: the leg only runs past Winelda's ferry, so standing on the surface is proof it has already been left.
+    if (!isUnderground(here)) {
         return true;
     }
-    if (!(await takeShinyKey(log))) {
+    if (inGuardianTemple(here) && !(await pushSecretWall(false, log))) {
         return false;
     }
-    if (inGuardianTemple(here) && !(await pushSecretWall(false, log))) {
+    if (!(await takeShinyKey(log))) {
         return false;
     }
     if (!(await templeWalk(IKOV_TILE.MCGRUBOR_LADDER, 1, log))) {

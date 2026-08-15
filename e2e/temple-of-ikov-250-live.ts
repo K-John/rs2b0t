@@ -24,7 +24,7 @@ import {
     type BankSeedItem
 } from './tutorial/harness.js';
 
-type Kit = 'none' | 'dungeon' | 'warrior' | 'roots';
+type Kit = 'none' | 'dungeon' | 'warrior' | 'roots' | 'guardian';
 
 interface Args {
     base: string;
@@ -96,7 +96,8 @@ const KITS: Record<Kit, BankSeedItem[]> = {
         { debugName: 'knife', displayName: 'Knife', qty: 1 }
     ],
     warrior: [],
-    roots: []
+    roots: [],
+    guardian: []
 };
 KITS.warrior = [
     ...KITS.dungeon,
@@ -105,6 +106,8 @@ KITS.warrior = [
     { debugName: 'ikov_bootsoflightness', displayName: 'Boots of lightness', qty: 1 }
 ];
 KITS.roots = [...KITS.warrior, { debugName: 'limpwurt_root', displayName: 'Limpwurt root', qty: 20 }];
+// Why: past Winelda's ferry the shiny key is the only way out, and the McGrubor door is what walks a seeded stage-60 run back in.
+KITS.guardian = [...KITS.roots, { debugName: 'ikov_shinykey', displayName: 'Shiny key', qty: 1 }];
 
 const STATS = [
     'attack', 'strength', 'defence', 'hitpoints', 'ranged', 'magic', 'prayer',

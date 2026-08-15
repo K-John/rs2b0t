@@ -1,4 +1,5 @@
 // docs/QUESTS.md
+import { Game } from '../../../../game/Game.js';
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { talkStrict } from '../../exec/primitives.js';
@@ -9,10 +10,7 @@ import {
     IKOV_TILE,
     LUCIEN_START,
     ROOTS_WANTED,
-    WINELDA_STOP,
-    acrossTheLava,
-    inGuardianTemple,
-    inTemple
+    WINELDA_STOP
 } from './areas.js';
 import { arrowsSecured, dungeonPrepStep, escapePocket, pullTrapLever, templeWalk, wearFearPendant, wearingBoots } from './dungeon.js';
 import { fightFireWarrior, killLucien } from './fight.js';
@@ -41,8 +39,23 @@ const IKOV_TOOLS = [
     'shiny key'
 ];
 
+/** Foods this quest eats; the trim keeps them, and `sustain` declares the same list. */
+const IKOV_FOODS = ['lobster', 'swordfish', 'tuna'];
+
+// Why: the lava bridge weighs the pack, and stackables are free — so the trim is about the non-stackables the surface legs leave behind, the yew shortbow (3lb) and the iron axe most of all.
+const BRIDGE_KEEP = ['coins', 'candle', 'tinderbox', 'knife', 'pendant', 'boots of lightness', 'ice arrows', 'lever', ...IKOV_FOODS];
+
 function held(snap: QuestSnapshot, id: number): number {
     return snap.invIds?.get(id) ?? 0;
+}
+
+/** Bank whatever the crossing cannot afford to carry, before the bot is underground with no booth. */
+function bridgeTrimStep(snap: QuestSnapshot): QuestStep | null {
+    const heavy = [...snap.inv.keys()].filter(name => !BRIDGE_KEEP.some(keep => name.includes(keep)));
+    if (heavy.length === 0) {
+        return null;
+    }
+    return { kind: 'deposit', keep: BRIDGE_KEEP };
 }
 
 /** Withdraw anything the next leg needs that the pack does not already hold. */
@@ -89,13 +102,9 @@ function warKitStep(snap: QuestSnapshot): QuestStep | null {
     return { kind: 'withdraw', items: [{ name: IKOV_NAME.ICE_ARROWS, qty: Math.min(banked, ARROWS_WANTED) }] };
 }
 
+// Why: Lucien re-issues only when `obj_gettotal` reads zero, and that counts the bank — so a banked pendant is one he refuses to replace.
 function haveFearPendant(snap: QuestSnapshot): boolean {
-    return held(snap, IKOV_OBJ.PENDANT_LUCIEN) > 0 || snap.wornIds?.has(IKOV_OBJ.PENDANT_LUCIEN) === true;
-}
-
-function onTheFarSide(snap: QuestSnapshot): boolean {
-    const t = snap.tile;
-    return t !== null && t !== undefined && inTemple(t) && (acrossTheLava(t) || inGuardianTemple(t));
+    return heldOrBanked(snap, IKOV_OBJ.PENDANT_LUCIEN) > 0 || snap.wornIds?.has(IKOV_OBJ.PENDANT_LUCIEN) === true;
 }
 
 // Why: `gotoNpc` walks without the bridge exclusion, and the ledge is four stage-gated doors deep, so the approach is the module's own walk.
@@ -146,8 +155,13 @@ export function decide(snap: QuestSnapshot): QuestStep {
     }
 
     // Why: Lucien re-issues the pendant to anyone who lost it, and the Door of Fear is shut without it.
-    if (!haveFearPendant(snap) && !onTheFarSide(snap)) {
+    // Why: this branch sits below the stage-60 return, so it can never fire on the far side of the lava, which has no walk back to him.
+    if (!haveFearPendant(snap)) {
         return { kind: 'talk', stop: LUCIEN_START };
+    }
+    const pendant = withdrawFor(snap, [{ name: IKOV_NAME.PENDANT_LUCIEN, id: IKOV_OBJ.PENDANT_LUCIEN, qty: 1 }]);
+    if (pendant && snap.wornIds?.has(IKOV_OBJ.PENDANT_LUCIEN) !== true) {
+        return pendant;
     }
 
     if (stage >= IKOV_STAGE.SPOKEN_WINELDA) {
@@ -176,6 +190,10 @@ export function decide(snap: QuestSnapshot): QuestStep {
     }
 
     if (!arrowsSecured(snap) || needBoots) {
+        const trim = bridgeTrimStep(snap);
+        if (trim) {
+            return trim;
+        }
         const kit = dungeonKitStep(snap);
         if (kit) {
             return kit;
@@ -204,7 +222,7 @@ export const ikov: QuestModule = {
     food: 8,
     grind: ['Hobgoblin', 'Fire Warrior of Lesarkus', 'Lucien'],
     tools: IKOV_TOOLS,
-    sustain: { foods: [IKOV_NAME.LOBSTER, 'Swordfish', 'Tuna'], eatBelowHp: 0.55 },
+    sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.55 },
     readStage: readIkovStage,
     warnReadiness: sourcingShortfall,
     observe: (snap, step) => {
@@ -214,6 +232,7 @@ export const ikov: QuestModule = {
             `ikov: stage=${snap.stage ?? '?'} at ${where} step=${step.kind}`,
             `ikov: boots=${wearingBoots() ? 'worn' : 'no'} arrows=${snap.inv.get(IKOV_NAME.ICE_ARROWS.toLowerCase()) ?? 0}`
                 + ` roots=${held(snap, IKOV_OBJ.LIMPWURT_ROOT)} pendant=${haveFearPendant(snap) ? 'yes' : 'no'}`
+                + ` weight=${Game.weight()}kg`
         ];
     },
     decide

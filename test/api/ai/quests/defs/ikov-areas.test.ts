@@ -3,7 +3,6 @@ import { describe, expect, test } from 'bun:test';
 import {
     ICE_CHESTS,
     IKOV_TILE,
-    acrossTheLava,
     inChamberOfFear,
     inDarkRoom,
     inGuardianTemple,
@@ -21,7 +20,6 @@ const REGIONS: [string, Region][] = [
     ['west of the bridge', westOfBridge],
     ['trap pit', inTrapPit],
     ["Winelda's ledge", onWineldaLedge],
-    ['across the lava', acrossTheLava],
     ["guardians' temple", inGuardianTemple]
 ];
 
@@ -31,7 +29,6 @@ const INSIDE: [string, { x: number; z: number }][] = [
     ['west of the bridge', IKOV_TILE.BRIDGE_WEST],
     ['trap pit', { x: 2682, z: 9854 }],
     ["Winelda's ledge", IKOV_TILE.WINELDA],
-    ['across the lava', IKOV_TILE.WINELDA_LANDING],
     ["guardians' temple", IKOV_TILE.GUARDIANS]
 ];
 
@@ -65,6 +62,15 @@ describe('Temple of Ikov regions', () => {
     test('the ice cavern excludes the corridor the south gate opens from', () => {
         expect(inIceCavern(IKOV_TILE.SOUTH_GATE_NORTH)).toBe(false);
         expect(inIceCavern(IKOV_TILE.SOUTH_GATE_SOUTH)).toBe(true);
+    });
+
+    // Why: the far side wraps around the Fire Warrior's room, so the temple box has to stop at the corridor the wall opens into.
+    test('the guardian temple box excludes the far side that shares its rows', () => {
+        expect(inGuardianTemple(IKOV_TILE.SECRET_WALL_INSIDE)).toBe(true);
+        expect(inGuardianTemple(IKOV_TILE.SECRET_WALL)).toBe(false);
+        expect(inGuardianTemple(IKOV_TILE.MCGRUBOR_LADDER)).toBe(false);
+        expect(inGuardianTemple({ x: 2637, z: 9893 })).toBe(false);
+        expect(inGuardianTemple({ x: 2657, z: 9895 })).toBe(false);
     });
 
     test('every temple tile reads as inside the temple, and the surface does not', () => {

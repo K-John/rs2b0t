@@ -1,6 +1,5 @@
 /** Pathfind to every tile the Temple of Ikov module names, and name the pockets nothing routes into.
- *  Why: the temple is five stage-gated doors, a scripted lava bridge, a webbed alcove and a wall you push,
- *  so which tiles the baked graph can reach is the difference between a leg and a wedge. */
+ *  Why: the temple is five stage-gated doors, a lava bridge, a webbed alcove and a wall you push, so which tiles the baked graph reaches is the difference between a leg and a wedge. */
 
 //   bun tools/nav/build-collision.ts --engine ~/code/rs2b2t-engine
 //   bun tools/nav/ikov-probe.ts
@@ -41,7 +40,7 @@ const FROM: [string, NavPoint][] = [
 const TO: [string, NavPoint][] = [
     ['Lucien (inn)', point(IKOV_TILE.LUCIEN_INN)],
     ['Lucien (hut)', point(IKOV_TILE.LUCIEN_HUT)],
-    ['Armoury', point(IKOV_TILE.ARMOURY)],
+    ["Aemad's", point(IKOV_TILE.AEMAD)],
     ['Candle maker', point(IKOV_TILE.CANDLE_MAKER)],
     ['Arhein', point(IKOV_TILE.ARHEIN)],
     ['knife spawn', point(IKOV_TILE.KNIFE_SPAWN)],

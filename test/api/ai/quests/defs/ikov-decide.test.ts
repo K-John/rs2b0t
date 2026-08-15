@@ -76,43 +76,75 @@ describe('Temple of Ikov decide', () => {
         expect(step.kind).toBe('talk');
     });
 
-    test('the tinderbox comes before the candle', () => {
+    // Why: `obj_gettotal` counts the bank, so Lucien refuses to replace a pendant sitting in a booth — it has to be withdrawn instead.
+    test('a banked pendant is withdrawn rather than begged for', () => {
+        const step = decide(snap(IKOV_STAGE.STARTED, { bank: KIT }));
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' && step.items.some(i => i.id === IKOV_OBJ.PENDANT_LUCIEN)).toBe(true);
+    });
+
+    // Why: the Armoury sits on Ardougne's doorstep and the rest of the kit is a Catherby-Seers loop, so the axe is bought before the bot leaves.
+    test('the axe is the first purchase', () => {
         const step = decide(snap(IKOV_STAGE.STARTED, { inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]] }));
         expect(step.kind).toBe('buy');
+        expect(step.kind === 'buy' && step.item).toBe(IKOV_NAME.IRON_AXE);
+    });
+
+    test('with an axe banked the tinderbox is next', () => {
+        const step = decide(snap(IKOV_STAGE.STARTED, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
+            bank: [[IKOV_OBJ.IRON_AXE, 1]]
+        }));
         expect(step.kind === 'buy' && step.item).toBe(IKOV_NAME.TINDERBOX);
     });
 
     test('with a tinderbox banked the candle is next', () => {
         const step = decide(snap(IKOV_STAGE.STARTED, {
             inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
-            bank: [[IKOV_OBJ.TINDERBOX, 1]]
+            bank: [[IKOV_OBJ.IRON_AXE, 1], [IKOV_OBJ.TINDERBOX, 1]]
         }));
         expect(step.kind === 'buy' && step.item).toBe(IKOV_NAME.CANDLE);
     });
 
-    test('the bow chain starts at the flax once the candle is covered', () => {
+    test('the bow chain starts at the yew once the candle is covered', () => {
         const step = decide(snap(IKOV_STAGE.STARTED, {
-            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1], [IKOV_OBJ.IRON_AXE, 1]],
             bank: [[IKOV_OBJ.TINDERBOX, 1], [IKOV_OBJ.UNLIT_CANDLE, 1]]
         }));
-        expect(label(step)).toBe('custom:pick flax');
+        expect(label(step)).toBe('custom:chop a yew log');
     });
 
-    test('with the bow string spun the chain moves on to the knife', () => {
+    test('with logs cut the chain moves on to the knife', () => {
         const step = decide(snap(IKOV_STAGE.STARTED, {
-            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
-            bank: [[IKOV_OBJ.TINDERBOX, 1], [IKOV_OBJ.UNLIT_CANDLE, 1], [IKOV_OBJ.BOW_STRING, 1]]
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1], [IKOV_OBJ.IRON_AXE, 1], [IKOV_OBJ.YEW_LOGS, 1]],
+            bank: [[IKOV_OBJ.TINDERBOX, 1], [IKOV_OBJ.UNLIT_CANDLE, 1]]
         }));
         expect(step.kind).toBe('grabGround');
         expect(step.kind === 'grabGround' && step.item).toBe(IKOV_NAME.KNIFE);
     });
 
-    test('with a knife but no logs the axe is bought first', () => {
+    test('with logs and a knife the flax is next', () => {
         const step = decide(snap(IKOV_STAGE.STARTED, {
-            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
-            bank: [[IKOV_OBJ.TINDERBOX, 1], [IKOV_OBJ.UNLIT_CANDLE, 1], [IKOV_OBJ.BOW_STRING, 1], [IKOV_OBJ.KNIFE, 1]]
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1], [IKOV_OBJ.YEW_LOGS, 1], [IKOV_OBJ.KNIFE, 1]],
+            bank: [[IKOV_OBJ.TINDERBOX, 1], [IKOV_OBJ.UNLIT_CANDLE, 1]]
         }));
-        expect(step.kind === 'buy' && step.item).toBe(IKOV_NAME.IRON_AXE);
+        expect(label(step)).toBe('custom:pick flax');
+    });
+
+    test('with a bow string spun the logs are fletched', () => {
+        const step = decide(snap(IKOV_STAGE.STARTED, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1], [IKOV_OBJ.YEW_LOGS, 1], [IKOV_OBJ.KNIFE, 1], [IKOV_OBJ.BOW_STRING, 1]],
+            bank: [[IKOV_OBJ.TINDERBOX, 1], [IKOV_OBJ.UNLIT_CANDLE, 1]]
+        }));
+        expect(label(step)).toBe('custom:fletch a yew shortbow');
+    });
+
+    test('a stave and a string are strung together', () => {
+        const step = decide(snap(IKOV_STAGE.STARTED, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1], [IKOV_OBJ.UNSTRUNG_YEW_SHORTBOW, 1], [IKOV_OBJ.BOW_STRING, 1]],
+            bank: [[IKOV_OBJ.TINDERBOX, 1], [IKOV_OBJ.UNLIT_CANDLE, 1]]
+        }));
+        expect(label(step)).toBe('custom:string the yew shortbow');
     });
 
     test('the whole kit banked sends the bot down for the boots', () => {
@@ -122,8 +154,27 @@ describe('Temple of Ikov decide', () => {
     });
 
     test('kit in the pack, boots unfound: the boots leg runs', () => {
-        const step = decide(snap(IKOV_STAGE.STARTED, { inv: KIT }));
+        const step = decide(snap(IKOV_STAGE.STARTED, { inv: KIT, invNames: [['lit candle', 1], ['tinderbox', 1], ['knife', 1], ['pendant of lucien', 1]] }));
         expect(label(step)).toBe('custom:fetch the boots of lightness');
+    });
+
+    // Why: the bridge weighs the pack in grams and gives way at anything but negative, so the bow and the axe are banked before the bot goes underground.
+    test('the axe and the bow are banked before the dungeon', () => {
+        const step = decide(snap(IKOV_STAGE.STARTED, {
+            inv: KIT,
+            invNames: [['lit candle', 1], ['knife', 1], ['iron axe', 1], ['yew shortbow', 1], ['lobster', 8]]
+        }));
+        expect(step.kind).toBe('deposit');
+        expect(step.kind === 'deposit' && step.keep).toContain('lobster');
+        expect(step.kind === 'deposit' && step.keep).toContain('boots of lightness');
+    });
+
+    test('a pack of nothing but the crossing kit is not trimmed', () => {
+        const step = decide(snap(IKOV_STAGE.STARTED, {
+            inv: KIT,
+            invNames: [['lit candle', 1], ['tinderbox', 1], ['knife', 1], ['pendant of lucien', 1], ['lobster', 8], ['coins', 1000]]
+        }));
+        expect(step.kind).not.toBe('deposit');
     });
 
     test('boots banked but no arrows: the ice-arrow leg runs', () => {

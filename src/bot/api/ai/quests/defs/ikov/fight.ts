@@ -13,10 +13,12 @@ import { Sustain } from '../../../../sustain/Sustain.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_OBJ, IKOV_TILE, LAVA_BRIDGE_ZONE, onWineldaLedge } from './areas.js';
-import { escapePocket, wearFearPendant } from './dungeon.js';
+import { escapePocket, pullTrapLever, wearFearPendant } from './dungeon.js';
 
 /** Ticks the Fire Warrior is given before the leg hands the tick back to the engine. */
 const WARRIOR_GUARD = 900;
+/** The bow's second combat-tab style. */
+const RAPID_MODE = 1;
 const LUCIEN_GUARD = 400;
 const EAT_AT_MISSING = 18;
 const ARROW_RADIUS = 12;
@@ -48,6 +50,8 @@ export async function armForTheWarrior(log: (m: string) => void): Promise<boolea
         log('ikov: no ice arrows to nock');
         return false;
     }
+    // Why: the warrior refuses anything whose `%damagetype` is not ranged, and rapid is the fastest of the bow's three.
+    Game.setCombatMode(RAPID_MODE);
     return true;
 }
 
@@ -76,6 +80,16 @@ async function pickUpArrows(log: (m: string) => void): Promise<void> {
         await Execution.delayTicks(2);
     }
     log(`ikov: recovered arrows, ${iceArrowsHeld()} held`);
+}
+
+function walkToFireDoor(log: (m: string) => void): Promise<boolean> {
+    return Traversal.walkResilient(IKOV_TILE.FIRE_DOOR_SOUTH, {
+        radius: 2,
+        attempts: 3,
+        timeoutMs: WALK_MS,
+        avoidZones: [LAVA_BRIDGE_ZONE],
+        log
+    });
 }
 
 function warrior(): Npc | null {
@@ -124,14 +138,12 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
     if (!(await armForTheWarrior(log))) {
         return false;
     }
-    if (!(await Traversal.walkResilient(IKOV_TILE.FIRE_DOOR_SOUTH, {
-        radius: 2,
-        attempts: 3,
-        timeoutMs: WALK_MS,
-        avoidZones: [LAVA_BRIDGE_ZONE],
-        log
-    }))) {
-        return false;
+    // Why: the journal renders stages 20 and 30 alike, so a run interrupted between the search and the pull reads as pulled and finds the door shut.
+    if (!(await walkToFireDoor(log))) {
+        log('ikov: the trap-lever door is shut — pulling the lever again');
+        if (!(await pullTrapLever(log)) || !(await walkToFireDoor(log))) {
+            return false;
+        }
     }
     if (!(await summonWarrior(log))) {
         return false;

@@ -102,7 +102,8 @@ export const IKOV_TILE = {
     SEERS_BANK: new Tile(2725, 3491, 0),
     CATHERBY_BANK: new Tile(2809, 3441, 0),
 
-    ARMOURY: new Tile(2514, 3385, 0),
+    // Why: the Ardougne Armoury also stocks an iron axe, and its gate answers "This is a restricted area" until Biohazard is complete.
+    AEMAD: new Tile(2613, 3294, 0),
     CANDLE_MAKER: new Tile(2800, 3439, 0),
     ARHEIN: new Tile(2803, 3430, 0),
     KNIFE_SPAWN: new Tile(2704, 3475, 0),
@@ -223,14 +224,17 @@ export function onWineldaLedge(t: { x: number; z: number }): boolean {
     return t.x >= 2640 && t.x <= 2660 && t.z >= 9871 && t.z <= 9884;
 }
 
-/** The far side of the lava: Winelda's landing, the shiny key and the secret wall. */
-export function acrossTheLava(t: { x: number; z: number }): boolean {
-    return t.z >= 9856 && t.z <= 9895 && t.x >= 2624 && t.x <= 2670 && !onWineldaLedge(t);
-}
+// Why: the far side of the lava wraps around the Fire Warrior's room and Winelda's ledge, so no rectangle separates them — only the temple behind the wall is boxable, and the corridor at z 9893 is the one row where both sides have tiles.
 
 /** The guardians' temple, behind the secret wall. */
 export function inGuardianTemple(t: { x: number; z: number }): boolean {
-    return t.z >= 9896 && t.x >= 2624 && t.x <= 2670;
+    if (t.x < 2633 || t.x > 2651) {
+        return false;
+    }
+    if (t.z >= 9894) {
+        return true;
+    }
+    return t.z === 9893 && t.x >= 2642 && t.x <= 2645;
 }
 
 export function inTemple(t: { x: number; z: number; level: number }): boolean {

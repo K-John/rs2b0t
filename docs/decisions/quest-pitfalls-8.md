@@ -2,14 +2,25 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Ten, and the first four are engine behaviour rather than quest facts.
+Twelve, and the first six are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
   pack is carrying rather than of where it is standing. Boots of lightness are -10lb
-  worn, a yew shortbow is 3lb and a lobster is 350g — which is why the bow and the
-  arrows are fetched *after* the bridge leg rather than with it, and why the leg that
-  crosses carries a candle, a pendant and food and nothing else.
+  worn, a yew shortbow is 3lb, an iron axe is 5lb and a lobster is 350g. The first live
+  crossing went into the lava carrying the axe and the bow it had fletched a minute earlier, which
+  is why the module banks everything outside the crossing kit *before* it goes
+  underground — there is no booth past the ladder.
+- **Only non-stackables weigh anything, and the client is told a truncated kilogram.**
+  `calculateRunWeight` skips `type.stackable`, so coins and ice arrows are free, and
+  `UpdateRunWeight` sends `trunc(grams / 1000)` — a client reading 0 is anywhere from
+  -999g to +999g. The server tests grams, so the guard demands a client-visible
+  *negative* rather than a non-positive.
+- **A shop behind a quest gate is not a shop.** The Ardougne Armoury stocks the iron
+  axe the yew needs and sits inside the Combat Training Camp, whose gates answer "This
+  is a restricted area" until Biohazard is complete. They are baked as ordinary door
+  edges, so the pathfinder routes at them and the walker spends its three strikes
+  proving otherwise. Aemad's Adventuring Supplies, in East Ardougne, stocks the same axe.
 - **A crossing with no op is still a crossing.** The bridge is a `mapzoneenter` timer
   plus `inzone`, so there is nothing to click: walking onto (2648–2650, 9828–9829)
   *is* the action, and the direction comes from a bit that toggles on every crossing
