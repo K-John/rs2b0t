@@ -17,6 +17,25 @@ export interface HeroHandoffInput {
     partnerConfigured: boolean;
 }
 
+// Why: Grip re-issues the spare whenever `~obj_gettotal(misc_key)` reads zero, so a Black Arm bot that
+// gives one away and then asks him for another trades keys forever. The flag stops the fetching; the
+// lure counter re-opens it, because a rival that died holding the key needs a second one.
+// Why: session scope is enough — a restart fetches one more key, which is correct work rather than a wedge.
+export const HeroHandoffState = { gaveKey: false, lureFailures: 0 };
+
+/** How many fruitless lures it takes before the Black Arm bot fetches the rival another key. */
+export const LURE_RETRIES_BEFORE_REFETCH = 3;
+
+export function resetHeroHandoffState(): void {
+    HeroHandoffState.gaveKey = false;
+    HeroHandoffState.lureFailures = 0;
+}
+
+/** True while the Black Arm bot should go back to Grip for a spare key rather than lure him. */
+export function shouldFetchKey(state: { gaveKey: boolean; lureFailures: number } = HeroHandoffState): boolean {
+    return !state.gaveKey || state.lureFailures >= LURE_RETRIES_BEFORE_REFETCH;
+}
+
 // Why: `open_and_close_door` teleports the actor and re-shuts in three ticks, so the Black Arm bot
 // cannot hold the side door open for anyone. Grip's spare key is tradeable and his own keyring is not,
 // which fixes both directions: the key goes over, the keyring is taken off the floor.
@@ -66,7 +85,7 @@ export async function runHeroHandoff(handoff: HeroHandoff, log: (m: string) => v
         return false;
     }
     const want = itemFor(handoff);
-    return runPartnerHandoff({
+    const moved = await runPartnerHandoff({
         partner: HeroConfig.partner,
         rendezvous: HERO_TILE.RENDEZVOUS,
         id: want.id,
@@ -75,6 +94,11 @@ export async function runHeroHandoff(handoff: HeroHandoff, log: (m: string) => v
         label: handoff,
         log
     });
+    if (moved && handoff === 'give-key') {
+        HeroHandoffState.gaveKey = true;
+        HeroHandoffState.lureFailures = 0;
+    }
+    return moved;
 }
 
 export function heroHandoffStep(handoff: HeroHandoff): QuestStep {

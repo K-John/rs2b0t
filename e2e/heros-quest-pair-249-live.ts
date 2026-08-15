@@ -87,13 +87,13 @@ const STATS = [
     'smithing', 'mining', 'herblore', 'agility', 'thieving', 'runecraft'
 ];
 
-// Why: the four prerequisites and the 55 quest points are another six hours of running quests that are
-// not the one under test, so they are set rather than earned.
+// Why: the four prerequisites are another six hours of running quests that are not the one under test,
+// so they are set rather than earned — at exactly the values `quest.constant` calls complete, because
+// `~send_quest_progress` colours the list green only on `current >= complete`.
 const PREREQS: [string, number][] = [
-    ['zanaris', 10],
-    ['dragonquest', 5],
-    ['arthur', 6],
-    ['qp', 55]
+    ['zanaris', 6],
+    ['dragonquest', 10],
+    ['arthur', 7]
 ];
 
 async function setStats(page: Page, level: number): Promise<void> {
@@ -161,6 +161,9 @@ async function bringUp(page: Page, user: string, gang: 'phoenix' | 'blackarm', p
     // runs at login, so a varp set mid-session leaves every prerequisite reading red to the client and
     // the eligibility gate blocks the quest before it starts.
     await relog(page, user);
+    // Why: `%qp` is summed from the quest varps by the login proc in `general/scripts/quests.rs2`, so a
+    // value set before the relog is thrown away and one set after it survives the session.
+    await cheatQuiet(page, 'setvar qp 55');
     await seedItemsToBank(page, BANK_SEED, VARROCK_WEST_BANK);
     if (!(await teleTo(page, VARROCK_WEST_BANK, 10, 25_000))) {
         await clearChatDialogs(page, 'pre-tele dialog(s)');

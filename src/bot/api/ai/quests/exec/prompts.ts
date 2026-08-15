@@ -102,7 +102,9 @@ export interface DoorCrossing {
 }
 
 const DOOR_MS = 12_000;
-const DOOR_WALK_MS = 120_000;
+// Why: a quest door can be a kingdom away — the Brimhaven crossings are reached from Varrock by ferry,
+// and a two-minute budget times out mid-ocean and reports the door as missing.
+const DOOR_WALK_MS = 300_000;
 
 // Why: `~open_and_close_door` teleports the actor through and re-shuts in three ticks, so the far side
 // is the only proof a crossing landed — and no door can ever be held open for a partner.

@@ -1,7 +1,12 @@
 import { describe, expect, test } from 'bun:test';
 
 import { HERO_STAGE } from '#/bot/api/ai/quests/defs/heroquest/journal.js';
-import { decideHeroHandoff, type HeroHandoffInput } from '#/bot/api/ai/quests/defs/heroquest/partner.js';
+import {
+    LURE_RETRIES_BEFORE_REFETCH,
+    decideHeroHandoff,
+    shouldFetchKey,
+    type HeroHandoffInput
+} from '#/bot/api/ai/quests/defs/heroquest/partner.js';
 
 function input(over: Partial<HeroHandoffInput> = {}): HeroHandoffInput {
     return {
@@ -96,5 +101,23 @@ describe('decideHeroHandoff', () => {
             stage: HERO_STAGE.PHOENIX_ARMBAND,
             candlesticks: 0
         }))).toBeNull();
+    });
+});
+
+// Why: Grip re-issues the spare whenever the bot holds none, so a Black Arm bot that fetches after
+// every trade swaps keys with its rival forever instead of luring him onto the arrow slit.
+describe('shouldFetchKey', () => {
+    test('the first key is always fetched', () => {
+        expect(shouldFetchKey({ gaveKey: false, lureFailures: 0 })).toBe(true);
+    });
+
+    test('a bot that has already handed one over lures instead', () => {
+        expect(shouldFetchKey({ gaveKey: true, lureFailures: 0 })).toBe(false);
+        expect(shouldFetchKey({ gaveKey: true, lureFailures: LURE_RETRIES_BEFORE_REFETCH - 1 })).toBe(false);
+    });
+
+    // Why: a rival that died holding the key needs a second one, and only an empty-handed bot can ask.
+    test('a run of fruitless lures re-opens the fetch', () => {
+        expect(shouldFetchKey({ gaveKey: true, lureFailures: LURE_RETRIES_BEFORE_REFETCH })).toBe(true);
     });
 });

@@ -26,6 +26,7 @@ import {
 } from './areas.js';
 import { crossTreasureDoorIn, crossTreasureDoorOut, enterBrimhavenHq, enterMansion, returnToStreet } from './doors.js';
 import { HERO_STAGE } from './journal.js';
+import { HeroHandoffState, shouldFetchKey } from './partner.js';
 import { anywhere, bankedId, heldId, wornId } from './state.js';
 
 /** Hartigen's disguise: Garv checks all three worn, and refuses silently otherwise. */
@@ -143,7 +144,14 @@ export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<
     // Why: the partner's kill is not this client's work, so the wait is wall-clock and bounded — a
     // pass that times out re-lures, which is what a Grip who walked home needs anyway.
     await Execution.delayUntil(() => keyringOnFloor() !== null, LURE_WAIT_MS);
-    return takeKeyring(log);
+    if (await takeKeyring(log)) {
+        HeroHandoffState.lureFailures = 0;
+        return true;
+    }
+    // Why: a rival that never turned up may have died holding the spare key, and Grip will only issue
+    // another once this bot is empty-handed — so a run of fruitless lures re-opens the fetch.
+    HeroHandoffState.lureFailures++;
+    return false;
 }
 
 /** Grip's keyring opens the treasure room, and the chest inside hands over two candlesticks. */
@@ -234,7 +242,9 @@ export function blackarmArmbandStep(snap: QuestSnapshot, stage: number): QuestSt
             if (heldId(snap, HERO_ID.GRIP_KEYS) > 0) {
                 return { kind: 'custom', name: 'open the treasure room and the chest', run: lootCandlesticks };
             }
-            if (heldId(snap, HERO_ID.MISC_KEY) === 0) {
+            // Why: Grip re-issues the spare whenever the bot holds none, so a bot that fetches after
+            // every trade swaps keys with its rival forever instead of luring him onto the slit.
+            if (heldId(snap, HERO_ID.MISC_KEY) === 0 && shouldFetchKey()) {
                 return { kind: 'custom', name: 'ask Grip for a job, which hands over his spare key', run: askGripForKey };
             }
             return { kind: 'custom', name: 'lure Grip to the arrow slit for the rival', run: lureGripAndTakeKeyring };
