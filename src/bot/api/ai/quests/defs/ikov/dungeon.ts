@@ -398,21 +398,23 @@ export async function mendAndPullLever(log: (m: string) => void): Promise<boolea
     return true;
 }
 
-async function searchChest(chest: Tile, log: (m: string) => void): Promise<boolean> {
-    if (!(await templeWalk(chest, 2, log))) {
+async function searchChest(chest: { loc: Tile; stand: Tile }, log: (m: string) => void): Promise<boolean> {
+    if (!(await templeWalk(chest.stand, 0, log))) {
         return false;
     }
     await settleScene();
+    const openLoc = (): Loc | null => Locs.query().where(l => l.id === IKOV_LOC.CHEST_OPEN).within(4).nearest();
     const shut = Locs.query().where(l => l.id === IKOV_LOC.CHEST_SHUT).within(4).nearest();
     if (shut) {
         if (!(await shut.interact('Open'))) {
             return false;
         }
-        await Execution.delayTicks(2);
+        // Why: a loc that transforms keeps its old id for a tick, so the open chest has to be polled rather than read once.
+        await Execution.delayUntil(() => openLoc() !== null, 5000);
     }
-    const open = Locs.query().where(l => l.id === IKOV_LOC.CHEST_OPEN).within(4).nearest();
+    const open = openLoc();
     if (!open) {
-        log(`ikov: no chest at (${chest.x},${chest.z})`);
+        log(`ikov: the chest at (${chest.loc.x},${chest.loc.z}) never opened`);
         return false;
     }
     const before = Inventory.count(IKOV_NAME.ICE_ARROWS);

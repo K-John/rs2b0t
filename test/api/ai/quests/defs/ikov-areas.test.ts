@@ -53,9 +53,17 @@ describe('Temple of Ikov regions', () => {
     });
 
     test('every ice chest is inside the ice cavern and none is in the chamber of fear', () => {
-        for (const chest of ICE_CHESTS) {
-            expect(inIceCavern(chest)).toBe(true);
-            expect(inChamberOfFear(chest)).toBe(false);
+        for (const { loc, stand } of ICE_CHESTS) {
+            expect(inIceCavern(loc)).toBe(true);
+            expect(inIceCavern(stand)).toBe(true);
+            expect(inChamberOfFear(loc)).toBe(false);
+        }
+    });
+
+    // Why: `forceapproach=north` rotates with each placement, and the wrong side drops the Open with no refusal at all.
+    test('every chest stand is one tile off its chest', () => {
+        for (const { loc, stand } of ICE_CHESTS) {
+            expect(Math.abs(loc.x - stand.x) + Math.abs(loc.z - stand.z)).toBe(1);
         }
     });
 

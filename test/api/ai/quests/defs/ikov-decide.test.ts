@@ -226,6 +226,20 @@ describe('Temple of Ikov decide', () => {
         expect(label(step)).toBe(`custom:farm limpwurt roots (0/${ROOTS_WANTED})`);
     });
 
+    // Why: the crossing kit leaves the bot bare-handed, and the farm is a hundred-odd level-42 hobgoblins.
+    test('a banked axe is withdrawn and wielded before the farm', () => {
+        const banked = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
+            bank: [[IKOV_OBJ.IRON_AXE, 1]]
+        }));
+        expect(banked.kind).toBe('withdraw');
+        const held = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1], [IKOV_OBJ.IRON_AXE, 1]]
+        }));
+        expect(held.kind).toBe('equip');
+        expect(held.kind === 'equip' && held.item).toBe(IKOV_NAME.IRON_AXE);
+    });
+
     test('roots banked are withdrawn before the hand-over', () => {
         const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
             inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],

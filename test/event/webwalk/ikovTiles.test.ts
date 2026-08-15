@@ -72,9 +72,10 @@ describe.skipIf(!HAS_COLLISION_PACK)('Temple of Ikov stand tiles', () => {
         expect(unreachable).toEqual([]);
     });
 
-    test('the six ice chests are reachable from their own stands', () => {
-        for (const chest of ICE_CHESTS) {
-            const route = finder.findPath(IKOV_TILE.TEMPLE_LADDER, { x: chest.x, z: chest.z, level: chest.level }, undefined, 4_000_000);
+    test('every chest stand is walkable and routes from the temple ladder', () => {
+        for (const { stand } of ICE_CHESTS) {
+            expect(finder.walkable(stand.x, stand.z, stand.level)).toBe(true);
+            const route = finder.findPath(IKOV_TILE.TEMPLE_LADDER, { x: stand.x, z: stand.z, level: stand.level }, undefined, 4_000_000);
             expect(route.ok).toBe(true);
         }
     });

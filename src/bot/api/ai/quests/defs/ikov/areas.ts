@@ -154,14 +154,16 @@ export const IKOV_TILE = {
     MCGRUBOR_SURFACE: new Tile(2659, 3493, 0)
 } as const;
 
+// Why: `ikov_chestclosed` is `forceapproach=north` and each placement rotates that clockwise, so the stand is the only side an Open lands from — anywhere else the op is dropped in silence.
+
 /** The six ice-arrow chests; one of them holds arrows, and which one is re-rolled after every find. */
-export const ICE_CHESTS: readonly Tile[] = [
-    new Tile(2710, 9850, 0),
-    new Tile(2719, 9838, 0),
-    new Tile(2729, 9850, 0),
-    new Tile(2738, 9835, 0),
-    new Tile(2745, 9821, 0),
-    new Tile(2747, 9848, 0)
+export const ICE_CHESTS: readonly { loc: Tile; stand: Tile }[] = [
+    { loc: new Tile(2710, 9850, 0), stand: new Tile(2710, 9849, 0) },
+    { loc: new Tile(2719, 9838, 0), stand: new Tile(2719, 9839, 0) },
+    { loc: new Tile(2729, 9850, 0), stand: new Tile(2729, 9849, 0) },
+    { loc: new Tile(2738, 9835, 0), stand: new Tile(2739, 9835, 0) },
+    { loc: new Tile(2745, 9821, 0), stand: new Tile(2745, 9822, 0) },
+    { loc: new Tile(2747, 9848, 0), stand: new Tile(2746, 9848, 0) }
 ];
 
 // Why: the first two options start the quest; "That sounds like a laugh!" is the only branch that hands the pendant over.

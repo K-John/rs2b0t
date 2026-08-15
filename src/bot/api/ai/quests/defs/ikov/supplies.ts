@@ -1,4 +1,5 @@
 // docs/QUESTS.md
+import { Equipment } from '../../../../equipment/Equipment.js';
 import { EventSignal } from '../../../../execution/EventSignal.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
@@ -9,6 +10,7 @@ import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
 import { Skills } from '../../../../skills/Skills.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
+import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { Reachability } from '../../../../../event/webwalk/geometry/Reachability.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
@@ -22,6 +24,8 @@ export const IKOV_SOURCING_SKILLS: readonly { skill: string; level: number }[] =
     { skill: 'crafting', level: 10 }
 ];
 
+/** Worn right hand: the slot a weapon occupies. */
+const WEAPON_SLOT = 3;
 const CHOP_MS = 120_000;
 const PICK_MS = 20_000;
 const KILL_MS = 60_000;
@@ -89,7 +93,10 @@ async function pickFlax(log: (m: string) => void): Promise<boolean> {
 
 // Why: strung and unstrung yew shortbows share the display name, so the product is chosen off the make menu and counted by id.
 async function fletchBow(log: (m: string) => void): Promise<boolean> {
-    if (!ChatDialog.isMakeMenu()) {
+    // Why: the first use-on after a bank trip lands while the booth is still closing, and the menu never opens.
+    for (let attempt = 0; attempt < 3 && !ChatDialog.isMakeMenu(); attempt++) {
+        await Modals.closeIfOpen();
+        await Execution.delayTicks(2);
         const knife = Inventory.items().find(i => i.id === IKOV_OBJ.KNIFE);
         const logs = Inventory.items().find(i => i.id === IKOV_OBJ.YEW_LOGS);
         if (!knife || !logs) {
@@ -97,12 +104,13 @@ async function fletchBow(log: (m: string) => void): Promise<boolean> {
             return false;
         }
         if (!(await knife.useOn(logs))) {
-            return false;
+            continue;
         }
-        if (!(await Execution.delayUntil(() => ChatDialog.isMakeMenu(), 8000))) {
-            log('ikov: the fletch menu never opened');
-            return false;
-        }
+        await Execution.delayUntil(() => ChatDialog.isMakeMenu(), 6000);
+    }
+    if (!ChatDialog.isMakeMenu()) {
+        log('ikov: the fletch menu never opened');
+        return false;
     }
     const before = heldId(IKOV_OBJ.UNSTRUNG_YEW_SHORTBOW);
     if (!(await ChatDialog.makeOne(IKOV_NAME.YEW_SHORTBOW))) {
@@ -223,8 +231,27 @@ async function farmRoots(log: (m: string) => void): Promise<boolean> {
     return Traversal.walkResilient(IKOV_TILE.HOBGOBLINS, { radius: 4, attempts: 3, timeoutMs: 420_000, log });
 }
 
+// Why: the crossing kit leaves the bot bare-handed, and a hundred-odd level-42 hobgoblins is not a fight to take with fists — the axe the yew was cut with is already banked and is a weapon.
+function armForTheFarm(snap: QuestSnapshot): QuestStep | null {
+    // Why: the right-hand slot is what the loadout would have filled, so an armed bot keeps whatever it is already holding.
+    if (Equipment.items().some(item => item.slot === WEAPON_SLOT)) {
+        return null;
+    }
+    if ((snap.invIds?.get(IKOV_OBJ.IRON_AXE) ?? 0) > 0) {
+        return { kind: 'equip', item: IKOV_NAME.IRON_AXE };
+    }
+    if ((snap.bankIds?.get(IKOV_OBJ.IRON_AXE) ?? 0) > 0) {
+        return { kind: 'withdraw', items: [{ name: IKOV_NAME.IRON_AXE, id: IKOV_OBJ.IRON_AXE, qty: 1 }] };
+    }
+    return null;
+}
+
 // Why: 20 unstackable roots plus food fill the pack, so the farm banks in batches rather than holding the lot.
 function rootStep(snap: QuestSnapshot): QuestStep {
+    const arm = armForTheFarm(snap);
+    if (arm) {
+        return arm;
+    }
     const held = snap.invIds?.get(IKOV_OBJ.LIMPWURT_ROOT) ?? 0;
     const banked = snap.bankIds?.get(IKOV_OBJ.LIMPWURT_ROOT) ?? 0;
     if (held > 0 && (banked + held >= ROOTS_WANTED || (snap.freeSlots ?? 28) <= 2)) {
@@ -269,6 +296,17 @@ export function suppliesStep(snap: QuestSnapshot, wants: SupplyWants): QuestStep
     return null;
 }
 
+// Why: a withdraw step reports failure when any line comes up short, so asking for something already in the pack fails the step the rest of it succeeded in.
+
+/** Withdraw only the listed items the pack is short of and the bank can cover. */
+function withdrawMissing(snap: QuestSnapshot, wanted: { name: string; id: number }[]): QuestStep | null {
+    const short = wanted.filter(item => (snap.invIds?.get(item.id) ?? 0) === 0 && (snap.bankIds?.get(item.id) ?? 0) > 0);
+    if (short.length === 0) {
+        return null;
+    }
+    return { kind: 'withdraw', items: short.map(item => ({ name: item.name, id: item.id, qty: 1 })) };
+}
+
 /** True while an axe still has to be bought: no bow stave in sight, no logs, and nothing to cut one with. */
 function axeOutstanding(snap: QuestSnapshot): boolean {
     return heldOrBanked(snap, IKOV_OBJ.UNSTRUNG_YEW_SHORTBOW) === 0
@@ -282,23 +320,16 @@ function bowChainStep(snap: QuestSnapshot): QuestStep | null {
     const string = heldOrBanked(snap, IKOV_OBJ.BOW_STRING);
 
     if (stave > 0 && string > 0) {
-        if ((snap.invIds?.get(IKOV_OBJ.UNSTRUNG_YEW_SHORTBOW) ?? 0) === 0 || (snap.invIds?.get(IKOV_OBJ.BOW_STRING) ?? 0) === 0) {
-            return {
-                kind: 'withdraw',
-                items: [
-                    { name: IKOV_NAME.UNSTRUNG_YEW_SHORTBOW, id: IKOV_OBJ.UNSTRUNG_YEW_SHORTBOW, qty: 1 },
-                    { name: IKOV_NAME.BOW_STRING, id: IKOV_OBJ.BOW_STRING, qty: 1 }
-                ]
-            };
-        }
-        return { kind: 'custom', name: 'string the yew shortbow', run: stringBow };
+        const carry = withdrawMissing(snap, [
+            { name: IKOV_NAME.UNSTRUNG_YEW_SHORTBOW, id: IKOV_OBJ.UNSTRUNG_YEW_SHORTBOW },
+            { name: IKOV_NAME.BOW_STRING, id: IKOV_OBJ.BOW_STRING }
+        ]);
+        return carry ?? { kind: 'custom', name: 'string the yew shortbow', run: stringBow };
     }
 
     if (stave === 0 && heldOrBanked(snap, IKOV_OBJ.YEW_LOGS) === 0) {
-        if ((snap.invIds?.get(IKOV_OBJ.IRON_AXE) ?? 0) === 0) {
-            return { kind: 'withdraw', items: [{ name: IKOV_NAME.IRON_AXE, id: IKOV_OBJ.IRON_AXE, qty: 1 }] };
-        }
-        return { kind: 'custom', name: 'chop a yew log', run: chopYew };
+        const axe = withdrawMissing(snap, [{ name: IKOV_NAME.IRON_AXE, id: IKOV_OBJ.IRON_AXE }]);
+        return axe ?? { kind: 'custom', name: 'chop a yew log', run: chopYew };
     }
 
     if (heldOrBanked(snap, IKOV_OBJ.KNIFE) === 0) {
@@ -309,8 +340,9 @@ function bowChainStep(snap: QuestSnapshot): QuestStep | null {
         if (heldOrBanked(snap, IKOV_OBJ.FLAX) === 0) {
             return { kind: 'custom', name: 'pick flax', run: pickFlax };
         }
-        if ((snap.invIds?.get(IKOV_OBJ.FLAX) ?? 0) === 0) {
-            return { kind: 'withdraw', items: [{ name: IKOV_NAME.FLAX, id: IKOV_OBJ.FLAX, qty: 1 }] };
+        const flax = withdrawMissing(snap, [{ name: IKOV_NAME.FLAX, id: IKOV_OBJ.FLAX }]);
+        if (flax) {
+            return flax;
         }
         return {
             kind: 'useOn',
@@ -323,16 +355,11 @@ function bowChainStep(snap: QuestSnapshot): QuestStep | null {
     }
 
     if (stave === 0) {
-        if ((snap.invIds?.get(IKOV_OBJ.YEW_LOGS) ?? 0) === 0 || (snap.invIds?.get(IKOV_OBJ.KNIFE) ?? 0) === 0) {
-            return {
-                kind: 'withdraw',
-                items: [
-                    { name: IKOV_NAME.YEW_LOGS, id: IKOV_OBJ.YEW_LOGS, qty: 1 },
-                    { name: IKOV_NAME.KNIFE, id: IKOV_OBJ.KNIFE, qty: 1 }
-                ]
-            };
-        }
-        return { kind: 'custom', name: 'fletch a yew shortbow', run: fletchBow };
+        const kit = withdrawMissing(snap, [
+            { name: IKOV_NAME.YEW_LOGS, id: IKOV_OBJ.YEW_LOGS },
+            { name: IKOV_NAME.KNIFE, id: IKOV_OBJ.KNIFE }
+        ]);
+        return kit ?? { kind: 'custom', name: 'fletch a yew shortbow', run: fletchBow };
     }
     return null;
 }
