@@ -6,7 +6,7 @@ import type Tile from '../../../../../geometry/Tile.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE } from './areas.js';
-import { locById, walkTo } from './bridge.js';
+import { driveThroughBoxes, locById, walkTo } from './bridge.js';
 
 async function talkTo(npcId: number, name: string, near: Tile, prefer: string[], log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(near, 2, log))) {
@@ -37,7 +37,8 @@ export async function descendToDwarves(log: (m: string) => void): Promise<boolea
         log('no wall tunnel down to the dwarves');
         return false;
     }
-    return driveUntil(() => (Game.tile()?.z ?? 0) > 9700, [], log, 15_000);
+    // Why: the first descent adds Koftik and opens his `~mesbox` greeting, which a chat driver cannot dismiss.
+    return driveThroughBoxes(() => (Game.tile()?.z ?? 0) > 9700, [], log, 20_000);
 }
 
 /** Down the other wall tunnel, into Kalrag's cave. */
@@ -146,5 +147,5 @@ export async function lootWitchChest(log: (m: string) => void): Promise<boolean>
         log("no chest inside Kardia's house");
         return false;
     }
-    return driveUntil(() => heldId(UP_ITEM.DOLL.id) > 0, [], log, 15_000);
+    return driveThroughBoxes(() => heldId(UP_ITEM.DOLL.id) > 0, [], log, 25_000);
 }

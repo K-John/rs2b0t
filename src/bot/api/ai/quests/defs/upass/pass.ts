@@ -131,12 +131,14 @@ function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string
     }
     // Why: a seam missing from the scene and a seam the vocabulary does not name look identical from the
     // outside, and the second is the likelier bug — so the pocket says everything it can operate.
+    // Why: one line, not one per loc — the harness only surfaces a bounded number of log lines per tick, so
+    // twenty-four of them arrive as a count and nothing else.
     const nearby = Locs.query().within(20).results().filter(loc => loc.actions().length > 0);
-    log(`pass:   ${nearby.length} op-bearing loc(s) within 20 tiles of (${from.x},${from.z}):`);
-    for (const loc of nearby.slice(0, 24)) {
-        const at = loc.tile();
-        log(`pass:     ${loc.id} ${loc.name ?? '?'} (${at.x},${at.z}) L${at.level} [${loc.actions().join('|')}]`);
-    }
+    const listed = nearby
+        .slice(0, 24)
+        .map(loc => `${loc.id}@${loc.tile().x},${loc.tile().z}L${loc.tile().level}[${loc.actions().join('|')}]`)
+        .join(' ');
+    log(`pass:   ${nearby.length} op-bearing within 20 of (${from.x},${from.z}): ${listed}`);
 }
 
 /** Obstacles in the scene, nearest the straight line toward `dest` first. */
@@ -306,7 +308,9 @@ async function useSeamToward(dest: Tile, log: (m: string) => void): Promise<bool
 // player — so a seam at the far side of a pocket is invisible from the near side. The mud pocket's only exit
 // is a ledge eighteen tiles west while its target lies south, so walking "toward the target" never brought it
 // into view and the leg stopped in a room with a door in it. When nothing crosses, the pocket is swept.
-const SWEEP_STEP = 16;
+// Why: the probe has to land inside the pocket, and a pocket is rarely a square — so each direction is tried
+// at falling distances and the furthest one the scene says is walkable wins.
+const SWEEP_STEPS = [20, 14, 9, 5] as const;
 const SWEEP_DIRS: readonly [number, number][] = [
     [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]
 ];
@@ -318,9 +322,12 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
         return false;
     }
     const probes = SWEEP_DIRS
-        .map(([dx, dz]) => new Tile(from.x + dx * SWEEP_STEP, from.z + dz * SWEEP_STEP, from.level))
-        .filter(tile => Reachability.canReach(tile, REACH))
+        .map(([dx, dz]) => SWEEP_STEPS
+            .map(step => new Tile(from.x + dx * step, from.z + dz * step, from.level))
+            .find(tile => chebyshev(tile, from) > 3 && Reachability.canReach(tile, REACH)))
+        .filter((tile): tile is Tile => tile !== undefined)
         .sort((a, b) => chebyshev(a, dest) - chebyshev(b, dest));
+    log(`pass: sweeping ${probes.length} edge(s) of the pocket at (${from.x},${from.z})`);
     for (const probe of probes) {
         if (!(await Traversal.walkResilient(probe, { radius: 4, attempts: 1, timeoutMs: 30_000, log }))) {
             continue;

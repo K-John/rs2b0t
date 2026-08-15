@@ -8,6 +8,7 @@ import type { Loc } from '../../../../model/Loc.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { Reach } from '../../../../walking/Reach.js';
 import Tile from '../../../../../geometry/Tile.js';
+import { Modals } from '../../../../ui/widgets/Modals.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE, upassArea } from './areas.js';
@@ -23,6 +24,28 @@ export async function walkTo(to: Tile, radius: number, log: (m: string) => void)
         return true;
     }
     return travelTo(to, radius, log);
+}
+
+// Why: `~mesbox` and `~objbox` build a MAIN modal, and `driveUntil` only answers chat — a script that opens
+// one waits there forever, and whatever it hands over lands only once it is dismissed. Kardia's chest opens
+// two before the doll appears, and Koftik's insane greeting one.
+
+/** `driveUntil` that also clicks through the main-modal boxes a script puts in the way. */
+export async function driveThroughBoxes(
+    expect: () => boolean,
+    prefer: string[],
+    log: (m: string) => void,
+    ms = 30_000
+): Promise<boolean> {
+    const deadline = performance.now() + ms;
+    while (performance.now() < deadline) {
+        if (expect()) {
+            return true;
+        }
+        await Modals.closeIfOpen();
+        await driveUntil(expect, prefer, log, 1_500);
+    }
+    return expect();
 }
 
 export function locById(id: number, op: string | null, within = 12): Loc | null {
