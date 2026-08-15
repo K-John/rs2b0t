@@ -152,8 +152,12 @@ export async function catchRabbit(log: (m: string) => void): Promise<boolean> {
         log('no rabbit in the forest clearing');
         return false;
     }
-    return driveUntil(() => heldId(RG_ITEM.RAW_RABBIT.id) > 0, [], log, 60_000)
-        || takeRabbitCorpse(log);
+    // Why: `~npc_death` drops the meat on the floor rather than into the pack, so the kill and the pickup
+    // are two steps — and the drop lands under the rabbit, not under the player.
+    if (await driveUntil(() => heldId(RG_ITEM.RAW_RABBIT.id) > 0, [], log, 60_000)) {
+        return true;
+    }
+    return takeRabbitCorpse(log);
 }
 
 async function takeRabbitCorpse(log: (m: string) => void): Promise<boolean> {
@@ -186,7 +190,7 @@ const RANGE_LOC = 2728;
 
 // Why: `%regicide_still_total` and `%regicide_still_settings` are the two varps in this quest with
 // `transmit=yes`, so the still is the one part of it the bot can read directly. `%temp` is not among them,
-// which is why the control law is written against the heat needle rather than against the temperature.
+// which is why the control law reads the heat needle rather than the temperature.
 
 const STILL = {
     /** `regicide_still` — the interface the tar barrel opens. */
@@ -213,7 +217,7 @@ const STILL_TARGET = 26;
 const VALVE_HOLD = 1;
 const REGULATOR_FULL = 2;
 // Why: the needle climbs one step a tick while `%temp` is 51-79 and three while it is over 80, and passing
-// bit 25 resets the whole run. Coal at six or below therefore peaks at nine, two clear of the ceiling, and
+// bit 25 resets the tally to zero. Coal at six or below therefore peaks at nine, two clear of the ceiling, and
 // the four-tick gap is what stops two lumps landing inside one softtimer period and stacking the jump.
 const COAL_BELOW = 6;
 const COAL_GAP_TICKS = 4;

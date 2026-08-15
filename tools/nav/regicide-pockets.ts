@@ -105,9 +105,24 @@ interface Seam {
     z: number;
     /** One walkable stand tile per pocket the crossing joins. */
     sides: { pocket: string; stand: NavPoint }[];
+    /** True when the loc only works from `sides[0]` — the pitfalls and the log balances are one-way. */
+    directed?: boolean;
 }
 
+// Why: a pitfall's four `_side` locs and a log balance's two `_start` locs are each usable from one side
+// only. `regicide_jump_pitfall` stages the player one tile off the loc AWAY from the player, so clicking
+// the far loc from the near bank stages them inside the pit and the trap timer drops them in before the
+// jump runs — which is what three consecutive falls into the same pit looked like on the first live run.
+const DIRECTED = new Set(['pit', 'log']);
+
 const at = (x: number, z: number): NavPoint => ({ x, z, level: 0 });
+
+/** Every `regicide_pitfall_mid` placement, so a side loc can be told which way it faces. */
+const PIT_MIDS: NavPoint[] = [];
+
+function pitMid(x: number, z: number): NavPoint | null {
+    return PIT_MIDS.find(mid => Math.abs(mid.x - x) + Math.abs(mid.z - z) === 1) ?? null;
+}
 
 /** The first tile the pack calls walkable, starting where told and stepping outwards. */
 function firstWalkable(x: number, z: number, dx: number, dz: number, tries = 4): NavPoint | null {
@@ -148,10 +163,16 @@ function sidesOf(locId: number, x: number, z: number, angle: number, name: strin
         return near && far ? [near, far] : null;
     }
     if (name === 'regicide_pitfall_side') {
-        // `regicide_jump_pitfall`: staged one tile off the side loc, landed three past it.
-        // Why: `regicide_jump_pitfall` reads north/south as the z axis, the opposite way round from the
-        // dense-forest crossing that shares the same angle names.
-        return acrossX ? [at(x, z + 1), at(x, z - 3)] : [at(x + 1, z), at(x - 3, z)];
+        // `regicide_jump_pitfall`: staged one tile off the side loc on the player's own side, and landed
+        // three past it. Which side that is comes from where the loc sits around its pit, not from its
+        // angle — a side loc is only ever taken from the bank it faces.
+        const mid = pitMid(x, z);
+        if (mid === null) {
+            return null;
+        }
+        const dx = x - mid.x;
+        const dz = z - mid.z;
+        return [at(x + dx, z + dz), at(x - dx * 3, z - dz * 3)];
     }
     if (name === 'regicide_trap_tripwire') {
         // `oploc1,regicide_trap_tripwire`: three net tiles from the stand, over a 1x2 footprint.
@@ -168,8 +189,18 @@ function sidesOf(locId: number, x: number, z: number, angle: number, name: strin
     return null;
 }
 
+const PIT_MID_ID = idOf('regicide_pitfall_mid');
+const squares = loadMapsquares(ENGINE);
+for (const square of squares) {
+    forEachLoc(new Reader(square.loc), loc => {
+        if (loc.locId === PIT_MID_ID) {
+            PIT_MIDS.push(at(square.mx * 64 + loc.x, square.mz * 64 + loc.z));
+        }
+    });
+}
+
 const seams: Seam[] = [];
-for (const square of loadMapsquares(ENGINE)) {
+for (const square of squares) {
     forEachLoc(new Reader(square.loc), loc => {
         const spec = SEAM_LOCS.get(loc.locId);
         const x = square.mx * 64 + loc.x;
@@ -189,13 +220,17 @@ for (const square of loadMapsquares(ENGINE)) {
         if (sides.length < 2 || sides[0].pocket === sides[1].pocket) {
             return;
         }
-        seams.push({ kind: spec.kind, loc: name, locId: loc.locId, op: spec.op, x, z, sides });
+        const seam: Seam = { kind: spec.kind, loc: name, locId: loc.locId, op: spec.op, x, z, sides };
+        if (DIRECTED.has(spec.kind)) {
+            seam.directed = true;
+        }
+        seams.push(seam);
     });
 }
 
 console.log('== seams ==');
 for (const seam of [...seams].sort((a, b) => a.loc.localeCompare(b.loc) || a.x - b.x || a.z - b.z)) {
-    const sides = seam.sides.map(s => `${s.pocket}(${s.stand.x},${s.stand.z})`).join(' <-> ');
+    const sides = seam.sides.map(s => `${s.pocket}(${s.stand.x},${s.stand.z})`).join(seam.directed ? ' --> ' : ' <-> ');
     console.log(`  ${seam.loc.padEnd(32)} @(${seam.x},${seam.z}) ${seam.op.padEnd(9)} ${sides}`);
 }
 console.log(`  ${seams.length} seams over ${components.length} pockets`);
@@ -228,7 +263,9 @@ function plan(from: string, to: string, forests: boolean): Leg[] | null {
             return legs;
         }
         for (const seam of usable) {
-            const here = seam.sides.find(s => s.pocket === at);
+            const here = seam.directed
+                ? (seam.sides[0].pocket === at ? seam.sides[0] : undefined)
+                : seam.sides.find(s => s.pocket === at);
             if (here === undefined) {
                 continue;
             }
@@ -335,12 +372,12 @@ function spansOf(seeds: NavPoint[]): [number, number, number][] {
 if (BAKE) {
     const rows = seams
         .sort((a, b) => a.x - b.x || a.z - b.z)
-        .map(s => `    { kind: '${s.kind}', loc: '${s.loc}', locId: ${s.locId}, op: '${s.op}', x: ${s.x}, z: ${s.z}, sides: [${s.sides
+        .map(s => `    { kind: '${s.kind}', loc: '${s.loc}', locId: ${s.locId}, op: '${s.op}', x: ${s.x}, z: ${s.z}${s.directed ? ', directed: true' : ''}, sides: [${s.sides
             .map(side => `{ pocket: '${side.pocket}', stand: { x: ${side.stand.x}, z: ${side.stand.z} } }`)
             .join(', ')}] }`);
-    // Why: only the pockets a seam actually touches, since a pocket with no crossing out of it is somewhere
-    // this quest can neither reach nor leave.
-    // Why: and never `ardougne`, which is the whole rest of the map — the navigator owns that side of the
+    // Why: only the pockets a seam touches, since a pocket with no crossing out of it is somewhere this
+    // quest can neither reach nor leave.
+    // Why: and never `ardougne`, which is the rest of the map — the navigator owns that side of the
     // palisade, and flooding it would bake a quarter of a million tiles into the module.
     const reached = new Set(seams.flatMap(s => s.sides.map(side => side.pocket)));
     const pocketRows = components

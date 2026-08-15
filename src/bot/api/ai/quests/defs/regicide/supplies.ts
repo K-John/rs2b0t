@@ -3,7 +3,7 @@ import { gpShort } from '../../engine/provisioning.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { RG_ITEM, RG_TILE, banked, carried, type RegicideItem } from './areas.js';
 
-// Why: the whole of Tirannwn has one shop and no bank, and the way back out is either the Arandar palisade
+// Why: Tirannwn has one shop and no bank, and the way back out is either the Arandar palisade
 // or the Underground Pass walked end to end — so everything the forest consumes is bought and drawn in
 // Ardougne, one leg's walk from the bank, before the quest ever leaves the mainland.
 

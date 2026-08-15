@@ -16,6 +16,13 @@ export interface RegicideSeam {
     x: number;
     z: number;
     sides: readonly { pocket: string; stand: { x: number; z: number } }[];
+    // Why: a pitfall's four side locs and a log balance's two start locs each work from one bank only.
+    // `regicide_jump_pitfall` stages the player one tile off the loc away from itself, so clicking the far
+    // loc from the near bank stages them inside the pit and the trap timer drops them in before the jump
+    // runs — three falls into the same pit on the first live run, with no message to say why.
+
+    /** True when this seam may only be taken from `sides[0]` toward `sides[1]`. */
+    directed?: boolean;
 }
 
 /** One sealed pocket of Tirannwn, as `[z, xStart, xEnd]` runs. */
@@ -24,7 +31,7 @@ export interface RegicidePocket {
     spans: readonly (readonly number[])[];
 }
 
-/** The far side of the Arandar palisade — the whole of the rest of the map, which the navigator owns. */
+/** The far side of the Arandar palisade — the rest of the map, which the navigator owns. */
 export const ARDOUGNE = 'ardougne';
 
 // Why: `%regicide_quest < ^regicide_spoken_tracker2` refuses every Dense forest with "You can see no way to
@@ -59,7 +66,7 @@ function usable(seam: RegicideSeam, from: string, stage: number): boolean {
     if (seam.kind === 'forest') {
         return stage >= FOREST_STAGE;
     }
-    // Why: the palisade opens northbound at any stage — `coordz(coord) < coordz(loc_coord)` is the whole
+    // Why: the palisade opens northbound at any stage — `coordz(coord) < coordz(loc_coord)` is the only
     // test on the way out — and southbound only once Iorwerth has been told the deed is done.
     if (seam.kind === 'gate') {
         return from !== ARDOUGNE || stage >= GATE_STAGE;
@@ -87,7 +94,9 @@ export function planRoute(from: string, to: string, stage: number): SeamLeg[] | 
             return legs;
         }
         for (const seam of REGICIDE_SEAMS) {
-            const here = seam.sides.find(side => side.pocket === at);
+            const here = seam.directed
+                ? (seam.sides[0].pocket === at ? seam.sides[0] : undefined)
+                : seam.sides.find(side => side.pocket === at);
             if (here === undefined || !usable(seam, at, stage)) {
                 continue;
             }
@@ -104,11 +113,13 @@ export function planRoute(from: string, to: string, stage: number): SeamLeg[] | 
     return null;
 }
 
-const CROSS_MS = 15_000;
+const CROSS_MS = 10_000;
 const MAX_LEGS = 40;
 // Why: the pitfall, the tripwire and the sticks all roll `stat_random(agility, …)` and leave the player
 // where they were — or in the pit below — on a failure, so one send is a roll rather than a verdict.
-const CROSS_TRIES = 4;
+// Why: eight rather than four, because the sticks roll `stat_random(agility, 30, 155)`, which is under a
+// coin flip even at 70 — a four-try budget fails the whole leg about one run in ten.
+const CROSS_TRIES = 8;
 /** `regicide_trap_hand_holds` — the way out of a spike pit. */
 const HAND_HOLDS = 3927;
 
@@ -142,7 +153,7 @@ export async function climbOutOfPit(log: (m: string) => void): Promise<boolean> 
 }
 
 /**
- * Cross one seam. True when the player has actually changed pocket.
+ * Cross one seam. True only once the player has changed pocket.
  * Why: the op walks the player before its script resolves, so nothing can be judged on a tile change —
  * the pitfall's agility roll drops a failure into a spike pit, the woodspring's throws the player ten
  * tiles back, and both look like movement. The pocket is the only honest signal.

@@ -167,7 +167,7 @@ function bombLeg(snap: QuestSnapshot, area: RegicideArea): QuestStep {
             return crossIn(snap);
         }
         // Why: `regicide_cross_over3` clears `^regicide_given_rabbit` whenever it is taken inside mapsquare
-        // 34_49, and the walk from the Isafdar entry to the catapult takes exactly that crossing — so the
+        // 34_49, and the walk from the Isafdar entry to the catapult takes that crossing — so the
         // rabbit is handed over after arriving beside the catapult, never before setting out.
         return held(snap, RG_ITEM.COOKED_RABBIT) > 0
             ? custom('give the cooked rabbit to the catapult guard', feedLazyGuard)

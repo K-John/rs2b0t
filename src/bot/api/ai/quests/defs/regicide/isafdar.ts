@@ -138,7 +138,7 @@ async function fightSoldier(log: (m: string) => void): Promise<boolean> {
     return driveUntil(() => soldierNear() === null, [], log, 180_000);
 }
 
-// Why: two different soldiers can carry this stage. `spawn_tyras_guard` posts the old camp's one exactly
+// Why: two different soldiers can carry this stage. `spawn_tyras_guard` posts the old camp's one just the
 // once — it latches `^regicide_seen_guard` — while the camp entrance posts a fresh `regicide_tyras_camp_guard`
 // on every crossing attempt, so the entrance is the fallback that always works.
 

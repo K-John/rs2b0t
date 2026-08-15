@@ -102,7 +102,7 @@ export const RG_TILE = {
     TRACKER: new Tile(2257, 3149, 0),
     FOOTPRINTS: new Tile(2240, 3151, 0),
     TAR: new Tile(2263, 3128, 0),
-    SULPHUR: new Tile(2258, 3127, 0),
+    SULPHUR: new Tile(2256, 3127, 0),
     OLD_CAMP_WEST: new Tile(2231, 3149, 0),
     CATAPULT: new Tile(2185, 3182, 0),
     LAZY_GUARD: new Tile(2181, 3184, 0),

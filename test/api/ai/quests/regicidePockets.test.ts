@@ -24,6 +24,25 @@ describe('the Tirannwn seam table', () => {
         expect(degenerate).toEqual([]);
     });
 
+    // Why: the pitfalls and the log balances are one-way per loc. A pit's side loc stages the player one
+    // tile off itself away from the pit, so taking the far loc from the near bank stages them inside it and
+    // the trap timer drops them in before the jump runs.
+    test('every pitfall and log balance is marked one-way', () => {
+        const loose = REGICIDE_SEAMS.filter(seam => (seam.kind === 'pit' || seam.kind === 'log') && !seam.directed);
+        expect(loose).toEqual([]);
+    });
+
+    test('nothing else is one-way', () => {
+        const odd = REGICIDE_SEAMS.filter(seam => seam.directed && seam.kind !== 'pit' && seam.kind !== 'log');
+        expect(odd).toEqual([]);
+    });
+
+    test('a one-way seam is never planned against its grain', () => {
+        const wrong = planRoute('isafdar-entry', 'elf-camp', RG_STAGE.SPOKEN_SCOUTS)!
+            .filter(leg => leg.seam.directed && leg.from.stand !== leg.seam.sides[0].stand);
+        expect(wrong).toEqual([]);
+    });
+
     test('every seam stand is inside the pocket it claims', () => {
         const wrong = REGICIDE_SEAMS.flatMap(seam =>
             seam.sides
@@ -39,9 +58,16 @@ describe('pocketAt', () => {
         ['the Isafdar entry', RG_TILE.ISAFDAR_ENTRY, 'isafdar-entry'],
         ['the elf camp', RG_TILE.IORWERTH, 'elf-camp'],
         ['the loom', RG_TILE.LOOM, 'elf-camp'],
+        ['the barrel spawn', RG_TILE.BARREL_SPAWN, 'elf-camp'],
+        ['the pot spawn', RG_TILE.POT_SPAWN, 'elf-camp'],
         ['the old camp', RG_TILE.TRACKER, 'old-camp'],
+        ['the tracks', RG_TILE.FOOTPRINTS, 'old-camp'],
         ['the coal-tar seep', RG_TILE.TAR, 'old-camp'],
+        ['a sulphur formation', RG_TILE.SULPHUR, 'old-camp'],
+        ['the guard ambush', RG_TILE.OLD_CAMP_WEST, 'old-camp-west'],
         ['the catapult', RG_TILE.CATAPULT, 'catapult'],
+        ['the lazy guard', RG_TILE.LAZY_GUARD, 'catapult'],
+        ['the camp entrance', RG_TILE.CAMP_ENTRANCE, 'catapult'],
         ["Tyras's camp", RG_TILE.TYRAS_CAMP, 'tyras-camp'],
         ['the camp furnace', RG_TILE.FURNACE, 'tyras-camp'],
         ['the limestone quarry', RG_TILE.QUARRY, 'quarry']

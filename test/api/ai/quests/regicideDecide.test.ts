@@ -6,7 +6,7 @@ import { RG_FLAG, RG_STAGE } from '#/bot/api/ai/quests/defs/regicide/journal.js'
 import { WOOL_TARGET } from '#/bot/api/ai/quests/defs/regicide/supplies.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
-// Why: decide() reads only a snapshot, so the whole routing table is testable without a client.
+// Why: decide() reads only a snapshot, so the routing table is testable end to end without a client.
 type Stack = number | [number, number];
 const counts = (stacks: Stack[]): Map<number, number> =>
     new Map(stacks.map(s => (Array.isArray(s) ? s : [s, 1])));
@@ -147,7 +147,7 @@ describe('Regicide bomb chain', () => {
     });
 
     // Why: the mainland half is keyed on the same pack, so the same snapshot with a mainland tile has to
-    // pick up exactly where the forest left off.
+    // pick up where the forest left off.
     const onMainland = (carried: Stack[]): QuestStep =>
         decide(snapshot({ stage: RG_STAGE.SPOKEN_IORWERTH2, tile: ARDOUGNE, carried: [...KIT, ...carried] }));
 
