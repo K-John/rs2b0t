@@ -500,7 +500,7 @@ export const CASES: readonly Case[] = [
         status: 'vetted',
         provenAt: '8b21aef5',
         budgetMin: 45,
-        documentedIn: 'docs/reference/quest-harness-recipes-5.md',
+        documentedIn: 'docs/reference/quest-harness-recipes-7.md',
         note: 'Sea Slug start to finish in 5 minutes at --tick 200; --stage writes %seaslugquest straight'
     },
     {
@@ -516,7 +516,7 @@ export const CASES: readonly Case[] = [
         status: 'vetted',
         provenAt: '0db0e3f6',
         budgetMin: 45,
-        documentedIn: 'docs/reference/quest-harness-recipes-5.md',
+        documentedIn: 'docs/reference/quest-harness-recipes-7.md',
         note: 'one gang side only — a lone account cannot redeem, so this never turns the journal green'
     },
     {
@@ -527,7 +527,7 @@ export const CASES: readonly Case[] = [
         provenAt: '0db0e3f6',
         budgetMin: 90,
         manual: true,
-        documentedIn: 'docs/reference/quest-harness-recipes-5.md',
+        documentedIn: 'docs/reference/quest-harness-recipes-7.md',
         note: 'two fresh accounts, one per gang, both journals complete in 6min at --tick 300'
     },
     {
