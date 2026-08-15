@@ -3,6 +3,7 @@ import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
+import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Reach } from '../../../../walking/Reach.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { talkStrict } from '../../exec/primitives.js';
@@ -187,6 +188,12 @@ export async function distractWitch(log: (m: string) => void): Promise<boolean> 
             return true;
         }
         const said = GameMessages.since(mark).map(m => m.text).filter(t => !t.startsWith('get ')).slice(-2).join(' ');
+        // Why: the drop sets a bit that is never cleared, so a knock afterwards says she is already busy
+        // with the cat. That is the distraction holding, not a failure — and the cat respawns, so a leg
+        // that reads it as failure catches a second one and knocks all day.
+        if (said.includes('talking to her cat')) {
+            return true;
+        }
         tried.push(`(${stand.x},${stand.z}) ${said || 'silence'}`);
     }
     log(`the door would not take the cat — ${tried.join(' | ')}`);
@@ -198,21 +205,23 @@ export async function lootWitchChest(log: (m: string) => void): Promise<boolean>
     if (heldId(UP_ITEM.DOLL.id) > 0) {
         return true;
     }
-    if (!(await walkTo(UP_TILE.WITCH_CHEST, 3, log))) {
-        const door = locById(UP_LOC.WITCH_DOOR, 'Open', 8);
-        if (door && (await door.interact('Open'))) {
-            await driveUntil(() => locById(UP_LOC.WITCH_CHEST, null, 8) !== null, [], log, 8_000);
-        }
-        if (!(await walkTo(UP_TILE.WITCH_CHEST, 3, log))) {
-            return false;
-        }
-    }
-    await settleScene();
-    const chest = locById(UP_LOC.WITCH_CHEST, null, 8);
-    const op = chest?.actions()[0];
-    if (!chest || !op || !(await chest.interact(op))) {
-        log("no chest inside Kardia's house");
+    // Why: the chest is two tiles from the door and on the other side of Kardia's wall, so a walk that
+    // counts distance reports arrival from the street and the click that follows is refused by a server
+    // that cannot path to it. `Reach.locOp` is the one that opens what stands in the way.
+    const status = await Reach.locOp({
+        name: 'Chest',
+        id: UP_LOC.WITCH_CHEST,
+        op: 'Open',
+        near: UP_TILE.WITCH_CHEST,
+        within: 10,
+        expect: () => heldId(UP_ITEM.DOLL.id) > 0 || Modals.isOpen(),
+        expectMs: 20_000,
+        log
+    });
+    if (status === 'unreachable') {
+        log("could not get inside Kardia's house");
         return false;
     }
+    // Why: the doll only lands once the second `~mesbox` is dismissed, so the boxes have to be clicked away.
     return driveThroughBoxes(() => heldId(UP_ITEM.DOLL.id) > 0, [], log, 25_000);
 }
