@@ -17,10 +17,12 @@ import { anywhere, bankedId, foodName, heldFood, heldId, wornId } from './state.
 
 // Why: the Ice Queen is level 111 with 104 hitpoints and hits through anything less; the kit is bought
 // on the Champions' Guild upper floor, where Valaine's shop already takes the Black Arm bot.
+// Why: the float is the obj's own `cost` times the shop's sell multiplier, with headroom — a shop
+// below its base stock charges more, and a float short of the asking price buys nothing at all.
 const COMBAT_KIT: readonly Purchasable[] = [
-    { id: 1113, name: 'Rune chainbody', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 25_000 }] },
-    { id: 1079, name: 'Rune platelegs', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 20_000 }] },
-    { id: 1303, name: 'Rune longsword', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 24_000 }] }
+    { id: 1113, name: 'Rune chainbody', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 80_000 }] },
+    { id: 1079, name: 'Rune platelegs', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 100_000 }] },
+    { id: 1303, name: 'Rune longsword', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 55_000 }] }
 ];
 
 const FOOD_TARGET = 12;

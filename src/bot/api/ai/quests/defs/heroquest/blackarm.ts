@@ -30,8 +30,9 @@ import { HeroHandoffState, shouldFetchKey } from './partner.js';
 import { kitOwned, kitStep, type Purchasable } from './shops.js';
 import { heldId } from './state.js';
 
-// Why: Garv checks all three worn and refuses silently otherwise, and a shop that sells its last unit
-// never restocks it — the legs are listed with both stockists because two shops carry them.
+// Why: Garv checks all three worn and refuses silently otherwise. The legs name both stockists, Louie
+// first: Valaine restocks a sold pair every 20 000 ticks and Louie every 1 200, so the Champions'
+// Guild shelf stays empty for hours after one bot has been through it.
 /** Hartigen's disguise. */
 const DISGUISE: readonly Purchasable[] = [
     {
