@@ -23,6 +23,12 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'biohazard-234-live',
+        harness: 'biohazard-234-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted'
+    },
+    {
         id: 'brimhaven-agility-test',
         harness: 'brimhaven-agility-test.ts',
         covers: { scripts: ['BrimhavenAgility'] },
