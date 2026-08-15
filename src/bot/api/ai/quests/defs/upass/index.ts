@@ -108,8 +108,10 @@ function orbLeg(snap: QuestSnapshot): QuestStep {
         // travelTo's vocabulary — a caller choosing seams here is what drifted the route before.
         return custom('cross the spiked grid with the journal held open', crossGrid);
     }
-    // Why: burning comes before the sweep. An orb in the furnace leaves the pack, so a sweep that runs first
-    // reads it as never collected and walks back to a trap that will not give it up twice.
+    // Why: burning comes before the sweep, for two reasons. An orb in the furnace leaves the pack, so a
+    // sweep that runs first reads it as never collected and walks back to a trap that will not give the same
+    // orb up twice. And the food float leaves three free slots, so holding all four orbs at once does not
+    // fit — the furnace trip per orb is what keeps the pack from filling mid-sweep.
     if (orbsHeld(snap) > 0) {
         return custom('burn the orbs in the furnace', burnOrbs);
     }
