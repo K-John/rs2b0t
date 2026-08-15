@@ -39,9 +39,11 @@ export async function dropBoulder(log: (m: string) => void): Promise<boolean> {
     if (!(await railing.useOn(boulder))) {
         return false;
     }
+    // Why: the script keeps the railing, so there is no inventory delta to read — the oracle is its
+    // `p_telejump(coord - 25x)`, and the threshold is set past anything the op-click's own walk could cover.
     return driveUntil(() => {
         const now = Game.tile();
-        return now !== null && from !== null && Math.abs(now.x - from.x) > 10;
+        return now !== null && from !== null && Math.abs(now.x - from.x) >= 20;
     }, [], log, 15_000);
 }
 
