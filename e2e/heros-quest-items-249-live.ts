@@ -3,7 +3,7 @@
  *  Why: the armband is the only half of this quest that needs two accounts, so proving the rest costs
  *  one browser and no rendezvous.
  *  Why: the ice gloves are seeded. Every ladder into the Ice Queen's lair stands on a White Wolf
- *  Mountain plateau the map flags seal, and she is the only source — see quest-pitfalls-8. */
+ *  Mountain plateau the map flags seal, and she is the only source — see quest-pitfalls-14. */
 
 //   HEADED=1 bun e2e/heros-quest-items-249-live.ts --tick 300 --minutes 60
 //   HEADED=1 bun e2e/heros-quest-items-249-live.ts --skip-eel --minutes 30

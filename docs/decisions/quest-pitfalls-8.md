@@ -1,84 +1,51 @@
 [Manual](../README.md) › [Quests](../QUESTS.md) › Quest pitfalls
 
-# Quest pitfalls: Hero's Quest
+# Quest pitfalls: Sea Slug
 
-Sixteen, and the first one is a wall the quest cannot be finished through.
+Ten, and the first three are all the same mistake — trusting a coordinate.
 
-- **An area with a one-way exit has no entrance.** The Ice Queen's lair is reachable from the surface
-  only by eight `ladder_cellar_inside_down` locs, and every one of them stands on a White Wolf Mountain
-  plateau (x 2800-2861, z 3500-3521) whose whole boundary carries the map's `BLOCK_MAP_SQUARE` flag.
-  Three `ladder_from_cellar` locs climb *out* of it onto walkable ground, so a flood from the lair
-  reaches 531 012 nodes and a flood from Varrock reaches 528 821 — the lair can reach the world and the
-  world cannot reach the lair. `GameMap.loadLands` blocks on exactly the flag the collision builder
-  reads, so the engine agrees with the pack. `ice_gloves` drops from nothing else, which puts the
-  Entranan firebird feather out of reach on this content. Diff the two floods before believing a
-  reachability failure is the walker's fault.
-- **A wall with `blockrange=no` is the intended route.** Grip is sealed from the side room by
-  `snipable_wall` (2637) at (2780,3198), beside a `castlearrowslit`. Nothing walks between the two
-  pockets; the Phoenix bot shoots him through the wall from three tiles away while the Black Arm bot
-  opens his drinks cabinet, which `npc_walk`s him onto that row. A quest whose kill has no melee route
-  is not a broken map — read the loc's `blockrange` before assuming a path is missing.
-- **`~open_and_close_door` teleports the actor and re-shuts in three ticks.** No door in this engine can
-  be held open for a partner. What crosses a party is a tradeable key, not an opened door: Grip's spare
-  (`misc_key`) is tradeable and goes over, while his keyring (`grip_keys`) is not and is instead
-  `obj_addall`ed on death for both players to see.
-- **A cooking range inside a sealed pocket is not a cooking range.** Taverley's (2844,3367) has no
-  reachable stand at all, and the two Brimhaven ranges are the Shrimp and Parrot kitchen and a room the
-  graph has no door into. Test every candidate surface against the pathfinder before pinning one;
-  Catherby's (2817,3444) is the nearest one a walker can reach from the Taverley dungeon ladder.
-- **A fishing spot can be behind a key, two NPCs deep.** The Taverley lava spots (2889-2891, 9766)
-  sit past `deepdungeondoor`, whose `oploc1` answers "This gate is locked" and whose `oplocu` wants the
-  dusty key; the dusty key comes from Velrak, whose cell answers only to the jail key, which the Jailer
-  drops for 100 ticks where every other drop lasts 200. Neither key is consumed. A leg that walks
-  straight at the spot loops on the locked gate forever — read the door's script before trusting a
-  baked edge, and remember `~check_axis` reads the door's own tile as the outside.
-- **A pocket predicate can need a rectangle cover, not a rectangle.** The deep dungeon interleaves with
-  the rest of Taverley's across x 2881-2923, so one box over the pair claims a thousand corridor tiles.
-  Four boxes, greedily grown from the flood and clipped to its bounding box, hold all 2473 pocket tiles
-  and no tile of the main component. Grow the cover from the flood; never eyeball the box.
-- **A sealed pocket is cheapest to enter and leave inside one step.** `fishLavaEel` crosses the gate,
-  fishes and crosses back before it returns, so no bank, shop or range walk is ever planned from inside
-  it. `decide()` still owns an egress for both Taverley pockets, because a restart taken mid-leg can
-  leave a bot standing in either.
-- **An item with no shop and no ground spawn is a drop table.** Harralander appears in no `.inv` in the
-  content and in no map OBJ section, so the only source is the chaos druid herb table — 46 in 128 for a
-  herb, 14 in 128 of that table for this one, about 25 kills. Grep the shop configs and the map objs
-  before designing a leg around buying something.
-- **`forceapproach` rotates with the placement angle.** Grip's cabinet is `east` at angle 3, which is
-  north in world space; the candlestick chest is `north` at angle 2, which is south. `(dir + angle) & 3`
-  is the only way to the legal side, and the wrong one produces nothing at all.
-- **Two pockets can interleave along one row.** The Brimhaven hideout and the alley outside it share
-  z 3167-3170 across x 2806-2810, so a single rectangle over the pair puts Grubor's own doorstep inside
-  the hideout and every crossing then reads as already done. A pocket predicate is a union of boxes as
-  often as it is one.
-- **A door's two sides are named by its angle, not by the map.** `grubordoor` is a west wall, so its
-  sides are (2810,3170) and (2811,3170) — east and west of one tile, where the other four doors in this
-  quest are north and south of one. Derive the stands from the angle every time.
-- **An option tree can gate its own options.** `grip_chat_options` only offers "Anything I can do now?",
-  which is what hands over the spare key, after "So what do my duties involve?" has been asked. A
-  `prefer` list has to name both, in that order, and one that leaves the tree.
-- **A trapdoor model is not a trapdoor.** `trapdoor_nonactive` and `ikov_trapdoor` carry a model and
-  nothing else — no name, no ops, no script. Three of them sit exactly where the Ice Queen lair's
-  one-way exits surface, which is what makes the sealed plateau look like it has entrances.
-- **A bought-out shop is a dead shop.** `World.restock` reads `inv.items[index]` and skips a null
-  slot, and a shared `allstock=no` shop that sells its last unit loses the slot — so Valaine's one
-  pair of black platelegs never came back, and the bot spent 188 attempts over four minutes buying
-  from an empty shelf. A purchase needs a list of stockists, not a shop; the legs also come from
-  Louie in Al Kharid. Only the black full helm is single-sourced, and that is a known fragility.
-- **A pocket the module owns is a pocket the module owes both ways.** Every `enter*` here leaves
-  whichever other pocket it is standing in first, and every leg that walks to a bank, a shop or a
-  partner calls `returnToStreet()` before it plans. Without that, the Black Arm bot took Trobert's
-  papers inside the hideout and then read `no path to (2774,3187,0): unreachable` at Garv's door
-  forever — the way in was fine and the way out was missing.
-- **A paid crossing is a pathfinding requirement, not a step.** `no path to (2793,3180,0):
-  unreachable without 30x Coins` is the whole failure: the Ardougne ferry costs 30 coins and the
-  planner refuses the route without them in the pack. A quest that buys things pays its own way in by
-  accident and stalls the moment a leg between purchases needs the boat, so `ownsInventory` owes a
-  float of its own — topped up below a low-water mark, never restored to a target, or every shop
-  costs a bank trip.
+- **A loc's level in the map file is not the level it stands on.** The fishing platform is
+  a bridge: its map squares carry `LINK_BELOW`, and `GameMap.loadLocations` drops every
+  loc one level when that flag is set. The NPC and OBJ sections are not shifted. So the
+  ladder, the crates, the panel and the crane all read one deck higher in `m43_51.jm2`
+  than Kennith and the damp sticks that sit beside them, and stands derived from the raw
+  file land in the sea.
+- **The crates are the wall of a room, not furniture on a deck.** A `wood1` run seals the
+  room's east side with one shut door, and the crates are its north wall. A stand on the
+  open deck sees the loc at two tiles, clicks it, and nothing happens — the server's own
+  approach walk cannot open a door, so the op dies silently with no refusal and no
+  message. `Reach.locOp` opens it; `walkResilient` plus a click does not.
+- **The crane refuses from three of its four sides.** `oploc1,fishingcrane` bails when
+  `coordz(coord) < coordz(movecoord(loc_coord, 0, 0, 3))`, and its 4x4 footprint runs
+  z 3286-3289, so only the deck row north of it passes. From anywhere else the answer is
+  "I need to get closer to use that.", which is what a missed click reads as too.
+- **The journal writes one page for two stages, twice.** `seaslug_journal.rs2` shares a
+  page between "spoken to Kennith" and "sailed to Kent", and again between "Kennith needs
+  an escape" and "panel opened". Where the character is standing separates the first pair.
+  For the second, kicking a panel that is already open costs one "nothing interesting
+  happens", so both halves run as one leg and the pair needs no separating at all.
+- **The boat puts the torch out.** `board_ardougne_to_fishing_platform` swaps every
+  `torch_lit` in the pack for a `torch_unlit`, and `ignite_light_source` refuses a
+  tinderbox anywhere inside the platform's zone. The torch is lit on the deck or not at
+  all — from the damp sticks and the broken glass that spawn there.
+- **Bailey has no line on stage 10.** His switch covers stages 3-9 and 11-12. A character
+  that reaches `need_kennith_path` without a torch cannot climb the ladder and cannot ask
+  for a replacement, so that resume is a dead end rather than a slow leg — the harness
+  seeds one, and `decide` says so instead of looping.
+- **A failed rub costs nothing.** `opheld1,dry_sticks` returns before it consumes
+  anything, so a miss costs the tick it took. At Firemaking 70 the roll lands about three
+  times in four, and one attempt is not a result.
+- **Two objects render "Torch".** 594 is lit and 596 is not, and every test that matters
+  in this quest — climb the ladder, talk to Bailey, sail home — turns on which one is
+  held.
+- **`mes` is a chat line, not a dialogue.** The ladder refusal, the panel, the crane and
+  the rub all print through `mes`, so `GameMessages` is the oracle for each of them and a
+  `driveDialog` waits out its timeout for a box that never opens.
+- **Swamp paste has a counter.** Khazard General Store stocks 500 at 42gp, 110 tiles south
+  of Caroline. Making it instead needs swamp tar, which spawns in the Lumbridge swamp and
+  Morytania and nowhere near Ardougne.
 
 ## See also
 
-- [Quest pitfalls](quest-pitfalls.md)
-- [Shield of Arrav](quest-pitfalls-7.md)
-- [Add a quest](../how-to/add-a-quest.md)
+- [Quest pitfalls](quest-pitfalls.md) — the map
+- [Sea Slug harness recipe](../reference/quest-harness-recipes-7.md)

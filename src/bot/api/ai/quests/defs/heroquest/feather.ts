@@ -73,7 +73,7 @@ function glovesOnFloor(): { interact(op: string): boolean | Promise<boolean> } |
 }
 
 // Why: on the `:8890` content every entrance to the lair sits on a plateau the map flags seal, so this
-// leg says so once rather than repathing forever. See docs/decisions/quest-pitfalls-8.md.
+// leg says so once rather than repathing forever. See docs/decisions/quest-pitfalls-14.md.
 
 /** Kill the Ice Queen and take the gloves she drops. */
 export async function killIceQueen(log: (m: string) => void): Promise<boolean> {

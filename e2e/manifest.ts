@@ -29,6 +29,12 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'brimhaven-swarm-597-live',
+        harness: 'brimhaven-swarm-597-live.ts',
+        covers: { scripts: ['BrimhavenAgility'] },
+        status: 'unvetted'
+    },
+    {
         id: 'clue-guardian-eat-live',
         harness: 'clue-guardian-eat-live.ts',
         covers: { scripts: ['ClueSolver'] },
@@ -170,6 +176,16 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'fishing-contest-244-live',
+        harness: 'fishing-contest-244-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'vetted',
+        budgetMin: 15,
+        provenAt: '8b21aef5',
+        documentedIn: 'docs/reference/quest-harness-recipes-2.md',
+        note: 'uncheated --stage 0 --until 5 finished in 6 minutes at --tick 150; --stage is %fishingcompo'
+    },
+    {
         id: 'gatheringbot-cooker-pair-test',
         harness: 'gatheringbot-cooker-pair-test.ts',
         covers: { scripts: ['GatheringBot'] },
@@ -216,6 +232,16 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'hazeel-cult-248-live',
+        harness: 'hazeel-cult-248-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'vetted',
+        budgetMin: 45,
+        provenAt: 'a8fa0762',
+        documentedIn: 'docs/reference/quest-harness-recipes-8.md',
+        note: 'clean account to journal complete in 4min at --tick 200, no parks; --stage is %hazeelcultquest'
+    },
+    {
         id: 'herblore-secondaries-test',
         harness: 'herblore-secondaries-test.ts',
         covers: { scripts: ['HerbloreSecondaries'] },
@@ -258,7 +284,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 90,
-        documentedIn: 'docs/reference/quest-harness-recipes-2.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-6.md'
     },
     {
         id: 'hosted-proof-test',
@@ -355,6 +381,15 @@ export const CASES: readonly Case[] = [
         note: 'import-fences.md names it as an ABI consumer, not as run instructions'
     },
     {
+        id: 'monks-friend-240-live',
+        harness: 'monks-friend-240-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'vetted',
+        budgetMin: 30,
+        provenAt: '8b21aef5',
+        note: "Monk's Friend start to finish in 5 minutes at --tick 200; --stage is the raw %drunkmonkquest"
+    },
+    {
         id: 'mossgiant-dart-test',
         harness: 'mossgiant-dart-test.ts',
         covers: { scripts: ['MossGiant'] },
@@ -379,6 +414,15 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'murder-mystery-256-live',
+        harness: 'murder-mystery-256-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'documented',
+        budgetMin: 90,
+        documentedIn: 'docs/reference/quest-harness-recipes-6.md',
+        note: 'Murder Mystery start to finish; --stage seeds the guilty sibling as well as the evidence'
+    },
+    {
         id: 'naturecrafter-soak-test',
         harness: 'naturecrafter-soak-test.ts',
         covers: { scripts: ['NatureCrafter'] },
@@ -390,7 +434,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 120,
-        documentedIn: 'docs/reference/quest-harness-recipes-3.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-6.md'
     },
     {
         id: 'nav-path-paint-live',
@@ -504,6 +548,16 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'sea-slug-259-live',
+        harness: 'sea-slug-259-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'vetted',
+        provenAt: '8b21aef5',
+        budgetMin: 45,
+        documentedIn: 'docs/reference/quest-harness-recipes-7.md',
+        note: 'Sea Slug start to finish in 5 minutes at --tick 200; --stage writes %seaslugquest straight'
+    },
+    {
         id: 'shantay-pass-route-test',
         harness: 'shantay-pass-route-test.ts',
         covers: { subsystems: ['nav', 'world'] },
@@ -516,7 +570,7 @@ export const CASES: readonly Case[] = [
         status: 'vetted',
         provenAt: '0db0e3f6',
         budgetMin: 45,
-        documentedIn: 'docs/reference/quest-harness-recipes-3.md',
+        documentedIn: 'docs/reference/quest-harness-recipes-7.md',
         note: 'one gang side only — a lone account cannot redeem, so this never turns the journal green'
     },
     {
@@ -527,7 +581,7 @@ export const CASES: readonly Case[] = [
         provenAt: '0db0e3f6',
         budgetMin: 90,
         manual: true,
-        documentedIn: 'docs/reference/quest-harness-recipes-3.md',
+        documentedIn: 'docs/reference/quest-harness-recipes-7.md',
         note: 'two fresh accounts, one per gang, both journals complete in 6min at --tick 300'
     },
     {
@@ -573,6 +627,15 @@ export const CASES: readonly Case[] = [
         harness: 'trapdoor-mines-live.ts',
         covers: { subsystems: ['world'] },
         status: 'unvetted'
+    },
+    {
+        id: 'tribal-totem-262-live',
+        harness: 'tribal-totem-262-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'vetted',
+        budgetMin: 45,
+        provenAt: 'ea865e4d',
+        note: 'Tribal Totem start to finish in 5 minutes at --tick 200 on 70 stats; --stage is %totemquest and --combo skips the KURT lock'
     },
     {
         id: 'trollstronghold-264-live',

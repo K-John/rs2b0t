@@ -1,6 +1,6 @@
 [Manual](../README.md) › [Testing](../TESTING.md) › Quest harness recipes
 
-# Quest harness recipes (P–Z)
+# Quest harness recipes (P–R)
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
@@ -107,7 +107,10 @@ Five details govern this harness:
 
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)
 - [Quest harness recipes (E)](quest-harness-recipes-4.md)
-- [Quest harness recipes (F–H)](quest-harness-recipes-2.md)
-- [Quest harness recipes (I–O)](quest-harness-recipes-3.md)
+- [Quest harness recipes (F)](quest-harness-recipes-2.md)
+- [Quest harness recipes (H)](quest-harness-recipes-8.md)
+- [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
+- [Quest harness recipes (M–O)](quest-harness-recipes-6.md)
+- [Quest harness recipes (S–Z)](quest-harness-recipes-7.md)
 - [Quest harness method](quest-harness-method.md)
 - [Seeding test accounts](seeding-test-accounts.md)
