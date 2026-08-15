@@ -242,12 +242,19 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
     // stands fourteen away on the wrong side of it. A gain threshold alone therefore cannot leave that
     // pocket, and the run oscillated through one cage door instead. So the gain is a preference, not a
     // filter: seams that gain come first, the rest follow, and `spent` is what stops it going in circles.
-    const reachable = found.filter(loc => seamReachable(loc.tile()));
+    // Why: and the scene's own verdict orders them too rather than vetoing them. It called the bridge the
+    // character had just walked a hundred and forty tiles to stand beside "walled off", which dropped it
+    // from the list entirely and sent the run over a different bridge, away from the target. Every one of
+    // these tests is a preference; the only hard filter left is whether the loc is in the scene at all.
     const mine = chebyshev(from, dest);
     const byDistance = (a: Loc, b: Loc): number => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest);
+    const gains = (loc: Loc): boolean => chebyshev(loc.tile(), dest) + MIN_GAIN <= mine;
+    const open = (loc: Loc): boolean => seamReachable(loc.tile());
     return [
-        ...reachable.filter(loc => chebyshev(loc.tile(), dest) + MIN_GAIN <= mine).sort(byDistance),
-        ...reachable.filter(loc => chebyshev(loc.tile(), dest) + MIN_GAIN > mine).sort(byDistance)
+        ...found.filter(loc => gains(loc) && open(loc)).sort(byDistance),
+        ...found.filter(loc => gains(loc) && !open(loc)).sort(byDistance),
+        ...found.filter(loc => !gains(loc) && open(loc)).sort(byDistance),
+        ...found.filter(loc => !gains(loc) && !open(loc)).sort(byDistance)
     ];
 }
 
