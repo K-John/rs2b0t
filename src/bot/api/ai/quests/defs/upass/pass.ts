@@ -97,6 +97,13 @@ function chebyshev(a: { x: number; z: number }, b: { x: number; z: number }): nu
 // stopped. Two unchanged ticks is what "stopped" means here; the forced move of the crossing itself comes
 // after, and shows up as the distance the caller then measures.
 async function settleWalk(): Promise<{ x: number; z: number; level: number } | null> {
+    // Why: two still ticks are also true before the walk has begun, so every obstacle's first attempt was
+    // judged on the tile it started from and thrown away — the locked cage crossed on try two every time.
+    const start = here();
+    await Execution.delayUntilTicks(() => {
+        const now = here();
+        return now !== null && start !== null && (now.x !== start.x || now.z !== start.z);
+    }, 6);
     let last = here();
     let still = 0;
     const deadline = performance.now() + HOP_TIMEOUT_MS;
