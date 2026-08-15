@@ -457,10 +457,14 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
         // Why: an unreachable bridge does not always fail fast — the walker falls through to its unstick
         // ladder and burns the whole budget — so the six closest to the target get twenty seconds each and
         // the rest are left alone. A real walk across a platform is a hundred ticks, well inside that.
+        // Why: NOT filtered on being closer to the target. The one crossing that leaves the main cavern
+        // landing is eighty-four tiles from the witch's cat while the character stands fifty-six away, so
+        // "must shorten the distance" is exactly the rule that hides it — the same trap as the second
+        // cavern's pipe. Distance to the target orders the tries; it does not veto them.
         const candidates = [...PLATFORM_BRIDGES]
-            .filter(bridge => chebyshev(bridge, from) > 2 && chebyshev(bridge, dest) < chebyshev(from, dest))
+            .filter(bridge => chebyshev(bridge, from) > 2)
             .sort((a, b) => chebyshev(a, dest) - chebyshev(b, dest))
-            .slice(0, 6);
+            .slice(0, 8);
         for (const bridge of candidates) {
             const tile = new Tile(bridge.x, bridge.z, bridge.level);
             if (!(await Traversal.walkResilient(tile, { radius: 6, attempts: 1, timeoutMs: 20_000 }))) {
