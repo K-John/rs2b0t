@@ -48,12 +48,71 @@ const LANDMARKS: [string, NavPoint][] = [
     ['tyras-camp', { x: 2188, z: 3162, level: 0 }]
 ];
 
-const components: { name: string; rep: NavPoint }[] = [];
-const cache = new Map<string, string | null>();
+// Why: a pocket is what can be WALKED, never what a pathfind can reach. An offline `findPath` crosses every
+// baked door, stair and shortcut edge with no world state to gate them, so labelling by one merged the two
+// sides of the Arandar palisade into a single pocket — and the live walker, which does apply those gates,
+// answered "no path to (2384,3333): unreachable" on the way out of the forest.
+const STEP_DIRS = [
+    [0, 1, 0x1],
+    [1, 0, 0x2],
+    [0, -1, 0x4],
+    [-1, 0, 0x8]
+] as const;
+/** A backstop for the mainland flood, which is the rest of the map. */
+const FLOOD_CAP = 400_000;
+
+const tileKey = (x: number, z: number): number => x * 100_000 + z;
+
+/** Every tile reachable from a seed on foot alone. */
+function flood(seed: NavPoint): Set<number> {
+    const seen = new Set<number>([tileKey(seed.x, seed.z)]);
+    const queue: [number, number][] = [[seed.x, seed.z]];
+    while (queue.length > 0 && seen.size < FLOOD_CAP) {
+        const [x, z] = queue.shift()!;
+        const mask = finder.exitMask(x, z, 0);
+        for (const [dx, dz, bit] of STEP_DIRS) {
+            if ((mask & bit) === 0) {
+                continue;
+            }
+            const key = tileKey(x + dx, z + dz);
+            if (!seen.has(key)) {
+                seen.add(key);
+                queue.push([x + dx, z + dz]);
+            }
+        }
+    }
+    return seen;
+}
+
+// Why: a pocket is what the WALKER can reach, which is more than plain walking — it opens ordinary doors and
+// takes ordinary shortcuts — and less than an offline pathfind, which has no world state to gate anything
+// with. So the test is a pathfind that refuses the quest's own crossings: those are what the module takes by
+// hand, and a labeller that walked them merged the two sides of the Arandar palisade into one pocket. The
+// live walker then answered "no path to (2384,3333): unreachable" on the way out of the forest.
+// Why: the log balances are the only crossing `derive-transports` bakes as an edge of its own, and the live
+// walker refuses them — so an offline pathfind that takes one merges two pockets the module has to cross by
+// hand, which is how the walk out of the forest ended at "no path to (2384,3333): unreachable". Everything
+// else the pathfinder can do here, the walker can do too.
+const components: { name: string; rep: NavPoint; tiles: Set<number> }[] = [];
+const cache = new Map<number, string | null>();
+
+// Why: the Arandar palisade is the one crossing in this quest the offline pathfinder walks straight over —
+// it is not in `doors.json`, so the search steps across the gate's tile as if it were open ground, and the
+// two sides come back as one pocket. The live walker knows better, and answered "no path to (2384,3333):
+// unreachable" on the way out of the forest. Both sides are therefore pinned by a walk-only flood, which
+// the palisade genuinely blocks, and never matched by the pathfind below.
+const PINNED = ['arandar', 'ardougne'];
+
+function pinPalisade(): void {
+    for (const name of PINNED) {
+        const at = LANDMARKS.find(([label]) => label === name)![1];
+        components.push({ name, rep: at, tiles: flood(at) });
+    }
+}
 
 /** Which pocket a tile sits in, or null when the pack calls it unwalkable. */
 function pocketOf(t: NavPoint): string | null {
-    const key = `${t.x},${t.z}`;
+    const key = tileKey(t.x, t.z);
     const seen = cache.get(key);
     if (seen !== undefined) {
         return seen;
@@ -62,14 +121,21 @@ function pocketOf(t: NavPoint): string | null {
         cache.set(key, null);
         return null;
     }
-    let answer = components.find(c => finder.findPath(t, c.rep, undefined, 200_000).ok)?.name;
-    if (answer === undefined) {
-        const landmark = LANDMARKS.find(([, at]) => finder.findPath(t, at, undefined, 200_000).ok);
-        answer = landmark?.[0] ?? `p${components.filter(c => c.name.startsWith('p')).length + 1}`;
-        components.push({ name: answer, rep: t });
+    const pinned = components.find(c => PINNED.includes(c.name) && c.tiles.has(key));
+    let name = pinned?.name;
+    name ??= components
+        .find(c => !PINNED.includes(c.name) && (c.tiles.has(key) || finder.findPath(t, c.rep, undefined, 200_000).ok))
+        ?.name;
+    if (name === undefined) {
+        const tiles = flood(t);
+        const landmark = LANDMARKS.find(
+            ([label, at]) => !PINNED.includes(label) && (tiles.has(tileKey(at.x, at.z)) || finder.findPath(t, at, undefined, 200_000).ok)
+        );
+        name = landmark?.[0] ?? `p${components.filter(c => c.name.startsWith('p')).length + 1}`;
+        components.push({ name, rep: t, tiles });
     }
-    cache.set(key, answer);
-    return answer;
+    cache.set(key, name);
+    return name;
 }
 
 const { names } = loadLocTypes(ENGINE);
@@ -119,16 +185,23 @@ const at = (x: number, z: number): NavPoint => ({ x, z, level: 0 });
 
 /** Every `regicide_pitfall_mid` placement, so a side loc can be told which way it faces. */
 const PIT_MIDS: NavPoint[] = [];
+/** Every log balance start, so each one can find the bank its partner stands on. */
+const LOG_STARTS: { locId: number; x: number; z: number }[] = [];
 
 function pitMid(x: number, z: number): NavPoint | null {
     return PIT_MIDS.find(mid => Math.abs(mid.x - x) + Math.abs(mid.z - z) === 1) ?? null;
 }
 
-/** The first tile the pack calls walkable, starting where told and stepping outwards. */
+// Why: the far plank of a log balance is walkable and goes nowhere — one tile with an exit onto the log and
+// none onto the bank. A stand has to be ground something can walk off, or the two ends of the same crossing
+// come back as two different pockets and the route only plans one way round.
+const MIN_STAND_TILES = 4;
+
+/** The first tile the pack calls walkable AND walkable off, starting where told and stepping outwards. */
 function firstWalkable(x: number, z: number, dx: number, dz: number, tries = 4): NavPoint | null {
     for (let step = 0; step < tries; step++) {
         const tile = at(x + dx * step, z + dz * step);
-        if (finder.exitMask(tile.x, tile.z, 0) !== 0) {
+        if (finder.exitMask(tile.x, tile.z, 0) !== 0 && flood(tile).size >= MIN_STAND_TILES) {
             return tile;
         }
     }
@@ -153,13 +226,22 @@ function sidesOf(locId: number, x: number, z: number, angle: number, name: strin
         // Why: the log spans a chasm, so its own tile and the one it lands on are both unwalkable to the
         // pack even though the loc does not block — the banks either side are what a leg can stand on, and
         // they are found by scanning outwards rather than assumed to be at a fixed offset.
+        // Why: the far end is the OTHER start loc's own bank, not a fixed offset — the tile the forcemove
+        // chain lands on is the far plank, which the pack reads as a one-tile island, and taking it for the
+        // stand gave the two ends of one log two different pockets and a route that only planned one way.
         const horizontal = name !== 'regicide_logbalance3_start';
         const centre = name === 'regicide_logbalance1_start' ? 2200 : 2261;
         const forward = horizontal ? (x < centre ? 1 : -1) : (z < 3235 ? 1 : -1);
         const dx = horizontal ? forward : 0;
         const dz = horizontal ? 0 : forward;
+        const partner = LOG_STARTS.find(
+            other => other.locId === locId && (horizontal ? other.z === z && other.x !== x : other.x === x && other.z !== z)
+        );
+        if (partner === undefined) {
+            return null;
+        }
         const near = firstWalkable(x - dx, z - dz, -dx, -dz);
-        const far = firstWalkable(x + dx * 5, z + dz * 5, dx, dz);
+        const far = firstWalkable(partner.x + dx, partner.z + dz, dx, dz);
         return near && far ? [near, far] : null;
     }
     if (name === 'regicide_pitfall_side') {
@@ -190,14 +272,20 @@ function sidesOf(locId: number, x: number, z: number, angle: number, name: strin
 }
 
 const PIT_MID_ID = idOf('regicide_pitfall_mid');
+const LOG_IDS = [...SEAM_LOCS].filter(([, spec]) => spec.kind === 'log').map(([id]) => id);
 const squares = loadMapsquares(ENGINE);
 for (const square of squares) {
     forEachLoc(new Reader(square.loc), loc => {
         if (loc.locId === PIT_MID_ID) {
             PIT_MIDS.push(at(square.mx * 64 + loc.x, square.mz * 64 + loc.z));
         }
+        if (LOG_IDS.includes(loc.locId)) {
+            LOG_STARTS.push({ locId: loc.locId, x: square.mx * 64 + loc.x, z: square.mz * 64 + loc.z });
+        }
     });
 }
+
+pinPalisade();
 
 const seams: Seam[] = [];
 for (const square of squares) {
@@ -312,43 +400,15 @@ for (const forests of [false, true]) {
     }
 }
 
-const DIRS = [
-    [0, 1, 0x1],
-    [1, 0, 0x2],
-    [0, -1, 0x4],
-    [-1, 0, 0x8]
-] as const;
-
-/** Every tile of one pocket, as `[z, xStart, xEnd]` runs.
+/** One pocket's tiles as `[z, xStart, xEnd]` runs.
  *  Why: the module has to answer "which pocket am I in" from a tile alone, and the client's own reachability
- *  probe only sees the loaded scene — a pocket ninety tiles across does not fit in it.
- *  Why: seeded from every stand the pocket owns, not from one representative. Pockets are labelled by a
- *  pathfind, which crosses the baked door and stair edges, while this flood is plain walking — so a seam
- *  stand behind a door inside its own pocket is reachable to the labeller and invisible to a single flood. */
-function spansOf(seeds: NavPoint[]): [number, number, number][] {
-    const seen = new Set<number>();
-    const key = (x: number, z: number): number => x * 100_000 + z;
-    const queue: [number, number][] = seeds.map(seed => [seed.x, seed.z]);
-    for (const seed of seeds) {
-        seen.add(key(seed.x, seed.z));
-    }
+ *  probe only sees the loaded scene — a pocket ninety tiles across does not fit in it. */
+function spansOf(tiles: Set<number>): [number, number, number][] {
     const rows = new Map<number, number[]>();
-    while (queue.length > 0) {
-        const [x, z] = queue.shift()!;
-        const row = rows.get(z) ?? [];
-        row.push(x);
-        rows.set(z, row);
-        const mask = finder.exitMask(x, z, 0);
-        for (const [dx, dz, bit] of DIRS) {
-            if ((mask & bit) === 0) {
-                continue;
-            }
-            const k = key(x + dx, z + dz);
-            if (!seen.has(k)) {
-                seen.add(k);
-                queue.push([x + dx, z + dz]);
-            }
-        }
+    for (const key of tiles) {
+        const row = rows.get(key % 100_000) ?? [];
+        row.push(Math.floor(key / 100_000));
+        rows.set(key % 100_000, row);
     }
     const spans: [number, number, number][] = [];
     for (const [z, xs] of [...rows].sort((a, b) => a[0] - b[0])) {
@@ -383,10 +443,7 @@ if (BAKE) {
     const pocketRows = components
         .filter(c => reached.has(c.name) && c.name !== 'ardougne')
         .sort((a, b) => a.name.localeCompare(b.name))
-        .map(c => {
-            const seeds = [c.rep, ...seams.flatMap(s => s.sides.filter(side => side.pocket === c.name).map(side => side.stand))];
-            return `    { name: '${c.name}', spans: [${spansOf(seeds).map(([z, x0, x1]) => `[${z},${x0},${x1}]`).join(',')}] }`;
-        });
+        .map(c => `    { name: '${c.name}', spans: [${spansOf(c.tiles).map(([z, x0, x1]) => `[${z},${x0},${x1}]`).join(',')}] }`);
     fs.writeFileSync(
         OUT,
         [

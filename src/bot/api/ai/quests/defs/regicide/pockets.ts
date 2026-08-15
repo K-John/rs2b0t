@@ -218,8 +218,11 @@ export async function travelTirannwn(dest: Tile, radius: number, stage: number, 
         }
         const route = planRoute(from, to, stage);
         if (route === null || route.length === 0) {
-            log(`no crossing chain from ${from} to ${to} at stage ${stage}`);
-            return false;
+            // Why: the seam graph is derived from the collision pack and the pathfinder's own edges, and it
+            // is the conservative half of what the live walker can do — it cannot see a door the derivation
+            // had no reason to trust. Where it has no chain, the navigator is asked before giving up.
+            log(`no crossing chain from ${from} to ${to} at stage ${stage} — asking the navigator`);
+            return Traversal.walkResilient(dest, { radius, attempts: 2, timeoutMs: 180_000, log });
         }
         if (!(await crossSeam(route[0], log))) {
             return false;

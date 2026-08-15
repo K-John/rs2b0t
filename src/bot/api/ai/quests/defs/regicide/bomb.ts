@@ -285,6 +285,8 @@ export function stillButton(view: StillView, sinceCoal: number, coal: number): n
 export { HEAT_MIN, HEAT_MAX, STILL, STILL_TARGET, readStill, type StillView };
 
 const STILL_TIMEOUT_TICKS = 600;
+/** How often the gauges are printed, so a stalled run says which needle stalled it. */
+const STILL_TRACE_TICKS = 20;
 
 /** Pour a barrel of tar into the still and work the valves until it yields naphtha. */
 export async function distilNaphtha(log: (m: string) => void): Promise<boolean> {
@@ -325,6 +327,11 @@ export async function distilNaphtha(log: (m: string) => void): Promise<boolean> 
         }
         if (button !== -1) {
             actions.ifButton(button);
+        }
+        // Why: the gauges are the only feedback this has, and a run that makes no progress is
+        // indistinguishable from a run that never opened without them.
+        if (tick % STILL_TRACE_TICKS === 0) {
+            log(`still: total ${view.total}/${STILL_TARGET} heat ${view.heat} valve ${view.valve} reg ${view.regulator} → button ${button}`);
         }
         await Execution.delayTicks(1);
     }
