@@ -51,14 +51,19 @@ function flag(snap: QuestSnapshot, name: string): boolean {
 // Why: the pack has to have room before it crosses. `[if_close,regicide_still]` adds the naphtha BEFORE it
 // deletes the empty barrel, so a full pack loses the distillation outright, and the forest hands over a barrel,
 // a pot, a lump of sulphur and a rock of limestone with nowhere to put any of them.
-const SLOTS_NEEDED = 10;
+// Why: gated on there being something to deposit, not on the count alone. The kit is twenty slots of its
+// own — fourteen Lobsters, four balls of wool, a pestle and a pickaxe — so a bare "fewer than N free" test
+// asks for room the quest can never have, and the step banks nothing and repeats until the watchdog parks
+// the whole run.
+const SLOTS_NEEDED = 6;
 
 /** Everything Tirannwn consumes, drawn and worn while a bank is still reachable. */
 function outfit(snap: QuestSnapshot, area: RegicideArea): QuestStep | null {
     if (area !== 'mainland') {
         return null;
     }
-    if ((snap.freeSlots ?? SLOTS_NEEDED) < SLOTS_NEEDED) {
+    const junk = [...(snap.invIds ?? [])].some(([id]) => !KEEP_IDS.includes(id));
+    if (junk && (snap.freeSlots ?? SLOTS_NEEDED) < SLOTS_NEEDED) {
         return { kind: 'deposit', keep: [RG_ITEM.LOBSTER.name], keepIds: KEEP_IDS, bank: RG_TILE.ARDOUGNE_BANK };
     }
     return sourceKit(snap) ?? wearGear(snap);
