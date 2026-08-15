@@ -93,7 +93,14 @@ const BANK_SEED: BankSeedItem[] = [
     { debugName: 'bronze_arrow', displayName: 'Bronze arrow', qty: 50 },
     { debugName: 'tinderbox', displayName: 'Tinderbox', qty: 1 },
     { debugName: 'bucket_empty', displayName: 'Bucket', qty: 1 },
-    { debugName: 'rope', displayName: 'Rope', qty: 3 }
+    { debugName: 'rope', displayName: 'Rope', qty: 3 },
+    // Why: the pass is fought through — three paladins at level 62, three demons and Kalrag — and the module
+    // wears the best tier the bank holds. Rune is what a 70-defence account would take.
+    { debugName: 'rune_scimitar', displayName: 'Rune scimitar', qty: 1 },
+    { debugName: 'rune_platebody', displayName: 'Rune platebody', qty: 1 },
+    { debugName: 'rune_platelegs', displayName: 'Rune platelegs', qty: 1 },
+    { debugName: 'rune_full_helm', displayName: 'Rune full helm', qty: 1 },
+    { debugName: 'rune_kiteshield', displayName: 'Rune kiteshield', qty: 1 }
 ];
 
 const STATS = [
@@ -110,7 +117,9 @@ const STAGE_TELE: Record<number, { x: number; z: number; level: number }> = {
     1: { x: 2436, z: 3315, level: 0 },
     2: { x: 2442, z: 9716, level: 0 },
     3: { x: 2423, z: 9660, level: 0 },
-    4: { x: 2371, z: 9603, level: 0 },
+    // Why: the crushed cage is a 4x3 loc and (2371,9603) is its own origin, so a tele there lands inside the
+    // footprint — this is the walkable tile the boulder's telejump leaves the player able to reach.
+    4: { x: 2375, z: 9604, level: 0 },
     5: { x: 2173, z: 4725, level: 1 },
     6: { x: 2315, z: 9806, level: 0 },
     7: { x: 2157, z: 4564, level: 1 },
@@ -127,7 +136,12 @@ const PACK_SEED: { debugName: string; qty: number }[] = [
     { debugName: 'tinderbox', qty: 1 },
     { debugName: 'bucket_empty', qty: 1 },
     { debugName: 'rope', qty: 3 },
-    { debugName: 'lobster', qty: 14 }
+    { debugName: 'lobster', qty: 14 },
+    { debugName: 'rune_scimitar', qty: 1 },
+    { debugName: 'rune_platebody', qty: 1 },
+    { debugName: 'rune_platelegs', qty: 1 },
+    { debugName: 'rune_full_helm', qty: 1 },
+    { debugName: 'rune_kiteshield', qty: 1 }
 ];
 
 async function seedPack(page: Page): Promise<void> {

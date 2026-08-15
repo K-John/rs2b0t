@@ -294,7 +294,9 @@ export async function enterWell(log: (m: string) => void): Promise<boolean> {
         down,
         log
     );
-    if (climbed) {
+    // Why: `cave_well` runs three zero-tick delays before the teleport, so the descent can land a tick after
+    // the journey has given up — reporting the timeout as "an orb is still lit" was a lie on a passing run.
+    if (climbed || (await Execution.delayUntilTicks(down, 6))) {
         return true;
     }
     log(findWell() === null

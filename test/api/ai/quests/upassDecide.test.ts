@@ -24,22 +24,33 @@ const KIT: Stack[] = [
     [UP_ITEM.LOBSTER.id, 14]
 ];
 
+// Why: the melee kit is matched by name, not id — any scimitar or platebody will do — so a snapshot needs
+// the name maps as well. It is worn by default, because a pack holding one unworn is a step of its own and
+// a pack holding none parks at the cave mouth.
+const WEAPON = 'rune scimitar';
+
 function snapshot(over: Partial<QuestSnapshot> & {
     stage?: number;
     flags?: string[];
     carried?: Stack[];
     banked?: Stack[];
     wornIdList?: number[];
+    carriedNames?: string[];
+    wornNames?: string[];
 } = {}): QuestSnapshot {
-    const { stage = UP_STAGE.NOT_STARTED, flags = [], carried = [], banked = [], wornIdList = [], ...rest } = over;
+    const {
+        stage = UP_STAGE.NOT_STARTED, flags = [], carried = [], banked = [], wornIdList = [],
+        carriedNames = [], wornNames = [WEAPON], ...rest
+    } = over;
     return {
         journal: 'inProgress',
-        inv: new Map(),
+        inv: new Map(carriedNames.map(name => [name, 1])),
         invIds: counts(carried),
-        worn: new Set(),
+        worn: new Set(wornNames),
         wornIds: new Set(wornIdList),
         noProgress: 0,
         bankCoins: 0,
+        bank: new Map(),
         bankIds: counts(banked),
         bankKnown: true,
         stage,
@@ -60,6 +71,26 @@ describe('Underground Pass decide()', () => {
 
     test('a complete journal is done', () => {
         expect(kindOf(decide(snapshot({ journal: 'complete' })))).toBe('done');
+    });
+
+    // Why: the paladins are level 62 and there is no bank past the cave mouth, so a pack with the kit and
+    // no weapon has to stop and say so rather than walk a one-way dungeon into a fight it cannot win.
+    test('without a melee weapon the cave mouth is a stop, not a descent', () => {
+        const step = decide(snapshot({ carried: KIT, wornNames: [], flags: [UP_FLAG.STARTED] }));
+        expect(kindOf(step)).toBe('wait');
+        expect(reasonOf(step)).toContain('melee weapon');
+    });
+
+    // Why: the fire arrow puts the bow in the right hand and the scimitar in the pack, and nothing after
+    // the bridge took it back out — the paladins were being fought bare-handed.
+    test('the weapon goes back on before the paladins', () => {
+        const step = decide(snapshot({
+            stage: UP_STAGE.KILLED_UNICORN,
+            tile: { x: 2424, z: 9719, level: 0 },
+            wornNames: [],
+            carriedNames: [WEAPON]
+        }));
+        expect(kindOf(step)).toBe('equip');
     });
 
     test('the kit is drawn before the quest is started', () => {

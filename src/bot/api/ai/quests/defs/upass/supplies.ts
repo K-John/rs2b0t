@@ -1,3 +1,6 @@
+import { Equipment } from '../../../../equipment/Equipment.js';
+import { gearOf } from '../../../../loadout/loadoutPlan.js';
+import { QuestLoadout } from '../../gear.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { UP_ITEM, UP_TILE, banked, carried, held, type UpassItem } from './areas.js';
 
@@ -71,4 +74,140 @@ export function kitShortfall(snap: QuestSnapshot): string[] {
 
 export function needsEquip(snap: QuestSnapshot, item: UpassItem): boolean {
     return held(snap, item) > 0;
+}
+
+// Why: the pass is not walked past, it is fought through — three paladins at level 62 for their crests,
+// three demons for their amulets and Kalrag for the blood, and the bow in the kit is there for one arrow at
+// a rope. Descending in what the fire arrow left on is descending unarmed.
+
+const TIERS = ['rune', 'adamant', 'mithril', 'black', 'steel', 'iron', 'bronze'] as const;
+
+const GEAR_SLOTS: readonly { slot: string; kinds: readonly string[] }[] = [
+    { slot: 'weapon', kinds: ['scimitar', 'longsword', 'battleaxe', 'sword', 'mace'] },
+    { slot: 'body', kinds: ['platebody', 'chainbody'] },
+    { slot: 'legs', kinds: ['platelegs', 'plateskirt'] },
+    { slot: 'helm', kinds: ['full helm', 'med helm'] },
+    { slot: 'shield', kinds: ['kiteshield', 'sq shield'] }
+];
+
+/** Refusals are silent — `equip` returns false — so a re-picked piece would burn the run. */
+const unwearable = new Set<string>();
+
+const bankedNamed = (snap: QuestSnapshot, name: string): number => snap.bank?.get(name.toLowerCase()) ?? 0;
+const heldNamed = (snap: QuestSnapshot, name: string): number => snap.inv.get(name.toLowerCase()) ?? 0;
+
+function wearingSlot(snap: QuestSnapshot, kinds: readonly string[]): boolean {
+    for (const name of snap.worn) {
+        if (kinds.some(kind => name.endsWith(kind))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function bestInBank(snap: QuestSnapshot, kinds: readonly string[]): string | null {
+    for (const tier of TIERS) {
+        for (const kind of kinds) {
+            const name = `${tier} ${kind}`;
+            if (unwearable.has(name)) {
+                continue;
+            }
+            if (bankedNamed(snap, name) > 0 || heldNamed(snap, name) > 0) {
+                return name[0]!.toUpperCase() + name.slice(1);
+            }
+        }
+    }
+    return null;
+}
+
+/** A declared loadout is taken literally; declaring nothing takes the best tier the bank holds. */
+export function plannedGear(snap: QuestSnapshot): string[] {
+    const declared = gearOf(QuestLoadout.current);
+    if (declared.length > 0) {
+        return declared.filter(name => !unwearable.has(name.toLowerCase()) && !snap.worn.has(name.toLowerCase()));
+    }
+    const out: string[] = [];
+    for (const { kinds } of GEAR_SLOTS) {
+        if (wearingSlot(snap, kinds)) {
+            continue;
+        }
+        const pick = bestInBank(snap, kinds);
+        if (pick) {
+            out.push(pick);
+        }
+    }
+    return out;
+}
+
+/** Draw and wear the melee kit; refusals are shed rather than retried. */
+export function wearGear(snap: QuestSnapshot): QuestStep | null {
+    const names = plannedGear(snap);
+    if (names.length === 0) {
+        return null;
+    }
+    if (!snap.bankKnown) {
+        return scanBank();
+    }
+    const toDraw = names.filter(name => heldNamed(snap, name) === 0 && bankedNamed(snap, name) > 0);
+    if (toDraw.length > 0) {
+        return {
+            kind: 'withdraw',
+            bank: UP_TILE.ARDOUGNE_BANK,
+            items: toDraw.map(name => ({ name, qty: 1 }))
+        };
+    }
+    return {
+        kind: 'custom',
+        name: `wear ${names.join(', ')}`,
+        run: async log => {
+            for (const name of names) {
+                if (Equipment.contains(name) || (await Equipment.equip(name))) {
+                    continue;
+                }
+                log(`cannot wear ${name} — level or quest requirement; leaving it behind`);
+                unwearable.add(name.toLowerCase());
+            }
+            return true;
+        }
+    };
+}
+
+const WEAPON_KINDS = GEAR_SLOTS[0]!.kinds;
+
+/** True once a melee weapon is on — the bow does not count, it is there for one arrow at one rope. */
+export function meleeArmed(snap: QuestSnapshot): boolean {
+    return wearingSlot(snap, WEAPON_KINDS);
+}
+
+/** True once a melee weapon is on or in the pack, which is what the cave mouth waits for. */
+export function meleeCarried(snap: QuestSnapshot): boolean {
+    return meleeArmed(snap) || packWeapon(snap) !== null;
+}
+
+function packWeapon(snap: QuestSnapshot): string | null {
+    return packGear(snap, [{ kinds: WEAPON_KINDS }]);
+}
+
+function packGear(snap: QuestSnapshot, slots: readonly { kinds: readonly string[] }[]): string | null {
+    for (const { kinds } of slots) {
+        if (wearingSlot(snap, kinds)) {
+            continue;
+        }
+        for (const name of snap.inv.keys()) {
+            if (kinds.some(kind => name.endsWith(kind)) && !unwearable.has(name)) {
+                return name;
+            }
+        }
+    }
+    return null;
+}
+
+// Why: `armFireArrow` puts the shortbow in the right hand and the melee weapon in the pack, and nothing
+// after the bridge takes it back out — the paladins were being fought bare-handed. Armour in the pack is the
+// same problem plus five slots the orb sweep needs, so the whole set goes on rather than only the weapon.
+
+/** Wear the next piece of melee kit the pack is still carrying, once the bow has had its turn. */
+export function drawGear(snap: QuestSnapshot): QuestStep | null {
+    const name = packGear(snap, GEAR_SLOTS);
+    return name === null ? null : { kind: 'equip', item: name };
 }

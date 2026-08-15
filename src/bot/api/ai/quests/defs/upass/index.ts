@@ -48,7 +48,7 @@ import {
     searchCages,
     throwDoll
 } from './doll.js';
-import { kitShortfall, sourceKit } from './supplies.js';
+import { drawGear, kitShortfall, meleeCarried, sourceKit, wearGear } from './supplies.js';
 
 const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep =>
     ({ kind: 'custom', name, run });
@@ -57,9 +57,9 @@ function flag(snap: QuestSnapshot, name: string): boolean {
     return snap.progress?.flags.has(name) ?? false;
 }
 
-/** Everything the pass needs, drawn while a bank is still reachable. */
+/** Everything the pass needs, drawn and worn while a bank is still reachable. */
 function outfit(snap: QuestSnapshot, area: UpassArea): QuestStep | null {
-    return area === 'mainland' ? sourceKit(snap) : null;
+    return area === 'mainland' ? sourceKit(snap) ?? wearGear(snap) : null;
 }
 
 // Why: Koftik and the cave mouth are both inside West Ardougne, which the navigator has no edge into —
@@ -75,6 +75,12 @@ function inWest(snap: QuestSnapshot, area: UpassArea, step: QuestStep): QuestSte
 // says what is missing rather than walking a one-way dungeon and parking at an obstacle it cannot pass.
 function readyToDescend(snap: QuestSnapshot): QuestStep | null {
     const missing = kitShortfall(snap);
+    // Why: three paladins at level 62, three demons and Kalrag stand between the bridge and the end of the
+    // quest, and there is no bank past the cave mouth — descending with only the fire arrow's bow is a
+    // one-way trip to a fight that cannot be won.
+    if (!meleeCarried(snap)) {
+        missing.push('a melee weapon (the paladins, the demons and Kalrag), have none');
+    }
     return missing.length === 0 ? null : { kind: 'wait', reason: `not equipped for the pass: ${missing.join('; ')}` };
 }
 
@@ -215,6 +221,12 @@ function dollLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
 }
 
 function stageStep(snap: QuestSnapshot, area: UpassArea, stage: number): QuestStep {
+    // Why: the bow owns the right hand until the stay rope is shot, so the melee kit only goes on past the
+    // bridge — and it goes on before the orb sweep, which needs the five slots the armour would otherwise sit in.
+    const gear = stage >= UP_STAGE.PASSED_BRIDGE ? drawGear(snap) : null;
+    if (gear) {
+        return gear;
+    }
     switch (stage) {
         case UP_STAGE.NOT_STARTED:
             return outfit(snap, area)
