@@ -158,6 +158,7 @@ export async function stealTheDoll(log: (m: string) => void): Promise<boolean> {
 
 /** Out of Kardia's house, which the navigator has no way out of. */
 export async function leaveWitchHouse(log: (m: string) => void): Promise<boolean> {
+    const mark = GameMessages.mark();
     for (let tries = 0; tries < 4 && insideWitchHouse(Game.tile()); tries++) {
         const shut = locById(UP_LOC.WITCH_DOOR, 'Open', 8);
         if (shut && !(await shut.interact('Open'))) {
@@ -173,7 +174,8 @@ export async function leaveWitchHouse(log: (m: string) => void): Promise<boolean
         return true;
     }
     const at = Game.tile();
-    log(`still shut in Kardia's house at (${at?.x},${at?.z})`);
+    const said = GameMessages.since(mark).map(m => m.text).filter(t => !t.startsWith('get ')).slice(-3).join(' / ');
+    log(`still shut in Kardia's house at (${at?.x},${at?.z}) — said: ${said || 'nothing'}`);
     return false;
 }
 

@@ -80,6 +80,16 @@ const BIOHAZARD_COMPLETE = 16;
 const PLAGUE_CITY_COMPLETE = 29;
 /** Bit 11 of `%ibanmulti` — King Lathas has sent the player to Koftik. */
 const UPASS_STARTED_BIT = 1 << 11;
+/** Bit 9 — the cat is at Kardia's door and she is busy with it, which is what unlocks her door. */
+const UPASS_DROPPED_CAT_BIT = 1 << 9;
+
+// Why: `%ibanmulti` carries sub-progress the stage number cannot, and a seeded stage that skips a bit is
+// not the state the quest would ever be in. Reaching stage 7 means the cat was delivered — without that bit
+// her door answers "Get away... Far away from here!" and takes a quarter of the character's hitpoints
+// instead of opening, and the doll is on the wrong side of it.
+function ibanmultiFor(stage: number): number {
+    return stage >= 7 ? UPASS_STARTED_BIT | UPASS_DROPPED_CAT_BIT : UPASS_STARTED_BIT;
+}
 
 /**
  * Coins, food, and the kit the module draws from the bank.
@@ -260,12 +270,12 @@ try {
         await cheatQuiet(page, `setvar upass ${args.stage}`);
         // Why: the started bit is what the journal and the cave mouth read, and a seeded stage without it
         // leaves Koftik refusing entry to a quest the journal says is under way.
-        await cheatQuiet(page, `setvar ibanmulti ${UPASS_STARTED_BIT}`);
+        await cheatQuiet(page, `setvar ibanmulti ${ibanmultiFor(args.stage)}`);
         const read = await getServerVarQuiet(page, 'upass');
         if (read !== args.stage) {
             fail(`setvar upass ${args.stage} did not take (read back ${read})`);
         }
-        console.log(`upass=${read} ibanmulti=${UPASS_STARTED_BIT}`);
+        console.log(`upass=${read} ibanmulti=${ibanmultiFor(args.stage)}`);
     }
     await relog(page, args.user);
     await clearChatDialogs(page, 'post-relog dialog(s)');
