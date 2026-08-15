@@ -177,22 +177,38 @@ export async function openSealedChest(log: (m: string) => void): Promise<boolean
     return driveUntil(() => heldId(UP_ITEM.SHADOW.id) > 0, [], log, 20_000);
 }
 
+// Why: the cage is an `aploc`, and its script force-walks and then returns in silence if the character is
+// further than two tiles from the loc's own coordinate. A radius of three satisfies the walk and fails the
+// script, so the approach is tight and the failure says what the game said.
+
 /** Search the soulless cages for Iban's dove; the gauntlets are what stop the bite. */
 export async function searchCages(log: (m: string) => void): Promise<boolean> {
     if (heldId(UP_ITEM.DOVE.id) > 0) {
         return true;
     }
-    if (!(await walkTo(UP_TILE.CAGE_DOVE, 3, log))) {
+    if (!(await walkTo(UP_TILE.CAGE_DOVE, 1, log))) {
         return false;
     }
     await settleScene();
     const cage = locById(UP_LOC.CAGE_DOVE, null, 8);
     const op = cage?.actions()[0];
-    if (!cage || !op || !(await cage.interact(op))) {
-        log('no soulless cage holding the dove');
+    if (!cage || !op) {
+        const at = Game.tile();
+        log(`no soulless cage holding the dove within eight of (${at?.x},${at?.z})`);
         return false;
     }
-    return driveUntil(() => heldId(UP_ITEM.DOVE.id) > 0, [], log, 20_000);
+    const mark = GameMessages.mark();
+    if (!(await cage.interact(op))) {
+        log(`'${op}' would not send at the cage`);
+        return false;
+    }
+    if (await driveUntil(() => heldId(UP_ITEM.DOVE.id) > 0, [], log, 20_000)) {
+        return true;
+    }
+    const at = Game.tile();
+    const said = GameMessages.since(mark).map(m => m.text).filter(t => !t.startsWith('get ')).slice(-3).join(' / ');
+    log(`the cage gave no dove from (${at?.x},${at?.z}) — said: ${said || 'nothing'}`);
+    return false;
 }
 
 // Why: the doors only open for a follower of Zamorak wearing the robes and nothing else — the script counts

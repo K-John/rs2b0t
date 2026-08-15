@@ -273,6 +273,22 @@ describe('Underground Pass decide()', () => {
         }
     });
 
+    // Why: taking the blood leaves the character on Kalrag's own tile, one pocket with the dwarf camp but a
+    // different area name. A live run read that as "on the platforms" and spent seven attempts walking at a
+    // level-1 cage from level 0. Every step below has to accept both names.
+    test("Kalrag's side of the cave is below, not on the platforms", () => {
+        const KALRAG = { x: 2356, z: 9911, level: 0 };
+        const doll = [UP_ITEM.DOLL.id, UP_ITEM.GAUNTLETS.id];
+        const withBlood = decide(snapshot({
+            stage: UP_STAGE.FOUND_DOLL, carried: doll, tile: KALRAG,
+            flags: [UP_FLAG.ASHES_ON_DOLL, UP_FLAG.BLOOD_ON_DOLL]
+        }));
+        expect(nameOf(withBlood)).toContain('climb back up');
+
+        const noAshes = decide(snapshot({ stage: UP_STAGE.FOUND_DOLL, carried: doll, tile: KALRAG }));
+        expect(nameOf(noAshes)).not.toContain('climb down');
+    });
+
     // Why: every value the journal can report is now routed, so this guards the shape of the fallback —
     // a stage the module does not know has to name itself and stop, not retry the last step it did know.
     test('a stage the module does not know waits with the stage named', () => {

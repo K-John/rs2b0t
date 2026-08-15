@@ -175,7 +175,9 @@ function dollLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
     // Why: the four elements sit in four different pockets joined by one-way tunnels, so each one names the
     // pocket it needs and the step that gets there — asking for the item from the wrong side finds nothing.
     if (!flag(snap, UP_FLAG.ASHES_ON_DOLL)) {
-        if (area !== 'dwarves') {
+        // Why: the camp and Kalrag's cave are one pocket, so a resume that lands on her side is already down
+        // here — naming only the camp sends it back down a tunnel it is standing below.
+        if (area !== 'dwarves' && area !== 'kalrag') {
             return custom('climb down the wall tunnel to the dwarves', descendToDwarves);
         }
         if (held(snap, UP_ITEM.GAUNTLETS) === 0) {
@@ -192,7 +194,10 @@ function dollLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
         return custom('kill Kalrag with the doll in hand', killKalrag);
     }
     if (!flag(snap, UP_FLAG.DOVE_ON_DOLL)) {
-        if (area === 'dwarves') {
+        // Why: taking the blood leaves the character standing on Kalrag's own tile, which classifies as
+        // `kalrag` and not `dwarves` — so a guard naming only the camp walked off to a level-1 cage from
+        // level 0 and answered "unreachable" seven times. Both names are the same pocket and both climb out.
+        if (area === 'dwarves' || area === 'kalrag') {
             return custom('climb back up out of the dwarves cave', ascendFromDwarves);
         }
         return held(snap, UP_ITEM.GAUNTLETS) > 0 && !worn(snap, UP_ITEM.GAUNTLETS)
