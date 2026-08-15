@@ -20,6 +20,19 @@ HEADED=1 bun e2e/biohazard-234-live.ts --stage 12 --until 14 --minutes 40 --tick
 The bank holds coins and food alone. The bird feed, the pigeons, the rotten apples, the
 doctors' gown, the mourner's key and the priest suit all have sources in the world.
 
+Measured at `--tick 100`, no parks:
+
+| Stages | Minutes | Covers |
+|---|---|---|
+| 0 → 5 | 2 | Elena, Jerico, the cupboard, the pigeons, the tower, Omart |
+| 5 → 7 | 3 | the yard fence, the cauldron, the gown, the key, the crate |
+| 7 → 10 | 1 | Kilron back over the wall, the distillator to Elena |
+| 10 → 12 | 3 | the walk to Rimmington and the chemist |
+| 12 → 14 | 5 | the errand boys, Thessalia, the gate, the inn, Guidor |
+| 14 → 16 | 2 | Elena and King Lathas |
+
+The Rimmington and Varrock legs are the long ones, and both are walking rather than work.
+
 Five details govern this harness:
 
 - **It deploys its own copy of the client.** `deployIsolatedClient` puts the bundles under
