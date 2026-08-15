@@ -49,7 +49,7 @@ function flag(snap: QuestSnapshot, name: string): boolean {
 }
 
 // Why: the pack has to have room before it crosses. `[if_close,regicide_still]` adds the naphtha BEFORE it
-// deletes the empty barrel, so a full pack loses the whole distillation, and the forest hands over a barrel,
+// deletes the empty barrel, so a full pack loses the distillation outright, and the forest hands over a barrel,
 // a pot, a lump of sulphur and a rock of limestone with nowhere to put any of them.
 const SLOTS_NEEDED = 10;
 

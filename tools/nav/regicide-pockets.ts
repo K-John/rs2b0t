@@ -100,7 +100,7 @@ const cache = new Map<number, string | null>();
 // it is not in `doors.json`, so the search steps across the gate's tile as if it were open ground, and the
 // two sides come back as one pocket. The live walker knows better, and answered "no path to (2384,3333):
 // unreachable" on the way out of the forest. Both sides are therefore pinned by a walk-only flood, which
-// the palisade genuinely blocks, and never matched by the pathfind below.
+// the palisade does block, and never matched by the pathfind below.
 const PINNED = ['arandar', 'ardougne'];
 
 function pinPalisade(): void {

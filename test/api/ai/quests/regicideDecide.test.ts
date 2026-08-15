@@ -104,7 +104,7 @@ describe('Regicide bomb chain', () => {
     });
 
     // Why: the pot is taken while the loom is still in sight, because the elf camp is four crossings from
-    // the swamp and eight from the palisade — going back for it is the whole forest twice.
+    // the swamp and eight from the palisade — going back for it is the forest crossed twice over.
     test('the pot is taken while the pack is still in the elf camp', () => {
         expect(name(atStage([RG_ITEM.CLOTH.id]))).toContain('pot');
     });

@@ -153,7 +153,7 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
 // Why: the palisade is one seam of the same graph the forest is routed by — `travelTirannwn` walks the
 // crossings out to it and takes the gate itself, and degrades to a plain resilient walk once the player is
 // on the Ardougne side of it. Walking straight at the gate instead reports "unreachable", because from any
-// pocket in the forest that is exactly what it is.
+// pocket in the forest that is what it is.
 
 /** Out of Tirannwn through the Arandar palisade — free northbound at any stage. */
 export function leaveTirannwn(dest: Tile, stage: number, log: (m: string) => void): Promise<boolean> {

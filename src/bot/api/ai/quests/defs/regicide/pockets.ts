@@ -119,7 +119,7 @@ const MAX_LEGS = 40;
 // Why: the pitfall, the tripwire and the sticks all roll `stat_random(agility, …)` and leave the player
 // where they were — or in the pit below — on a failure, so one send is a roll rather than a verdict.
 // Why: eight rather than four, because the sticks roll `stat_random(agility, 30, 155)`, which is under a
-// coin flip even at 70 — a four-try budget fails the whole leg about one run in ten.
+// coin flip even at 70 — a four-try budget fails the leg outright about one run in ten.
 const CROSS_TRIES = 8;
 /** `regicide_trap_hand_holds` — the way out of a spike pit. */
 const HAND_HOLDS = 3927;

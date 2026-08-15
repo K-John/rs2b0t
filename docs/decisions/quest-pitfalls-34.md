@@ -42,6 +42,11 @@ Nine, and the first four are geography the quest only happens to expose.
   the gauge still — and passing either needle's last bit resets the tally to zero. Coal at needle six or
   below with four ticks between lumps finishes in 36 game ticks on six coal; two lumps inside one softtimer
   period stack the +3 jump and blow the gauge every time.
+- **`interface.pack` holds the server's component ids, not the client's.** The still's five controls are
+  `com_129` to `com_132` and `com_120`, which the pack numbers 6174-6177 and 5061 — and pressing those does
+  nothing at all. Six hundred presses of the pressure valve left it on bit 26 with no message either way.
+  The client's own id is what `IF_BUTTON` has to carry, and the only stable handle on it is the label the
+  component puts in the menu: `reader.buttonByText(root, 'Turn pressure valve up')`.
 - **The rabbit has to be handed over last.** `regicide_cross_over3` clears `^regicide_given_rabbit`
   whenever it is taken inside mapsquare 34_49, and the walk from the Isafdar entry to the catapult takes
   that crossing. Feeding the guard before setting out spends the rabbit for nothing, and the

@@ -138,7 +138,7 @@ function soldierNear(): Npc | null {
 // Why: the soldier is level 110 with 110 hitpoints, 95 strength and a halberd, against an account this
 // quest only asks 56 Agility of. Two runs died to it in under a minute wearing the full rune set, because
 // `Sustain.run()` is not a background task — `Traversal` calls it on every walk and a step that stands
-// still fighting calls it never, so the character took the whole fight without eating once.
+// still fighting calls it never, so the character fought from start to finish without eating once.
 // Why: and one `Attack` click is not enough either. A halberd out-ranges the player, so the walk in and
 // every knockback break the interaction off, and a fight left un-renewed is a character being hit for free.
 
@@ -171,7 +171,7 @@ async function fightSoldier(log: (m: string) => void): Promise<boolean> {
     return soldierNear() === null;
 }
 
-// Why: two different soldiers can carry this stage. `spawn_tyras_guard` posts the old camp's one just the
+// Why: two different soldiers can carry this stage. `spawn_tyras_guard` posts the old camp's one only the
 // once — it latches `^regicide_seen_guard` — while the camp entrance posts a fresh `regicide_tyras_camp_guard`
 // on every crossing attempt, so the entrance is the fallback that always works.
 
