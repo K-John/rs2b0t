@@ -104,13 +104,17 @@ export function badgesHeld(snap: QuestSnapshot): number {
 /** Kill paladins, feed the well and pass the doors — whatever of that is still outstanding. */
 export async function crossTheTemple(log: (m: string) => void): Promise<boolean> {
     const crests = (): number => UP_BADGES.filter(badge => heldId(badge.id) > 0).length;
+    // Why: a paladin respawns, and "whichever is alive" always picks the nearest — so the same one died
+    // eight times, its crest was fed to a bit already set, and the other two were never touched. Each is
+    // killed once per crossing, by id.
+    const killed = new Set<number>();
     for (let round = 0; round < 4; round++) {
         if ((Game.tile()?.level ?? 0) === 1) {
             return true;
         }
         // Why: all three crests before one trip to the well. Feeding each as it drops costs a walk from the
         // shelf to the well and back for every one of them, and that walk is fifty-odd tiles each way.
-        while (crests() < 3 && (await killPaladin(log))) {
+        while (crests() < 3 && (await killPaladin(log, killed))) {
             log(`crests in hand: ${crests()}`);
         }
         if (crests() > 0 || heldId(UP_ITEM.UNICORN_HORN.id) > 0) {
@@ -124,23 +128,24 @@ export async function crossTheTemple(log: (m: string) => void): Promise<boolean>
     return (Game.tile()?.level ?? 0) === 1;
 }
 
-/** Kill whichever paladin is still standing and take the crest it drops. */
-export async function killPaladin(log: (m: string) => void): Promise<boolean> {
+/** Kill a paladin this crossing has not killed yet and take the crest it drops. */
+export async function killPaladin(log: (m: string) => void, killed = new Set<number>()): Promise<boolean> {
     if (!(await walkTo(UP_TILE.PALADINS, 4, log))) {
         return false;
     }
     await settleScene();
-    // Why: which crest is owed cannot be read once the well has eaten them, so the target is whichever
-    // paladin is alive and the drop is whatever it leaves.
+    // Why: which crest is owed cannot be read once the well has eaten them, so the target is picked by who
+    // has not been killed yet rather than by which crest is missing.
     const target = Npcs.query()
-        .where(npc => PALADINS.some(p => p.npc === npc.id))
+        .where(npc => PALADINS.some(p => p.npc === npc.id) && !killed.has(npc.id))
         .action('Attack')
         .within(14)
         .nearest();
     if (!target) {
-        log('no paladin left standing on the shelf');
+        log('no paladin left on the shelf that this crossing has not already killed');
         return false;
     }
+    killed.add(target.id);
     const owed = PALADINS.find(p => p.npc === target.id) ?? PALADINS[0]!;
     if (!(await target.interact('Attack'))) {
         log(`could not attack paladin ${owed.npc}`);
