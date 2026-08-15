@@ -125,6 +125,8 @@ const BANK_SEED: BankSeedItem[] = [
     { debugName: 'lobster', displayName: 'Lobster', qty: 40 },
     // Why: rune chain and med helm rather than plate and full helm — those two want Dragon Slayer, which
     // this account has not done, and `Equipment.equip` refuses them silently.
+    // Why: no shop this side of the map stocks a spade, and the pass has one way out of the slave cages.
+    { debugName: 'spade', displayName: 'Spade', qty: 1 },
     { debugName: 'rune_scimitar', displayName: 'Rune scimitar', qty: 1 },
     { debugName: 'rune_chainbody', displayName: 'Rune chainbody', qty: 1 },
     { debugName: 'rune_platelegs', displayName: 'Rune platelegs', qty: 1 },

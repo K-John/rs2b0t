@@ -137,15 +137,13 @@ export const KIT: readonly Supply[] = [
         shop: ARDOUGNE_STORE,
         estGp: 150
     },
-    // Why: past the well the pass drops into the slave cages, and a flood of that pocket reaches two ops —
-    // the ledge and `upass_mud`, which takes a spade and nothing else.
-    {
-        item: RG_ITEM.SPADE,
-        qty: 1,
-        reason: 'the filled-in tunnel out of the slave cages',
-        shop: ARDOUGNE_STORE,
-        estGp: 150
-    },
+    // Why: past the well the pass drops into the slave cages, and the only op that leaves that pocket is
+    // `upass_mud`, which takes a spade and nothing else. The ledge reads as a second way out and is not one —
+    // no tile of the cage pocket stands beside it.
+    // Why: and it is drawn, never bought. Four shops in the world stock a spade — Karamja, Shilo, Rellekka
+    // and the lighthouse — and not one is on this side of the map, so a `shop` here sends the run to Aemad's
+    // to ask for something he has never sold.
+    { item: RG_ITEM.SPADE, qty: 1, reason: 'the filled-in tunnel out of the slave cages' },
     { item: RG_ITEM.LOBSTER, qty: FOOD_TARGET, reason: 'the traps, the soldiers and the elf warriors', min: 1 }
 ];
 
