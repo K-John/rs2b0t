@@ -86,15 +86,12 @@ const UPASS_STARTED_BIT = 1 << 11;
 
 /**
  * Coins, food, and the kit the module draws from the bank.
- * Why: the Gas mask and Spade are Plague City's to hand over, and this quest sits two quests downstream of
- * it, so an account that reaches here owns them. The bow, arrows, tinderbox, bucket and rope are shop stock
- * the module does not yet buy for itself — seeded here, and called out as a gap rather than hidden.
+ * Why: the bow, arrows, tinderbox, bucket and rope are shop stock the module does not yet buy for itself —
+ * seeded here, and called out as a gap rather than hidden.
  */
 const BANK_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
     { debugName: 'lobster', displayName: 'Lobster', qty: 40 },
-    { debugName: 'gasmask', displayName: 'Gas mask', qty: 1 },
-    { debugName: 'spade', displayName: 'Spade', qty: 1 },
     { debugName: 'shortbow', displayName: 'Shortbow', qty: 1 },
     { debugName: 'bronze_arrow', displayName: 'Bronze arrow', qty: 50 },
     { debugName: 'tinderbox', displayName: 'Tinderbox', qty: 1 },

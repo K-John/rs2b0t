@@ -10,7 +10,6 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
-import { goEast, goWest } from '../plaguecity/travel.js';
 import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE } from './areas.js';
 
 const KOFTIK = 'Koftik';
@@ -46,28 +45,47 @@ async function talkAt(npcId: number, near: Tile, prefer: string[], log: (m: stri
     return talkStrict(guide.name ?? KOFTIK, prefer, log);
 }
 
-// Why: the wall crossing is Plague City's, reused rather than rebuilt — it is the same dig, the same pipe
-// and the same manhole, and a second copy would drift from the one the other quest keeps working.
+// Why: neither of Plague City's or Biohazard's crossings survives into this quest. The garden dig is
+// refused the moment Biohazard starts ("the ground's been filled in and packed hard"), and Omart will not
+// re-hang the rope ladder once Biohazard is finished. What a completed Biohazard leaves behind is the city
+// gates themselves: `west_ardougne_open_city_doors` opens them outright at `%biohazard = complete`.
+// Why: the navigator has no edge through them, so the crossing is walked and opened by hand.
 
-// Why: Plague City's region test only knows ground level around Ardougne, so from the castle's upper floor
-// — where King Lathas leaves the character — it answers "unknown" and the crossing refuses in 0ms. Getting
-// down to the bank first is what gives it a region it can route from.
-async function toGroundLevel(log: (m: string) => void): Promise<boolean> {
+async function openWallGate(from: Tile, to: Tile, log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(from, 1, log))) {
+        return false;
+    }
+    await settleScene();
+    const gate = locById(UP_LOC.WALL_DOOR_L, 'Open', 8) ?? locById(UP_LOC.WALL_DOOR_R, 'Open', 8);
+    if (!gate) {
+        log(`no Ardougne wall gate within reach of (${from.x},${from.z})`);
+        return false;
+    }
+    if (!(await gate.interact('Open'))) {
+        return false;
+    }
+    return driveUntil(() => {
+        const now = Game.tile();
+        return now !== null && Math.abs(now.x - to.x) <= 3 && Math.abs(now.z - to.z) <= 4;
+    }, [], log, 12_000);
+}
+
+/** Through the Ardougne wall gates into West Ardougne. */
+export async function crossToWest(log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
-    if (here !== null && here.level === 0) {
+    if (here !== null && here.x <= UP_TILE.WALL_GATE_WEST.x && here.level === 0) {
         return true;
     }
-    return walkTo(UP_TILE.ARDOUGNE_BANK, 6, log);
+    return openWallGate(UP_TILE.WALL_GATE_EAST, UP_TILE.WALL_GATE_WEST, log);
 }
 
-/** Into West Ardougne through the Plague City sewer. */
-export async function crossToWest(log: (m: string) => void): Promise<boolean> {
-    return (await toGroundLevel(log)) && goWest(log);
-}
-
-/** Back out of West Ardougne to the mainland. */
+/** Back out through the same gates. */
 export async function crossToEast(log: (m: string) => void): Promise<boolean> {
-    return (await toGroundLevel(log)) && goEast(log);
+    const here = Game.tile();
+    if (here !== null && here.x >= UP_TILE.WALL_GATE_EAST.x && here.level === 0) {
+        return true;
+    }
+    return openWallGate(UP_TILE.WALL_GATE_WEST, UP_TILE.WALL_GATE_EAST, log);
 }
 
 /** King Lathas starts the quest; his branch needs Biohazard complete and base Ranged 25. */

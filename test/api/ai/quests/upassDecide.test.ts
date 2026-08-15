@@ -16,8 +16,6 @@ const AREA1 = { x: 2450, z: 9716, level: 0 };
 
 /** The kit the module refuses to go underground without. */
 const KIT: Stack[] = [
-    UP_ITEM.GAS_MASK.id,
-    UP_ITEM.SPADE.id,
     UP_ITEM.SHORTBOW.id,
     [UP_ITEM.BRONZE_ARROW.id, 50],
     UP_ITEM.TINDERBOX.id,
@@ -97,7 +95,7 @@ describe('Underground Pass decide()', () => {
         const step = decide(snapshot({
             stage: UP_STAGE.SPOKEN_KOFTIK,
             tile: WEST_ARDOUGNE,
-            carried: [UP_ITEM.GAS_MASK.id],
+            carried: [UP_ITEM.TINDERBOX.id],
             banked: []
         }));
         expect(kindOf(step)).toBe('wait');

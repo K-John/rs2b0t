@@ -1,8 +1,11 @@
 import { Execution } from '../../../../execution/Execution.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
 import { Game } from '../../../../game/Game.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
-import { GRID_ZONE, UP_LOC, UP_TILE, pastGridTile } from './areas.js';
+import { GRID_ZONE, UP_ITEM, UP_LOC, UP_TILE, pastGridTile } from './areas.js';
+import { driveUntil, settleScene } from '../../exec/prompts.js';
+import { locById, walkTo } from './bridge.js';
 import { stalledCrossing } from './stall.js';
 
 // Why: the safe path through the spiked grid is three digits in `%ibanmulti` bits 22-31, and `ibanmulti` is
@@ -30,6 +33,27 @@ export function inPit(): boolean {
 /** West of the grid, on the portcullis side — the crossing is done. */
 export function pastGrid(): boolean {
     return pastGridTile(here());
+}
+
+// Why: the rope swing is the fallback for reaching the grid lip, not the default — it eats the rope, so it
+// is only used once the plain walk to the lip has shown it has no route.
+
+/** Rope on the rock, swinging east onto the grid shelf. */
+async function swingEast(log: (m: string) => void): Promise<boolean> {
+    if (!(await walkTo(UP_TILE.ROCKSWING_WEST, 1, log))) {
+        return false;
+    }
+    await settleScene();
+    const rock = locById(UP_LOC.ROCKSWING, null, 8) ?? locById(UP_LOC.ROCKSWING_ANCHOR, null, 8);
+    const rope = Inventory.items().find(item => item.id === UP_ITEM.ROPE.id);
+    if (!rock || !rope) {
+        log(`missing ${rock ? 'a rope' : 'the rock swing'} for the crossing east`);
+        return false;
+    }
+    if (!(await rope.useOn(rock))) {
+        return false;
+    }
+    return driveUntil(() => (Game.tile()?.x ?? 0) > UP_TILE.ROCKSWING_WEST.x + 2, [], log, 15_000);
 }
 
 async function climbOutOfPit(log: (m: string) => void): Promise<boolean> {
@@ -62,7 +86,14 @@ async function toApproach(log: (m: string) => void): Promise<boolean> {
     if (t && UP_TILE.GRID_APPROACH.distanceTo(t) <= 1) {
         return true;
     }
-    return Traversal.walkResilient(UP_TILE.GRID_APPROACH, { radius: 1, attempts: 3, log });
+    if (await Traversal.walkResilient(UP_TILE.GRID_APPROACH, { radius: 1, attempts: 3, log })) {
+        return true;
+    }
+    if (Inventory.items().some(item => item.id === UP_ITEM.ROPE.id)) {
+        log('grid: no route to the lip — trying the rope swing east');
+        return (await swingEast(log)) && Traversal.walkResilient(UP_TILE.GRID_APPROACH, { radius: 1, attempts: 3, log });
+    }
+    return false;
 }
 
 /** East to west over the spiked grid, ending beside the portcullis lever. */

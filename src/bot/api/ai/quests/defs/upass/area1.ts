@@ -9,7 +9,6 @@ import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import type { QuestSnapshot } from '../../engine/types.js';
 import { UP_ITEM, UP_LOC, UP_ORBS, UP_TILE, countHeld, type UpassItem } from './areas.js';
 import { locById, walkTo } from './bridge.js';
-import { crossGrid } from './grid.js';
 
 /** Where each orb of light is, and how it is taken. */
 export const ORB_SITES: readonly { orb: UpassItem; tile: Tile; fromTrap: boolean }[] = [
@@ -22,28 +21,6 @@ export const ORB_SITES: readonly { orb: UpassItem; tile: Tile; fromTrap: boolean
 /** How many orbs the snapshot's pack holds. */
 export function orbsHeld(snap: QuestSnapshot): number {
     return countHeld(snap, UP_ORBS);
-}
-
-// Why: the rope swing east is the only link from the bridge shelf down to the grid, and it eats the rope
-// each time — a second crossing needs a second rope, which is why the kit carries one and the leg is ordered
-// so the swing is made once.
-
-/** Rope on the rock, swinging east onto the grid shelf. */
-export async function swingEast(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.ROCKSWING_WEST, 1, log))) {
-        return false;
-    }
-    await settleScene();
-    const rock = locById(UP_LOC.ROCKSWING, null, 8) ?? locById(UP_LOC.ROCKSWING_ANCHOR, null, 8);
-    const rope = Inventory.items().find(item => item.id === UP_ITEM.ROPE.id);
-    if (!rock || !rope) {
-        log(`missing ${rock ? 'a rope' : 'the rock swing'} for the crossing east`);
-        return false;
-    }
-    if (!(await rope.useOn(rock))) {
-        return false;
-    }
-    return driveUntil(() => (Game.tile()?.x ?? 0) > UP_TILE.ROCKSWING_WEST.x + 2, [], log, 15_000);
 }
 
 /** The hanging-log trap yields the first orb when it is disarmed rather than sprung. */
@@ -143,5 +120,3 @@ export async function enterWell(log: (m: string) => void): Promise<boolean> {
     }
     return driveUntil(() => (Game.tile()?.z ?? 0) < 9664, [], log, 15_000);
 }
-
-export { crossGrid };

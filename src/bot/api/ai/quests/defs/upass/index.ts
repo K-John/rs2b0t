@@ -12,7 +12,7 @@ import {
     shootGuiderope,
     startQuest
 } from './bridge.js';
-import { ORB_SITES, burnOrbs, enterWell, orbsHeld, swingEast, takeGroundOrb, takeTrappedOrb } from './area1.js';
+import { ORB_SITES, burnOrbs, enterWell, orbsHeld, takeGroundOrb, takeTrappedOrb } from './area1.js';
 import { crossGrid } from './grid.js';
 import {
     badgesHeld,
@@ -104,9 +104,9 @@ function bridgeLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
 // and the well and a per-orb round trip crosses the spear-trap corridor four times over.
 function orbLeg(snap: QuestSnapshot): QuestStep {
     if (!pastGridTile(snap.tile)) {
-        return held(snap, UP_ITEM.ROPE) > 0
-            ? custom('swing east onto the grid shelf', swingEast)
-            : custom('cross the spiked grid with the journal held open', crossGrid);
+        // Why: the crossing walks itself to the grid lip first. The rope swing is only reached for when that
+        // walk has no route, so the rope is not spent on a guess about a shelf the navigator may already reach.
+        return custom('cross the spiked grid with the journal held open', crossGrid);
     }
     const missing = ORB_SITES.find(site => held(snap, site.orb) === 0);
     if (missing) {
@@ -179,28 +179,46 @@ function dollLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
     if (held(snap, UP_ITEM.DOVE) > 0) {
         return custom("crumble Iban's dove into the doll", rubDove);
     }
+    // Why: the four elements sit in four different pockets joined by one-way tunnels, so each one names the
+    // pocket it needs and the step that gets there — asking for the item from the wrong side finds nothing.
     if (!flag(snap, UP_FLAG.ASHES_ON_DOLL)) {
-        if (area === 'dwarves') {
-            return held(snap, UP_ITEM.DWARF_BREW) === 0
-                ? custom('fill the bucket with dwarf brew', fillBrew)
-                : custom("soak and burn Iban's tomb", burnTomb);
+        if (area !== 'dwarves') {
+            return custom('climb down the wall tunnel to the dwarves', descendToDwarves);
         }
-        return custom('climb down the wall tunnel to the dwarves', descendToDwarves);
+        if (held(snap, UP_ITEM.GAUNTLETS) === 0) {
+            return custom("take Klank's gauntlets", askKlank);
+        }
+        return held(snap, UP_ITEM.DWARF_BREW) === 0
+            ? custom('fill the bucket with dwarf brew', fillBrew)
+            : custom("soak and burn Iban's tomb", burnTomb);
     }
     if (!flag(snap, UP_FLAG.DOVE_ON_DOLL)) {
-        return held(snap, UP_ITEM.GAUNTLETS) > 0
+        if (area === 'dwarves') {
+            return custom('climb back up out of the dwarves cave', ascendFromDwarves);
+        }
+        if (area !== 'main') {
+            return { kind: 'wait', reason: `the soulless cages are in the main cavern, standing in ${area}` };
+        }
+        return held(snap, UP_ITEM.GAUNTLETS) > 0 && !worn(snap, UP_ITEM.GAUNTLETS)
             ? custom("wear Klank's gauntlets", wearGauntlets)
             : custom('search the soulless cages for the dove', searchCages);
     }
     if (!flag(snap, UP_FLAG.SHADOW_ON_DOLL)) {
+        if (area !== 'witch') {
+            return { kind: 'wait', reason: `the demons are on the witch's platform, standing in ${area}` };
+        }
         return amuletsHeld(snap) < 3
             ? custom('kill a demon for its amulet', killDemon)
             : custom('open the sealed chest for the shadow', openSealedChest);
     }
     if (!flag(snap, UP_FLAG.BLOOD_ON_DOLL)) {
-        return area === 'kalrag'
-            ? custom('kill Kalrag with the doll in hand', killKalrag)
-            : custom("climb down the wall tunnel to Kalrag's cave", descendToKalrag);
+        if (area === 'kalrag') {
+            return custom('kill Kalrag with the doll in hand', killKalrag);
+        }
+        if (area === 'dwarves') {
+            return custom('climb back up out of the dwarves cave', ascendFromDwarves);
+        }
+        return custom("climb down the wall tunnel to Kalrag's cave", descendToKalrag);
     }
     return custom("open Iban's temple doors", openIbanDoor);
 }

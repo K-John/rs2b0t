@@ -121,13 +121,17 @@ export const UP_LOC = {
     PIPE_AREA2: 3237,
     SWAMP: 3263,
     ROCKPILE: 3265,
-    MUD_DIG: 3216
+    MUD_DIG: 3216,
+    WALL_DOOR_L: 2048,
+    WALL_DOOR_R: 2049
 } as const;
 
 export const UP_TILE = {
     ARDOUGNE_BANK: new Tile(2655, 3283, 0),
     LATHAS: new Tile(2578, 3293, 1),
     CASTLE_STAIRS: new Tile(2572, 3296, 0),
+    WALL_GATE_EAST: new Tile(2559, 3300, 0),
+    WALL_GATE_WEST: new Tile(2555, 3300, 0),
     CAVE_MOUTH: new Tile(2436, 3315, 0),
     CAVE_ENTRANCE: new Tile(2433, 3313, 0),
 
