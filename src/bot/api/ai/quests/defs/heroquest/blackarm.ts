@@ -128,11 +128,10 @@ async function takeKeyring(log: (m: string) => void): Promise<boolean> {
 
 // Why: the side room is sealed from the hall by a `snipable_wall` (blockrange=no), so the rival shoots
 // Grip through the arrow slit — and only reaches him at all while the drinks cabinet has walked him
-// onto that row. The lure is repeatable: the open cabinet's Search re-runs `summon_grip`.
-
+// onto that row.
 // Why: `summon_grip` walks Grip six tiles and `npc_setmode(null)` six ticks later turns him round, so
-// one lure puts him on the row for a couple of seconds. The rival needs him there when its own click
-// lands, which means luring on a loop rather than once and waiting.
+// one lure holds the row for a couple of seconds and the rival's click has to land inside it. Hence a
+// loop rather than one lure and a wait; the open cabinet's Search re-runs the summon.
 
 /** Walk Grip to the arrow slit over and over until the rival drops him, then take the keyring. */
 export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<boolean> {
