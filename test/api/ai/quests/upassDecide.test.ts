@@ -82,6 +82,19 @@ describe('Underground Pass decide()', () => {
         expect(reasonOf(step)).toContain('melee weapon');
     });
 
+    // Why: the journal prints the same two sentences at stage three and stage four and differs only in
+    // which is struck through, so the module reads three while the server is at four — and levered a boulder
+    // that was already spent, forever. The two stages are one leg, and the horn is what ends it.
+    test('the unicorn leg is keyed on the horn, not on the stage', () => {
+        const inArea2 = { x: 2396, z: 9600, level: 0 };
+        for (const stage of [UP_STAGE.ENTERED_SECOND_AREA, UP_STAGE.KILLED_UNICORN]) {
+            const before = decide(snapshot({ stage, tile: inArea2, carried: [UP_ITEM.RAILING.id] }));
+            expect(nameOf(before)).toContain('crush the unicorn');
+            const after = decide(snapshot({ stage, tile: inArea2, carried: [UP_ITEM.UNICORN_HORN.id] }));
+            expect(nameOf(after)).toContain('paladin');
+        }
+    });
+
     // Why: the fire arrow puts the bow in the right hand and the scimitar in the pack, and nothing after
     // the bridge took it back out — the paladins were being fought bare-handed.
     test('the weapon goes back on before the paladins', () => {

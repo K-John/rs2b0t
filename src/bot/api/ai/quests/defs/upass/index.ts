@@ -20,12 +20,11 @@ import { sweepOrbs } from './area1.js';
 import { crossGrid } from './grid.js';
 import {
     badgesHeld,
-    dropBoulder,
+    crushUnicorn,
     enterMainCavern,
     feedBloodWell,
     killPaladin,
-    takeRailing,
-    takeUnicornHorn
+    takeRailing
 } from './area2.js';
 import {
     ascendFromDwarves,
@@ -123,17 +122,20 @@ function orbLeg(snap: QuestSnapshot): QuestStep {
     return custom('take and burn the four orbs, then climb the well', sweepOrbs);
 }
 
-function unicornLeg(snap: QuestSnapshot): QuestStep {
+// Why: stages three and four are one leg, because the journal cannot tell them apart — both print
+// "I must work my way deeper into these caverns" and differ only in which line is struck through. What the
+// snapshot can see is the horn, so the crushing and the taking are one step and the horn is what ends it.
+function unicornLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
+    if (held(snap, UP_ITEM.UNICORN_HORN) > 0 || badgesHeld(snap) > 0 || area !== 'area2') {
+        return paladinLeg(snap);
+    }
     if (held(snap, UP_ITEM.RAILING) === 0) {
         return custom('search the cage bars for a loose railing', takeRailing);
     }
-    return custom('lever the boulder onto the caged unicorn', dropBoulder);
+    return custom('crush the unicorn and take its horn', crushUnicorn);
 }
 
-function paladinLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
-    if (held(snap, UP_ITEM.UNICORN_HORN) === 0 && badgesHeld(snap) === 0 && area === 'area2') {
-        return custom('take the unicorn horn from the crushed cage', takeUnicornHorn);
-    }
+function paladinLeg(snap: QuestSnapshot): QuestStep {
     // Why: the way back up to the paladins' shelf is the unicorn tunnel at the south end of the second
     // cavern, not the mud pile — the pile climbs into the orb corridor, on the far side of the well and
     // behind every trap already crossed. The tunnel is one of travelTo's seams, so walking is enough.
@@ -261,9 +263,8 @@ function stageStep(snap: QuestSnapshot, area: UpassArea, stage: number): QuestSt
         case UP_STAGE.PASSED_BRIDGE:
             return orbLeg(snap);
         case UP_STAGE.ENTERED_SECOND_AREA:
-            return unicornLeg(snap);
         case UP_STAGE.KILLED_UNICORN:
-            return paladinLeg(snap, area);
+            return unicornLeg(snap, area);
         case UP_STAGE.ENTERED_MAIN_AREA:
             return dwarfLeg(area);
         case UP_STAGE.SPOKEN_NILHOOF:

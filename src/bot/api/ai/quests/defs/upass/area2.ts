@@ -24,6 +24,19 @@ export async function takeRailing(log: (m: string) => void): Promise<boolean> {
     return driveUntil(() => heldId(UP_ITEM.RAILING.id) > 0, [], log, 12_000);
 }
 
+// Why: the journal cannot tell this stage from the last one. Both print "Something is watching me" and
+// "I must work my way deeper into these caverns", differing only in the strike-through colour that marks
+// which is current — so a run levered a boulder that was already spent, forever. The horn is the honest
+// signal, and taking it is part of the same step.
+
+/** Lever the boulder onto the unicorn, then take the horn from what is left of the cage. */
+export async function crushUnicorn(log: (m: string) => void): Promise<boolean> {
+    if (heldId(UP_ITEM.UNICORN_HORN.id) === 0 && !(await dropBoulder(log))) {
+        return false;
+    }
+    return takeUnicornHorn(log);
+}
+
 /** Lever the boulder onto the unicorn; the script telejumps the player west afterwards. */
 export async function dropBoulder(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(UP_TILE.BOULDER, 2, log))) {
@@ -32,6 +45,11 @@ export async function dropBoulder(log: (m: string) => void): Promise<boolean> {
     await settleScene();
     const boulder = Npcs.query().where(npc => npc.id === UP_NPC.BOULDER).within(10).nearest();
     const railing = Inventory.items().find(item => item.id === UP_ITEM.RAILING.id);
+    // Why: no boulder and a smashed cage is the job already done — the stage moved and the journal did not.
+    if (!boulder && locById(UP_LOC.UNICORN_CAGE, null, 16) !== null) {
+        log('the boulder is already down and the cage is smashed');
+        return true;
+    }
     if (!boulder || !railing) {
         log(`missing ${boulder ? 'the piece of railing' : 'the boulder'} for the unicorn`);
         return false;
