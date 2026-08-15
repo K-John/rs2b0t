@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Thirty-two, and the first three are engine behaviour the quest only happens to expose.
+Thirty-three, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -124,6 +124,13 @@ Thirty-two, and the first three are engine behaviour the quest only happens to e
   produced four "I can't reach that!" and the leg spent every ledge it had. Ask for a Manhattan distance of
   one when the op has to reach.
 
+- **A pocket traveller is the wrong tool for a stand two tiles away.** The five tiles the fire arrow can be
+  shot from are a handful apart in one pocket, and the loop that tried each reached for the mover that
+  crosses the whole pass. So a stand that was not walkable read as "no route" rather than "try the next
+  one", and the traveller went hunting seams: forty-one "nowhere to stand" reports and eleven tiles of drift
+  away from the rope. Six per-leg runs never saw it because they all arrived on the same tile; the
+  end-to-end run arrived two tiles off and the first stand fell through. Short hops inside a pocket want the
+  plain walk.
 - **Proximity is not reach, for NPCs as well as locs.** Thirteen Iban disciples line the temple approach and
   `nearest()` returned one through the temple wall. The attack sent, nothing happened, and the step spent its
   whole three-minute wait in silence — twice, because one long wait looks exactly like a slow fight. Filter
