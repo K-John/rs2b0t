@@ -193,6 +193,12 @@ function dollLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
             ? custom('fill the bucket with dwarf brew', fillBrew)
             : custom("soak and burn Iban's tomb", burnTomb);
     }
+    // Why: a flood of the collision pack puts the dwarf camp, Iban's tomb, Kalrag and both wall-tunnel exits
+    // in one pocket, so the blood is taken while the character is already down here rather than after two
+    // more tunnel trips. Kalrag only gives it while the doll is in the pack and the stage is still `found`.
+    if (!flag(snap, UP_FLAG.BLOOD_ON_DOLL) && (area === 'dwarves' || area === 'kalrag')) {
+        return custom('kill Kalrag with the doll in hand', killKalrag);
+    }
     if (!flag(snap, UP_FLAG.DOVE_ON_DOLL)) {
         if (area === 'dwarves') {
             return custom('climb back up out of the dwarves cave', ascendFromDwarves);
@@ -213,13 +219,9 @@ function dollLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
             : custom('open the sealed chest for the shadow', openSealedChest);
     }
     if (!flag(snap, UP_FLAG.BLOOD_ON_DOLL)) {
-        if (area === 'kalrag') {
-            return custom('kill Kalrag with the doll in hand', killKalrag);
-        }
-        if (area === 'dwarves') {
-            return custom('climb back up out of the dwarves cave', ascendFromDwarves);
-        }
-        return custom("climb down the wall tunnel to Kalrag's cave", descendToKalrag);
+        return area === 'kalrag' || area === 'dwarves'
+            ? custom('kill Kalrag with the doll in hand', killKalrag)
+            : custom("climb down the wall tunnel to Kalrag's cave", descendToKalrag);
     }
     return custom("open Iban's temple doors", openIbanDoor);
 }
