@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Twenty-two, and the first three are engine behaviour the quest only happens to expose.
+Twenty-three, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -117,6 +117,12 @@ Twenty-two, and the first three are engine behaviour the quest only happens to e
   that!" — the crossing script never runs, and the step reads it as the agility roll failing. Twenty rolls at
   ninety-five per cent each "failed" before the refusal was logged. `inOperableDistance` is
   `reachedEntity || reachedObj`, which a cardinal neighbour satisfies: walk there at radius 0 first.
+
+- **`nearest()` cannot tell a diagonal neighbour from a cardinal one.** Both are Chebyshev distance one, and
+  `reachRectangle` takes a cardinal side and nothing else. The second cavern's ledge is six identical locs in
+  a column, and the nearest one to the character was always the diagonal — so four tries from one tile
+  produced four "I can't reach that!" and the leg spent every ledge it had. Ask for a Manhattan distance of
+  one when the op has to reach.
 
 ## See also
 
