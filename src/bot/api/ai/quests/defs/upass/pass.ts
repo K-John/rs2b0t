@@ -185,12 +185,17 @@ async function standBeside(at: Tile, log: (m: string) => void): Promise<boolean>
         ? sides.sort((a, b) => chebyshev(a, me) - chebyshev(b, me))[0]
         : sides[0];
     if (!pick) {
+        log(`pass: no walkable tile beside (${at.x},${at.z}) — cannot send an op at it`);
         return false;
     }
     if (chebyshev(pick, me ?? pick) === 0) {
         return true;
     }
-    return Traversal.walkResilient(pick, { radius: 0, attempts: 1, timeoutMs: 30_000, log });
+    if (await Traversal.walkResilient(pick, { radius: 0, attempts: 2, timeoutMs: 30_000, log })) {
+        return true;
+    }
+    log(`pass: could not stand at (${pick.x},${pick.z}) beside (${at.x},${at.z})`);
+    return false;
 }
 
 /** Obstacles in the scene, nearest the straight line toward `dest` first. */
@@ -285,7 +290,7 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         // burned seventy seconds per round on a cage the player never reached.
         if (chebyshev(now, dest) + MIN_GAIN > chebyshev(from, dest)) {
             spent.add(key);
-            const said = GameMessages.since(mark).map(m => m.text).slice(-3).join(' | ') || 'nothing';
+            const said = GameMessages.since(mark).map(m => m.text).slice(-6).join(' | ') || 'nothing';
             log(`pass: ${op} ${obstacle.name ?? obstacle.id} at (${obstacle.tile().x},${obstacle.tile().z})`
                 + ` did not cross toward (${dest.x},${dest.z}) — it said: ${said}`);
             continue;
