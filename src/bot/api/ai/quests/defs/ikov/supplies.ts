@@ -29,7 +29,9 @@ const WEAPON_SLOT = 3;
 /** Worn quiver: the slot arrows occupy. */
 const AMMO_SLOT = 13;
 /** Lobsters kept in the pack while grinding hobgoblins. */
-const FARM_FOOD = 6;
+const FARM_FOOD = 10;
+/** Lobsters left in the pack before the farm walks back for more. */
+const FARM_FOOD_FLOOR = 3;
 /** Aemad's asking price for an iron axe, with headroom for his stock markup. */
 const AXE_GP = 300;
 const CHOP_MS = 120_000;
@@ -278,7 +280,7 @@ function armForTheFarm(snap: QuestSnapshot): QuestStep | null {
 function restockFood(snap: QuestSnapshot): QuestStep | null {
     const food = IKOV_NAME.LOBSTER.toLowerCase();
     const held = snap.inv.get(food) ?? 0;
-    if (held >= 2) {
+    if (held >= FARM_FOOD_FLOOR) {
         return null;
     }
     const want = Math.min(FARM_FOOD - held, snap.bank?.get(food) ?? 0);

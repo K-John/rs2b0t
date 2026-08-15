@@ -261,10 +261,10 @@ describe('Temple of Ikov decide', () => {
         expect(step.kind === 'withdraw' && step.items[0].name).toBe(IKOV_NAME.LOBSTER);
     });
 
-    test('two lobsters in the pack keep the farm running', () => {
+    test('a stocked pack keeps the farm running', () => {
         const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
             inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
-            invNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 2]],
+            invNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 4]],
             bankNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 10]],
             bankCoins: 0
         }));

@@ -94,7 +94,7 @@ Eight are the quest's own shape:
   fights take the bow off on the way out.
 - **The engine's food float is provisioned once, not maintained.** `provisioned.add(id)`
   retires the withdrawal for the run, so a module whose grind outlasts six lobsters has
-  to ask for more itself. The roots farm restocks below two.
+  to ask for more itself. The roots farm restocks below three and takes ten, because the nearest booth is a minute's round trip from the camp.
 - **A fight loop that counts its own Attack clicks misses a kill it did not click for.**
   Auto-retaliate fought the Fire Warrior to death while every `interact('Attack')` came
   back false — he stands behind the door that summoned him and the path to him is
