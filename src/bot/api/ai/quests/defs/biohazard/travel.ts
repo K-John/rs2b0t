@@ -4,7 +4,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { talkStrict } from '../../exec/primitives.js';
-import { driveUntil, settleScene } from '../../exec/prompts.js';
+import { driveUntil, promptLoc, settleScene } from '../../exec/prompts.js';
 import { BIO_ITEM, BIO_LOC, BIO_NPC, BIO_TILE, bioArea, type BioArea } from './areas.js';
 import { wear } from './gear.js';
 
@@ -75,8 +75,19 @@ async function climbWithKilron(log: (m: string) => void): Promise<boolean> {
     return arrive(a => a === 'mainland', KILRON_CROSS, log);
 }
 
-// Why: the headquarters door answers Open with "In you go doc." and only opens once that box is
-// clicked through, which is the frame the walker's own door crossing gives up on.
+// Why: the headquarters door answers Open with "In you go doc." and only opens once that box is clicked through, which is the frame the walker's own door crossing gives up on — and both its faces stand in a corridor the mourners wander, where one on the stand tile makes the client's path search fail every click, so `Reach.locOp` owns the approach and operates the door from either side of its edge.
+async function crossHqDoor(near: Tile, want: (a: BioArea) => boolean, log: (m: string) => void): Promise<boolean> {
+    return promptLoc({
+        name: 'Door',
+        id: BIO_LOC.HQ_DOOR,
+        op: 'Open',
+        near,
+        within: 8,
+        expect: () => want(area()),
+        expectMs: 25_000
+    }, log);
+}
+
 export async function enterHq(log: (m: string) => void): Promise<boolean> {
     if (area() === 'hq' || area() === 'hqUpstairs') {
         return true;
@@ -85,39 +96,26 @@ export async function enterHq(log: (m: string) => void): Promise<boolean> {
         log("the Doctors' gown has to be worn before the mourners open their door");
         return false;
     }
-    if (!(await walkTo(BIO_TILE.HQ_DOOR, 0, log))) {
-        return false;
+    const landed = await crossHqDoor(BIO_TILE.HQ_DOOR, a => a === 'hq' || a === 'hqUpstairs', log);
+    if (landed) {
+        await settleScene();
     }
-    await settleScene();
-    const door = locById(BIO_LOC.HQ_DOOR, 'Open', 6);
-    if (!door) {
-        log(`no mourner headquarters door at (${BIO_TILE.HQ_DOOR.x},${BIO_TILE.HQ_DOOR.z})`);
-        return false;
-    }
-    if (!(await door.interact('Open'))) {
-        return false;
-    }
-    return arrive(a => a === 'hq' || a === 'hqUpstairs', [], log);
+    return landed;
 }
 
 /** The same door from the inside, where the script opens it for anyone. */
 async function leaveHq(log: (m: string) => void): Promise<boolean> {
-    if (area() === 'hqUpstairs' && !(await walkTo(BIO_TILE.HQ_INSIDE, 1, log))) {
+    if (area() === 'hqUpstairs' && !(await walkTo(BIO_TILE.HQ_INSIDE, 4, log))) {
         return false;
     }
     if (area() !== 'hq') {
         return area() === 'west' || area() === 'mainland';
     }
-    if (!(await walkTo(BIO_TILE.HQ_INSIDE, 0, log))) {
-        return false;
+    const out = await crossHqDoor(BIO_TILE.HQ_INSIDE, a => a === 'west' || a === 'mainland', log);
+    if (out) {
+        await settleScene();
     }
-    await settleScene();
-    const door = locById(BIO_LOC.HQ_DOOR, 'Open', 6);
-    if (!door || !(await door.interact('Open'))) {
-        log('no mourner headquarters door to leave by');
-        return false;
-    }
-    return arrive(a => a === 'west' || a === 'mainland', [], log);
+    return out;
 }
 
 /** West Ardougne, or the headquarters when that is where the caller was heading. */
