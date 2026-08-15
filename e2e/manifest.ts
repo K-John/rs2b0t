@@ -537,6 +537,15 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'temple-of-ikov-250-live',
+        harness: 'temple-of-ikov-250-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 180,
+        documentedIn: 'docs/reference/quest-harness-recipes-5.md',
+        note: 'members-only, :8890 — the default kit is coins and lobsters, so the run sources its own bow, arrows, boots and roots'
+    },
+    {
         id: 'thievingbot-test',
         harness: 'thievingbot-test.ts',
         covers: { scripts: ['ThievingBot'] },

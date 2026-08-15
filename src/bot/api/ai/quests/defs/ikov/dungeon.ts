@@ -1,0 +1,493 @@
+// docs/QUESTS.md
+import { DirectNavigator } from '../../../../../event/webwalk/DirectNavigator.js';
+import type Tile from '../../../../../geometry/Tile.js';
+import { Equipment } from '../../../../equipment/Equipment.js';
+import { Execution } from '../../../../execution/Execution.js';
+import { Game } from '../../../../game/Game.js';
+import { GroundItems } from '../../../../grounditems/GroundItems.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
+import { Locs, type Loc } from '../../../../locs/Locs.js';
+import { Sustain } from '../../../../sustain/Sustain.js';
+import { Traversal } from '../../../../walking/Traversal.js';
+import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
+import { heldId, settleScene } from '../../exec/prompts.js';
+import {
+    ARROWS_WANTED,
+    ICE_CHESTS,
+    IKOV_LOC,
+    IKOV_NAME,
+    IKOV_OBJ,
+    IKOV_TILE,
+    LAVA_BRIDGE_ZONE,
+    inDarkRoom,
+    inIceCavern,
+    inTemple,
+    inTrapPit,
+    westOfBridge
+} from './areas.js';
+import { heldOrBanked, lightCandle } from './supplies.js';
+
+const WALK_MS = 300_000;
+
+// Why: the bridge is not a baked edge and its tiles are walkable, so any route the pathfinder draws across them ferries the bot to the wrong side.
+export function templeWalk(dest: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
+    return Traversal.walkResilient(dest, {
+        radius,
+        attempts: 3,
+        timeoutMs: WALK_MS,
+        avoidZones: [LAVA_BRIDGE_ZONE],
+        log
+    });
+}
+
+function locById(id: number, within = 8): Loc | null {
+    return Locs.query().where(l => l.id === id).within(within).nearest();
+}
+
+export function wearingBoots(): boolean {
+    return Equipment.contains(IKOV_NAME.BOOTS);
+}
+
+/** The Door of Fear only opens northward for a character wearing Lucien's pendant. */
+export async function wearFearPendant(log: (m: string) => void): Promise<boolean> {
+    if (Equipment.contains(IKOV_NAME.PENDANT_LUCIEN)) {
+        return true;
+    }
+    if (heldId(IKOV_OBJ.PENDANT_LUCIEN) === 0) {
+        log('ikov: no pendant of lucien to wear — the Door of Fear stays shut');
+        return false;
+    }
+    return Equipment.equip(IKOV_NAME.PENDANT_LUCIEN);
+}
+
+/** True once the player is standing anywhere inside the temple. */
+export function insideTemple(): boolean {
+    const here = Game.tile();
+    return here !== null && inTemple(here);
+}
+
+async function climbDarkStairsUp(log: (m: string) => void): Promise<boolean> {
+    if (!(await templeWalk(IKOV_TILE.DARK_STAIRS_UP, 1, log))) {
+        return false;
+    }
+    const stairs = locById(IKOV_LOC.DARK_STAIRS_UP, 4);
+    if (!stairs || !(await stairs.interact('Climb-up'))) {
+        log('ikov: no dark stairs out of the boots room');
+        return false;
+    }
+    const out = await Execution.delayUntil(() => {
+        const t = Game.tile();
+        return t !== null && !inDarkRoom(t);
+    }, 10_000);
+    if (out) {
+        await settleScene();
+    }
+    return out;
+}
+
+async function climbTrapLadder(log: (m: string) => void): Promise<boolean> {
+    if (!(await templeWalk(IKOV_TILE.TRAP_PIT_LADDER, 1, log))) {
+        return false;
+    }
+    const ladder = locById(IKOV_LOC.TRAP_LADDER, 4);
+    if (!ladder || !(await ladder.interact('Climb-up'))) {
+        log('ikov: no ladder out of the trap pit');
+        return false;
+    }
+    const out = await Execution.delayUntil(() => {
+        const t = Game.tile();
+        return t !== null && !inTrapPit(t);
+    }, 10_000);
+    if (out) {
+        await settleScene();
+    }
+    return out;
+}
+
+// Why: the crossing is a zone timer rather than a loc, so there is no op to send — stepping onto the bridge is the action, and the far side is the only oracle.
+export async function crossBridge(goWest: boolean, log: (m: string) => void): Promise<boolean> {
+    const start = goWest ? IKOV_TILE.BRIDGE_EAST : IKOV_TILE.BRIDGE_WEST;
+    const step = goWest ? IKOV_TILE.BRIDGE_ZONE_EAST : IKOV_TILE.BRIDGE_ZONE_WEST;
+    const landed = (): boolean => {
+        const t = Game.tile();
+        return t !== null && westOfBridge(t) === goWest;
+    };
+    if (landed()) {
+        return true;
+    }
+    if (!wearingBoots()) {
+        log('ikov: refusing the lava bridge without the boots of lightness');
+        return false;
+    }
+    if (!(await templeWalk(start, 1, log))) {
+        return false;
+    }
+    log(`ikov: stepping onto the lava bridge, heading ${goWest ? 'west' : 'east'}`);
+    await DirectNavigator.walkTo(step, 0, 8000);
+    const crossed = await Execution.delayUntil(landed, 12_000);
+    if (!crossed) {
+        log('ikov: the bridge did not carry us across — retrying');
+        return false;
+    }
+    await settleScene();
+    return true;
+}
+
+/**
+ * Climb, cross or clamber out of whichever sealed part of the temple the bot woke up in.
+ * @see docs/decisions/quest-pitfalls-8.md
+ */
+export async function escapePocket(log: (m: string) => void): Promise<boolean> {
+    const here = Game.tile();
+    if (!here) {
+        return false;
+    }
+    if (inDarkRoom(here)) {
+        log('ikov: climbing out of the boots room');
+        return climbDarkStairsUp(log);
+    }
+    if (inTrapPit(here)) {
+        log('ikov: climbing out of the trap pit');
+        return climbTrapLadder(log);
+    }
+    if (westOfBridge(here)) {
+        log('ikov: crossing back over the lava');
+        return crossBridge(false, log);
+    }
+    return true;
+}
+
+async function slashWeb(log: (m: string) => void): Promise<boolean> {
+    if (locById(IKOV_LOC.WEB, 6) === null) {
+        return true;
+    }
+    const knife = Inventory.items().find(i => i.id === IKOV_OBJ.KNIFE);
+    if (!knife) {
+        log('ikov: the web needs a knife and the pack has none');
+        return false;
+    }
+    // Why: `slash_checker` only reads the equipped weapon, so `Slash` refuses a packed knife; the `oplocu` branch names the knife explicitly.
+    for (let attempt = 0; attempt < 8; attempt++) {
+        const web = locById(IKOV_LOC.WEB, 6);
+        if (!web) {
+            return true;
+        }
+        const held = Inventory.items().find(i => i.id === IKOV_OBJ.KNIFE);
+        if (!held || !(await held.useOn(web))) {
+            return false;
+        }
+        if (await Execution.delayUntil(() => locById(IKOV_LOC.WEB, 6) === null, 5000)) {
+            log(`ikov: slashed the web after ${attempt + 1} cut(s)`);
+            return true;
+        }
+    }
+    log('ikov: eight cuts and the web still holds');
+    return false;
+}
+
+async function takeBoots(log: (m: string) => void): Promise<boolean> {
+    if (heldId(IKOV_OBJ.BOOTS) > 0) {
+        return true;
+    }
+    if (!(await templeWalk(IKOV_TILE.BOOTS_WEB, 0, log))) {
+        return false;
+    }
+    if (!(await slashWeb(log))) {
+        return false;
+    }
+    await DirectNavigator.walkTo(IKOV_TILE.BOOTS_SPAWN, 1, 8000);
+    const boots = GroundItems.query().where(g => g.id === IKOV_OBJ.BOOTS).within(6).nearest();
+    if (!boots) {
+        log(`ikov: no boots of lightness at (${IKOV_TILE.BOOTS_SPAWN.x},${IKOV_TILE.BOOTS_SPAWN.z})`);
+        return false;
+    }
+    if (!(await boots.interact('Take'))) {
+        return false;
+    }
+    return Execution.delayUntil(() => heldId(IKOV_OBJ.BOOTS) > 0, 8000);
+}
+
+/** Fetch and wear the boots; everything past the lava bridge depends on the negative weight. */
+export async function fetchBoots(log: (m: string) => void): Promise<boolean> {
+    if (wearingBoots()) {
+        return true;
+    }
+    if (heldId(IKOV_OBJ.BOOTS) > 0) {
+        return Equipment.equip(IKOV_NAME.BOOTS);
+    }
+    const here = Game.tile();
+    if (here && inDarkRoom(here)) {
+        if (!(await takeBoots(log))) {
+            return false;
+        }
+        if (!(await Equipment.equip(IKOV_NAME.BOOTS))) {
+            log('ikov: took the boots but could not wear them');
+        }
+        return climbDarkStairsUp(log);
+    }
+    if (!(await escapePocket(log))) {
+        return false;
+    }
+    if (!(await lightCandle(log))) {
+        return false;
+    }
+    if (!(await templeWalk(IKOV_TILE.DARK_STAIRS_DOWN, 1, log))) {
+        return false;
+    }
+    const stairs = locById(IKOV_LOC.DARK_STAIRS_DOWN, 6);
+    if (!stairs || !(await stairs.interact('Climb-down'))) {
+        log('ikov: no dark stairs down at the temple corridor');
+        return false;
+    }
+    const arrived = await Execution.delayUntil(() => {
+        const t = Game.tile();
+        return t !== null && inDarkRoom(t);
+    }, 10_000);
+    if (!arrived) {
+        // Why: without a lit source the stairs drop you into a walled dead end instead, which reads as "did not arrive".
+        log('ikov: the dark stairs left us short — the candle was not lit');
+        return false;
+    }
+    await settleScene();
+    return true;
+}
+
+/** Disarm and pull the trap lever. Both ops are no-ops once their stage has passed. */
+export async function pullTrapLever(log: (m: string) => void): Promise<boolean> {
+    if (!(await escapePocket(log))) {
+        return false;
+    }
+    if (!(await wearFearPendant(log))) {
+        return false;
+    }
+    if (!(await templeWalk(IKOV_TILE.TRAP_LEVER, 1, log))) {
+        return false;
+    }
+    const lever = locById(IKOV_LOC.TRAP_LEVER, 6);
+    if (!lever) {
+        log(`ikov: no trap lever at (${IKOV_TILE.TRAP_LEVER.x},${IKOV_TILE.TRAP_LEVER.z})`);
+        return false;
+    }
+    log('ikov: searching the trap lever for traps');
+    if (!(await lever.interact('Search for traps'))) {
+        return false;
+    }
+    await Execution.delayTicks(3);
+    const again = locById(IKOV_LOC.TRAP_LEVER, 6);
+    if (!again || !(await again.interact('Pull'))) {
+        return false;
+    }
+    await Execution.delayTicks(4);
+    // Why: an undisarmed pull drops the player down a shaft, and the ladder out is the only way back.
+    const here = Game.tile();
+    if (here && inTrapPit(here)) {
+        log('ikov: the trap fired — climbing back out');
+        return climbTrapLadder(log);
+    }
+    return true;
+}
+
+async function takeIkovLever(log: (m: string) => void): Promise<boolean> {
+    if (!(await templeWalk(IKOV_TILE.IKOV_LEVER_SPAWN, 1, log))) {
+        return false;
+    }
+    const lever = GroundItems.query().where(g => g.id === IKOV_OBJ.LEVER).within(8).nearest();
+    if (!lever) {
+        log(`ikov: no Lever at (${IKOV_TILE.IKOV_LEVER_SPAWN.x},${IKOV_TILE.IKOV_LEVER_SPAWN.z})`);
+        return false;
+    }
+    if (!(await lever.interact('Take'))) {
+        return false;
+    }
+    return Execution.delayUntil(() => heldId(IKOV_OBJ.LEVER) > 0, 8000);
+}
+
+/** Cross the lava, take the Lever, cross back. */
+export async function fetchIkovLever(log: (m: string) => void): Promise<boolean> {
+    if (heldId(IKOV_OBJ.LEVER) > 0) {
+        const held = Game.tile();
+        return held !== null && westOfBridge(held) ? crossBridge(false, log) : true;
+    }
+    const here = Game.tile();
+    if (!here) {
+        return false;
+    }
+    if (!westOfBridge(here)) {
+        if (!(await escapePocket(log))) {
+            return false;
+        }
+        if (!(await wearFearPendant(log))) {
+            return false;
+        }
+        if (!(await crossBridge(true, log))) {
+            return false;
+        }
+    }
+    if (!(await takeIkovLever(log))) {
+        return false;
+    }
+    return crossBridge(false, log);
+}
+
+/** Fit the Lever into its bracket and pull it; the south gate opens off the bit it sets. */
+export async function mendAndPullLever(log: (m: string) => void): Promise<boolean> {
+    if (!(await escapePocket(log))) {
+        return false;
+    }
+    if (!(await templeWalk(IKOV_TILE.LEVER_BRACKET, 1, log))) {
+        return false;
+    }
+    await settleScene();
+    if (heldId(IKOV_OBJ.LEVER) > 0) {
+        const bracket = locById(IKOV_LOC.LEVER_BRACKET, 6);
+        const lever = Inventory.items().find(i => i.id === IKOV_OBJ.LEVER);
+        if (!bracket || !lever) {
+            log('ikov: no lever bracket in reach');
+            return false;
+        }
+        log('ikov: fitting the lever into the bracket');
+        if (!(await lever.useOn(bracket))) {
+            return false;
+        }
+        if (!(await Execution.delayUntil(() => heldId(IKOV_OBJ.LEVER) === 0, 8000))) {
+            return false;
+        }
+    }
+    const mended = locById(IKOV_LOC.MENDED_LEVER, 6);
+    if (!mended) {
+        log('ikov: the bracket carries no lever to pull');
+        return false;
+    }
+    log('ikov: pulling the mended lever');
+    if (!(await mended.interact('Pull'))) {
+        return false;
+    }
+    await Execution.delayTicks(6);
+    return true;
+}
+
+async function searchChest(chest: Tile, log: (m: string) => void): Promise<boolean> {
+    if (!(await templeWalk(chest, 2, log))) {
+        return false;
+    }
+    await settleScene();
+    const shut = Locs.query().where(l => l.id === IKOV_LOC.CHEST_SHUT).within(4).nearest();
+    if (shut) {
+        if (!(await shut.interact('Open'))) {
+            return false;
+        }
+        await Execution.delayTicks(2);
+    }
+    const open = Locs.query().where(l => l.id === IKOV_LOC.CHEST_OPEN).within(4).nearest();
+    if (!open) {
+        log(`ikov: no chest at (${chest.x},${chest.z})`);
+        return false;
+    }
+    const before = Inventory.count(IKOV_NAME.ICE_ARROWS);
+    if (!(await open.interact('Search'))) {
+        return false;
+    }
+    const found = await Execution.delayUntil(() => Inventory.count(IKOV_NAME.ICE_ARROWS) > before, 5000);
+    if (found) {
+        log(`ikov: ${Inventory.count(IKOV_NAME.ICE_ARROWS)} ice arrows`);
+    }
+    return found;
+}
+
+// Why: one chest holds the arrows and it is re-rolled after every find, so the round trip is the search rather than any single chest.
+export async function searchIceChests(log: (m: string) => void): Promise<boolean> {
+    for (const chest of ICE_CHESTS) {
+        await Sustain.run();
+        if (Inventory.count(IKOV_NAME.ICE_ARROWS) >= ARROWS_WANTED) {
+            return true;
+        }
+        if (await searchChest(chest, log)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Why: `%ikov_dungeon` is untransmitted, so whether the south gate opens is the only client-visible answer to "has the lever been pulled".
+async function enterIceCavern(log: (m: string) => void): Promise<boolean> {
+    const here = Game.tile();
+    if (here && inIceCavern(here)) {
+        return true;
+    }
+    if (!(await templeWalk(IKOV_TILE.SOUTH_GATE_NORTH, 0, log))) {
+        return false;
+    }
+    await DirectNavigator.walkTo(IKOV_TILE.SOUTH_GATE_SOUTH, 0, 8000);
+    if (crossedIntoCavern()) {
+        await settleScene();
+        return true;
+    }
+    const gate = locById(IKOV_LOC.SOUTH_GATE_LEFT, 4) ?? locById(IKOV_LOC.SOUTH_GATE_RIGHT, 4);
+    if (gate && (await gate.interact('Open'))) {
+        await DirectNavigator.walkTo(IKOV_TILE.SOUTH_GATE_SOUTH, 0, 8000);
+    }
+    if (!crossedIntoCavern()) {
+        return false;
+    }
+    await settleScene();
+    return true;
+}
+
+function crossedIntoCavern(): boolean {
+    const t = Game.tile();
+    return t !== null && inIceCavern(t);
+}
+
+export function leaveTemple(log: (m: string) => void): Promise<boolean> {
+    return Traversal.walkResilient(IKOV_TILE.TEMPLE_LADDER, {
+        radius: 2,
+        attempts: 3,
+        timeoutMs: WALK_MS,
+        avoidZones: [LAVA_BRIDGE_ZONE],
+        log
+    });
+}
+
+// Why: a stack of two to five arrows carries its own object id, and all five share one display name — so arrows are counted by name, never by id.
+export function arrowsSecured(snap: QuestSnapshot): boolean {
+    const key = IKOV_NAME.ICE_ARROWS.toLowerCase();
+    if (snap.worn.has(key)) {
+        return true;
+    }
+    return (snap.inv.get(key) ?? 0) + (snap.bank?.get(key) ?? 0) >= ARROWS_WANTED;
+}
+
+/** The dungeon errand that has to happen before the Fire Warrior can be fought, or null when none is left. */
+export function dungeonPrepStep(snap: QuestSnapshot): QuestStep | null {
+    if (!wearingBoots() && heldOrBanked(snap, IKOV_OBJ.BOOTS) === 0) {
+        return { kind: 'custom', name: 'fetch the boots of lightness', run: fetchBoots };
+    }
+    if (arrowsSecured(snap)) {
+        return null;
+    }
+    return { kind: 'custom', name: 'stock ice arrows from the temple chests', run: iceArrowLeg };
+}
+
+/** Boots, then the south gate; a gate that refuses is what sends the leg after the lever. */
+export async function iceArrowLeg(log: (m: string) => void): Promise<boolean> {
+    if (!(await escapePocket(log))) {
+        return false;
+    }
+    if (!(await fetchBoots(log))) {
+        return false;
+    }
+    if (!(await enterIceCavern(log))) {
+        log('ikov: the south gate is still locked — fetching the lever across the lava');
+        if (!(await fetchIkovLever(log))) {
+            return false;
+        }
+        if (!(await mendAndPullLever(log))) {
+            return false;
+        }
+        if (!(await enterIceCavern(log))) {
+            log('ikov: the south gate refused even after the lever was pulled');
+            return false;
+        }
+    }
+    return searchIceChests(log);
+}
