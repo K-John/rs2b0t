@@ -1,3 +1,4 @@
+import { EventSignal } from '../../../../execution/EventSignal.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { GroundItems, type GroundItem } from '../../../../grounditems/GroundItems.js';
@@ -55,7 +56,10 @@ const DISGUISE: readonly Purchasable[] = [
     }
 ];
 
-const LURE_WAIT_MS = 60_000;
+/** How long one pass keeps re-luring before the engine gets its turn back. */
+const LURE_MS = 150_000;
+/** How long a single lure holds Grip on the row before he walks home. */
+const LURE_HOLD_MS = 12_000;
 const GROUND_RANGE = 12;
 
 /** The disguise, in whatever state it is in: bought, withdrawn, then worn. */
@@ -93,13 +97,14 @@ function keyringOnFloor(): GroundItem | null {
     return GroundItems.query().where(g => g.id === HERO_ID.GRIP_KEYS).within(GROUND_RANGE).nearest();
 }
 
-function gripLured(): boolean {
+// Why: the rival's shot needs Grip on the arrow slit's own row and nothing else, so this is the same
+// test the snipe uses — anywhere else on the way there is not a lure that helps.
+function gripOnTheRow(): boolean {
     const grip = Npcs.query().where(n => n.id === HERO_NPC.GRIP).nearest();
-    if (!grip) {
-        return false;
-    }
-    const tile = grip.tile();
-    return tile !== null && Math.max(Math.abs(tile.x - HERO_TILE.GRIP_LURE.x), Math.abs(tile.z - HERO_TILE.GRIP_LURE.z)) <= 2;
+    const tile = grip?.tile();
+    return !!tile
+        && tile.z === HERO_TILE.GRIP_LURE.z
+        && Math.abs(tile.x - HERO_TILE.GRIP_LURE.x) <= 3;
 }
 
 async function takeKeyring(log: (m: string) => void): Promise<boolean> {
@@ -122,7 +127,11 @@ async function takeKeyring(log: (m: string) => void): Promise<boolean> {
 // Grip through the arrow slit — and only reaches him at all while the drinks cabinet has walked him
 // onto that row. The lure is repeatable: the open cabinet's Search re-runs `summon_grip`.
 
-/** Walk Grip to the arrow slit, wait for the rival to drop him, and take the keyring. */
+// Why: `summon_grip` walks Grip six tiles and `npc_setmode(null)` six ticks later turns him round, so
+// one lure puts him on the row for a couple of seconds. The rival needs him there when its own click
+// lands, which means luring on a loop rather than once and waiting.
+
+/** Walk Grip to the arrow slit over and over until the rival drops him, then take the keyring. */
 export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<boolean> {
     if (Inventory.countById(HERO_ID.GRIP_KEYS) > 0) {
         return true;
@@ -133,38 +142,49 @@ export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<
     if (await takeKeyring(log)) {
         return true;
     }
-    const openCabinet = (): boolean => Locs.query().within(6).where(l => l.id === HERO_LOC.CABINET_OPEN).nearest() !== null;
-    const shut = !openCabinet();
-    // Why: `summon_grip` does nothing at all unless a pirate guard is within four tiles of the player —
-    // no dialogue, no walk, no refusal — so the guard is worth naming when the lure comes up empty.
-    const guard = Npcs.query().where(n => n.id === HERO_NPC.PIRATE_GUARD).within(4).nearest();
-    const lured = await promptLoc({
-        name: 'Cupboard',
-        op: shut ? 'Open' : 'Search',
-        near: HERO_TILE.CABINET_STAND,
-        id: shut ? HERO_LOC.CABINET_SHUT : HERO_LOC.CABINET_OPEN,
-        within: 6,
-        prefer: [HERO_SAY.CABINET_PEEK],
-        expect: () => gripLured() || keyringOnFloor() !== null,
-        expectMs: 20_000
-    }, log);
-    const grip = Npcs.query().where(n => n.id === HERO_NPC.GRIP).nearest();
-    const at = grip?.tile();
-    log(`lure: ${shut ? 'opened' : 'searched'} the cabinet=${lured}`
-        + ` guard=${guard ? 'near' : 'MISSING'}`
-        + ` grip=${at ? `${at.x},${at.z}` : 'not in scene'}`
-        + ` (want ${HERO_TILE.GRIP_LURE.x},${HERO_TILE.GRIP_LURE.z})`);
-    await Modals.close();
-    // Why: the partner's kill is not this client's work, so the wait is wall-clock and bounded — a
-    // pass that times out re-lures, which is what a Grip who walked home needs anyway.
-    await Execution.delayUntil(() => keyringOnFloor() !== null, LURE_WAIT_MS);
+    const deadline = performance.now() + LURE_MS;
+    let lures = 0;
+    let reported = false;
+    while (performance.now() < deadline && keyringOnFloor() === null) {
+        if (EventSignal.pending()) {
+            log('lure: yielding to a random event');
+            return false;
+        }
+        const open = Locs.query().within(6).where(l => l.id === HERO_LOC.CABINET_OPEN).nearest() !== null;
+        // Why: `summon_grip` does nothing at all unless a pirate guard is within four tiles of the
+        // player — no dialogue, no walk, no refusal — so the guard is worth naming when nothing happens.
+        const guard = Npcs.query().where(n => n.id === HERO_NPC.PIRATE_GUARD).within(4).nearest();
+        const acted = await promptLoc({
+            name: 'Cupboard',
+            op: open ? 'Search' : 'Open',
+            near: HERO_TILE.CABINET_STAND,
+            id: open ? HERO_LOC.CABINET_OPEN : HERO_LOC.CABINET_SHUT,
+            within: 6,
+            prefer: [HERO_SAY.CABINET_PEEK],
+            expect: () => gripOnTheRow() || keyringOnFloor() !== null,
+            expectMs: LURE_HOLD_MS
+        }, log);
+        lures++;
+        if (!reported) {
+            const at = Npcs.query().where(n => n.id === HERO_NPC.GRIP).nearest()?.tile();
+            log(`lure: ${open ? 'searched' : 'opened'} the cabinet=${acted} guard=${guard ? 'near' : 'MISSING'}`
+                + ` grip=${at ? `${at.x},${at.z}` : 'not in scene'}`
+                + ` (want the row z=${HERO_TILE.GRIP_LURE.z})`);
+            reported = true;
+        }
+        await Modals.close();
+        // Why: the rival's shot is not this client's work, so this waits out one hold and lures again.
+        await Execution.delayUntil(() => keyringOnFloor() !== null, LURE_HOLD_MS);
+    }
     if (await takeKeyring(log)) {
+        log(`Grip dropped his keyring after ${lures} lures`);
         HeroHandoffState.lureFailures = 0;
         return true;
     }
     // Why: a rival that never turned up may have died holding the spare key, and Grip will only issue
     // another once this bot is empty-handed — so a run of fruitless lures re-opens the fetch.
     HeroHandoffState.lureFailures++;
+    log(`no keyring after ${lures} lures — the rival may not be at the arrow slit yet`);
     return false;
 }
 
