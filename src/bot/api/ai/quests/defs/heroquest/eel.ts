@@ -7,12 +7,14 @@ import { Locs } from '../../../../locs/Locs.js';
 import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { Traversal } from '../../../../walking/Traversal.js';
-import { combineById, talkAndClose } from '../../exec/legs.js';
+import { combineById, talkUntil } from '../../exec/legs.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { GERRANT, HERO_ID, HERO_NAMED, HERO_NPC, HERO_SHOP, HERO_TILE } from './areas.js';
-import { anywhere, bankedId, heldId, liveItem } from './state.js';
+import { anywhere, bankedId, foodName, heldFood, heldId, liveItem } from './state.js';
 
 const BAIT_TARGET = 60;
+/** Chaos druids are level 13, but twenty-five of them add up with no food in the pack. */
+const DRUID_FOOD = 8;
 const DRUID_MS = 600_000;
 const FISH_MS = 300_000;
 const RANGE_MS = 30_000;
@@ -146,9 +148,12 @@ export async function cookLavaEel(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => Inventory.countById(HERO_ID.LAVA_EEL) > 0, RANGE_MS);
 }
 
+// Why: the slime lands between a `~mesbox` and a `~chatnpc`, and a chat-only driver stalls on that
+// modal — the count in the pack is the only oracle that sees past it.
+
 /** Gerrant hands the slime over once, and only while none of slime, oil or oiled rod exists anywhere. */
 export function askGerrantForSlime(log: (m: string) => void): Promise<boolean> {
-    return talkAndClose(GERRANT, GERRANT.prefer, log);
+    return talkUntil(GERRANT, GERRANT.prefer, () => Inventory.countById(HERO_ID.SLIME) > 0, log, 60_000);
 }
 
 /**
@@ -231,6 +236,9 @@ export function eelStep(snap: QuestSnapshot): QuestStep | null {
     }
     if (bankedId(snap, HERO_ID.UNID_HARRALANDER) > 0) {
         return withdraw(HERO_NAMED.UNID_HERB, 1, HERO_ID.UNID_HARRALANDER);
+    }
+    if (heldFood(snap) < DRUID_FOOD) {
+        return { kind: 'withdraw', items: [{ name: foodName(), qty: DRUID_FOOD * 2 }] };
     }
     return { kind: 'custom', name: 'farm chaos druids for a harralander', run: farmHarralander };
 }

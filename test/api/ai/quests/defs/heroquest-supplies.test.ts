@@ -118,9 +118,16 @@ describe('the lava eel chain', () => {
         expect(name(eelStep(snap({ invIds: new Map([[HERO_ID.UNID_HARRALANDER, 1]]) })))).toContain('identify');
     });
 
+    // Why: twenty-five level-13 druids add up with no food in the pack.
+    test('an empty pack withdraws food before the druids', () => {
+        QuestFood.name = 'Lobster';
+        expect(eelStep(snap())).toMatchObject({ kind: 'withdraw' });
+    });
+
     // Why: nothing sells harralander and it has no ground spawn, so the druids are the only source.
-    test('an empty pack farms chaos druids', () => {
-        expect(name(eelStep(snap()))).toContain('chaos druids');
+    test('a fed pack farms chaos druids', () => {
+        QuestFood.name = 'Lobster';
+        expect(name(eelStep(snap({ inv: new Map([['lobster', 16]]) })))).toContain('chaos druids');
     });
 });
 

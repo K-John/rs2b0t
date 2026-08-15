@@ -10,10 +10,9 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { fight } from '../trollstronghold/combat.js';
 import { talkThrough } from '../../exec/primitives.js';
-import { QuestFood } from '../../food.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { HERO_ID, HERO_NAMED, HERO_NPC, HERO_SHOP, HERO_TILE, onEntrana } from './areas.js';
-import { anywhere, bankedId, heldId, wornId } from './state.js';
+import { anywhere, bankedId, foodName, heldFood, heldId, wornId } from './state.js';
 
 // Why: the Ice Queen is level 111 with 104 hitpoints and hits through anything less; the kit is bought
 // on the Champions' Guild upper floor, where Valaine's shop already takes the Black Arm bot.
@@ -26,14 +25,6 @@ const COMBAT_KIT = [
 const FOOD_TARGET = 12;
 const FIREBIRD_MS = 90_000;
 const ICE_QUEEN_TICKS = 600;
-
-function foodName(): string {
-    return QuestFood.name ?? 'Lobster';
-}
-
-function heldFood(snap: QuestSnapshot): number {
-    return snap.inv.get(foodName().toLowerCase()) ?? 0;
-}
 
 /** Everything Entrana's monks allow: the gloves carry no `armour_*` category, coins and food never did. */
 function entranaKeep(): string[] {

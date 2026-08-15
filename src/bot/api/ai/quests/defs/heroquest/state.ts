@@ -1,5 +1,6 @@
 import { reader } from '../../../../../adapter/ClientAdapter.js';
 import { Inventory, type InvItem } from '../../../../inventory/Inventory.js';
+import { QuestFood } from '../../food.js';
 import type { QuestSnapshot } from '../../engine/types.js';
 
 // Why: Key, Herb, Chest and Door each name more than one object, so a name lookup silently accepts the wrong one.
@@ -30,4 +31,16 @@ export function liveItem(id: number): InvItem | null {
 /** Whether the open main modal says something. */
 export function modalSaid(pattern: RegExp): boolean {
     return reader.mainModalTexts().some(line => pattern.test(line));
+}
+
+// Why: `QuestFood.name` is the host's setting and is only correct at decide time, never at import.
+
+/** The food the host chose, or the lobsters this quest defaults to. */
+export function foodName(): string {
+    return QuestFood.name ?? 'Lobster';
+}
+
+/** How much of it is carried. `snap.inv` is keyed by lower-cased display name. */
+export function heldFood(snap: QuestSnapshot): number {
+    return snap.inv.get(foodName().toLowerCase()) ?? 0;
 }
