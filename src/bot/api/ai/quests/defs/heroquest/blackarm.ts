@@ -135,7 +135,10 @@ export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<
     }
     const openCabinet = (): boolean => Locs.query().within(6).where(l => l.id === HERO_LOC.CABINET_OPEN).nearest() !== null;
     const shut = !openCabinet();
-    await promptLoc({
+    // Why: `summon_grip` does nothing at all unless a pirate guard is within four tiles of the player —
+    // no dialogue, no walk, no refusal — so the guard is worth naming when the lure comes up empty.
+    const guard = Npcs.query().where(n => n.id === HERO_NPC.PIRATE_GUARD).within(4).nearest();
+    const lured = await promptLoc({
         name: 'Cupboard',
         op: shut ? 'Open' : 'Search',
         near: HERO_TILE.CABINET_STAND,
@@ -145,6 +148,12 @@ export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<
         expect: () => gripLured() || keyringOnFloor() !== null,
         expectMs: 20_000
     }, log);
+    const grip = Npcs.query().where(n => n.id === HERO_NPC.GRIP).nearest();
+    const at = grip?.tile();
+    log(`lure: ${shut ? 'opened' : 'searched'} the cabinet=${lured}`
+        + ` guard=${guard ? 'near' : 'MISSING'}`
+        + ` grip=${at ? `${at.x},${at.z}` : 'not in scene'}`
+        + ` (want ${HERO_TILE.GRIP_LURE.x},${HERO_TILE.GRIP_LURE.z})`);
     await Modals.close();
     // Why: the partner's kill is not this client's work, so the wait is wall-clock and bounded — a
     // pass that times out re-lures, which is what a Grip who walked home needs anyway.

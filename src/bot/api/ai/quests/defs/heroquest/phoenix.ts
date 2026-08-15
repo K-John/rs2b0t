@@ -73,18 +73,20 @@ function keyringOnFloor(): boolean {
     return GroundItems.query().where(g => g.id === HERO_ID.GRIP_KEYS).within(GROUND_RANGE).nearest() !== null;
 }
 
-function gripInRange(): Npc | null {
+// Why: Grip's own spawn is six tiles from the slit, which is inside bow range and behind three walls —
+// clicking him there spends every tick on an attack the server drops. The only line is the slit's own
+// row, which is where the rival's drinks cabinet walks him.
+function gripOnTheRow(): Npc | null {
     const target = grip();
-    if (!target) {
-        return null;
-    }
-    const tile = target.tile();
     const here = Game.tile();
-    if (!tile || !here || tile.level !== here.level) {
+    const tile = target?.tile();
+    if (!target || !tile || !here || tile.level !== here.level) {
         return null;
     }
-    const away = Math.max(Math.abs(tile.x - here.x), Math.abs(tile.z - here.z));
-    return away <= SNIPE_RANGE ? target : null;
+    if (tile.z !== HERO_TILE.ARROW_SLIT.z || here.z !== HERO_TILE.ARROW_SLIT.z) {
+        return null;
+    }
+    return Math.abs(tile.x - here.x) <= SNIPE_RANGE ? target : null;
 }
 
 /** Kitchen, secret panel, garden, yard, side door, arrow slit. */
@@ -124,7 +126,7 @@ export async function snipeGrip(log: (m: string) => void): Promise<boolean> {
             return true;
         }
         await Sustain.run();
-        const target = gripInRange();
+        const target = gripOnTheRow();
         if (!target) {
             if (!waited) {
                 log('waiting for the rival to walk Grip onto the arrow slit row');
@@ -139,6 +141,9 @@ export async function snipeGrip(log: (m: string) => void): Promise<boolean> {
             continue;
         }
         if (await target.interact('Attack')) {
+            if (swings === 0) {
+                log('Grip is on the row — shooting through the arrow slit');
+            }
             attacking = target.index;
             swings++;
         }

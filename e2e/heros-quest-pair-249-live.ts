@@ -7,7 +7,8 @@
  *  `rs2b0t:set:<Script>:<key>` and a shared context would cross-contaminate the two bots. */
 
 //   HEADED=1 bun e2e/heros-quest-pair-249-live.ts --tick 300 --minutes 150
-//   HEADED=1 bun e2e/heros-quest-pair-249-live.ts --stage armband --minutes 60
+//   HEADED=1 bun e2e/heros-quest-pair-249-live.ts --stage armband --minutes 75
+//   HEADED=1 bun e2e/heros-quest-pair-249-live.ts --stage grip --minutes 20
 import type { Page } from 'playwright-core';
 
 import { deployIsolatedClient, launchBrowser } from './lib/harness.js';
@@ -30,7 +31,7 @@ interface Args {
     minutes: number;
     tickMs: number;
     stats: number;
-    stage: 'armband' | 'full';
+    stage: 'grip' | 'armband' | 'full';
     deploy: boolean;
 }
 
@@ -55,7 +56,9 @@ function parse(argv: string[]): Args {
         else if (flag === '--minutes') { out.minutes = Number(value); }
         else if (flag === '--tick') { out.tickMs = Number(value); }
         else if (flag === '--stats') { out.stats = Number(value); }
-        else if (flag === '--stage') { out.stage = value === 'armband' ? 'armband' : 'full'; }
+        else if (flag === '--stage') {
+            out.stage = value === 'armband' || value === 'grip' ? value : 'full';
+        }
     }
     return out;
 }
@@ -69,6 +72,21 @@ function fail(msg: string): never {
 
 const QUEST = "Hero's Quest";
 const VARROCK_WEST_BANK = { x: 3185, z: 3440, level: 0 };
+/** The street outside the Shrimp and Parrot, which is where both bots meet to trade. */
+const BRIMHAVEN = { x: 2793, z: 3180, level: 0 };
+
+// Why: the walk-and-shop half of this quest takes ten minutes a side and is proven on its own; the
+// two-bot dance is the part worth iterating on, so `--stage grip` starts on its doorstep.
+const GRIP_STAGE: Record<'phoenix' | 'blackarm', number> = { phoenix: 4, blackarm: 11 };
+const GRIP_SEED: Record<'phoenix' | 'blackarm', BankSeedItem[]> = {
+    phoenix: [
+        { debugName: 'oak_longbow', displayName: 'Oak longbow', qty: 1 },
+        { debugName: 'steel_arrow', displayName: 'Steel arrow', qty: 150 }
+    ],
+    // Why: at stage 11 Garv's door is already unlocked, so the disguise has done its job and Grip
+    // re-issues the spare key to anyone who asks.
+    blackarm: []
+};
 
 // Why: coins and food only — every other quest item has a source the module walks to.
 // Why: the ice gloves are the one exception, and they are seeded because the Ice Queen's lair has no
@@ -164,11 +182,16 @@ async function bringUp(page: Page, user: string, gang: 'phoenix' | 'blackarm', p
     // Why: `%qp` is summed from the quest varps by the login proc in `general/scripts/quests.rs2`, so a
     // value set before the relog is thrown away and one set after it survives the session.
     await cheatQuiet(page, 'setvar qp 55');
-    await seedItemsToBank(page, BANK_SEED, VARROCK_WEST_BANK);
-    if (!(await teleTo(page, VARROCK_WEST_BANK, 10, 25_000))) {
+    const seed = args.stage === 'grip' ? [...BANK_SEED, ...GRIP_SEED[gang]] : BANK_SEED;
+    await seedItemsToBank(page, seed, VARROCK_WEST_BANK);
+    if (args.stage === 'grip') {
+        await cheatQuiet(page, `setvar heroquest ${GRIP_STAGE[gang]}`);
+    }
+    const start = args.stage === 'grip' ? BRIMHAVEN : VARROCK_WEST_BANK;
+    if (!(await teleTo(page, start, 10, 25_000))) {
         await clearChatDialogs(page, 'pre-tele dialog(s)');
-        if (!(await teleTo(page, VARROCK_WEST_BANK, 10, 25_000))) {
-            fail(`tele to the Varrock West bank failed for '${user}'`);
+        if (!(await teleTo(page, start, 10, 25_000))) {
+            fail(`tele to the start tile failed for '${user}'`);
         }
     }
     await setHero(page, gang, partner);
@@ -229,7 +252,7 @@ try {
             }
         }
 
-        if (args.stage === 'armband') {
+        if (args.stage === 'armband' || args.stage === 'grip') {
             if ((pHero ?? 0) >= ARMBAND.P && (bHero ?? 0) >= ARMBAND.B) {
                 console.log(`PASS (armband: phoenix heroquest=${pHero}, blackarm heroquest=${bHero}, ${Math.round(t / 60)}min)`);
                 process.exit(0);

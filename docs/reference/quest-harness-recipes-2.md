@@ -152,6 +152,11 @@ Prerequisites are set rather than earned: `zanaris`, `dragonquest`, `arthur`, `q
 one of `phoenixgang 10` / `blackarmgang 4`. Setting both gang varps offers a bot both sides of the
 quest, which is not a state any account reaches.
 
+Shop stock is world state, so back-to-back runs contend for it: the third field of a `stock<N>=`
+line is the restock rate in ticks, and Valaine's black platelegs are 20 000 of them — nearly two
+hours at `--tick 300`. The disguise names Louie in Al Kharid first for that reason, and a run that
+finds a shelf empty waits rather than fails.
+
 The bank seed is coins, lobsters and **ice gloves**. The gloves are the one seeded quest item, and
 the reason is in [Hero's Quest pitfalls](../decisions/quest-pitfalls-8.md): every ladder into the
 Ice Queen's lair stands on a plateau the map flags seal, so nothing can walk to the only source of
