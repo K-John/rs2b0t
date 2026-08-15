@@ -475,7 +475,17 @@ export const QUESTS: QuestRecord[] = [
     },
     {
         id: 'mortton', name: 'Shades of Mortton', questPoints: 3,
-        requirements: {},
+        requirements: {
+            skills: [
+                { skill: 'crafting', level: 20 },
+                { skill: 'herblore', level: 15 },
+                { skill: 'firemaking', level: 5 }
+            ],
+            quests: ['priestperil']
+        },
+        // The diary, the herbs, the vials and every building material are sourced in
+        // Mort'ton; the module owns its own loadout and draws coins, food, a tinderbox
+        // and the logs itself.
         items: []
     },
     {

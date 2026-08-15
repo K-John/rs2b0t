@@ -40,6 +40,49 @@ Four details govern this harness:
   The engine serves one `public/bot`, and a concurrent session that deploys while this
   harness boots hands the run their branch instead.
 
+## Shades of Mort'ton — stage-scoped harness
+
+[`e2e/mortton-255-live.ts`](../../e2e/mortton-255-live.ts), members-only, so `:8890`:
+
+```sh
+HEADED=1 bun e2e/mortton-255-live.ts --stage 0 --until 85 --minutes 180 --tick 200  # end to end
+HEADED=1 bun e2e/mortton-255-live.ts --stage 0 --until 15 --minutes 45 --tick 200   # diary, serum, Razmire
+HEADED=1 bun e2e/mortton-255-live.ts --stage 15 --until 47 --minutes 45 --tick 200  # five shades and the handover
+HEADED=1 bun e2e/mortton-255-live.ts --stage 47 --until 65 --minutes 60 --tick 200  # the temple and the flame
+HEADED=1 bun e2e/mortton-255-live.ts --stage 65 --until 85 --minutes 45 --tick 200  # the cremation
+```
+
+Every mid-quest leg wants `--stocked`: the coins, food, tinderbox, ashes, spare
+log and melee kit are all assembled around Varrock, and a leg that only means to
+test Mort'ton otherwise spends its budget walking there and back. Leave it off
+for anything claiming the quest works from nothing.
+
+Five things it does that the Nature Spirit shape does not:
+
+- **Levels, not `~maxme`.** `--levels 70` (the default) walks every skill up with
+  `~addxp`, because the temple's build rolls and its resource bands are all
+  `stat_random(crafting, …)` — a maxed account rebuilds it on numbers the module
+  is not claiming. `~addxp` takes **plain xp**, not the engine's internal tenths,
+  even though the `stat_advance` it wraps takes tenths.
+- **Sets three prerequisites.** Priest in Peril walls Morytania off, and the
+  Mort Myre gate guard refuses while `%druidspirit` is 0, so `prieststart`,
+  `priestperil` and `druidspirit` all go in and the run relogs.
+- **Gives five sets of remains from `--stage 40` on.** Razmire wants five in one
+  pack before he takes any, so a stage seeded past the hunt otherwise describes a
+  state the quest cannot reach.
+- **Prints the three flamtaer meters on every poll** (`temple=repaired%/pool%/sanctity%`).
+  They are the only transmitted varps this quest has — `%morttonquest` is not one —
+  and they are what the temple leg reads.
+- **`--stocked` gives a mid-quest start the approach pack.** Coins, food, a
+  tinderbox, two ashes, the pyre log and the melee kit, which is what the Varrock
+  leg of a stage-0 run assembles.
+
+The bank holds coins, food and a melee kit. Everything else has a source in the
+world: the diary and the two tarromin are in Herbi Flax's house, the empty vials
+are ground spawns beside them, the water is the Mort'ton sink, the logs are the
+two spawns beside the Varrock east bank, the tinderbox is the Varrock general
+store, and every building material is Razmire's.
+
 ## Shield of Arrav
 
 Two harnesses, because one account cannot finish the quest.
