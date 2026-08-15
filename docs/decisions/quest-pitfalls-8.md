@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Thirty, and the first three are engine behaviour the quest only happens to expose.
+Thirty-one, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -124,6 +124,11 @@ Thirty, and the first three are engine behaviour the quest only happens to expos
   produced four "I can't reach that!" and the leg spent every ledge it had. Ask for a Manhattan distance of
   one when the op has to reach.
 
+- **Iban's temple has no floor in the collision pack.** A flood over x 2130-2143 by z 4640-4655 at level 1
+  finds one isolated tile: not the altar, not Iban's own tile, not the tile the doors force-move the player
+  onto. So every distance-based approach inside answers "unreachable" from a tile the character is standing
+  on. Nothing there needs walking to — the doors are the entry and a use-on-loc is the throw, both of which
+  leave the pathing to the server, which is the only thing in the temple that can see the ground.
 - **Getting in is not getting out.** Kardia's house is a sealed fifteen-tile pocket — a flood from inside
   gives x 2151-2157 by z 4565-4567 and stops at her door, because the collision pack calls a door tile
   blocked. The doll is in there, so the leg that lifts it ends shut in, and every step after it answers

@@ -1,3 +1,4 @@
+import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Equipment } from '../../../../equipment/Equipment.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
@@ -264,10 +265,11 @@ export async function openIbanDoor(log: (m: string) => void): Promise<boolean> {
                 log("the doors on Iban's temple would not open");
                 return false;
             }
-            await driveUntil(() => locById(UP_LOC.IBAN_DOOR_L, null, 8) === null
-                && locById(UP_LOC.IBAN_DOOR_R, null, 8) === null, [], log, 12_000);
+            // Why: the script force-moves the player a tile west as it opens, so the door is the entry —
+            // there is no walk to make afterwards, and nothing to make it on. A flood of the pack over the
+            // temple finds no walkable floor at all, the altar and Iban's own tile included.
+            await driveUntil(() => insideIbanTemple(Game.tile()), [], log, 12_000);
         }
-        await walkTo(UP_TILE.IBAN_ALTAR, 3, log);
     }
     if (insideIbanTemple(Game.tile())) {
         return true;
@@ -279,18 +281,30 @@ export async function openIbanDoor(log: (m: string) => void): Promise<boolean> {
 
 /** The doll into the pit of the damned. */
 export async function throwDoll(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.IBAN_ALTAR, 3, log))) {
+    if (!insideIbanTemple(Game.tile())) {
+        const at = Game.tile();
+        log(`not in the temple to throw the doll — standing at (${at?.x},${at?.z})`);
         return false;
     }
     await settleScene();
-    const altar = locById(UP_LOC.IBAN_ALTAR, null, 8);
+    // Why: no walk first. The temple floor is not in the collision pack, so any radius-based approach
+    // reports unreachable from a tile the character is already standing on. A use-on-loc leaves the pathing
+    // to the server, which is the only thing here that can see the floor.
+    const altar = locById(UP_LOC.IBAN_ALTAR, null, 16);
     const doll = Inventory.items().find(item => item.id === UP_ITEM.DOLL.id);
     if (!altar || !doll) {
-        log(`missing ${altar ? 'the doll of Iban' : 'the temple altar'}`);
+        log(`missing ${altar ? 'the doll of Iban' : 'the well of the damned'}`);
         return false;
     }
+    const mark = GameMessages.mark();
     if (!(await doll.useOn(altar))) {
+        log('the doll would not go on the well');
         return false;
     }
-    return driveUntil(() => heldId(UP_ITEM.DOLL.id) === 0, [], log, 30_000);
+    if (await driveUntil(() => heldId(UP_ITEM.DOLL.id) === 0, [], log, 30_000)) {
+        return true;
+    }
+    const said = GameMessages.since(mark).map(m => m.text).filter(t => !t.startsWith('get ')).slice(-3).join(' / ');
+    log(`the well kept the doll — said: ${said || 'nothing'}`);
+    return false;
 }
