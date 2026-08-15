@@ -201,15 +201,25 @@ export const UP_TILE = {
 
 // Why: `[timer,upass_trap]` fires on the spear traps and the double spring traps whenever the player stands
 // on one, and the navigator routes straight over them — a full orb sweep took enough of that to kill outright
-// at 70 hitpoints with eighteen lobsters. These rects are the trap tiles from `upass.loc`, given to every
-// walk inside the pass so the route goes round rather than through.
+// at 70 hitpoints with eighteen lobsters. These are the trap tiles from `upass.loc`, one tight rect each so
+// the router threads between them: the corridor they sit in is only a few tiles tall, and banding the whole
+// thing off would leave no route at all.
 export const UPASS_TRAP_ZONES: readonly { minX: number; maxX: number; minZ: number; maxZ: number }[] = [
-    // spear traps, area 1 corridor
-    { minX: 2429, maxX: 2445, minZ: 9674, maxZ: 9679 },
-    // double spring traps, area 1 west
-    { minX: 2392, maxX: 2420, minZ: 9673, maxZ: 9691 },
-    // spring traps by the bridge shelf
-    { minX: 2405, maxX: 2420, minZ: 9718, maxZ: 9727 }
+    { minX: 2429, maxX: 2432, minZ: 9674, maxZ: 9676 },
+    { minX: 2431, maxX: 2434, minZ: 9674, maxZ: 9676 },
+    { minX: 2434, maxX: 2437, minZ: 9674, maxZ: 9676 },
+    { minX: 2439, maxX: 2442, minZ: 9676, maxZ: 9678 },
+    { minX: 2442, maxX: 2445, minZ: 9676, maxZ: 9678 },
+    { minX: 2392, maxX: 2395, minZ: 9675, maxZ: 9677 },
+    { minX: 2395, maxX: 2398, minZ: 9676, maxZ: 9678 },
+    { minX: 2400, maxX: 2403, minZ: 9674, maxZ: 9676 },
+    { minX: 2403, maxX: 2406, minZ: 9674, maxZ: 9676 },
+    { minX: 2407, maxX: 2410, minZ: 9673, maxZ: 9675 },
+    { minX: 2415, maxX: 2418, minZ: 9688, maxZ: 9690 },
+    { minX: 2417, maxX: 2420, minZ: 9680, maxZ: 9682 },
+    { minX: 2417, maxX: 2420, minZ: 9684, maxZ: 9686 },
+    { minX: 2405, maxX: 2408, minZ: 9718, maxZ: 9720 },
+    { minX: 2405, maxX: 2408, minZ: 9724, maxZ: 9726 }
 ];
 
 export type UpassArea =
