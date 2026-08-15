@@ -122,15 +122,17 @@ export async function stealTheDoll(log: (m: string) => void): Promise<boolean> {
         if (heldId(UP_ITEM.DOLL.id) > 0) {
             return true;
         }
+        // Why: the cat first, because the chest is across the platforms and walking to it to find out she is
+        // still inside costs the trip twice. A cat that cannot be caught is not fatal — it usually means it
+        // is already sitting at her door from an earlier round — so the chest is still tried.
+        if (heldId(UP_ITEM.WITCH_CAT.id) === 0) {
+            await catchCat(log);
+        }
+        if (heldId(UP_ITEM.WITCH_CAT.id) > 0 && !(await distractWitch(log))) {
+            log('Kardia would not come to the door');
+        }
         if (await lootWitchChest(log)) {
             return true;
-        }
-        if (heldId(UP_ITEM.WITCH_CAT.id) === 0 && !(await catchCat(log))) {
-            log('no cat to draw Kardia out with');
-            return false;
-        }
-        if (!(await distractWitch(log))) {
-            log('Kardia would not come to the door');
         }
     }
     return heldId(UP_ITEM.DOLL.id) > 0;
