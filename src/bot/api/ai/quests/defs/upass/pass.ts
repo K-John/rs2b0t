@@ -231,10 +231,18 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
     // cavern sit behind its locked cages, closer to the target than the cages are, so the search chose them
     // first and burned eighteen seconds each proving it could not get there. The scene's own collision flags
     // answer that for free.
-    return found
-        .filter(loc => chebyshev(loc.tile(), dest) + MIN_GAIN <= chebyshev(from, dest))
-        .filter(loc => seamReachable(loc.tile()))
-        .sort((a, b) => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest));
+    // Why: and a seam can be the only way on while sitting FURTHER from the target than the character
+    // already is — the pipe into the boulder's pocket is sixteen tiles from the boulder while the character
+    // stands fourteen away on the wrong side of it. A gain threshold alone therefore cannot leave that
+    // pocket, and the run oscillated through one cage door instead. So the gain is a preference, not a
+    // filter: seams that gain come first, the rest follow, and `spent` is what stops it going in circles.
+    const reachable = found.filter(loc => seamReachable(loc.tile()));
+    const mine = chebyshev(from, dest);
+    const byDistance = (a: Loc, b: Loc): number => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest);
+    return [
+        ...reachable.filter(loc => chebyshev(loc.tile(), dest) + MIN_GAIN <= mine).sort(byDistance),
+        ...reachable.filter(loc => chebyshev(loc.tile(), dest) + MIN_GAIN > mine).sort(byDistance)
+    ];
 }
 
 function kindOf(loc: Loc): HopKind | null {
@@ -446,14 +454,25 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
  * Why: a plain `walkResilient` is tried first every round, because inside a pocket it is the right tool —
  * the obstacle search only runs once the navigator has said there is no route.
  */
+// Why: `spent` has to outlive one call. Each decide cycle starts a fresh `travelTo`, and a seam that led
+// nowhere last cycle is the nearest one again this cycle — which is how a run crossed the same cage door
+// back and forth for four minutes. It is dropped once the destination is reached or changes.
+const spentByDest = new Map<string, Set<string>>();
+
 export async function travelTo(dest: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
-    const spent = new Set<string>();
+    const destKey = `${dest.x},${dest.z},${dest.level}`;
+    if (!spentByDest.has(destKey)) {
+        spentByDest.clear();
+        spentByDest.set(destKey, new Set<string>());
+    }
+    const spent = spentByDest.get(destKey)!;
     // Why: once the navigator has said there is no route to this tile, saying it again costs a full walk
     // timeout per obstacle and changes nothing — only crossing one can change the answer.
     let navWorthTrying = true;
     for (let hop = 0; hop < MAX_HOPS; hop++) {
         const at = here();
         if (at && at.level === dest.level && dest.distanceTo(at) <= radius) {
+            spentByDest.delete(destKey);
             return true;
         }
         if (navWorthTrying) {
