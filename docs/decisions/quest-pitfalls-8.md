@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Nineteen, and the first seven are engine behaviour rather than quest facts.
+Twenty, and the first seven are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
@@ -109,6 +109,12 @@ Eight are the quest's own shape:
   back false — he stands behind the door that summoned him and the path to him is
   through it — so a "down after N shots" test gated on N spun out the full guard twice
   over a corpse. `Game.inCombat()` is what proves the fight happened.
+- **The hobgoblin camp is a crowd, and the bot fights it in boots.** Nothing this quest
+  sources is armour, so three level-42 attackers take 38 hitpoints off faster than one
+  lobster puts them back: an `eatBelowHp` of 0.55 died at twelve roots with food still in
+  the pack. The farm eats at 0.75, walks back to the booth at five lobsters rather than
+  three, and abandons a kill outright below 45% with nothing left to eat — the walk to
+  the booth is also the walk out of the camp.
 
 ## See also
 

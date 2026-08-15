@@ -246,7 +246,8 @@ export const ikov: QuestModule = {
     food: 6,
     grind: ['Hobgoblin', 'Fire Warrior of Lesarkus', 'Lucien'],
     tools: IKOV_TOOLS,
-    sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.55 },
+    // Why: the hobgoblin camp is the only unarmoured fight this quest takes and it is a crowd, so it eats at three quarters rather than at half — 0.55 left 38 hitpoints against three level-42 attackers and the bot died at twelve roots.
+    sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.75 },
     readStage: readIkovStage,
     warnReadiness: sourcingShortfall,
     observe: (snap, step) => {

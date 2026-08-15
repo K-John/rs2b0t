@@ -284,7 +284,7 @@ describe('Temple of Ikov decide', () => {
     test('a stocked pack keeps the farm running', () => {
         const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
             inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
-            invNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 4]],
+            invNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 6]],
             bankNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 10]],
             bankCoins: 0
         }));

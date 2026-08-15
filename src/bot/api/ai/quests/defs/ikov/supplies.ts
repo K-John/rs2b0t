@@ -15,7 +15,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import { Reachability } from '../../../../../event/webwalk/geometry/Reachability.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { heldId } from '../../exec/prompts.js';
-import { IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_OBJ, IKOV_TILE, ROOTS_WANTED } from './areas.js';
+import { IKOV_FOODS, IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_OBJ, IKOV_TILE, ROOTS_WANTED } from './areas.js';
 
 /** Levels the sourcing route needs but the server never gates on the quest. */
 const IKOV_SOURCING_SKILLS: readonly { skill: string; level: number }[] = [
@@ -31,7 +31,7 @@ const AMMO_SLOT = 13;
 /** Lobsters kept in the pack while grinding hobgoblins. */
 const FARM_FOOD = 10;
 /** Lobsters left in the pack before the farm walks back for more. */
-const FARM_FOOD_FLOOR = 3;
+const FARM_FOOD_FLOOR = 5;
 /** Quiver below which the bow is not worth farming with; the warrior fight leaves single digits. */
 const FARM_ARROWS = 20;
 /** Aemad's asking price for an iron axe, with headroom for his stock markup. */
@@ -40,6 +40,8 @@ const CHOP_MS = 120_000;
 const PICK_MS = 20_000;
 const KILL_MS = 60_000;
 const HOB_RADIUS = 20;
+/** Hitpoints fraction at which an unfed farm walks away rather than finishing the kill. */
+const FLEE_HP = 0.45;
 const ROOT_RADIUS = 12;
 const REACH_STEPS = 20_000;
 
@@ -160,6 +162,14 @@ function sceneReachable(tile: { x: number; z: number; level: number }): boolean 
     return Reachability.canReach(tile, { adjacentOk: true, maxSteps: REACH_STEPS });
 }
 
+/** Low enough that the next two hits could land the bot in Lumbridge, with no food to stop them. */
+function starving(): boolean {
+    const max = Skills.level('hitpoints');
+    return max > 0
+        && Skills.effective('hitpoints') <= max * FLEE_HP
+        && !IKOV_FOODS.some(food => Inventory.contains(food));
+}
+
 function hobgoblin(): Npc | null {
     return Npcs.query()
         .where(n => n.id === IKOV_NPC.HOBGOBLIN_ARMED || n.id === IKOV_NPC.HOBGOBLIN_UNARMED)
@@ -208,6 +218,11 @@ async function killHobgoblin(target: Npc, log: (m: string) => void): Promise<boo
         await Sustain.run();
         if (!live()) {
             return true;
+        }
+        // Why: the camp is a crowd and the bot fights it in nothing but boots, so an empty pack at low hitpoints is a death rather than a slow kill — handing the tick back sends the ladder to a booth, which is also the way out.
+        if (starving()) {
+            log(`ikov: ${Skills.effective('hitpoints')} hitpoints and nothing to eat — leaving the camp`);
+            return false;
         }
         await Execution.delayTicks(1);
     }
