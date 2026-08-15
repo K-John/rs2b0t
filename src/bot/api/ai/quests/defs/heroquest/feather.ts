@@ -39,6 +39,13 @@ function hasEntranaSpillover(snap: QuestSnapshot): boolean {
     return [...snap.inv.keys()].some(name => !keep.includes(name));
 }
 
+// Why: the engine lowercases both `inv` and `worn`, so a display-cased comparison here reads every
+// stripped bot as still wearing something and repeats the step until the watchdog parks it.
+function wearingAnythingElse(snap: QuestSnapshot): boolean {
+    const gloves = HERO_NAMED.ICE_GLOVES.toLowerCase();
+    return [...snap.worn].some(name => name !== gloves);
+}
+
 async function unequipAll(_log: (m: string) => void): Promise<boolean> {
     for (const item of Equipment.items()) {
         if (item.name === HERO_NAMED.ICE_GLOVES) {
@@ -210,7 +217,7 @@ export function featherStep(snap: QuestSnapshot): QuestStep | null {
     if (hasEntranaSpillover(snap)) {
         return { kind: 'deposit', keep: entranaKeep(), bank: HERO_TILE.DRAYNOR_BANK, exactKeep: true };
     }
-    if ([...snap.worn].some(name => name !== HERO_NAMED.ICE_GLOVES)) {
+    if (wearingAnythingElse(snap)) {
         return { kind: 'custom', name: 'strip the Entrana-restricted equipment', run: unequipAll };
     }
     return { kind: 'custom', name: 'sail from Port Sarim to Entrana', run: sailToEntrana };

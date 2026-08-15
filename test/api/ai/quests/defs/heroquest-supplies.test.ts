@@ -180,6 +180,27 @@ describe('the firebird feather chain', () => {
         expect(name(step)).toContain('Entrana');
     });
 
+    // Why: the engine lower-cases `worn`, so a display-cased comparison strips forever.
+    test('the gloves alone are not something to strip', () => {
+        const step = featherStep(snap({
+            invIds: new Map([[HERO_ID.ICE_GLOVES, 1]]),
+            inv: new Map([['ice gloves', 1]]),
+            worn: new Set(['ice gloves']),
+            wornIds: new Set([HERO_ID.ICE_GLOVES])
+        }));
+        expect(name(step)).toContain('Entrana');
+    });
+
+    test('worn armour is stripped before the ferry', () => {
+        const step = featherStep(snap({
+            invIds: new Map([[HERO_ID.ICE_GLOVES, 1]]),
+            inv: new Map([['ice gloves', 1]]),
+            worn: new Set(['rune platelegs']),
+            wornIds: new Set([1079])
+        }));
+        expect(name(step)).toContain('strip');
+    });
+
     test('on the island it takes the feather', () => {
         const step = featherStep(snap({
             invIds: new Map([[HERO_ID.ICE_GLOVES, 1]]),
