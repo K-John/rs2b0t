@@ -569,6 +569,14 @@ export const CASES: readonly Case[] = [
         note: 'clean account to journal complete in 23min at --tick 300, no parks'
     },
     {
+        id: 'upass-265-live',
+        harness: 'upass-265-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 90,
+        note: 'stage 0 to 2 proven live; stages 3 to 10 written but not yet run'
+    },
+    {
         id: 'plague-pipe-366-live',
         harness: 'plague-pipe-366-live.ts',
         covers: { subsystems: ['world'] },

@@ -18,8 +18,8 @@ export const UP_ITEM = {
     SHORTBOW: { id: 841, name: 'Shortbow' },
     BRONZE_ARROW: { id: 882, name: 'Bronze arrow' },
     DAMP_CLOTH: { id: 1485, name: 'Damp cloth' },
-    UNLIT_ARROW: { id: 598, name: 'Bronze arrow' },
-    LIT_ARROW: { id: 942, name: 'Bronze arrow' },
+    UNLIT_ARROW: { id: 598, name: 'Unlit arrows' },
+    LIT_ARROW: { id: 942, name: 'Lit arrows' },
     ORB1: { id: 1481, name: 'Orb of light' },
     ORB2: { id: 1482, name: 'Orb of light' },
     ORB3: { id: 1483, name: 'Orb of light' },
@@ -126,6 +126,8 @@ export const UP_LOC = {
     WALL_DOOR_R: 2049
 } as const;
 
+// Why: every tile here that fronts a loc is a STAND, not the loc's own origin — a multi-tile loc covers
+// its origin, so walking to it fails outright and the step reads as a missing loc.
 export const UP_TILE = {
     ARDOUGNE_BANK: new Tile(2655, 3283, 0),
     LATHAS: new Tile(2578, 3293, 1),
@@ -154,7 +156,7 @@ export const UP_TILE = {
     ORB3: new Tile(2385, 9685, 0),
     ORB4: new Tile(2416, 9698, 0),
     LOGTRAP: new Tile(2382, 9668, 0),
-    WELL: new Tile(2416, 9674, 0),
+    WELL: new Tile(2414, 9674, 0),
 
     AREA2_LANDING: new Tile(2423, 9660, 0),
     RAILINGS_LOOSE: new Tile(2397, 9605, 0),
@@ -165,7 +167,7 @@ export const UP_TILE = {
 
     PALADINS: new Tile(2424, 9719, 0),
     BLOODWELL: new Tile(2373, 9718, 0),
-    TEMPLE_DOOR: new Tile(2369, 9718, 0),
+    TEMPLE_DOOR: new Tile(2371, 9718, 0),
 
     MAIN_LANDING: new Tile(2173, 4725, 1),
     CAGE_DOVE: new Tile(2134, 4702, 1),

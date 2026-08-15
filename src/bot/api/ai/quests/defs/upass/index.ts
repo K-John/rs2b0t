@@ -34,7 +34,7 @@ import {
     distractWitch,
     lootWitchChest,
     wearGauntlets
-} from './main.js';
+} from './cavern.js';
 import {
     amuletsHeld,
     burnTomb,

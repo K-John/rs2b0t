@@ -74,7 +74,7 @@ export async function takeGroundOrb(orb: UpassItem, tile: Tile, log: (m: string)
 
 /** Every orb in the pack, thrown into the furnace one at a time. */
 export async function burnOrbs(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.FURNACE, 2, log))) {
+    if (!(await walkTo(UP_TILE.FURNACE, 3, log))) {
         return false;
     }
     await settleScene();
@@ -104,7 +104,7 @@ export async function burnOrbs(log: (m: string) => void): Promise<boolean> {
 
 /** The well only takes the player down once all four orbs are dark. */
 export async function enterWell(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.WELL, 2, log))) {
+    if (!(await walkTo(UP_TILE.WELL, 3, log))) {
         return false;
     }
     await settleScene();

@@ -32,7 +32,7 @@ export async function fillBrew(log: (m: string) => void): Promise<boolean> {
     if (heldId(UP_ITEM.DWARF_BREW.id) > 0) {
         return true;
     }
-    if (!(await walkTo(UP_TILE.BREW_BARREL, 1, log))) {
+    if (!(await walkTo(UP_TILE.BREW_BARREL, 3, log))) {
         return false;
     }
     await settleScene();
@@ -56,7 +56,7 @@ export async function burnTomb(log: (m: string) => void): Promise<boolean> {
     if (heldId(UP_ITEM.ASHES.id) > 0) {
         return true;
     }
-    if (!(await walkTo(UP_TILE.IBAN_TOMB, 1, log))) {
+    if (!(await walkTo(UP_TILE.IBAN_TOMB, 3, log))) {
         return false;
     }
     await settleScene();
@@ -151,7 +151,7 @@ export async function openSealedChest(log: (m: string) => void): Promise<boolean
     if (heldId(UP_ITEM.SHADOW.id) > 0) {
         return true;
     }
-    if (!(await walkTo(UP_TILE.SEALED_CHEST, 1, log))) {
+    if (!(await walkTo(UP_TILE.SEALED_CHEST, 3, log))) {
         return false;
     }
     await settleScene();
@@ -169,7 +169,7 @@ export async function searchCages(log: (m: string) => void): Promise<boolean> {
     if (heldId(UP_ITEM.DOVE.id) > 0) {
         return true;
     }
-    if (!(await walkTo(UP_TILE.CAGE_DOVE, 2, log))) {
+    if (!(await walkTo(UP_TILE.CAGE_DOVE, 3, log))) {
         return false;
     }
     await settleScene();
@@ -184,7 +184,7 @@ export async function searchCages(log: (m: string) => void): Promise<boolean> {
 
 /** Iban's temple doors. */
 export async function openIbanDoor(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.IBAN_DOOR, 2, log))) {
+    if (!(await walkTo(UP_TILE.IBAN_DOOR, 3, log))) {
         return false;
     }
     await settleScene();
@@ -199,7 +199,7 @@ export async function openIbanDoor(log: (m: string) => void): Promise<boolean> {
 
 /** The doll into the pit of the damned. */
 export async function throwDoll(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.IBAN_ALTAR, 1, log))) {
+    if (!(await walkTo(UP_TILE.IBAN_ALTAR, 3, log))) {
         return false;
     }
     await settleScene();

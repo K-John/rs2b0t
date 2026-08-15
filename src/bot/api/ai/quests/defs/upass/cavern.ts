@@ -27,7 +27,7 @@ async function talkTo(npcId: number, name: string, near: Tile, prefer: string[],
 
 /** Down the wall tunnel into the dwarves' cave. */
 export async function descendToDwarves(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.TUNNEL_TO_DWARVES, 2, log))) {
+    if (!(await walkTo(UP_TILE.TUNNEL_TO_DWARVES, 3, log))) {
         return false;
     }
     await settleScene();
@@ -42,7 +42,7 @@ export async function descendToDwarves(log: (m: string) => void): Promise<boolea
 
 /** Down the other wall tunnel, into Kalrag's cave. */
 export async function descendToKalrag(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.TUNNEL_TO_KALRAG, 2, log))) {
+    if (!(await walkTo(UP_TILE.TUNNEL_TO_KALRAG, 3, log))) {
         return false;
     }
     await settleScene();
@@ -57,7 +57,7 @@ export async function descendToKalrag(log: (m: string) => void): Promise<boolean
 
 /** Back up the tunnel to the level-1 platforms. */
 export async function ascendFromDwarves(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.TUNNEL_FROM_DWARVES, 2, log))) {
+    if (!(await walkTo(UP_TILE.TUNNEL_FROM_DWARVES, 3, log))) {
         return false;
     }
     await settleScene();
@@ -113,7 +113,7 @@ export async function catchCat(log: (m: string) => void): Promise<boolean> {
 
 /** Knock with the cat in the pack, which puts it down and takes her away from the chest. */
 export async function distractWitch(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.WITCH_DOOR, 2, log))) {
+    if (!(await walkTo(UP_TILE.WITCH_DOOR, 3, log))) {
         return false;
     }
     await settleScene();
@@ -130,12 +130,12 @@ export async function lootWitchChest(log: (m: string) => void): Promise<boolean>
     if (heldId(UP_ITEM.DOLL.id) > 0) {
         return true;
     }
-    if (!(await walkTo(UP_TILE.WITCH_CHEST, 2, log))) {
+    if (!(await walkTo(UP_TILE.WITCH_CHEST, 3, log))) {
         const door = locById(UP_LOC.WITCH_DOOR, 'Open', 8);
         if (door && (await door.interact('Open'))) {
             await driveUntil(() => locById(UP_LOC.WITCH_CHEST, null, 8) !== null, [], log, 8_000);
         }
-        if (!(await walkTo(UP_TILE.WITCH_CHEST, 2, log))) {
+        if (!(await walkTo(UP_TILE.WITCH_CHEST, 3, log))) {
             return false;
         }
     }

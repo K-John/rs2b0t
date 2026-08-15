@@ -60,12 +60,8 @@ function fail(msg: string): never {
     process.exit(1);
 }
 
-/** East lip of the spiked grid — where `upass_grilltrap_hand_holds` drops anyone who falls. */
-const GRID_EAST = { x: 2477, z: 9677, level: 0 };
 /** West of the grid, beside the portcullis lever. */
 const GRID_WEST = { x: 2467, z: 9677, level: 0 };
-/** `portcullis_lever_up` at (2466,9672) — the far-side loc whose op-click walk carries the player over. */
-const UP_LOC_PORTCULLIS_LEVER = 3337;
 const GRID_PATH = [
     { x: 2474, z: 9677, level: 0 },
     { x: 2471, z: 9677, level: 0 },

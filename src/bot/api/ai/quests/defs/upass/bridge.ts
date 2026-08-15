@@ -103,11 +103,16 @@ export function meetKoftik(log: (m: string) => void): Promise<boolean> {
 }
 
 export async function enterCave(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.CAVE_ENTRANCE, 2, log))) {
+    if ((Game.tile()?.z ?? 0) > 9000) {
+        return true;
+    }
+    // Why: the cave mouth is a 4x2 loc, so its own origin tile sits inside the footprint and cannot be
+    // walked to — the walk fails outright. Koftik's tile is the stand, and the op-click closes the gap.
+    if (!(await walkTo(UP_TILE.CAVE_MOUTH, 3, log))) {
         return false;
     }
     await settleScene();
-    const mouth = locById(UP_LOC.CAVE_ENTRANCE, 'Enter', 10);
+    const mouth = locById(UP_LOC.CAVE_ENTRANCE, 'Enter', 16);
     if (!mouth) {
         log('no cave entrance at the far west of West Ardougne');
         return false;

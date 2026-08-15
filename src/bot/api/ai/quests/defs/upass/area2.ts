@@ -50,7 +50,7 @@ export async function takeUnicornHorn(log: (m: string) => void): Promise<boolean
     if (heldId(UP_ITEM.UNICORN_HORN.id) > 0) {
         return true;
     }
-    if (!(await walkTo(UP_TILE.UNICORN_CAGE, 2, log))) {
+    if (!(await walkTo(UP_TILE.UNICORN_CAGE, 3, log))) {
         return false;
     }
     await settleScene();
@@ -65,7 +65,7 @@ export async function takeUnicornHorn(log: (m: string) => void): Promise<boolean
 
 /** Climb the mud pile out of the second cavern and back up to the paladins' shelf. */
 export async function climbToPaladins(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.MUDPILE, 2, log))) {
+    if (!(await walkTo(UP_TILE.MUDPILE, 3, log))) {
         return false;
     }
     await settleScene();
@@ -115,7 +115,7 @@ export async function killPaladin(log: (m: string) => void): Promise<boolean> {
 
 /** The blood well opens the temple doors once it has all three crests and the horn. */
 export async function feedBloodWell(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.BLOODWELL, 1, log))) {
+    if (!(await walkTo(UP_TILE.BLOODWELL, 3, log))) {
         return false;
     }
     await settleScene();
@@ -144,7 +144,7 @@ export async function feedBloodWell(log: (m: string) => void): Promise<boolean> 
 
 /** Through the double doors into the main cavern. */
 export async function enterMainCavern(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.TEMPLE_DOOR, 2, log))) {
+    if (!(await walkTo(UP_TILE.TEMPLE_DOOR, 3, log))) {
         return false;
     }
     await settleScene();
