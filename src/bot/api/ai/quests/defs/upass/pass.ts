@@ -28,7 +28,11 @@ const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.PIPE_AREA2, op: 'Squeeze-through' },
     { loc: UP_LOC.COLLAPSED_A, op: 'Cross' },
     { loc: UP_LOC.COLLAPSED_B, op: 'Cross' },
-    { loc: UP_LOC.ROCKSWING_BACK, op: 'Swing-on' }
+    { loc: UP_LOC.ROCKSWING_BACK, op: 'Swing-on' },
+    // Why: a component report over leg 3's anchors puts the unicorn cage and the paladins' shelf in
+    // different pockets joined only by these — `upass_area_2_3_entrance` telejumps between them.
+    { loc: UP_LOC.UNICORN_DOOR_L, op: 'Pass-through' },
+    { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through' }
 ];
 
 const HOP_TIMEOUT_MS = 12_000;
