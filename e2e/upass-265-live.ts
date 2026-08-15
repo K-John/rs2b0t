@@ -93,7 +93,7 @@ const BANK_SEED: BankSeedItem[] = [
     { debugName: 'bronze_arrow', displayName: 'Bronze arrow', qty: 50 },
     { debugName: 'tinderbox', displayName: 'Tinderbox', qty: 1 },
     { debugName: 'bucket_empty', displayName: 'Bucket', qty: 1 },
-    { debugName: 'rope', displayName: 'Rope', qty: 1 }
+    { debugName: 'rope', displayName: 'Rope', qty: 3 }
 ];
 
 const STATS = [
@@ -126,7 +126,7 @@ const PACK_SEED: { debugName: string; qty: number }[] = [
     { debugName: 'bronze_arrow', qty: 50 },
     { debugName: 'tinderbox', qty: 1 },
     { debugName: 'bucket_empty', qty: 1 },
-    { debugName: 'rope', qty: 1 },
+    { debugName: 'rope', qty: 3 },
     { debugName: 'lobster', qty: 12 }
 ];
 

@@ -275,11 +275,17 @@ export function countHeld(snap: QuestSnapshot, items: readonly UpassItem[]): num
 /** The trapped rectangle of the spiked grid: `inzone(upass_grid_col5, upass_grid_col1 + (1,0,9))`. */
 export const GRID_ZONE = { minX: 2467, maxX: 2476, minZ: 9673, maxZ: 9682 } as const;
 
-/** West of the spiked grid, on the portcullis side — the crossing is behind the character. */
+// Why: the corridor the grid opens onto runs from the furnace down to the orbs, well past the grid's own
+// z band — a window of a few tiles around the rectangle reads the orb sweep as "not through yet" and sends
+// the bot back to cross a grid it is already west of. The bridge shelf is also west of the grid, so the
+// upper bound is what keeps it out.
+const PAST_GRID = { maxX: GRID_ZONE.minX, minZ: 9640, maxZ: 9705 } as const;
+
+/** West of the spiked grid, in the corridor it opens onto — the crossing is behind the character. */
 export function pastGridTile(tile: QuestSnapshot['tile']): boolean {
     return tile !== null
         && tile !== undefined
-        && tile.x < GRID_ZONE.minX
-        && tile.z >= GRID_ZONE.minZ - 4
-        && tile.z <= GRID_ZONE.maxZ + 4;
+        && tile.x < PAST_GRID.maxX
+        && tile.z >= PAST_GRID.minZ
+        && tile.z <= PAST_GRID.maxZ;
 }

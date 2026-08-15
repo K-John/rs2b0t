@@ -16,6 +16,7 @@ const AREA1 = { x: 2450, z: 9716, level: 0 };
 
 /** The kit the module refuses to go underground without. */
 const KIT: Stack[] = [
+    [UP_ITEM.ROPE.id, 3],
     UP_ITEM.SHORTBOW.id,
     [UP_ITEM.BRONZE_ARROW.id, 50],
     UP_ITEM.TINDERBOX.id,

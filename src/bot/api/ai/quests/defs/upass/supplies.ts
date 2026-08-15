@@ -36,6 +36,9 @@ export function fromBank(snap: QuestSnapshot, item: UpassItem, qty: number): Que
 
 /** Everything the pass consumes, in the order the quest reaches it. */
 export const KIT: readonly { item: UpassItem; qty: number; reason: string }[] = [
+    // Why: `upass_rock_ropeswing` deletes the rope before it rolls agility, so a failed swing costs one and
+    // drops the player into the swamp — one rope is a single point of failure on a roll that is not certain.
+    { item: UP_ITEM.ROPE, qty: 3, reason: 'the rock swing east, which eats one per attempt' },
     { item: UP_ITEM.SHORTBOW, qty: 1, reason: 'firing the bridge stay rope' },
     { item: UP_ITEM.BRONZE_ARROW, qty: ARROW_TARGET, reason: 'the fire arrow' },
     { item: UP_ITEM.TINDERBOX, qty: 1, reason: 'lighting the cloth arrow and burning the tomb' },

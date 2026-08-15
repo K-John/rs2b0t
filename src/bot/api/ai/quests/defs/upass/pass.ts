@@ -48,6 +48,10 @@ function chebyshev(a: { x: number; z: number }, b: { x: number; z: number }): nu
     return Math.max(Math.abs(a.x - b.x), Math.abs(a.z - b.z));
 }
 
+function held(id: number): number {
+    return Inventory.items().filter(item => item.id === id).reduce((sum, item) => sum + item.count, 0);
+}
+
 /** Obstacles in the scene, nearest the straight line toward `dest` first. */
 function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
     const found: Loc[] = [];
@@ -134,18 +138,25 @@ async function ropeSwingToward(dest: Tile, log: (m: string) => void): Promise<bo
     if (!rock || chebyshev(rock.tile(), dest) + MIN_GAIN > chebyshev(from, dest)) {
         return false;
     }
+    // Why: the op-click walks the player to the rock before the use resolves, so "the tile changed" fires on
+    // the walk and reports a swing that never happened. `inv_del(inv, rope, 1)` runs before the agility roll,
+    // which makes the rope leaving the pack the one signal that the script actually ran.
+    const ropes = held(UP_ITEM.ROPE.id);
     if (!(await rope.useOn(rock))) {
         return false;
     }
-    const moved = await Execution.delayUntil(() => {
-        const now = here();
-        return now !== null && (now.x !== from.x || now.z !== from.z);
-    }, HOP_TIMEOUT_MS);
-    if (!moved) {
+    if (!(await Execution.delayUntil(() => held(UP_ITEM.ROPE.id) < ropes, HOP_TIMEOUT_MS))) {
         return false;
     }
     await settleScene();
-    log(`pass: rope swing → (${here()?.x},${here()?.z})`);
+    const now = here();
+    // Why: a failed roll spends the rope and drops the player into the swamp below, so the caller has to see
+    // that as no progress rather than as a crossing.
+    if (now && chebyshev(now, dest) >= chebyshev(from, dest)) {
+        log(`pass: the rope swing failed and cost a rope — now at (${now.x},${now.z})`);
+        return false;
+    }
+    log(`pass: rope swing → (${now?.x},${now?.z})`);
     return true;
 }
 
