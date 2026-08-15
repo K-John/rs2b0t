@@ -196,7 +196,9 @@ async function standBeside(at: Tile, note: (m: string) => void): Promise<boolean
         .sort((a, b) => chebyshev(a, me ?? a) - chebyshev(b, me ?? b));
     for (const pick of sides) {
         // Why: walkResilient's own logging is a dozen lines a walk, and the caller keeps one line.
-        if (await Traversal.walkResilient(pick, { radius: 0, attempts: 1, timeoutMs: 20_000 })) {
+        // Why: radius 1, because the walker lands on the nearest reachable tile and says so — asking for
+        // exactly (2375,9643) failed while (2375,9644) beside it was open the whole time.
+        if (await Traversal.walkResilient(pick, { radius: 1, attempts: 1, timeoutMs: 20_000 })) {
             note(`stood@${here()?.x},${here()?.z}`);
             return true;
         }
@@ -271,7 +273,12 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
             if (!(await standBeside(obstacle.tile(), m => trace.push(m)))) {
                 break;
             }
-            if (!(await obstacle.interact(op))) {
+            // Why: a seam is often a row of identical locs — the ledge is six — and the one the search
+            // picked is not always the one the character ended up beside. `reachRectangle` only accepts a
+            // cardinal side, so the op goes to whichever of the row is actually adjacent now.
+            const adjacent = Locs.query().where(loc => loc.id === obstacle.id).action(op).within(2).nearest()
+                ?? obstacle;
+            if (!(await adjacent.interact(op))) {
                 trace.push('the op would not send');
                 break;
             }
