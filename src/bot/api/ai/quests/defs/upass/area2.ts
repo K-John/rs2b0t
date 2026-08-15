@@ -1,4 +1,5 @@
 import { Game } from '../../../../game/Game.js';
+import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
@@ -97,7 +98,21 @@ export async function killPaladin(log: (m: string) => void): Promise<boolean> {
         log(`could not attack paladin ${owed.npc}`);
         return false;
     }
-    return driveUntil(() => heldId(owed.badge.id) > 0, [], log, 120_000);
+    // Why: `ai_queue3` drops the crest on the paladin's own tile rather than handing it over, so waiting for
+    // it to appear in the pack waits forever — the kill and the pickup are two separate things.
+    if (!(await driveUntil(() => Npcs.query().where(npc => npc.id === owed.npc).within(14).nearest() === null, [], log, 180_000))) {
+        log(`paladin ${owed.npc} outlasted the fight`);
+        return false;
+    }
+    const drop = GroundItems.query().where(item => item.id === owed.badge.id).within(10).nearest();
+    if (!drop) {
+        log(`paladin ${owed.npc} died but left no coat of arms in reach`);
+        return false;
+    }
+    if (!(await drop.interact('Take'))) {
+        return false;
+    }
+    return driveUntil(() => heldId(owed.badge.id) > 0, [], log, 10_000);
 }
 
 /** The blood well opens the temple doors once it has all three crests and the horn. */
