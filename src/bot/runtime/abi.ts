@@ -208,6 +208,7 @@ import {
     liveMordredBriefed,
     liveResetMordredBrief
 } from '../api/ai/quests/defs/merlinscrystal.js';
+import { crossGrid } from '../api/ai/quests/defs/upass/grid.js';
 import { defineBot, registerScript } from './defineBot.js';
 import { Loadouts } from '../api/loadout/loadoutStore.js';
 
@@ -220,11 +221,12 @@ export function installAbi(): void {
         Execution,
         defineBot,
         registerScript,
-        /** Live-harness hooks (Merlin #353 fortress / Mordred latch). */
+        /** Live-harness hooks (Merlin #353 fortress / Mordred latch, Underground Pass #265 stalled walk). */
         questLive: Object.freeze({
             merlinFortress: liveFortressStep,
             merlinResetMordredBrief: liveResetMordredBrief,
-            merlinMordredBriefed: liveMordredBriefed
+            merlinMordredBriefed: liveMordredBriefed,
+            upassCrossGrid: crossGrid
         }),
         events: Object.freeze({
             on: <K extends keyof EventMap>(event: K, cb: (payload: EventMap[K]) => void): (() => void) => bus.on(event, cb),
