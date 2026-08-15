@@ -106,6 +106,18 @@ function held(id: number): number {
     return Inventory.items().filter(item => item.id === id).reduce((sum, item) => sum + item.count, 0);
 }
 
+// Why: a seam's own tile is blocked — that is what makes it a seam — and the flood can refuse it outright
+// where the near side is a single walkable column. Its cardinal neighbours are the tiles a player would
+// stand on to use it, so one of those answering is enough.
+function seamReachable(at: Tile): boolean {
+    if (Reachability.canReach(at, REACH)) {
+        return true;
+    }
+    return [[1, 0], [-1, 0], [0, 1], [0, -1]].some(
+        ([dx, dz]) => Reachability.canReach(new Tile(at.x + dx!, at.z + dz!, at.level), REACH)
+    );
+}
+
 /** Every seam loc in the scene, whether or not it is worth crossing — the log for a stuck pocket. */
 function seamsInScene(): Loc[] {
     const found: Loc[] = [];
@@ -123,12 +135,15 @@ function seamsInScene(): Loc[] {
 // that costs a whole run, so it says what it could see and what it made of each one.
 function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string) => void): void {
     const mine = chebyshev(from, dest);
-    for (const loc of seamsInScene().slice(0, 8)) {
-        const at = loc.tile();
-        const gain = mine - chebyshev(at, dest);
-        const reach = Reachability.canReach(at, REACH) ? 'reachable' : 'walled off';
-        log(`pass:   seam ${loc.name ?? loc.id} at (${at.x},${at.z}) L${at.level} — gain ${gain}, ${reach}`);
-    }
+    const seams = seamsInScene()
+        .slice(0, 12)
+        .map(loc => {
+            const at = loc.tile();
+            return `${loc.id}@${at.x},${at.z}L${at.level}`
+                + ` gain${mine - chebyshev(at, dest)}${seamReachable(at) ? '' : ' walled'}`;
+        })
+        .join(' ');
+    log(`pass:   seams in reach of (${from.x},${from.z}): ${seams}`);
     // Why: a seam missing from the scene and a seam the vocabulary does not name look identical from the
     // outside, and the second is the likelier bug — so the pocket says everything it can operate.
     // Why: one line, not one per loc — the harness only surfaces a bounded number of log lines per tick, so
@@ -162,7 +177,7 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
     // answer that for free.
     return found
         .filter(loc => chebyshev(loc.tile(), dest) + MIN_GAIN <= chebyshev(from, dest))
-        .filter(loc => Reachability.canReach(loc.tile(), REACH))
+        .filter(loc => seamReachable(loc.tile()))
         .sort((a, b) => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest));
 }
 
@@ -271,7 +286,7 @@ async function useSeamToward(dest: Tile, log: (m: string) => void): Promise<bool
             .nearest();
         if (!target
             || chebyshev(target.tile(), dest) + MIN_GAIN > chebyshev(from, dest)
-            || !Reachability.canReach(target.tile(), REACH)) {
+            || !seamReachable(target.tile())) {
             continue;
         }
         // Why: the op-click walks the player to the loc before the use resolves, so "the tile changed" fires
