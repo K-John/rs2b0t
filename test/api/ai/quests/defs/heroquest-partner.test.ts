@@ -15,6 +15,7 @@ function input(over: Partial<HeroHandoffInput> = {}): HeroHandoffInput {
         hasKey: false,
         candlesticks: 0,
         partnerConfigured: true,
+        ready: true,
         ...over
     };
 }
@@ -57,6 +58,16 @@ describe('decideHeroHandoff', () => {
         expect(decideHeroHandoff(input({
             stage: HERO_STAGE.BLACKARM_LOOTED,
             candlesticks: 1
+        }))).toBeNull();
+    });
+
+    // Why: the key is only useful with a bow worn, and fetching one afterwards starts in Brimhaven,
+    // where the nearest bank is Ardougne across a fare each way.
+    test('a Phoenix bot without its bow fetches that first', () => {
+        expect(decideHeroHandoff(input({
+            gang: 'phoenix',
+            stage: HERO_STAGE.PHOENIX_CHARLIE,
+            ready: false
         }))).toBeNull();
     });
 

@@ -15,6 +15,8 @@ export interface HeroHandoffInput {
     /** Candlesticks in the pack — the chest hands the Black Arm bot two. */
     candlesticks: number;
     partnerConfigured: boolean;
+    /** False while this side still owes itself a purchase or a withdrawal before it can use the trade. */
+    ready: boolean;
 }
 
 // Why: Grip re-issues the spare whenever `~obj_gettotal(misc_key)` reads zero, so a Black Arm bot that
@@ -60,7 +62,9 @@ export function decideHeroHandoff(input: HeroHandoffInput): HeroHandoff | null {
         }
         return null;
     }
-    if (input.stage === HERO_STAGE.PHOENIX_CHARLIE && !input.hasKey) {
+    // Why: the key is only useful with a bow already worn, and the walk to fetch one afterwards starts
+    // in Brimhaven — where the nearest bank is Ardougne, across a fare each way.
+    if (input.stage === HERO_STAGE.PHOENIX_CHARLIE && !input.hasKey && input.ready) {
         return 'take-key';
     }
     if (input.stage === HERO_STAGE.PHOENIX_KILLED_GRIP && input.candlesticks === 0) {

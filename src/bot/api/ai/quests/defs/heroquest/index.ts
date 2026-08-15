@@ -24,7 +24,7 @@ import { eelStep } from './eel.js';
 import { featherStep } from './feather.js';
 import { HERO_STAGE, readHeroQuestProgress } from './journal.js';
 import { decideHeroHandoff, heroHandoffStep } from './partner.js';
-import { phoenixArmbandStep } from './phoenix.js';
+import { phoenixArmbandStep, snipeKitStep } from './phoenix.js';
 import { anywhere, bankedId, heldId } from './state.js';
 
 /** The three the quest is graded on, all of which Achietties takes from the pack. */
@@ -108,7 +108,8 @@ export function decide(snap: QuestSnapshot): QuestStep {
         stage,
         hasKey: heldId(snap, HERO_ID.MISC_KEY) > 0,
         candlesticks: heldId(snap, HERO_ID.CANDLESTICK),
-        partnerConfigured: partnerConfigured()
+        partnerConfigured: partnerConfigured(),
+        ready: gang !== 'phoenix' || snipeKitStep(snap) === null
     });
     if (handoff) {
         return heroHandoffStep(handoff);

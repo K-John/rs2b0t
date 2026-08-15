@@ -188,10 +188,21 @@ describe("hero's quest gang branches", () => {
         expect((step as { name: string }).name).toContain('give-key');
     });
 
-    test('the Phoenix bot waits for that key before it walks to the slit', () => {
+    // Why: the key is only useful with a bow worn, and fetching one afterwards starts in Brimhaven.
+    test('a carried bow is worn before the key is asked for', () => {
         withGang('phoenix');
         HeroConfig.partner = 'rival';
         const step = decide(snap({ stage: HERO_STAGE.PHOENIX_CHARLIE, invIds: kitted('phoenix') }));
+        expect(step).toMatchObject({ kind: 'equip' });
+    });
+
+    test('a kitted Phoenix bot waits for that key before it walks to the slit', () => {
+        withGang('phoenix');
+        HeroConfig.partner = 'rival';
+        const step = decide(snap({
+            stage: HERO_STAGE.PHOENIX_CHARLIE,
+            wornIds: new Set([HERO_ID.OAK_LONGBOW, HERO_ID.STEEL_ARROW])
+        }));
         expect((step as { name: string }).name).toContain('take-key');
     });
 
