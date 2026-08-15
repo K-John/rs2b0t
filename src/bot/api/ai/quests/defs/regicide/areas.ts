@@ -68,6 +68,9 @@ export const RG_LOC = {
     SULPHUR3: 3964,
     STILL: 4026,
     CATAPULT: 3976,
+    /** The ordinary furnace pair — `regicide_heat_quicklime` hangs off the generic `use_furnace` switch. */
+    FURNACE_MAIN: 2781,
+    FURNACE_SIDE: 2785,
     LIMESTONE1: 4029,
     LIMESTONE2: 4028,
     LIMESTONE3: 4027,
@@ -84,6 +87,8 @@ export const RG_TILE = {
     ARDOUGNE_BANK: new Tile(2655, 3283, 0),
     /** The range beside the Ardougne bank, where the rabbit for the catapult guard is cooked. */
     ARDOUGNE_RANGE: new Tile(2648, 3298, 0),
+    /** East Ardougne's furnace, which is where the limestone is burned on the way to the still. */
+    ARDOUGNE_FURNACE: new Tile(2601, 3309, 0),
     LATHAS: new Tile(2578, 3293, 1),
 
     /** Iban's temple door — at `%regicide_quest >= 2` it hops the player to the Well of Voyage room. */

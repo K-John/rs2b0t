@@ -120,17 +120,23 @@ export function grindQuicklime(log: (m: string) => void): Promise<boolean> {
     return grind(RG_ITEM.QUICKLIME.id, RG_ITEM.QUICKLIME_DUST.id, log);
 }
 
-// Why: `regicide_heat_quicklime` is reached through the generic `use_furnace` switch, so any furnace does —
-// and the camp's own is the one inside Tirannwn, twenty tiles from where the limestone is carried to.
+// Why: `regicide_heat_quicklime` is reached through the generic `use_furnace` switch, so any furnace does.
+// The camp has one, but reaching it is six crossings deeper into the forest and six back — East Ardougne's
+// is sixty tiles from the bank the run passes through anyway on its way to the still.
 // Why: it costs 8 damage without gloves (`inv_totalcat(worn, armour_hands)`), which the food float covers.
 
-/** Limestone burned to quicklime in the Tyras camp furnace. */
+/** Limestone burned to quicklime at the East Ardougne furnace. */
 export async function heatQuicklime(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(RG_TILE.FURNACE, 2, RG_STAGE.SPOKEN_IORWERTH2, log))) {
+    if (!(await Traversal.walkResilient(RG_TILE.ARDOUGNE_FURNACE, { radius: 2, attempts: 3, timeoutMs: 300_000, log }))) {
         return false;
     }
     const before = heldId(RG_ITEM.QUICKLIME.id);
-    return useHeldOnLoc(RG_ITEM.LIMESTONE.id, [RG_LOC.FURNACE], () => heldId(RG_ITEM.QUICKLIME.id) > before, log);
+    return useHeldOnLoc(
+        RG_ITEM.LIMESTONE.id,
+        [RG_LOC.FURNACE, RG_LOC.FURNACE_MAIN, RG_LOC.FURNACE_SIDE],
+        () => heldId(RG_ITEM.QUICKLIME.id) > before,
+        log
+    );
 }
 
 function rabbitNear(): Npc | null {

@@ -103,45 +103,46 @@ describe('Regicide bomb chain', () => {
         expect(name(atStage([]))).toContain('weave');
     });
 
-    test('the barrel comes next, once the cloth is made', () => {
-        expect(name(atStage([RG_ITEM.CLOTH.id]))).toContain('empty barrel');
+    // Why: the pot is taken while the loom is still in sight, because the elf camp is four crossings from
+    // the swamp and eight from the palisade — going back for it is the whole forest twice.
+    test('the pot is taken while the pack is still in the elf camp', () => {
+        expect(name(atStage([RG_ITEM.CLOTH.id]))).toContain('pot');
+    });
+
+    test('the barrel comes next, off the same floor', () => {
+        expect(name(atStage([RG_ITEM.CLOTH.id, RG_ITEM.POT.id]))).toContain('empty barrel');
     });
 
     test('a barrel in hand is filled rather than a second one fetched', () => {
-        expect(name(atStage([RG_ITEM.CLOTH.id, RG_ITEM.BARREL.id]))).toContain('coal-tar');
+        expect(name(atStage([RG_ITEM.CLOTH.id, RG_ITEM.POT.id, RG_ITEM.BARREL.id]))).toContain('coal-tar');
     });
 
+    const FOREST_KIT: Stack[] = [RG_ITEM.CLOTH.id, RG_ITEM.POT.id, RG_ITEM.BARREL_TAR.id];
+
     test('a barrel already full of tar is not refilled', () => {
-        expect(name(atStage([RG_ITEM.CLOTH.id, RG_ITEM.BARREL_TAR.id]))).toContain('sulphur');
+        expect(name(atStage(FOREST_KIT))).toContain('rabbit');
+    });
+
+    test('the sulphur is broken off once the rabbit is caught', () => {
+        expect(name(atStage([...FOREST_KIT, RG_ITEM.RAW_RABBIT.id]))).toContain('sulphur');
     });
 
     test('a lump of sulphur is ground rather than a second one taken', () => {
-        expect(name(atStage([RG_ITEM.CLOTH.id, RG_ITEM.BARREL_TAR.id, RG_ITEM.SULPHUR.id]))).toContain('grind');
+        expect(name(atStage([...FOREST_KIT, RG_ITEM.RAW_RABBIT.id, RG_ITEM.SULPHUR.id]))).toContain('grind');
     });
 
-    test('limestone is mined once the sulphur is dust', () => {
-        const step = atStage([RG_ITEM.CLOTH.id, RG_ITEM.BARREL_TAR.id, RG_ITEM.SULPHUR_DUST.id]);
+    test('limestone is the last thing the forest owes, and the quarry is on the way out', () => {
+        const step = atStage([...FOREST_KIT, RG_ITEM.RAW_RABBIT.id, RG_ITEM.SULPHUR_DUST.id]);
         expect(step.kind).toBe('mineRock');
         expect(step.kind === 'mineRock' && step.rock).toBe('Limestone');
     });
 
-    test('a pot is fetched before the quicklime is ground', () => {
-        const step = atStage([RG_ITEM.CLOTH.id, RG_ITEM.BARREL_TAR.id, RG_ITEM.SULPHUR_DUST.id, RG_ITEM.QUICKLIME.id]);
-        expect(name(step)).toContain('pot');
-    });
-
-    test('a rabbit is the last thing the forest owes', () => {
-        const step = atStage([RG_ITEM.CLOTH.id, RG_ITEM.BARREL_TAR.id, RG_ITEM.SULPHUR_DUST.id, RG_ITEM.QUICKLIME_DUST.id]);
-        expect(name(step)).toContain('rabbit');
-    });
-
     test('a full pack leaves through the palisade', () => {
         const step = atStage([
-            RG_ITEM.CLOTH.id,
-            RG_ITEM.BARREL_TAR.id,
+            ...FOREST_KIT,
+            RG_ITEM.RAW_RABBIT.id,
             RG_ITEM.SULPHUR_DUST.id,
-            RG_ITEM.QUICKLIME_DUST.id,
-            RG_ITEM.RAW_RABBIT.id
+            RG_ITEM.LIMESTONE.id
         ]);
         expect(name(step)).toContain('Arandar');
     });
@@ -151,31 +152,45 @@ describe('Regicide bomb chain', () => {
     const onMainland = (carried: Stack[]): QuestStep =>
         decide(snapshot({ stage: RG_STAGE.SPOKEN_IORWERTH2, tile: ARDOUGNE, carried: [...KIT, ...carried] }));
 
-    test('the raw rabbit is cooked before the still is visited', () => {
-        expect(name(onMainland([RG_ITEM.BARREL_TAR.id, RG_ITEM.RAW_RABBIT.id]))).toContain('cook');
+    const CARRIED_OUT: Stack[] = [RG_ITEM.CLOTH.id, RG_ITEM.POT.id, RG_ITEM.BARREL_TAR.id, RG_ITEM.SULPHUR_DUST.id];
+
+    test('the raw rabbit is cooked before anything else on the mainland', () => {
+        expect(name(onMainland([...CARRIED_OUT, RG_ITEM.RAW_RABBIT.id, RG_ITEM.LIMESTONE.id]))).toContain('cook');
+    });
+
+    test('the limestone is burned at a furnace the forest does not have', () => {
+        const step = onMainland([...CARRIED_OUT, RG_ITEM.COOKED_RABBIT.id, RG_ITEM.LIMESTONE.id]);
+        expect(name(step)).toContain('burn the limestone');
+    });
+
+    test('the quicklime is ground into the pot carried out of the forest', () => {
+        const step = onMainland([...CARRIED_OUT, RG_ITEM.COOKED_RABBIT.id, RG_ITEM.QUICKLIME.id]);
+        expect(name(step)).toContain('grind the quicklime');
     });
 
     test('coal is sourced before the tar is distilled', () => {
-        const step = onMainland([RG_ITEM.BARREL_TAR.id, RG_ITEM.COOKED_RABBIT.id]);
+        const step = onMainland([...CARRIED_OUT, RG_ITEM.COOKED_RABBIT.id, RG_ITEM.QUICKLIME_DUST.id]);
         expect(step.kind).toBe('mineRock');
         expect(step.kind === 'mineRock' && step.rock).toBe('Coal');
     });
 
     test('a pack with coal distils', () => {
-        const step = onMainland([RG_ITEM.BARREL_TAR.id, RG_ITEM.COOKED_RABBIT.id, [RG_ITEM.COAL.id, 20]]);
+        const step = onMainland([...CARRIED_OUT, RG_ITEM.COOKED_RABBIT.id, RG_ITEM.QUICKLIME_DUST.id, [RG_ITEM.COAL.id, 20]]);
         expect(name(step)).toContain('distil');
     });
 
     test('naphtha is mixed with the powders', () => {
-        expect(name(onMainland([RG_ITEM.BARREL_NAPHTHA.id, RG_ITEM.COOKED_RABBIT.id]))).toContain('mix');
+        const step = onMainland([RG_ITEM.CLOTH.id, RG_ITEM.SULPHUR_DUST.id, RG_ITEM.QUICKLIME_DUST.id, RG_ITEM.BARREL_NAPHTHA.id, RG_ITEM.COOKED_RABBIT.id]);
+        expect(name(step)).toContain('mix');
     });
 
     test('a half-mixed barrel is still the mixing step', () => {
-        expect(name(onMainland([RG_ITEM.MIX_QUICKLIME.id, RG_ITEM.COOKED_RABBIT.id]))).toContain('mix');
+        const step = onMainland([RG_ITEM.CLOTH.id, RG_ITEM.SULPHUR_DUST.id, RG_ITEM.MIX_QUICKLIME.id, RG_ITEM.COOKED_RABBIT.id]);
+        expect(name(step)).toContain('mix');
     });
 
     test('a sealed barrel takes the fuse', () => {
-        expect(name(onMainland([RG_ITEM.BARREL_LID.id, RG_ITEM.COOKED_RABBIT.id]))).toContain('fuse');
+        expect(name(onMainland([RG_ITEM.CLOTH.id, RG_ITEM.BARREL_LID.id, RG_ITEM.COOKED_RABBIT.id]))).toContain('fuse');
     });
 
     test('a fused bomb on the mainland walks back through the pass', () => {

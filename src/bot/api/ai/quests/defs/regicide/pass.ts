@@ -10,7 +10,7 @@ import { crossToWest, enterCave } from '../upass/bridge.js';
 import { crossGrid } from '../upass/grid.js';
 import { travelTo } from '../upass/pass.js';
 import { RG_LOC, RG_TILE, regicideArea } from './areas.js';
-import { climbOutOfPit } from './pockets.js';
+import { climbOutOfPit, travelTirannwn } from './pockets.js';
 
 // Why: this leg is the Underground Pass walked a second time, with the quest already finished. Both of its
 // hard gates are `%ibanmulti` bits that stay set — `cave_well` wants the four orb bits and `bloodwell_upass`
@@ -150,19 +150,12 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
     }
 }
 
-/** The Arandar palisade, walked from the Tirannwn side — free at any stage on the way out. */
-export async function leaveTirannwn(dest: Tile, log: (m: string) => void): Promise<boolean> {
-    if (!(await Traversal.walkResilient(RG_TILE.ARANDAR_SOUTH, { radius: 2, attempts: 3, timeoutMs: 180_000, log }))) {
-        return false;
-    }
-    await settleScene();
-    const gate = locById(RG_LOC.GATE_LEFT, 'Enter', 8) ?? locById(RG_LOC.GATE_RIGHT, 'Enter', 8);
-    if (!gate || !(await gate.interact('Enter'))) {
-        log('no Arandar palisade gate to open');
-        return false;
-    }
-    if (!(await driveUntil(() => (Game.tile()?.z ?? 0) > RG_TILE.ARANDAR_SOUTH.z + 2, [], log, 15_000))) {
-        return false;
-    }
-    return Traversal.walkResilient(dest, { radius: 3, attempts: 3, timeoutMs: 300_000, log });
+// Why: the palisade is one seam of the same graph the forest is routed by — `travelTirannwn` walks the
+// crossings out to it and takes the gate itself, and degrades to a plain resilient walk once the player is
+// on the Ardougne side of it. Walking straight at the gate instead reports "unreachable", because from any
+// pocket in the forest that is exactly what it is.
+
+/** Out of Tirannwn through the Arandar palisade — free northbound at any stage. */
+export function leaveTirannwn(dest: Tile, stage: number, log: (m: string) => void): Promise<boolean> {
+    return travelTirannwn(dest, 3, stage, log);
 }

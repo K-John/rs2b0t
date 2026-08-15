@@ -114,41 +114,46 @@ function rabbitDone(snap: QuestSnapshot): boolean {
 // so the gathering is finished in one pass through the forest before the palisade is opened — the way back
 // in is the Underground Pass, and nobody wants to walk it twice for a forgotten ball of wool.
 
+// Why: ordered by where each thing is rather than by the recipe — the loom, the barrel and the pot are all
+// in the elf camp, the tar and the sulphur are both in the old camp's swamp, and the quarry sits on the way
+// out to the palisade. What the forest cannot finish is left for the mainland leg.
+
 /** The next thing the forest still owes the bomb, or null once the pack can leave. */
 function gatherLeg(snap: QuestSnapshot): QuestStep | null {
     if (!clothDone(snap)) {
         return custom('weave the balls of wool into cloth', weaveCloth);
+    }
+    if (!quicklimeDone(snap) && held(snap, RG_ITEM.POT) === 0) {
+        return custom('take a pot from the elf camp', takePot);
     }
     if (!barrelInPlay(snap)) {
         return held(snap, RG_ITEM.BARREL) === 0
             ? custom('take an empty barrel from the elf camp', takeBarrel)
             : custom('fill the barrel from the coal-tar seep', fillTar);
     }
+    if (!rabbitDone(snap)) {
+        return custom('catch a rabbit for the catapult guard', catchRabbit);
+    }
     if (!sulphurDone(snap)) {
         return held(snap, RG_ITEM.SULPHUR) === 0
             ? custom('break a lump off a sulphur formation', takeSulphur)
             : custom('grind the sulphur to dust', grindSulphur);
     }
-    if (!quicklimeDone(snap)) {
-        if (held(snap, RG_ITEM.QUICKLIME) > 0) {
-            return held(snap, RG_ITEM.POT) === 0
-                ? custom('take a pot from the elf camp', takePot)
-                : custom('grind the quicklime into a pot', grindQuicklime);
-        }
-        return held(snap, RG_ITEM.LIMESTONE) === 0
-            ? { kind: 'mineRock', rock: 'Limestone', item: RG_ITEM.LIMESTONE.name, qty: 1, anchor: RG_TILE.QUARRY }
-            : custom('burn the limestone to quicklime', heatQuicklime);
-    }
-    if (!rabbitDone(snap)) {
-        return custom('catch a rabbit for the catapult guard', catchRabbit);
+    if (!quicklimeDone(snap) && held(snap, RG_ITEM.QUICKLIME) === 0 && held(snap, RG_ITEM.LIMESTONE) === 0) {
+        return { kind: 'mineRock', rock: 'Limestone', item: RG_ITEM.LIMESTONE.name, qty: 1, anchor: RG_TILE.QUARRY };
     }
     return null;
 }
 
-/** The chemistry that only Rimmington's still can finish, plus the coal it burns. */
+/** The chemistry the forest cannot do: a furnace, a range, coal, and Rimmington's still. */
 function mainlandLeg(snap: QuestSnapshot): QuestStep {
     if (held(snap, RG_ITEM.RAW_RABBIT) > 0) {
         return custom('cook the rabbit on the Ardougne range', cookRabbit);
+    }
+    if (!quicklimeDone(snap)) {
+        return held(snap, RG_ITEM.QUICKLIME) === 0
+            ? custom('burn the limestone to quicklime', heatQuicklime)
+            : custom('grind the quicklime into a pot', grindQuicklime);
     }
     if (held(snap, RG_ITEM.BARREL_LID) > 0 || held(snap, RG_ITEM.BARREL_FUSED) > 0) {
         return held(snap, RG_ITEM.BARREL_FUSED) > 0
@@ -178,7 +183,7 @@ function bombLeg(snap: QuestSnapshot, area: RegicideArea): QuestStep {
         if (gather) {
             return gather;
         }
-        return custom('leave Tirannwn through the Arandar palisade', log => leaveTirannwn(RG_TILE.ARDOUGNE_BANK, log));
+        return custom('leave Tirannwn through the Arandar palisade', log => leaveTirannwn(RG_TILE.ARDOUGNE_BANK, RG_STAGE.SPOKEN_IORWERTH2, log));
     }
     if (area === 'mainland') {
         return mainlandLeg(snap);
@@ -231,11 +236,11 @@ function stageStep(snap: QuestSnapshot, area: RegicideArea, stage: number): Ques
             return inTirannwn(snap, area, custom('tell Lord Iorwerth the deed is done', reportToIorwerth));
         case RG_STAGE.REPORTED_IORWERTH:
             return area === 'tirannwn'
-                ? custom('leave Tirannwn through the Arandar palisade', log => leaveTirannwn(RG_TILE.ARDOUGNE_BANK, log))
+                ? custom('leave Tirannwn through the Arandar palisade', log => leaveTirannwn(RG_TILE.ARDOUGNE_BANK, stage, log))
                 : custom('take the Ardougne road past Arianwyn', meetArianwyn);
         case RG_STAGE.SPOKEN_ARIANWYN:
             return area === 'tirannwn'
-                ? custom('leave Tirannwn through the Arandar palisade', log => leaveTirannwn(RG_TILE.ARDOUGNE_BANK, log))
+                ? custom('leave Tirannwn through the Arandar palisade', log => leaveTirannwn(RG_TILE.ARDOUGNE_BANK, stage, log))
                 : custom('hand King Lathas the letter', reportToLathas);
         default:
             return { kind: 'wait', reason: `Regicide stage ${stage} is not implemented` };
