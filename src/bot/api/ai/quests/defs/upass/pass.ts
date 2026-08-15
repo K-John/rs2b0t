@@ -193,11 +193,23 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
     if (skip === 0 && me && me.level === at.level && chebyshev(me, at) <= 1) {
         return true;
     }
+    // Why: a three-tile loc reached from its far end leaves the character three out and already in place.
+    if (skip === 0 && me && me.level === at.level && chebyshev(me, at) <= 4
+        && Reachability.canReach(new Tile(at.x, at.z, at.level), { ...REACH, maxSteps: 64 })) {
+        return true;
+    }
     // Why: the client's flood and the walker disagree about single tiles — the ledge's east neighbour at
     // z 9643 floods as reachable and the walker answers "unreachable beyond (2375,9644)".
     // Why: and `reached` can still refuse from a side the walk reaches, because a cavern wall stands between
     // them. So a retry takes the NEXT side rather than sending the same op from the same tile again.
-    const sides = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+    // Why: adjacency is to the loc's FOOTPRINT, not its origin. A collapsed bridge is three tiles long, so
+    // the tile a character stands on to cross it is three out from the origin — and a ring of one found
+    // nothing but chasm and reported there was nowhere to stand.
+    const ring: [number, number][] = [];
+    for (let d = 1; d <= 4; d++) {
+        ring.push([d, 0], [-d, 0], [0, d], [0, -d]);
+    }
+    const sides = ring
         .map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level))
         .filter(tile => Reachability.canReach(tile, REACH))
         .sort((a, b) => chebyshev(a, me ?? a) - chebyshev(b, me ?? b));
