@@ -194,8 +194,9 @@ function bombLeg(snap: QuestSnapshot, area: RegicideArea): QuestStep {
 // ---------------------------------------------------------------------------
 
 function stageStep(snap: QuestSnapshot, area: RegicideArea, stage: number): QuestStep {
-    // Why: the melee kit goes on before the palisade, and stays on — the forest has no bank to shed it into.
-    const gear = area === 'mainland' ? drawGear(snap) : null;
+    // Why: armour in the pack is five slots the bomb needs and a soldier fought in what the walk left on,
+    // so anything wearable goes on wherever it is found — the forest has no bank to shed it into either.
+    const gear = drawGear(snap);
     if (gear) {
         return gear;
     }

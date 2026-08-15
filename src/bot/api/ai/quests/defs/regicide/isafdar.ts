@@ -1,6 +1,8 @@
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
+import { Skills } from '../../../../skills/Skills.js';
 import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Reach } from '../../../../walking/Reach.js';
@@ -15,6 +17,12 @@ import { pocketAt, travelTirannwn } from './pockets.js';
 const IORWERTH = 'Lord Iorwerth';
 const TRACKER = 'Elf Tracker';
 const MESSENGER = 'Kings messenger';
+/** How long the soldier gets before the step gives the decide cycle its turn back. */
+const FIGHT_MS = 240_000;
+/** How long one attack is left to run before it is renewed. */
+const RENEW_MS = 6_000;
+/** Below this, with an empty pack, the fight is not worth the walk back. */
+const BAIL_HP = 0.4;
 /** Idris, Essyllt and Morvran — the three elves of the scout ambush. */
 const SCOUT_IDS = [1186, 1187, 1188];
 
@@ -126,16 +134,33 @@ function soldierNear(): Npc | null {
         .nearest();
 }
 
+// Why: the soldier is level 110 with 110 hitpoints and a halberd, against an account the quest only asks
+// for 56 Agility from — so this is a long fight that the host's own eat policy has to carry, and one
+// `Attack` click is not enough. A halberd out-ranges the player, so the walk in and every knockback break
+// the interaction off, and a fight left un-renewed is a character standing still being hit.
+
+/** Fight until the soldier is gone, renewing the attack whenever it lapses. */
 async function fightSoldier(log: (m: string) => void): Promise<boolean> {
-    const target = soldierNear();
-    if (!target) {
-        return false;
-    }
-    if (!(await target.interact('Attack'))) {
-        return false;
-    }
     log("fighting one of King Tyras's men");
-    return driveUntil(() => soldierNear() === null, [], log, 180_000);
+    const deadline = performance.now() + FIGHT_MS;
+    while (performance.now() < deadline) {
+        const target = soldierNear();
+        if (!target) {
+            return true;
+        }
+        // Why: the eat policy runs in the host loop, so a pack with nothing left in it is the one thing
+        // this step has to notice for itself — carrying on from here is how a run ends at a Lumbridge grave
+        // with its whole kit on the far side of the palisade.
+        if (Skills.hpFraction() < BAIL_HP && Inventory.count(RG_ITEM.LOBSTER.name) === 0) {
+            log(`breaking off the fight at ${Math.round(Skills.hpFraction() * 100)}% with no food left`);
+            return false;
+        }
+        if (!(await target.interact('Attack'))) {
+            return false;
+        }
+        await Execution.delayUntil(() => soldierNear() === null, RENEW_MS);
+    }
+    return soldierNear() === null;
 }
 
 // Why: two different soldiers can carry this stage. `spawn_tyras_guard` posts the old camp's one just the

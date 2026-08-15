@@ -37,6 +37,25 @@ interface Args {
     stats: number;
     tele: boolean;
     deploy: boolean;
+    /** `--give obj:qty,obj:qty` — extra pack items, for starting a leg mid-chain. */
+    give: { debugName: string; qty: number }[];
+    /** `--start x,z,level` — overrides the stage's own start tile. */
+    start: { x: number; z: number; level: number } | null;
+    // Why: the bomb is a dozen steps that move no varp at all — the stage only advances when the catapult
+    // fires. An obj id is what a leg in the middle of the chain can be judged on.
+
+    /** `--until-obj <id>` — pass as soon as this obj id is in the pack. */
+    untilObj: number | null;
+}
+
+function parseGive(value: string): { debugName: string; qty: number }[] {
+    return value
+        .split(',')
+        .filter(entry => entry.length > 0)
+        .map(entry => {
+            const [debugName, qty] = entry.split(':');
+            return { debugName: debugName!, qty: Number(qty ?? 1) };
+        });
 }
 
 function parse(argv: string[]): Args {
@@ -50,7 +69,10 @@ function parse(argv: string[]): Args {
         food: 'Lobster',
         stats: 70,
         tele: true,
-        deploy: true
+        deploy: true,
+        give: [],
+        start: null,
+        untilObj: null
     };
     for (let i = 0; i < argv.length; i++) {
         const flag = argv[i];
@@ -66,6 +88,12 @@ function parse(argv: string[]): Args {
         else if (flag === '--tick') { out.tickMs = Number(value); }
         else if (flag === '--food') { out.food = value; }
         else if (flag === '--stats') { out.stats = Number(value); }
+        else if (flag === '--give') { out.give = parseGive(value); }
+        else if (flag === '--until-obj') { out.untilObj = Number(value); }
+        else if (flag === '--start') {
+            const [x, z, level] = value.split(',').map(Number);
+            out.start = { x: x!, z: z!, level: level ?? 0 };
+        }
     }
     return out;
 }
@@ -164,6 +192,7 @@ interface Snapshot {
     status: string;
     qp: number;
     runner: string;
+    packIds: number[];
     logs: { time: number; level: string; msg: string }[];
 }
 
@@ -173,6 +202,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
             __rs2b0t: {
                 reader: { worldTile(): { x: number; z: number; level: number } | null };
                 Quests: { status(n: string): string; points(): number };
+                Inventory: { items(): { id: number }[] };
             };
             rs2b0t: { runner: { state: string; ctx?: { log?: { time: number; level: string; msg: string }[] } } };
         };
@@ -182,6 +212,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
             status: g.__rs2b0t.Quests.status(quest),
             qp: g.__rs2b0t.Quests.points(),
             runner: g.rs2b0t.runner.state,
+            packIds: g.__rs2b0t.Inventory.items().map(item => item.id),
             logs: ring.slice(-80).map(l => ({ time: l.time, level: l.level, msg: l.msg }))
         };
     }, QUEST);
@@ -244,7 +275,7 @@ try {
     await relog(page, args.user);
     await clearChatDialogs(page, 'post-relog dialog(s)');
 
-    const start = STAGE_TELE[args.stage] ?? ARDOUGNE_BANK;
+    const start = args.start ?? STAGE_TELE[args.stage] ?? ARDOUGNE_BANK;
     if (args.tele) {
         if (!(await teleTo(page, start, 10, 25_000))) {
             await clearChatDialogs(page, 'pre-tele dialog(s)');
@@ -274,6 +305,15 @@ try {
     // Why: stage 3 is the first that begins past the palisade, where there is no bank to draw from.
     if (args.stage >= 3 && args.stage <= 13) {
         await seedPack(page);
+    }
+    // Why: the bomb is a dozen steps in three regions, so a leg part-way along it has to be handed the
+    // pack that leg starts from — there is no varp that records how far the chemistry has got.
+    if (args.give.length > 0) {
+        for (const { debugName, qty } of args.give) {
+            await cheatQuiet(page, `give ${debugName} ${qty}`);
+        }
+        await clearChatDialogs(page, 'give dialog(s)');
+        console.log(`gave ${args.give.map(g => `${g.debugName} x${g.qty}`).join(', ')}`);
     }
 
     await page.evaluate(() => sessionStorage.setItem('rs2b0t:set:AIOQuester:quests', 'regicide'));
@@ -305,6 +345,10 @@ try {
         if (stage > reached) {
             reached = stage;
             console.log(`  >> %regicide_quest reached ${reached}`);
+        }
+        if (args.untilObj !== null && last.packIds.includes(args.untilObj)) {
+            console.log(`PASS (obj ${args.untilObj} in the pack, %regicide_quest ${reached}, ${Math.round((Date.now() - t0) / 1000)}s)`);
+            process.exit(0);
         }
         if (reached >= args.until || last.status === 'complete') {
             console.log(`PASS (%regicide_quest ${reached}, journal ${last.status}, ${Math.round((Date.now() - t0) / 1000)}s)`);
