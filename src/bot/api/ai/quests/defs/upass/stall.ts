@@ -216,6 +216,12 @@ export interface StalledCrossing extends StalledWalk {
 export async function stalledCrossing(opts: StalledCrossing): Promise<boolean> {
     const attempts = opts.attempts ?? 4;
     for (let attempt = 1; attempt <= attempts; attempt++) {
+        // Why: the crossing can land after `stalledWalk` has already given up on its own oracle — the walk
+        // is still finishing when the check runs. Asking again at the top of the next attempt is what stops
+        // a recovery that walks back east to re-approach a grid the character is already west of.
+        if (opts.arrived()) {
+            return true;
+        }
         if (await stalledWalk(opts)) {
             return true;
         }

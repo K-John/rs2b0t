@@ -58,6 +58,11 @@ async function toApproach(log: (m: string) => void): Promise<boolean> {
     if (inPit() && !(await climbOutOfPit(log))) {
         return false;
     }
+    // Why: there is nothing to approach once the grid is behind the character, and a `travelTo` aimed at the
+    // east side from the west side hunts seams across the whole cavern rather than reporting it is done.
+    if (pastGrid()) {
+        return true;
+    }
     const t = here();
     if (t && UP_TILE.GRID_APPROACH.distanceTo(t) <= 1) {
         return true;
