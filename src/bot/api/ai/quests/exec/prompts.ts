@@ -85,6 +85,65 @@ export async function driveUntil(
     return expect();
 }
 
+export interface DoorCrossing {
+    /** Exact loc id of the shut door. */
+    id: number;
+    /** The tile to click it from, on the side being left. */
+    stand: Tile;
+    /** True once the character stands past the door — a component test, never a distance one. */
+    isFar: () => boolean;
+    /** Options to take when the door raises a dialogue instead of opening. */
+    prefer?: readonly string[];
+    /** Display name of the loc, when it is not a Door. */
+    name?: string;
+    /** Op the loc advertises, when it is not Open. */
+    op?: string;
+    log: (m: string) => void;
+}
+
+const DOOR_MS = 12_000;
+const DOOR_WALK_MS = 120_000;
+
+// Why: `~open_and_close_door` teleports the actor through and re-shuts in three ticks, so the far side
+// is the only proof a crossing landed — and no door can ever be held open for a partner.
+
+/**
+ * Cross a quest door that teleports rather than opening.
+ * @see docs/reference/quest-primitives.md
+ */
+export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
+    const { id, stand, isFar, log } = door;
+    if (isFar()) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(stand, { radius: 1, attempts: 3, timeoutMs: DOOR_WALK_MS, log }))) {
+        return false;
+    }
+    const op = door.op ?? 'Open';
+    const name = door.name ?? 'Door';
+    // Why: `~door_open` swings the loc onto a different tile and id, so the shut id is not what stands
+    // there after anyone has opened it — and a sealed pocket has one door, so the actioned neighbour is it.
+    const loc = Locs.query().action(op).within(4).where(l => l.id === id).nearest()
+        ?? Locs.query().action(op).within(2).where(l => l.name === name).nearest();
+    if (!loc) {
+        log(`no ${name.toLowerCase()} ${id} offering '${op}' within four tiles of (${stand.x},${stand.z})`);
+        return false;
+    }
+    if (!(await loc.interact(op))) {
+        log(`${name.toLowerCase()} ${id} refused the ${op} click`);
+        return false;
+    }
+    if (door.prefer && (ChatDialog.isOpen() || ChatDialog.canContinue())) {
+        await driveUntil(isFar, [...door.prefer], log, DOOR_MS);
+    }
+    await Execution.delayUntil(isFar, DOOR_MS);
+    if (!isFar()) {
+        return false;
+    }
+    await settleScene();
+    return true;
+}
+
 export interface LocPrompt {
     name: string;
     op: string;

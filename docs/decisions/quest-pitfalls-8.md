@@ -1,0 +1,54 @@
+[Manual](../README.md) › [Quests](../QUESTS.md) › Quest pitfalls
+
+# Quest pitfalls: Hero's Quest
+
+Ten, and the first one is a wall the quest cannot be finished through.
+
+- **An area with a one-way exit has no entrance.** The Ice Queen's lair is reachable from the surface
+  only by eight `ladder_cellar_inside_down` locs, and every one of them stands on a White Wolf Mountain
+  plateau (x 2800-2861, z 3500-3521) whose whole boundary carries the map's `BLOCK_MAP_SQUARE` flag.
+  Three `ladder_from_cellar` locs climb *out* of it onto walkable ground, so a flood from the lair
+  reaches 531 012 nodes and a flood from Varrock reaches 528 821 — the lair can reach the world and the
+  world cannot reach the lair. `GameMap.loadLands` blocks on exactly the flag the collision builder
+  reads, so the engine agrees with the pack. `ice_gloves` drops from nothing else, which puts the
+  Entranan firebird feather out of reach on this content. Diff the two floods before believing a
+  reachability failure is the walker's fault.
+- **A wall with `blockrange=no` is the intended route.** Grip is sealed from the side room by
+  `snipable_wall` (2637) at (2780,3198), beside a `castlearrowslit`. Nothing walks between the two
+  pockets; the Phoenix bot shoots him through the wall from three tiles away while the Black Arm bot
+  opens his drinks cabinet, which `npc_walk`s him onto that row. A quest whose kill has no melee route
+  is not a broken map — read the loc's `blockrange` before assuming a path is missing.
+- **`~open_and_close_door` teleports the actor and re-shuts in three ticks.** No door in this engine can
+  be held open for a partner. What crosses a party is a tradeable key, not an opened door: Grip's spare
+  (`misc_key`) is tradeable and goes over, while his keyring (`grip_keys`) is not and is instead
+  `obj_addall`ed on death for both players to see.
+- **A cooking range inside a sealed pocket is not a cooking range.** Taverley's (2844,3367) has no
+  reachable stand at all, and the two Brimhaven ranges are the Shrimp and Parrot kitchen and a room the
+  graph has no door into. Test every candidate surface against the pathfinder before pinning one;
+  Catherby's (2817,3444) is the nearest one a walker can reach from the Taverley dungeon ladder.
+- **An item with no shop and no ground spawn is a drop table.** Harralander appears in no `.inv` in the
+  content and in no map OBJ section, so the only source is the chaos druid herb table — 46 in 128 for a
+  herb, 14 in 128 of that table for this one, about 25 kills. Grep the shop configs and the map objs
+  before designing a leg around buying something.
+- **`forceapproach` rotates with the placement angle.** Grip's cabinet is `east` at angle 3, which is
+  north in world space; the candlestick chest is `north` at angle 2, which is south. `(dir + angle) & 3`
+  is the only way to the legal side, and the wrong one produces nothing at all.
+- **Two pockets can interleave along one row.** The Brimhaven hideout and the alley outside it share
+  z 3167-3170 across x 2806-2810, so a single rectangle over the pair puts Grubor's own doorstep inside
+  the hideout and every crossing then reads as already done. A pocket predicate is a union of boxes as
+  often as it is one.
+- **A door's two sides are named by its angle, not by the map.** `grubordoor` is a west wall, so its
+  sides are (2810,3170) and (2811,3170) — east and west of one tile, where the other four doors in this
+  quest are north and south of one. Derive the stands from the angle every time.
+- **An option tree can gate its own options.** `grip_chat_options` only offers "Anything I can do now?",
+  which is what hands over the spare key, after "So what do my duties involve?" has been asked. A
+  `prefer` list has to name both, in that order, and one that leaves the tree.
+- **A trapdoor model is not a trapdoor.** `trapdoor_nonactive` and `ikov_trapdoor` carry a model and
+  nothing else — no name, no ops, no script. Three of them sit exactly where the Ice Queen lair's
+  one-way exits surface, which is what makes the sealed plateau look like it has entrances.
+
+## See also
+
+- [Quest pitfalls](quest-pitfalls.md)
+- [Shield of Arrav](quest-pitfalls-7.md)
+- [Add a quest](../how-to/add-a-quest.md)

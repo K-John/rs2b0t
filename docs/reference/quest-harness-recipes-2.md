@@ -129,6 +129,34 @@ written against what the client receives, not against the `.rs2`.
 module names against a flood from the mainland, and lists the sealed pockets
 deliberately so a map change fails loudly instead of quietly.
 
+## Hero's Quest — pair harness
+
+[`e2e/heros-quest-pair-249-live.ts`](../../e2e/heros-quest-pair-249-live.ts) runs both gangs at
+once, because neither half finishes alone: `grip_attack` refuses everyone but a Phoenix member,
+`pete_treasuredoor` and the candlestick chest answer only to a Black Arm member who has given Grip
+the papers, and `open_and_close_door` teleports the actor rather than opening, so the Phoenix bot
+crosses the side door only on the spare key its rival trades over.
+
+```
+--stage armband|full   stop at both armbands, or run to two green journals
+--stats N              setstat every skill to N (default 70)
+--tick MS              engine tick, default 300
+--minutes N            wall-clock budget
+```
+
+One `browser.newContext()` per account, as for Shield of Arrav. The gang is **not** a setting of
+this quest — `heroGang()` reads Shield of Arrav's `arravGang`, so a character walks the same side in
+both quests; the harness sets `arravGang` per page and `heroPartner` to the other name.
+
+Prerequisites are set rather than earned: `zanaris`, `dragonquest`, `arthur`, `qp 55` and exactly
+one of `phoenixgang 10` / `blackarmgang 4`. Setting both gang varps offers a bot both sides of the
+quest, which is not a state any account reaches.
+
+The bank seed is coins, lobsters and **ice gloves**. The gloves are the one seeded quest item, and
+the reason is in [Hero's Quest pitfalls](../decisions/quest-pitfalls-8.md): every ladder into the
+Ice Queen's lair stands on a plateau the map flags seal, so nothing can walk to the only source of
+them. `--stage armband` avoids the question entirely and is the fast loop for the two-bot dance.
+
 ## See also
 
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)

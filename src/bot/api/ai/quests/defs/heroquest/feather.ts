@@ -1,0 +1,237 @@
+import { Equipment } from '../../../../equipment/Equipment.js';
+import { Execution } from '../../../../execution/Execution.js';
+import { Game } from '../../../../game/Game.js';
+import { GroundItems } from '../../../../grounditems/GroundItems.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
+import { Locs } from '../../../../locs/Locs.js';
+import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
+import { Sustain } from '../../../../sustain/Sustain.js';
+import { Traversal } from '../../../../walking/Traversal.js';
+import Tile from '../../../../../geometry/Tile.js';
+import { fight } from '../trollstronghold/combat.js';
+import { talkThrough } from '../../exec/primitives.js';
+import { QuestFood } from '../../food.js';
+import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
+import { HERO_ID, HERO_NAMED, HERO_NPC, HERO_SHOP, HERO_TILE, onEntrana } from './areas.js';
+import { anywhere, bankedId, heldId, wornId } from './state.js';
+
+// Why: the Ice Queen is level 111 with 104 hitpoints and hits through anything less; the kit is bought
+// on the Champions' Guild upper floor, where Valaine's shop already takes the Black Arm bot.
+const COMBAT_KIT = [
+    { id: 1113, name: 'Rune chainbody', gp: 25_000 },
+    { id: 1079, name: 'Rune platelegs', gp: 20_000 },
+    { id: 1303, name: 'Rune longsword', gp: 24_000 }
+] as const;
+
+const FOOD_TARGET = 12;
+const FIREBIRD_MS = 90_000;
+const ICE_QUEEN_TICKS = 600;
+
+function foodName(): string {
+    return QuestFood.name ?? 'Lobster';
+}
+
+function heldFood(snap: QuestSnapshot): number {
+    return snap.inv.get(foodName().toLowerCase()) ?? 0;
+}
+
+/** Everything Entrana's monks allow: the gloves carry no `armour_*` category, coins and food never did. */
+function entranaKeep(): string[] {
+    return [HERO_NAMED.ICE_GLOVES.toLowerCase(), 'coins', foodName().toLowerCase()];
+}
+
+function hasEntranaSpillover(snap: QuestSnapshot): boolean {
+    const keep = entranaKeep();
+    return [...snap.inv.keys()].some(name => !keep.includes(name));
+}
+
+async function unequipAll(_log: (m: string) => void): Promise<boolean> {
+    for (const item of Equipment.items()) {
+        if (item.name === HERO_NAMED.ICE_GLOVES) {
+            continue;
+        }
+        if (item.name && !(await Equipment.unequip(item.name))) {
+            return false;
+        }
+    }
+    return Equipment.items().every(item => item.name === HERO_NAMED.ICE_GLOVES);
+}
+
+export function combatKitStep(snap: QuestSnapshot): QuestStep | null {
+    for (const piece of COMBAT_KIT) {
+        if (wornId(snap, piece.id)) {
+            continue;
+        }
+        if (heldId(snap, piece.id) > 0) {
+            return { kind: 'equip', item: piece.name };
+        }
+        if (bankedId(snap, piece.id) > 0) {
+            return { kind: 'withdraw', items: [{ name: piece.name, qty: 1, id: piece.id }] };
+        }
+        return { kind: 'buy', item: piece.name, qty: 1, shop: HERO_SHOP.SCAVVO, estGp: piece.gp };
+    }
+    return null;
+}
+
+function iceQueen(): Npc | null {
+    return Npcs.query().where(n => n.id === HERO_NPC.ICE_QUEEN).nearest();
+}
+
+function glovesOnFloor(): { interact(op: string): boolean | Promise<boolean> } | null {
+    return GroundItems.query().where(g => g.id === HERO_ID.ICE_GLOVES).within(12).nearest();
+}
+
+// Why: on the `:8890` content every entrance to the lair sits on a plateau the map flags seal, so this
+// leg says so once rather than repathing forever. See docs/decisions/quest-pitfalls-8.md.
+
+/** Kill the Ice Queen and take the gloves she drops. */
+export async function killIceQueen(log: (m: string) => void): Promise<boolean> {
+    if (Inventory.countById(HERO_ID.ICE_GLOVES) > 0) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(HERO_TILE.ICE_QUEEN, { radius: 3, attempts: 2, timeoutMs: 180_000, log }))) {
+        log('no route into the Ice Queen lair: every ladder down sits on a sealed plateau'
+            + ' (x 2800-2861, z 3500-3521) — the map flags admit nobody, so the gloves have no in-world source');
+        return false;
+    }
+    const won = await fight({
+        what: 'Ice Queen',
+        target: () => iceQueen(),
+        won: () => iceQueen() === null || glovesOnFloor() !== null,
+        protect: 'melee',
+        guard: ICE_QUEEN_TICKS
+    }, log);
+    if (!won) {
+        return false;
+    }
+    const drop = glovesOnFloor();
+    if (!drop) {
+        log('the Ice Queen is down but no ice gloves are on the floor');
+        return false;
+    }
+    if (!(await drop.interact('Take'))) {
+        return false;
+    }
+    return Execution.delayUntil(() => Inventory.countById(HERO_ID.ICE_GLOVES) > 0, 8_000);
+}
+
+export async function sailToEntrana(log: (m: string) => void): Promise<boolean> {
+    if (onEntrana(Game.tile())) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(HERO_TILE.PORT_SARIM_MONK, { radius: 3, attempts: 3, timeoutMs: 180_000, log }))) {
+        return false;
+    }
+    if (!(await talkThrough('Monk of Entrana', ["Yes, okay, I'm ready to go."], log))) {
+        return false;
+    }
+    const landed = await Execution.delayUntil(() => {
+        const tile = Game.tile();
+        return tile !== null && tile.x >= 2790 && tile.x <= 2880 && tile.z >= 3290 && tile.z <= 3440;
+    }, 30_000);
+    if (!landed) {
+        return false;
+    }
+    // Why: the ferry lands on the ship's deck at level 1, and the gangplank is the only way off it.
+    const plank = Locs.query().name('Gangplank').action('Cross').within(10).nearest();
+    if (plank && Game.tile()?.level !== 0) {
+        await plank.interact('Cross');
+        await Execution.delayUntil(() => Game.tile()?.level === 0, 10_000);
+    }
+    return onEntrana(Game.tile());
+}
+
+export async function sailFromEntrana(log: (m: string) => void): Promise<boolean> {
+    if (!onEntrana(Game.tile())) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(HERO_TILE.ENTRANA_DOCK, { radius: 3, attempts: 3, timeoutMs: 120_000, log }))) {
+        return false;
+    }
+    if (!(await talkThrough('Monk of Entrana', ["Yes, I'm ready to go."], log))) {
+        return false;
+    }
+    await Execution.delayUntil(() => !onEntrana(Game.tile()), 30_000);
+    const plank = Locs.query().name('Gangplank').action('Cross').within(10).nearest();
+    if (plank && Game.tile()?.level !== 0) {
+        await plank.interact('Cross');
+        await Execution.delayUntil(() => Game.tile()?.level === 0, 10_000);
+    }
+    return !onEntrana(Game.tile());
+}
+
+// Why: the feather burns for hitpoints/8 + 1 and stays on the floor unless the gloves are WORN, so the
+// equip is part of the pickup rather than a step before it.
+
+/** Kill the level-2 firebird barehanded and take the feather with the gloves on. */
+export async function takeFeather(log: (m: string) => void): Promise<boolean> {
+    if (Inventory.countById(HERO_ID.FEATHER) > 0) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(HERO_TILE.FIREBIRD, { radius: 4, attempts: 3, timeoutMs: 120_000, log }))) {
+        return false;
+    }
+    if (!Equipment.contains(HERO_NAMED.ICE_GLOVES) && !(await Equipment.equip(HERO_NAMED.ICE_GLOVES))) {
+        log('could not wear the ice gloves — the feather cannot be picked up without them');
+        return false;
+    }
+    const feather = (): { interact(op: string): boolean | Promise<boolean> } | null =>
+        GroundItems.query().where(g => g.id === HERO_ID.FEATHER).within(12).nearest();
+    const bird = (): Npc | null => Npcs.query().where(n => n.id === HERO_NPC.FIREBIRD).nearest();
+
+    const deadline = performance.now() + FIREBIRD_MS;
+    while (performance.now() < deadline && feather() === null) {
+        const target = bird();
+        if (target && !Game.inCombat()) {
+            await target.interact('Attack');
+        }
+        await Sustain.run();
+        await Execution.delayTicks(2);
+    }
+    const drop = feather();
+    if (!drop) {
+        log('no fire feather on the floor after the firebird fight');
+        return false;
+    }
+    if (!(await drop.interact('Take'))) {
+        return false;
+    }
+    return Execution.delayUntil(() => Inventory.countById(HERO_ID.FEATHER) > 0, 8_000);
+}
+
+/** The feather chain: gloves from the Ice Queen, then a stripped trip to Entrana. */
+export function featherStep(snap: QuestSnapshot): QuestStep | null {
+    // Why: the island has one way off it and no walkable route home, so a bot standing on it owes the
+    // ferry before anything else — including a finished feather.
+    if (onEntrana(snap.tile)) {
+        if (anywhere(snap, HERO_ID.FEATHER) > 0) {
+            return { kind: 'custom', name: 'sail back from Entrana', run: sailFromEntrana };
+        }
+        return { kind: 'custom', name: 'take the firebird feather', run: takeFeather };
+    }
+    if (anywhere(snap, HERO_ID.FEATHER) > 0) {
+        return null;
+    }
+    if (heldId(snap, HERO_ID.ICE_GLOVES) === 0 && !wornId(snap, HERO_ID.ICE_GLOVES)) {
+        if (bankedId(snap, HERO_ID.ICE_GLOVES) > 0) {
+            return { kind: 'withdraw', items: [{ name: HERO_NAMED.ICE_GLOVES, qty: 1, id: HERO_ID.ICE_GLOVES }] };
+        }
+        const kit = combatKitStep(snap);
+        if (kit) {
+            return kit;
+        }
+        if (heldFood(snap) < FOOD_TARGET) {
+            return { kind: 'withdraw', items: [{ name: foodName(), qty: FOOD_TARGET }] };
+        }
+        return { kind: 'custom', name: 'kill the Ice Queen for her gloves', run: killIceQueen };
+    }
+    if (hasEntranaSpillover(snap)) {
+        return { kind: 'deposit', keep: entranaKeep(), bank: HERO_TILE.DRAYNOR_BANK, exactKeep: true };
+    }
+    if ([...snap.worn].some(name => name !== HERO_NAMED.ICE_GLOVES)) {
+        return { kind: 'custom', name: 'strip the Entrana-restricted equipment', run: unequipAll };
+    }
+    return { kind: 'custom', name: 'sail from Port Sarim to Entrana', run: sailToEntrana };
+}
+
+export const ENTRANA_LANDING = new Tile(2834, 3331, 1);

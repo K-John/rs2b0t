@@ -78,7 +78,12 @@ function main(): void {
             // Why: baked as edges the pathfinder alternates between the two and crosses neither.
             'loc_2534', 'loc_2535',
             // Shield of Arrav's three hideout doors. Why: the weapon store answers Open with "The door is securely locked" and yields only to an oplocu with the key, while the other two refuse until you have joined and then p_teleport you through — none is an edge the walker can step.
-            'phoenixdoor', 'phoenixdoor2', 'blackarmdoor'
+            'phoenixdoor', 'phoenixdoor2', 'blackarmdoor',
+            // Hero's Quest's five Brimhaven doors. Why: each one refuses until its own stage and gang,
+            // and `~open_and_close_door` teleports the actor rather than opening — a baked edge sends
+            // the pathfinder through a wall it can never step. defs/heroquest/doors.ts owns both
+            // directions of every one, which the sealed pockets behind them require.
+            'grubordoor', 'garvdoor', 'herokitchendoor', 'pete_sidedoor', 'pete_treasuredoor'
         ]);
         const label = `${type.name ?? ''} ${type.debugname ?? ''}`.toLowerCase();
         if (label.includes('locked') || (type.debugname ?? '').startsWith('macro_') || SCRIPT_REFUSED.has(type.debugname ?? '')) {
