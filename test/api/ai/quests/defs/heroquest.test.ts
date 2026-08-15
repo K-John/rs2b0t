@@ -4,7 +4,7 @@ import { QUESTS } from '#/bot/api/ai/quests/data/quests.js';
 import { QUEST_DEFS, defById } from '#/bot/api/ai/quests/defs/index.js';
 import { HERO_ID } from '#/bot/api/ai/quests/defs/heroquest/areas.js';
 import { HeroConfig, resetHeroGangCache } from '#/bot/api/ai/quests/defs/heroquest/config.js';
-import { decide, heroquest } from '#/bot/api/ai/quests/defs/heroquest/index.js';
+import { decide, heroquest, inSealedPocket } from '#/bot/api/ai/quests/defs/heroquest/index.js';
 import { HERO_STAGE } from '#/bot/api/ai/quests/defs/heroquest/journal.js';
 import { ArravConfig } from '#/bot/api/ai/quests/defs/shieldofarrav/config.js';
 import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
@@ -190,6 +190,47 @@ describe("hero's quest gang branches", () => {
             invIds: new Map([[HERO_ID.CANDLESTICK, 1]])
         }));
         expect((step as { name: string }).name).toContain('Katrine');
+    });
+});
+
+// Why: every Brimhaven pocket is sealed in the baked graph, so a shop or bank walk planned from inside
+// one reads `unreachable` before it takes a step — the module owes the way out first.
+describe("hero's quest sealed pockets", () => {
+    const MANSION = { x: 2774, z: 3192, level: 0 } as QuestSnapshot['tile'];
+
+    test('a bank scan from inside the mansion leaves it first', () => {
+        withGang('blackarm');
+        const step = decide(snap({ bankKnown: false, tile: MANSION }));
+        expect((step as { name: string }).name).toContain('sealed');
+    });
+
+    test('a shop trip from inside the mansion leaves it first', () => {
+        withGang('blackarm');
+        HeroConfig.partner = 'rival';
+        const step = decide(snap({ stage: HERO_STAGE.BLACKARM_SPOKEN, tile: MANSION }));
+        expect((step as { name: string }).name).toContain('sealed');
+    });
+
+    test('the same shop trip from the street is the buy itself', () => {
+        withGang('blackarm');
+        HeroConfig.partner = 'rival';
+        expect(decide(snap({ stage: HERO_STAGE.BLACKARM_SPOKEN }))).toMatchObject({ kind: 'buy' });
+    });
+
+    test('a custom leg is left alone — it crosses its own doors', () => {
+        withGang('blackarm');
+        HeroConfig.partner = 'rival';
+        const step = decide(snap({
+            stage: HERO_STAGE.BLACKARM_PAPERS_GIVEN,
+            tile: MANSION,
+            invIds: new Map([...kitted('blackarm'), [HERO_ID.GRIP_KEYS, 1]])
+        }));
+        expect((step as { name: string }).name).toContain('treasure room');
+    });
+
+    test('the pocket test knows the street from the rooms', () => {
+        expect(inSealedPocket(snap({ tile: MANSION }))).toBe(true);
+        expect(inSealedPocket(snap({ tile: { x: 2793, z: 3180, level: 0 } as QuestSnapshot['tile'] }))).toBe(false);
     });
 });
 

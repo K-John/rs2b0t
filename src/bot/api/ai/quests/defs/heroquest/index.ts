@@ -2,8 +2,23 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { QUESTS } from '../../data/quests.js';
 import { talkAndClose, talkUntil } from '../../exec/legs.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { ACHIETTIES, HERO_ID, HERO_NAMED, TAVERLEY_HOP_DOWN, TAVERLEY_HOP_UP, onEntrana } from './areas.js';
+import {
+    ACHIETTIES,
+    HERO_ID,
+    HERO_NAMED,
+    TAVERLEY_HOP_DOWN,
+    TAVERLEY_HOP_UP,
+    inBrimhavenHq,
+    inGarden,
+    inKitchen,
+    inMansion,
+    inSideRoom,
+    inTreasureRoom,
+    inYard,
+    onEntrana
+} from './areas.js';
 import { blackarmArmbandStep } from './blackarm.js';
+import { returnToStreet } from './doors.js';
 import { HeroConfig, heroGang, partnerConfigured } from './config.js';
 import { eelStep } from './eel.js';
 import { featherStep } from './feather.js';
@@ -37,6 +52,16 @@ function handInStep(snap: QuestSnapshot): QuestStep {
     };
 }
 
+/** The six Brimhaven pockets, every one of which the navigator has no edge out of. */
+export function inSealedPocket(snap: QuestSnapshot): boolean {
+    return inBrimhavenHq(snap.tile) || inMansion(snap.tile) || inTreasureRoom(snap.tile)
+        || inKitchen(snap.tile) || inGarden(snap.tile) || inYard(snap.tile) || inSideRoom(snap.tile);
+}
+
+// Why: a bank, a shop or a booth is a walk the navigator plans, and from inside a sealed pocket every
+// such plan reads `unreachable` — the custom legs cross their own doors, these steps cannot.
+const NEEDS_STREET = new Set(['buy', 'withdraw', 'deposit', 'scanBank', 'mineRock']);
+
 export function decide(snap: QuestSnapshot): QuestStep {
     if (snap.journal === 'unknown') {
         return { kind: 'wait', reason: 'quest journal not loaded' };
@@ -51,7 +76,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     // Why: `ownsInventory` skips the engine's provisioning, so nothing else ever opens a booth — and an
     // armband or a feather banked by an earlier run stays invisible until one read happens.
     if (!snap.bankKnown) {
-        return { kind: 'scanBank' };
+        return egress(snap, { kind: 'scanBank' });
     }
     if (stage === HERO_STAGE.NOT_STARTED) {
         return {
@@ -80,7 +105,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             ? phoenixArmbandStep(snap, stage)
             : blackarmArmbandStep(snap, stage);
         if (armband) {
-            return armband;
+            return egress(snap, armband);
         }
         return {
             kind: 'wait',
@@ -95,7 +120,14 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (onEntrana(snap.tile)) {
         return featherStep(snap) ?? handInStep(snap);
     }
-    return eelStep(snap) ?? featherStep(snap) ?? handInStep(snap);
+    return egress(snap, eelStep(snap) ?? featherStep(snap) ?? handInStep(snap));
+}
+
+function egress(snap: QuestSnapshot, step: QuestStep): QuestStep {
+    if (!NEEDS_STREET.has(step.kind) || !inSealedPocket(snap)) {
+        return step;
+    }
+    return { kind: 'custom', name: 'leave the sealed Brimhaven pocket', run: returnToStreet };
 }
 
 export const heroquest: QuestModule = {

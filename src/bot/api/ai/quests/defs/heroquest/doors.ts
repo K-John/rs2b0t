@@ -32,6 +32,11 @@ export async function enterBrimhavenHq(log: (m: string) => void): Promise<boolea
     if (inBrimhavenHq(Game.tile())) {
         return true;
     }
+    // Why: every pocket in this quest is sealed in the baked graph, so a bot standing in one of the
+    // others has no route to this door at all — the walk reads `unreachable` and never starts.
+    if (!(await returnToStreet(log))) {
+        return false;
+    }
     const mark = GameMessages.mark();
     for (let attempt = 0; attempt < 2 && !inBrimhavenHq(Game.tile()); attempt++) {
         await crossTeleportDoor({
@@ -70,6 +75,14 @@ export async function enterMansion(log: (m: string) => void): Promise<boolean> {
     if (inMansion(Game.tile())) {
         return true;
     }
+    if (inTreasureRoom(Game.tile())) {
+        return crossTreasureDoorOut(log);
+    }
+    // Why: Garv's door is out of the baked graph, so from the hideout or the kitchen there is no route
+    // to it — the pocket has to be left before the walk can even be planned.
+    if (!(await returnToStreet(log))) {
+        return false;
+    }
     const mark = GameMessages.mark();
     for (let attempt = 0; attempt < 2 && !inMansion(Game.tile()); attempt++) {
         await crossTeleportDoor({
@@ -101,8 +114,13 @@ export async function leaveMansion(log: (m: string) => void): Promise<boolean> {
 }
 
 export async function enterKitchen(log: (m: string) => void): Promise<boolean> {
-    if (inKitchen(Game.tile()) || inGarden(Game.tile())) {
+    if (inKitchen(Game.tile()) || inGarden(Game.tile()) || inYard(Game.tile()) || inSideRoom(Game.tile())) {
         return true;
+    }
+    // Why: the kitchen door is out of the baked graph, so a bot inside the hideout or the mansion has
+    // no route to the restaurant floor it is clicked from.
+    if (!(await returnToStreet(log))) {
+        return false;
     }
     return crossTeleportDoor({
         id: HERO_LOC.KITCHEN_DOOR,

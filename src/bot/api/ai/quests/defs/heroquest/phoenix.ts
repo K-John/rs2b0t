@@ -21,7 +21,7 @@ import {
     STRAVEN_TASK,
     inSideRoom
 } from './areas.js';
-import { crossSideDoorIn, pushPanel, returnToStreet } from './doors.js';
+import { crossSideDoorIn, enterKitchen, pushPanel, returnToStreet } from './doors.js';
 import { HERO_STAGE } from './journal.js';
 import { anywhere, bankedId, heldId, wornId } from './state.js';
 
@@ -68,6 +68,11 @@ export function talkToAlfonse(log: (m: string) => void): Promise<boolean> {
 
 /** Charlie is behind the kitchen door, which only opens once Alfonse has heard the password. */
 export async function talkToCharlie(log: (m: string) => void): Promise<boolean> {
+    // Why: the kitchen is a sealed pocket in the baked graph, so walking at Charlie from the restaurant
+    // reads `unreachable` — the door is the module's to cross, not the navigator's.
+    if (!(await enterKitchen(log))) {
+        return false;
+    }
     return talkAndClose(CHARLIE, CHARLIE.prefer, log);
 }
 

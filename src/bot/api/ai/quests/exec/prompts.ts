@@ -102,6 +102,8 @@ export interface DoorCrossing {
 }
 
 const DOOR_MS = 12_000;
+// Why: the server runs the door's script a tick after the click, so the dialogue check needs a window.
+const DIALOG_MS = 5_000;
 // Why: a quest door can be a kingdom away — the Brimhaven crossings are reached from Varrock by ferry,
 // and a two-minute budget times out mid-ocean and reports the door as missing.
 const DOOR_WALK_MS = 300_000;
@@ -135,8 +137,13 @@ export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
         log(`${name.toLowerCase()} ${id} refused the ${op} click`);
         return false;
     }
-    if (door.prefer && (ChatDialog.isOpen() || ChatDialog.canContinue())) {
-        await driveUntil(isFar, [...door.prefer], log, DOOR_MS);
+    // Why: the server runs the door's script a tick after the click lands, so a dialogue check taken
+    // straight off `interact` sees nothing and the challenge goes unanswered.
+    if (door.prefer) {
+        await Execution.delayUntil(() => isFar() || ChatDialog.isOpen() || ChatDialog.canContinue(), DIALOG_MS);
+        if (!isFar() && (ChatDialog.isOpen() || ChatDialog.canContinue())) {
+            await driveChoice([...door.prefer], log);
+        }
     }
     await Execution.delayUntil(isFar, DOOR_MS);
     if (!isFar()) {
