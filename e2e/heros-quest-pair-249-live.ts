@@ -266,8 +266,15 @@ try {
             );
             process.exit(0);
         }
-        if (p.runner === 'stopped') { fail(`phoenix bot stopped (journal=${p.status}, heroquest=${pHero})`); }
-        if (b.runner === 'stopped') { fail(`black arm bot stopped (journal=${b.status}, heroquest=${bHero})`); }
+        // Why: the AIO Quester drains its queue and stops the moment its own journal turns green, so the
+        // first bot home is always 'stopped' while the second is still walking. Only a stop with an
+        // unfinished journal is a failure.
+        if (p.runner === 'stopped' && p.status !== 'complete') {
+            fail(`phoenix bot stopped (journal=${p.status}, heroquest=${pHero})`);
+        }
+        if (b.runner === 'stopped' && b.status !== 'complete') {
+            fail(`black arm bot stopped (journal=${b.status}, heroquest=${bHero})`);
+        }
         await pageP.waitForTimeout(10_000);
     }
     fail(`the pair did not finish within ${args.minutes}min`);
