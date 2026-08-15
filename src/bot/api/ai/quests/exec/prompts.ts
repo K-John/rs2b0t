@@ -102,6 +102,10 @@ export interface DoorCrossing {
     op?: string;
     /** Id of the key to use on the loc, for a door whose Open answers "This door is locked". */
     useItem?: number;
+    // Why: `~check_axis` reads which side you are on off one coordinate, so a door that teleports by
+    // axis has to be clicked from its own tile — an adjacent stand opens it as if you were leaving.
+    /** How far off the stand counts as arrived. Zero for an axis-tested door. */
+    standRadius?: number;
     log: (m: string) => void;
 }
 
@@ -129,7 +133,8 @@ export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
     if (reader.modals().main !== -1) {
         await Modals.close();
     }
-    if (!(await Traversal.walkResilient(stand, { radius: 1, attempts: 3, timeoutMs: DOOR_WALK_MS, log }))) {
+    const radius = door.standRadius ?? 1;
+    if (!(await Traversal.walkResilient(stand, { radius, attempts: 3, timeoutMs: DOOR_WALK_MS, log }))) {
         return false;
     }
     const op = door.op ?? 'Open';

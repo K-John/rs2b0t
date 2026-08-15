@@ -141,6 +141,7 @@ function crossJailDoor(entering: boolean, log: (m: string) => void): Promise<boo
         stand: entering ? HERO_TILE.JAIL_DOOR : HERO_TILE.JAIL_DOOR_INNER,
         isFar: () => entering === inVelrakCell(Game.tile()),
         useItem: entering ? HERO_ID.JAIL_KEY : undefined,
+        standRadius: 0,
         log
     });
 }
@@ -166,6 +167,7 @@ function crossDeepGate(entering: boolean, log: (m: string) => void): Promise<boo
         stand: entering ? HERO_TILE.DEEP_GATE : HERO_TILE.DEEP_GATE_INNER,
         isFar: () => entering === inDeepDungeon(Game.tile()),
         useItem: entering ? HERO_ID.DUSTY_KEY : undefined,
+        standRadius: 0,
         log
     });
 }
