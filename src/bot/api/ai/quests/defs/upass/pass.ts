@@ -169,6 +169,30 @@ function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string
     log(`pass:   ${nearby.length} op-bearing within 20 of (${from.x},${from.z}): ${listed}`);
 }
 
+// Why: a ground-decor seam sits on a tile the pack calls blocked, so the server's own path search for the
+// op-click dead-ends and answers "I can't reach that!" — the script never runs, and the step reads it as a
+// failed agility roll. `inOperableDistance` is `reachedEntity || reachedObj`, which a CARDINAL neighbour
+// satisfies, so the walk is made explicit before the op is sent.
+async function standBeside(at: Tile, log: (m: string) => void): Promise<boolean> {
+    if (Reachability.walkable(at)) {
+        return true;
+    }
+    const sides = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+        .map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level))
+        .filter(tile => Reachability.canReach(tile, REACH));
+    const me = here();
+    const pick = me
+        ? sides.sort((a, b) => chebyshev(a, me) - chebyshev(b, me))[0]
+        : sides[0];
+    if (!pick) {
+        return false;
+    }
+    if (chebyshev(pick, me ?? pick) === 0) {
+        return true;
+    }
+    return Traversal.walkResilient(pick, { radius: 0, attempts: 1, timeoutMs: 30_000, log });
+}
+
 /** Obstacles in the scene, nearest the straight line toward `dest` first. */
 function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
     const found: Loc[] = [];
@@ -229,6 +253,9 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         // rolls at ninety-five per cent each cannot all fail, so the script was never running.
         const mark = GameMessages.mark();
         for (let attempt = 0; attempt < (kind.tries ?? 1); attempt++) {
+            if (!(await standBeside(obstacle.tile(), log))) {
+                break;
+            }
             if (!(await obstacle.interact(op))) {
                 break;
             }
