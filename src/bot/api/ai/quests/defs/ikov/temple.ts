@@ -17,7 +17,9 @@ import {
     IKOV_OBJ,
     IKOV_TILE,
     LAVA_BRIDGE_ZONE,
-    inGuardianTemple
+    WINELDA_STOP,
+    inGuardianTemple,
+    onWineldaLedge
 } from './areas.js';
 import { escapePocket } from './dungeon.js';
 
@@ -31,6 +33,35 @@ function templeWalk(dest: Tile, radius: number, log: (m: string) => void): Promi
         avoidZones: [LAVA_BRIDGE_ZONE],
         log
     });
+}
+
+// Why: her teleport lands five ticks after the conversation closes, so a leg that acts the moment it returns is still standing on the ledge — where the shiny key is a McGrubor round trip away rather than seventy tiles.
+
+/** Wait out Winelda's ferry, and ask her again if it never came. */
+async function ensureAcrossTheLava(log: (m: string) => void): Promise<boolean> {
+    const onLedge = (): boolean => {
+        const t = Game.tile();
+        return t !== null && onWineldaLedge(t);
+    };
+    if (!onLedge()) {
+        return true;
+    }
+    if (await Execution.delayUntil(() => !onLedge(), 12_000)) {
+        await settleScene();
+        return true;
+    }
+    log('ikov: still on the ledge — asking Winelda for the ferry again');
+    if (!(await templeWalk(IKOV_TILE.WINELDA, 2, log))) {
+        return false;
+    }
+    if (!(await talkStrict(WINELDA_STOP.npc, WINELDA_STOP.prefer, log))) {
+        return false;
+    }
+    const crossed = await Execution.delayUntil(() => !onLedge(), 15_000);
+    if (crossed) {
+        await settleScene();
+    }
+    return crossed;
 }
 
 export async function takeShinyKey(log: (m: string) => void): Promise<boolean> {
@@ -113,6 +144,9 @@ export async function joinTheGuardians(log: (m: string) => void): Promise<boolea
         return true;
     }
     if (!(await escapePocket(log))) {
+        return false;
+    }
+    if (!(await ensureAcrossTheLava(log))) {
         return false;
     }
     if (!(await takeShinyKey(log))) {

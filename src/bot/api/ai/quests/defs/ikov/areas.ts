@@ -223,9 +223,11 @@ export function inTrapPit(t: { x: number; z: number }): boolean {
     return t.x >= 2672 && t.x <= 2686 && t.z >= 9845 && t.z <= 9856;
 }
 
+// Why: the far side wraps past the ledge on both sides, and this box is the strip that holds only the ledge itself.
+
 /** The ledge Winelda stands on, between the Fire Warrior's room and the lava. */
 export function onWineldaLedge(t: { x: number; z: number }): boolean {
-    return t.x >= 2640 && t.x <= 2660 && t.z >= 9871 && t.z <= 9884;
+    return t.x >= 2643 && t.x <= 2658 && t.z >= 9871 && t.z <= 9879;
 }
 
 // Why: the far side of the lava wraps around the Fire Warrior's room and Winelda's ledge, so no rectangle separates them — only the temple behind the wall is boxable, and the corridor at z 9893 is the one row where both sides have tiles.

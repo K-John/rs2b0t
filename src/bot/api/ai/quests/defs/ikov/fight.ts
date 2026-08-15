@@ -11,6 +11,7 @@ import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
 import { Skills } from '../../../../skills/Skills.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
+import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_OBJ, IKOV_TILE, LAVA_BRIDGE_ZONE, onWineldaLedge } from './areas.js';
 import { escapePocket, pullTrapLever, wearFearPendant } from './dungeon.js';
@@ -287,6 +288,8 @@ export async function killLucien(log: (m: string) => void): Promise<boolean> {
             if (swings > 0 && missing >= 5) {
                 log(`ikov: Lucien is banished after ${swings} attacks`);
                 await drainDialogue();
+                // Why: the completion scroll is a main modal, and one left up stops the retreat to a bank dead.
+                await Modals.closeIfOpen();
                 return true;
             }
             await Execution.delayTicks(1);
