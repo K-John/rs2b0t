@@ -1,3 +1,4 @@
+import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
@@ -223,6 +224,10 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         }
         const op = kind.op;
         let now = from;
+        // Why: every one of these refuses in words — "You can't do that from here", "I can't reach that!",
+        // "The rock is being used" — and a step that only reports "did not cross" hides which. Twenty ledge
+        // rolls at ninety-five per cent each cannot all fail, so the script was never running.
+        const mark = GameMessages.mark();
         for (let attempt = 0; attempt < (kind.tries ?? 1); attempt++) {
             if (!(await obstacle.interact(op))) {
                 break;
@@ -253,7 +258,9 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         // burned seventy seconds per round on a cage the player never reached.
         if (chebyshev(now, dest) + MIN_GAIN > chebyshev(from, dest)) {
             spent.add(key);
-            log(`pass: ${op} ${obstacle.name ?? obstacle.id} did not cross toward (${dest.x},${dest.z}) — not using it again`);
+            const said = GameMessages.since(mark).map(m => m.text).slice(-3).join(' | ') || 'nothing';
+            log(`pass: ${op} ${obstacle.name ?? obstacle.id} at (${obstacle.tile().x},${obstacle.tile().z})`
+                + ` did not cross toward (${dest.x},${dest.z}) — it said: ${said}`);
             continue;
         }
         log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now.x},${now.z})`);

@@ -164,7 +164,9 @@ export const UP_TILE = {
 
     AREA2_LANDING: new Tile(2423, 9660, 0),
     RAILINGS_LOOSE: new Tile(2397, 9606, 0),
-    BOULDER: new Tile(2396, 9595, 0),
+    // Why: the boulder's own tile is a fourteen-tile nook of its own, walled off from the cavern floor —
+    // this is the nearest stand a walk can actually reach, and the use is sent from there.
+    BOULDER: new Tile(2398, 9596, 0),
     UNICORN_CAGE: new Tile(2375, 9604, 0),
     MUDPILE: new Tile(2423, 9661, 0),
     MUD_DIG: new Tile(2393, 9650, 0),
