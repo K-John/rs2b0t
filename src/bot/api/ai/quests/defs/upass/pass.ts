@@ -454,12 +454,16 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
     // scene — so the known bridge placements are walked at too, nearest the target first. The walker
     // refuses the ones in other components in a second each, which is what makes trying them all cheap.
     if (from.level === 1) {
-        for (const bridge of [...PLATFORM_BRIDGES].sort((a, b) => chebyshev(a, dest) - chebyshev(b, dest))) {
-            if (chebyshev(bridge, from) <= 2 || chebyshev(bridge, dest) >= chebyshev(from, dest)) {
-                continue;
-            }
+        // Why: an unreachable bridge does not always fail fast — the walker falls through to its unstick
+        // ladder and burns the whole budget — so the six closest to the target get twenty seconds each and
+        // the rest are left alone. A real walk across a platform is a hundred ticks, well inside that.
+        const candidates = [...PLATFORM_BRIDGES]
+            .filter(bridge => chebyshev(bridge, from) > 2 && chebyshev(bridge, dest) < chebyshev(from, dest))
+            .sort((a, b) => chebyshev(a, dest) - chebyshev(b, dest))
+            .slice(0, 6);
+        for (const bridge of candidates) {
             const tile = new Tile(bridge.x, bridge.z, bridge.level);
-            if (!(await Traversal.walkResilient(tile, { radius: 6, attempts: 1, timeoutMs: 60_000 }))) {
+            if (!(await Traversal.walkResilient(tile, { radius: 6, attempts: 1, timeoutMs: 20_000 }))) {
                 continue;
             }
             log(`pass: walked to the bridge at (${bridge.x},${bridge.z}) — now at (${here()?.x},${here()?.z})`);
