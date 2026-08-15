@@ -20,10 +20,8 @@ import { sweepOrbs } from './area1.js';
 import { crossGrid } from './grid.js';
 import {
     badgesHeld,
+    crossTheTemple,
     crushUnicorn,
-    enterMainCavern,
-    feedBloodWell,
-    killPaladin,
     takeRailing
 } from './area2.js';
 import {
@@ -127,7 +125,7 @@ function orbLeg(snap: QuestSnapshot): QuestStep {
 // snapshot can see is the horn, so the crushing and the taking are one step and the horn is what ends it.
 function unicornLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
     if (held(snap, UP_ITEM.UNICORN_HORN) > 0 || badgesHeld(snap) > 0 || area !== 'area2') {
-        return paladinLeg(snap);
+        return paladinLeg();
     }
     if (held(snap, UP_ITEM.RAILING) === 0) {
         return custom('search the cage bars for a loose railing', takeRailing);
@@ -135,17 +133,14 @@ function unicornLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
     return custom('crush the unicorn and take its horn', crushUnicorn);
 }
 
-function paladinLeg(snap: QuestSnapshot): QuestStep {
-    // Why: the way back up to the paladins' shelf is the unicorn tunnel at the south end of the second
-    // cavern, not the mud pile — the pile climbs into the orb corridor, on the far side of the well and
-    // behind every trap already crossed. The tunnel is one of travelTo's seams, so walking is enough.
-    if (badgesHeld(snap) < 3) {
-        return custom('kill a paladin for its coat of arms', killPaladin);
-    }
-    if (held(snap, UP_ITEM.UNICORN_HORN) > 0 || badgesHeld(snap) > 0) {
-        return custom('feed the crests and horn to the blood well', feedBloodWell);
-    }
-    return custom('pass the temple doors into the main cavern', enterMainCavern);
+// Why: the way back up to the paladins' shelf is the unicorn tunnel at the south end of the second cavern,
+// not the mud pile — the pile climbs into the orb corridor, on the far side of the well and behind every
+// trap already crossed. The tunnel is one of travelTo's seams, so walking is enough.
+// Why: and the crests, the well and the doors are one step, because the well eats the crests and the journal
+// never says it did — a snapshot cannot tell "not killed yet" from "already fed", and a run killed three
+// respawned paladins after feeding the first three.
+function paladinLeg(): QuestStep {
+    return custom('take the crests, feed the well and pass the temple doors', crossTheTemple);
 }
 
 function dwarfLeg(area: UpassArea): QuestStep {

@@ -85,13 +85,15 @@ describe('Underground Pass decide()', () => {
     // Why: the journal prints the same two sentences at stage three and stage four and differs only in
     // which is struck through, so the module reads three while the server is at four — and levered a boulder
     // that was already spent, forever. The two stages are one leg, and the horn is what ends it.
+    // Why: and the crests, the well and the doors are one step after that, because the well eats the crests
+    // and the journal never says it did — a run killed three respawned paladins after feeding the first.
     test('the unicorn leg is keyed on the horn, not on the stage', () => {
         const inArea2 = { x: 2396, z: 9600, level: 0 };
         for (const stage of [UP_STAGE.ENTERED_SECOND_AREA, UP_STAGE.KILLED_UNICORN]) {
             const before = decide(snapshot({ stage, tile: inArea2, carried: [UP_ITEM.RAILING.id] }));
             expect(nameOf(before)).toContain('crush the unicorn');
             const after = decide(snapshot({ stage, tile: inArea2, carried: [UP_ITEM.UNICORN_HORN.id] }));
-            expect(nameOf(after)).toContain('paladin');
+            expect(nameOf(after)).toContain('crests');
         }
     });
 

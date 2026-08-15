@@ -96,22 +96,49 @@ export function badgesHeld(snap: QuestSnapshot): number {
 
 // Why: the three paladins only turn hostile once the main cavern has been entered, so before that they are
 // killed one at a time from a standing start rather than left to aggro as a group.
+// Why: the well eats the crests and the journal never says it did, so a snapshot cannot tell "not killed
+// yet" from "already fed" — and a run killed three respawned paladins after feeding the first three. The
+// whole irreversible run of it is therefore one step, ending on the only thing the journal can see: the
+// character standing on the level-1 platform past the temple doors.
 
-/** Kill whichever paladin still owes a badge and take it off the floor. */
+/** Kill paladins, feed the well and pass the doors — whatever of that is still outstanding. */
+export async function crossTheTemple(log: (m: string) => void): Promise<boolean> {
+    for (let round = 0; round < 8; round++) {
+        if ((Game.tile()?.level ?? 0) === 1) {
+            return true;
+        }
+        if (UP_BADGES.some(badge => heldId(badge.id) > 0) || heldId(UP_ITEM.UNICORN_HORN.id) > 0) {
+            await feedBloodWell(log);
+        }
+        if (await enterMainCavern(log)) {
+            return true;
+        }
+        if (!(await killPaladin(log))) {
+            log('no paladin left to take a crest from, and the doors will not open');
+            return false;
+        }
+    }
+    return (Game.tile()?.level ?? 0) === 1;
+}
+
+/** Kill whichever paladin is still standing and take the crest it drops. */
 export async function killPaladin(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(UP_TILE.PALADINS, 4, log))) {
         return false;
     }
     await settleScene();
-    const owed = PALADINS.find(p => heldId(p.badge.id) === 0);
-    if (!owed) {
-        return true;
-    }
-    const target = Npcs.query().where(npc => npc.id === owed.npc).action('Attack').within(14).nearest();
+    // Why: which crest is owed cannot be read once the well has eaten them, so the target is whichever
+    // paladin is alive and the drop is whatever it leaves.
+    const target = Npcs.query()
+        .where(npc => PALADINS.some(p => p.npc === npc.id))
+        .action('Attack')
+        .within(14)
+        .nearest();
     if (!target) {
-        log(`no paladin ${owed.npc} on the shelf`);
+        log('no paladin left standing on the shelf');
         return false;
     }
+    const owed = PALADINS.find(p => p.npc === target.id) ?? PALADINS[0]!;
     if (!(await target.interact('Attack'))) {
         log(`could not attack paladin ${owed.npc}`);
         return false;
