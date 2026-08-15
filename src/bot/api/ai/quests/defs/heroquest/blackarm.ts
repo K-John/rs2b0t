@@ -155,6 +155,12 @@ export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<
             log('lure: yielding to a random event');
             return false;
         }
+        // Why: a Grip already standing on the row needs no second summon, and re-clicking there spends
+        // every tick on a dialogue rather than leaving the rival's shot the tick it needs.
+        if (gripOnTheRow()) {
+            await Execution.delayUntil(() => keyringOnFloor() !== null || !gripOnTheRow(), LURE_HOLD_MS);
+            continue;
+        }
         // Why: the cabinet is two locs — `gripcbshut` becomes `gripcbopen` for 500 ticks — and both run
         // `summon_grip`, one under Open and one under Search.
         const cupboard = Locs.query()
