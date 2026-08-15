@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Seventeen, and the first three are engine behaviour the quest only happens to expose.
+Twenty-one, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -82,9 +82,12 @@ Seventeen, and the first three are engine behaviour the quest only happens to ex
   therefore reads the shelf as the corridor, and a run that drifted onto the shelf declared the spiked grid
   crossed while it was still on the wrong side of it. Bound a pocket by what is left after its neighbours are
   taken out, not by its own extent.
-- **The same loc is scenery in one cavern and a seam in the next.** `upass_swampbubbles1` offers `Cross` in
-  both, and taking the first cavern's for an obstacle walked a route twenty tiles off its approach. A seam
-  vocabulary keyed on loc id alone is not enough where the map reuses ids.
+- **A seam vocabulary keyed on loc id alone is not enough.** The same id appears in both caverns and the same
+  op means different things at each end: taking `upass_swampbubbles1` for a crossing walked a route twenty
+  tiles off its approach before the script behind it was read. The unicorn tunnel is the sharper case — it is
+  a real seam, sixteen tiles from the boulder with a gain that reads as progress, and it telejumps to the
+  paladins' shelf four seams and a well behind. It is only worth offering when the journey crosses between
+  the caverns, which is the one thing it joins.
 - **The way back up to the paladins is the unicorn tunnel, not the mud pile.** `mudpile_upass` climbs into
   the orb corridor, on the far side of the well and behind every trap already crossed.
   `upass_area_2_3_entrance` is the one that telejumps between the second cavern and the paladins' shelf.
@@ -92,6 +95,22 @@ Seventeen, and the first three are engine behaviour the quest only happens to ex
   amulets and Kalrag for the blood. The kit's shortbow exists for one shot at one rope, so a module that
   packs it and nothing else descends a one-way dungeon bare-handed — and `armFireArrow` leaves any melee
   weapon in the pack, where it stays unless something puts it back on.
+
+- **A `Cross` op is not a promise of a crossing.** `upass_swampbubbles1` offers one and then drags the player
+  into a crevasse at (2485,9649) for fifteen per cent of their hitpoints, and `caverockpile` climbs honestly
+  but out to the first cavern's landing chamber, behind the bridge and the grid — a way home, not a way on.
+  Both sit on the route to the boulder with a gain that reads as progress. Read the script behind every op
+  before it joins a seam vocabulary.
+- **A seam's own tile is blocked — that is what makes it a seam.** A reachability flood asked about the loc's
+  tile answers no, and where the near side is a single walkable column (the second cavern's ledge is six such
+  tiles in a row) it answers no for every one. Ask about the cardinal neighbours, which are where a player
+  would stand.
+- **Every obstacle here rolls a skill, so one attempt is not a verdict.** The rockslide, the ledge, the stone
+  bridges, the collapsed bridge and the rope swing roll agility; the two locked cages roll thieving. A
+  failure leaves the player short — the ledge in a rat pit — and spending the obstacle on it is how a leg ran
+  out of ledges to try while standing at the door of the room it could not leave.
+- **Drops are not deliveries.** `ai_queue3` puts the paladin's coat of arms on its own tile, so a step waiting
+  for it to appear in the pack waits forever. The kill and the pickup are two separate things.
 
 ## See also
 
