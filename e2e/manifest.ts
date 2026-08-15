@@ -133,8 +133,8 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'vetted',
         budgetMin: 150,
-        provenAt: 'ea9d8e7e',
-        documentedIn: 'docs/reference/quest-harness-recipes.md',
+        provenAt: 'a0f40788',
+        documentedIn: 'docs/reference/quest-harness-recipes-15.md',
         note: 'uncheated --stage 0 --until 9 at --tick 150'
     },
     {
