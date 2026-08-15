@@ -95,9 +95,33 @@ function itemFor(handoff: ArravHandoff, gang: ArravGang): { id: number; name: st
 
 // Why: partner accepts are not tied to this client's tick rate, so these are wall-clock — a harness at 300ms ticks makes seven ticks about 2.1s, too short for a mutual Trade.
 const MEET_MS = 90_000;
-const OPEN_MS = 20_000;
 const SCREEN_MS = 8_000;
 const HANDOFF_MS = 120_000;
+
+/** How often the mutual Trade-with click is re-sent while the partner stands in range. */
+export const OPEN_REQUEST_EVERY_MS = 3_000;
+
+export type OpenTradeAction = 'done' | 'wait' | 'request' | 'give-up';
+
+// Why: `[opplayer4,_]` opens the window on the second of the two clicks and keeps its varps with no expiry, so re-sending completes a handshake whose first click was dropped, and a partner out of range is walking rather than missing.
+export function decideOpenTrade(input: {
+    tradeActive: boolean;
+    partnerNear: boolean;
+    nowMs: number;
+    deadlineMs: number;
+    nextRequestAtMs: number;
+}): OpenTradeAction {
+    if (input.tradeActive) {
+        return 'done';
+    }
+    if (input.nowMs >= input.deadlineMs) {
+        return 'give-up';
+    }
+    if (!input.partnerNear) {
+        return 'wait';
+    }
+    return input.nowMs >= input.nextRequestAtMs ? 'request' : 'wait';
+}
 
 function partnerNear(): { index: number } | null {
     const name = ArravConfig.partner.trim();
@@ -105,6 +129,41 @@ function partnerNear(): { index: number } | null {
         return null;
     }
     return Players.query().where(p => namesMatch(p.name ?? '', name)).within(DEFAULT_TRADE_RANGE).nearest();
+}
+
+/** Drive the mutual Trade-with until the window opens, the partner never returns, or the budget runs out. */
+async function openTrade(log: (m: string) => void): Promise<boolean> {
+    const deadline = performance.now() + MEET_MS;
+    let nextRequestAt = 0;
+    let waitedFor = false;
+    for (;;) {
+        const action = decideOpenTrade({
+            tradeActive: Trade.active(),
+            partnerNear: partnerNear() !== null,
+            nowMs: performance.now(),
+            deadlineMs: deadline,
+            nextRequestAtMs: nextRequestAt
+        });
+        if (action === 'done') {
+            return true;
+        }
+        if (action === 'give-up') {
+            log(`trade with '${ArravConfig.partner}' never opened within ${Math.round(MEET_MS / 1000)}s`);
+            return false;
+        }
+        if (action === 'request') {
+            if (!(await Trade.request(ArravConfig.partner))) {
+                log(`could not open a trade with '${ArravConfig.partner}'`);
+                return false;
+            }
+            nextRequestAt = performance.now() + OPEN_REQUEST_EVERY_MS;
+        } else if (!waitedFor && partnerNear() === null) {
+            // Why: the giver leaves for the curator the moment the half lands, so the taker's partner is en route rather than gone.
+            log(`waiting for '${ArravConfig.partner}' to come back into trade range`);
+            waitedFor = true;
+        }
+        await Execution.delayTicks(2);
+    }
 }
 
 export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m: string) => void): Promise<boolean> {
@@ -141,19 +200,10 @@ export async function runHandoff(handoff: ArravHandoff, gang: ArravGang, log: (m
     if (!(await Traversal.walkResilient(SOA_TILE.RENDEZVOUS, { radius: 2, attempts: 3, timeoutMs: MEET_MS, log }))) {
         return false;
     }
-    // Why: a wait step would park the quest after fifteen identical passes, so the wait for a partner lives inside the leg.
-    await Execution.delayUntil(() => partnerNear() !== null || Trade.active(), MEET_MS);
-    if (!partnerNear() && !Trade.active()) {
-        log(`partner '${ArravConfig.partner}' never arrived at the rendezvous`);
-        return false;
-    }
+    // Why: a wait step would park the quest after fifteen identical passes, so the wait for a partner lives inside the leg — openTrade owns both the wait and the clicking.
 
-    if (!Trade.active()) {
-        if (!(await Trade.request(ArravConfig.partner))) {
-            log(`could not open a trade with '${ArravConfig.partner}'`);
-            return false;
-        }
-        await Execution.delayUntil(() => Trade.active(), OPEN_MS);
+    if (!Trade.active() && !(await openTrade(log))) {
+        return false;
     }
 
     const deadline = performance.now() + HANDOFF_MS;
