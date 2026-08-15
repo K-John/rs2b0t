@@ -83,8 +83,9 @@ const UPASS_STARTED_BIT = 1 << 11;
 
 /**
  * Coins, food, and the kit the module draws from the bank.
- * Why: the bow, arrows, tinderbox, bucket and rope are shop stock the module does not yet buy for itself —
- * seeded here, and called out as a gap rather than hidden.
+ * Why: the bow, arrows, tinderbox, spade, bucket and rope are shop stock the module does not yet buy for
+ * itself, and the melee kit is whatever a real account would already own — seeded here, and called out as a
+ * gap rather than hidden. A pack short of any of them stops at the cave mouth and says which.
  */
 const BANK_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },

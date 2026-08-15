@@ -105,6 +105,36 @@ function held(id: number): number {
     return Inventory.items().filter(item => item.id === id).reduce((sum, item) => sum + item.count, 0);
 }
 
+/** Every seam loc in the scene, whether or not it is worth crossing — the log for a stuck pocket. */
+function seamsInScene(): Loc[] {
+    const found: Loc[] = [];
+    for (const kind of HOP_KINDS) {
+        found.push(...Locs.query().where(loc => loc.id === kind.loc).action(kind.op).within(HOP_SEARCH).results());
+    }
+    for (const seam of USE_SEAMS) {
+        found.push(...Locs.query().where(loc => seam.locs.includes(loc.id)).within(HOP_SEARCH).results());
+    }
+    return found;
+}
+
+// Why: "no obstacle makes progress" says nothing about why — whether the seam is out of the scene, on the
+// wrong side of the gain threshold, or behind a wall. A pocket the route cannot leave is the one failure
+// that costs a whole run, so it says what it could see and what it made of each one.
+function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string) => void): void {
+    const seen = seamsInScene();
+    if (seen.length === 0) {
+        log(`pass: no seam of any kind within ${HOP_SEARCH} tiles of (${from.x},${from.z})`);
+        return;
+    }
+    const mine = chebyshev(from, dest);
+    for (const loc of seen.slice(0, 8)) {
+        const at = loc.tile();
+        const gain = mine - chebyshev(at, dest);
+        const reach = Reachability.canReach(at, REACH) ? 'reachable' : 'walled off';
+        log(`pass:   seam ${loc.name ?? loc.id} at (${at.x},${at.z}) L${at.level} — gain ${gain}, ${reach}`);
+    }
+}
+
 /** Obstacles in the scene, nearest the straight line toward `dest` first. */
 function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
     const found: Loc[] = [];
@@ -292,6 +322,9 @@ export async function travelTo(dest: Tile, radius: number, log: (m: string) => v
         if (!(await hopToward(dest, log, spent))) {
             const stuck = here();
             log(`pass: no obstacle from (${stuck?.x},${stuck?.z}) makes progress toward (${dest.x},${dest.z})`);
+            if (stuck) {
+                reportStuck(dest, stuck, log);
+            }
             return false;
         }
         navWorthTrying = true;
