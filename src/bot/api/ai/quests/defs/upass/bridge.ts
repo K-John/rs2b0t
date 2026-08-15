@@ -7,6 +7,7 @@ import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { Reach } from '../../../../walking/Reach.js';
+import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { Modals } from '../../../../ui/widgets/Modals.js';
 import { talkStrict } from '../../exec/primitives.js';
@@ -259,7 +260,11 @@ const SHOT_STANDS: readonly Tile[] = [
 /** Fire the lit arrow at the bridge stay rope; the script walks the player across on a hit. */
 export async function shootGuiderope(log: (m: string) => void): Promise<boolean> {
     for (const stand of SHOT_STANDS) {
-        if (!(await walkTo(stand, 0, log))) {
+        // Why: these five stands are a handful of tiles apart in one pocket, so a stand that is not walkable
+        // is the next stand's turn — not a reason to go hunting seams. `walkTo` reaches for the pocket
+        // traveller, and one bad stand sent it sweeping the whole cavern: forty-one "nowhere to stand"
+        // reports and eleven tiles of drift away from the rope, on the one run that started two tiles off.
+        if (!(await Traversal.walkResilient(stand, { radius: 0, attempts: 1, timeoutMs: 20_000 }))) {
             continue;
         }
         await settleScene();
