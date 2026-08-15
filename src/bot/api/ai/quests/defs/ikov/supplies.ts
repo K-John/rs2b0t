@@ -33,8 +33,9 @@ const HOB_RADIUS = 20;
 const ROOT_RADIUS = 12;
 const REACH_STEPS = 20_000;
 
+// Why: a bow in the quiver hand is not a bow the quest has to fletch again, and the pack view cannot see it.
 export function heldOrBanked(snap: QuestSnapshot, id: number): number {
-    return (snap.invIds?.get(id) ?? 0) + (snap.bankIds?.get(id) ?? 0);
+    return (snap.invIds?.get(id) ?? 0) + (snap.bankIds?.get(id) ?? 0) + (snap.wornIds?.has(id) === true ? 1 : 0);
 }
 
 export function heldOrBankedNamed(snap: QuestSnapshot, name: string): number {

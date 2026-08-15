@@ -19,6 +19,8 @@ import { escapePocket, pullTrapLever, wearFearPendant } from './dungeon.js';
 const WARRIOR_GUARD = 900;
 /** The bow's second combat-tab style. */
 const RAPID_MODE = 1;
+/** Ticks with no target and no shot taken before the summon counts as failed. */
+const NEVER_APPEARED = 30;
 const LUCIEN_GUARD = 400;
 const EAT_AT_MISSING = 18;
 const ARROW_RADIUS = 12;
@@ -108,9 +110,20 @@ async function summonWarrior(log: (m: string) => void): Promise<boolean> {
     }
     log('ikov: opening the fire warrior door');
     if (!(await door.interact('Open'))) {
+        log('ikov: the fire warrior door refused the click');
         return false;
     }
-    return Execution.delayUntil(() => warrior() !== null, 15_000);
+    const came = await Execution.delayUntil(() => warrior() !== null, 20_000);
+    // Why: "no warrior" reads the same whether the cutscene never fired or the scene is being filtered, and the two have different fixes.
+    log(came
+        ? 'ikov: the Fire Warrior is up'
+        : `ikov: no Fire Warrior after the door — scene holds ${tallyNearby()}`);
+    return came;
+}
+
+function tallyNearby(): string {
+    const names = Npcs.query().within(15).results().map(n => `${n.name ?? '?'}#${n.id}`);
+    return names.length === 0 ? 'nothing' : [...new Set(names)].join(', ');
 }
 
 async function drainDialogue(): Promise<void> {
@@ -183,6 +196,11 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
                 await drainDialogue();
                 await pickUpArrows(log);
                 return true;
+            }
+            // Why: spinning out the whole guard on an empty scene costs three minutes and says nothing; the tally names what is actually there.
+            if (swings === 0 && missing >= NEVER_APPEARED) {
+                log(`ikov: the Fire Warrior never joined the fight — scene holds ${tallyNearby()}`);
+                return false;
             }
             await Execution.delayTicks(1);
             continue;
