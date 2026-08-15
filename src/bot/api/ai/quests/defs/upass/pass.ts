@@ -531,6 +531,51 @@ async function platformStep(
     return null;
 }
 
+// Why: on the platforms the solved route is the authority, not one candidate among twenty. Letting the
+// obstacle search choose freely there sent a run back and forth across the same two bridges: the step it was
+// serving alternates between the cat and the witch's door, the spent set is keyed by destination, and every
+// switch wiped the memory of which crossings had already been used.
+async function crossByRoute(
+    from: { x: number; z: number; level: number },
+    dest: Tile,
+    log: (m: string) => void
+): Promise<boolean> {
+    const stand = await platformStep(from, dest, log);
+    if (!stand) {
+        return false;
+    }
+    if (!(await Traversal.walkResilient(stand, { radius: 0, attempts: 2, timeoutMs: 60_000 }))) {
+        log(`pass: could not reach the crossing tile (${stand.x},${stand.z})`);
+        return false;
+    }
+    const bridge = Locs.query()
+        .where(loc => loc.id === UP_LOC.COLLAPSED_A || loc.id === UP_LOC.COLLAPSED_B)
+        .action('Cross')
+        .within(6)
+        .nearest();
+    if (!bridge) {
+        log(`pass: no bridge within reach of the crossing tile (${stand.x},${stand.z})`);
+        return false;
+    }
+    const before = here() ?? from;
+    if (!(await bridge.interact('Cross'))) {
+        return false;
+    }
+    const after = (await settleWalk()) ?? before;
+    await Execution.delayUntil(() => {
+        const t = here();
+        return t !== null && chebyshev(t, before) >= 2;
+    }, CROSS_TIMEOUT_MS);
+    await settleScene();
+    const now = here() ?? after;
+    if (chebyshev(now, before) < 2) {
+        log(`pass: the routed bridge at (${bridge.tile().x},${bridge.tile().z}) did not carry anyone`);
+        return false;
+    }
+    log(`pass: routed across (${bridge.tile().x},${bridge.tile().z}) → (${now.x},${now.z})`);
+    return true;
+}
+
 /** Walk to the pocket's edge in each direction, looking for a crossing that was out of sight. */
 async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<string>): Promise<boolean> {
     const from = here();
@@ -555,18 +600,6 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
     // Why: and the crossing that leaves a platform can be a hundred and forty tiles off, well past any
     // scene — so the known bridge placements are walked at too, nearest the target first. The walker
     // refuses the ones in other components in a second each, which is what makes trying them all cheap.
-    if (from.level === 1) {
-        // Why: radius zero. The side tile is the one the offline solve proved is both in this pocket and
-        // adjacent to the bridge's footprint — landing one tile off it is landing somewhere the crossing
-        // cannot be sent from, and the run repeated that walk until it ran out of minutes.
-        const next = await platformStep(from, dest, log);
-        if (next && (await Traversal.walkResilient(next, { radius: 0, attempts: 2, timeoutMs: 60_000 }))) {
-            log(`pass: at the platform crossing (${next.x},${next.z}) — now at (${here()?.x},${here()?.z})`);
-            if (await hopToward(dest, log, spent)) {
-                return true;
-            }
-        }
-    }
     const probes = SWEEP_DIRS
         .map(([dx, dz]) => SWEEP_STEPS
             .map(step => new Tile(from.x + dx * step, from.z + dz * step, from.level))
@@ -617,6 +650,11 @@ export async function travelTo(dest: Tile, radius: number, log: (m: string) => v
                 return true;
             }
             navWorthTrying = false;
+        }
+        // Why: the platforms first, because their route is solved and the free search is not.
+        if (at && at.level === 1 && dest.level === 1 && (await crossByRoute(at, dest, log))) {
+            navWorthTrying = true;
+            continue;
         }
         if (!(await hopToward(dest, log, spent)) && !(await sweepPocket(dest, log, spent))) {
             const stuck = here();
