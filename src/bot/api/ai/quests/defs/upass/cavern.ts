@@ -4,7 +4,7 @@ import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { Reach } from '../../../../walking/Reach.js';
-import type Tile from '../../../../../geometry/Tile.js';
+import Tile from '../../../../../geometry/Tile.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE } from './areas.js';
@@ -148,33 +148,48 @@ export async function stealTheDoll(log: (m: string) => void): Promise<boolean> {
     return heldId(UP_ITEM.DOLL.id) > 0;
 }
 
+// Why: standing on the door's own tile sends the knock and the server answers with nothing at all — no
+// "You knock on the door...", no "I can't reach that!" — so the op is dropped before the script is reached.
+// A wall is operated from a side, and which side is not knowable from here, so every side gets a turn and
+// each one reports what the game said. The chat is joined into one line because the harness only surfaces a
+// few log lines per poll, and a per-side report reads as silence.
+
 /** Knock with the cat in the pack, which puts it down and takes her away from the chest. */
 export async function distractWitch(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.WITCH_DOOR, 3, log))) {
-        return false;
-    }
-    await settleScene();
-    const door = locById(UP_LOC.WITCH_DOOR, 'Knock', 16);
-    if (!door) {
-        const at = Game.tile();
-        log(`no knockable door within sixteen of (${at?.x},${at?.z})`);
-        return false;
-    }
-    // Why: the knock puts the cat down, so the cat leaving the pack is what says Kardia came out.
     const gone = (): boolean => heldId(UP_ITEM.WITCH_CAT.id) === 0;
-    const mark = GameMessages.mark();
-    if (await door.interact('Knock') && await driveUntil(gone, [], log, 20_000)) {
-        return true;
+    const door = UP_TILE.WITCH_DOOR;
+    const stands = [
+        door,
+        new Tile(door.x, door.z + 1, door.level),
+        new Tile(door.x, door.z - 1, door.level),
+        new Tile(door.x - 1, door.z, door.level),
+        new Tile(door.x + 1, door.z, door.level)
+    ];
+    const tried: string[] = [];
+    for (const stand of stands) {
+        if (!(await walkTo(stand, 0, log))) {
+            tried.push(`(${stand.x},${stand.z}) unreachable`);
+            continue;
+        }
+        await settleScene();
+        const loc = locById(UP_LOC.WITCH_DOOR, null, 16);
+        if (!loc) {
+            tried.push(`(${stand.x},${stand.z}) no door`);
+            continue;
+        }
+        const mark = GameMessages.mark();
+        if (await loc.interact('Knock') && await driveUntil(gone, [], log, 8_000)) {
+            return true;
+        }
+        // Why: `oplocu` reaches the same drop label with no op index to resolve.
+        const cat = Inventory.items().find(item => item.id === UP_ITEM.WITCH_CAT.id);
+        if (cat && await cat.useOn(loc) && await driveUntil(gone, [], log, 8_000)) {
+            return true;
+        }
+        const said = GameMessages.since(mark).map(m => m.text).filter(t => !t.startsWith('get ')).slice(-2).join(' ');
+        tried.push(`(${stand.x},${stand.z}) ${said || 'silence'}`);
     }
-    // Why: the door is a wall, so a knock sent from the wrong side is refused rather than run, and the
-    // refusal reads as the witch ignoring it. `oplocu` reaches the same label with no op to resolve.
-    const cat = Inventory.items().find(item => item.id === UP_ITEM.WITCH_CAT.id);
-    if (cat && await cat.useOn(door) && await driveUntil(gone, [], log, 20_000)) {
-        return true;
-    }
-    const at = Game.tile();
-    const said = GameMessages.since(mark).map(m => m.text).slice(-6).join(' / ') || 'nothing';
-    log(`kept the cat at (${at?.x},${at?.z}) beside the door (${door.tile().x},${door.tile().z}) — said: ${said}`);
+    log(`the door would not take the cat — ${tried.join(' | ')}`);
     return false;
 }
 

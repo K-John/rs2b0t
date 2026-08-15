@@ -232,7 +232,10 @@ function finishLeg(area: UpassArea): QuestStep {
 function stageStep(snap: QuestSnapshot, area: UpassArea, stage: number): QuestStep {
     // Why: the bow owns the right hand until the stay rope is shot, so the melee kit only goes on past the
     // bridge — and it goes on before the orb sweep, which needs the five slots the armour would otherwise sit in.
-    const gear = stage >= UP_STAGE.PASSED_BRIDGE ? drawGear(snap) : null;
+    // Why: a complete doll means the next door wants the robes of Zamorak and exactly nothing else on, so
+    // the armour has to stay off until Iban is in the pit — after which it goes back on for the walk out.
+    const bare = flag(snap, UP_FLAG.DOLL_COMPLETE) && stage < UP_STAGE.DEFEATED_IBAN;
+    const gear = stage >= UP_STAGE.PASSED_BRIDGE && !bare ? drawGear(snap) : null;
     if (gear) {
         return gear;
     }

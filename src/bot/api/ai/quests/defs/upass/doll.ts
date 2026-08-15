@@ -1,3 +1,4 @@
+import { Equipment } from '../../../../equipment/Equipment.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
@@ -7,7 +8,7 @@ import type { Npc } from '../../../../model/Npc.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import type { QuestSnapshot } from '../../engine/types.js';
-import { UP_AMULETS, UP_ITEM, UP_LOC, UP_NPC, UP_TILE, countHeld, type UpassItem } from './areas.js';
+import { UP_AMULETS, UP_ITEM, UP_LOC, UP_NPC, UP_TILE, countHeld, insideIbanTemple, type UpassItem } from './areas.js';
 import { locById, walkTo } from './bridge.js';
 
 /** Rub an element into the doll. */
@@ -193,19 +194,83 @@ export async function searchCages(log: (m: string) => void): Promise<boolean> {
     return driveUntil(() => heldId(UP_ITEM.DOVE.id) > 0, [], log, 20_000);
 }
 
-/** Iban's temple doors. */
+// Why: the doors only open for a follower of Zamorak wearing the robes and nothing else — the script counts
+// worn slots and wants exactly two — so the armour comes off here and goes back on after the throw. The
+// robes come off an Iban disciple: level thirteen, twenty hitpoints, and a dozen of them line the approach.
+
+/** Kill a disciple for both halves of the robe of Zamorak. */
+async function robeFromDisciple(log: (m: string) => void): Promise<boolean> {
+    const dressed = (): boolean => heldId(UP_ITEM.ZAM_TOP.id) > 0 && heldId(UP_ITEM.ZAM_BOTTOM.id) > 0;
+    for (let tries = 0; tries < 3 && !dressed(); tries++) {
+        if (!(await killNpc(UP_NPC.DISCIPLE, UP_TILE.DISCIPLE, 'an Iban disciple', log))) {
+            return false;
+        }
+        for (const robe of [UP_ITEM.ZAM_TOP, UP_ITEM.ZAM_BOTTOM]) {
+            const drop = GroundItems.query().where(item => item.id === robe.id).within(10).nearest();
+            if (drop && await drop.interact('Take')) {
+                await driveUntil(() => heldId(robe.id) > 0, [], log, 10_000);
+            }
+        }
+    }
+    if (dressed()) {
+        return true;
+    }
+    log('three disciples and still no pair of robes');
+    return false;
+}
+
+/** Strip to the robes: the door counts worn slots, so everything else has to come off first. */
+async function wearOnlyRobes(log: (m: string) => void): Promise<boolean> {
+    for (const worn of Equipment.items()) {
+        const name = worn.name;
+        if (name !== null && !(await Equipment.unequip(name))) {
+            log(`could not take off ${name}`);
+            return false;
+        }
+    }
+    for (const robe of [UP_ITEM.ZAM_TOP, UP_ITEM.ZAM_BOTTOM]) {
+        const item = Inventory.items().find(i => i.id === robe.id);
+        const op = item?.actions().find(o => /wear|wield|equip/i.test(o));
+        if (!item || !op || !(await item.interact(op))) {
+            log(`the ${robe.name} would not go on`);
+            return false;
+        }
+        await Execution.delayTicks(2);
+    }
+    return Equipment.items().length === 2;
+}
+
+// Why: opening a door does not move anyone through it — the loc swaps to its open variant and the player
+// stays put — so the walk inside is a second step, and standing on the temple floor is the only proof.
+
+/** Iban's temple doors, and the walk through them. */
 export async function openIbanDoor(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.IBAN_DOOR, 3, log))) {
-        return false;
+    if (!insideIbanTemple(Game.tile())) {
+        if (Equipment.items().length !== 2 && !(await robeFromDisciple(log) && await wearOnlyRobes(log))) {
+            return false;
+        }
+        if (!(await walkTo(UP_TILE.IBAN_DOOR, 3, log))) {
+            return false;
+        }
+        await settleScene();
+        const shut = locById(UP_LOC.IBAN_DOOR_L, null, 8) ?? locById(UP_LOC.IBAN_DOOR_R, null, 8);
+        const op = shut?.actions()[0];
+        if (shut && op) {
+            if (!(await shut.interact(op))) {
+                log("the doors on Iban's temple would not open");
+                return false;
+            }
+            await driveUntil(() => locById(UP_LOC.IBAN_DOOR_L, null, 8) === null
+                && locById(UP_LOC.IBAN_DOOR_R, null, 8) === null, [], log, 12_000);
+        }
+        await walkTo(UP_TILE.IBAN_ALTAR, 3, log);
     }
-    await settleScene();
-    const door = locById(UP_LOC.IBAN_DOOR_L, null, 8) ?? locById(UP_LOC.IBAN_DOOR_R, null, 8);
-    const op = door?.actions()[0];
-    if (!door || !op || !(await door.interact(op))) {
-        log("no doors on Iban's temple");
-        return false;
+    if (insideIbanTemple(Game.tile())) {
+        return true;
     }
-    return driveUntil(() => (Game.tile()?.x ?? 9999) < UP_TILE.IBAN_DOOR.x, [], log, 15_000);
+    const at = Game.tile();
+    log(`still outside the temple at (${at?.x},${at?.z})`);
+    return false;
 }
 
 /** The doll into the pit of the damned. */

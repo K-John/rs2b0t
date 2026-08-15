@@ -40,7 +40,9 @@ export const UP_ITEM = {
     SHADOW: { id: 1500, name: "Iban's shadow" },
     DWARF_BREW: { id: 1501, name: 'Dwarf brew' },
     ASHES: { id: 1502, name: "Iban's ashes" },
-    IBAN_STAFF: { id: 1409, name: "Iban's staff" }
+    IBAN_STAFF: { id: 1409, name: "Iban's staff" },
+    ZAM_TOP: { id: 1035, name: 'Robe of zamorak' },
+    ZAM_BOTTOM: { id: 1033, name: 'Robe of zamorak' }
 } as const satisfies Record<string, UpassItem>;
 
 export const UP_ORBS: readonly UpassItem[] = [UP_ITEM.ORB1, UP_ITEM.ORB2, UP_ITEM.ORB3, UP_ITEM.ORB4];
@@ -67,6 +69,7 @@ export const UP_NPC = {
     OTHAINIAN: 998,
     DOOMION: 999,
     HOLTHION: 1000,
+    DISCIPLE: 1002,
     IBAN: 1003
 } as const;
 
@@ -199,6 +202,7 @@ export const UP_TILE = {
     HOLTHION: new Tile(2132, 4554, 1),
     OTHAINIAN: new Tile(2122, 4562, 1),
 
+    DISCIPLE: new Tile(2159, 4646, 1),
     IBAN_DOOR: new Tile(2144, 4647, 1),
     IBAN_ALTAR: new Tile(2136, 4647, 1),
     IBAN_THROWN_OUT: new Tile(2482, 9607, 0),
