@@ -8,8 +8,13 @@ import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { combineById, talkUntil } from '../../exec/legs.js';
+import { crossTeleportDoor } from '../../exec/prompts.js';
+import { fight } from '../trollstronghold/combat.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { GERRANT, HERO_ID, HERO_NAMED, HERO_NPC, HERO_SHOP, HERO_TILE } from './areas.js';
+import {
+    GERRANT, HERO_ID, HERO_LOC, HERO_NAMED, HERO_NPC, HERO_SHOP, HERO_TILE, VELRAK,
+    inDeepDungeon, inVelrakCell
+} from './areas.js';
 import { anywhere, bankedId, foodName, heldFood, heldId, liveItem } from './state.js';
 
 const BAIT_TARGET = 60;
@@ -18,6 +23,7 @@ const DRUID_FOOD = 8;
 const DRUID_MS = 600_000;
 const FISH_MS = 300_000;
 const RANGE_MS = 30_000;
+const JAILER_TICKS = 300;
 
 function withdraw(name: string, qty: number, id: number): QuestStep {
     return { kind: 'withdraw', items: [{ name, qty, id }] };
@@ -96,11 +102,96 @@ export async function farmHarralander(log: (m: string) => void): Promise<boolean
     return true;
 }
 
+// Why: `jail_doors.rs2` answers Open with "This <name> is locked" to anyone outside, and opens only for
+// an oplocu with the right key — the jail key for Velrak's cell, the dusty key for the deep dungeon.
+// Why: neither key is consumed, so one of each lasts the quest and every later trip is free.
+
+/** Kill the Jailer and take the jail key he drops. */
+export async function killJailer(log: (m: string) => void): Promise<boolean> {
+    if (Inventory.countById(HERO_ID.JAIL_KEY) > 0) {
+        return true;
+    }
+    if (!(await Traversal.walkResilient(HERO_TILE.JAILER, { radius: 3, attempts: 3, timeoutMs: 300_000, log }))) {
+        return false;
+    }
+    const key = (): { interact(op: string): boolean | Promise<boolean> } | null =>
+        GroundItems.query().where(g => g.id === HERO_ID.JAIL_KEY).within(10).nearest();
+    const jailer = (): Npc | null => Npcs.query().where(n => n.id === HERO_NPC.JAILER).nearest();
+    if (!(await fight({
+        what: 'Jailer',
+        target: jailer,
+        won: () => key() !== null,
+        protect: 'melee',
+        guard: JAILER_TICKS
+    }, log))) {
+        return false;
+    }
+    // Why: the jail key lasts 100 ticks on the floor where every other drop lasts 200.
+    const drop = key();
+    if (!drop || !(await drop.interact('Take'))) {
+        log('the Jailer is down but the jail key is not on the floor');
+        return false;
+    }
+    return Execution.delayUntil(() => Inventory.countById(HERO_ID.JAIL_KEY) > 0, 8_000);
+}
+
+function crossJailDoor(entering: boolean, log: (m: string) => void): Promise<boolean> {
+    return crossTeleportDoor({
+        id: HERO_LOC.JAIL_DOOR,
+        stand: entering ? HERO_TILE.JAIL_DOOR : HERO_TILE.JAIL_DOOR_INNER,
+        isFar: () => entering === inVelrakCell(Game.tile()),
+        useItem: entering ? HERO_ID.JAIL_KEY : undefined,
+        log
+    });
+}
+
+/** Unlock the cell, take Velrak's key, and come back out. */
+export async function freeVelrak(log: (m: string) => void): Promise<boolean> {
+    if (Inventory.countById(HERO_ID.DUSTY_KEY) > 0) {
+        return crossJailDoor(false, log);
+    }
+    if (!(await crossJailDoor(true, log))) {
+        return false;
+    }
+    if (!(await talkUntil(VELRAK, VELRAK.prefer, () => Inventory.countById(HERO_ID.DUSTY_KEY) > 0, log, 60_000))) {
+        return false;
+    }
+    return crossJailDoor(false, log);
+}
+
+function crossDeepGate(entering: boolean, log: (m: string) => void): Promise<boolean> {
+    return crossTeleportDoor({
+        id: HERO_LOC.DEEP_GATE,
+        name: 'Gate',
+        stand: entering ? HERO_TILE.DEEP_GATE : HERO_TILE.DEEP_GATE_INNER,
+        isFar: () => entering === inDeepDungeon(Game.tile()),
+        useItem: entering ? HERO_ID.DUSTY_KEY : undefined,
+        log
+    });
+}
+
+/** Leave the deep dungeon, which opens from the inside without the key. */
+export function leaveDeepDungeon(log: (m: string) => void): Promise<boolean> {
+    return crossDeepGate(false, log);
+}
+
+// Why: the deep dungeon is a sealed pocket the navigator has no edge into, so a leg that ends inside it
+// strands every later bank, shop and range walk. This one enters, fishes and leaves in a single step.
+
 /** The lava spots burn every other rod, net and harpoon, and refuse without bait. */
 export async function fishLavaEel(log: (m: string) => void): Promise<boolean> {
     if (Inventory.countById(HERO_ID.RAW_LAVA_EEL) > 0) {
-        return true;
+        return leaveDeepDungeon(log);
     }
+    if (!(await crossDeepGate(true, log))) {
+        return false;
+    }
+    const caught = await fishInside(log);
+    const left = await leaveDeepDungeon(log);
+    return caught && left;
+}
+
+async function fishInside(log: (m: string) => void): Promise<boolean> {
     if (!(await Traversal.walkResilient(HERO_TILE.LAVA_FISH, { radius: 2, attempts: 3, timeoutMs: 300_000, log }))) {
         return false;
     }
@@ -156,8 +247,24 @@ export function askGerrantForSlime(log: (m: string) => void): Promise<boolean> {
     return talkUntil(GERRANT, GERRANT.prefer, () => Inventory.countById(HERO_ID.SLIME) > 0, log, 60_000);
 }
 
+/** Jailer, jail key, Velrak, dusty key — null once the deep dungeon can be opened. */
+function keyStep(snap: QuestSnapshot): QuestStep | null {
+    if (heldId(snap, HERO_ID.DUSTY_KEY) > 0) {
+        return null;
+    }
+    if (bankedId(snap, HERO_ID.DUSTY_KEY) > 0) {
+        return withdraw(HERO_NAMED.DUSTY_KEY, 1, HERO_ID.DUSTY_KEY);
+    }
+    if (heldId(snap, HERO_ID.JAIL_KEY) === 0) {
+        return bankedId(snap, HERO_ID.JAIL_KEY) > 0
+            ? withdraw(HERO_NAMED.JAIL_KEY, 1, HERO_ID.JAIL_KEY)
+            : { kind: 'custom', name: 'kill the Jailer for the jail key', run: killJailer };
+    }
+    return { kind: 'custom', name: "free Velrak for the deep dungeon's key", run: freeVelrak };
+}
+
 /**
- * Slime, rod, bait, vial, herb, oil, oiled rod, eel, fire. Each branch is a function of what is
+ * Slime, rod, bait, vial, herb, oil, oiled rod, keys, eel, fire. Each branch is a function of what is
  * carried, so a restart anywhere in the chain picks it up where it stopped.
  */
 export function eelStep(snap: QuestSnapshot): QuestStep | null {
@@ -177,7 +284,7 @@ export function eelStep(snap: QuestSnapshot): QuestStep | null {
                 ? withdraw(HERO_NAMED.FISHING_BAIT, BAIT_TARGET, HERO_ID.FISHING_BAIT)
                 : { kind: 'buy', item: HERO_NAMED.FISHING_BAIT, qty: BAIT_TARGET, shop: HERO_SHOP.GERRANT, estGp: 2_000 };
         }
-        return { kind: 'custom', name: 'fish a lava eel in the Taverley dungeon', run: fishLavaEel };
+        return keyStep(snap) ?? { kind: 'custom', name: 'fish a lava eel in the Taverley dungeon', run: fishLavaEel };
     }
     if (bankedId(snap, HERO_ID.OILY_ROD) > 0) {
         return withdraw(HERO_NAMED.OILY_ROD, 1, HERO_ID.OILY_ROD);

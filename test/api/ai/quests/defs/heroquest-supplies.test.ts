@@ -95,8 +95,30 @@ describe('the lava eel chain', () => {
             .toMatchObject({ kind: 'buy', item: HERO_NAMED.FISHING_BAIT });
     });
 
-    test('an oiled rod with bait fishes', () => {
+    // Why: the lava spots are behind `deepdungeondoor`, which opens only to the dusty key.
+    test('an oiled rod with bait and no keys goes for the Jailer', () => {
         const step = eelStep(snap({ invIds: new Map([[HERO_ID.OILY_ROD, 1], [HERO_ID.FISHING_BAIT, 40]]) }));
+        expect(name(step)).toContain('Jailer');
+    });
+
+    test('the jail key frees Velrak', () => {
+        const step = eelStep(snap({
+            invIds: new Map([[HERO_ID.OILY_ROD, 1], [HERO_ID.FISHING_BAIT, 40], [HERO_ID.JAIL_KEY, 1]])
+        }));
+        expect(name(step)).toContain('Velrak');
+    });
+
+    test('a banked dusty key is withdrawn rather than re-earned', () => {
+        expect(eelStep(snap({
+            invIds: new Map([[HERO_ID.OILY_ROD, 1], [HERO_ID.FISHING_BAIT, 40]]),
+            bankIds: new Map([[HERO_ID.DUSTY_KEY, 1]])
+        }))).toMatchObject({ kind: 'withdraw' });
+    });
+
+    test('an oiled rod with bait and the dusty key fishes', () => {
+        const step = eelStep(snap({
+            invIds: new Map([[HERO_ID.OILY_ROD, 1], [HERO_ID.FISHING_BAIT, 40], [HERO_ID.DUSTY_KEY, 1]])
+        }));
         expect(name(step)).toContain('fish a lava eel');
     });
 

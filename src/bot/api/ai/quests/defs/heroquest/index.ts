@@ -9,18 +9,20 @@ import {
     TAVERLEY_HOP_DOWN,
     TAVERLEY_HOP_UP,
     inBrimhavenHq,
+    inDeepDungeon,
     inGarden,
     inKitchen,
     inMansion,
     inSideRoom,
     inTreasureRoom,
+    inVelrakCell,
     inYard,
     onEntrana
 } from './areas.js';
 import { blackarmArmbandStep } from './blackarm.js';
 import { returnToStreet } from './doors.js';
 import { HeroConfig, heroGang, partnerConfigured } from './config.js';
-import { eelStep } from './eel.js';
+import { eelStep, freeVelrak, leaveDeepDungeon } from './eel.js';
 import { featherStep } from './feather.js';
 import { HERO_STAGE, readHeroQuestProgress } from './journal.js';
 import { decideHeroHandoff, heroHandoffStep } from './partner.js';
@@ -138,8 +140,19 @@ export function decide(snap: QuestSnapshot): QuestStep {
     return egress(snap, eelStep(snap) ?? featherStep(snap) ?? handInStep(snap));
 }
 
+// Why: a restart taken mid-leg can leave a bot standing in either Taverley pocket, and both of those
+// doors open from the inside without a key — the way out is never the way in.
 function egress(snap: QuestSnapshot, step: QuestStep): QuestStep {
-    if (!NEEDS_STREET.has(step.kind) || !inSealedPocket(snap)) {
+    if (!NEEDS_STREET.has(step.kind)) {
+        return step;
+    }
+    if (inDeepDungeon(snap.tile)) {
+        return { kind: 'custom', name: 'leave the deep dungeon', run: leaveDeepDungeon };
+    }
+    if (inVelrakCell(snap.tile)) {
+        return { kind: 'custom', name: "leave Velrak's cell", run: freeVelrak };
+    }
+    if (!inSealedPocket(snap)) {
         return step;
     }
     return { kind: 'custom', name: 'leave the sealed Brimhaven pocket', run: returnToStreet };
@@ -153,10 +166,11 @@ export const heroquest: QuestModule = {
     // point of use, never provisioned up front.
     ownsInventory: true,
     hops: [TAVERLEY_HOP_DOWN, TAVERLEY_HOP_UP],
-    grind: ['Chaos druid', 'Grip', 'Ice Queen'],
+    grind: ['Chaos druid', 'Grip', 'Ice Queen', 'Jailer'],
     tools: [
         HERO_NAMED.ICE_GLOVES, HERO_NAMED.FEATHER, HERO_NAMED.LAVA_EEL, HERO_NAMED.ARMBAND,
-        HERO_NAMED.OILY_ROD, HERO_NAMED.FISHING_BAIT, HERO_NAMED.CANDLESTICK, HERO_NAMED.MISC_KEY
+        HERO_NAMED.OILY_ROD, HERO_NAMED.FISHING_BAIT, HERO_NAMED.CANDLESTICK, HERO_NAMED.MISC_KEY,
+        HERO_NAMED.JAIL_KEY, HERO_NAMED.DUSTY_KEY
     ],
     // Literals, not QuestFood.name: this object is built at import, when the setting still holds its default.
     sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.5 },

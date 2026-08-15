@@ -3,12 +3,14 @@ import { describe, expect, test } from 'bun:test';
 import {
     HERO_TILE,
     inBrimhavenHq,
+    inDeepDungeon,
     inGarden,
     inKitchen,
     inMansion,
     inSideRoom,
     inStoreCorridor,
     inTreasureRoom,
+    inVelrakCell,
     inWestWing,
     inYard,
     onEntrana
@@ -103,5 +105,38 @@ describe("hero's quest Brimhaven pockets", () => {
     test('a first-floor tile is never a ground-floor pocket', () => {
         expect(inMansion(at(2774, 3192, 1))).toBe(false);
         expect(inKitchen(at(2789, 3191, 1))).toBe(false);
+    });
+});
+
+// Why: the deep dungeon and the rest of Taverley's interleave across x 2881-2923, so the predicate is a
+// four-box cover of the flood rather than one rectangle over the pair.
+describe("hero's quest Taverley pockets", () => {
+    test('the deep gate separates the corridor from the lava eels', () => {
+        expect(inDeepDungeon(HERO_TILE.DEEP_GATE_INNER as unknown as WorldTile)).toBe(true);
+        expect(inDeepDungeon(HERO_TILE.DEEP_GATE as unknown as WorldTile)).toBe(false);
+        expect(inDeepDungeon(HERO_TILE.LAVA_FISH as unknown as WorldTile)).toBe(true);
+    });
+
+    test('the cell door separates the jail from the corridor the Jailer patrols', () => {
+        expect(inVelrakCell(HERO_TILE.JAIL_DOOR_INNER as unknown as WorldTile)).toBe(true);
+        expect(inVelrakCell(HERO_TILE.VELRAK as unknown as WorldTile)).toBe(true);
+        expect(inVelrakCell(HERO_TILE.JAIL_DOOR as unknown as WorldTile)).toBe(false);
+        expect(inVelrakCell(HERO_TILE.JAILER as unknown as WorldTile)).toBe(false);
+    });
+
+    // Why: the chaos druid camp and the dungeon ladder are both in the main component; a predicate that
+    // claimed either would strand the herb grind behind a gate it never crossed.
+    test('the ladder, the druids and the jail are all outside the deep dungeon', () => {
+        expect(inDeepDungeon(HERO_TILE.TAVERLEY_DUNGEON as unknown as WorldTile)).toBe(false);
+        expect(inDeepDungeon(HERO_TILE.CHAOS_DRUIDS as unknown as WorldTile)).toBe(false);
+        expect(inDeepDungeon(HERO_TILE.JAILER as unknown as WorldTile)).toBe(false);
+        expect(inDeepDungeon(HERO_TILE.VELRAK as unknown as WorldTile)).toBe(false);
+    });
+
+    test('a null tile and a first-floor tile are in neither', () => {
+        expect(inDeepDungeon(null)).toBe(false);
+        expect(inVelrakCell(null)).toBe(false);
+        expect(inDeepDungeon(at(2923, 9803, 1))).toBe(false);
+        expect(inVelrakCell(at(2931, 9689, 1))).toBe(false);
     });
 });

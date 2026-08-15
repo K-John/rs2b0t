@@ -83,7 +83,12 @@ function main(): void {
             // and `~open_and_close_door` teleports the actor rather than opening — a baked edge sends
             // the pathfinder through a wall it can never step. defs/heroquest/doors.ts owns both
             // directions of every one, which the sealed pockets behind them require.
-            'grubordoor', 'garvdoor', 'herokitchendoor', 'pete_sidedoor', 'pete_treasuredoor'
+            'grubordoor', 'garvdoor', 'herokitchendoor', 'pete_sidedoor', 'pete_treasuredoor',
+            // Taverley dungeon's two key doors. Why: jail_doors.rs2 answers Open with "This <name> is
+            // locked" from the outside and yields only to an oplocu with the jail key or the dusty key,
+            // so a baked edge walks the pathfinder at a gate it can never open. defs/heroquest/eel.ts
+            // owns both, which the lava eel spot behind the deep gate requires.
+            'dungeonjail', 'deepdungeondoor'
         ]);
         const label = `${type.name ?? ''} ${type.debugname ?? ''}`.toLowerCase();
         if (label.includes('locked') || (type.debugname ?? '').startsWith('macro_') || SCRIPT_REFUSED.has(type.debugname ?? '')) {

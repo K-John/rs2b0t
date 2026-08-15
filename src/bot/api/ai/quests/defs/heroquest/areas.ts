@@ -33,6 +33,10 @@ export const HERO_ID = {
     FISHING_BAIT: 313,
     RAW_LAVA_EEL: 2148,
     LAVA_EEL: 2149,
+    /** The Jailer's drop, which opens Velrak's cell. */
+    JAIL_KEY: 1591,
+    /** Velrak's gift, which opens the deep dungeon the lava eels are in. */
+    DUSTY_KEY: 1590,
     TINDERBOX: 590,
     LOGS: 1511
 } as const;
@@ -64,6 +68,8 @@ export const HERO_NAMED = {
     FISHING_BAIT: 'Fishing bait',
     RAW_LAVA_EEL: 'Raw lava eel',
     LAVA_EEL: 'Lava eel',
+    JAIL_KEY: 'Jail key',
+    DUSTY_KEY: 'Dusty key',
     TINDERBOX: 'Tinderbox',
     LOGS: 'Logs',
     COINS: 'Coins'
@@ -84,6 +90,8 @@ export const HERO_NPC = {
     FIREBIRD: 139,
     CHAOS_DRUID: 181,
     LAVA_FISH: 800,
+    JAILER: 201,
+    VELRAK: 798,
     GERRANT: 558,
     JATIX: 587,
     LOWE: 550,
@@ -101,6 +109,10 @@ export const HERO_LOC = {
     KITCHEN_PANEL: 2629,
     CHEST_SHUT: 2632,
     CHEST_OPEN: 2633,
+    /** Velrak's cell, which only the jail key opens. */
+    JAIL_DOOR: 2631,
+    /** The deep dungeon the lava eels are in, which only the dusty key opens. */
+    DEEP_GATE: 2623,
     CABINET_SHUT: 2635,
     CABINET_OPEN: 2636
 } as const;
@@ -162,6 +174,19 @@ export const HERO_TILE = {
     TAVERLEY_LADDER: new Tile(2884, 3398, 0),
     TAVERLEY_DUNGEON: new Tile(2884, 9798, 0),
     CHAOS_DRUIDS: new Tile(2932, 9849, 0),
+    /** Where the Jailer patrols, outside Velrak's cell. */
+    JAILER: new Tile(2932, 9693, 0),
+    // Why: `dungeonjail` is a south wall, so `check_axis` reads the door's own row as the outside.
+    /** North of the cell door, where the jail key is used on it. */
+    JAIL_DOOR: new Tile(2931, 9690, 0),
+    /** Inside the cell, where the door lands you. */
+    JAIL_DOOR_INNER: new Tile(2931, 9689, 0),
+    VELRAK: new Tile(2931, 9686, 0),
+    // Why: `deepdungeondoor` is a west wall, so its sides are east and west of one tile.
+    /** East of the deep dungeon gate, where the dusty key is used on it. */
+    DEEP_GATE: new Tile(2924, 9803, 0),
+    /** Past the gate, where the lava eels are. */
+    DEEP_GATE_INNER: new Tile(2923, 9803, 0),
     LAVA_FISH: new Tile(2892, 9767, 0),
     // Why: Taverley's own range (2844,3367) sits in a pocket the baked graph has no door into, so the
     // nearest cooking surface a walker can reach from the dungeon ladder is Catherby's.
@@ -236,6 +261,13 @@ export const CHARLIE: NpcStop = {
     anchor: HERO_TILE.CHARLIE,
     leash: 6,
     prefer: ['looking for a gherkin', 'want to steal scarface pete']
+};
+
+export const VELRAK: NpcStop = {
+    npc: 'Velrak the explorer',
+    anchor: HERO_TILE.VELRAK,
+    leash: 4,
+    prefer: ['know anywhere good to explore', 'yes please']
 };
 
 export const GERRANT: NpcStop = {
@@ -364,6 +396,23 @@ export function inBrimhavenHq(t: WorldTile | null | undefined): boolean {
 
 export function inTaverleyDungeon(t: WorldTile | null | undefined): boolean {
     return within(t, 2820, 2950, 9600, 9900, 0);
+}
+
+/** Velrak's cell, past `dungeonjail`. Thirty-three tiles. */
+export function inVelrakCell(t: WorldTile | null | undefined): boolean {
+    return within(t, 2928, 2934, 9683, 9689, 0);
+}
+
+// Why: the deep dungeon and the rest of Taverley's interleave across x 2881-2923, so one rectangle over
+// the pair calls a thousand corridor tiles the deep dungeon. These four are a rectangle cover of the
+// flood: every one of the pocket's 2473 tiles is inside one, and no tile of the main component is.
+
+/** Past the dusty-key gate, where the lava eels are fished. */
+export function inDeepDungeon(t: WorldTile | null | undefined): boolean {
+    return within(t, 2817, 2880, 9761, 9854, 0)
+        || within(t, 2817, 2914, 9761, 9793, 0)
+        || within(t, 2888, 2923, 9769, 9816, 0)
+        || within(t, 2881, 2882, 9802, 9808, 0);
 }
 
 export function inWwmDungeon(t: WorldTile | null | undefined): boolean {

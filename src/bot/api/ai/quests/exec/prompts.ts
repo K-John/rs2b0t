@@ -100,6 +100,8 @@ export interface DoorCrossing {
     name?: string;
     /** Op the loc advertises, when it is not Open. */
     op?: string;
+    /** Id of the key to use on the loc, for a door whose Open answers "This door is locked". */
+    useItem?: number;
     log: (m: string) => void;
 }
 
@@ -140,7 +142,19 @@ export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
         log(`no ${name.toLowerCase()} ${id} offering '${op}' within four tiles of (${stand.x},${stand.z})`);
         return false;
     }
-    if (!(await loc.interact(op))) {
+    // Why: a key door's `oploc1` answers "This <name> is locked" and only its `oplocu` opens, so the
+    // crossing is a use-item on the leaf rather than a click on its op.
+    if (door.useItem !== undefined) {
+        const key = Inventory.items().find(item => item.id === door.useItem);
+        if (!key) {
+            log(`no key ${door.useItem} in the pack for ${name.toLowerCase()} ${id}`);
+            return false;
+        }
+        if (!(await key.useOn(loc))) {
+            log(`${name.toLowerCase()} ${id} refused the key`);
+            return false;
+        }
+    } else if (!(await loc.interact(op))) {
         log(`${name.toLowerCase()} ${id} refused the ${op} click`);
         return false;
     }
