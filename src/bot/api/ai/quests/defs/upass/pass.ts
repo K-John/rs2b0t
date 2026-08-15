@@ -304,10 +304,12 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         // Why: one line for the whole attempt, not one per try — the harness surfaces a bounded number of
         // log lines per tick, and four tries plus their walks arrive as the last of them and nothing else.
         const trace: string[] = [];
+        let stood = false;
         for (let attempt = 0; attempt < (kind.tries ?? 1); attempt++) {
             if (!(await standBeside(obstacle.tile(), m => trace.push(m), attempt))) {
                 break;
             }
+            stood = true;
             // Why: a seam is often a row of identical locs — the ledge is six — and the one the search picked
             // is not the one the character ended up beside. `reachRectangle` takes a cardinal side and nothing
             // else, and `nearest()` cannot tell a diagonal neighbour from a cardinal one: both are distance
@@ -354,7 +356,12 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         // drift toward the obstacle is the approach, and reading that as a crossing burned seventy seconds
         // a round on a cage the character never reached.
         if (chebyshev(now, from) < 2) {
-            spent.add(key);
+            // Why: a seam that could not be stood beside is not a seam that does not work — it is one the
+            // character was in the wrong pocket for. Spending it there meant that when the route finally put
+            // them three tiles from it, the search refused to try the crossing at all.
+            if (stood) {
+                spent.add(key);
+            }
             const said = GameMessages.since(mark).map(m => m.text).slice(-6).join(' / ') || 'nothing';
             log(`pass: ${op} ${obstacle.name ?? obstacle.id} at (${obstacle.tile().x},${obstacle.tile().z})`
                 + ` did not cross toward (${dest.x},${dest.z}) from (${from.x},${from.z})`
