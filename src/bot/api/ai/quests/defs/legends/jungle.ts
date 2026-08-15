@@ -270,7 +270,7 @@ export async function summonGujuo(log: (m: string) => void): Promise<boolean> {
 // Why: half his conversations end themselves — he says goodbye and `npc_del`s — so those have no goal to wait on and `driveUntil` would burn its whole budget after the chat had closed.
 
 /** Summon Gujuo and drive his conversation, to a goal or to its own end. */
-export function talkGujuo(prefer: string[], goal?: () => boolean, ms = 90_000): (log: (m: string) => void) => Promise<boolean> {
+export function talkGujuo(prefer: string[], goal?: () => boolean, ms = 90_000, required?: string): (log: (m: string) => void) => Promise<boolean> {
     return async log => {
         if (goal?.()) {
             return true;
@@ -283,6 +283,6 @@ export function talkGujuo(prefer: string[], goal?: () => boolean, ms = 90_000): 
             log('Gujuo never opened a dialogue');
             return false;
         }
-        return goal ? driveUntil(goal, prefer, log, ms) : driveToEnd(prefer, log, ms);
+        return goal ? driveUntil(goal, prefer, log, ms) : driveToEnd(prefer, log, ms, required);
     };
 }

@@ -274,7 +274,7 @@ const GUJUO_RESCUE_PREFER = [
     'I was hoping to attract the attention of a native.'
 ];
 
-const acceptRescue = talkGujuo(GUJUO_RESCUE_PREFER, undefined, 150_000);
+const acceptRescue = talkGujuo(GUJUO_RESCUE_PREFER, undefined, 150_000, 'I will release Ungadulu...');
 
 function stageBullroarer(snap: QuestSnapshot): QuestStep {
     if (held(snap, LQ_ID.BULLROARER) === 0) {
