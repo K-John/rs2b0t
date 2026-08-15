@@ -168,6 +168,23 @@ the reason is in [Hero's Quest pitfalls](../decisions/quest-pitfalls-8.md): ever
 Ice Queen's lair stands on a plateau the map flags seal, so nothing can walk to the only source of
 them. `--stage armband` avoids the question entirely and is the fast loop for the two-bot dance.
 
+## Hero's Quest — items harness
+
+[`e2e/heros-quest-items-249-live.ts`](../../e2e/heros-quest-items-249-live.ts) is the one-account
+half: it sets `%heroquest` to 13, seeds an armband, and watches the eel, the feather and the
+hand-in.
+
+```
+--skip-eel                 seed a cooked lava eel instead of earning it
+--skip-feather             seed a fire feather instead of earning it
+--stats N / --tick MS / --minutes N   as above
+```
+
+Budget it generously. The eel is nine legs deep before a line is cast: about 25 chaos druids for
+the harralander, Ardougne for the vial, Port Sarim for the slime and the rod, the Jailer for the
+jail key, Velrak for the dusty key, then the gate into the deep dungeon, the lava spot and the
+Catherby range. The two keys are kept, so a re-run resumes at whichever of them is already banked.
+
 ## See also
 
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)

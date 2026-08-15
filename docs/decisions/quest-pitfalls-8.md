@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Hero's Quest
 
-Thirteen, and the first one is a wall the quest cannot be finished through.
+Sixteen, and the first one is a wall the quest cannot be finished through.
 
 - **An area with a one-way exit has no entrance.** The Ice Queen's lair is reachable from the surface
   only by eight `ladder_cellar_inside_down` locs, and every one of them stands on a White Wolf Mountain
@@ -26,6 +26,20 @@ Thirteen, and the first one is a wall the quest cannot be finished through.
   reachable stand at all, and the two Brimhaven ranges are the Shrimp and Parrot kitchen and a room the
   graph has no door into. Test every candidate surface against the pathfinder before pinning one;
   Catherby's (2817,3444) is the nearest one a walker can reach from the Taverley dungeon ladder.
+- **A fishing spot can be behind a key, two NPCs deep.** The Taverley lava spots (2889-2891, 9766)
+  sit past `deepdungeondoor`, whose `oploc1` answers "This gate is locked" and whose `oplocu` wants the
+  dusty key; the dusty key comes from Velrak, whose cell answers only to the jail key, which the Jailer
+  drops for 100 ticks where every other drop lasts 200. Neither key is consumed. A leg that walks
+  straight at the spot loops on the locked gate forever — read the door's script before trusting a
+  baked edge, and remember `~check_axis` reads the door's own tile as the outside.
+- **A pocket predicate can need a rectangle cover, not a rectangle.** The deep dungeon interleaves with
+  the rest of Taverley's across x 2881-2923, so one box over the pair claims a thousand corridor tiles.
+  Four boxes, greedily grown from the flood and clipped to its bounding box, hold all 2473 pocket tiles
+  and no tile of the main component. Grow the cover from the flood; never eyeball the box.
+- **A sealed pocket is cheapest to enter and leave inside one step.** `fishLavaEel` crosses the gate,
+  fishes and crosses back before it returns, so no bank, shop or range walk is ever planned from inside
+  it. `decide()` still owns an egress for both Taverley pockets, because a restart taken mid-leg can
+  leave a bot standing in either.
 - **An item with no shop and no ground spawn is a drop table.** Harralander appears in no `.inv` in the
   content and in no map OBJ section, so the only source is the chaos druid herb table — 46 in 128 for a
   herb, 14 in 128 of that table for this one, about 25 kills. Grep the shop configs and the map objs
