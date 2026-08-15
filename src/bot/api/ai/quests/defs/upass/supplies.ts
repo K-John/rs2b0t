@@ -47,6 +47,9 @@ export const KIT: readonly { item: UpassItem; qty: number; reason: string }[] = 
     { item: UP_ITEM.SHORTBOW, qty: 1, reason: 'firing the bridge stay rope' },
     { item: UP_ITEM.BRONZE_ARROW, qty: ARROW_TARGET, reason: 'the fire arrow' },
     { item: UP_ITEM.TINDERBOX, qty: 1, reason: 'lighting the cloth arrow and burning the tomb' },
+    // Why: a probe of the second cavern from inside the slave cages reaches exactly one thing — the mud.
+    // `upass_mud` takes a spade and nothing else, and every route south to the unicorn is behind it.
+    { item: UP_ITEM.SPADE, qty: 1, reason: 'the filled-in tunnel out of the slave cages' },
     { item: UP_ITEM.BUCKET, qty: 1, reason: "the dwarf brew for Iban's tomb" },
     { item: UP_ITEM.LOBSTER, qty: FOOD_TARGET, reason: 'the demons, Kalrag and the trap falls' }
 ];

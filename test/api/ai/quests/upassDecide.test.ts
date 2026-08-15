@@ -20,6 +20,7 @@ const KIT: Stack[] = [
     UP_ITEM.SHORTBOW.id,
     [UP_ITEM.BRONZE_ARROW.id, 50],
     UP_ITEM.TINDERBOX.id,
+    UP_ITEM.SPADE.id,
     UP_ITEM.BUCKET.id,
     [UP_ITEM.LOBSTER.id, 14]
 ];

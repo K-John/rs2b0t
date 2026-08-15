@@ -7,7 +7,7 @@ import { Reachability } from '../../../../../event/webwalk/geometry/Reachability
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
-import { UP_ITEM, UP_LOC } from './areas.js';
+import { UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
 
 // Why: the pass is not one map the navigator can route across — a component report over its own seam
 // endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision
@@ -193,45 +193,79 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now.x},${now.z})`);
         return true;
     }
-    return ropeSwingToward(dest, log);
+    return useSeamToward(dest, log);
 }
 
-// Why: the swing east off the bridge shelf is the one seam that is an item-use rather than an op, and it is
-// the only way onto the grid shelf — so it belongs in the same vocabulary rather than special-cased by a
-// caller that cannot know whether the navigator already got there.
-async function ropeSwingToward(dest: Tile, log: (m: string) => void): Promise<boolean> {
+/** A seam crossed by using an item on a loc rather than by an op on it. */
+interface UseSeam {
+    item: UpassItem;
+    locs: readonly number[];
+    /** The script deletes the item before it rolls, so its leaving the pack is the one honest signal. */
+    consumes: boolean;
+    label: string;
+}
+
+// Why: two of the seams are item-uses rather than ops, and both are the only way out of their pocket — the
+// swing east off the bridge shelf onto the grid, and the spade dig that is the sole route south out of the
+// slave cages. They belong in the same vocabulary rather than special-cased by a caller that cannot know
+// whether the navigator already got there.
+const USE_SEAMS: readonly UseSeam[] = [
+    {
+        item: UP_ITEM.ROPE,
+        locs: [UP_LOC.ROCKSWING, UP_LOC.ROCKSWING_ANCHOR],
+        consumes: true,
+        label: 'rope swing'
+    },
+    { item: UP_ITEM.SPADE, locs: [UP_LOC.MUD_DIG], consumes: false, label: 'mud dig' }
+];
+
+async function useSeamToward(dest: Tile, log: (m: string) => void): Promise<boolean> {
     const from = here();
-    const rope = Inventory.items().find(item => item.id === UP_ITEM.ROPE.id);
-    if (!from || !rope) {
+    if (!from) {
         return false;
     }
-    const rock = Locs.query()
-        .where(loc => loc.id === UP_LOC.ROCKSWING || loc.id === UP_LOC.ROCKSWING_ANCHOR)
-        .within(HOP_SEARCH)
-        .nearest();
-    if (!rock || chebyshev(rock.tile(), dest) + MIN_GAIN > chebyshev(from, dest) || !Reachability.canReach(rock.tile(), REACH)) {
-        return false;
+    for (const seam of USE_SEAMS) {
+        const item = Inventory.items().find(inv => inv.id === seam.item.id);
+        if (!item) {
+            continue;
+        }
+        const target = Locs.query()
+            .where(loc => seam.locs.includes(loc.id))
+            .within(HOP_SEARCH)
+            .nearest();
+        if (!target
+            || chebyshev(target.tile(), dest) + MIN_GAIN > chebyshev(from, dest)
+            || !Reachability.canReach(target.tile(), REACH)) {
+            continue;
+        }
+        // Why: the op-click walks the player to the loc before the use resolves, so "the tile changed" fires
+        // on the walk and reports a crossing that never happened.
+        const before = held(seam.item.id);
+        if (!(await item.useOn(target))) {
+            continue;
+        }
+        if (seam.consumes && !(await Execution.delayUntil(() => held(seam.item.id) < before, HOP_TIMEOUT_MS))) {
+            continue;
+        }
+        const staged = (await settleWalk()) ?? from;
+        if (chebyshev(staged, dest) + MIN_GAIN > chebyshev(from, dest)) {
+            await Execution.delayUntil(() => {
+                const t = here();
+                return t !== null && (t.x !== staged.x || t.z !== staged.z || t.level !== staged.level);
+            }, CROSS_TIMEOUT_MS);
+        }
+        await settleScene();
+        const now = here() ?? from;
+        // Why: a failed swing spends the rope and drops the player into the swamp below, so the caller has to
+        // see that as no progress rather than as a crossing.
+        if (chebyshev(now, dest) + MIN_GAIN > chebyshev(from, dest)) {
+            log(`pass: the ${seam.label} did not cross toward (${dest.x},${dest.z}) — now at (${now.x},${now.z})`);
+            continue;
+        }
+        log(`pass: ${seam.label} → (${now.x},${now.z})`);
+        return true;
     }
-    // Why: the op-click walks the player to the rock before the use resolves, so "the tile changed" fires on
-    // the walk and reports a swing that never happened. `inv_del(inv, rope, 1)` runs before the agility roll,
-    // which makes the rope leaving the pack the one signal that the script actually ran.
-    const ropes = held(UP_ITEM.ROPE.id);
-    if (!(await rope.useOn(rock))) {
-        return false;
-    }
-    if (!(await Execution.delayUntil(() => held(UP_ITEM.ROPE.id) < ropes, HOP_TIMEOUT_MS))) {
-        return false;
-    }
-    await settleScene();
-    const now = here();
-    // Why: a failed roll spends the rope and drops the player into the swamp below, so the caller has to see
-    // that as no progress rather than as a crossing.
-    if (now && chebyshev(now, dest) >= chebyshev(from, dest)) {
-        log(`pass: the rope swing failed and cost a rope — now at (${now.x},${now.z})`);
-        return false;
-    }
-    log(`pass: rope swing → (${now?.x},${now?.z})`);
-    return true;
+    return false;
 }
 
 /**
