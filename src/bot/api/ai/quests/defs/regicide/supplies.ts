@@ -19,6 +19,8 @@ export const ARDOUGNE_RANGE = new Tile(2648, 3298, 0);
 export const FOOD_TARGET = 14;
 /** Four balls of wool weave one strip of cloth, and the loom takes them in one go. */
 export const WOOL_TARGET = 4;
+/** Three ropes: the swing spends one per attempt, and the walk back in takes it a second time. */
+export const ROPE_TARGET = 3;
 // Why: a clean distillation costs six coal under the module's own control law, and a blown pressure gauge
 // resets the tally to zero — so the float covers two failed runs before a trip back to the rocks.
 export const COAL_TARGET = 18;
@@ -84,6 +86,16 @@ export const KIT: readonly Supply[] = [
         reason: 'grinding the sulphur and the quicklime',
         shop: TAVERLEY_HERBLORE,
         estGp: 60
+    },
+    // Why: the way into Tirannwn is the Underground Pass, and the rope swing onto the grid shelf is the one
+    // seam of it that is an item-use — `upass_rock_ropeswing` deletes the rope before it rolls agility, so a
+    // failed swing costs one. A pack without them stands on the bridge shelf until the watchdog parks it.
+    {
+        item: RG_ITEM.ROPE,
+        qty: ROPE_TARGET,
+        reason: "the pass's rope swing, which eats one per attempt",
+        shop: ARDOUGNE_STORE,
+        estGp: 120
     },
     { item: RG_ITEM.LOBSTER, qty: FOOD_TARGET, reason: 'the traps, the soldiers and the elf warriors' }
 ];

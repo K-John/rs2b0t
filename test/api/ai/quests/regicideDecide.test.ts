@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { RG_ITEM } from '#/bot/api/ai/quests/defs/regicide/areas.js';
 import { decide } from '#/bot/api/ai/quests/defs/regicide/index.js';
 import { RG_FLAG, RG_STAGE } from '#/bot/api/ai/quests/defs/regicide/journal.js';
-import { WOOL_TARGET } from '#/bot/api/ai/quests/defs/regicide/supplies.js';
+import { ROPE_TARGET, WOOL_TARGET } from '#/bot/api/ai/quests/defs/regicide/supplies.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
 // Why: decide() reads only a snapshot, so the routing table is testable end to end without a client.
@@ -16,7 +16,13 @@ const ELF_CAMP = { x: 2205, z: 3252, level: 0 };
 const PASS = { x: 2450, z: 9716, level: 0 };
 
 /** What the module refuses to cross the palisade without. */
-const KIT: Stack[] = [[RG_ITEM.BALL_OF_WOOL.id, WOOL_TARGET], RG_ITEM.PICKAXE.id, RG_ITEM.PESTLE.id, [RG_ITEM.LOBSTER.id, 14]];
+const KIT: Stack[] = [
+    [RG_ITEM.BALL_OF_WOOL.id, WOOL_TARGET],
+    RG_ITEM.PICKAXE.id,
+    RG_ITEM.PESTLE.id,
+    [RG_ITEM.ROPE.id, ROPE_TARGET],
+    [RG_ITEM.LOBSTER.id, 14]
+];
 const WEAPON = 'rune scimitar';
 
 function snapshot(over: Partial<QuestSnapshot> & {

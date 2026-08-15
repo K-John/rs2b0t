@@ -166,6 +166,9 @@ const PACK_SEED: { debugName: string; qty: number }[] = [
     { debugName: 'ball_of_wool', qty: 4 },
     { debugName: 'pestle_and_mortar', qty: 1 },
     { debugName: 'bronze_pickaxe', qty: 1 },
+    // Why: the rope swing onto the grid shelf is the pass's one item-use seam, and a stage seeded inside
+    // Tirannwn still needs them for the walk back in with the bomb.
+    { debugName: 'rope', qty: 3 },
     { debugName: 'lobster', qty: 14 },
     { debugName: 'rune_scimitar', qty: 1 },
     { debugName: 'rune_chainbody', qty: 1 },

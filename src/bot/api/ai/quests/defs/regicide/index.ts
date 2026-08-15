@@ -52,9 +52,9 @@ function flag(snap: QuestSnapshot, name: string): boolean {
 // deletes the empty barrel, so a full pack loses the distillation outright, and the forest hands over a barrel,
 // a pot, a lump of sulphur and a rock of limestone with nowhere to put any of them.
 // Why: gated on there being something to deposit, not on the count alone. The kit is twenty slots of its
-// own — fourteen Lobsters, four balls of wool, a pestle and a pickaxe — so a bare "fewer than N free" test
-// asks for room the quest can never have, and the step banks nothing and repeats until the watchdog parks
-// the whole run.
+// own — fourteen Lobsters, four balls of wool, three ropes, a pestle and a pickaxe — so a bare "fewer than
+// N free" test asks for room the quest can never have, and the step banks nothing and repeats until the
+// watchdog parks the run.
 const SLOTS_NEEDED = 6;
 
 /** Everything Tirannwn consumes, drawn and worn while a bank is still reachable. */
