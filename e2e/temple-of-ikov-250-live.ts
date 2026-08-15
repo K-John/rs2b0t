@@ -83,7 +83,8 @@ const ARDOUGNE_WEST_BANK = { x: 2616, z: 3332, level: 0 };
 /** Coins and food. Everything else in this quest has a source in the world. */
 const BASE_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
-    { debugName: 'lobster', displayName: 'Lobster', qty: 60 }
+    // Why: the hobgoblin camp is a crowd the bot fights in nothing but boots, and it costs about three lobsters a root — sixty ran the bank dry at nineteen.
+    { debugName: 'lobster', displayName: 'Lobster', qty: 300 }
 ];
 
 /** Per-leg shortcuts: each entry is a source the bot would otherwise have to walk to. */

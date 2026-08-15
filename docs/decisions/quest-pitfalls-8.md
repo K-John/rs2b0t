@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Twenty, and the first seven are engine behaviour rather than quest facts.
+Twenty-one, and the first seven are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
@@ -114,7 +114,13 @@ Eight are the quest's own shape:
   lobster puts them back: an `eatBelowHp` of 0.55 died at twelve roots with food still in
   the pack. The farm eats at 0.75, walks back to the booth at five lobsters rather than
   three, and abandons a kill outright below 45% with nothing left to eat — the walk to
-  the booth is also the walk out of the camp.
+  the booth is also the walk out of the camp. Twenty roots cost about sixty lobsters at
+  70 stats, so the harness seeds three hundred; no shop is a way out, as every cooked
+  lobster in the shop database has a baseline of zero and the one armoury near Ardougne
+  is inside the Biohazard-gated training camp.
+- **Aggression outlives the decision to stop fighting.** A farm that runs out of food and
+  stands still is still standing in the camp: the retreat has to clear the aggro
+  radius, so the module walks to the Ardougne road before it hands the tick back.
 
 ## See also
 

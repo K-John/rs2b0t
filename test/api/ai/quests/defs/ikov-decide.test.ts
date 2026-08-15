@@ -244,7 +244,11 @@ describe('Temple of Ikov decide', () => {
 
     // Why: with money in the bank an axeless bot buys one first, so the farm itself is only reachable once it is both unarmed and broke.
     test('Winelda asked and no roots: the hobgoblin farm runs', () => {
-        const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, { inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]], bankCoins: 0 }));
+        const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
+            invNames: [[IKOV_NAME.LOBSTER.toLowerCase(), 6]],
+            bankCoins: 0
+        }));
         expect(label(step)).toBe(`custom:farm limpwurt roots (0/${ROOTS_WANTED})`);
     });
 
@@ -289,6 +293,15 @@ describe('Temple of Ikov decide', () => {
             bankCoins: 0
         }));
         expect(label(step)).toBe(`custom:farm limpwurt roots (0/${ROOTS_WANTED})`);
+    });
+
+    // Why: hobgoblins are aggressive, so a bot that stops fighting with nothing to eat dies where it stands.
+    test('no food anywhere leaves the camp rather than fighting on', () => {
+        const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
+            inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],
+            bankCoins: 0
+        }));
+        expect(label(step)).toBe('custom:leave the hobgoblin camp');
     });
 
     // Why: twenty unstackable roots plus coins and food fill the pack, so the withdraw cannot land on a pack still holding the dungeon kit.

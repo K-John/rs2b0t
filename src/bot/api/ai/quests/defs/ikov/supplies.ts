@@ -308,6 +308,19 @@ export function restockStep(snap: QuestSnapshot, want: number, floor: number): Q
     return { kind: 'withdraw', items: [{ name: IKOV_NAME.LOBSTER, qty }] };
 }
 
+// Why: hobgoblins are aggressive and the retreat has to clear their radius, not merely stop fighting — a bot that stands still in the camp with nothing to eat dies there while the watchdog is still deciding the quest is stuck.
+/** Walk out of the camp when there is no food left anywhere to farm it with. */
+async function leaveTheCamp(log: (m: string) => void): Promise<boolean> {
+    log('ikov: no food in the pack or the bank — leaving the hobgoblin camp');
+    await Traversal.walkResilient(IKOV_TILE.HOBGOBLIN_RETREAT, { radius: 3, attempts: 2, timeoutMs: 180_000, log });
+    return false;
+}
+
+function foodless(snap: QuestSnapshot): boolean {
+    const food = IKOV_NAME.LOBSTER.toLowerCase();
+    return (snap.inv.get(food) ?? 0) === 0 && (snap.bank?.get(food) ?? 0) === 0;
+}
+
 // Why: 20 unstackable roots plus food fill the pack, so the farm banks in batches rather than holding the lot.
 function rootStep(snap: QuestSnapshot): QuestStep {
     const arm = armForTheFarm(snap) ?? restockStep(snap, FARM_FOOD, FARM_FOOD_FLOOR);
@@ -318,6 +331,9 @@ function rootStep(snap: QuestSnapshot): QuestStep {
     const banked = snap.bankIds?.get(IKOV_OBJ.LIMPWURT_ROOT) ?? 0;
     if (held > 0 && (banked + held >= ROOTS_WANTED || (snap.freeSlots ?? 28) <= 2)) {
         return { kind: 'deposit', keep: [IKOV_NAME.LOBSTER, 'coins'], exactKeep: true };
+    }
+    if (foodless(snap)) {
+        return { kind: 'custom', name: 'leave the hobgoblin camp', run: leaveTheCamp };
     }
     return { kind: 'custom', name: `farm limpwurt roots (${banked + held}/${ROOTS_WANTED})`, run: farmRoots };
 }
