@@ -268,6 +268,10 @@ export const upass: QuestModule = {
     bank: UP_TILE.ARDOUGNE_BANK,
     ownsInventory: true,
     readProgress: readUpassProgress,
-    sustain: { foods: [UP_ITEM.LOBSTER.name], eatBelowHp: 0.55 },
+    // Why: the corridor traps are timer damage taken while standing on a chokepoint tile, not a fight — a
+    // component probe shows avoiding those tiles deletes four of the six routes through the orb corridor,
+    // because the traps sit in the only walkable squares. Surviving them is the only option, so the eat
+    // threshold is high rather than the usual half.
+    sustain: { foods: [UP_ITEM.LOBSTER.name], eatBelowHp: 0.8 },
     decide
 };

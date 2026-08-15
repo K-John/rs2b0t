@@ -6,7 +6,7 @@ import type { Loc } from '../../../../model/Loc.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
-import { UPASS_TRAP_ZONES, UP_ITEM, UP_LOC } from './areas.js';
+import { UP_ITEM, UP_LOC } from './areas.js';
 
 // Why: the pass is not one map the navigator can route across — a component report over its own seam
 // endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision
@@ -184,7 +184,7 @@ export async function travelTo(dest: Tile, radius: number, log: (m: string) => v
             return true;
         }
         if (navWorthTrying) {
-            if (await Traversal.walkResilient(dest, { radius, attempts: 1, timeoutMs: 60_000, log, avoidZones: UPASS_TRAP_ZONES })) {
+            if (await Traversal.walkResilient(dest, { radius, attempts: 1, timeoutMs: 60_000, log })) {
                 return true;
             }
             navWorthTrying = false;
