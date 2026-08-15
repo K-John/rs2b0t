@@ -65,21 +65,6 @@ export async function takeUnicornHorn(log: (m: string) => void): Promise<boolean
     return driveUntil(() => heldId(UP_ITEM.UNICORN_HORN.id) > 0, [], log, 12_000);
 }
 
-/** Climb the mud pile out of the second cavern and back up to the paladins' shelf. */
-export async function climbToPaladins(log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(UP_TILE.MUDPILE, 3, log))) {
-        return false;
-    }
-    await settleScene();
-    const pile = locById(UP_LOC.MUDPILE, null, 8);
-    const op = pile?.actions()[0];
-    if (!pile || !op || !(await pile.interact(op))) {
-        log('no mud pile to climb out of the second cavern');
-        return false;
-    }
-    return driveUntil(() => (Game.tile()?.z ?? 0) >= 9664, [], log, 15_000);
-}
-
 const PALADINS: readonly { npc: number; badge: UpassItem }[] = [
     { npc: UP_NPC.PALADIN_JERRO, badge: UP_ITEM.BADGE_JERRO },
     { npc: UP_NPC.PALADIN_CARL, badge: UP_ITEM.BADGE_CARL },

@@ -155,6 +155,29 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(step)).toContain('grid');
     });
 
+    // Why: the bridge-and-rope shelf overlaps the orb corridor's bounding box on x 2431-2464 / z 9686-9731,
+    // and a plain box read the shelf as the corridor — one run drifted onto the rope shelf, declared the
+    // grid crossed and spent six minutes clicking at stepping stones on the far side of a seam.
+    test('the bridge and rope shelf is not mistaken for the corridor past the grid', () => {
+        for (const tile of [
+            { x: 2442, z: 9716, level: 0 },
+            { x: 2460, z: 9693, level: 0 },
+            { x: 2446, z: 9697, level: 0 }
+        ]) {
+            expect(nameOf(decide(snapshot({ stage: UP_STAGE.PASSED_BRIDGE, tile })))).toContain('grid');
+        }
+    });
+
+    test('the far west of the corridor still reads as past the grid', () => {
+        for (const tile of [
+            { x: 2416, z: 9698, level: 0 },
+            { x: 2382, z: 9668, level: 0 },
+            { x: 2464, z: 9677, level: 0 }
+        ]) {
+            expect(nameOf(decide(snapshot({ stage: UP_STAGE.PASSED_BRIDGE, tile })))).toContain('orbs');
+        }
+    });
+
     test('a finished doll at the confronted stage is thrown into the pit', () => {
         const step = decide(snapshot({
             stage: UP_STAGE.CONFRONTED_IBAN,

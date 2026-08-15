@@ -23,6 +23,8 @@ interface HopKind {
     op: string;
     /** How many times to send the op before giving up on this obstacle. */
     tries?: number;
+    /** Only treat it as a seam below this z — the same loc is scenery elsewhere in the pass. */
+    below?: number;
 }
 
 // Why: the two locked cages roll `stat_random(thieving, …)` and leave the player where they were on a
@@ -47,9 +49,12 @@ const HOP_KINDS: readonly HopKind[] = [
     // cages, the swamp and a pipe, and every one of them reads "unreachable" to the navigator.
     { loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', tries: LOCK_TRIES },
     { loc: UP_LOC.RAILINGS_HARD, op: 'Pick-lock', tries: LOCK_TRIES },
-    { loc: UP_LOC.SWAMP, op: 'Cross' },
-    { loc: UP_LOC.ROCKPILE, op: 'Climb' },
-    { loc: UP_LOC.CELL_TUNNEL, op: 'Enter' }
+    // Why: `upass_swampbubbles1` is scenery in the first cavern and a crossing in the second, and taking it
+    // for a seam on the bridge shelf walked a run twenty tiles off the grid approach. The z bound is what
+    // separates the two — the second cavern is everything below 9664.
+    { loc: UP_LOC.SWAMP, op: 'Cross', below: 9664 },
+    { loc: UP_LOC.ROCKPILE, op: 'Climb', below: 9664 },
+    { loc: UP_LOC.CELL_TUNNEL, op: 'Enter', below: 9664 }
 ];
 
 const HOP_TIMEOUT_MS = 12_000;
@@ -78,7 +83,7 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
     const found: Loc[] = [];
     for (const kind of HOP_KINDS) {
         const locs = Locs.query()
-            .where(loc => loc.id === kind.loc)
+            .where(loc => loc.id === kind.loc && (kind.below === undefined || loc.tile().z < kind.below))
             .action(kind.op)
             .within(HOP_SEARCH)
             .results();

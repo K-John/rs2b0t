@@ -166,15 +166,15 @@ export const UP_TILE = {
     CORRIDOR_HUB: new Tile(2422, 9671, 0),
 
     AREA2_LANDING: new Tile(2423, 9660, 0),
-    RAILINGS_LOOSE: new Tile(2397, 9605, 0),
+    RAILINGS_LOOSE: new Tile(2397, 9606, 0),
     BOULDER: new Tile(2396, 9595, 0),
-    UNICORN_CAGE: new Tile(2371, 9603, 0),
+    UNICORN_CAGE: new Tile(2375, 9604, 0),
     MUDPILE: new Tile(2423, 9661, 0),
     MUD_DIG: new Tile(2393, 9650, 0),
 
     PALADINS: new Tile(2424, 9719, 0),
     BLOODWELL: new Tile(2373, 9718, 0),
-    TEMPLE_DOOR: new Tile(2371, 9718, 0),
+    TEMPLE_DOOR: new Tile(2370, 9718, 0),
 
     MAIN_LANDING: new Tile(2173, 4725, 1),
     CAGE_DOVE: new Tile(2134, 4702, 1),
@@ -282,17 +282,18 @@ export function countHeld(snap: QuestSnapshot, items: readonly UpassItem[]): num
 /** The trapped rectangle of the spiked grid: `inzone(upass_grid_col5, upass_grid_col1 + (1,0,9))`. */
 export const GRID_ZONE = { minX: 2467, maxX: 2476, minZ: 9673, maxZ: 9682 } as const;
 
-// Why: the corridor the grid opens onto runs from the furnace down to the orbs, well past the grid's own
-// z band — a window of a few tiles around the rectangle reads the orb sweep as "not through yet" and sends
-// the bot back to cross a grid it is already west of. The bridge shelf is also west of the grid, so the
-// upper bound is what keeps it out.
-const PAST_GRID = { maxX: GRID_ZONE.minX, minZ: 9640, maxZ: 9705 } as const;
+// Why: a flood fill of the first cavern on foot gives four pockets, and two of them overlap on a rectangle:
+// the orb corridor is x 2380-2466 / z 9664-9698 and the bridge-and-rope shelf is x 2431-2464 / z 9686-9731.
+// A plain box therefore reads the shelf as the corridor, which is what let one run declare the grid crossed
+// while it was still standing on the wrong side of it. The corridor's own ground is what is left after the
+// shelf is taken out — everything below the shelf, plus everything west of where the shelf starts.
+const CORRIDOR = { maxX: 2464, westOfShelf: 2430, belowShelf: 9685, minZ: 9664 } as const;
 
 /** West of the spiked grid, in the corridor it opens onto — the crossing is behind the character. */
 export function pastGridTile(tile: QuestSnapshot['tile']): boolean {
     return tile !== null
         && tile !== undefined
-        && tile.x < PAST_GRID.maxX
-        && tile.z >= PAST_GRID.minZ
-        && tile.z <= PAST_GRID.maxZ;
+        && tile.x <= CORRIDOR.maxX
+        && tile.z >= CORRIDOR.minZ
+        && (tile.z <= CORRIDOR.belowShelf || tile.x <= CORRIDOR.westOfShelf);
 }

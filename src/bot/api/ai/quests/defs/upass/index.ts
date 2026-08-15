@@ -16,7 +16,6 @@ import { sweepOrbs } from './area1.js';
 import { crossGrid } from './grid.js';
 import {
     badgesHeld,
-    climbToPaladins,
     dropBoulder,
     enterMainCavern,
     feedBloodWell,
@@ -125,9 +124,9 @@ function paladinLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
     if (held(snap, UP_ITEM.UNICORN_HORN) === 0 && badgesHeld(snap) === 0 && area === 'area2') {
         return custom('take the unicorn horn from the crushed cage', takeUnicornHorn);
     }
-    if (area === 'area2') {
-        return custom('climb the mud pile back up to the shelf', climbToPaladins);
-    }
+    // Why: the way back up to the paladins' shelf is the unicorn tunnel at the south end of the second
+    // cavern, not the mud pile — the pile climbs into the orb corridor, on the far side of the well and
+    // behind every trap already crossed. The tunnel is one of travelTo's seams, so walking is enough.
     if (badgesHeld(snap) < 3) {
         return custom('kill a paladin for its coat of arms', killPaladin);
     }
