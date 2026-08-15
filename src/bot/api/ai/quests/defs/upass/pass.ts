@@ -35,8 +35,10 @@ const HOP_TIMEOUT_MS = 12_000;
 const MAX_HOPS = 24;
 /** How much closer to the target an obstacle must sit before it is worth crossing. */
 const MIN_GAIN = 3;
-/** How far out to look. Beyond this an obstacle belongs to some other part of the route. */
-const HOP_SEARCH = 14;
+// Why: the seam out of a pocket can sit right across it — the rope swing off the bridge shelf is twenty
+// tiles from where the bridge lands — so the search has to cover the pocket, not the neighbourhood. Drift is
+// held off by the gain threshold and by spending an obstacle that led away, not by looking less far.
+const HOP_SEARCH = 32;
 
 function here(): { x: number; z: number; level: number } | null {
     return Game.tile();
