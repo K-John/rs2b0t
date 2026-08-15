@@ -252,9 +252,10 @@ async function robeFromDisciple(log: (m: string) => void): Promise<boolean> {
         }
         const where = target.tile();
         const mark = GameMessages.mark();
-        const gone = (): boolean => Npcs.query()
-            .where(npc => npc.id === UP_NPC.DISCIPLE && npc.tile().x === where.x && npc.tile().z === where.z)
-            .nearest() === null;
+        // Why: disciples wander, so "no disciple on that tile any more" is satisfied by one walking away and
+        // reported four kills that never happened. The server index is the identity that dies.
+        const slot = target.index;
+        const gone = (): boolean => Npcs.query().where(npc => npc.index === slot).nearest() === null;
         if (await target.interact('Attack') && await driveUntil(gone, [], log, 45_000)) {
             for (const robe of [UP_ITEM.ZAM_TOP, UP_ITEM.ZAM_BOTTOM]) {
                 const drop = GroundItems.query().where(item => item.id === robe.id).within(10).nearest();
