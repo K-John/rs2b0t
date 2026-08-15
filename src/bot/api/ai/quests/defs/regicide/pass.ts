@@ -3,7 +3,7 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
 import { Traversal } from '../../../../walking/Traversal.js';
-import type Tile from '../../../../../geometry/Tile.js';
+import Tile from '../../../../../geometry/Tile.js';
 import { driveUntil, settleScene } from '../../exec/prompts.js';
 import { UP_ITEM, UP_LOC, UP_TILE, pastGridTile, upassArea } from '../upass/areas.js';
 import { enterMainCavern } from '../upass/area2.js';
@@ -30,6 +30,9 @@ import { climbOutOfPit, travelTirannwn } from './pockets.js';
 
 /** The paladins' shelf is the north end of the first cavern; the orb corridor is everything below it. */
 const SHELF_Z = 9700;
+
+/** The one loc that opens onto the paladins' shelf, at the north end of the second cavern. */
+const UNICORN_DOORS = new Tile(2370, 9664, 0);
 
 // Why: the chasm splits area1 in two and nothing walks across it. Flooding the collision pack from the cave
 // landing and from the bridge's west foot gives two tile sets that do not share a single tile, and this is
@@ -179,9 +182,13 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
             }
             return (here?.z ?? 0) > SHELF_Z ? enterMainCavern(log) : climbWell(log);
         case 'area2':
-            // Why: the way back up to the paladins' shelf is the unicorn tunnel at the south end of the
-            // second cavern, which is one of the mover's own seams.
-            return travelTo(UP_TILE.PALADINS, 4, log);
+            // Why: the paladins' shelf is entered by one loc and one only. Flooding it lists three ops on its
+            // rim — the temple doors out, the blood well, and `upass_unicorn_door`, which `p_telejump`s to
+            // (2371,9666) from its south face. So the shelf is behind the whole second cavern, and a leg that
+            // walked at `PALADINS` instead asked for a tile in another pocket: the mover swept for anything
+            // that gained ground, picked a slave-cage door, and "the cage slams shut behind you" left the run
+            // in an eight-tile cell with no edge out.
+            return travelTo(UNICORN_DOORS, 3, log);
         case 'gridpit':
             return travelTo(UP_TILE.GRID_APPROACH, 3, log);
         case 'voyage':

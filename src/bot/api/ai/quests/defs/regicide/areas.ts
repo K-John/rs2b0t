@@ -17,6 +17,7 @@ export const RG_ITEM = {
     POT: { id: 1931, name: 'Pot' },
     BALL_OF_WOOL: { id: 1759, name: 'Ball of wool' },
     TINDERBOX: { id: 590, name: 'Tinderbox' },
+    SPADE: { id: 952, name: 'Spade' },
     SHORTBOW: { id: 841, name: 'Shortbow' },
     BRONZE_ARROW: { id: 882, name: 'Bronze arrow' },
     ROPE: { id: 954, name: 'Rope' },

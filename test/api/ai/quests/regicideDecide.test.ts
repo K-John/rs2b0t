@@ -24,6 +24,7 @@ const KIT: Stack[] = [
     RG_ITEM.SHORTBOW.id,
     [RG_ITEM.BRONZE_ARROW.id, ARROW_TARGET],
     RG_ITEM.TINDERBOX.id,
+    RG_ITEM.SPADE.id,
     [RG_ITEM.LOBSTER.id, FOOD_TARGET]
 ];
 const WEAPON = 'rune scimitar';
@@ -82,7 +83,7 @@ describe('Regicide decide()', () => {
 
     // Why: `upass_bridge` writes no permanent state and its lever only sends the player east, so a finished
     // Underground Pass still owes a fire arrow on every westbound walk — a pack without one crosses nothing.
-    const BRIDGE_KIT = [RG_ITEM.SHORTBOW, RG_ITEM.BRONZE_ARROW, RG_ITEM.TINDERBOX] as const;
+    const BRIDGE_KIT = [RG_ITEM.SHORTBOW, RG_ITEM.BRONZE_ARROW, RG_ITEM.TINDERBOX, RG_ITEM.SPADE] as const;
 
     for (const item of BRIDGE_KIT) {
         test(`the palisade waits for the ${item.name.toLowerCase()}`, () => {

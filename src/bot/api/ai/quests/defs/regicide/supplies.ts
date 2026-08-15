@@ -137,6 +137,15 @@ export const KIT: readonly Supply[] = [
         shop: ARDOUGNE_STORE,
         estGp: 150
     },
+    // Why: past the well the pass drops into the slave cages, and a flood of that pocket reaches two ops —
+    // the ledge and `upass_mud`, which takes a spade and nothing else.
+    {
+        item: RG_ITEM.SPADE,
+        qty: 1,
+        reason: 'the filled-in tunnel out of the slave cages',
+        shop: ARDOUGNE_STORE,
+        estGp: 150
+    },
     { item: RG_ITEM.LOBSTER, qty: FOOD_TARGET, reason: 'the traps, the soldiers and the elf warriors', min: 1 }
 ];
 

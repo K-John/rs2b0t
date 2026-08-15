@@ -174,6 +174,7 @@ const PACK_SEED: { debugName: string; qty: number }[] = [
     { debugName: 'shortbow', qty: 1 },
     { debugName: 'bronze_arrow', qty: 50 },
     { debugName: 'tinderbox', qty: 1 },
+    { debugName: 'spade', qty: 1 },
     { debugName: 'lobster', qty: 12 },
     { debugName: 'rune_scimitar', qty: 1 },
     { debugName: 'rune_chainbody', qty: 1 },
