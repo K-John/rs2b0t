@@ -148,12 +148,25 @@ const PACK_SEED: { debugName: string; qty: number }[] = [
     { debugName: 'rune_kiteshield', qty: 1 }
 ];
 
-async function seedPack(page: Page): Promise<void> {
+// Why: some things in the pass are handed over by a script that only runs once, so a leg seeded past it
+// starts without them. The doll comes out of Kardia's chest and nothing else gives another.
+const STAGE_PACK: Record<number, string[]> = {
+    7: ['ibandoll'],
+    8: ['ibandoll'],
+    9: ['ibanstaff']
+};
+
+async function seedPack(page: Page, stage: number): Promise<void> {
+    const extra = STAGE_PACK[stage] ?? [];
     for (const { debugName, qty } of PACK_SEED) {
         await cheatQuiet(page, `give ${debugName} ${qty}`);
     }
+    for (const debugName of extra) {
+        await cheatQuiet(page, `give ${debugName} 1`);
+    }
     await clearChatDialogs(page, 'pack-seed dialog(s)');
-    console.log(`pack seeded with ${PACK_SEED.length} item type(s) for an inside-the-pass start`);
+    const note = extra.length > 0 ? ` plus ${extra.join(', ')} for stage ${stage}` : '';
+    console.log(`pack seeded with ${PACK_SEED.length} item type(s) for an inside-the-pass start${note}`);
 }
 
 async function setStats(page: Page, level: number): Promise<void> {
@@ -286,7 +299,7 @@ try {
 
     // Why: stage 2 is the first that begins underground — past the cave mouth there is no bank to draw from.
     if (args.stage >= 2) {
-        await seedPack(page);
+        await seedPack(page, args.stage);
     }
 
     await page.evaluate(() => sessionStorage.setItem('rs2b0t:set:AIOQuester:quests', 'upass'));
