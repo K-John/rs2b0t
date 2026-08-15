@@ -19,6 +19,8 @@ HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 60 --kit guardian --until 10
 
 `--stage N` sets `%ikov` and relogs. `--lever` sets bit 0 of `%ikov_dungeon`, the
 permanent unlock the south gate reads, so a stage test can skip the lava bridge.
+`--until 100` asserts the journal is green rather than a varp value — the Armadyl
+ending leaves `%ikov` at 80, not 100.
 
 `--kit` is the seeding dial, and every step up it is a claim the run no longer makes:
 
