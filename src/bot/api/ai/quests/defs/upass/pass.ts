@@ -549,8 +549,11 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
     // scene — so the known bridge placements are walked at too, nearest the target first. The walker
     // refuses the ones in other components in a second each, which is what makes trying them all cheap.
     if (from.level === 1) {
+        // Why: radius zero. The side tile is the one the offline solve proved is both in this pocket and
+        // adjacent to the bridge's footprint — landing one tile off it is landing somewhere the crossing
+        // cannot be sent from, and the run repeated that walk until it ran out of minutes.
         const next = await platformStep(from, dest, log);
-        if (next && (await Traversal.walkResilient(next, { radius: 1, attempts: 2, timeoutMs: 60_000 }))) {
+        if (next && (await Traversal.walkResilient(next, { radius: 0, attempts: 2, timeoutMs: 60_000 }))) {
             log(`pass: at the platform crossing (${next.x},${next.z}) — now at (${here()?.x},${here()?.z})`);
             if (await hopToward(dest, log, spent)) {
                 return true;
