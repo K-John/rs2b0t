@@ -136,34 +136,15 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(step)).toContain('stay rope');
     });
 
-    // Why: an orb in the furnace leaves the pack, so a sweep that runs before the burn reads it as never
-    // collected and walks back to a trap that will not give the same orb up twice. Burning comes first.
-    test('orbs in the pack go to the furnace before any sweep', () => {
-        const step = decide(snapshot({
-            stage: UP_STAGE.PASSED_BRIDGE,
-            tile: { x: 2460, z: 9678, level: 0 },
-            carried: [UP_ITEM.ORB1.id, UP_ITEM.ORB2.id, UP_ITEM.ORB3.id]
-        }));
-        expect(nameOf(step)).toContain('furnace');
-    });
-
-    // Why: every orb shares the display name "Orb of light", so the sweep has to count them by id.
-    test('with nothing in the pack it sweeps the sites', () => {
-        const step = decide(snapshot({
-            stage: UP_STAGE.PASSED_BRIDGE,
-            tile: { x: 2460, z: 9678, level: 0 },
-            carried: []
-        }));
-        expect(nameOf(step)).toContain('hanging-log trap');
-    });
-
-    test('all four orbs in the pack go into the furnace', () => {
-        const step = decide(snapshot({
-            stage: UP_STAGE.PASSED_BRIDGE,
-            tile: { x: 2460, z: 9678, level: 0 },
-            carried: [UP_ITEM.ORB1.id, UP_ITEM.ORB2.id, UP_ITEM.ORB3.id, UP_ITEM.ORB4.id]
-        }));
-        expect(nameOf(step)).toContain('furnace');
+    // Why: which orbs are already dark is not answerable from a snapshot — a burned orb has simply left the
+    // pack, and neither the trap nor the ground spawns hand over a second one. A per-site decide cycle
+    // therefore picks the same site forever, so the whole sweep is one step that keeps its own tally.
+    test('past the grid, the orb phase is a single step whatever the pack holds', () => {
+        const inside = { x: 2460, z: 9678, level: 0 };
+        for (const carried of [[], [UP_ITEM.ORB1.id], [UP_ITEM.ORB1.id, UP_ITEM.ORB2.id, UP_ITEM.ORB3.id]]) {
+            const step = decide(snapshot({ stage: UP_STAGE.PASSED_BRIDGE, tile: inside, carried }));
+            expect(nameOf(step)).toContain('orbs');
+        }
     });
 
     test('east of the grid it crosses before sweeping orbs', () => {

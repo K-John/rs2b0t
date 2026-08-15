@@ -127,6 +127,28 @@ export async function burnOrbs(log: (m: string) => void): Promise<boolean> {
     return burned > 0;
 }
 
+// Why: which orbs are already dark is not answerable from a snapshot — the bit is not on the wire, a burned
+// orb has simply left the pack, and both the trap and the ground spawns refuse a second one silently. So the
+// whole sweep is one step that keeps its own tally, rather than one site per decide cycle re-picking the
+// orb it just burned. The well at the end is the oracle: it descends only once all four are dark.
+
+/** Take each orb and burn it, then climb the well. */
+export async function sweepOrbs(log: (m: string) => void): Promise<boolean> {
+    for (const site of ORB_SITES) {
+        const took = site.fromTrap
+            ? await takeTrappedOrb(log)
+            : await takeGroundOrb(site.orb, site.tile, log);
+        if (!took) {
+            log(`could not settle the orb at (${site.tile.x},${site.tile.z})`);
+            return false;
+        }
+        if (heldId(site.orb.id) > 0 && !(await burnOrbs(log))) {
+            return false;
+        }
+    }
+    return enterWell(log);
+}
+
 /** The well only takes the player down once all four orbs are dark. */
 export async function enterWell(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(UP_TILE.WELL, 3, log))) {

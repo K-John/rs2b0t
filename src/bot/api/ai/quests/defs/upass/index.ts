@@ -12,7 +12,7 @@ import {
     shootGuiderope,
     startQuest
 } from './bridge.js';
-import { ORB_SITES, burnOrbs, enterWell, orbsHeld, takeGroundOrb, takeTrappedOrb } from './area1.js';
+import { sweepOrbs } from './area1.js';
 import { crossGrid } from './grid.js';
 import {
     badgesHeld,
@@ -108,22 +108,10 @@ function orbLeg(snap: QuestSnapshot): QuestStep {
         // travelTo's vocabulary — a caller choosing seams here is what drifted the route before.
         return custom('cross the spiked grid with the journal held open', crossGrid);
     }
-    // Why: burning comes before the sweep, for two reasons. An orb in the furnace leaves the pack, so a
-    // sweep that runs first reads it as never collected and walks back to a trap that will not give the same
-    // orb up twice. And the food float leaves three free slots, so holding all four orbs at once does not
-    // fit — the furnace trip per orb is what keeps the pack from filling mid-sweep.
-    if (orbsHeld(snap) > 0) {
-        return custom('burn the orbs in the furnace', burnOrbs);
-    }
-    const missing = ORB_SITES.find(site => held(snap, site.orb) === 0);
-    if (missing) {
-        return missing.fromTrap
-            ? custom('disarm the hanging-log trap for its orb', takeTrappedOrb)
-            : custom(`take the orb of light at (${missing.tile.x},${missing.tile.z})`, log => takeGroundOrb(missing.orb, missing.tile, log));
-    }
-    // Why: the well is the oracle for the sweep — it only descends once all four are dark, and blasts the
-    // player back otherwise, which sends the leg round again for whichever orb was missed.
-    return custom('climb into the well', enterWell);
+    // Why: one step for the whole sweep. A burned orb has left the pack and reads as never collected, and
+    // neither the trap nor the ground spawns will hand over a second one — so a per-site decide cycle picks
+    // the same site forever. The step keeps its own tally and ends on the well.
+    return custom('take and burn the four orbs, then climb the well', sweepOrbs);
 }
 
 function unicornLeg(snap: QuestSnapshot): QuestStep {
