@@ -38,6 +38,9 @@ const carrying = (...items: [{ id: number }, number][]): Map<number, number> =>
 
 const name = (step: QuestStep): string => (step.kind === 'custom' ? step.name : step.kind);
 
+/** What the distraction leg draws before it starts: the meal and the priest suit's float. */
+const PROVISIONED = carrying([FOOD, 5], [BIO_ITEM.COINS, 5000]);
+
 const ALL_VIALS = carrying(...VIALS.map(vial => [vial, 1] as [{ id: number }, number]));
 const KIT = new Map([
     ...ALL_VIALS,
@@ -122,12 +125,14 @@ describe('biohazard decide — the wall crossing', () => {
     });
 
     test('the seed comes before the birds', () => {
-        expect(name(decide(snapshot({ stage: BIO_STAGE.SPOKEN_JERICO })))).toBe("take bird feed from Jerico's cupboard");
+        expect(name(decide(snapshot({ stage: BIO_STAGE.SPOKEN_JERICO, invIds: PROVISIONED }))))
+            .toBe("take bird feed from Jerico's cupboard");
     });
 
     test('banked bird feed is withdrawn, as the cupboard refuses a second bag', () => {
         const step = decide(snapshot({
             stage: BIO_STAGE.SPOKEN_JERICO,
+            invIds: PROVISIONED,
             bankIds: new Map([...PURSE, [BIO_ITEM.BIRDFEED.id, 1]])
         }));
         expect(step.kind).toBe('withdraw');
@@ -136,7 +141,7 @@ describe('biohazard decide — the wall crossing', () => {
     test('the birds are fetched before the tower is fed', () => {
         const step = decide(snapshot({
             stage: BIO_STAGE.SPOKEN_JERICO,
-            invIds: carrying([BIO_ITEM.BIRDFEED, 1])
+            invIds: new Map([...PROVISIONED, [BIO_ITEM.BIRDFEED.id, 1]])
         }));
         expect(name(step)).toBe("take a pigeon cage from behind Jerico's house");
     });
@@ -144,9 +149,14 @@ describe('biohazard decide — the wall crossing', () => {
     test('with seed and birds in the pack the tower gets fed', () => {
         const step = decide(snapshot({
             stage: BIO_STAGE.SPOKEN_JERICO,
-            invIds: carrying([BIO_ITEM.BIRDFEED, 1], [BIO_ITEM.PIGEONS, 1])
+            invIds: new Map([...PROVISIONED, [BIO_ITEM.BIRDFEED.id, 1], [BIO_ITEM.PIGEONS.id, 1]])
         }));
         expect(name(step)).toBe('throw the bird feed onto the watchtower');
+    });
+
+    test("the priest suit's coins come out beside the Ardougne booth, not beside Thessalia", () => {
+        const step = decide(snapshot({ stage: BIO_STAGE.SPOKEN_JERICO, invIds: carrying([FOOD, 5]) }));
+        expect(step.kind).toBe('withdraw');
     });
 
     test('a fed tower releases the pigeons', () => {
@@ -167,9 +177,9 @@ describe('biohazard decide — the wall crossing', () => {
         expect(decide(snapshot({ stage: BIO_STAGE.SPOKEN_JERICO, bankIds: bank })).kind).toBe('withdraw');
     });
 
-    test('an empty larder never blocks the distraction leg', () => {
-        expect(name(decide(snapshot({ stage: BIO_STAGE.SPOKEN_JERICO }))))
-            .toBe("take bird feed from Jerico's cupboard");
+    test('an empty larder and an empty purse never block the distraction leg', () => {
+        const step = decide(snapshot({ stage: BIO_STAGE.SPOKEN_JERICO, bankIds: new Map() }));
+        expect(name(step)).toBe("take bird feed from Jerico's cupboard");
     });
 
     test('released pigeons go straight to the ladder', () => {

@@ -1,7 +1,5 @@
-/*  Biohazard (#234) stand-tile probe: pathfinds to every tile the module names, from
- *  the four regions the quest starts a leg in.
- *  Why: the mourner HQ's first floor and Ardougne castle's are only reachable over
- *  stairEdges.json, and a stand beside an unwalkable loc is not automatically pathable. */
+/*  Biohazard (#234) stand-tile probe: pathfinds to every tile the module names, from the regions the quest starts a leg in.
+ *  Why: the headquarters first floor is reachable only over stairEdges.json behind a refused door, and a stand beside an unwalkable loc is not automatically pathable. */
 import fs from 'node:fs';
 
 import { gunzipSync } from 'fflate';

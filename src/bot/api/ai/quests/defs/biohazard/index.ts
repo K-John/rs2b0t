@@ -67,13 +67,12 @@ function inWest(area: BioArea, step: QuestStep): QuestStep {
     return area === 'west' || area === 'hq' || area === 'hqUpstairs' ? step : TO_WEST;
 }
 
-// Why: the food comes out here rather than at the wall — Jerico's house is nine tiles from the
-// Ardougne booth, and the watchtower where the next stage ends is sixty.
+// Why: the meal and the priest suit's float come out here rather than at the wall — Jerico's house is nine tiles from the Ardougne booth, and the watchtower where the next stage ends is sixty.
 /** The distraction leg: seed from Jerico's cupboard, birds from behind his house, then the tower. */
 function distractionStep(snap: QuestSnapshot, area: BioArea): QuestStep {
-    const meal = sourceFood(snap);
-    if (meal) {
-        return onMainland(area, meal);
+    const kit = sourceFood(snap) ?? sourceCoins(snap, PRIEST_SUIT_GP, false);
+    if (kit) {
+        return onMainland(area, kit);
     }
     const feed = reclaim(snap, BIO_ITEM.BIRDFEED)
         ?? (held(snap, BIO_ITEM.BIRDFEED) > 0 ? null : custom("take bird feed from Jerico's cupboard", takeBirdfeed));
@@ -168,9 +167,7 @@ function inQuarterStep(snap: QuestSnapshot): QuestStep {
         return outside('ask Elena to replace the sample she gave me', askElenaForReplacements);
     }
     if (VIALS.some(vial => held(snap, vial) === 0)) {
-        // Why: a boy who drank, sold or painted his vial gives nothing back, and only Elena
-        // reissues one — the walk out loses whatever is still carried to the gate guard, which
-        // is what makes her hand over a full set rather than the remainder.
+        // Why: a boy who drank, sold or painted his vial gives nothing back and only Elena reissues one — the walk out loses whatever is still carried to the gate guard, which is what makes her hand over a full set rather than the remainder.
         return snap.noProgress >= COLLECT_GIVE_UP
             ? outside('ask Elena to replace the vials the errand boys ruined', askElenaForReplacements)
             : custom('collect the vials at the Dancing Donkey', collectFromErrandBoys);
@@ -240,10 +237,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === undefined) {
         return { kind: 'wait', reason: 'Biohazard journal stage unavailable' };
     }
-    // Why: `ownsInventory` skips the engine's provisioning, so nothing else ever opens a booth and
-    // a gown, vial or key sitting in the bank stays invisible until this module reads one.
-    // Why: the read is deferred past the wall, where the stages that need it have not started and
-    // the navigator answers "unreachable" for every booth in the game.
+    // Why: `ownsInventory` skips the engine's provisioning, so nothing else ever opens a booth and a gown, vial or key sitting in the bank stays invisible until this module reads one — but past the wall the navigator answers "unreachable" for every booth in the game, so the read waits for the mainland.
     if (!snap.bankKnown) {
         if (area === 'mainland') {
             return scanBank();

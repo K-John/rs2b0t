@@ -20,8 +20,7 @@ const MOURNER_PREFER = ["There's nothing I can do, it's fatal."];
 const FIGHT_GUARD = 300;
 /** A lobster's worth of damage is enough to eat on. */
 const EAT_AT_MISSING = 15;
-// Why: the key arrives from `queue,defeat_biohazard_mourner`, which the engine runs after the
-// death animation and `npc_del`, so the corpse is gone for several ticks before the pack changes.
+// Why: the key arrives from `queue,defeat_biohazard_mourner`, run after the death animation and `npc_del`, so the corpse is gone for several ticks before the pack changes.
 /** Ticks with nothing to hit before the kill counts as landed without a key. */
 const MISSING_TO_WIN = 10;
 
@@ -95,9 +94,7 @@ function hungry(): boolean {
     return max > 0 && Skills.effective('hitpoints') <= max - EAT_AT_MISSING;
 }
 
-// Why: the key drops from `queue,defeat_biohazard_mourner`, which only fires for the player the
-// mourner is aggressive toward — and `%npc_aggressive_player` is set by `~npc_retaliate`, which is
-// what the doctor dialogue calls. Opening with Attack alone is not guaranteed to claim him.
+// Why: the key only drops for the player the mourner is aggressive toward, and `%npc_aggressive_player` is set by `~npc_retaliate` — which is what the doctor dialogue calls, so Attack alone is not guaranteed to claim him.
 // Why: he respawns 140 ticks after dying, so the talk, the fight and the search are one step.
 async function fightForKey(log: (m: string) => void): Promise<boolean> {
     let swings = 0;

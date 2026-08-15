@@ -40,8 +40,11 @@ export function reclaim(snap: QuestSnapshot, item: BioItem, qty = 1): QuestStep 
     return withdraw([{ name: item.name, id: item.id, qty: Math.min(qty - held(snap, item), stock) }]);
 }
 
-/** Coins for Thessalia, drawn once rather than per half. */
-export function sourceCoins(snap: QuestSnapshot, floor: number): QuestStep | null {
+// Why: the float is drawn beside the Ardougne booth on the distraction leg, so the walk from
+// Rimmington to Thessalia is one leg rather than a detour to whichever bank is nearest Rimmington.
+
+/** Coins for Thessalia. `blocking` waits when the bank has none; otherwise it lets the leg run on. */
+export function sourceCoins(snap: QuestSnapshot, floor: number, blocking = true): QuestStep | null {
     if (held(snap, BIO_ITEM.COINS) >= floor) {
         return null;
     }
@@ -50,7 +53,7 @@ export function sourceCoins(snap: QuestSnapshot, floor: number): QuestStep | nul
     }
     const available = banked(snap, BIO_ITEM.COINS);
     if (available <= 0) {
-        return { kind: 'wait', reason: 'no coins banked for the priest gown' };
+        return blocking ? { kind: 'wait', reason: 'no coins banked for the priest gown' } : null;
     }
     return withdraw([{ name: BIO_ITEM.COINS.name, id: BIO_ITEM.COINS.id, qty: Math.min(floor, available) }]);
 }

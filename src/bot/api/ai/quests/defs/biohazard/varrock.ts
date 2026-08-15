@@ -121,9 +121,7 @@ export async function visitGuidor(log: (m: string) => void): Promise<boolean> {
     return driveUntil(() => heldId(BIO_ITEM.PLAGUE_SAMPLE.id) === 0, [], log, 15_000);
 }
 
-// Why: between given_distillator and found_secret the guard stops everyone within two tiles of the
-// gate for a two-page search, and the walker's own door crossing has no answer for either page —
-// so this leg drives the gate itself rather than leaving it to a route.
+// Why: between given_distillator and found_secret the guard stops everyone within two tiles of the gate for a two-page search, and the walker's own door crossing has no answer for either page — so this leg drives the gate itself rather than leaving it to a route.
 
 /** Open the Varrock east gate and sit out the guard's search, in whichever direction. */
 async function passVarrockGate(log: (m: string) => void): Promise<boolean> {

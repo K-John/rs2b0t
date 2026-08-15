@@ -139,9 +139,7 @@ export function bioArea(tile: QuestSnapshot['tile']): BioArea {
     return level === 0 ? 'mainland' : 'unknown';
 }
 
-// Why: the guard at the Varrock east gate searches in both directions while the quest is between
-// given_distillator and found_secret, so the vials may only ever be carried inside this quarter —
-// which is also the only place they are needed, as Guidor and the inn are both in it.
+// Why: the Varrock east gate searches in both directions between given_distillator and found_secret, so the vials may only ever be carried inside this quarter — which is also the only place they are needed, as Guidor and the inn are both in it.
 export function inGuidorQuarter(tile: QuestSnapshot['tile']): boolean {
     if (!tile || tile.level !== 0) {
         return false;
