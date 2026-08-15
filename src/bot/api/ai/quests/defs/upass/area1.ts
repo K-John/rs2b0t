@@ -84,6 +84,9 @@ export async function takeGroundOrb(orb: UpassItem, tile: Tile, log: (m: string)
     return driveUntil(() => heldId(orb.id) > 0, [], log, 10_000);
 }
 
+// Why: `destroy_orboflight` is four ticks of messages before the orb leaves the pack, so a one-tick gap
+// between uses fires the next one into a script still running and the loop drops out after a single orb.
+
 /** Every orb in the pack, thrown into the furnace one at a time. */
 export async function burnOrbs(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(UP_TILE.FURNACE, 3, log))) {
@@ -98,20 +101,18 @@ export async function burnOrbs(log: (m: string) => void): Promise<boolean> {
         const furnace = Locs.query().where(loc => loc.id === UP_LOC.FURNACE).within(8).nearest();
         const held = Inventory.items().find(item => item.id === orb.id);
         if (!furnace || !held) {
-            break;
+            continue;
         }
         if (!(await held.useOn(furnace))) {
-            break;
+            continue;
         }
-        if (!(await driveUntil(() => heldId(orb.id) === 0, [], log, 15_000))) {
-            log('the furnace would not take the orb');
-            break;
+        if (await driveUntil(() => heldId(orb.id) === 0, [], log, 15_000)) {
+            burned++;
         }
-        burned++;
-        await Execution.delayTicks(1);
+        await Execution.delayTicks(4);
     }
     log(`burned ${burned} orb(s) in the furnace`);
-    return true;
+    return burned > 0;
 }
 
 /** The well only takes the player down once all four orbs are dark. */

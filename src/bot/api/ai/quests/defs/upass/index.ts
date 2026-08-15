@@ -104,9 +104,14 @@ function bridgeLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
 // and the well and a per-orb round trip crosses the spear-trap corridor four times over.
 function orbLeg(snap: QuestSnapshot): QuestStep {
     if (!pastGridTile(snap.tile)) {
-        // Why: the crossing walks itself to the grid lip first. The rope swing is only reached for when that
-        // walk has no route, so the rope is not spent on a guess about a shelf the navigator may already reach.
+        // Why: the crossing walks itself to the grid lip first, and the rope swing onto that shelf is part of
+        // travelTo's vocabulary — a caller choosing seams here is what drifted the route before.
         return custom('cross the spiked grid with the journal held open', crossGrid);
+    }
+    // Why: burning comes before the sweep. An orb in the furnace leaves the pack, so a sweep that runs first
+    // reads it as never collected and walks back to a trap that will not give it up twice.
+    if (orbsHeld(snap) > 0) {
+        return custom('burn the orbs in the furnace', burnOrbs);
     }
     const missing = ORB_SITES.find(site => held(snap, site.orb) === 0);
     if (missing) {
@@ -114,11 +119,8 @@ function orbLeg(snap: QuestSnapshot): QuestStep {
             ? custom('disarm the hanging-log trap for its orb', takeTrappedOrb)
             : custom(`take the orb of light at (${missing.tile.x},${missing.tile.z})`, log => takeGroundOrb(missing.orb, missing.tile, log));
     }
-    if (orbsHeld(snap) > 0) {
-        return custom('burn the orbs in the furnace', burnOrbs);
-    }
-    // Why: the well is the oracle for the sweep — it only takes the player down once all four orbs are
-    // dark, and blasts them back out otherwise, which sends the leg round for whichever orb was missed.
+    // Why: the well is the oracle for the sweep — it only descends once all four are dark, and blasts the
+    // player back otherwise, which sends the leg round again for whichever orb was missed.
     return custom('climb into the well', enterWell);
 }
 
