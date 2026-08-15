@@ -246,7 +246,11 @@ async function wearOnlyRobes(log: (m: string) => void): Promise<boolean> {
 /** Iban's temple doors, and the walk through them. */
 export async function openIbanDoor(log: (m: string) => void): Promise<boolean> {
     if (!insideIbanTemple(Game.tile())) {
-        if (Equipment.items().length !== 2 && !(await robeFromDisciple(log) && await wearOnlyRobes(log))) {
+        const robed = (): boolean => {
+            const on = Equipment.items();
+            return on.length === 2 && on.every(i => i.id === UP_ITEM.ZAM_TOP.id || i.id === UP_ITEM.ZAM_BOTTOM.id);
+        };
+        if (!robed() && !(await robeFromDisciple(log) && await wearOnlyRobes(log))) {
             return false;
         }
         if (!(await walkTo(UP_TILE.IBAN_DOOR, 3, log))) {
