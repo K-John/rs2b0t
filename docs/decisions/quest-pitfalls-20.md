@@ -2,7 +2,7 @@
 
 # Quest pitfalls: The Grand Tree
 
-Ten, and the first three are engine and content facts rather than quest ones.
+Twelve, and the first three are engine and content facts rather than quest ones.
 
 - **Ground decor with `active=yes` blocks its own tile.** `changeLocCollision` turns a
   `GROUND_DECOR` shape into a `changeFloor` whenever the loc is active, so both Grand Tree
@@ -31,9 +31,28 @@ Ten, and the first three are engine and content facts rather than quest ones.
   King Narnode's opening leads the player to his trapdoor, drops it into the foundations and
   climbs it back out inside one `opnpc`, with silences of five ticks and more; Glough's
   stage-70 branch calls the guards, marches the player to a ladder, jails it and hands over
-  to Charlie and then the King. `driveDialog` gives up after 1.5s of quiet and starts a
-  *fresh* conversation. Every one of these legs is a `driveUntil` on the goal — the bark
-  sample in the pack, the tile outside the cell — with the prefer list carried along.
+  to Charlie and then the King; the foreman closes the dialogue, walks the player
+  thirty-five tiles across his yard and teleports it into his office before he asks the
+  first of three questions. `driveDialog` gives up after 1.5s of quiet and starts a *fresh*
+  conversation, so stage 80 ping-ponged between the foreman's spawn and his office for eight
+  minutes and then parked. Every one of these legs is a `driveUntil` on the goal — the bark
+  sample in the pack, the tile outside the cell, the lumber order — with the prefer list
+  carried along. Once the chain has moved him, `[opnpc1,grandtree_foreman]` sees him inside
+  the office zone and skips to the questions, so the leg talks to a Foreman already in the
+  scene where he stands rather than dragging the player back out to the anchor.
+- **The pillar floor is a pocket, and preparation decided inside it has no route out.**
+  Glough's top floor is seven walkable tiles reached by an Agility 25 climb, and its only
+  exits are that tree back down and the trapdoor — neither of them a baked edge. A demon kit
+  chosen there planned a bank trip the pathfinder could not answer and spent six minutes on
+  `no path to (2449,3482,1): unreachable`. The kit is bought from stage 120, on the ground,
+  before the first climb; a run that arrives on the pillars still owing gear climbs down for
+  it rather than banking where it stands.
+- **A gate that teleports you through also blocks the tile it drops you on.**
+  `open_shipyard_gate` swaps both halves for an `inviswall` for three ticks after the
+  teleport, so the client's own pathfinder rejects every click candidate from the tile the
+  player is standing on and repaths five times in a fifth of a second. It clears itself, but
+  a two-pass walk budget is spent on the recovery — the leg after that gate wants a
+  five-pass one.
 - **The King's translation is five pages and one preference list, if it is ordered.**
   `narnode_correct_b2` and `_b3` both want "None of the above.", `_b3` onward want three
   specific lines, and each page offers `None of the above.` as its last option. Putting the

@@ -34,6 +34,7 @@ interface Args {
     stats: number;
     deploy: boolean;
     tele: boolean;
+    root: number;
 }
 
 function parse(argv: string[]): Args {
@@ -47,7 +48,8 @@ function parse(argv: string[]): Args {
         food: 'Lobster',
         stats: 70,
         deploy: true,
-        tele: true
+        tele: true,
+        root: 15
     };
     for (let i = 0; i < argv.length; i++) {
         const flag = argv[i];
@@ -63,6 +65,7 @@ function parse(argv: string[]): Args {
         else if (flag === '--tick') { out.tickMs = Number(value); }
         else if (flag === '--food') { out.food = value; }
         else if (flag === '--stats') { out.stats = Number(value); }
+        else if (flag === '--root') { out.root = Number(value); }
     }
     return out;
 }
@@ -220,6 +223,16 @@ try {
             fail(`setvar did not take (${QUEST_ID} ${read}/${args.stage})`);
         }
         console.log(`${QUEST_ID}=${read}`);
+        // Why: `%daconia_rock_root` is rolled by the King's stage-140 dialogue, so a jump straight
+        // to 150 leaves it 0 — which no root in `daconia_coords` answers, and the sweep never ends.
+        if (args.stage === 150) {
+            await cheatQuiet(page, `setvar daconia_rock_root ${args.root}`);
+            const rolled = await getServerVarQuiet(page, 'daconia_rock_root');
+            if (rolled !== args.root) {
+                fail(`setvar did not take (daconia_rock_root ${rolled}/${args.root})`);
+            }
+            console.log(`daconia_rock_root=${rolled} (root ${args.root} of 15 holds the rock)`);
+        }
         await relog(page, args.user);
         await clearChatDialogs(page, 'post-relog dialog(s)');
     }

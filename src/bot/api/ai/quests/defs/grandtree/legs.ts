@@ -304,12 +304,15 @@ export function resetRootCursor(): void {
     rootCursor = 0;
 }
 
+// Why: fourteen of the fifteen roots answer "You search the root but don't find anything", which is a search that worked — reporting it as a failed step would spend the sweep printing failures at the operator.
+
 /** Search one root for the Daconia rock. */
 export async function searchNextRoot(log: Log): Promise<boolean> {
     if (heldId(GT_OBJ.DACONIA) > 0) {
         return true;
     }
-    const root = GT_ROOTS[rootCursor % GT_ROOTS.length]!;
+    const index = rootCursor % GT_ROOTS.length;
+    const root = GT_ROOTS[index]!;
     rootCursor++;
     if (!(await Traversal.walkResilient(root.stand, { radius: 1, attempts: 3, timeoutMs: 120_000, log }))) {
         return false;
@@ -329,7 +332,9 @@ export async function searchNextRoot(log: Log): Promise<boolean> {
     if (!(await loc.interact('Search'))) {
         return false;
     }
-    return driveUntil(() => heldId(GT_OBJ.DACONIA) > 0, [], log, 8000);
+    const found = await driveUntil(() => heldId(GT_OBJ.DACONIA) > 0, [], log, 6000);
+    log(`root ${index + 1}/${GT_ROOTS.length} at (${root.sw.x},${root.sw.z}): ${found ? 'the Daconia rock' : 'nothing'}`);
+    return true;
 }
 
 /** Hand the rock over; the King's reward queue ends the quest. */
