@@ -60,9 +60,10 @@ export async function openBankLeg(noBankMsg: string, override: Tile | undefined,
     return Banking.open({ stand: bankTile, log });
 }
 
+// Why: `distanceTo` is a plan distance, so the floor below a first-storey shop reads as four tiles from it — the Magic Guild counter sat directly overhead while the step failed in a millisecond, twenty-three times.
 async function ensureAt(anchor: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
-    if (here && anchor.distanceTo(here) <= radius) {
+    if (here && here.level === anchor.level && anchor.distanceTo(here) <= radius) {
         return true;
     }
     return Traversal.walkResilient(anchor, { radius, attempts: 3, timeoutMs: 90_000, log });

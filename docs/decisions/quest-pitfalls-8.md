@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Twenty-one, and the first three are map and engine facts rather than quest ones.
+Twenty-two, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -126,6 +126,13 @@ Twenty-one, and the first three are map and engine facts rather than quest ones.
   on without has nowhere to land. The seeded leg never showed it: a random event had taken
   a slot, and dropping that gift left the one the reed needed. The lobster count is the
   only number in the pack that is a float rather than a requirement, so the leg eats one.
+
+- **The floor below a shop is four tiles from it.** `Tile.distanceTo` is a plan distance
+  with no storey in it, so `ensureAt` let the walker stop underneath the Magic Guild
+  counter and call itself arrived; the buy then failed in under a millisecond, twenty-three
+  times and counting, with the anchor directly overhead. Any "am I there yet" that compares
+  tiles has to compare the level too — and this one is shared by every quest, not just
+  this one.
 
 ## See also
 
