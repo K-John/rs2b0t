@@ -37,17 +37,21 @@ const inFirstCavern = (t: { z: number }): boolean => t.z >= CAVERN_SPLIT;
 // Why: the two locked cages roll `stat_random(thieving, …)` and leave the player where they were on a
 // failure, so one send is not a verdict on the obstacle — it is one roll.
 const LOCK_TRIES = 5;
+// Why: the rockslide, the ledge, the stone bridges and the collapsed bridge each roll agility and drop the
+// player short on a failure — the ledge into a rat pit for five. Spending the obstacle on one roll is how a
+// leg ran out of ledges to try while standing next to six of them.
+const ROLL_TRIES = 4;
 
 // Why: ordered by how often the route meets them, so the nearest-first search below settles quickly.
 const HOP_KINDS: readonly HopKind[] = [
-    { loc: UP_LOC.ROCKSLIDE, op: 'Climb-over' },
-    { loc: UP_LOC.ROCK_BRIDGE, op: 'Cross' },
-    { loc: UP_LOC.LEDGE, op: 'Cross' },
+    { loc: UP_LOC.ROCKSLIDE, op: 'Climb-over', tries: ROLL_TRIES },
+    { loc: UP_LOC.ROCK_BRIDGE, op: 'Cross', tries: ROLL_TRIES },
+    { loc: UP_LOC.LEDGE, op: 'Cross', tries: ROLL_TRIES },
     { loc: UP_LOC.PIPE_AREA1, op: 'Squeeze-through' },
     { loc: UP_LOC.PIPE_AREA2, op: 'Squeeze-through' },
-    { loc: UP_LOC.COLLAPSED_A, op: 'Cross' },
-    { loc: UP_LOC.COLLAPSED_B, op: 'Cross' },
-    { loc: UP_LOC.ROCKSWING_BACK, op: 'Swing-on' },
+    { loc: UP_LOC.COLLAPSED_A, op: 'Cross', tries: ROLL_TRIES },
+    { loc: UP_LOC.COLLAPSED_B, op: 'Cross', tries: ROLL_TRIES },
+    { loc: UP_LOC.ROCKSWING_BACK, op: 'Swing-on', tries: ROLL_TRIES },
     // Why: a component report over leg 3's anchors puts the unicorn cage and the paladins' shelf in
     // different pockets joined only by these — `upass_area_2_3_entrance` telejumps between them.
     // Why: and only between them. The doors sit sixteen tiles from the boulder with a gain that reads as
@@ -70,7 +74,7 @@ const HOP_KINDS: readonly HopKind[] = [
 
 const HOP_TIMEOUT_MS = 12_000;
 /** How long the crossing script itself gets, once the op-click's walk has stopped. */
-const CROSS_TIMEOUT_MS = 6_000;
+const CROSS_TIMEOUT_MS = 10_000;
 const MAX_HOPS = 24;
 /** How much closer to the target an obstacle must sit before it is worth crossing. */
 const MIN_GAIN = 3;
