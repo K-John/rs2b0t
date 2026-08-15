@@ -433,11 +433,11 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
     // Why: a compass probe walks where the pocket happens to extend, which in the main cavern is a corridor
     // running the wrong way — eight rounds of it never came within sight of the bridge fifteen tiles north.
     // Walking AT a seam the scene can see but not reach is what carries the build area to it.
+    // Why: the client's own flood is not the authority on this — it called the collapsed bridge walled off
+    // from twenty-nine tiles away inside the same pocket, which the collision pack says is one walk. So every
+    // seam in the scene is walked at, and the budget is the length of that walk rather than a short probe.
     for (const loc of seamsInScene().sort((a, b) => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest))) {
-        if (seamReachable(loc.tile())) {
-            continue;
-        }
-        if (!(await Traversal.walkResilient(loc.tile(), { radius: 8, attempts: 1, timeoutMs: 30_000 }))) {
+        if (!(await Traversal.walkResilient(loc.tile(), { radius: 8, attempts: 2, timeoutMs: 60_000 }))) {
             continue;
         }
         log(`pass: closed on ${loc.name ?? loc.id} at (${loc.tile().x},${loc.tile().z}) — now at (${here()?.x},${here()?.z})`);

@@ -185,7 +185,12 @@ function pocket(seed: NavPoint): Set<number> {
         if (seen.has(key)) {
             continue;
         }
-        if (!finder.findPath(seed, t, { policy: { useTeleports: false }, maxExpansions: 20_000 } as never).ok) {
+        // Why: `findPath` accepts a goal up to five tiles short, so "reachable" from it is not "standable
+        // on" — a flood built on it claimed the collapsed bridges bordered the main cavern landing, and they
+        // do not. The last waypoint has to be the tile itself.
+        const probe = finder.findPath(seed, t, { policy: { useTeleports: false }, maxExpansions: 20_000 } as never);
+        const last = probe.ok ? probe.waypoints[probe.waypoints.length - 1] : undefined;
+        if (!probe.ok || !last || last.x !== t.x || last.z !== t.z) {
             continue;
         }
         seen.add(key);
