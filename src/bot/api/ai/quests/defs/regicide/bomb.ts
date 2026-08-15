@@ -204,22 +204,26 @@ const RANGE_LOC = 2728;
 // `transmit=yes`, so the still is the one part of it the bot can read directly. `%temp` is not among them,
 // which is why the control law reads the heat needle rather than the temperature.
 
-const STILL = {
-    /** `regicide_still` — the interface the tar barrel opens. */
-    root: 4919,
-    /** Pressure valve, one step towards shut. */
-    valveShut: 6174,
-    /** Pressure valve, one step further open. */
-    valveOpen: 6175,
-    /** Tar regulator, one step down. */
-    regulatorDown: 6176,
-    /** Tar regulator, one step up. */
-    regulatorUp: 6177,
-    /** Shovel a lump of coal into the firebox: `%temp` + 60. */
-    coal: 5061,
-    /** `com_89`, whose handler is a bare `if_close` — the only button that ends the run. */
-    close: 5030
+// Why: resolved by the label the client puts in its own menu, not by the id in `interface.pack`. The packed
+// ids are the server's, and pressing one the client does not agree with is silent — the first live run sent
+// `com_130` six hundred times and the pressure valve never moved off bit 26.
+const STILL_LABELS = {
+    valveShut: 'Turn pressure valve down',
+    valveOpen: 'Turn pressure valve up',
+    regulatorDown: 'Turn tar flow valve down',
+    regulatorUp: 'Turn tar valve up',
+    coal: 'Click this to add coal.',
+    close: 'Close'
 } as const;
+
+type StillButton = keyof typeof STILL_LABELS;
+
+/** `regicide_still` — the interface the tar barrel opens. */
+const STILL_ROOT = 4919;
+
+function stillButtonId(which: StillButton): number {
+    return reader.buttonByText(STILL_ROOT, STILL_LABELS[which]);
+}
 
 const VARP_STILL_TOTAL = 330;
 const VARP_STILL_SETTINGS = 331;
@@ -265,24 +269,24 @@ function readStill(): StillView {
     };
 }
 
-/** The next button the control law wants, or -1 when this tick is a wait. */
-export function stillButton(view: StillView, sinceCoal: number, coal: number): number {
+/** The next button the control law wants, or null when this tick is a wait. */
+export function stillButton(view: StillView, sinceCoal: number, coal: number): StillButton | null {
     if (view.valve < VALVE_HOLD) {
-        return STILL.valveOpen;
+        return 'valveOpen';
     }
     if (view.valve > VALVE_HOLD) {
-        return STILL.valveShut;
+        return 'valveShut';
     }
     if (view.regulator < REGULATOR_FULL) {
-        return STILL.regulatorUp;
+        return 'regulatorUp';
     }
     if (coal > 0 && view.heat <= COAL_BELOW && sinceCoal >= COAL_GAP_TICKS) {
-        return STILL.coal;
+        return 'coal';
     }
-    return -1;
+    return null;
 }
 
-export { HEAT_MIN, HEAT_MAX, STILL, STILL_TARGET, readStill, type StillView };
+export { HEAT_MIN, HEAT_MAX, STILL_LABELS, STILL_ROOT, STILL_TARGET, readStill, type StillButton, type StillView };
 
 const STILL_TIMEOUT_TICKS = 600;
 /** How often the gauges are printed, so a stalled run says which needle stalled it. */
@@ -293,11 +297,11 @@ export async function distilNaphtha(log: (m: string) => void): Promise<boolean> 
     if (heldId(RG_ITEM.BARREL_NAPHTHA.id) > 0) {
         return true;
     }
-    if (reader.modals().main !== STILL.root) {
+    if (reader.modals().main !== STILL_ROOT) {
         if (!(await Traversal.walkResilient(RG_TILE.STILL, { radius: 2, attempts: 3, timeoutMs: 300_000, log }))) {
             return false;
         }
-        if (!(await useHeldOnLoc(RG_ITEM.BARREL_TAR.id, [RG_LOC.STILL], () => reader.modals().main === STILL.root, log))) {
+        if (!(await useHeldOnLoc(RG_ITEM.BARREL_TAR.id, [RG_LOC.STILL], () => reader.modals().main === STILL_ROOT, log))) {
             log('the still would not take the barrel of coal tar');
             return false;
         }
@@ -305,7 +309,7 @@ export async function distilNaphtha(log: (m: string) => void): Promise<boolean> 
     let sinceCoal = COAL_GAP_TICKS;
     let best = 0;
     for (let tick = 0; tick < STILL_TIMEOUT_TICKS; tick++) {
-        if (reader.modals().main !== STILL.root) {
+        if (reader.modals().main !== STILL_ROOT) {
             log('the still interface closed early');
             break;
         }
@@ -320,13 +324,18 @@ export async function distilNaphtha(log: (m: string) => void): Promise<boolean> 
             best = 0;
         }
         const button = stillButton(view, sinceCoal, Inventory.count(RG_ITEM.COAL.name));
-        if (button === STILL.coal) {
+        if (button === 'coal') {
             sinceCoal = 0;
         } else {
             sinceCoal++;
         }
-        if (button !== -1) {
-            actions.ifButton(button);
+        if (button !== null) {
+            const comId = stillButtonId(button);
+            if (comId === -1) {
+                log(`the still has no '${STILL_LABELS[button]}' button — the interface is not the one this expects`);
+                break;
+            }
+            actions.ifButton(comId);
         }
         // Why: the gauges are the only feedback this has, and a run that makes no progress is
         // indistinguishable from a run that never opened without them.
@@ -355,8 +364,11 @@ async function closeStill(): Promise<boolean> {
     }
     // Why: the generic close is a CLOSE_BUTTON menu action, and this root's own shut is `com_89` —
     // `[if_button,regicide_still:com_89] if_close`.
-    actions.ifButton(STILL.close);
-    return Execution.delayUntil(() => reader.modals().main !== STILL.root, 5_000);
+    const close = stillButtonId('close');
+    if (close !== -1) {
+        actions.ifButton(close);
+    }
+    return Execution.delayUntil(() => reader.modals().main !== STILL_ROOT, 5_000);
 }
 
 // Why: the two powders go into the naphtha in either order and the barrel seals itself on the second, so
@@ -372,8 +384,15 @@ export async function mixBomb(log: (m: string) => void): Promise<boolean> {
         const barrel = Inventory.items().find(
             item => item.id === RG_ITEM.BARREL_NAPHTHA.id || item.id === RG_ITEM.MIX_QUICKLIME.id || item.id === RG_ITEM.MIX_SULPHUR.id
         );
-        if (!powder || !barrel) {
-            continue;
+        if (!barrel) {
+            log('nothing left to mix the powders into');
+            return false;
+        }
+        if (!powder) {
+            // Why: the barrel seals on the SECOND powder, so a pack with one of them retries this step
+            // forever without saying which one the forest still owes.
+            log(`no ${dust.name} to mix in — the bomb needs both powders`);
+            return false;
         }
         const before = heldId(dust.id);
         if (!(await powder.useOn(barrel))) {
