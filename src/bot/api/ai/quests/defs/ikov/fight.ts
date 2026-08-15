@@ -198,7 +198,7 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
                 await pickUpArrows(log);
                 return true;
             }
-            // Why: spinning out the whole guard on an empty scene costs three minutes and says nothing; the tally names what is actually there.
+            // Why: spinning out the full guard on an empty scene costs three minutes and says nothing; the tally names what is standing there.
             if (swings === 0 && missing >= NEVER_APPEARED) {
                 log(`ikov: the Fire Warrior never joined the fight — scene holds ${tallyNearby()}`);
                 return false;

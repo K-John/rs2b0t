@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Fourteen, and the first seven are engine behaviour rather than quest facts.
+Fifteen, and the first seven are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
@@ -41,7 +41,7 @@ Fourteen, and the first seven are engine behaviour rather than quest facts.
   and neither does harm when repeated, so the module searches and pulls on every pass
   through that stage instead of trying to tell them apart.
 
-Six are the quest's own shape:
+Eight are the quest's own shape:
 
 - **The quest has two endings, and only one of them is a fight a bot should take.**
   Lucien's ending needs the staff carried out past five Guardians of Armadyl — level 45,
@@ -53,6 +53,11 @@ Six are the quest's own shape:
   open the Door of Fear from the south, and worn in front of a guardian it is what makes
   them attack. The module wears it for every dungeon leg and stows it before the
   guardian conversation.
+- **A conversation that ends in a teleport is not over when the chat closes.** Winelda's
+  `if_close` runs five ticks before her `p_teleport`, so the guardian leg started while
+  the bot was still on her ledge — where the shiny key is a McGrubor round trip away
+  rather than seventy tiles, and the walker said as much. The leg waits the ferry
+  out and asks her again if it never came; she repeats it for nothing.
 - **Winelda's ferry is one-way, and the way back is an item on the far side.** She
   teleports the player to (2664,9876), a pocket whose only exits are a ladder into
   McGrubor's Wood and the door at the top of it — which answers "The door is locked." to

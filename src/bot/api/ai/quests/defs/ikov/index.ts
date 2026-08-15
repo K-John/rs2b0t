@@ -182,7 +182,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
                 return roots;
             }
         }
-        // Why: twenty unstackable roots plus coins and food is the whole pack, so anything else has to go before the withdraw can land.
+        // Why: twenty unstackable roots plus coins and food fill the pack, so anything else has to go before the withdraw can land.
         const room = rootsTrimStep(snap);
         if (room) {
             return room;
