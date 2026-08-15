@@ -316,7 +316,7 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
             }
             now = (await settleWalk()) ?? now;
             trace.push(`try${attempt + 1}@${now.x},${now.z}`);
-            if (chebyshev(now, dest) + MIN_GAIN <= chebyshev(from, dest)) {
+            if (chebyshev(now, from) >= 2) {
                 break;
             }
             // Why: the walk can stop on the near side while the crossing script is still running — the two
@@ -329,18 +329,19 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
             }, CROSS_TIMEOUT_MS);
             now = here() ?? now;
             trace.push(`then@${now.x},${now.z}`);
-            if (chebyshev(now, dest) + MIN_GAIN <= chebyshev(from, dest)) {
+            if (chebyshev(now, from) >= 2) {
                 break;
             }
         }
         await settleScene();
-        // Why: an obstacle can sit closer to the target than the player does and still put them on its far
-        // side going backwards — crossing one that did not shorten the distance is what makes the loop
-        // oscillate between two sides of the same rock, so it is spent for the rest of this journey.
-        // Why: the same gain the search demands, because the op-click walks the player before the script
-        // resolves — a one-tile drift toward the obstacle is a walk, not a crossing, and reading it as one
-        // burned seventy seconds per round on a cage the player never reached.
-        if (chebyshev(now, dest) + MIN_GAIN > chebyshev(from, dest)) {
+        // Why: a crossing counts when the script ran, not when the straight line got shorter. The bridge out
+        // of the main cavern lands the character eighty-four tiles from the witch's cat where they were
+        // seventy-eight away, and the log said "you manage to cross safely" while this called it a failure
+        // and spent the only way on. Distance across a pocket graph is not distance.
+        // Why: two tiles, because the op-click walks the player before the script resolves — a one-tile
+        // drift toward the obstacle is the approach, and reading that as a crossing burned seventy seconds
+        // a round on a cage the character never reached.
+        if (chebyshev(now, from) < 2) {
             spent.add(key);
             const said = GameMessages.since(mark).map(m => m.text).slice(-6).join(' / ') || 'nothing';
             log(`pass: ${op} ${obstacle.name ?? obstacle.id} at (${obstacle.tile().x},${obstacle.tile().z})`
@@ -348,6 +349,10 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
                 + ` — ${trace.join(' | ')} — it said: ${said}`);
             continue;
         }
+        // Why: a crossing is spent whether it helped or not. Nothing here can tell which side of a seam is
+        // the useful one until the far side is walked, so the guard against crossing back and forth is that
+        // each one is used once per journey.
+        spent.add(key);
         log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now.x},${now.z})`);
         return true;
     }
@@ -416,7 +421,7 @@ async function useSeamToward(dest: Tile, log: (m: string) => void): Promise<bool
         const now = here() ?? from;
         // Why: a failed swing spends the rope and drops the player into the swamp below, so the caller has to
         // see that as no progress rather than as a crossing.
-        if (chebyshev(now, dest) + MIN_GAIN > chebyshev(from, dest)) {
+        if (chebyshev(now, from) < 2) {
             log(`pass: the ${seam.label} did not cross toward (${dest.x},${dest.z}) — now at (${now.x},${now.z})`);
             continue;
         }
