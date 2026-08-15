@@ -218,8 +218,11 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
         return false;
     }
     const pick = sides[skip % sides.length]!;
+    // Why: the ring is cardinal because `reachRectangle` takes nothing else, and a radius of one throws that
+    // away — it lands next to the tile that was chosen, which is the diagonal, and the op answers "You can't
+    // do that from here." Four tries at the second cavern's ledge all came from one diagonal tile that way.
     // Why: walkResilient's own logging is a dozen lines a walk, and the caller keeps one line.
-    if (await Traversal.walkResilient(pick, { radius: 1, attempts: 1, timeoutMs: 20_000 })) {
+    if (await Traversal.walkResilient(pick, { radius: 0, attempts: 1, timeoutMs: 20_000 })) {
         note(`stood@${here()?.x},${here()?.z}`);
         return true;
     }
