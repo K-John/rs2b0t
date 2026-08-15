@@ -495,8 +495,9 @@ export const CASES: readonly Case[] = [
         harness: 'shield-of-arrav-232-live.ts',
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
         status: 'vetted',
-        provenAt: '2eb7e4cc',
+        provenAt: '0db0e3f6',
         budgetMin: 45,
+        documentedIn: 'docs/reference/quest-harness-recipes-3.md',
         note: 'one gang side only — a lone account cannot redeem, so this never turns the journal green'
     },
     {
@@ -504,10 +505,11 @@ export const CASES: readonly Case[] = [
         harness: 'shield-of-arrav-pair-232-live.ts',
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
         status: 'vetted',
-        provenAt: '2eb7e4cc',
+        provenAt: '0db0e3f6',
         budgetMin: 90,
         manual: true,
-        note: 'two accounts trading certificates; the only run that completes the quest'
+        documentedIn: 'docs/reference/quest-harness-recipes-3.md',
+        note: 'two fresh accounts, one per gang, both journals complete in 6min at --tick 300'
     },
     {
         id: 'shilo-solo-test',
