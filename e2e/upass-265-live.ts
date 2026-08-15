@@ -119,6 +119,25 @@ const STAGE_TELE: Record<number, { x: number; z: number; level: number }> = {
     10: ARDOUGNE_BANK
 };
 
+// Why: the pass is one-way and has no bank in it, so a leg seeded past the cave mouth cannot go back for
+// the kit the module would otherwise withdraw — an inside-the-pass stage is handed its pack directly.
+const PACK_SEED: { debugName: string; qty: number }[] = [
+    { debugName: 'shortbow', qty: 1 },
+    { debugName: 'bronze_arrow', qty: 50 },
+    { debugName: 'tinderbox', qty: 1 },
+    { debugName: 'bucket_empty', qty: 1 },
+    { debugName: 'rope', qty: 1 },
+    { debugName: 'lobster', qty: 12 }
+];
+
+async function seedPack(page: Page): Promise<void> {
+    for (const { debugName, qty } of PACK_SEED) {
+        await cheatQuiet(page, `give ${debugName} ${qty}`);
+    }
+    await clearChatDialogs(page, 'pack-seed dialog(s)');
+    console.log(`pack seeded with ${PACK_SEED.length} item type(s) for an inside-the-pass start`);
+}
+
 async function setStats(page: Page, level: number): Promise<void> {
     for (const skill of STATS) {
         await cheatQuiet(page, `setstat ${skill} ${level}`);
@@ -245,6 +264,11 @@ try {
     }
     if (gates.biohazard !== 'complete') {
         fail(`Biohazard reads ${gates.biohazard} after the seed — the prerequisite gate will block the queue`);
+    }
+
+    // Why: stage 2 is the first that begins underground — past the cave mouth there is no bank to draw from.
+    if (args.stage >= 2) {
+        await seedPack(page);
     }
 
     await page.evaluate(() => sessionStorage.setItem('rs2b0t:set:AIOQuester:quests', 'upass'));

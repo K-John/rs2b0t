@@ -1,11 +1,12 @@
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
-import { UP_LOC } from './areas.js';
+import { UP_ITEM, UP_LOC } from './areas.js';
 
 // Why: the pass is not one map the navigator can route across — a component report over its own seam
 // endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision
@@ -32,6 +33,10 @@ const HOP_KINDS: readonly HopKind[] = [
 
 const HOP_TIMEOUT_MS = 12_000;
 const MAX_HOPS = 24;
+/** How much closer to the target an obstacle must sit before it is worth crossing. */
+const MIN_GAIN = 3;
+/** How far out to look. Beyond this an obstacle belongs to some other part of the route. */
+const HOP_SEARCH = 14;
 
 function here(): { x: number; z: number; level: number } | null {
     return Game.tile();
@@ -48,14 +53,16 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
         const locs = Locs.query()
             .where(loc => loc.id === kind.loc)
             .action(kind.op)
-            .within(28)
+            .within(HOP_SEARCH)
             .results();
         found.push(...locs);
     }
     // Why: the obstacle worth crossing is the one that leaves the player closer to the target than standing
     // still does — sorting by the target's distance from the obstacle is what encodes "forward".
+    // Why: "any obstacle closer than I am" picks marginal ones that cross sideways and drift the route —
+    // three of them in a row carried a run twenty tiles the wrong way before the loop gave up.
     return found
-        .filter(loc => chebyshev(loc.tile(), dest) < chebyshev(from, dest))
+        .filter(loc => chebyshev(loc.tile(), dest) + MIN_GAIN <= chebyshev(from, dest))
         .sort((a, b) => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest));
 }
 
@@ -106,7 +113,38 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now?.x},${now?.z})`);
         return true;
     }
-    return false;
+    return ropeSwingToward(dest, log);
+}
+
+// Why: the swing east off the bridge shelf is the one seam that is an item-use rather than an op, and it is
+// the only way onto the grid shelf — so it belongs in the same vocabulary rather than special-cased by a
+// caller that cannot know whether the navigator already got there.
+async function ropeSwingToward(dest: Tile, log: (m: string) => void): Promise<boolean> {
+    const from = here();
+    const rope = Inventory.items().find(item => item.id === UP_ITEM.ROPE.id);
+    if (!from || !rope) {
+        return false;
+    }
+    const rock = Locs.query()
+        .where(loc => loc.id === UP_LOC.ROCKSWING || loc.id === UP_LOC.ROCKSWING_ANCHOR)
+        .within(HOP_SEARCH)
+        .nearest();
+    if (!rock || chebyshev(rock.tile(), dest) + MIN_GAIN > chebyshev(from, dest)) {
+        return false;
+    }
+    if (!(await rope.useOn(rock))) {
+        return false;
+    }
+    const moved = await Execution.delayUntil(() => {
+        const now = here();
+        return now !== null && (now.x !== from.x || now.z !== from.z);
+    }, HOP_TIMEOUT_MS);
+    if (!moved) {
+        return false;
+    }
+    await settleScene();
+    log(`pass: rope swing → (${here()?.x},${here()?.z})`);
+    return true;
 }
 
 /**
