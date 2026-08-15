@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Ten, and the first three are engine behaviour the quest only happens to expose.
+Eleven, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -23,6 +23,12 @@ Ten, and the first three are engine behaviour the quest only happens to expose.
   A bare tick delay does not prove the split; the client can flush both packets into one
   tick. Wait for the first step, which means staging far enough back that the character is
   still on safe ground by then.
+- **Watch what the script consumed, never where the character is standing.** Three separate steps here read
+  position as their oracle and all three lied. The guide rope answered "I can't reach that!" and never fired,
+  which looked like eight missed shots. The rock swing's op-click walks the player to the rock before the use
+  resolves, so "the tile changed" reported a swing that had not happened. An obstacle hop has the same shape.
+  Every one of these scripts deletes something first — the arrow, the rope — so the inventory delta is the
+  honest signal, and `GameMessages.since(mark)` is what separates a refusal from a failure.
 - **Check connectivity before writing a single leg.** A component report over the pass's own seam endpoints
   answers FAIL for 10 of 14 anchors: the landing chamber is 119 tiles with no walkable exit, and the
   portcullis lever and the furnace are twelve tiles apart in different components. Every seam is a scripted
