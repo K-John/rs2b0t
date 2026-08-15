@@ -72,10 +72,13 @@ const CAT_STAND = new Tile(3306, 3512, 1);
 // Why: the sixth crate sits in the corner behind the yard's shed, and the route round it is long enough that the server's own finder gives up and walks the character to the closest tile it liked — nine tiles short, with no refusal.
 // Why: it is searched first for the same reason, since the walk in is only reliable from the open ground by the fence and not from the tile the previous crate leaves the character on.
 /** Waypoints into and back out of that corner, each a leg short enough for the server to route in one go. */
-const NW_CORNER_IN: Tile[] = [YARD_ENTRY, new Tile(3305, 3504, 0), new Tile(3304, 3511, 0), new Tile(3300, 3512, 0), new Tile(3298, 3513, 0)];
-const NW_CORNER_OUT: Tile[] = [new Tile(3300, 3512, 0), new Tile(3304, 3511, 0), new Tile(3305, 3504, 0)];
-/** The way south. (3305,3504) is the one tile the server will route to from the crates by the ladder. */
-const YARD_EXIT: Tile[] = [new Tile(3305, 3504, 0), YARD_ENTRY];
+// Why: this is the one tile the server routes to from every crate, the ladder and the fence alike — aim anywhere else from beside a crate and the walk is refused in silence.
+/** The yard's hub: every leg inside it starts and ends here. */
+const YARD_HUB = new Tile(3305, 3504, 0);
+const NW_CORNER_IN: Tile[] = [YARD_HUB, new Tile(3304, 3511, 0), new Tile(3300, 3512, 0), new Tile(3298, 3513, 0)];
+const NW_CORNER_OUT: Tile[] = [new Tile(3300, 3512, 0), new Tile(3304, 3511, 0), YARD_HUB];
+/** The way south, through the hub. */
+const YARD_EXIT: Tile[] = [YARD_HUB, YARD_ENTRY];
 
 interface CrateStop {
     tile: Tile;
@@ -204,6 +207,10 @@ function onPlatform(): boolean {
 async function climbToCat(log: (m: string) => void): Promise<boolean> {
     if (onPlatform()) {
         return true;
+    }
+    // Why: from outside the yard this is the fence route; from beside a crate it is the one leg the server will walk.
+    if (!(await walkVia([YARD_HUB], log))) {
+        return false;
     }
     if (!(await Traversal.walkResilient(LADDER_BASE, { radius: 1, attempts: 3, timeoutMs: 180_000, log }))) {
         return false;
