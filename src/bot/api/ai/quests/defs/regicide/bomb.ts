@@ -95,8 +95,9 @@ export async function takeSulphur(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => heldId(RG_ITEM.SULPHUR.id) > before, 10_000);
 }
 
-// Why: `[opheldu,regicide_sulphar]` and `[opheldu,regicide_quicklime]` both fire off the TARGET, so the
-// pestle is the item used and the lump is what it is used on — the other way round produces nothing.
+// Why: `[opheldu,regicide_sulphar]` and `[opheldu,regicide_quicklime]` are declared on the lump, so the
+// pestle is the item used and the lump the target. The client cannot tell which way round a pair was
+// declared, so a refusal is answered by sending the other direction rather than by retrying the same one.
 
 async function grind(fromId: number, toId: number, log: (m: string) => void): Promise<boolean> {
     const pestle = Inventory.items().find(item => item.id === RG_ITEM.PESTLE.id);
@@ -106,10 +107,15 @@ async function grind(fromId: number, toId: number, log: (m: string) => void): Pr
         return false;
     }
     const before = heldId(toId);
-    if (!(await pestle.useOn(lump))) {
-        return false;
+    for (const [used, target] of [[pestle, lump], [lump, pestle]] as const) {
+        if (!(await used.useOn(target))) {
+            continue;
+        }
+        if (await driveUntil(() => heldId(toId) > before, [], log, GRIND_MS)) {
+            return true;
+        }
     }
-    return driveUntil(() => heldId(toId) > before, [], log, GRIND_MS);
+    return false;
 }
 
 export function grindSulphur(log: (m: string) => void): Promise<boolean> {
