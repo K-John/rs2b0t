@@ -2,6 +2,7 @@ import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { Locs, type Loc } from '../../../../locs/Locs.js';
+import { Npcs } from '../../../../npcs/Npcs.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { driveUntil, heldId, settleScene, useOnLoc } from '../../exec/prompts.js';
@@ -10,6 +11,7 @@ import {
     ANITA,
     CHARLIE,
     FEMI,
+    FOREMAN,
     GLOUGH,
     GT_HOPS,
     GT_LOC,
@@ -120,6 +122,25 @@ export async function searchCupboard(log: Log): Promise<boolean> {
         return false;
     }
     return driveUntil(() => heldId(GT_OBJ.JOURNAL) > 0, [], log, 10_000);
+}
+
+// Why: the foreman closes the dialogue, walks the player thirty-five tiles across the yard and teleports it into his office before he asks the first question, so the generic talk step abandons him mid-walk and the next pass drags the player back out to his spawn.
+// Why: once the chain has moved him, `[opnpc1,grandtree_foreman]` sees him inside the office zone and skips straight to the interrogation — so a Foreman already in the scene is talked to where he stands.
+
+/** Answer the foreman's three questions about Glough and take the lumber order. */
+export async function foremanOrder(log: Log): Promise<boolean> {
+    if (heldId(GT_OBJ.LUMBER_ORDER) > 0) {
+        return true;
+    }
+    // Why: the gate swaps itself for an inviswall for three ticks after it teleports the player through, so the client repaths off the tile it just landed on and a two-pass walk budget is spent on the recovery.
+    const near = Npcs.query().name(FOREMAN.npc).within(8).nearest();
+    if (!near && !(await Traversal.walkResilient(FOREMAN.anchor, { radius: 4, attempts: 5, timeoutMs: 120_000, log }))) {
+        return false;
+    }
+    if (!(await openDialogue(FOREMAN.npc, log))) {
+        return false;
+    }
+    return driveUntil(() => heldId(GT_OBJ.LUMBER_ORDER) > 0, FOREMAN.prefer, log, 180_000);
 }
 
 /** Take the King's glider out of the stronghold; it crash-lands in the Karamja jungle. */

@@ -118,7 +118,8 @@ describe('The Grand Tree decide()', () => {
     test('stage 80 flies out of the stronghold, and talks to the foreman once it lands', () => {
         expect(customName(decide(snap({ stage: GT_STAGE.RELEASED_PRISON, tile: STRONGHOLD }))))
             .toBe('take the glider to Karamja');
-        expect(talkTarget(decide(snap({ stage: GT_STAGE.RELEASED_PRISON, tile: KARAMJA })))).toBe('Foreman');
+        expect(customName(decide(snap({ stage: GT_STAGE.RELEASED_PRISON, tile: KARAMJA }))))
+            .toBe('get the lumber order from the foreman');
     });
 
     test('stage 90 rides the cart back in from outside, and talks to Charlie once inside', () => {

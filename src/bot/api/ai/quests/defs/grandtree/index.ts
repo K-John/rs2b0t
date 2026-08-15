@@ -7,7 +7,6 @@ import { QuestFood } from '../../food.js';
 import { QuestLoadout } from '../../gear.js';
 import {
     CHARLIE,
-    FOREMAN,
     GLOUGH,
     GT_HOPS,
     GT_ITEMS,
@@ -26,6 +25,7 @@ import { readGrandTreeStage } from './journal.js';
 import {
     anitaKey,
     femiCart,
+    foremanOrder,
     jailedByGlough,
     leaveCaves,
     openChest,
@@ -171,7 +171,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return custom('confront Glough and get out of his cage', jailedByGlough);
         case GT_STAGE.RELEASED_PRISON:
             return inKaramja(snap.tile)
-                ? { kind: 'talk', stop: FOREMAN }
+                ? custom('get the lumber order from the foreman', foremanOrder)
                 : custom('take the glider to Karamja', flyToKaramja);
         case GT_STAGE.OBTAINED_LUMBER_ORDER:
             return inStronghold(snap.tile)

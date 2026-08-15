@@ -69,11 +69,16 @@ export async function fightBlackDemon(log: Log): Promise<boolean> {
         }
         await driveUntil(() => demon() !== null, [], log, dropping ? 90_000 : 15_000);
     }
-    if (!demon()) {
+    const target = demon();
+    if (!target) {
         log('no Black Demon in the caves — climbing back out to re-enter the trapdoor');
         await leaveCaves(log);
         return false;
     }
+    // Why: Glough sets the demon on the player twelve tiles away, and the fight loop counts a
+    // swing per tick it is not yet in combat — twelve of them and it calls the target caged.
+    const at = target.tile();
+    await Traversal.walkResilient(new Tile(at.x, at.z, at.level), { radius: 2, attempts: 2, timeoutMs: 20_000, log });
     const result = await runFight({ what: 'Black Demon', npcId: GT_NPC.BLACK_DEMON, guard: DEMON_GUARD }, log);
     return result === 'won';
 }
