@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Twenty-three, and the first three are engine behaviour the quest only happens to expose.
+Twenty-seven, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -123,6 +123,25 @@ Twenty-three, and the first three are engine behaviour the quest only happens to
   a column, and the nearest one to the character was always the diagonal — so four tries from one tile
   produced four "I can't reach that!" and the leg spent every ledge it had. Ask for a Manhattan distance of
   one when the op has to reach.
+
+- **Iban's temple is a dress code, not a door.** `@open_iban_door` wants both halves of the robe of Zamorak
+  worn and `inv_freespace(worn) = inv_size(worn) - 2` — exactly two worn slots, nothing else — or it answers
+  "Only followers of Zamorak may enter." A module that armours up for the paladins and the demons arrives at
+  the last door unable to open it. The robes drop from an Iban disciple, level thirteen with twenty
+  hitpoints, and thirteen of them line the approach at x 2149-2163. So the armour comes off for the doors
+  and goes back on after the throw, which also means the step that keeps gear on has to stand down over that
+  stretch rather than re-wearing it every tick.
+- **Two stages print the same journal page.** `upass_found_doll` and `upass_confronted_iban` share one branch
+  in `upass_journal`, so the parser can never answer `confronted` — and the throw, gated on that stage,
+  waited for a number that never arrives. Position is the readable fact: the doors force-move the player one
+  tile west, so standing on the temple floor is what "past the doors" means.
+- **Opening a door does not move anyone through it.** The loc swaps to its open variant and the player stays
+  put, so a step whose oracle is "the character is now west of the door" times out on its own success. The
+  open and the walk are two steps.
+- **A step that walks itself does not need permission to run.** Two elements of the doll refused to act
+  unless the character was already standing in that pocket — but every one of those steps opens with a walk
+  that routes across the platforms itself, so the guard could only ever block its own step. Where the
+  traveller can get there, asking where you are first is a deadlock with a reason string.
 
 ## See also
 
