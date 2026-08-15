@@ -131,6 +131,11 @@ async function setPrereqs(page: Page, gang: 'phoenix' | 'blackarm'): Promise<voi
     // the one that is — a bot with both set would be offered both sides of the quest.
     await cheatQuiet(page, `setvar phoenixgang ${gang === 'phoenix' ? 10 : 0}`);
     await cheatQuiet(page, `setvar blackarmgang ${gang === 'blackarm' ? 4 : 0}`);
+    // Why: the quest list is coloured by `~send_quest_progress` at login, and `readHeroQuestProgress`
+    // reads that colour first — a stage set after the relog leaves the journal reading notStarted.
+    if (args.stage === 'grip') {
+        await cheatQuiet(page, `setvar heroquest ${GRIP_STAGE[gang]}`);
+    }
 }
 
 interface Snapshot {
@@ -184,9 +189,6 @@ async function bringUp(page: Page, user: string, gang: 'phoenix' | 'blackarm', p
     await cheatQuiet(page, 'setvar qp 55');
     const seed = args.stage === 'grip' ? [...BANK_SEED, ...GRIP_SEED[gang]] : BANK_SEED;
     await seedItemsToBank(page, seed, VARROCK_WEST_BANK);
-    if (args.stage === 'grip') {
-        await cheatQuiet(page, `setvar heroquest ${GRIP_STAGE[gang]}`);
-    }
     const start = args.stage === 'grip' ? BRIMHAVEN : VARROCK_WEST_BANK;
     if (!(await teleTo(page, start, 10, 25_000))) {
         await clearChatDialogs(page, 'pre-tele dialog(s)');
