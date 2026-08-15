@@ -4,11 +4,12 @@ import { Game } from '../../../../game/Game.js';
 import { GroundItems, type GroundItem } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
+import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { openContainer, talkAndClose, talkUntil } from '../../exec/legs.js';
-import { promptLoc } from '../../exec/prompts.js';
+import { driveChoice, promptLoc } from '../../exec/prompts.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import {
     GRIP,
@@ -60,6 +61,8 @@ const DISGUISE: readonly Purchasable[] = [
 const LURE_MS = 150_000;
 /** How long a single lure holds Grip on the row before he walks home. */
 const LURE_HOLD_MS = 12_000;
+/** How long the cabinet takes to raise the guard's challenge. */
+const DIALOG_MS = 6_000;
 const GROUND_RANGE = 12;
 
 /** The disguise, in whatever state it is in: bought, withdrawn, then worn. */
@@ -142,6 +145,9 @@ export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<
     if (await takeKeyring(log)) {
         return true;
     }
+    if (!(await Traversal.walkResilient(HERO_TILE.CABINET_STAND, { radius: 1, attempts: 3, timeoutMs: 60_000, log }))) {
+        return false;
+    }
     const deadline = performance.now() + LURE_MS;
     let lures = 0;
     let reported = false;
@@ -150,31 +156,38 @@ export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<
             log('lure: yielding to a random event');
             return false;
         }
-        const open = Locs.query().within(6).where(l => l.id === HERO_LOC.CABINET_OPEN).nearest() !== null;
+        // Why: the cabinet is two locs — `gripcbshut` becomes `gripcbopen` for 500 ticks — and both run
+        // `summon_grip`, one under Open and one under Search.
+        const cupboard = Locs.query()
+            .where(l => l.id === HERO_LOC.CABINET_OPEN || l.id === HERO_LOC.CABINET_SHUT)
+            .within(8)
+            .nearest();
+        if (!cupboard) {
+            log(`lure: no drinks cabinet within eight tiles of (${HERO_TILE.CABINET_STAND.x},${HERO_TILE.CABINET_STAND.z})`);
+            return false;
+        }
+        const op = cupboard.id === HERO_LOC.CABINET_OPEN ? 'Search' : 'Open';
+        const clicked = await cupboard.interact(op);
         // Why: `summon_grip` does nothing at all unless a pirate guard is within four tiles of the
         // player — no dialogue, no walk, no refusal — so the guard is worth naming when nothing happens.
         const guard = Npcs.query().where(n => n.id === HERO_NPC.PIRATE_GUARD).within(4).nearest();
-        const acted = await promptLoc({
-            name: 'Cupboard',
-            op: open ? 'Search' : 'Open',
-            near: HERO_TILE.CABINET_STAND,
-            id: open ? HERO_LOC.CABINET_OPEN : HERO_LOC.CABINET_SHUT,
-            within: 6,
-            prefer: [HERO_SAY.CABINET_PEEK],
-            expect: () => gripOnTheRow() || keyringOnFloor() !== null,
-            expectMs: LURE_HOLD_MS
-        }, log);
+        const asked = await Execution.delayUntil(
+            () => ChatDialog.isOpen() || ChatDialog.canContinue() || gripOnTheRow(),
+            DIALOG_MS
+        );
+        if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
+            await driveChoice([HERO_SAY.CABINET_PEEK], log);
+        }
+        const onRow = await Execution.delayUntil(() => gripOnTheRow() || keyringOnFloor() !== null, LURE_HOLD_MS);
         lures++;
-        if (!reported) {
+        if (!reported || onRow) {
             const at = Npcs.query().where(n => n.id === HERO_NPC.GRIP).nearest()?.tile();
-            log(`lure: ${open ? 'searched' : 'opened'} the cabinet=${acted} guard=${guard ? 'near' : 'MISSING'}`
-                + ` grip=${at ? `${at.x},${at.z}` : 'not in scene'}`
-                + ` (want the row z=${HERO_TILE.GRIP_LURE.z})`);
+            log(`lure ${lures}: ${op}=${clicked} asked=${asked} onRow=${onRow}`
+                + ` guard=${guard ? 'near' : 'MISSING'}`
+                + ` grip=${at ? `${at.x},${at.z}` : 'not in scene'} (row z=${HERO_TILE.GRIP_LURE.z})`);
             reported = true;
         }
         await Modals.close();
-        // Why: the rival's shot is not this client's work, so this waits out one hold and lures again.
-        await Execution.delayUntil(() => keyringOnFloor() !== null, LURE_HOLD_MS);
     }
     if (await takeKeyring(log)) {
         log(`Grip dropped his keyring after ${lures} lures`);
