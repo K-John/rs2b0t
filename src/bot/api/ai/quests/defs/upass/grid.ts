@@ -2,10 +2,10 @@ import { Execution } from '../../../../execution/Execution.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Game } from '../../../../game/Game.js';
 import { Locs } from '../../../../locs/Locs.js';
-import { Traversal } from '../../../../walking/Traversal.js';
 import { GRID_ZONE, UP_ITEM, UP_LOC, UP_TILE, pastGridTile } from './areas.js';
 import { driveUntil, settleScene } from '../../exec/prompts.js';
 import { locById, walkTo } from './bridge.js';
+import { travelTo } from './pass.js';
 import { stalledCrossing } from './stall.js';
 
 // Why: the safe path through the spiked grid is three digits in `%ibanmulti` bits 22-31, and `ibanmulti` is
@@ -86,12 +86,12 @@ async function toApproach(log: (m: string) => void): Promise<boolean> {
     if (t && UP_TILE.GRID_APPROACH.distanceTo(t) <= 1) {
         return true;
     }
-    if (await Traversal.walkResilient(UP_TILE.GRID_APPROACH, { radius: 1, attempts: 3, log })) {
+    if (await travelTo(UP_TILE.GRID_APPROACH, 1, log)) {
         return true;
     }
     if (Inventory.items().some(item => item.id === UP_ITEM.ROPE.id)) {
         log('grid: no route to the lip — trying the rope swing east');
-        return (await swingEast(log)) && Traversal.walkResilient(UP_TILE.GRID_APPROACH, { radius: 1, attempts: 3, log });
+        return (await swingEast(log)) && travelTo(UP_TILE.GRID_APPROACH, 1, log);
     }
     return false;
 }

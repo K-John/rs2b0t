@@ -6,20 +6,22 @@ import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { Reach } from '../../../../walking/Reach.js';
-import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE } from './areas.js';
+import { travelTo } from './pass.js';
 
 const KOFTIK = 'Koftik';
 
+// Why: inside the pass every destination past an obstacle is "unreachable" to the navigator, so the shared
+// mover is the pocket-crossing one. Above ground it degrades to a plain resilient walk on its first round.
 export async function walkTo(to: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
     if (here && here.level === to.level && to.distanceTo(here) <= radius) {
         return true;
     }
-    return Traversal.walkResilient(to, { radius, attempts: 3, timeoutMs: 180_000, log });
+    return travelTo(to, radius, log);
 }
 
 export function locById(id: number, op: string | null, within = 12): Loc | null {
