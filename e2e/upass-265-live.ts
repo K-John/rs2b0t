@@ -95,11 +95,12 @@ const BANK_SEED: BankSeedItem[] = [
     { debugName: 'bucket_empty', displayName: 'Bucket', qty: 1 },
     { debugName: 'rope', displayName: 'Rope', qty: 3 },
     // Why: the pass is fought through — three paladins at level 62, three demons and Kalrag — and the module
-    // wears the best tier the bank holds. Rune is what a 70-defence account would take.
+    // wears the best tier the bank holds. Rune is what a 70-defence account would take, in chain and med helm
+    // rather than plate and full helm, because those two want Dragon Slayer and this account has not done it.
     { debugName: 'rune_scimitar', displayName: 'Rune scimitar', qty: 1 },
-    { debugName: 'rune_platebody', displayName: 'Rune platebody', qty: 1 },
+    { debugName: 'rune_chainbody', displayName: 'Rune chainbody', qty: 1 },
     { debugName: 'rune_platelegs', displayName: 'Rune platelegs', qty: 1 },
-    { debugName: 'rune_full_helm', displayName: 'Rune full helm', qty: 1 },
+    { debugName: 'rune_med_helm', displayName: 'Rune med helm', qty: 1 },
     { debugName: 'rune_kiteshield', displayName: 'Rune kiteshield', qty: 1 }
 ];
 
@@ -138,9 +139,9 @@ const PACK_SEED: { debugName: string; qty: number }[] = [
     { debugName: 'rope', qty: 3 },
     { debugName: 'lobster', qty: 14 },
     { debugName: 'rune_scimitar', qty: 1 },
-    { debugName: 'rune_platebody', qty: 1 },
+    { debugName: 'rune_chainbody', qty: 1 },
     { debugName: 'rune_platelegs', qty: 1 },
-    { debugName: 'rune_full_helm', qty: 1 },
+    { debugName: 'rune_med_helm', qty: 1 },
     { debugName: 'rune_kiteshield', qty: 1 }
 ];
 

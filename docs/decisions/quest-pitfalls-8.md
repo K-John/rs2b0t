@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Eleven, and the first three are engine behaviour the quest only happens to expose.
+Seventeen, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -55,7 +55,7 @@ Eleven, and the first three are engine behaviour the quest only happens to expos
   `%biohazard >= started` — and Omart will not re-hang Biohazard's rope ladder once that quest is finished,
   which is the state every account arriving here is in. What a completed Biohazard leaves is the city gates:
   `west_ardougne_open_city_doors` opens them outright at `%biohazard = complete`. Reusing Plague City's
-  crossing looked like the reuse-not-rebuild call and was simply wrong.
+  crossing looked like the reuse-not-rebuild call and was wrong.
 - **Nothing records which orbs are already dark.** The varp is untransmitted and the
   journal only says "after destroying four orbs" once the well has been used, so an orb
   that is neither in the pack nor on its own floor tile has already been burned. The well
@@ -65,6 +65,33 @@ Eleven, and the first three are engine behaviour the quest only happens to expos
   the same display name at five different points in the quest, and each has its own
   dialogue. Match the guide by id. The same holds for the four "Orb of light" and two of
   the three "Paladin's badge".
+- **The corridor traps cannot be routed around, only suspended.** `[timer,upass_trap]` is set to one tick
+  across map squares `0_37_151` and `0_38_151` and takes `hp/10 + 1` on a spear or 8% of base hitpoints on a
+  spring for every tick ended on one. Twenty trap tiles were lifted out of the map and given to the
+  pathfinder as avoid-zones: every route failed, and probing them one at a time showed each tile alone severs
+  a route — the corridor is a single tile wide at every trap. Three runs died there with a full pack. A
+  normal `[timer,…]` only runs under `canAccess()`, so an open quest journal stops all of it.
+- **An op-click can only name what the client already has in its build area.** That area is 104x104 but it
+  lags the player by up to two zones, so a target forty tiles off reads as absent and the click never sends —
+  one run stood still for six minutes clicking at a loc it could not see. Absence at range is therefore not
+  evidence of anything: reading "no orb on that tile" from across the corridor as "already burned" was about
+  to skip three of the four. Long stalled walks have to be chained over stepping stones instead, and down
+  here the stones are the traps' own `Search` and the two stone tablets.
+- **Two pockets of the first cavern share a rectangle.** A flood fill on foot gives the orb corridor as
+  x 2380-2466 / z 9664-9698 and the bridge-and-rope shelf as x 2431-2464 / z 9686-9731. A plain bounding box
+  therefore reads the shelf as the corridor, and a run that drifted onto the shelf declared the spiked grid
+  crossed while it was still on the wrong side of it. Bound a pocket by what is left after its neighbours are
+  taken out, not by its own extent.
+- **The same loc is scenery in one cavern and a seam in the next.** `upass_swampbubbles1` offers `Cross` in
+  both, and taking the first cavern's for an obstacle walked a route twenty tiles off its approach. A seam
+  vocabulary keyed on loc id alone is not enough where the map reuses ids.
+- **The way back up to the paladins is the unicorn tunnel, not the mud pile.** `mudpile_upass` climbs into
+  the orb corridor, on the far side of the well and behind every trap already crossed.
+  `upass_area_2_3_entrance` is the one that telejumps between the second cavern and the paladins' shelf.
+- **This quest is fought, not walked.** Three paladins at level 62 for their crests, three demons for their
+  amulets and Kalrag for the blood. The kit's shortbow exists for one shot at one rope, so a module that
+  packs it and nothing else descends a one-way dungeon bare-handed — and `armFireArrow` leaves any melee
+  weapon in the pack, where it stays unless something puts it back on.
 
 ## See also
 

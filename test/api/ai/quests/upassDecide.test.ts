@@ -90,7 +90,7 @@ describe('Underground Pass decide()', () => {
             wornNames: [],
             carriedNames: [WEAPON]
         }));
-        expect(kindOf(step)).toBe('equip');
+        expect(nameOf(step)).toBe(`wear ${WEAPON}`);
     });
 
     test('the kit is drawn before the quest is started', () => {

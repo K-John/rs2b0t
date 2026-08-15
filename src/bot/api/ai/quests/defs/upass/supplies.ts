@@ -206,8 +206,26 @@ function packGear(snap: QuestSnapshot, slots: readonly { kinds: readonly string[
 // after the bridge takes it back out — the paladins were being fought bare-handed. Armour in the pack is the
 // same problem plus five slots the orb sweep needs, so the whole set goes on rather than only the weapon.
 
+// Why: a rune platebody wants Dragon Slayer, and `equip` answers a refusal the same way it answers a miss —
+// with false — so a plain equip step retried one forever. A refusal is shed instead: the piece is written
+// off, the step still succeeds, and the next cycle moves on to the rest of the set.
+
 /** Wear the next piece of melee kit the pack is still carrying, once the bow has had its turn. */
 export function drawGear(snap: QuestSnapshot): QuestStep | null {
     const name = packGear(snap, GEAR_SLOTS);
-    return name === null ? null : { kind: 'equip', item: name };
+    if (name === null) {
+        return null;
+    }
+    return {
+        kind: 'custom',
+        name: `wear ${name}`,
+        run: async log => {
+            if (Equipment.contains(name) || (await Equipment.equip(name))) {
+                return true;
+            }
+            log(`cannot wear ${name} — level or quest requirement; carrying it and moving on`);
+            unwearable.add(name);
+            return true;
+        }
+    };
 }
