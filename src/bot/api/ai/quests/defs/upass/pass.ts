@@ -9,7 +9,7 @@ import { Reachability } from '../../../../../event/webwalk/geometry/Reachability
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
-import { PLATFORM_LINKS, UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
+import { CAVERN_LINKS, PLATFORM_LINKS, type PlatformLink, UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
 
 // Why: the pass is not one map the navigator can route across — a component report over its own seam
 // endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision
@@ -464,8 +464,12 @@ const SWEEP_DIRS: readonly [number, number][] = [
 // Why: which platform pocket anything is in cannot be read off the map at runtime, but the navigator can
 // answer "can I walk there" against the full collision pack in a millisecond — so the character's pocket is
 // whichever side tile it can reach, and the target's is whichever side tile can reach the target.
+function linksFor(level: number): readonly PlatformLink[] {
+    return level === 1 ? PLATFORM_LINKS : CAVERN_LINKS;
+}
+
 async function platformPocket(from: { x: number; z: number; level: number }): Promise<string | null> {
-    for (const link of PLATFORM_LINKS) {
+    for (const link of linksFor(from.level)) {
         for (const side of [link.a, link.b]) {
             if ((await Navigator.findPath(from, side.tile, { policy: { useTeleports: false } })).ok) {
                 return side.pocket;
@@ -476,7 +480,7 @@ async function platformPocket(from: { x: number; z: number; level: number }): Pr
 }
 
 async function pocketOfTarget(dest: Tile): Promise<string | null> {
-    for (const link of PLATFORM_LINKS) {
+    for (const link of linksFor(dest.level)) {
         for (const side of [link.a, link.b]) {
             if ((await Navigator.findPath(side.tile, dest, { policy: { useTeleports: false } })).ok) {
                 return side.pocket;
@@ -498,9 +502,10 @@ async function platformStep(
         return null;
     }
     // Breadth-first over the bridge graph, so the first crossing is the first step of a shortest chain.
+    const links = linksFor(dest.level);
     const seen = new Set<string>([here]);
     let frontier: { pocket: string; first: Tile }[] = [];
-    for (const link of PLATFORM_LINKS) {
+    for (const link of links) {
         for (const [side, far] of [[link.a, link.b], [link.b, link.a]] as const) {
             if (side.pocket === here && !seen.has(far.pocket)) {
                 seen.add(far.pocket);
@@ -516,7 +521,7 @@ async function platformStep(
         }
         const next: { pocket: string; first: Tile }[] = [];
         for (const step of frontier) {
-            for (const link of PLATFORM_LINKS) {
+            for (const link of links) {
                 for (const [side, far] of [[link.a, link.b], [link.b, link.a]] as const) {
                     if (side.pocket === step.pocket && !seen.has(far.pocket)) {
                         seen.add(far.pocket);
@@ -548,9 +553,13 @@ async function crossByRoute(
         log(`pass: could not reach the crossing tile (${stand.x},${stand.z})`);
         return false;
     }
+    const onPlatforms = dest.level === 1;
+    const op = onPlatforms ? 'Cross' : 'Climb-over';
     const bridge = Locs.query()
-        .where(loc => loc.id === UP_LOC.COLLAPSED_A || loc.id === UP_LOC.COLLAPSED_B)
-        .action('Cross')
+        .where(loc => (onPlatforms
+            ? loc.id === UP_LOC.COLLAPSED_A || loc.id === UP_LOC.COLLAPSED_B
+            : loc.id === UP_LOC.ROCKSLIDE))
+        .action(op)
         .within(6)
         .nearest();
     if (!bridge) {
@@ -558,7 +567,7 @@ async function crossByRoute(
         return false;
     }
     const before = here() ?? from;
-    if (!(await bridge.interact('Cross'))) {
+    if (!(await bridge.interact(op))) {
         return false;
     }
     const after = (await settleWalk()) ?? before;
@@ -652,7 +661,7 @@ export async function travelTo(dest: Tile, radius: number, log: (m: string) => v
             navWorthTrying = false;
         }
         // Why: the platforms first, because their route is solved and the free search is not.
-        if (at && at.level === 1 && dest.level === 1 && (await crossByRoute(at, dest, log))) {
+        if (at && at.level === dest.level && (await crossByRoute(at, dest, log))) {
             navWorthTrying = true;
             continue;
         }

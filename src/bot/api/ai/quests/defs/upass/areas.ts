@@ -222,6 +222,16 @@ export interface PlatformLink {
     b: { tile: Tile; pocket: string };
 }
 
+// Why: the first cavern is a pocket graph too, and the runtime search fails it the same way the platforms
+// failed — an end-to-end run swung the rope onto 9a025db and then could not see the rockslide that leaves
+// it, because that rockslide is twenty-one tiles east and the client's build area lags the player. It stood
+// there naming eight rockslides it could not reach until the run ran out. These two are the ones the route
+// from the bridge to the grid needs, and they are the ones a scene query does not reliably hold.
+export const CAVERN_LINKS: readonly PlatformLink[] = [
+    { bridge: new Tile(2491, 9691, 0), a: { tile: new Tile(2491, 9692, 0), pocket: '9a025db' }, b: { tile: new Tile(2491, 9690, 0), pocket: '9b225ca' } },
+    { bridge: new Tile(2482, 9679, 0), a: { tile: new Tile(2483, 9679, 0), pocket: '9b225ca' }, b: { tile: new Tile(2481, 9679, 0), pocket: '9a225c9' } }
+];
+
 export const PLATFORM_LINKS: readonly PlatformLink[] = [
     { bridge: new Tile(2123, 4582, 1), a: { tile: new Tile(2123, 4581, 1), pocket: '84811d6' }, b: { tile: new Tile(2123, 4585, 1), pocket: '84b11e9' } },
     { bridge: new Tile(2126, 4566, 1), a: { tile: new Tile(2125, 4566, 1), pocket: '84811d6' }, b: { tile: new Tile(2129, 4566, 1), pocket: '85111c9' } },
