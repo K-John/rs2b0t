@@ -50,6 +50,16 @@ mentions.
   reading three times; every other caller read once, called the card unreadable and failed
   a quest step — once per bar, ten bars. A send that can be dropped needs its own retry,
   not a caller who happens to have one.
+- **A conversation that shuts its own chat box is not a conversation that ended.** The seer
+  runs `if_close`, then three `mes` lines a `p_delay(3)` apart, and only then reopens with
+  the hint that moves the varp. The shared driver gives a shut dialogue 1.5 seconds before
+  calling it over, so it reported success with nothing granted and the leg re-walked to
+  Seers' Village on every retry. A stop whose script has gaps longer than that needs its own
+  driver and its own oracle — here, the seer's closing line.
+- **Tile distance counts through walls.** Skipping the approach walk because the scorpion was
+  "already adjacent" queued a use-on against a walk the server could not make, and the leg
+  sat silent until its timeout ran out. Walk to it anyway: the walker opens the door the raw
+  distance cannot see.
 - **`huntmode=cowardly` is not shy.** Its `check_nottoostrong=outside_wilderness` is the
   double-combat-level rule, so the level 111 blue dragons between the gate and the coffins
   attack anything under 222. Their fire is a 30 max hit, 50 through a failed defence roll
