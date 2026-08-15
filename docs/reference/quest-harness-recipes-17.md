@@ -19,6 +19,7 @@ seeding one hides whether the bot finds it.
 | `--stage 5 --until 15` | The arrow chain end to end: axe, kit, feathers, five achey trees, four wolves, twelve arrows, the hand-over | **PASS** (13min) |
 | `--stage 25 --until 40` | The chest, the bellows, the toads, the bait, and Rantz missing his shot | **PASS** (2min, reached 45) |
 | `--stage 45 --until 65 --stocked` | Buying the replacement bow, the hunt, the pluck, the children, all six seasonings, the roast and the hand-over | **PASS** (10min, QP 0→2) |
+| `--stage 0 --until 65` | Start to finish from a clean account, 53 steps and three retried ones | **PASS** (13min, QP 0→2) |
 
 Three details govern this harness:
 
