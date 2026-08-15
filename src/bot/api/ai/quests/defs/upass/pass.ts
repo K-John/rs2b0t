@@ -263,16 +263,20 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         // "The rock is being used" — and a step that only reports "did not cross" hides which. Twenty ledge
         // rolls at ninety-five per cent each cannot all fail, so the script was never running.
         const mark = GameMessages.mark();
+        // Why: one line for the whole attempt, not one per try — the harness surfaces a bounded number of
+        // log lines per tick, and four tries plus their walks arrive as the last of them and nothing else.
+        const trace: string[] = [];
         for (let attempt = 0; attempt < (kind.tries ?? 1); attempt++) {
-            if (!(await standBeside(obstacle.tile(), log))) {
+            if (!(await standBeside(obstacle.tile(), trace.push.bind(trace)))) {
+                trace.push('could not stand beside it');
                 break;
             }
             if (!(await obstacle.interact(op))) {
-                log(`pass: '${op}' would not send at ${obstacle.name ?? obstacle.id}`);
+                trace.push('the op would not send');
                 break;
             }
             now = (await settleWalk()) ?? now;
-            log(`pass:   ${op} try ${attempt + 1} settled at (${now.x},${now.z})`);
+            trace.push(`try${attempt + 1}@${now.x},${now.z}`);
             if (chebyshev(now, dest) + MIN_GAIN <= chebyshev(from, dest)) {
                 break;
             }
@@ -285,6 +289,7 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
                 return t !== null && (t.x !== staged.x || t.z !== staged.z || t.level !== staged.level);
             }, CROSS_TIMEOUT_MS);
             now = here() ?? now;
+            trace.push(`then@${now.x},${now.z}`);
             if (chebyshev(now, dest) + MIN_GAIN <= chebyshev(from, dest)) {
                 break;
             }
@@ -298,9 +303,10 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         // burned seventy seconds per round on a cage the player never reached.
         if (chebyshev(now, dest) + MIN_GAIN > chebyshev(from, dest)) {
             spent.add(key);
-            const said = GameMessages.since(mark).map(m => m.text).slice(-6).join(' | ') || 'nothing';
+            const said = GameMessages.since(mark).map(m => m.text).slice(-6).join(' / ') || 'nothing';
             log(`pass: ${op} ${obstacle.name ?? obstacle.id} at (${obstacle.tile().x},${obstacle.tile().z})`
-                + ` did not cross toward (${dest.x},${dest.z}) — it said: ${said}`);
+                + ` did not cross toward (${dest.x},${dest.z}) from (${from.x},${from.z})`
+                + ` — ${trace.join(' | ')} — it said: ${said}`);
             continue;
         }
         log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now.x},${now.z})`);
