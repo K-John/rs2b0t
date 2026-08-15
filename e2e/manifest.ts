@@ -128,6 +128,16 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'digsite-251-live',
+        harness: 'digsite-251-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'vetted',
+        budgetMin: 150,
+        provenAt: 'ea9d8e7e',
+        documentedIn: 'docs/reference/quest-harness-recipes.md',
+        note: 'uncheated --stage 0 --until 9 at --tick 150'
+    },
+    {
         id: 'doric-level3-test',
         harness: 'doric-level3-test.ts',
         covers: { scripts: ['AIOQuester'] },
