@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Biohazard
 
-Nine, and the first three are about doors the graph should never have owned.
+Ten, and the first three are about doors the graph should never have owned.
 
 - **The route the guide describes and the route the map allows can disagree by a building.**
   Every baked path to the mourners' cauldron ran in one headquarters door and
@@ -20,6 +20,12 @@ Nine, and the first three are about doors the graph should never have owned.
   and 13, over two dialogue pages, and it does it in *both* directions. The walker's door
   crossing polls for passage and gives up on the first page. The quest drives that gate
   itself, on both legs.
+- **A stand tile the pack says is reachable can still be unreachable, because NPCs block.**
+  The headquarters corridor is where the mourners themselves stand, and one on the tile the
+  walker is clicking makes the *client's* own path search fail — every repath, every pass,
+  four tiles short, with the distillator already in the pack. A hand-rolled
+  `walkResilient(tile, radius 0)` then `interact` has no answer for that; `Reach.locOp` does,
+  and it operates a wall door from either side of its edge rather than from one named tile.
 - **West Ardougne has no bank, and the navigator says so about every bank.** A `scanBank`
   decided over the wall answers "unreachable" for every booth in the game and burns the
   step budget. The read is deferred to the mainland, and the stages before the gown are
@@ -44,9 +50,10 @@ Nine, and the first three are about doors the graph should never have owned.
   pack with three free silently loses the last. The leg banks down to six first.
 - **The bundle race has a quiet half.** `public/bot` is shared, and a concurrent deploy
   that lands during boot replaces `navworker.js` as well as `botclient.js` — the client
-  still prints this quest's queue while routing on somebody else's graph, which reads as
-  a nav bug in your own new transport. The harness stats all four files before boot and
-  again after, and fails on any change.
+  still prints this quest's queue while routing on somebody else's graph, so the assertion
+  that catches a stolen `botclient.js` passes and the new transport reads as broken. Three
+  runs died on that here. `deployIsolatedClient` removes the race rather than detecting it,
+  and every live harness that adds a nav edge should use it.
 
 ## See also
 
