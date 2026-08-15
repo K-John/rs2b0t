@@ -399,8 +399,10 @@ export const CASES: readonly Case[] = [
         id: 'mortton-255-live',
         harness: 'mortton-255-live.ts',
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
-        status: 'unvetted',
-        budgetMin: 180
+        status: 'vetted',
+        provenAt: '929f506d',
+        budgetMin: 120,
+        documentedIn: 'docs/reference/quest-harness-recipes-3.md'
     },
     {
         id: 'mossgiant-dart-test',
