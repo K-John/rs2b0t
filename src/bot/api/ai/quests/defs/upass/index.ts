@@ -28,11 +28,9 @@ import {
     ascendFromDwarves,
     askKlank,
     askNilhoof,
-    catchCat,
     descendToDwarves,
     descendToKalrag,
-    distractWitch,
-    lootWitchChest,
+    stealTheDoll,
     wearGauntlets
 } from './cavern.js';
 import {
@@ -156,13 +154,10 @@ function witchLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
             ? custom('take a tinderbox from Klank', askKlank)
             : custom('climb back up out of the dwarves cave', ascendFromDwarves);
     }
-    if (held(snap, UP_ITEM.WITCH_CAT) === 0 && held(snap, UP_ITEM.DOLL) === 0) {
-        return custom("catch the witch's cat", catchCat);
-    }
-    if (held(snap, UP_ITEM.WITCH_CAT) > 0) {
-        return custom('knock on the door to draw Kardia out', distractWitch);
-    }
-    return custom('take the doll of Iban from the chest', lootWitchChest);
+    // Why: the knock takes the cat and the journal never records it, so "no cat, no doll" reads the same
+    // before the cat is caught and after it has been left at Kardia's door — one run went back for a cat
+    // that was already there. The three of them are one step, ending on the doll.
+    return custom("take Kardia's cat to her door and lift the doll", stealTheDoll);
 }
 
 // Why: the four elements are ordered by where they are rather than by the doll — ashes and blood hang off

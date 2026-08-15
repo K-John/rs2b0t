@@ -111,6 +111,30 @@ export async function catchCat(log: (m: string) => void): Promise<boolean> {
 
 // Why: knocking is what draws Kardia out, and she only comes if the cat is already by the door — the
 // door's op1 answers with 25% damage while she is still inside.
+// Why: and the knock takes the cat, which the journal never records — so a snapshot reads "no cat, no doll"
+// after the knock exactly as it reads it before the cat is caught, and the run went back for a cat that was
+// already at the witch's door. Catching it, knocking, and opening the chest are therefore one step, ending
+// on the doll, which the journal does record.
+
+/** Take the cat to Kardia's door, knock, and lift the doll from her chest while she is outside. */
+export async function stealTheDoll(log: (m: string) => void): Promise<boolean> {
+    for (let round = 0; round < 3; round++) {
+        if (heldId(UP_ITEM.DOLL.id) > 0) {
+            return true;
+        }
+        if (await lootWitchChest(log)) {
+            return true;
+        }
+        if (heldId(UP_ITEM.WITCH_CAT.id) === 0 && !(await catchCat(log))) {
+            log('no cat to draw Kardia out with');
+            return false;
+        }
+        if (!(await distractWitch(log))) {
+            log('Kardia would not come to the door');
+        }
+    }
+    return heldId(UP_ITEM.DOLL.id) > 0;
+}
 
 /** Knock with the cat in the pack, which puts it down and takes her away from the chest. */
 export async function distractWitch(log: (m: string) => void): Promise<boolean> {
