@@ -1275,6 +1275,9 @@ class WalkExecutorImpl {
             } else if (transport.toTile !== undefined) {
                 const landed = (): boolean => matchesTransportLanding(transport, step.level, before, reader.worldTile());
                 crossed = (await Execution.delayUntil(() => landed() || cantReach(), TRANSPORT_WAIT_MS)) && landed();
+                if (!crossed && (await this.stepOffTransportLoc(transport, step, log))) {
+                    crossed = landed();
+                }
             } else {
                 const open = (): boolean => findTransportLoc(transport) === null || Reachability.canStep(approach, step);
                 crossed = (await Execution.delayUntil(() => open() || cantReach() || chatShowsQuestLock(), TRANSPORT_WAIT_MS)) && open();
@@ -1365,6 +1368,19 @@ class WalkExecutorImpl {
         }
         log(`${transport.locName} landed at (${here.x},${here.z}) — stepping onto the planned (${landing.x},${landing.z})`);
         await DirectNavigator.walkTo({ x: landing.x, z: landing.z, level: step.level }, 0, SHORTCUT_LANDING_MS);
+    }
+
+    // Why: a short hop has to land exactly, or every frame of a stile's animation reads as crossed — so the one crossing that ends mid-span is recognised by where it stopped rather than by loosening that rule.
+
+    /** True once a crossing that ended on the loc's own tile has been walked off it. */
+    private async stepOffTransportLoc(transport: TransportInfo, step: PathStep, log: (msg: string) => void): Promise<boolean> {
+        const here = reader.worldTile();
+        if (transport.kind !== 'shortcut' || !here || here.x !== transport.locX || here.z !== transport.locZ) {
+            return false;
+        }
+        log(`${transport.locName} left us standing on it at (${here.x},${here.z})`);
+        await this.settleShortcutLanding(transport, step, log);
+        return true;
     }
 
     // Why: some crossings open only after a conversation the journal cannot show — the Salve barrier wants `%priestperil` one stage past complete.

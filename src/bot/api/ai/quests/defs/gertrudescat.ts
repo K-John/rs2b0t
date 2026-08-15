@@ -9,6 +9,7 @@ import { Inventory } from '../../../inventory/Inventory.js';
 import { Locs } from '../../../locs/Locs.js';
 import { Modals } from '../../../ui/widgets/Modals.js';
 import { Npcs, type Npc } from '../../../npcs/Npcs.js';
+import { ChatDialog } from '../../../ui/dialogue/ChatDialog.js';
 import { Quests } from '../../../ui/questlog/Quests.js';
 import { Traversal } from '../../../walking/Traversal.js';
 import { QUESTS } from '../data/quests.js';
@@ -73,8 +74,8 @@ const CAT_STAND = new Tile(3306, 3512, 1);
 /** Waypoints into and back out of that corner, each a leg short enough for the server to route in one go. */
 const NW_CORNER_IN: Tile[] = [YARD_ENTRY, new Tile(3305, 3504, 0), new Tile(3304, 3511, 0), new Tile(3300, 3512, 0), new Tile(3298, 3513, 0)];
 const NW_CORNER_OUT: Tile[] = [new Tile(3300, 3512, 0), new Tile(3304, 3511, 0), new Tile(3305, 3504, 0)];
-/** The way south, in hops short enough that each one plans. */
-const YARD_EXIT: Tile[] = [new Tile(3306, 3505, 0), new Tile(3306, 3501, 0), YARD_ENTRY];
+/** The way south. (3305,3504) is the one tile the server will route to from the crates by the ladder. */
+const YARD_EXIT: Tile[] = [new Tile(3305, 3504, 0), YARD_ENTRY];
 
 interface CrateStop {
     tile: Tile;
@@ -99,12 +100,15 @@ const FOUND_NOTHING = /you find nothing/i;
 const CRATE_SEARCH_MS = 30_000;
 
 // Why: `npc_find` measures the brothers against each other, not against us, and both wander two tiles from their own spawn.
-/** How close the brothers must stand before the dialogue offers anything; the script's own limit is 3. */
-const BROTHER_GAP = 2;
+// Why: the check runs four chat lines into the conversation, so the gap has to start well inside the script's own limit of 3 — at 2 the pair drifted out of range on two attempts in three.
+/** How close the brothers must stand before the dialogue is opened. */
+const BROTHER_GAP = 1;
 
-const PAY_ATTEMPTS = 3;
+const PAY_ATTEMPTS = 6;
 const SEASON_ATTEMPTS = 3;
 const OFFER_ATTEMPTS = 3;
+/** `p_delay(1) + p_delay(0) + p_delay(1) + p_delay(4)` in the hand-over, plus a tick of slack. */
+const CUTSCENE_TICKS = 8;
 
 function normalize(lines: readonly string[] | string): string {
     return (typeof lines === 'string' ? lines : lines.join(' '))
@@ -271,8 +275,20 @@ function offerToCat(objId: number, what: string): (log: (m: string) => void) => 
             }
             await driveUntil(gone, [], log, 12_000);
         }
-        return gone();
+        if (!gone()) {
+            return false;
+        }
+        await settleCutscene(log);
+        return true;
     };
+}
+
+// Why: the kitten leaves the pack six ticks before the hand-over cutscene ends, so the wait that watches the pack returns while Fluffs is still walking home.
+// Why: a character left holding the closing mesbox cannot move at all — the walker spent a hundred seconds clicking three tiles away and never took a step.
+async function settleCutscene(log: (m: string) => void): Promise<void> {
+    await Execution.delayTicks(CUTSCENE_TICKS);
+    await driveUntil(() => !ChatDialog.isOpen() && !ChatDialog.canContinue(), [], log, 15_000);
+    await Modals.closeIfOpen();
 }
 
 // Why: which crate holds the kitten is a server-side coord the client never sees, so the only way through is to search them all.
@@ -349,6 +365,8 @@ async function seasonSardine(log: (m: string) => void): Promise<boolean> {
 }
 
 async function reportToGertrude(log: (m: string) => void): Promise<boolean> {
+    // Why: a resumed session can pick the quest up holding the hand-over's closing mesbox, and nothing walks until it is shut.
+    await driveUntil(() => !ChatDialog.isOpen() && !ChatDialog.canContinue(), [], log, 5000);
     const here = Game.tile();
     if (onPlatform() || (here !== null && inYard(here))) {
         if (!(await leaveYard(log))) {
