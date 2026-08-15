@@ -31,8 +31,13 @@ export async function walkTo(to: Tile, radius: number, log: (m: string) => void)
 
 // Why: both wall crossings hand the player an `if_close`/`mes`/`p_delay` chain and only then
 // `p_teleport`, so polling the tile times out while the script waits on a click nobody made.
-async function arrive(want: (a: BioArea) => boolean, log: (m: string) => void, ms = 25_000): Promise<boolean> {
-    const landed = await driveUntil(() => want(area()), [], log, ms);
+async function arrive(
+    want: (a: BioArea) => boolean,
+    prefer: string[],
+    log: (m: string) => void,
+    ms = 25_000
+): Promise<boolean> {
+    const landed = await driveUntil(() => want(area()), prefer, log, ms);
     if (landed) {
         await settleScene();
     }
@@ -57,20 +62,17 @@ export async function talkAt(
     return talkStrict(npc, prefer, log);
 }
 
+// Why: Omart's answer is five `if_close`/`mes`/`p_delay` beats before the choice that crosses, and every one leaves the chat modal shut — which `talkStrict` reads as the end of the conversation and returns on, so the choice belongs to the arrival poll rather than to the talk.
 /** Omart's rope ladder. Only offered between released_pigeons and found_distillator. */
 async function climbWithOmart(log: (m: string) => void): Promise<boolean> {
-    if (!(await talkAt(BIO_NPC.OMART, BIO_TILE.OMART, OMART_CROSS, log))) {
-        return false;
-    }
-    return arrive(a => a === 'west' || a === 'hq', log);
+    await talkAt(BIO_NPC.OMART, BIO_TILE.OMART, OMART_CROSS, log);
+    return arrive(a => a === 'west' || a === 'hq', OMART_CROSS, log);
 }
 
 /** Kilron's end of the same ladder; he offers it from climbed_ladder onward, forever. */
 async function climbWithKilron(log: (m: string) => void): Promise<boolean> {
-    if (!(await talkAt(BIO_NPC.KILRON, BIO_TILE.KILRON, KILRON_CROSS, log))) {
-        return false;
-    }
-    return arrive(a => a === 'mainland', log);
+    await talkAt(BIO_NPC.KILRON, BIO_TILE.KILRON, KILRON_CROSS, log);
+    return arrive(a => a === 'mainland', KILRON_CROSS, log);
 }
 
 // Why: the headquarters door answers Open with "In you go doc." and only opens once that box is
@@ -95,7 +97,7 @@ export async function enterHq(log: (m: string) => void): Promise<boolean> {
     if (!(await door.interact('Open'))) {
         return false;
     }
-    return arrive(a => a === 'hq' || a === 'hqUpstairs', log);
+    return arrive(a => a === 'hq' || a === 'hqUpstairs', [], log);
 }
 
 /** The same door from the inside, where the script opens it for anyone. */
@@ -115,7 +117,7 @@ async function leaveHq(log: (m: string) => void): Promise<boolean> {
         log('no mourner headquarters door to leave by');
         return false;
     }
-    return arrive(a => a === 'west' || a === 'mainland', log);
+    return arrive(a => a === 'west' || a === 'mainland', [], log);
 }
 
 /** West Ardougne, or the headquarters when that is where the caller was heading. */

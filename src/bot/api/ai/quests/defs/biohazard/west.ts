@@ -57,7 +57,13 @@ export async function poisonTheStew(log: (m: string) => void): Promise<boolean> 
     if (!(await apples.useOn(cauldron))) {
         return false;
     }
-    return driveUntil(() => heldId(BIO_ITEM.ROTTEN_APPLES.id) === 0, [], log, 20_000);
+    if (!(await driveUntil(() => heldId(BIO_ITEM.ROTTEN_APPLES.id) === 0, [], log, 20_000))) {
+        return false;
+    }
+    // Why: the apple dissolves three ticks before the stage moves, so returning on the empty slot
+    // hands the next decide a journal that still says "fetch rotten apples".
+    await Execution.delayTicks(5);
+    return true;
 }
 
 /** The nurse's cupboard. It hands nothing over while a gown is already banked or worn. */

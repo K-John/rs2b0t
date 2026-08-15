@@ -87,7 +87,13 @@ export async function feedTheTower(log: (m: string) => void): Promise<boolean> {
     if (!(await feed.useOn(tower))) {
         return false;
     }
-    return driveUntil(() => heldId(BIO_ITEM.BIRDFEED.id) === 0, [], log, 15_000);
+    if (!(await driveUntil(() => heldId(BIO_ITEM.BIRDFEED.id) === 0, [], log, 15_000))) {
+        return false;
+    }
+    // Why: the script deletes the seed, waits two ticks and only then moves the stage, so returning
+    // on the empty slot hands the next decide a journal that still says "fetch bird feed".
+    await Execution.delayTicks(4);
+    return true;
 }
 
 // Why: `opheld1,pigeons` only fires inside 2559..2565 x 3299..3307 — outside it the cage answers
