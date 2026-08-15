@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass
 
-Thirty-three, and the first three are engine behaviour the quest only happens to expose.
+Thirty-four, and the first three are engine behaviour the quest only happens to expose.
 
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
@@ -124,6 +124,12 @@ Thirty-three, and the first three are engine behaviour the quest only happens to
   produced four "I can't reach that!" and the leg spent every ledge it had. Ask for a Manhattan distance of
   one when the op has to reach.
 
+- **Choosing a cardinal tile and then walking to it at radius one throws the choice away.** The ring is
+  cardinal because `reachRectangle` accepts nothing else, and a radius of one lands *beside* the tile that
+  was picked — which is the diagonal, and the op answers "You can't do that from here." The second cavern's
+  ledge refused four times that way with every try reported from the same diagonal tile, which reads as four
+  failed agility rolls. It survived six per-leg runs and only showed up end to end, because the walk usually
+  does land on the tile it aimed at.
 - **A pocket traveller is the wrong tool for a stand two tiles away.** The five tiles the fire arrow can be
   shot from are a handful apart in one pocket, and the loop that tried each reached for the mover that
   crosses the whole pass. So a stand that was not walkable read as "no route" rather than "try the next
