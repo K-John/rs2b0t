@@ -122,17 +122,20 @@ function seamsInScene(): Loc[] {
 // wrong side of the gain threshold, or behind a wall. A pocket the route cannot leave is the one failure
 // that costs a whole run, so it says what it could see and what it made of each one.
 function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string) => void): void {
-    const seen = seamsInScene();
-    if (seen.length === 0) {
-        log(`pass: no seam of any kind within ${HOP_SEARCH} tiles of (${from.x},${from.z})`);
-        return;
-    }
     const mine = chebyshev(from, dest);
-    for (const loc of seen.slice(0, 8)) {
+    for (const loc of seamsInScene().slice(0, 8)) {
         const at = loc.tile();
         const gain = mine - chebyshev(at, dest);
         const reach = Reachability.canReach(at, REACH) ? 'reachable' : 'walled off';
         log(`pass:   seam ${loc.name ?? loc.id} at (${at.x},${at.z}) L${at.level} — gain ${gain}, ${reach}`);
+    }
+    // Why: a seam missing from the scene and a seam the vocabulary does not name look identical from the
+    // outside, and the second is the likelier bug — so the pocket says everything it can operate.
+    const nearby = Locs.query().within(20).results().filter(loc => loc.actions().length > 0);
+    log(`pass:   ${nearby.length} op-bearing loc(s) within 20 tiles of (${from.x},${from.z}):`);
+    for (const loc of nearby.slice(0, 24)) {
+        const at = loc.tile();
+        log(`pass:     ${loc.id} ${loc.name ?? '?'} (${at.x},${at.z}) L${at.level} [${loc.actions().join('|')}]`);
     }
 }
 
