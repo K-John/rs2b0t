@@ -103,21 +103,24 @@ export function badgesHeld(snap: QuestSnapshot): number {
 
 /** Kill paladins, feed the well and pass the doors — whatever of that is still outstanding. */
 export async function crossTheTemple(log: (m: string) => void): Promise<boolean> {
-    for (let round = 0; round < 8; round++) {
+    const crests = (): number => UP_BADGES.filter(badge => heldId(badge.id) > 0).length;
+    for (let round = 0; round < 4; round++) {
         if ((Game.tile()?.level ?? 0) === 1) {
             return true;
         }
-        if (UP_BADGES.some(badge => heldId(badge.id) > 0) || heldId(UP_ITEM.UNICORN_HORN.id) > 0) {
+        // Why: all three crests before one trip to the well. Feeding each as it drops costs a walk from the
+        // shelf to the well and back for every one of them, and that walk is fifty-odd tiles each way.
+        while (crests() < 3 && (await killPaladin(log))) {
+            log(`crests in hand: ${crests()}`);
+        }
+        if (crests() > 0 || heldId(UP_ITEM.UNICORN_HORN.id) > 0) {
             await feedBloodWell(log);
         }
         if (await enterMainCavern(log)) {
             return true;
         }
-        if (!(await killPaladin(log))) {
-            log('no paladin left to take a crest from, and the doors will not open');
-            return false;
-        }
     }
+    log('the temple doors will not open and there is nothing left to feed the well');
     return (Game.tile()?.level ?? 0) === 1;
 }
 
