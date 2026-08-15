@@ -79,11 +79,14 @@ export async function speakToUngadulu(log: (m: string) => void): Promise<boolean
     return driveToEnd(UNGADULU_PREFER, log, 60_000);
 }
 
+// Why: the last two are the menu he offers once the sketch is handed over, and abandoning there logs a miss on a chain that has already done its job.
 const GUJUO_WATER_PREFER = [
     'I need some pure water to douse some magic flames.',
     'Where is the pool of sacred water?',
     'What kind of a vessel?',
-    'Ungadulu looks a little strange.'
+    'Ungadulu looks a little strange.',
+    'How do I bless the vessel?',
+    'Ok thanks for your help.'
 ];
 
 // Why: the sketch is handed over by the same branch that sets the stage, so a sketch in the pack proves the stage moved without opening the journal.
