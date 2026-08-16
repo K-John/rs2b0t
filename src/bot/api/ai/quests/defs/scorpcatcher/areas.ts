@@ -40,7 +40,20 @@ export const SC_ID = {
     MONASTERY_LADDER: 2641
 } as const;
 
-export const SC_ITEM = { DUSTY_KEY: 'Dusty key', JAIL_KEY: 'Jail key' } as const;
+export const SC_ITEM = { DUSTY_KEY: 'Dusty key', JAIL_KEY: 'Jail key', ANTIPOISON: 'Antipoison(3)' } as const;
+
+// Why: eight `poisonspider` spawns sit between (2850,9799) and (2876,9806) with `wanderrange=10`, which covers the coffin corridor and the wall the secret room is behind.
+// Why: `poison_severity=27` is 6 damage every 18 seconds for eight minutes, and `%poison` is `scope=perm` with no transmit — so the only reading of it is the chat line it opens with.
+// Why: the Karamja general store is the one shop in the content that stocks the cure, so the leg pays a 30gp ferry each way for it.
+
+/** Every dose, newest first — a drink turns (3) into (2) and leaves the rest in the pack. */
+export const ANTIPOISON_DOSES: readonly string[] = ['Antipoison(3)', 'Antipoison(2)', 'Antipoison(1)'];
+
+/** `generalshop7` in Musa Point, the only `3doseantipoison` stock on the map. */
+export const ANTIPOISON_SHOP = { npc: 'Shop keeper', anchor: new Tile(2902, 3146, 0) } as const;
+
+/** The potion at 1.3x its 288 base, plus both ferry fares. */
+export const ANTIPOISON_GP = 600;
 
 const CAGE_CONTENTS: ReadonlyMap<number, readonly ScorpionKey[]> = new Map([
     [CAGE_ID.EMPTY, []],

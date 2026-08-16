@@ -4,8 +4,8 @@ import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { BARCRAWL_CARD, BARCRAWL_GP } from '../../barcrawl/BarcrawlLogic.js';
 import {
-    CAGE_ID, CAGE_NAME, EVERY_CAGE, EVERY_SCORPION, SC_ITEM, SC_STAGE, SC_TILE, SCORPION_LABEL,
-    THORMAC, caughtIn
+    ANTIPOISON_DOSES, ANTIPOISON_GP, CAGE_ID, CAGE_NAME, EVERY_CAGE, EVERY_SCORPION, SC_ITEM,
+    SC_STAGE, SC_TILE, SCORPION_LABEL, THORMAC, caughtIn
 } from './areas.js';
 import { readScorpionProgress } from './journal.js';
 import { CATCH_LEG, askTheSeer } from './legs.js';
@@ -84,9 +84,9 @@ export const scorpcatcher: QuestModule = {
     // Why: the quest is spread over the Sorcerer's Tower, the Barbarian Outpost, Taverley Dungeon and the monastery, so the nearest bank beats any one of them pinned.
     bank: SC_TILE.BANK,
     food: 12,
-    // Why: the ten-bar barcrawl is the only way past the outpost gate, and its drinks are bought with the engine's coin float.
-    coinFloat: Math.max(1000, BARCRAWL_GP * 2),
-    tools: [CAGE_NAME, SC_ITEM.DUSTY_KEY, SC_ITEM.JAIL_KEY, BARCRAWL_CARD],
+    // Why: the ten-bar barcrawl is the only way past the outpost gate, and the Karamja antipoison is two ferry fares on top of it — both are bought with the engine's coin float.
+    coinFloat: Math.max(1000, BARCRAWL_GP * 2 + ANTIPOISON_GP),
+    tools: [CAGE_NAME, SC_ITEM.DUSTY_KEY, SC_ITEM.JAIL_KEY, BARCRAWL_CARD, ...ANTIPOISON_DOSES],
     sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.6 },
     readProgress: readScorpionProgress,
     warnReadiness,

@@ -1,6 +1,6 @@
 /** Live Scorpion Catcher harness (#258): --stage N --until N --minutes N, base :8890.
  *  Why: `--stage` seeds a cage obj rather than a counter — which scorpions are inside is the quest's state, and the varp carries only the seer's hints.
- *  Why: `--skip-barcrawl` and `--order` exist so the Taverley and monastery legs can be timed on their own — a cold run pays for the ten-bar crawl before it ever sees a scorpion. */
+ *  Why: `--skip-barcrawl`, `--order` and `--antipoison` exist so the Taverley and monastery legs can be timed on their own — a cold run pays for the ten-bar crawl and a Musa Point ferry before it ever sees a scorpion. */
 
 //   HEADED=1 bun e2e/scorpion-catcher-258-live.ts --stage 0 --until 4 --minutes 180 --tick 200
 //   HEADED=1 bun e2e/scorpion-catcher-258-live.ts --stage 3 --until 2 --minutes 45 --tick 200
@@ -35,6 +35,7 @@ interface Args {
     skipBarcrawl: boolean;
     order: boolean;
     dusty: boolean;
+    antipoison: boolean;
 }
 
 function parse(argv: string[]): Args {
@@ -50,7 +51,8 @@ function parse(argv: string[]): Args {
         deploy: true,
         skipBarcrawl: false,
         order: false,
-        dusty: false
+        dusty: false,
+        antipoison: false
     };
     for (let i = 0; i < argv.length; i++) {
         const flag = argv[i];
@@ -58,6 +60,7 @@ function parse(argv: string[]): Args {
         if (flag === '--skip-barcrawl') { out.skipBarcrawl = true; continue; }
         if (flag === '--order') { out.order = true; continue; }
         if (flag === '--dusty') { out.dusty = true; continue; }
+        if (flag === '--antipoison') { out.antipoison = true; continue; }
         const value = argv[++i];
         if (value === undefined) { break; }
         if (flag === '--base') { out.base = value; }
@@ -212,6 +215,10 @@ try {
     }
     if (args.dusty) {
         bankSeed.push({ debugName: 'dusty_key', displayName: 'Dusty key', qty: 1 });
+    }
+    // Why: the Taverley leg buys its own antipoison in Musa Point, which is a ferry each way — a seeded dose keeps that off the clock when the leg itself is what is being timed.
+    if (args.antipoison) {
+        bankSeed.push({ debugName: '3doseantipoison', displayName: 'Antipoison(3)', qty: 1 });
     }
     console.log(`seeding ${bankSeed.length} item type(s) into the Falador West bank`);
     await seedItemsToBank(page, bankSeed, FALADOR_WEST_BANK);

@@ -7,6 +7,7 @@ import { Npcs } from '../../../../npcs/Npcs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { ensureBarcrawl } from '../../barcrawl/RunBarcrawl.js';
+import { curePoison, poisonMark, stockAntipoison } from './antipoison.js';
 import { gotoNpc, openDialogue, pickPreferred, talkThrough } from '../../exec/primitives.js';
 import { driveUntil, settleScene } from '../../exec/prompts.js';
 import {
@@ -134,6 +135,8 @@ async function catchOutpostScorpion(log: (m: string) => void): Promise<boolean> 
 
 /** Taverley: the dusty key, the dragon corridor, then the wall by the two coffins. */
 async function catchTaverleyScorpion(log: (m: string) => void): Promise<boolean> {
+    await stockAntipoison(log);
+    const mark = poisonMark();
     if (!(await enterDeepDungeon(log))) {
         return false;
     }
@@ -146,7 +149,11 @@ async function catchTaverleyScorpion(log: (m: string) => void): Promise<boolean>
     if (!(await crossSecretWall(false, log))) {
         return false;
     }
-    return leaveDeepDungeon(log);
+    if (!(await leaveDeepDungeon(log))) {
+        return false;
+    }
+    await curePoison(mark, log);
+    return true;
 }
 
 function upstairs(): boolean {

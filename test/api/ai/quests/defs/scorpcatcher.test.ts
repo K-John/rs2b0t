@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test';
 
-import { CAGE_ID, SC_STAGE } from '#/bot/api/ai/quests/defs/scorpcatcher/areas.js';
+import { BARCRAWL_GP } from '#/bot/api/ai/quests/barcrawl/BarcrawlLogic.js';
+import {
+    ANTIPOISON_DOSES, ANTIPOISON_GP, CAGE_ID, SC_STAGE
+} from '#/bot/api/ai/quests/defs/scorpcatcher/areas.js';
 import { decide, scorpcatcher } from '#/bot/api/ai/quests/defs/scorpcatcher/index.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
@@ -124,5 +127,17 @@ describe('Scorpion Catcher module', () => {
 
     test('it carries food for the dragons between the gate and the coffins', () => {
         expect(scorpcatcher.food ?? 0).toBeGreaterThan(0);
+    });
+
+    // Why: a drink turns (3) into (2), so a keep-list naming only the bought dose banks the rest of the potion on the next spillover.
+    test('every antipoison dose survives the spillover deposit', () => {
+        const tools = (scorpcatcher.tools ?? []).map(t => t.toLowerCase());
+        for (const dose of ANTIPOISON_DOSES) {
+            expect(tools).toContain(dose.toLowerCase());
+        }
+    });
+
+    test('the coin float covers the barcrawl and the Karamja trip together', () => {
+        expect(scorpcatcher.coinFloat ?? 0).toBeGreaterThanOrEqual(BARCRAWL_GP + ANTIPOISON_GP);
     });
 });

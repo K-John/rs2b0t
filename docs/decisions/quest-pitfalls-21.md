@@ -65,6 +65,25 @@ mentions.
   attack anything under 222. Their fire is a 30 max hit, 50 through a failed defence roll
   and 10 under Protect from Magic, which is the difference between walking that corridor at
   70 Prayer and dying in it.
+- **The prayer comes down at the wall, not at the gate.** Nothing behind the coffin wall
+  breathes, and the catch inside runs for as long as the scorpion takes to be cornered. A
+  guard raised at the gate and dropped at the gate spends that stretch draining points
+  for a room with nothing in it to protect against, so the toggle belongs on the wall
+  crossing, which already knows which side of it the run is standing on.
+- **`%poison` is not on the wire.** It is `scope=perm` with no transmit, so "am I poisoned"
+  has no varp answer. The `"You have been poisoned!"` line `poison_player` opens with is the
+  only reading there is, and it fires once on the transition out of zero — a mark taken
+  before the leg and a `sawSince` after it is the oracle.
+- **A cure drunk in reach of the thing that poisons is a cure taken back.** Antipoison sets
+  `%poison = min(%poison,-5)`, and the poison timer counts a negative back up one per fire at
+  30 ticks a fire — 90 seconds of immunity, not a permanent one. The eight poison spiders in
+  the coffin corridor have `wanderrange=10`, which covers both sides of the wall crossing and
+  most of the walk back east, so the dose only sticks once the dusty-key gate is shut.
+- **One shop on the map sells the cure.** `3doseantipoison` is stocked by `generalshop7` in
+  Musa Point and nowhere else, which puts a ferry each way between a Taverley leg and its
+  antipoison. That is too expensive to make a provisioning requirement: a quest that parks
+  when the bank has no potion is worse than one that walks the corridor uncured, so the trip
+  is best-effort and the leg carries on without it.
 
 ## See also
 
