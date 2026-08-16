@@ -20,6 +20,10 @@ export function here(): LegendsArea {
 
 // Why: a chain can also run to an end that is not the end wanted — Gujuo greets, chats and says goodbye without ever offering the rescue — and that ending looks identical to the right one.
 
+// Why: the chat modal shuts for a tick or two between a page and the option list behind it, which at 200ms ticks is most of a three-tick silence — Gujuo's chain read four of those as its ending, one option short of the rescue.
+const ENDED_TICKS = 10;
+const NEVER_OPENED_TICKS = 25;
+
 /** Drive a self-terminating conversation, abandoning rather than guessing. */
 export async function driveToEnd(prefer: string[], log: (m: string) => void, ms = 45_000, required?: string): Promise<boolean> {
     const deadline = performance.now() + ms;
@@ -53,14 +57,14 @@ export async function driveToEnd(prefer: string[], log: (m: string) => void, ms 
         }
         if (!ChatDialog.isOpen()) {
             quiet += 1;
-            if (quiet >= 3 && spoke) {
+            if (quiet >= ENDED_TICKS && spoke) {
                 if (required && !took) {
                     log(`the chain ended without ever offering "${required}"`);
                     return false;
                 }
                 return true;
             }
-            if (quiet >= 12) {
+            if (quiet >= NEVER_OPENED_TICKS) {
                 log('no dialogue ever opened');
                 return false;
             }

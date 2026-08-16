@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Twenty-two, and the first three are map and engine facts rather than quest ones.
+Twenty-three, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -136,6 +136,13 @@ Twenty-two, and the first three are map and engine facts rather than quest ones.
   times and counting, with the anchor directly overhead. Any "am I there yet" that compares
   tiles has to compare the level too — and this one is shared by every quest, not just
   this one.
+
+- **The chat shuts between a page and the option list behind it.** Three quiet ticks read
+  as "the conversation ended", and at 200ms ticks three ticks is most of the gap the modal
+  leaves while it swaps a `chatnpc` page for the `multi2` after it — so Gujuo's chain
+  called it a day one option short of the rescue, four times running. The step recovered
+  on the fifth pass, which is the tell: a race, not a wrong list. Ten ticks of silence is
+  an ending; three is a blink.
 
 ## See also
 
