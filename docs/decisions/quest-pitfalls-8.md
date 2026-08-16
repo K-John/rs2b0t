@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Twenty-five, and the first three are map and engine facts rather than quest ones.
+Twenty-six, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -144,6 +144,12 @@ Twenty-five, and the first three are map and engine facts rather than quest ones
   on the fifth pass, which is the tell: a race, not a wrong list. Ten ticks of silence is
   an ending; three is a blink.
 
+- **`opheldu` runs on the item clicked second, and the pair is not symmetric.** The bowl
+  carries the handler and wants the seeds as `last_useitem`, so seeds-on-bowl germinates and
+  bowl-on-seeds is "nothing interesting happens" — the script says so in a comment, and
+  eleven attempts twelve seconds apart said it in the log. The ardrigal and the snakeweed
+  mixture are the same shape and happen to be written the right way round. Which of the two
+  items holds the handler is worth reading before either is clicked.
 - **The use-on packet does not walk.** Gujuo stood five tiles off, the bowl was offered to
   him from where the character happened to be, and the offer was accepted and answered with
   nothing at all — `opnpcu` never runs for an npc out of reach. Two live runs died in that

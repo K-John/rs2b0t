@@ -344,7 +344,8 @@ export async function germinateSeeds(log: (m: string) => void): Promise<boolean>
         log('need both the germinated-water bowl and the raw seeds in the pack');
         return false;
     }
-    if (!(await bowl.useOn(seeds))) {
+    // Why: `opheldu` runs the handler on the item clicked second and the bowl is the one that carries it, so the seeds go on the bowl — the script's own comment says the reverse is "nothing interesting happens", and that is exactly what eleven attempts got.
+    if (!(await seeds.useOn(bowl))) {
         return false;
     }
     return Execution.delayUntil(() => heldId(LQ_ID.YOMMI_SEEDS_GERM) > 0, 12_000);
