@@ -1,9 +1,10 @@
-/** Which seam joins which pocket of the first cavern, and the chain between two of them.
+/** Which seam joins which pocket of the caverns, and what a route between two of them would be.
  *
  *  Why: the level-1 platforms were solved offline because a runtime search over twenty identical bridges
- *  wandered. The first cavern has the same shape and the same failure — an end-to-end run walked into a
- *  161-tile pocket that carries no waypoint and never found its way out, from the same tile a passing leg
- *  had started on. So this solves that graph too, and the answer is baked into the module.
+ *  wandered. Both caverns have the same shape and the same failure. The first cavern's two links are baked
+ *  in `CAVERN_LINKS` and end that wander; the second cavern's chain from the well down to the boulder is
+ *  five to seven hops through the slave cages, the spade mud, the ledge and the unicorn tunnel, and is not
+ *  baked yet — this is the report it would be built from.
  *
  *  bun tools/nav/upass-cavern-route.ts
  */
@@ -26,7 +27,15 @@ const SEAMS: Record<number, string> = {
     2275: 'Swing-on',        // rope swing
     2274: 'Swing-on',        // rope swing back
     3235: 'Squeeze-through', // obstacle pipe
-    3264: 'Climb-into'       // the well
+    3264: 'Climb-into',      // the well
+    3266: 'Pick-lock',       // slave cage
+    3268: 'Pick-lock',       // cage, thieving 50
+    3238: 'Cross',           // the ledge
+    3276: 'Cross',           // stone bridge
+    3237: 'Squeeze-through', // pipe, second cavern
+    3307: 'Climb-up',        // mud pile
+    3218: 'Pass-through',    // unicorn tunnel
+    3219: 'Pass-through'     // unicorn tunnel
 };
 
 const MAPS = path.join(process.env.HOME ?? '', 'code/rs2b2t-content/maps');
@@ -99,9 +108,13 @@ const idOf = (t: NavPoint): string | null => {
 const WAYPOINTS: [string, NavPoint][] = [
     ['bridge west', { x: 2442, z: 9716, level: 0 }],
     ['grid approach', { x: 2479, z: 9679, level: 0 }],
-    ['area 1 landing', { x: 2496, z: 9714, level: 0 }],
     ['orb corridor', { x: 2422, z: 9671, level: 0 }],
-    ['stranded pocket', { x: 2470, z: 9696, level: 0 }]
+    ['well bottom', { x: 2424, z: 9660, level: 0 }],
+    ['loose railing', { x: 2397, z: 9606, level: 0 }],
+    ['boulder', { x: 2398, z: 9596, level: 0 }],
+    ['unicorn cage', { x: 2375, z: 9604, level: 0 }],
+    ['second landing', { x: 2440, z: 9650, level: 0 }],
+    ['last out', { x: 2438, z: 9607, level: 0 }]
 ];
 
 console.log('waypoint pockets:');
@@ -109,7 +122,7 @@ for (const [name, tile] of WAYPOINTS) {
     console.log(`  ${name.padEnd(18)} ${idOf(tile) ?? 'BLOCKED'}`);
 }
 
-console.log(`\n${found.length} seam loc(s) in the first cavern`);
+console.log(`\n${found.length} seam loc(s) across both caverns`);
 for (const { id, tile } of found) {
     const sides: { tile: NavPoint; pocket: string }[] = [];
     const ring: [number, number][] = [];
