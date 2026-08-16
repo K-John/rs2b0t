@@ -27,19 +27,9 @@ export function orbsHeld(snap: QuestSnapshot): number {
     return countHeld(snap, UP_ORBS);
 }
 
-// Why: `[timer,upass_trap]` is set to one tick across map squares 0_37_151 and 0_38_151 and hits for
-// `hp/10 + 1` on a spear and `base_hp*8/100 + 1` on a spring whenever the player ends a tick on one.
-// Routing round them is not open: a probe of every corridor route against the twenty trap tiles shows each
-// tile alone severs one — the corridor is a single tile wide at every trap. So the corridor is crossed the
-// same way as the spiked grid, on an op-click with the quest journal held open, which suspends the timer.
-// Nothing may be a plain walk down here: `MoveClickHandler` clears the modal on any move that is not an
-// op-click, and the walker re-clicks every few tiles.
+// Why: `[timer,upass_trap]` is set to one tick across map squares 0_37_151 and 0_38_151 and hits for `hp/10 + 1` on a spear and `base_hp*8/100 + 1` on a spring whenever the player ends a tick on one. Routing round them is not open: a probe of every corridor route against the twenty trap tiles shows each tile alone severs one — the corridor is a single tile wide at every trap. So the corridor is crossed the same way as the spiked grid, on an op-click with the quest journal held open, which suspends the timer. Nothing may be a plain walk down here: `MoveClickHandler` clears the modal on any move that is not an op-click, and the walker re-clicks every few tiles.
 
-// Why: an op-click can only name what the client already holds in its build area, and that area lags the
-// player by up to two zones — a target forty tiles off reads as absent and the click never sends. So the
-// corridor is walked over stepping stones: the traps' own `Search` and the two stone tablets, which are the
-// only ops down here and happen to sit at every chokepoint. Standing on a trap costs nothing while the
-// journal is up, so the journey holds it from the first leg to the last.
+// Why: an op-click can only name what the client already holds in its build area, and that area lags the player by up to two zones — a target forty tiles off reads as absent and the click never sends. So the corridor is walked over stepping stones: the traps' own `Search` and the two stone tablets, which are the only ops down here and happen to sit at every chokepoint. Standing on a trap costs nothing while the journal is up, so the journey holds it from the first leg to the last.
 const STONES: readonly { id: number; op: string }[] = [
     { id: UP_LOC.SPEARTRAP, op: 'Search' },
     { id: UP_LOC.SPRINGTRAP, op: 'Search' },
@@ -113,9 +103,7 @@ async function corridorHop(
     });
 }
 
-// Why: the disarm is a `stat_random(thieving, 160, 300)` roll and a failed one springs the log — a stun, a
-// forced move and damage — so it is retried inside the step rather than once per decide cycle, which would
-// walk back across the corridor between every roll.
+// Why: the disarm is a `stat_random(thieving, 160, 300)` roll and a failed one springs the log — a stun, a forced move and damage — so it is retried inside the step rather than once per decide cycle, which would walk back across the corridor between every roll.
 const DISARM_ATTEMPTS = 5;
 
 /** The hanging-log trap yields the first orb when it is disarmed rather than sprung. */
@@ -156,18 +144,14 @@ export async function takeTrappedOrb(log: (m: string) => void): Promise<boolean>
                 return false;
             }
         }
-        // Why: the trap opens with `~mesbox`, which is a MAIN modal, not a chat line — `driveDialog` cannot
-        // dismiss one and waits out its timeout, so the "do you want to disarm it?" choice underneath is
-        // never answered and the disarm never runs. The modal is closed first, then the choice is driven.
+        // Why: the trap opens with `~mesbox`, which is a MAIN modal, not a chat line — `driveDialog` cannot dismiss one and waits out its timeout, so the "do you want to disarm it?" choice underneath is never answered and the disarm never runs. The modal is closed first, then the choice is driven.
         const mark = GameMessages.mark();
         await Modals.closeIfOpen();
         await driveDialog(["Yes, I'll give it a go"], log);
         if (await driveUntil(() => heldId(UP_ITEM.ORB1.id) > 0, [], log, 12_000)) {
             return true;
         }
-        // Why: the trap keeps its orb once that orb's bit is set, and answers "you hear it resetting"
-        // instead — the only way to tell "already burned" from "the roll failed", since the bit is not on
-        // the wire and the trap respawns fifty ticks after it is taken.
+        // Why: the trap keeps its orb once that orb's bit is set, and answers "you hear it resetting" instead — the only way to tell "already burned" from "the roll failed", since the bit is not on the wire and the trap respawns fifty ticks after it is taken.
         if (GameMessages.sawSince(mark, /resetting/i)) {
             log('the log trap has already given up its orb');
             return true;
@@ -178,9 +162,7 @@ export async function takeTrappedOrb(log: (m: string) => void): Promise<boolean>
     return false;
 }
 
-// Why: nothing records which orbs are already dark — the varp is untransmitted and the journal only says
-// "after destroying four orbs" once the well has been used. An orb that is neither in the pack nor on its
-// own floor tile has therefore already gone into the furnace, and the sweep steps past it.
+// Why: nothing records which orbs are already dark — the varp is untransmitted and the journal only says "after destroying four orbs" once the well has been used. An orb that is neither in the pack nor on its own floor tile has therefore already gone into the furnace, and the sweep steps past it.
 export async function takeGroundOrb(orb: UpassItem, tile: Tile, log: (m: string) => void): Promise<boolean> {
     if (heldId(orb.id) > 0) {
         return true;
@@ -210,10 +192,8 @@ export async function takeGroundOrb(orb: UpassItem, tile: Tile, log: (m: string)
     return false;
 }
 
-// Why: `destroy_orboflight` is four ticks of messages before the orb leaves the pack, so a one-tick gap
-// between uses fires the next one into a script still running and the loop drops out after a single orb.
-// Why: the first orb doubles as the trip — using it on the furnace from across the corridor is an op-click,
-// so the walk stalls, and the rest are thrown once the player is already standing there.
+// Why: `destroy_orboflight` is four ticks of messages before the orb leaves the pack, so a one-tick gap between uses fires the next one into a script still running and the loop drops out after a single orb.
+// Why: the first orb doubles as the trip — using it on the furnace from across the corridor is an op-click, so the walk stalls, and the rest are thrown once the player is already standing there.
 
 /** Every orb in the pack, thrown into the furnace one at a time. */
 export async function burnOrbs(log: (m: string) => void): Promise<boolean> {
@@ -249,10 +229,7 @@ export async function burnOrbs(log: (m: string) => void): Promise<boolean> {
     return left === 0;
 }
 
-// Why: which orbs are already dark is not answerable from a snapshot — the bit is not on the wire, a burned
-// orb has simply left the pack, and both the trap and the ground spawns refuse a second one silently. So the
-// whole sweep is one step that keeps its own tally, rather than one site per decide cycle re-picking the
-// orb it just burned. The well at the end is the oracle: it descends only once all four are dark.
+// Why: which orbs are already dark is not answerable from a snapshot — the bit is not on the wire, a burned orb has left the pack, and both the trap and the ground spawns refuse a second one silently. So the whole sweep is one step that keeps its own tally, rather than one site per decide cycle re-picking the orb it just burned. The well at the end is the oracle: it descends only once all four are dark.
 
 /** Take every orb the pack can hold, then burn the lot in one trip, then climb the well. */
 export async function sweepOrbs(log: (m: string) => void): Promise<boolean> {

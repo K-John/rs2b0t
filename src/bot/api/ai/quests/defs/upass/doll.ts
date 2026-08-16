@@ -178,9 +178,7 @@ export async function openSealedChest(log: (m: string) => void): Promise<boolean
     return driveUntil(() => heldId(UP_ITEM.SHADOW.id) > 0, [], log, 20_000);
 }
 
-// Why: the cage is an `aploc`, and its script force-walks and then returns in silence if the character is
-// further than two tiles from the loc's own coordinate. A radius of three satisfies the walk and fails the
-// script, so the approach is tight and the failure says what the game said.
+// Why: the cage is an `aploc`, and its script force-walks and then returns in silence if the character is further than two tiles from the loc's own coordinate. A radius of three satisfies the walk and fails the script, so the approach is tight and the failure says what the game said.
 
 /** Search the soulless cages for Iban's dove; the gauntlets are what stop the bite. */
 export async function searchCages(log: (m: string) => void): Promise<boolean> {
@@ -212,14 +210,9 @@ export async function searchCages(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-// Why: the doors only open for a follower of Zamorak wearing the robes and nothing else — the script counts
-// worn slots and wants exactly two — so the armour comes off here and goes back on after the throw. The
-// robes come off an Iban disciple: level thirteen, twenty hitpoints, and a dozen of them line the approach.
+// Why: the doors only open for a follower of Zamorak wearing the robes and nothing else — the script counts worn slots and wants exactly two — so the armour comes off here and goes back on after the throw. The robes come off an Iban disciple: level thirteen, twenty hitpoints, and a dozen of them line the approach.
 
-// Why: thirteen disciples line the approach and `nearest()` picked one through the temple wall — the attack
-// sent, nothing happened, and the step sat out its whole three-minute wait in silence, twice. Proximity is
-// not reach. Take them in order of distance but only where a cardinal neighbour can be stood on, give each
-// one a short wait rather than one long one, and say what happened when none of them dies.
+// Why: thirteen disciples line the approach and `nearest()` picked one through the temple wall — the attack sent, nothing happened, and the step sat out its whole three-minute wait in silence, twice. Proximity is not reach. Take them in order of distance but only where a cardinal neighbour can be stood on, give each one a short wait rather than one long one, and say what happened when none of them dies.
 
 /** Kill a disciple for both halves of the robe of Zamorak. */
 async function robeFromDisciple(log: (m: string) => void): Promise<boolean> {
@@ -276,9 +269,7 @@ async function robeFromDisciple(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-// Why: everything the pass asked to be carried has been used by now — the rope, the spade, the bucket, the
-// bow and its arrows, and the book that came out of Kardia's chest with the doll. The pack arrives at the
-// temple with four or five slots and the strip needs six, so the spent kit goes on the floor to make room.
+// Why: everything the pass asked to be carried has been used by now — the rope, the spade, the bucket, the bow and its arrows, and the book that came out of Kardia's chest with the doll. The pack arrives at the temple with four or five slots and the strip needs six, so the spent kit goes on the floor to make room.
 const SPENT: readonly UpassItem[] = [
     UP_ITEM.ROPE, UP_ITEM.SPADE, UP_ITEM.BUCKET, UP_ITEM.SHORTBOW, UP_ITEM.BRONZE_ARROW, UP_ITEM.HISTORY
 ];
@@ -347,9 +338,7 @@ export async function openIbanDoor(log: (m: string) => void): Promise<boolean> {
                 log("the doors on Iban's temple would not open");
                 return false;
             }
-            // Why: the script force-moves the player a tile west as it opens, so the door is the entry —
-            // there is no walk to make afterwards, and nothing to make it on. A flood of the pack over the
-            // temple finds no walkable floor at all, the altar and Iban's own tile included.
+            // Why: the script force-moves the player a tile west as it opens, so the door is the entry — there is no walk to make afterwards, and nothing to make it on. A flood of the pack over the temple finds no walkable floor at all, the altar and Iban's own tile included.
             await driveUntil(() => insideIbanTemple(Game.tile()), [], log, 12_000);
         }
     }
@@ -369,9 +358,7 @@ export async function throwDoll(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     await settleScene();
-    // Why: no walk first. The temple floor is not in the collision pack, so any radius-based approach
-    // reports unreachable from a tile the character is already standing on. A use-on-loc leaves the pathing
-    // to the server, which is the only thing here that can see the floor.
+    // Why: no walk first. The temple floor is not in the collision pack, so any radius-based approach reports unreachable from a tile the character is already standing on. A use-on-loc leaves the pathing to the server, which is the only thing here that can see the floor.
     const altar = locById(UP_LOC.IBAN_ALTAR, null, 16);
     const doll = Inventory.items().find(item => item.id === UP_ITEM.DOLL.id);
     if (!altar || !doll) {

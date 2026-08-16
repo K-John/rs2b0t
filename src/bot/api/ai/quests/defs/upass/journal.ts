@@ -78,8 +78,7 @@ const FLAG_LINES: readonly [string, string][] = [
 
 /**
  * Stage plus sub-progress from the journal text.
- * Why: `%upass` and `%ibanmulti` are both `scope=perm` with no `transmit`, so the
- * journal scroll is the only client-visible record of either.
+ * Why: `%upass` and `%ibanmulti` are both `scope=perm` with no `transmit`, so the journal scroll is the only client-visible record of either.
  */
 export function parseUpassJournal(lines: readonly string[] | string): QuestProgress | undefined {
     const text = normalize(lines);

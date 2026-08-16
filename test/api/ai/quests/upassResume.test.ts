@@ -5,9 +5,7 @@ import { decide } from '#/bot/api/ai/quests/defs/upass/index.js';
 import { UP_FLAG, UP_STAGE } from '#/bot/api/ai/quests/defs/upass/journal.js';
 import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
-// Why: the issue asks for a module resumable from any point, and `decide()` is a pure function of the
-// snapshot — so that is provable without a client. This walks every stage against every place the quest can
-// leave a character standing and asserts none of them parks.
+// Why: the issue asks for a module resumable from any point, and `decide()` is a pure function of the snapshot — so that is provable without a client. This walks every stage against every place the quest can leave a character standing and asserts none of them parks.
 
 type Stack = number | [number, number];
 const counts = (stacks: Stack[]): Map<number, number> =>
@@ -60,10 +58,7 @@ function snapshot(stage: number, flags: string[], tile: { x: number; z: number; 
     } as QuestSnapshot;
 }
 
-// Why: the pass is one-way, so most (stage, pocket) pairs cannot happen — the bridge is what sets stage 2,
-// so stage 1 in the second cavern is not a resume anyone can be in, and the temple collapses behind the
-// throw, so stage 9 back on the platforms is not either. Sweeping those would assert on states the quest
-// cannot produce. This is where each stage can actually leave a character standing.
+// Why: the pass is one-way, so most (stage, pocket) pairs cannot happen — the bridge is what sets stage 2, so stage 1 in the second cavern is not a resume anyone can be in, and the temple collapses behind the throw, so stage 9 back on the platforms is not either. Sweeping those would assert on states the quest cannot produce. This is where each stage can leave a character standing.
 const REACHABLE: Record<number, string[]> = {
     [UP_STAGE.NOT_STARTED]: ['mainland', 'westardougne'],
     [UP_STAGE.SPOKEN_KOFTIK]: ['mainland', 'westardougne', 'area1'],

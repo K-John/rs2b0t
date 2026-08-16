@@ -1,10 +1,5 @@
-/** Which collapsed bridges join which level-1 platforms, and the chain between two of them.
- *
- *  Why: the platforms are a graph of pockets joined by twenty identical bridges, and a runtime search over
- *  it wanders — four crossings in thirty-five minutes, none of them toward the target. The graph is static,
- *  so it is solved here once and the answer is baked into the module.
- *
- *  bun tools/nav/upass-platform-route.ts
+/**
+ * Which collapsed bridges join which level-1 platforms, and the chain between two of them.  Why: the platforms are a graph of pockets joined by twenty identical bridges, and a runtime search over  it wanders — four crossings in thirty-five minutes, none of them toward the target. The graph is static,  so it is solved here once and the answer is baked into the module.  bun tools/nav/upass-platform-route.ts
  */
 import fs from 'node:fs';
 import path from 'node:path';

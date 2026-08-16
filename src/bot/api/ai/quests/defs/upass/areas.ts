@@ -84,9 +84,7 @@ export const UP_LOC = {
     SPRINGTRAP: 3230,
     FURNACE: 3294,
     WELL: 3264,
-    // Why: `Read` on a stone tablet only prints a plaque, which makes it the one op-click in the orb
-    // corridor with no cost — the walk to it is what the stall is for. The west tablet is the only loc
-    // within one loaded scene of every orb, the furnace and the well at once.
+    // Why: `Read` on a stone tablet only prints a plaque, which makes it the one op-click in the orb corridor with no cost — the walk to it is what the stall is for. The west tablet is the only loc within one loaded scene of every orb, the furnace and the well at once.
     TABLET_WEST: 3298,
     TABLET_EAST: 3297,
     PORTCULLIS_LEVER: 3337,
@@ -168,7 +166,7 @@ export const UP_TILE = {
     AREA2_LANDING: new Tile(2423, 9660, 0),
     RAILINGS_LOOSE: new Tile(2397, 9606, 0),
     // Why: the boulder's own tile is a fourteen-tile nook of its own, walled off from the cavern floor —
-    // this is the nearest stand a walk can actually reach, and the use is sent from there.
+    // this is the nearest stand a walk can reach, and the use is sent from there.
     BOULDER: new Tile(2398, 9596, 0),
     UNICORN_CAGE: new Tile(2375, 9604, 0),
     MUDPILE: new Tile(2423, 9661, 0),
@@ -212,21 +210,14 @@ export const UP_TILE = {
     WELL_OF_VOYAGE: new Tile(2008, 4711, 1)
 } as const;
 
-// Why: the level-1 platforms are a graph of pockets joined by identical collapsed bridges, and a runtime
-// search over it wanders — one run crossed four of them in thirty-five minutes, none toward its target. The
-// graph is static, so `tools/nav/upass-platform-route.ts` solves it against the collision pack and emits
-// this. Each link names the bridge, the tile to stand on for each side, and which pocket that side is in.
+// Why: the level-1 platforms are a graph of pockets joined by identical collapsed bridges, and a runtime search over it wanders — one run crossed four of them in thirty-five minutes, none toward its target. The graph is static, so `tools/nav/upass-platform-route.ts` solves it against the collision pack and emits this. Each link names the bridge, the tile to stand on for each side, and which pocket that side is in.
 export interface PlatformLink {
     bridge: Tile;
     a: { tile: Tile; pocket: string };
     b: { tile: Tile; pocket: string };
 }
 
-// Why: the first cavern is a pocket graph too, and the runtime search fails it the same way the platforms
-// failed — an end-to-end run swung the rope onto 9a025db and then could not see the rockslide that leaves
-// it, because that rockslide is twenty-one tiles east and the client's build area lags the player. It stood
-// there naming eight rockslides it could not reach until the run ran out. These two are the ones the route
-// from the bridge to the grid needs, and they are the ones a scene query does not reliably hold.
+// Why: the first cavern is a pocket graph too, and the runtime search fails it the same way the platforms failed — an end-to-end run swung the rope onto 9a025db and then could not see the rockslide that leaves it, because that rockslide is twenty-one tiles east and the client's build area lags the player. It stood there naming eight rockslides it could not reach until the run ran out. These two are the ones the route from the bridge to the grid needs, and they are the ones a scene query does not reliably hold.
 export const CAVERN_LINKS: readonly PlatformLink[] = [
     { bridge: new Tile(2491, 9691, 0), a: { tile: new Tile(2491, 9692, 0), pocket: '9a025db' }, b: { tile: new Tile(2491, 9690, 0), pocket: '9b225ca' } },
     { bridge: new Tile(2482, 9679, 0), a: { tile: new Tile(2483, 9679, 0), pocket: '9b225ca' }, b: { tile: new Tile(2481, 9679, 0), pocket: '9a225c9' } }
@@ -274,8 +265,7 @@ export type UpassArea =
 
 /**
  * Which sealed pocket of the pass the player is standing in.
- * Why: the pass is a chain of one-way `p_teleport` hops between map squares the
- * navigator cannot route across, so every leg first asks where it already is.
+ * Why: the pass is a chain of one-way `p_teleport` hops between map squares the navigator cannot route across, so every leg first asks where it already is.
  */
 export function upassArea(tile: QuestSnapshot['tile']): UpassArea {
     if (!tile) {
@@ -334,17 +324,11 @@ export function countHeld(snap: QuestSnapshot, items: readonly UpassItem[]): num
 /** The trapped rectangle of the spiked grid: `inzone(upass_grid_col5, upass_grid_col1 + (1,0,9))`. */
 export const GRID_ZONE = { minX: 2467, maxX: 2476, minZ: 9673, maxZ: 9682 } as const;
 
-// Why: a flood fill of the first cavern on foot gives four pockets, and two of them overlap on a rectangle:
-// the orb corridor is x 2380-2466 / z 9664-9698 and the bridge-and-rope shelf is x 2431-2464 / z 9686-9731.
-// A plain box therefore reads the shelf as the corridor, which is what let one run declare the grid crossed
-// while it was still standing on the wrong side of it. The corridor's own ground is what is left after the
-// shelf is taken out — everything below the shelf, plus everything west of where the shelf starts.
+// Why: a flood fill of the first cavern on foot gives four pockets, and two of them overlap on a rectangle: the orb corridor is x 2380-2466 / z 9664-9698 and the bridge-and-rope shelf is x 2431-2464 / z 9686-9731. A plain box therefore reads the shelf as the corridor, which is what let one run declare the grid crossed while it was still standing on the wrong side of it. The corridor's own ground is what is left after the shelf is taken out — everything below the shelf, plus everything west of where the shelf starts.
 const CORRIDOR = { maxX: 2464, westOfShelf: 2430, belowShelf: 9685, minZ: 9664 } as const;
 
 /** West of the spiked grid, in the corridor it opens onto — the crossing is behind the character. */
-// Why: Kardia's house is a sealed fifteen-tile pocket — a flood of the collision pack from inside gives
-// x 2151-2157 by z 4565-4567 and stops at her door, which the pack calls blocked because it is a door. The
-// chest is in there, so every leg that lifts the doll ends shut in, and every walk out reads as unreachable.
+// Why: Kardia's house is a sealed fifteen-tile pocket — a flood of the collision pack from inside gives x 2151-2157 by z 4565-4567 and stops at her door, which the pack calls blocked because it is a door. The chest is in there, so every leg that lifts the doll ends shut in, and every walk out reads as unreachable.
 const WITCH_HOUSE = { minX: 2151, maxX: 2157, minZ: 4565, maxZ: 4567 } as const;
 
 export function insideWitchHouse(tile: QuestSnapshot['tile']): boolean {

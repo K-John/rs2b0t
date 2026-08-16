@@ -5,9 +5,7 @@ import { GRID_ZONE, UP_LOC, UP_TILE, pastGridTile } from './areas.js';
 import { travelTo } from './pass.js';
 import { stalledCrossing } from './stall.js';
 
-// Why: the safe path through the spiked grid is three digits in `%ibanmulti` bits 22-31, and `ibanmulti` is
-// `scope=perm` with no `transmit` — the client cannot read it. The journal stall walks over the whole thing
-// instead, so the combination never has to be guessed.
+// Why: the safe path through the spiked grid is three digits in `%ibanmulti` bits 22-31, and `ibanmulti` is `scope=perm` with no `transmit` — the client cannot read it. The journal stall walks over the whole thing instead, so the combination never has to be guessed.
 
 /** Where a fall lands, and where `upass_grilltrap_hand_holds` climbs back to. */
 const PIT = { minZ: 9536, maxZ: 9599 } as const;
@@ -51,8 +49,7 @@ async function climbOutOfPit(log: (m: string) => void): Promise<boolean> {
 
 /**
  * Back to the staging tile the stall is launched from.
- * Why: the launch tile has to sit outside the trapped rectangle by more than the walk covers in the tick
- * before the journal lands, and Koftik's lip is the only tile east of the grid the route reaches.
+ * Why: the launch tile has to sit outside the trapped rectangle by more than the walk covers in the tick before the journal lands, and Koftik's lip is the only tile east of the grid the route reaches.
  */
 async function toApproach(log: (m: string) => void): Promise<boolean> {
     if (inPit() && !(await climbOutOfPit(log))) {

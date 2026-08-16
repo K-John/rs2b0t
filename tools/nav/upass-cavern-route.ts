@@ -1,12 +1,5 @@
-/** Which seam joins which pocket of the caverns, and what a route between two of them would be.
- *
- *  Why: the level-1 platforms were solved offline because a runtime search over twenty identical bridges
- *  wandered. Both caverns have the same shape and the same failure. The first cavern's two links are baked
- *  in `CAVERN_LINKS` and end that wander; the second cavern's chain from the well down to the boulder is
- *  five to seven hops through the slave cages, the spade mud, the ledge and the unicorn tunnel, and is not
- *  baked yet — this is the report it would be built from.
- *
- *  bun tools/nav/upass-cavern-route.ts
+/**
+ * Which seam joins which pocket of the caverns, and what a route between two of them would be.  Why: the level-1 platforms were solved offline because a runtime search over twenty identical bridges  wandered. Both caverns have the same shape and the same failure. The first cavern's two links are baked  in `CAVERN_LINKS` and end that wander; the second cavern's chain from the well down to the boulder is  five to seven hops through the slave cages, the spade mud, the ledge and the unicorn tunnel, and is not  baked yet — this is the report it would be built from.  bun tools/nav/upass-cavern-route.ts
  */
 import fs from 'node:fs';
 import path from 'node:path';

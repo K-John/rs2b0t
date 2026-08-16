@@ -11,14 +11,8 @@ import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
 import { CAVERN_LINKS, PLATFORM_LINKS, type PlatformLink, UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
 
-// Why: the pass is not one map the navigator can route across — a component report over its own seam
-// endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision
-// pack marks blocked, so `walkResilient` toward anything past one reports "unreachable" and the step reads
-// as a missing loc. Movement here is therefore: walk inside the pocket, cross one obstacle, repeat.
-// Why: measured pocket counts, so the next leg knows what it is walking into — the first cavern is five
-// pockets, the second five, and the level-1 platforms six, of which only the main landing reaches both wall
-// tunnels on foot (costs 60 and 194). The soulless cages, the witch's cat, her door, the demons' platform
-// and Iban's temple are each sealed behind their own crossing.
+// Why: the pass is not one map the navigator can route across — a component report over its own seam endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision pack marks blocked, so `walkResilient` toward anything past one reports "unreachable" and the step reads as a missing loc. Movement here is therefore: walk inside the pocket, cross one obstacle, repeat.
+// Why: measured pocket counts, so the next leg knows what it is walking into — the first cavern is five pockets, the second five, and the level-1 platforms six, of which only the main landing reaches both wall tunnels on foot (costs 60 and 194). The soulless cages, the witch's cat, her door, the demons' platform and Iban's temple are each sealed behind their own crossing.
 
 /** An obstacle that joins two pockets. All of these move the player across a tile the pack calls blocked. */
 interface HopKind {
@@ -28,7 +22,7 @@ interface HopKind {
     tries?: number;
     /** Only treat it as a seam below this z — the same loc is scenery elsewhere in the pass. */
     below?: number;
-    /** Only offer it when the journey actually wants what it joins. */
+    /** Only offer it when the journey wants what it joins. */
     when?: (dest: Tile, from: { x: number; z: number; level: number }) => boolean;
 }
 
@@ -39,9 +33,7 @@ const inFirstCavern = (t: { z: number }): boolean => t.z >= CAVERN_SPLIT;
 // Why: the two locked cages roll `stat_random(thieving, …)` and leave the player where they were on a
 // failure, so one send is not a verdict on the obstacle — it is one roll.
 const LOCK_TRIES = 5;
-// Why: the rockslide, the ledge, the stone bridges and the collapsed bridge each roll agility and drop the
-// player short on a failure — the ledge into a rat pit for five. Spending the obstacle on one roll is how a
-// leg ran out of ledges to try while standing next to six of them.
+// Why: the rockslide, the ledge, the stone bridges and the collapsed bridge each roll agility and drop the player short on a failure — the ledge into a rat pit for five. Spending the obstacle on one roll is how a leg ran out of ledges to try while standing next to six of them.
 const ROLL_TRIES = 4;
 
 // Why: ordered by how often the route meets them, so the nearest-first search below settles quickly.
@@ -54,11 +46,8 @@ const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.COLLAPSED_A, op: 'Cross', tries: ROLL_TRIES },
     { loc: UP_LOC.COLLAPSED_B, op: 'Cross', tries: ROLL_TRIES },
     { loc: UP_LOC.ROCKSWING_BACK, op: 'Swing-on', tries: ROLL_TRIES },
-    // Why: a component report over leg 3's anchors puts the unicorn cage and the paladins' shelf in
-    // different pockets joined only by these — `upass_area_2_3_entrance` telejumps between them.
-    // Why: and only between them. The doors sit sixteen tiles from the boulder with a gain that reads as
-    // progress, so without this an errand inside the second cavern takes one and lands on the paladins'
-    // shelf, four seams and a well behind where it started.
+    // Why: a component report over leg 3's anchors puts the unicorn cage and the paladins' shelf in different pockets joined only by these — `upass_area_2_3_entrance` telejumps between them.
+    // Why: and only between them. The doors sit sixteen tiles from the boulder with a gain that reads as progress, so without this an errand inside the second cavern takes one and lands on the paladins' shelf, four seams and a well behind where it started.
     { loc: UP_LOC.UNICORN_DOOR_L, op: 'Pass-through', when: (dest, from) => inFirstCavern(dest) !== inFirstCavern(from) },
     { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through', when: (dest, from) => inFirstCavern(dest) !== inFirstCavern(from) },
     // Why: the second cavern's own seams. The route from the well down to the boulder crosses the slave
@@ -66,12 +55,8 @@ const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', tries: LOCK_TRIES },
     { loc: UP_LOC.RAILINGS_HARD, op: 'Pick-lock', tries: LOCK_TRIES },
 ];
-// Why: two locs that look like seams and are not. `upass_swampbubbles1` offers Cross and then drags the
-// player into a crevasse at (2485,9649) for fifteen per cent of their hitpoints — it is a trap wearing a
-// crossing's op. `caverockpile` does climb, but out to the first cavern's landing chamber at (2482,9715),
-// which is behind the bridge and the grid: a way home, not a way on.
-// Why: `cavewalltunnel_upass_tocells` carries an Enter it has no script for — it is the scenery the mud dig
-// teleports the player out beside, so crossing it can only waste the hop it is chosen for.
+// Why: two locs that look like seams and are not. `upass_swampbubbles1` offers Cross and then drags the player into a crevasse at (2485,9649) for fifteen per cent of their hitpoints — it is a trap wearing a crossing's op. `caverockpile` does climb, but out to the first cavern's landing chamber at (2482,9715), which is behind the bridge and the grid: a way home, not a way on.
+// Why: `cavewalltunnel_upass_tocells` carries an Enter it has no script for — it is the scenery the mud dig teleports the player out beside, so crossing it can only waste the hop it is chosen for.
 
 const HOP_TIMEOUT_MS = 12_000;
 /** How long the crossing script itself gets, once the op-click's walk has stopped. */
@@ -79,9 +64,7 @@ const CROSS_TIMEOUT_MS = 10_000;
 const MAX_HOPS = 24;
 /** How much closer to the target an obstacle must sit before it is worth crossing. */
 const MIN_GAIN = 3;
-// Why: the seam out of a pocket can sit right across it — the rope swing off the bridge shelf is twenty
-// tiles from where the bridge lands — so the search has to cover the pocket, not the neighbourhood. Drift is
-// held off by the gain threshold and by spending an obstacle that led away, not by looking less far.
+// Why: the seam out of a pocket can sit right across it — the rope swing off the bridge shelf is twenty tiles from where the bridge lands — so the search has to cover the pocket, not the neighbourhood. Drift is held off by the gain threshold and by spending an obstacle that led away, not by looking less far.
 const HOP_SEARCH = 32;
 // Why: the pockets wind, so a thirty-tile obstacle is well past the flood's default four hundred steps.
 const REACH = { adjacentOk: true, maxSteps: 2_000 } as const;
@@ -94,9 +77,7 @@ function chebyshev(a: { x: number; z: number }, b: { x: number; z: number }): nu
     return Math.max(Math.abs(a.x - b.x), Math.abs(a.z - b.z));
 }
 
-// Why: an op-click walks the player before its script resolves, so nothing can be judged until the walk has
-// stopped. Two unchanged ticks is what "stopped" means here; the forced move of the crossing itself comes
-// after, and shows up as the distance the caller then measures.
+// Why: an op-click walks the player before its script resolves, so nothing can be judged until the walk has stopped. Two unchanged ticks is what "stopped" means here; the forced move of the crossing itself comes after, and shows up as the distance the caller then measures.
 async function settleWalk(): Promise<{ x: number; z: number; level: number } | null> {
     // Why: two still ticks are also true before the walk has begun, so every obstacle's first attempt was
     // judged on the tile it started from and thrown away — the locked cage crossed on try two every time.
@@ -127,9 +108,7 @@ function held(id: number): number {
     return Inventory.items().filter(item => item.id === id).reduce((sum, item) => sum + item.count, 0);
 }
 
-// Why: a seam's own tile is blocked — that is what makes it a seam — and the flood can refuse it outright
-// where the near side is a single walkable column. Its cardinal neighbours are the tiles a player would
-// stand on to use it, so one of those answering is enough.
+// Why: a seam's own tile is blocked — that is what makes it a seam — and the flood can refuse it outright where the near side is a single walkable column. Its cardinal neighbours are the tiles a player would stand on to use it, so one of those answering is enough.
 function seamReachable(at: Tile): boolean {
     if (Reachability.canReach(at, REACH)) {
         return true;
@@ -139,9 +118,7 @@ function seamReachable(at: Tile): boolean {
     );
 }
 
-// Why: the sweep looks further than the hop search does. The main cavern's own exit is a collapsed bridge
-// forty-three tiles off, while the one inside thirty-two belongs to a pocket this one cannot reach — so a
-// sweep bounded by the hop radius only ever saw the wrong bridge.
+// Why: the sweep looks further than the hop search does. The main cavern's own exit is a collapsed bridge forty-three tiles off, while the one inside thirty-two belongs to a pocket this one cannot reach — so a sweep bounded by the hop radius only ever saw the wrong bridge.
 const SWEEP_SEARCH = 52;
 
 /** Every seam loc in the scene, whether or not it is worth crossing — the log for a stuck pocket. */
@@ -156,9 +133,7 @@ function seamsInScene(within = HOP_SEARCH): Loc[] {
     return found;
 }
 
-// Why: "no obstacle makes progress" says nothing about why — whether the seam is out of the scene, on the
-// wrong side of the gain threshold, or behind a wall. A pocket the route cannot leave is the one failure
-// that costs a whole run, so it says what it could see and what it made of each one.
+// Why: "no obstacle makes progress" says nothing about why — whether the seam is out of the scene, on the wrong side of the gain threshold, or behind a wall. A pocket the route cannot leave is the one failure that costs a whole run, so it says what it could see and what it made of each one.
 function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string) => void): void {
     const mine = chebyshev(from, dest);
     const seams = seamsInScene(SWEEP_SEARCH)
@@ -170,10 +145,8 @@ function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string
         })
         .join(' ');
     log(`pass:   seams in reach of (${from.x},${from.z}): ${seams}`);
-    // Why: a seam missing from the scene and a seam the vocabulary does not name look identical from the
-    // outside, and the second is the likelier bug — so the pocket says everything it can operate.
-    // Why: one line, not one per loc — the harness only surfaces a bounded number of log lines per tick, so
-    // twenty-four of them arrive as a count and nothing else.
+    // Why: a seam missing from the scene and a seam the vocabulary does not name look identical from the outside, and the second is the likelier bug — so the pocket says everything it can operate.
+    // Why: one line, not one per loc — the harness only surfaces a bounded number of log lines per tick, so twenty-four of them arrive as a count and nothing else.
     const nearby = Locs.query().within(20).results().filter(loc => loc.actions().length > 0);
     const listed = nearby
         .slice(0, 24)
@@ -182,12 +155,8 @@ function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string
     log(`pass:   ${nearby.length} op-bearing within 20 of (${from.x},${from.z}): ${listed}`);
 }
 
-// Why: a ground-decor seam sits on a tile the pack calls blocked, so the server's own path search for the
-// op-click dead-ends and answers "I can't reach that!" — the script never runs, and the step reads it as a
-// failed agility roll. `inOperableDistance` is `reachedEntity || reachedObj`, which a CARDINAL neighbour
-// satisfies, so the walk is made explicit before the op is sent.
-// Why: and the client's own walkability for that tile is not the test. It disagrees with the server on a
-// bridge structure, so trusting it short-circuited the walk and sent the op from twenty tiles away again.
+// Why: a ground-decor seam sits on a tile the pack calls blocked, so the server's own path search for the op-click dead-ends and answers "I can't reach that!" — the script never runs, and the step reads it as a failed agility roll. `inOperableDistance` is `reachedEntity || reachedObj`, which a CARDINAL neighbour satisfies, so the walk is made explicit before the op is sent.
+// Why: and the client's own walkability for that tile is not the test. It disagrees with the server on a bridge structure, so trusting it short-circuited the walk and sent the op from twenty tiles away again.
 async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promise<boolean> {
     const me = here();
     if (skip === 0 && me && me.level === at.level && chebyshev(me, at) <= 1) {
@@ -198,23 +167,16 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
         && Reachability.canReach(new Tile(at.x, at.z, at.level), { ...REACH, maxSteps: 64 })) {
         return true;
     }
-    // Why: the client's flood and the walker disagree about single tiles — the ledge's east neighbour at
-    // z 9643 floods as reachable and the walker answers "unreachable beyond (2375,9644)".
-    // Why: and `reached` can still refuse from a side the walk reaches, because a cavern wall stands between
-    // them. So a retry takes the NEXT side rather than sending the same op from the same tile again.
-    // Why: adjacency is to the loc's FOOTPRINT, not its origin. A collapsed bridge is three tiles long, so
-    // the tile a character stands on to cross it is three out from the origin — and a ring of one found
-    // nothing but chasm and reported there was nowhere to stand.
+    // Why: the client's flood and the walker disagree about single tiles — the ledge's east neighbour at z 9643 floods as reachable and the walker answers "unreachable beyond (2375,9644)".
+    // Why: and `reached` can still refuse from a side the walk reaches, because a cavern wall stands between them. So a retry takes the NEXT side rather than sending the same op from the same tile again.
+    // Why: adjacency is to the loc's FOOTPRINT, not its origin. A collapsed bridge is three tiles long, so the tile a character stands on to cross it is three out from the origin — and a ring of one found nothing but chasm and reported there was nowhere to stand.
     const ring: [number, number][] = [];
     for (let d = 1; d <= 4; d++) {
         ring.push([d, 0], [-d, 0], [0, d], [0, -d]);
     }
     const nearMe = (a: Tile, b: Tile): number => chebyshev(a, me ?? a) - chebyshev(b, me ?? b);
     const candidates = ring.map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level));
-    // Why: a tile the character can stand *on* is the one worth having — `adjacentOk` accepts tiles it can
-    // only get next to, and a radius-zero walk then refuses exactly those. But strict as a veto is worse than
-    // the disease: it threw away the rope swing's stand and left the route with nothing at all. So strict
-    // first, loose behind it, and the walk's radius follows which list the tile came from.
+    // Why: a tile the character can stand *on* is the one worth having — `adjacentOk` accepts tiles it can only get next to, and a radius-zero walk then refuses exactly those. But strict as a veto is worse than the disease: it threw away the rope swing's stand and left the route with nothing at all. So strict first, loose behind it, and the walk's radius follows which list the tile came from.
     const strict = candidates
         .filter(tile => Reachability.canReach(tile, { adjacentOk: false, maxSteps: REACH.maxSteps }))
         .sort(nearMe);
@@ -229,9 +191,7 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
     }
     const pick = sides[skip % sides.length]!;
     const exact = skip % sides.length < strict.length;
-    // Why: the ring is cardinal because `reachRectangle` takes nothing else, and a radius of one throws that
-    // away — it lands next to the tile that was chosen, which is the diagonal, and the op answers "You can't
-    // do that from here." Four tries at the second cavern's ledge all came from one diagonal tile that way.
+    // Why: the ring is cardinal because `reachRectangle` takes nothing else, and a radius of one throws that away — it lands next to the tile that was chosen, which is the diagonal, and the op answers "You can't do that from here." Four tries at the second cavern's ledge all came from one diagonal tile that way.
     // Why: walkResilient's own logging is a dozen lines a walk, and the caller keeps one line.
     if (await Traversal.walkResilient(pick, { radius: exact ? 0 : 1, attempts: 1, timeoutMs: 20_000 })) {
         note(`stood@${here()?.x},${here()?.z}`);
@@ -255,23 +215,11 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
             .results();
         found.push(...locs);
     }
-    // Why: the obstacle worth crossing is the one that leaves the player closer to the target than standing
-    // still does — sorting by the target's distance from the obstacle is what encodes "forward".
-    // Why: "any obstacle closer than I am" picks marginal ones that cross sideways and drift the route —
-    // three of them in a row carried a run twenty tiles the wrong way before the loop gave up.
-    // Why: and an obstacle in the scene is not one this pocket can walk to. The stone bridges of the second
-    // cavern sit behind its locked cages, closer to the target than the cages are, so the search chose them
-    // first and burned eighteen seconds each proving it could not get there. The scene's own collision flags
-    // answer that for free.
-    // Why: and a seam can be the only way on while sitting FURTHER from the target than the character
-    // already is — the pipe into the boulder's pocket is sixteen tiles from the boulder while the character
-    // stands fourteen away on the wrong side of it. A gain threshold alone therefore cannot leave that
-    // pocket, and the run oscillated through one cage door instead. So the gain is a preference, not a
-    // filter: seams that gain come first, the rest follow, and `spent` is what stops it going in circles.
-    // Why: and the scene's own verdict orders them too rather than vetoing them. It called the bridge the
-    // character had just walked a hundred and forty tiles to stand beside "walled off", which dropped it
-    // from the list entirely and sent the run over a different bridge, away from the target. Every one of
-    // these tests is a preference; the only hard filter left is whether the loc is in the scene at all.
+    // Why: the obstacle worth crossing is the one that leaves the player closer to the target than standing still does — sorting by the target's distance from the obstacle is what encodes "forward".
+    // Why: "any obstacle closer than I am" picks marginal ones that cross sideways and drift the route — three of them in a row carried a run twenty tiles the wrong way before the loop gave up.
+    // Why: and an obstacle in the scene is not one this pocket can walk to. The stone bridges of the second cavern sit behind its locked cages, closer to the target than the cages are, so the search chose them first and burned eighteen seconds each proving it could not get there. The scene's own collision flags answer that for free.
+    // Why: and a seam can be the only way on while sitting FURTHER from the target than the character already is — the pipe into the boulder's pocket is sixteen tiles from the boulder while the character stands fourteen away on the wrong side of it. A gain threshold alone therefore cannot leave that pocket, and the run oscillated through one cage door instead. So the gain is a preference, not a filter: seams that gain come first, the rest follow, and `spent` is what stops it going in circles.
+    // Why: and the scene's own verdict orders them too rather than vetoing them. It called the bridge the character had just walked a hundred and forty tiles to stand beside "walled off", which dropped it from the list entirely and sent the run over a different bridge, away from the target. Every one of these tests is a preference; the only hard filter left is whether the loc is in the scene at all.
     const mine = chebyshev(from, dest);
     const byDistance = (a: Loc, b: Loc): number => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest);
     const gains = (loc: Loc): boolean => chebyshev(loc.tile(), dest) + MIN_GAIN <= mine;
@@ -290,10 +238,7 @@ function kindOf(loc: Loc): HopKind | null {
 
 /**
  * Cross one obstacle toward `dest`. Returns false when there is none that makes progress.
- * Why: the test is the distance to `dest`, not "the tile changed". An op-click walks the player before its
- * script resolves, so a tile change is usually the approach — one run read a one-tile drift toward a cage it
- * never reached as a crossing and spent seventy seconds a round on it. A roll that fails leaves the player
- * where they were, which is a retry rather than a stop, so the locks get theirs.
+ * Why: the test is the distance to `dest`, not "the tile changed". An op-click walks the player before its script resolves, so a tile change is usually the approach — one run read a one-tile drift toward a cage it never reached as a crossing and spent seventy seconds a round on it. A roll that fails leaves the player where they were, which is a retry rather than a stop, so the locks get theirs.
  */
 async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string>): Promise<boolean> {
     const from = here();
@@ -311,9 +256,7 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         }
         const op = kind.op;
         let now = from;
-        // Why: every one of these refuses in words — "You can't do that from here", "I can't reach that!",
-        // "The rock is being used" — and a step that only reports "did not cross" hides which. Twenty ledge
-        // rolls at ninety-five per cent each cannot all fail, so the script was never running.
+        // Why: every one of these refuses in words — "You can't do that from here", "I can't reach that!", "The rock is being used" — and a step that only reports "did not cross" hides which. Twenty ledge rolls at ninety-five per cent each cannot all fail, so the script was never running.
         const mark = GameMessages.mark();
         // Why: one line for the whole attempt, not one per try — the harness surfaces a bounded number of
         // log lines per tick, and four tries plus their walks arrive as the last of them and nothing else.
@@ -324,10 +267,7 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
                 break;
             }
             stood = true;
-            // Why: a seam is often a row of identical locs — the ledge is six — and the one the search picked
-            // is not the one the character ended up beside. `reachRectangle` takes a cardinal side and nothing
-            // else, and `nearest()` cannot tell a diagonal neighbour from a cardinal one: both are distance
-            // one, so it kept returning the diagonal and the server kept answering "I can't reach that!".
+            // Why: a seam is often a row of identical locs — the ledge is six — and the one the search picked is not the one the character ended up beside. `reachRectangle` takes a cardinal side and nothing else, and `nearest()` cannot tell a diagonal neighbour from a cardinal one: both are distance one, so it kept returning the diagonal and the server kept answering "I can't reach that!".
             const me = here();
             const cardinal = me === null
                 ? null
@@ -347,9 +287,7 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
             if (chebyshev(now, from) >= 2) {
                 break;
             }
-            // Why: the walk can stop on the near side while the crossing script is still running — the two
-            // locked cages roll thieving over a two-tick delay before moving anyone. So a walk that landed
-            // nowhere useful is given the script's own time before it is called a failure.
+            // Why: the walk can stop on the near side while the crossing script is still running — the two locked cages roll thieving over a two-tick delay before moving anyone. So a walk that landed nowhere useful is given the script's own time before it is called a failure.
             const staged = now;
             await Execution.delayUntil(() => {
                 const t = here();
@@ -362,17 +300,10 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
             }
         }
         await settleScene();
-        // Why: a crossing counts when the script ran, not when the straight line got shorter. The bridge out
-        // of the main cavern lands the character eighty-four tiles from the witch's cat where they were
-        // seventy-eight away, and the log said "you manage to cross safely" while this called it a failure
-        // and spent the only way on. Distance across a pocket graph is not distance.
-        // Why: two tiles, because the op-click walks the player before the script resolves — a one-tile
-        // drift toward the obstacle is the approach, and reading that as a crossing burned seventy seconds
-        // a round on a cage the character never reached.
+        // Why: a crossing counts when the script ran, not when the straight line got shorter. The bridge out of the main cavern lands the character eighty-four tiles from the witch's cat where they were seventy-eight away, and the log said "you manage to cross safely" while this called it a failure and spent the only way on. Distance across a pocket graph is not distance.
+        // Why: two tiles, because the op-click walks the player before the script resolves — a one-tile drift toward the obstacle is the approach, and reading that as a crossing burned seventy seconds a round on a cage the character never reached.
         if (chebyshev(now, from) < 2) {
-            // Why: a seam that could not be stood beside is not a seam that does not work — it is one the
-            // character was in the wrong pocket for. Spending it there meant that when the route finally put
-            // them three tiles from it, the search refused to try the crossing at all.
+            // Why: a seam that could not be stood beside is not a seam that does not work — it is one the character was in the wrong pocket for. Spending it there meant that when the route finally put them three tiles from it, the search refused to try the crossing at all.
             if (stood) {
                 spent.add(key);
             }
@@ -382,9 +313,7 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
                 + ` — ${trace.join(' | ')} — it said: ${said}`);
             continue;
         }
-        // Why: a crossing is spent whether it helped or not. Nothing here can tell which side of a seam is
-        // the useful one until the far side is walked, so the guard against crossing back and forth is that
-        // each one is used once per journey.
+        // Why: a crossing is spent whether it helped or not. Nothing here can tell which side of a seam is the useful one until the far side is walked, so the guard against crossing back and forth is that each one is used once per journey.
         spent.add(key);
         log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now.x},${now.z})`);
         return true;
@@ -401,10 +330,7 @@ interface UseSeam {
     label: string;
 }
 
-// Why: two of the seams are item-uses rather than ops, and both are the only way out of their pocket — the
-// swing east off the bridge shelf onto the grid, and the spade dig that is the sole route south out of the
-// slave cages. They belong in the same vocabulary rather than special-cased by a caller that cannot know
-// whether the navigator already got there.
+// Why: two of the seams are item-uses rather than ops, and both are the only way out of their pocket — the swing east off the bridge shelf onto the grid, and the spade dig that is the sole route south out of the slave cages. They belong in the same vocabulary rather than special-cased by a caller that cannot know whether the navigator already got there.
 const USE_SEAMS: readonly UseSeam[] = [
     {
         item: UP_ITEM.ROPE,
@@ -464,20 +390,14 @@ async function useSeamToward(dest: Tile, log: (m: string) => void): Promise<bool
     return false;
 }
 
-// Why: an op-click can only name a loc the client already holds in its build area, and that area follows the
-// player — so a seam at the far side of a pocket is invisible from the near side. The mud pocket's only exit
-// is a ledge eighteen tiles west while its target lies south, so walking "toward the target" never brought it
-// into view and the leg stopped in a room with a door in it. When nothing crosses, the pocket is swept.
-// Why: the probe has to land inside the pocket, and a pocket is rarely a square — so each direction is tried
-// at falling distances and the furthest one the scene says is walkable wins.
+// Why: an op-click can only name a loc the client already holds in its build area, and that area follows the player — so a seam at the far side of a pocket is invisible from the near side. The mud pocket's only exit is a ledge eighteen tiles west while its target lies south, so walking "toward the target" never brought it into view and the leg stopped in a room with a door in it. When nothing crosses, the pocket is swept.
+// Why: the probe has to land inside the pocket, and a pocket is rarely a square — so each direction is tried at falling distances and the furthest one the scene says is walkable wins.
 const SWEEP_STEPS = [20, 14, 9, 5] as const;
 const SWEEP_DIRS: readonly [number, number][] = [
     [-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]
 ];
 
-// Why: which platform pocket anything is in cannot be read off the map at runtime, but the navigator can
-// answer "can I walk there" against the full collision pack in a millisecond — so the character's pocket is
-// whichever side tile it can reach, and the target's is whichever side tile can reach the target.
+// Why: which platform pocket anything is in cannot be read off the map at runtime, but the navigator can answer "can I walk there" against the full collision pack in a millisecond — so the character's pocket is whichever side tile it can reach, and the target's is whichever side tile can reach the target.
 function linksFor(level: number): readonly PlatformLink[] {
     return level === 1 ? PLATFORM_LINKS : CAVERN_LINKS;
 }
@@ -550,10 +470,7 @@ async function platformStep(
     return null;
 }
 
-// Why: on the platforms the solved route is the authority, not one candidate among twenty. Letting the
-// obstacle search choose freely there sent a run back and forth across the same two bridges: the step it was
-// serving alternates between the cat and the witch's door, the spent set is keyed by destination, and every
-// switch wiped the memory of which crossings had already been used.
+// Why: on the platforms the solved route is the authority, not one candidate among twenty. Letting the obstacle search choose freely there sent a run back and forth across the same two bridges: the step it was serving alternates between the cat and the witch's door, the spent set is keyed by destination, and every switch wiped the memory of which crossings had already been used.
 async function crossByRoute(
     from: { x: number; z: number; level: number },
     dest: Tile,
@@ -605,12 +522,8 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
     if (!from) {
         return false;
     }
-    // Why: a compass probe walks where the pocket happens to extend, which in the main cavern is a corridor
-    // running the wrong way — eight rounds of it never came within sight of the bridge fifteen tiles north.
-    // Walking AT a seam the scene can see but not reach is what carries the build area to it.
-    // Why: the client's own flood is not the authority on this — it called the collapsed bridge walled off
-    // from twenty-nine tiles away inside the same pocket, which the collision pack says is one walk. So every
-    // seam in the scene is walked at, and the budget is the length of that walk rather than a short probe.
+    // Why: a compass probe walks where the pocket happens to extend, which in the main cavern is a corridor running the wrong way — eight rounds of it never came within sight of the bridge fifteen tiles north. Walking AT a seam the scene can see but not reach is what carries the build area to it.
+    // Why: the client's own flood is not the authority on this — it called the collapsed bridge walled off from twenty-nine tiles away inside the same pocket, which the collision pack says is one walk. So every seam in the scene is walked at, and the budget is the length of that walk rather than a short probe.
     for (const loc of seamsInScene(SWEEP_SEARCH).sort((a, b) => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest))) {
         if (!(await Traversal.walkResilient(loc.tile(), { radius: 8, attempts: 2, timeoutMs: 60_000 }))) {
             continue;
@@ -620,9 +533,7 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
             return true;
         }
     }
-    // Why: and the crossing that leaves a platform can be a hundred and forty tiles off, well past any
-    // scene — so the known bridge placements are walked at too, nearest the target first. The walker
-    // refuses the ones in other components in a second each, which is what makes trying them all cheap.
+    // Why: and the crossing that leaves a platform can be a hundred and forty tiles off, well past any scene — so the known bridge placements are walked at too, nearest the target first. The walker refuses the ones in other components in a second each, which is what makes trying them all cheap.
     const probes = SWEEP_DIRS
         .map(([dx, dz]) => SWEEP_STEPS
             .map(step => new Tile(from.x + dx * step, from.z + dz * step, from.level))
@@ -644,12 +555,10 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
 
 /**
  * Walk to `dest`, crossing whatever obstacles stand between its pocket and this one.
- * Why: a plain `walkResilient` is tried first every round, because inside a pocket it is the right tool —
- * the obstacle search only runs once the navigator has said there is no route.
+ * Why: a plain `walkResilient` is tried first every round, because inside a pocket it is the right tool — the obstacle search only runs once the navigator has said there is no route.
  */
-// Why: `spent` has to outlive one call. Each decide cycle starts a fresh `travelTo`, and a seam that led
-// nowhere last cycle is the nearest one again this cycle — which is how a run crossed the same cage door
-// back and forth for four minutes. It is dropped once the destination is reached or changes.
+
+// Why: `spent` has to outlive one call. Each decide cycle starts a fresh `travelTo`, and a seam that led nowhere last cycle is the nearest one again this cycle — which is how a run crossed the same cage door back and forth for four minutes. It is dropped once the destination is reached or changes.
 const spentByDest = new Map<string, Set<string>>();
 
 export async function travelTo(dest: Tile, radius: number, log: (m: string) => void): Promise<boolean> {

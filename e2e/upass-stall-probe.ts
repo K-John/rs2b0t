@@ -233,7 +233,7 @@ try {
     console.log(`stalled→ (${after.pos?.x},${after.pos?.z}) hp ${after.hp} modal ${after.modal} walkReturned=${crossed}`);
 
     // Why: if the walk resumes the moment the modal closes, the freeze was the busy gate in
-    // `updateMovement`, not a route that simply ended there.
+    // `updateMovement`, not a route that ended there on its own.
     await page.waitForTimeout(3_000);
     const settled = await probe(page);
     console.log(`released→ (${settled.pos?.x},${settled.pos?.z}) hp ${settled.hp}`);

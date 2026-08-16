@@ -4,11 +4,8 @@ import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
 import { UPASS } from './journal.js';
 
-// Why: `Player.busy()` is `delayed || containsModalInterface()`, and a NORMAL `[timer,…]` only runs under
-// `canAccess()`, so an open journal suspends every timer trap in the pass — the spiked grid
-// (`upass_grid_traps`) and the spear/spring traps (`upass_trap`). `[softtimer,…]` is unaffected.
-// Why: the walk has to be an OP-click. `MoveClickHandler` calls `clearPendingAction()` — which closes the
-// modal — for every move except `opClick`, so a plain walk click cancels the stall on the first step.
+// Why: `Player.busy()` is `delayed || containsModalInterface()`, and a NORMAL `[timer,…]` only runs under `canAccess()`, so an open journal suspends every timer trap in the pass — the spiked grid (`upass_grid_traps`) and the spear/spring traps (`upass_trap`). `[softtimer,…]` is unaffected.
+// Why: the walk has to be an OP-click. `MoveClickHandler` calls `clearPendingAction()` — which closes the modal — for every move except `opClick`, so a plain walk click cancels the stall on the first step.
 
 const POLL_TICKS = 2;
 
@@ -48,9 +45,7 @@ export interface StalledApproach {
     abort?: () => boolean;
     /**
      * Leave the modal up on the way out.
-     * Why: a chain of these ends each leg standing on the next stepping stone, and down here the stepping
-     * stones are the trap tiles themselves — closing the journal to open it again a tick later is the
-     * whole exposure. The op-click that starts the next leg closes it anyway.
+     * Why: a chain of these ends each leg standing on the next stepping stone, and down here the stepping stones are the trap tiles themselves — closing the journal to open it again a tick later is the whole exposure. The op-click that starts the next leg closes it anyway.
      */
     hold?: boolean;
     log: (m: string) => void;
@@ -78,12 +73,7 @@ export async function stalledApproach(opts: StalledApproach): Promise<boolean> {
         log(`stall: ${what} would not send`);
         return false;
     }
-    // Why: the journal must land in a tick of its own. `moveClickRequest` is settled after a whole tick is
-    // decoded — an op-click alone leaves it false and the walk survives an open modal, while a modal opened
-    // in that same tick latches it true and `updateMovement` then freezes at the first 8x8 zone boundary,
-    // because the engine queue it waits on cannot drain while busy either. A bare tick delay does not prove
-    // the split (the click may not be decoded yet), so the first step is what the press waits on — which is
-    // why the caller has to stage far enough back that the player is still on safe ground by then.
+    // Why: the journal must land in a tick of its own. `moveClickRequest` is settled after a whole tick is decoded — an op-click alone leaves it false and the walk survives an open modal, while a modal opened in that same tick latches it true and `updateMovement` then freezes at the first 8x8 zone boundary, because the engine queue it waits on cannot drain while busy either. A bare tick delay does not prove the split (the click may not be decoded yet), so the first step is what the press waits on — which is why the caller has to stage far enough back that the player is still on safe ground by then.
     const moved = await Execution.delayUntilTicks(() => {
         const now = tileNow();
         return now !== null && from !== null && (now.x !== from.x || now.z !== from.z);
@@ -145,8 +135,7 @@ export interface StalledJourney {
 
 /**
  * Reach `goal` over a chain of stalled op-clicks, holding the journal across the whole journey.
- * Why: an op-click can only name a loc the client has in its build area, and that area lags the player,
- * so the reach is far shorter than the corridor. The chain is what closes the gap.
+ * Why: an op-click can only name a loc the client has in its build area, and that area lags the player, so the reach is far shorter than the corridor. The chain is what closes the gap.
  */
 export async function stalledJourney(opts: StalledJourney): Promise<boolean> {
     const { goal, nextStone, log } = opts;
@@ -209,16 +198,11 @@ export interface StalledCrossing extends StalledWalk {
     attempts?: number;
 }
 
-// Why: whether the modal beats the player onto the trapped ground is a one-tick race — the press cannot go
-// out until the op-click has been seen to move the player, or it shares that tick and the walk freezes at
-// the first zone boundary instead. Where the approach is short there is no margin to win the race every
-// time, so a lost attempt is treated as ordinary cost: recover to the lip and go again.
+// Why: whether the modal beats the player onto the trapped ground is a one-tick race — the press cannot go out until the op-click has been seen to move the player, or it shares that tick and the walk freezes at the first zone boundary instead. Where the approach is short there is no margin to win the race every time, so a lost attempt is treated as ordinary cost: recover to the lip and go again.
 export async function stalledCrossing(opts: StalledCrossing): Promise<boolean> {
     const attempts = opts.attempts ?? 4;
     for (let attempt = 1; attempt <= attempts; attempt++) {
-        // Why: the crossing can land after `stalledWalk` has already given up on its own oracle — the walk
-        // is still finishing when the check runs. Asking again at the top of the next attempt is what stops
-        // a recovery that walks back east to re-approach a grid the character is already west of.
+        // Why: the crossing can land after `stalledWalk` has already given up on its own oracle — the walk is still finishing when the check runs. Asking again at the top of the next attempt is what stops a recovery that walks back east to re-approach a grid the character is already west of.
         if (opts.arrived()) {
             return true;
         }

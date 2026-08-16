@@ -25,9 +25,7 @@ const KIT: Stack[] = [
     [UP_ITEM.LOBSTER.id, 14]
 ];
 
-// Why: the melee kit is matched by name, not id — any scimitar or platebody will do — so a snapshot needs
-// the name maps as well. It is worn by default, because a pack holding one unworn is a step of its own and
-// a pack holding none parks at the cave mouth.
+// Why: the melee kit is matched by name, not id — any scimitar or platebody will do — so a snapshot needs the name maps as well. It is worn by default, because a pack holding one unworn is a step of its own and a pack holding none parks at the cave mouth.
 const WEAPON = 'rune scimitar';
 
 function snapshot(over: Partial<QuestSnapshot> & {
@@ -82,11 +80,8 @@ describe('Underground Pass decide()', () => {
         expect(reasonOf(step)).toContain('melee weapon');
     });
 
-    // Why: the journal prints the same two sentences at stage three and stage four and differs only in
-    // which is struck through, so the module reads three while the server is at four — and levered a boulder
-    // that was already spent, forever. The two stages are one leg, and the horn is what ends it.
-    // Why: and the crests, the well and the doors are one step after that, because the well eats the crests
-    // and the journal never says it did — a run killed three respawned paladins after feeding the first.
+    // Why: the journal prints the same two sentences at stage three and stage four and differs only in which is struck through, so the module reads three while the server is at four — and levered a boulder that was already spent, forever. The two stages are one leg, and the horn is what ends it.
+    // Why: and the crests, the well and the doors are one step after that, because the well eats the crests and the journal never says it did — a run killed three respawned paladins after feeding the first.
     test('the unicorn leg is keyed on the horn, not on the stage', () => {
         const inArea2 = { x: 2396, z: 9600, level: 0 };
         for (const stage of [UP_STAGE.ENTERED_SECOND_AREA, UP_STAGE.KILLED_UNICORN]) {
@@ -183,9 +178,7 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(step)).toContain('stay rope');
     });
 
-    // Why: which orbs are already dark is not answerable from a snapshot — a burned orb has simply left the
-    // pack, and neither the trap nor the ground spawns hand over a second one. A per-site decide cycle
-    // therefore picks the same site forever, so the whole sweep is one step that keeps its own tally.
+    // Why: which orbs are already dark is not answerable from a snapshot — a burned orb has left the pack, and neither the trap nor the ground spawns hand over a second one. A per-site decide cycle therefore picks the same site forever, so the whole sweep is one step that keeps its own tally.
     test('past the grid, the orb phase is a single step whatever the pack holds', () => {
         const inside = { x: 2460, z: 9678, level: 0 };
         for (const carried of [[], [UP_ITEM.ORB1.id], [UP_ITEM.ORB1.id, UP_ITEM.ORB2.id, UP_ITEM.ORB3.id]]) {
@@ -202,9 +195,7 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(step)).toContain('grid');
     });
 
-    // Why: the bridge-and-rope shelf overlaps the orb corridor's bounding box on x 2431-2464 / z 9686-9731,
-    // and a plain box read the shelf as the corridor — one run drifted onto the rope shelf, declared the
-    // grid crossed and spent six minutes clicking at stepping stones on the far side of a seam.
+    // Why: the bridge-and-rope shelf overlaps the orb corridor's bounding box on x 2431-2464 / z 9686-9731, and a plain box read the shelf as the corridor — one run drifted onto the rope shelf, declared the grid crossed and spent six minutes clicking at stepping stones on the far side of a seam.
     test('the bridge and rope shelf is not mistaken for the corridor past the grid', () => {
         for (const tile of [
             { x: 2442, z: 9716, level: 0 },
@@ -249,9 +240,7 @@ describe('Underground Pass decide()', () => {
         }
     });
 
-    // Why: the doll comes out of a chest in a fifteen-tile pocket whose only exit is a door the collision
-    // pack calls blocked, so a leg that lifts it ends shut in and every later step answers "unreachable".
-    // A live run spent fifty-five minutes there. The way out has to come before anything else, at any stage.
+    // Why: the doll comes out of a chest in a fifteen-tile pocket whose only exit is a door the collision pack calls blocked, so a leg that lifts it ends shut in and every later step answers "unreachable". A live run spent fifty-five minutes there. The way out has to come before anything else, at any stage.
     test('being shut in Kardia\'s house outranks every other step', () => {
         const inside = [
             { x: 2156, z: 4566, level: 1 },
@@ -273,9 +262,7 @@ describe('Underground Pass decide()', () => {
         }
     });
 
-    // Why: taking the blood leaves the character on Kalrag's own tile, one pocket with the dwarf camp but a
-    // different area name. A live run read that as "on the platforms" and spent seven attempts walking at a
-    // level-1 cage from level 0. Every step below has to accept both names.
+    // Why: taking the blood leaves the character on Kalrag's own tile, one pocket with the dwarf camp but a different area name. A live run read that as "on the platforms" and spent seven attempts walking at a level-1 cage from level 0. Every step below has to accept both names.
     test("Kalrag's side of the cave is below, not on the platforms", () => {
         const KALRAG = { x: 2356, z: 9911, level: 0 };
         const doll = [UP_ITEM.DOLL.id, UP_ITEM.GAUNTLETS.id];

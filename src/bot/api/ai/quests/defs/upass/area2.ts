@@ -24,10 +24,7 @@ export async function takeRailing(log: (m: string) => void): Promise<boolean> {
     return driveUntil(() => heldId(UP_ITEM.RAILING.id) > 0, [], log, 12_000);
 }
 
-// Why: the journal cannot tell this stage from the last one. Both print "Something is watching me" and
-// "I must work my way deeper into these caverns", differing only in the strike-through colour that marks
-// which is current — so a run levered a boulder that was already spent, forever. The horn is the honest
-// signal, and taking it is part of the same step.
+// Why: the journal cannot tell this stage from the last one. Both print "Something is watching me" and "I must work my way deeper into these caverns", differing only in the strike-through colour that marks which is current — so a run levered a boulder that was already spent, forever. The horn is the honest signal, and taking it is part of the same step.
 
 /** Lever the boulder onto the unicorn, then take the horn from what is left of the cage. */
 export async function crushUnicorn(log: (m: string) => void): Promise<boolean> {
@@ -94,19 +91,13 @@ export function badgesHeld(snap: QuestSnapshot): number {
     return countHeld(snap, UP_BADGES);
 }
 
-// Why: the three paladins only turn hostile once the main cavern has been entered, so before that they are
-// killed one at a time from a standing start rather than left to aggro as a group.
-// Why: the well eats the crests and the journal never says it did, so a snapshot cannot tell "not killed
-// yet" from "already fed" — and a run killed three respawned paladins after feeding the first three. The
-// whole irreversible run of it is therefore one step, ending on the only thing the journal can see: the
-// character standing on the level-1 platform past the temple doors.
+// Why: the three paladins only turn hostile once the main cavern has been entered, so before that they are killed one at a time from a standing start rather than left to aggro as a group.
+// Why: the well eats the crests and the journal never says it did, so a snapshot cannot tell "not killed yet" from "already fed" — and a run killed three respawned paladins after feeding the first three. The whole irreversible run of it is therefore one step, ending on the only thing the journal can see: the character standing on the level-1 platform past the temple doors.
 
 /** Kill paladins, feed the well and pass the doors — whatever of that is still outstanding. */
 export async function crossTheTemple(log: (m: string) => void): Promise<boolean> {
     const crests = (): number => UP_BADGES.filter(badge => heldId(badge.id) > 0).length;
-    // Why: a paladin respawns, and "whichever is alive" always picks the nearest — so the same one died
-    // eight times, its crest was fed to a bit already set, and the other two were never touched. Each is
-    // killed once per crossing, by id.
+    // Why: a paladin respawns, and "whichever is alive" always picks the nearest — so the same one died eight times, its crest was fed to a bit already set, and the other two were never touched. Each is killed once per crossing, by id.
     const killed = new Set<number>();
     for (let round = 0; round < 4; round++) {
         if ((Game.tile()?.level ?? 0) === 1) {
