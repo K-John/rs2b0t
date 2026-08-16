@@ -50,8 +50,8 @@ import {
     foodTopUp,
     held,
     heldFood,
+    ditchIds,
     junkHeld,
-    junkIds,
     owned,
     potionTopUp,
     sourceBankOnly,
@@ -227,7 +227,7 @@ function makeRoom(snap: QuestSnapshot, chosen: QuestStep): QuestStep {
         return junkHeld(snap) ? deposit(chosen.bank ?? LEG_BANK.karamja) : chosen;
     }
     // Why: a pack with spent kit in it is already being dropped by the step above, and two drops racing each other shed one item a pass.
-    const junk = spentNow(snap).length > 0 ? [] : junkIds(snap);
+    const junk = spentNow(snap).length > 0 ? [] : ditchIds(snap);
     if (junk.length > 0) {
         return step('drop what the quest has no use for', ditch(junk));
     }

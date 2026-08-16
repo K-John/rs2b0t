@@ -83,6 +83,20 @@ function kitted(o: SnapOpts = {}): QuestSnapshot {
 
 const name = (step: QuestStep): string => (step.kind === 'custom' ? `custom:${step.name}` : step.kind);
 
+/** Re-mining the seven gems after a death: the trials kit is whole, the map supplies are long gone. */
+function atTheGemRocks(gems: number[]): QuestSnapshot {
+    const shed: number[] = [LQ_ID.PAPYRUS, LQ_ID.CHARCOAL, ...GEM_IDS];
+    const kit = FULL_KIT.filter(id => !shed.includes(id));
+    return snap({
+        stage: LQ_STAGE.SUMMONED_NEZI_FIRE,
+        invIds: [...kit, ...gems, LQ_ID.LOBSTER, LQ_ID.LOBSTER, LQ_ID.COINS],
+        inv: ['Coins', 'Lobster', 'Lobster'],
+        tile: { x: 2825, z: 2997, level: 0 }
+    });
+}
+
+const GEM_IDS = [LQ_ID.OPAL, LQ_ID.JADE, LQ_ID.RED_TOPAZ, LQ_ID.SAPPHIRE, LQ_ID.EMERALD, LQ_ID.RUBY, LQ_ID.DIAMOND];
+
 describe('legendsArea', () => {
     test('the Kharazi Jungle is its own world', () => {
         expect(legendsArea({ x: 2790, z: 2910, level: 0 })).toBe('jungle');
@@ -529,6 +543,19 @@ describe('Legends Quest decide', () => {
         });
         expect(name(decide({ ...full, freeSlots: 0 }))).toBe('custom:eat a lobster to make room');
         expect(name(decide({ ...full, freeSlots: 3 }))).not.toBe('custom:eat a lobster to make room');
+    });
+
+    // Why: the rock rolls opal 60/128, so the wait for the last gem fills the pack with uncut opals the keep list protects and the deposit will not take.
+    test('a full pack drops the uncut gems whose cut stone is already in hand', () => {
+        const full = atTheGemRocks([LQ_ID.OPAL, LQ_ID.UNCUT_OPAL, LQ_ID.UNCUT_OPAL]);
+        expect(name(decide({ ...full, freeSlots: 0 }))).toBe('custom:drop what the quest has no use for');
+        expect(name(decide({ ...full, freeSlots: 3 }))).toBe('custom:mine a gem (6 of seven still missing)');
+    });
+
+    // Why: an uncut gem whose stone has not been cut yet is the chisel step's input, not junk, and dropping it re-mines the rarest roll on the rock.
+    test('the uncut gem still waiting on the chisel is not dropped', () => {
+        const full = atTheGemRocks([LQ_ID.UNCUT_DIAMOND]);
+        expect(name(decide({ ...full, freeSlots: 0 }))).not.toBe('custom:drop what the quest has no use for');
     });
 
     // Why: the book is gone from the pack once it is read, which is not the same as never having had it.

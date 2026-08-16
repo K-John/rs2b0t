@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Twenty-eight, and the first three are map and engine facts rather than quest ones.
+Twenty-nine, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -173,6 +173,14 @@ Twenty-eight, and the first three are map and engine facts rather than quest one
   retries the identical thing. Four offers of forty seconds cost the same wall clock and
   each one is a fresh throw. Where the opening move is cheap and the wait is long, retry
   the move.
+
+- **A protected item can be junk, and a deposit will not take it.** The gem rock rolls opal
+  60 times in 128 and diamond 4, so the wait for the last two gems buried the pack in nine
+  uncut opals — every one of them on the keep list, so nothing read as junk, and the food
+  float was already below its own threshold, so no lobster could be eaten either. Mining
+  with nought free lands nothing, forever. The seeded bank hid it: the first pass withdrew
+  seven cut gems and never touched the rock, and only a death made the module mine them.
+  What the drop may shed and what a deposit would take are two lists, not one.
 
 ## See also
 

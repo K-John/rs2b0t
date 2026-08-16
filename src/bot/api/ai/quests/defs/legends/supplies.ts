@@ -131,6 +131,15 @@ export function junkHeld(snap: QuestSnapshot): boolean {
     return junkIds(snap).length > 0;
 }
 
+// Why: the rock rolls opal 60/128 and diamond 4/128, so the wait for the last gem buries the pack in uncut opals that the keep list is protecting.
+// Why: the deposit keeps them by id, so a bank trip would take none of them — the surplus is a drop, not a deposit, and it is junk only once its own cut gem is in hand.
+
+/** Everything the drop may shed where the character stands, spare uncut gems included. */
+export function ditchIds(snap: QuestSnapshot): number[] {
+    const spare = GEM_CUTS.filter(gem => held(snap, gem.uncut) > 0 && owned(snap, gem.cut) > 0).map(gem => gem.uncut);
+    return [...junkIds(snap), ...spare];
+}
+
 export function deposit(bank?: Tile): QuestStep {
     return { kind: 'deposit', keep: [...LQ_FOODS], keepIds: KEEP_IDS, bank };
 }
