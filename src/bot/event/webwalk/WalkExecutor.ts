@@ -99,6 +99,9 @@ const PATH_REQUEST_TIMEOUT_MS = 30_000;
 const TRANSPORT_WAIT_MS = 8000;
 /** Ceiling on the client scene rebuild after a landing, before a hop's loc counts as absent. */
 const SCENE_REBUILD_MS = 3000;
+// Why: the same rebuild that hides a hop's loc also empties `toLocal` for the tiles ahead, so every click candidate fails and the follow repaths with nothing clicked — five times inside the window, then the whole walk starts over.
+/** All-candidate misses to sit out before repathing, while nothing has been clicked yet. */
+const CANDIDATE_SETTLE_TRIES = 3;
 const SCENE_STEP_MS = 8000;
 /** Walking the last tiles onto a hop's planned approach after a server can't-reach. */
 const APPROACH_STEP_MS = 4000;
@@ -831,6 +834,8 @@ class WalkExecutorImpl {
         let stallRetries = 0;
         let clickIdx = -1;
         let clicks = 0;
+        /** Consecutive all-candidate misses sat out while the landing scene rebuilds. */
+        let candidateSettles = 0;
         let warnedCombat = false;
         let lastTile: WorldTile | null = null;
         /** GameMessages watermark after the last *successful* walk click. */
@@ -1142,6 +1147,7 @@ class WalkExecutorImpl {
                 if (chosen !== -1) {
                     clickIdx = chosen;
                     clicks++;
+                    candidateSettles = 0;
                     // Why: only tile movement — plus hop landings and stall-recovery clicks — clears the stall clock, so `lastMoveTick` is not reset on a click.
                     // Why: resetting here alongside unreach re-picks starved the 9-tick stall and left walks thrashing until the wall-clock "walk timed out".
                     this.publishPath(tiles, pathIdx, clickIdx);
@@ -1181,8 +1187,14 @@ class WalkExecutorImpl {
                             return 'repath';
                         }
                     }
+                    // Why: a walk that has clicked nothing yet is one the scene may not have caught up with, and repathing inside that window burns the five-repath budget on an identical path.
+                    if (clicks === 0 && candidateSettles < CANDIDATE_SETTLE_TRIES) {
+                        candidateSettles++;
+                        await Execution.delayTicks(2);
+                        continue;
+                    }
                     log(
-                        `client walk pathfind failed for all click candidates near path idx ${pathIdx} — repathing immediately (${clicks} clicks)`
+                        `client walk pathfind failed for all click candidates near path idx ${pathIdx} — repathing immediately (${clicks} clicks, settled ${candidateSettles})`
                     );
                     return 'repath';
                 }
