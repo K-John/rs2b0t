@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Twenty-three, and the first three are map and engine facts rather than quest ones.
+Twenty-four, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -143,6 +143,13 @@ Twenty-three, and the first three are map and engine facts rather than quest one
   called it a day one option short of the rescue, four times running. The step recovered
   on the fifth pass, which is the tell: a race, not a wrong list. Ten ticks of silence is
   an ending; three is a blink.
+
+- **One long wait on a chat that is not coming teaches you nothing.** Gujuo takes the
+  golden bowl, the greeting that should follow sometimes never arrives, and a
+  hundred-and-fifty-second `driveUntil` sits through all of it in silence before the engine
+  retries the identical thing. Four offers of forty seconds cost the same wall clock and
+  each one is a fresh throw. Where the opening move is cheap and the wait is long, retry
+  the move.
 
 ## See also
 

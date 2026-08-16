@@ -133,17 +133,24 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
     if (!(await summonGujuo(log))) {
         return false;
     }
-    const bowl = Inventory.items().find(item => item.id === LQ_ID.GOLD_BOWL);
-    const gujuo = Npcs.query().name(LQ_NPC.GUJUO).within(12).nearest();
-    if (!bowl || !gujuo) {
-        log('no plain golden bowl in the pack or no Gujuo in range');
-        return false;
+    // Why: the use-on lands and the greeting sometimes never arrives, and one long wait on a chat that is not coming spends the whole budget learning nothing — so the offer is made again rather than waited on.
+    for (let i = 0; i < BLESS_ATTEMPTS; i++) {
+        const bowl = Inventory.items().find(item => item.id === LQ_ID.GOLD_BOWL);
+        const gujuo = Npcs.query().name(LQ_NPC.GUJUO).within(12).nearest();
+        if (!bowl || !gujuo) {
+            log('no plain golden bowl in the pack or no Gujuo in range');
+            return false;
+        }
+        if (await bowl.useOn(gujuo) && await driveUntil(blessed, BLESS_PREFER, log, 40_000)) {
+            return true;
+        }
+        await settleScene();
     }
-    if (!(await bowl.useOn(gujuo))) {
-        return false;
-    }
-    return driveUntil(blessed, BLESS_PREFER, log, 150_000);
+    log('Gujuo took the bowl four times and never blessed it');
+    return blessed();
 }
+
+const BLESS_ATTEMPTS = 4;
 
 const BOWL_ATTEMPTS = 6;
 
