@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Thirty, and the first three are map and engine facts rather than quest ones.
+Thirty-one, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -189,6 +189,15 @@ Thirty, and the first three are map and engine facts rather than quest ones.
   the answer is "you are too inexperienced" for ever. Three live offers went by with
   `chat ""` in the log, because the driver had already closed the refusal by the time the
   wait gave up. The flask the demon needs, this leg needs too.
+
+- **A shop counter is not a booth, and the pack-space valve only knew booths.** A full pack
+  going to a *withdraw* has a bank to shed into; a full pack going to a *buy* at the Magic
+  Guild has nothing but the floor. The valve handed the buy straight back when there was
+  nothing a deposit would take, and the water runes failed a hundred and thirty times in
+  ten minutes with an explicit warning in the log that the no-progress watchdog would never
+  fire, because a failure is not a stall. Every step kind needs the same last resort, and
+  the two things filling the pack were both receipts: the sketch of a bowl that had already
+  been forged, and the flask the blessing had already drunk.
 
 ## See also
 

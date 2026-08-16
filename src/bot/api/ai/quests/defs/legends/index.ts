@@ -53,6 +53,7 @@ import {
     ditchIds,
     junkHeld,
     owned,
+    PRAYER_POTIONS,
     potionTopUp,
     sourceBankOnly,
     sourceFrom,
@@ -134,6 +135,12 @@ function carryingWater(snap: QuestSnapshot): boolean {
 
 // Why: the boulders hand back a lump of rock apiece, the finished map leaves its supplies behind and the forged bowl leaves the hammer — all worthless, and a full pack silently swallows a sketch, a spell or a set of seeds.
 
+/** Every state a forged bowl can be in. */
+const BOWLS: readonly number[] = [
+    LQ_ID.GOLD_BOWL, LQ_ID.GOLD_BOWL_BLESSED, LQ_ID.GOLD_BOWL_WATER,
+    LQ_ID.GOLD_BOWL_PURE, LQ_ID.GOLD_BOWL_BLESSED_WATER, LQ_ID.GOLD_BOWL_BLESSED_PURE
+];
+
 /** What the quest is done with, given where it has got to. */
 function spentNow(snap: QuestSnapshot): number[] {
     const spent: number[] = [LQ_ID.SWAMP_ROCK];
@@ -143,6 +150,14 @@ function spentNow(snap: QuestSnapshot): number[] {
     // Why: the hammer's only job was the bowl, and the reed takes the machete just as happily as the knife — both are a slot the trials kit needs.
     if (held(snap, LQ_ID.GOLD_BOWL_BLESSED) > 0 || held(snap, LQ_ID.GOLD_BOWL_BLESSED_PURE) > 0) {
         spent.push(LQ_ID.HAMMER, LQ_ID.KNIFE);
+    }
+    // Why: the sketch is a drawing of the vessel and nothing more, so the bowl in any state is its own receipt.
+    if (BOWLS.some(id => held(snap, id) > 0)) {
+        spent.push(LQ_ID.GOLD_BOWL_SKETCH);
+    }
+    // Why: the flask the blessing drank from belongs to the demon, and the trials pack is twenty-eight wanted things without it.
+    if (potsFor(snap, snap.stage ?? 0) === 0) {
+        spent.push(...PRAYER_POTIONS.map(pot => pot.id));
     }
     return spent.filter(id => held(snap, id) > 0);
 }
@@ -223,8 +238,9 @@ function makeRoom(snap: QuestSnapshot, chosen: QuestStep): QuestStep {
     if ((snap.freeSlots ?? 1) > 0) {
         return chosen;
     }
-    if (chosen.kind === 'withdraw' || chosen.kind === 'buy') {
-        return junkHeld(snap) ? deposit(chosen.bank ?? LEG_BANK.karamja) : chosen;
+    // Why: a booth is the tidiest place to shed a slot, but only for something a deposit would take — falling through is what a shop counter with nothing bankable needs.
+    if ((chosen.kind === 'withdraw' || chosen.kind === 'buy') && junkHeld(snap)) {
+        return deposit(chosen.bank ?? LEG_BANK.karamja);
     }
     // Why: a pack with spent kit in it is already being dropped by the step above, and two drops racing each other shed one item a pass.
     const junk = spentNow(snap).length > 0 ? [] : ditchIds(snap);

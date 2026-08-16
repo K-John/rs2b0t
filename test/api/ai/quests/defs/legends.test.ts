@@ -506,6 +506,37 @@ describe('Legends Quest decide', () => {
         expect(name(decide({ ...full, freeSlots: 0 }))).toBe('custom:drop what the quest has finished with');
     });
 
+    // Why: the sketch and the flask are both spent the moment the bowl is blessed, and the trials kit is one rune stack short of the pack without their slots.
+    test('the sketch and the used flask are spent once the bowl is blessed', () => {
+        const spent = kitted({
+            stage: LQ_STAGE.ASKED_GUJUO_WATER,
+            invIds: [LQ_ID.GOLD_BOWL_BLESSED, LQ_ID.GOLD_BOWL_SKETCH, 2434]
+        });
+        expect(name(decide({ ...spent, freeSlots: 0 }))).toBe('custom:drop what the quest has finished with');
+    });
+
+    // Why: the flask is the blessing's until the blessing happens, and dropping it there is a bank trip and a re-buy for nothing.
+    test('the flask is not spent while the bowl is still plain', () => {
+        const plain = snap({
+            stage: LQ_STAGE.ASKED_GUJUO_WATER,
+            invIds: [LQ_ID.GOLD_BOWL, 2434, LQ_ID.MACHETE, LQ_ID.RUNE_AXE, LQ_ID.COINS],
+            inv: [...Array.from({ length: 14 }, () => 'Lobster'), 'Coins']
+        });
+        expect(name(decide({ ...plain, freeSlots: 0 }))).not.toBe('custom:drop what the quest has finished with');
+    });
+
+    // Why: a shop counter is not a booth, so a full pack at one has nothing to deposit and the buy failed a hundred and thirty times in a row.
+    test('a full pack at a counter with nothing bankable still makes room', () => {
+        const full = snap({
+            stage: LQ_STAGE.ASKED_GUJUO_WATER,
+            invIds: [LQ_ID.GOLD_BOWL_BLESSED, LQ_ID.MACHETE, LQ_ID.RUNE_AXE, LQ_ID.COINS, LQ_ID.LOBSTER],
+            inv: [...Array.from({ length: 14 }, () => 'Lobster'), 'Coins'],
+            bankIds: [LQ_ID.LOCKPICK],
+            bank: ['Coins']
+        });
+        expect(decide({ ...full, freeSlots: 0 }).kind).toBe('custom');
+    });
+
     // Why: a withdraw decided with no room fails for ever, and the trials and the band both hand back things the keep list does not want.
     test('a full pack banks the junk at the booth the withdraw was going to', () => {
         const full = snap({
