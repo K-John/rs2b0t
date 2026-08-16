@@ -151,9 +151,7 @@ Measured on `:8890` at 200ms ticks, 70 in every skill, lobsters for food:
 | Ungadulu's seeds, germinated | 12 → 13 | 310s |
 | The pool is found fouled | 13 → 14 | 321s |
 | Gujuo's bravery recipe | 14 → 15 | 343s |
-| Two herbs, the potion, the winch | 15 → 16 | 899s |
-| Three guardians, the dragon heart smelted | 16 → 17 | 605s |
-| The heart in the recess, Echned's dagger | 17 → 20 | 649s |
+| Two herbs, the potion, the winch, three guardians, Echned's dagger | 15 → 20 | 685s |
 | The Holy Force, the demon at the source, the water | 20 → 25 | 1055s |
 | The Yommi tree grown and the totem carved | 25 → 30 | 660s |
 | The evil totem replaced | 30 → 32 | 692s |
