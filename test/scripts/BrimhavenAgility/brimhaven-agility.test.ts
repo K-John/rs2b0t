@@ -1,4 +1,6 @@
 import { describe, expect, test } from 'bun:test';
+import { Game } from '#/bot/api/game/Game.js';
+import BrimhavenAgility, { BRIMHAVEN_AGILITY_SETTINGS } from '#/bot/scripts/BrimhavenAgility/BrimhavenAgility.js';
 import {
     ARENA_EDGES,
     ARENA_ENTRANCE,
@@ -29,6 +31,9 @@ import {
     restockShortfall,
     shouldBank,
     shouldEat,
+    needsCakeSteal,
+    STEAL_THIEVING_MIN,
+    GUARD_THIEVING_MIN,
     ticketInventoryGain,
     usableEdges,
     waitPlatform,
@@ -255,6 +260,18 @@ describe('BrimhavenAgility banking & combat decisions', () => {
         expect(shouldBank(0, 0, 1000)).toBe(true);
         expect(shouldBank(1000, 5, 1000)).toBe(true);
         expect(shouldBank(999, 5, 1000)).toBe(false);
+        expect(shouldBank(0, 0, 1000, true)).toBe(false);
+        expect(shouldBank(1000, 0, 1000, true)).toBe(true);
+    });
+
+    test('steal restock wants cakes when the pack is empty or a guard run needs a buffer', () => {
+        expect(STEAL_THIEVING_MIN).toBe(20);
+        expect(GUARD_THIEVING_MIN).toBe(40);
+        expect(needsCakeSteal(0, 0, true, false)).toBe(true);
+        expect(needsCakeSteal(3, 0, true, false)).toBe(false);
+        expect(needsCakeSteal(0, 8, true, false)).toBe(false);
+        expect(needsCakeSteal(0, 2, true, true)).toBe(true);
+        expect(needsCakeSteal(0, 0, false, true)).toBe(false);
     });
 
     test('eats only below 5 HP with food in pack', () => {
@@ -328,6 +345,19 @@ describe('BrimhavenAgility location helpers', () => {
         expect(onArenaPlatform(3) && inArena(3200, 3200)).toBe(false);
     });
 
+    test('ignores Swarm only while standing in the arena (#597)', () => {
+        const origTile = Game.tile;
+        const bot = new BrimhavenAgility();
+        try {
+            Game.tile = () => ({ x: ARENA_ENTRANCE.x, z: ARENA_ENTRANCE.z, level: 0 });
+            expect(bot.ignoredRandoms()).toEqual([]);
+            Game.tile = () => ({ x: PILLARS[12].x, z: PILLARS[12].z, level: 3 });
+            expect(bot.ignoredRandoms()).toEqual(['swarm']);
+        } finally {
+            Game.tile = origTile;
+        }
+    });
+
     test('failed obstacles land in the pit (plane 0) under the same x,z as pillars', () => {
         // live report: 2802,9590,0 after missing rope swing near landing 24 (2805,9590)
         expect(inArenaPit(2802, 9590, 0)).toBe(true);
@@ -375,6 +405,7 @@ describe('BrimhavenAgility settings defaults', () => {
     test('defaults match the issue: 25 food, bank at 1000 tickets', () => {
         expect(DEFAULT_FOOD_PER_TRIP).toBe(25);
         expect(DEFAULT_BANK_TICKETS).toBe(1000);
+        expect(BRIMHAVEN_AGILITY_SETTINGS.stealRestock?.default).toBe(false);
     });
 });
 

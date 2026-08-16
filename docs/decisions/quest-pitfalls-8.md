@@ -1,225 +1,51 @@
 [Manual](../README.md) › [Quests](../QUESTS.md) › Quest pitfalls
 
-# Quest pitfalls: Legends Quest
+# Quest pitfalls: Sea Slug
 
-Thirty-three, and the first three are map and engine facts rather than quest ones.
+Ten, and the first three are all the same mistake — trusting a coordinate.
 
-- **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
-  eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
-  room to `x 2754-2785, z 9282-9312`; every Viyeldi descent ledge sits inside the main
-  cave's box. Every hand-written boundary was wrong at some z. The flood is not: the tile
-  sets are small enough to bake, so [`tools/nav/legends-pockets.ts`](../../tools/nav/legends-pockets.ts)
-  emits them as `[z, xFrom, xTo]` runs and the module asks which pocket a tile is in
-  rather than which rectangle contains it.
-- **`huntall` iterates players, not npcs.** `~player_in_fire_octagram` looks like a guard
-  saying the flames refuse anyone while Ungadulu stands inside them — which would make the
-  quest unfinishable, since he never leaves. It is a multiplayer courtesy check: another
-  *player* mid-cutscene inside the octagram is what it looks for. Read the op's handler
-  before concluding a script contradicts itself.
-- **A spell aimed at scenery is `oploct`, and the client had no route to it.** The magic
-  trial gate opens for a charge-orb spell and nothing else — no op, no use-on, no npc.
-  `Input.castOnLoc` and `Game.castOnLoc` are the same `TGT_BUTTON` + `TGT_LOC` pair
-  `castOnNpc` already used for npcs; without them the leg is not expressible.
-- **Two gates advertise Open and answer something else.** The outer ancient gate replies
-  "You push on the doors, they're really shut" to every Open from the entering side and
-  yields only to a *Search* with a lockpick; the inner one raises a brute-strength prompt
-  and a roll. Both were baked into `doors.json`, so the pathfinder routed straight at them
-  and the walker looped a tile short. They belong in `SCRIPT_REFUSED`, with the last tile a
-  `DirectNavigator` scene step — and removing them splits two more pockets, which is why
-  the pocket table is regenerated after the door bake rather than before it.
-- **The Kharazi Jungle is sealed by blocked ground with plants standing on it.** The jungle
-  band is `blockwalk=no` scenery over map-blocked tiles, and `chop_jungle` teleports the
-  chopper two tiles towards whatever it fells — `map_blocked($dest)` is allowed exactly
-  when another jungle plant stands there. Nothing walks in. `(2816,2940)` is the one
-  mainland tile with an unbroken two-plant column south of it, and a diagonal chop lands on
-  blocked ground and answers "This way is blocked off".
-- **Planting the seed before the sacred water is collected always destroys it.** The soil
-  rolls `stat_random(herblore, 40, 243) = false | %legendsquest < ^legends_sacred_water_collected`,
-  so between germinating at stage 13 and bottling the source at stage 25 every attempt
-  withers a seed and Ungadulu only hands out three. The journal reads "I just need to plant
-  them now", which is the state, not the instruction.
-- **Five loc stages in a row expire fifty-one ticks after they grow.** Sapling, adult,
-  felled, trimmed and carved each `loc_change` back to a rotten twin on a timer, so
-  planting, watering, felling, trimming, carving and lifting cannot be six `decide()`
-  ticks — a resume that arrives late finds a stump. They are one step whose oracle is the
-  totem pole in the pack.
-- **Killing Viyeldi is a trap the content cannot spring.** Taking his hat summons him for a
-  hundred ticks and immediately runs a conversation that ends in `npc_del`, so the dagger
-  never reaches him. Ungadulu's Holy Force is the route the quest is built around, and it
-  costs a full climb back up the trials and down again — which the module has to be able to
-  do anyway, since the sacred water has to come home the same way.
-- **A bank the map claims is not a bank the content built.** Shilo Village carries a bank
-  icon and a `BANK_LOCATIONS` entry, and has neither a booth nor a banker — so
-  `reachableBank`, which picks by walking cost, chose it from Karamja and the buy step sat
-  at the icon answering "no 'Bank booth' in the scene" until the run was killed. A `buy`
-  step now carries the booth its module named rather than letting the walk decide.
-- **The pack is full to the last slot through the trials.** Map, machete, rune axe,
-  lockpick, pickaxe, rope, unpowered orb, five rune stacks, seven gems and the bowl is
-  twenty-one slots before a single lobster. The food float is a per-leg number rather than
-  a constant, and the gems and runes are consumed on the way in, which is what makes room
-  for the Book of Binding on the way out.
-- **Chopping into the jungle boils the golden bowl dry.** `jungle_tree` empties every
-  filled state of the bowl — plain, pure, blessed, blessed-pure — before it looks at the
-  tree, and the only way back into the Kharazi Jungle is a chop. So the bank and both
-  counters have to be visited *before* the pool rather than after it, and a run that ends
-  up on the mainland holding water has already lost it. The module's last errand off the
-  island is the trials kit, and the fill is what waits.
-- **A kit that has been spent is not a kit that is missing.** The seven gems, the five wall
-  runes, the lockpick and the orb are all consumed by the descent, so the checklist that
-  bought them reads as "nothing in the pack, nothing in the bank" the moment the Book of
-  Binding lands — and sends the run back out of the caves for things no shop stocks. The
-  one-time kit is asked for only while the book is still missing; the orb and its cast are
-  a separate kit, because the magic gate eats one every time it is crossed downwards.
-- **Opening the Book of Binding drains nine tenths of your prayer.** `stat_sub(prayer, 0, 90)`
-  fires in the same breath as the demon spawns, so Protect from Melee goes out at the moment
-  it is needed against a level-187 demon with 150 hitpoints that casts from any range beyond
-  one tile. Five lobsters and no flasks is what the first headed attempt died to. The float
-  is twelve and two, and the pack is kitted for it *before* the pool is syphoned, since the
-  bowl is still empty there and a bank trip is free.
-- **Everything the descent spends, it spends again.** The outer gate swings shut behind
-  whoever picked it, the three boulders drop back down behind whoever mined them, and the
-  magic gate shatters the orb as it lets you through. Only the marked wall stays solved. So
-  the lockpick, the pickaxe, the orb and its cast are a per-descent kit rather than a
-  one-time one — and asking for them from *below* the gate reads as "no orb" and turns a
-  finished descent straight back round.
-- **The spirit's only polite goodbye deletes him.** Pushing the source boulder opens a
-  conversation, and "I have to be going..." ends in `npc_del` — so a leg that answers
-  politely and then reaches for the Holy Force finds nobody to cast it at. The rude
-  answers, "I don't have the dagger." and "I haven't slayed Viyeldi yet.", close the chat
-  and leave him standing. He spawns within three tiles of whoever pushed the boulder, so
-  walking to him is not wanted either: walking off closes the chat and takes him with it.
-- **An op that is not there fails in a tick and says nothing.** The Holy Force scroll's own
-  op is "Cast Spell"; Read is what the Book of Binding takes. `interact('Read')` returned
-  false in twenty milliseconds and the leg retried a hundred and ten times over eight
-  minutes with not one line in the log to say why. Every `interact` whose op name came from
-  a guide rather than from the `.obj` is worth checking twice.
-- **Both ancient gates lie about having opened.** The lockpick chain is seven message
-  boxes and the driver clears each one the tick after it lands, so the success line is gone
-  before the next sample; the strength gate keeps its Open op after it is forced, because
-  that op is also how it is shut. Neither the text nor the loc is an oracle. The crossing
-  is: walk the last tile, read the pocket, and try again up to ten times.
-
-- **The tidy-up on the way out is not on the path the loop takes when it wins.** Chopping
-  into the jungle leaves logs the pack has no slot for, so the chop loop drops them before
-  it returns — except the loop's success is an early `return true` from the top of the next
-  iteration, which walks past the drop. Every failed crossing tidied up and the one that
-  worked did not, so the reed at the pool was cut with nought free. A clean-up belongs in
-  the loop's exit condition, not after its body.
-
-- **A random event's gift is a slot, and the pack has not got one.** Whatever hands out the
-  king's message hands it out mid-walk, and the reed at the pool wants exactly one free
-  slot. The bank-at-the-booth rescue only fires for a step that was already going to a
-  bank, so a custom step met a full pack and retried it eight times. The whitelist that
-  decides what a deposit would take is the same list that says what may be dropped where
-  the character stands.
-
-- **"Already in the right area" is not "able to walk there".** Every trials pocket answers
-  `shamanCaves`, so the leg that came back up out of the gem room holding the book found
-  its cave check satisfied and walked at an octagram twenty tiles and four sealed pockets
-  away — "unreachable from here", for ever. A stage-jumped leg never sees it, because it
-  starts on the surface; only the continuous run does. Where the area is one name and the
-  map is many rooms, the pocket is what the guard has to read.
-
-- **A pack of twenty-eight wanted things still has no room.** The trials kit, the armour,
-  the coin and three lobsters come to exactly twenty-eight slots, every one of them on the
-  keep list — so nothing is spent, nothing is junk, and the reed that the quest cannot go
-  on without has nowhere to land. The seeded leg never showed it: a random event had taken
-  a slot, and dropping that gift left the one the reed needed. The lobster count is the
-  only number in the pack that is a float rather than a requirement, so the leg eats one.
-  Fixing it at the reed fixed it only at the reed: the herb, one stage later, met the same
-  full pack. The valve belongs where every step passes through it, not in the step that
-  happened to hit it first.
-
-- **The floor below a shop is four tiles from it.** `Tile.distanceTo` is a plan distance
-  with no storey in it, so `ensureAt` let the walker stop underneath the Magic Guild
-  counter and call itself arrived; the buy then failed in under a millisecond, twenty-three
-  times and counting, with the anchor directly overhead. Any "am I there yet" that compares
-  tiles has to compare the level too — and this one is shared by every quest, not just
-  this one.
-
-- **The chat shuts between a page and the option list behind it.** Three quiet ticks read
-  as "the conversation ended", and at 200ms ticks three ticks is most of the gap the modal
-  leaves while it swaps a `chatnpc` page for the `multi2` after it — so Gujuo's chain
-  called it a day one option short of the rescue, four times running. The step recovered
-  on the fifth pass, which is the tell: a race, not a wrong list. Ten ticks of silence is
-  an ending; three is a blink.
-
-- **A float the pack cannot hold is a loop, not a shortfall.** Dying to the octagram demon
-  brings the whole trials kit back at once, and the fight float of ten lobsters then has
-  nowhere to go: the withdraw fills the last slot, the pack-space valve eats one to make
-  room, and the top-up asks for it straight back. Two steps, forever. The ask is what the
-  pack can take, and the valve only ever eats the surplus above the float's own threshold.
-- **A box that suspends the script is not a box you can wait out.** `~doubleobjbox` pauses
-  `opheldu` where it stands and the germinated seeds are added *after* it, so waiting twelve
-  seconds for them without clearing the box waits for something the server will never do —
-  ten times over, in silence, with both items in the pack and the use-on accepted. The
-  stage-jumped leg passed the same code because the fill before it left a driver running.
-  Every wait that follows a box has to drive it.
-- **`opheldu` runs on the item clicked second, and the pair is not symmetric.** The bowl
-  carries the handler and wants the seeds as `last_useitem`, so seeds-on-bowl germinates and
-  bowl-on-seeds is "nothing interesting happens" — the script says so in a comment, and
-  eleven attempts twelve seconds apart said it in the log. The ardrigal and the snakeweed
-  mixture are the same shape and happen to be written the right way round. Which of the two
-  items holds the handler is worth reading before either is clicked.
-- **The use-on packet does not walk.** Gujuo stood five tiles off, the bowl was offered to
-  him from where the character happened to be, and the offer was accepted and answered with
-  nothing at all — `opnpcu` never runs for an npc out of reach. Two live runs died in that
-  silence before a single log line named it: *sent at 2821,2925, chat ""*. Four npc use-ons
-  in this quest had the same shape and only worked because the step before them happened to
-  finish adjacent. They all go through one helper now, and it walks first.
-- **One long wait on a chat that is not coming teaches you nothing.** Gujuo takes the
-  golden bowl, the greeting that should follow sometimes never arrives, and a
-  hundred-and-fifty-second `driveUntil` sits through all of it in silence before the engine
-  retries the identical thing. Four offers of forty seconds cost the same wall clock and
-  each one is a fresh throw. Where the opening move is cheap and the wait is long, retry
-  the move.
-
-- **A protected item can be junk, and a deposit will not take it.** The gem rock rolls opal
-  60 times in 128 and diamond 4, so the wait for the last two gems buried the pack in nine
-  uncut opals — every one of them on the keep list, so nothing read as junk, and the food
-  float was already below its own threshold, so no lobster could be eaten either. Mining
-  with nought free lands nothing, forever. The seeded bank hid it: the first pass withdrew
-  seven cut gems and never touched the rock, and only a death made the module mine them.
-  What the drop may shed and what a deposit would take are two lists, not one.
-
-- **A skill check that spends the skill can spend its way past its own gate.** Gujuo's
-  blessing rolls `stat_random(prayer, 80, 250)` and takes five points on every miss, which
-  at seventy is a four-in-five chance each throw — so six misses walk the prayer from
-  seventy down to forty, one under the forty-two the same script demands, and from then on
-  the answer is "you are too inexperienced" for ever. Three live offers went by with
-  `chat ""` in the log, because the driver had already closed the refusal by the time the
-  wait gave up. The flask the demon needs, this leg needs too.
-
-- **A shop counter is not a booth, and the pack-space valve only knew booths.** A full pack
-  going to a *withdraw* has a bank to shed into; a full pack going to a *buy* at the Magic
-  Guild has nothing but the floor. The valve handed the buy straight back when there was
-  nothing a deposit would take, and the water runes failed a hundred and thirty times in
-  ten minutes with an explicit warning in the log that the no-progress watchdog would never
-  fire, because a failure is not a stall. Every step kind needs the same last resort, and
-  the two things filling the pack were both receipts: the sketch of a bowl that had already
-  been forged, and the flask the blessing had already drunk.
-
-- **A use-on sent while a page is still up is dropped without a word.** The seeds arrive on
-  the last page of Ungadulu's chat, and the germinate step clicked them into the bowl before
-  that page had closed: accepted by the client, discarded by the server, twenty seconds of
-  silence, five times over. Two earlier legs had already been fixed for the same shape — the
-  bowl offered to a Gujuo too far away, the wait that never drove its box — and this is the
-  third face of it. The stage-jumped leg passed every time, because there the seeds came out
-  of a bank rather than out of a conversation.
-
-- **The item a stage hands you is kit for every stage after it.** Swinging the bull roarer
-  is what summons Gujuo, and Gujuo is wanted at the bowl, the recipe and the gilded totem —
-  but the branch that trades a map copy for a roarer runs at stage three and nowhere else.
-  A Jungle Savage takes a dislike to the noise the roarer makes, and the death that follows
-  drops the roarer and the map together at stage fourteen, where nothing looks for either.
-  Radimus sells a replacement map for thirty coins, but only while neither map is held, so
-  the recovery is three legs deep: buy the map, redraw all three thirds, trade it again. A
-  quest is resumable from any point only if every consumable it was ever handed can be got
-  back from wherever the run is standing.
+- **A loc's level in the map file is not the level it stands on.** The fishing platform is
+  a bridge: its map squares carry `LINK_BELOW`, and `GameMap.loadLocations` drops every
+  loc one level when that flag is set. The NPC and OBJ sections are not shifted. So the
+  ladder, the crates, the panel and the crane all read one deck higher in `m43_51.jm2`
+  than Kennith and the damp sticks that sit beside them, and stands derived from the raw
+  file land in the sea.
+- **The crates are the wall of a room, not furniture on a deck.** A `wood1` run seals the
+  room's east side with one shut door, and the crates are its north wall. A stand on the
+  open deck sees the loc at two tiles, clicks it, and nothing happens — the server's own
+  approach walk cannot open a door, so the op dies silently with no refusal and no
+  message. `Reach.locOp` opens it; `walkResilient` plus a click does not.
+- **The crane refuses from three of its four sides.** `oploc1,fishingcrane` bails when
+  `coordz(coord) < coordz(movecoord(loc_coord, 0, 0, 3))`, and its 4x4 footprint runs
+  z 3286-3289, so only the deck row north of it passes. From anywhere else the answer is
+  "I need to get closer to use that.", which is what a missed click reads as too.
+- **The journal writes one page for two stages, twice.** `seaslug_journal.rs2` shares a
+  page between "spoken to Kennith" and "sailed to Kent", and again between "Kennith needs
+  an escape" and "panel opened". Where the character is standing separates the first pair.
+  For the second, kicking a panel that is already open costs one "nothing interesting
+  happens", so both halves run as one leg and the pair needs no separating at all.
+- **The boat puts the torch out.** `board_ardougne_to_fishing_platform` swaps every
+  `torch_lit` in the pack for a `torch_unlit`, and `ignite_light_source` refuses a
+  tinderbox anywhere inside the platform's zone. The torch is lit on the deck or not at
+  all — from the damp sticks and the broken glass that spawn there.
+- **Bailey has no line on stage 10.** His switch covers stages 3-9 and 11-12. A character
+  that reaches `need_kennith_path` without a torch cannot climb the ladder and cannot ask
+  for a replacement, so that resume is a dead end rather than a slow leg — the harness
+  seeds one, and `decide` says so instead of looping.
+- **A failed rub costs nothing.** `opheld1,dry_sticks` returns before it consumes
+  anything, so a miss costs the tick it took. At Firemaking 70 the roll lands about three
+  times in four, and one attempt is not a result.
+- **Two objects render "Torch".** 594 is lit and 596 is not, and every test that matters
+  in this quest — climb the ladder, talk to Bailey, sail home — turns on which one is
+  held.
+- **`mes` is a chat line, not a dialogue.** The ladder refusal, the panel, the crane and
+  the rub all print through `mes`, so `GameMessages` is the oracle for each of them and a
+  `driveDialog` waits out its timeout for a box that never opens.
+- **Swamp paste has a counter.** Khazard General Store stocks 500 at 42gp, 110 tiles south
+  of Caroline. Making it instead needs swamp tar, which spawns in the Lumbridge swamp and
+  Morytania and nowhere near Ardougne.
 
 ## See also
 
-- [Quest pitfalls](quest-pitfalls.md)
-- [More pitfalls](quest-pitfalls-2.md)
-- [Legends Quest's harness recipe](../reference/quest-harness-recipes-3.md)
-- [Add a quest](../how-to/add-a-quest.md)
+- [Quest pitfalls](quest-pitfalls.md) — the map
+- [Sea Slug harness recipe](../reference/quest-harness-recipes-7.md)
