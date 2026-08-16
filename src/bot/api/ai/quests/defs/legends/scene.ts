@@ -1,11 +1,31 @@
 import { reader } from '../../../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
+import type { Npc } from '../../../../model/Npc.js';
+import { Traversal } from '../../../../walking/Traversal.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { pickPreferred } from '../../exec/primitives.js';
+import { settleScene } from '../../exec/prompts.js';
 import { legendsArea, type LegendsArea } from './areas.js';
 
 export { driveChoice, driveUntil, heldId, locNear, promptLoc, settleScene, useOnLoc } from '../../exec/prompts.js';
+
+// Why: the use-on packet goes out from wherever the character stands and no walk follows it, so an npc five tiles off takes the offer and answers nothing — sent, accepted, silent for the whole budget.
+
+/** Offer an item to an npc, having first walked close enough for the offer to land. */
+export async function offerTo(itemId: number, npc: Npc, log: (m: string) => void): Promise<boolean> {
+    const item = Inventory.items().find(i => i.id === itemId);
+    if (!item) {
+        log(`nothing with id ${itemId} in the pack to offer`);
+        return false;
+    }
+    if (!(await Traversal.walkResilient(npc.tile(), { radius: 1, attempts: 2, timeoutMs: 30_000, log }))) {
+        return false;
+    }
+    await settleScene();
+    return item.useOn(npc);
+}
 
 /** Which sealed pocket the character is standing in right now. */
 export function here(): LegendsArea {

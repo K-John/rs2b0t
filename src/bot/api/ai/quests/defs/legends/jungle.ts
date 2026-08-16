@@ -9,7 +9,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { JUNGLE_BAND, LQ_ID, LQ_LOC, LQ_NPC, LQ_TILE, inJungleBand, jungleSection, legendsArea } from './areas.js';
-import { driveToEnd, driveUntil, heldId, here, modalText, settleScene } from './scene.js';
+import { driveToEnd, driveUntil, heldId, here, modalText, offerTo, settleScene } from './scene.js';
 import { leaveCaves } from './viyeldi.js';
 
 const CHOP_ATTEMPTS = 14;
@@ -213,13 +213,12 @@ export async function getBullroarer(log: (m: string) => void): Promise<boolean> 
         return false;
     }
     await settleScene();
-    const map = Inventory.items().find(item => item.id === LQ_ID.MAP_COMPLETE);
     const forester = Npcs.query().name(LQ_NPC.FORESTER).within(12).nearest();
-    if (!map || !forester) {
-        log('no completed map or no forester in range');
+    if (!forester) {
+        log('no forester in range for the map');
         return false;
     }
-    if (!(await map.useOn(forester))) {
+    if (!(await offerTo(LQ_ID.MAP_COMPLETE, forester, log))) {
         return false;
     }
     return driveUntil(() => heldId(LQ_ID.BULLROARER) > 0, FORESTER_PREFER, log, 60_000);

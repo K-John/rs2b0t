@@ -8,7 +8,7 @@ import Tile from '../../../../../geometry/Tile.js';
 import { HEROES, LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE, legendsArea } from './areas.js';
 import { fight } from './fight.js';
 import { legendsPocket, type LegendsPocket } from './pockets.js';
-import { driveUntil, heldId, locNear, modalText, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { driveUntil, heldId, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
 import { climbOutOfTrials, leaveOctagram, leaveShamanCave, pocket } from './trials.js';
 
 interface Ledge {
@@ -361,12 +361,11 @@ export async function tradeDaggerForSpell(log: (m: string) => void): Promise<boo
     }
     await settleScene();
     const shaman = Npcs.query().name(LQ_NPC.UNGADULU).within(12).nearest();
-    const dagger = Inventory.items().find(item => item.id === LQ_ID.DEATH_DAGGER);
-    if (!shaman || !dagger) {
-        log('need the black dagger in the pack and Ungadulu in range');
+    if (!shaman) {
+        log('no Ungadulu in range for the black dagger');
         return false;
     }
-    if (!(await dagger.useOn(shaman))) {
+    if (!(await offerTo(LQ_ID.DEATH_DAGGER, shaman, log))) {
         return false;
     }
     return driveUntil(() => heldId(LQ_ID.HOLY_FORCE) > 0, [], log, 60_000);

@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Twenty-four, and the first three are map and engine facts rather than quest ones.
+Twenty-five, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -144,6 +144,12 @@ Twenty-four, and the first three are map and engine facts rather than quest ones
   on the fifth pass, which is the tell: a race, not a wrong list. Ten ticks of silence is
   an ending; three is a blink.
 
+- **The use-on packet does not walk.** Gujuo stood five tiles off, the bowl was offered to
+  him from where the character happened to be, and the offer was accepted and answered with
+  nothing at all — `opnpcu` never runs for an npc out of reach. Two live runs died in that
+  silence before a single log line named it: *sent at 2821,2925, chat ""*. Four npc use-ons
+  in this quest had the same shape and only worked because the step before them happened to
+  finish adjacent. They all go through one helper now, and it walks first.
 - **One long wait on a chat that is not coming teaches you nothing.** Gujuo takes the
   golden bowl, the greeting that should follow sometimes never arrives, and a
   hundred-and-fifty-second `driveUntil` sits through all of it in silence before the engine

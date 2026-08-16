@@ -9,7 +9,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import { LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE, inOctagram } from './areas.js';
 import { enterJungle, leaveJungle, summonGujuo, talkGujuo } from './jungle.js';
 import { climbOutOfTrials } from './trials.js';
-import { driveToEnd, driveUntil, heldId, here, locNear, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { driveToEnd, driveUntil, heldId, here, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 const CRAWL_ATTEMPTS = 6;
 
@@ -135,15 +135,17 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
     }
     // Why: the use-on lands and the greeting sometimes never arrives, and one long wait on a chat that is not coming spends the whole budget learning nothing — so the offer is made again rather than waited on.
     for (let i = 0; i < BLESS_ATTEMPTS; i++) {
-        const bowl = Inventory.items().find(item => item.id === LQ_ID.GOLD_BOWL);
         const gujuo = Npcs.query().name(LQ_NPC.GUJUO).within(12).nearest();
-        if (!bowl || !gujuo) {
-            log('no plain golden bowl in the pack or no Gujuo in range');
+        if (!gujuo) {
+            log('no Gujuo in range for the bowl');
             return false;
         }
-        if (await bowl.useOn(gujuo) && await driveUntil(blessed, BLESS_PREFER, log, 40_000)) {
+        const offered = await offerTo(LQ_ID.GOLD_BOWL, gujuo, log);
+        if (offered && await driveUntil(blessed, BLESS_PREFER, log, 40_000)) {
             return true;
         }
+        // Why: a silent wait is the one failure that tells you nothing, and this one cost two live runs before it said a word.
+        log(`bowl on Gujuo ${offered ? 'sent' : 'refused'} at ${gujuo.tile().x},${gujuo.tile().z}, chat "${modalText().slice(0, 60)}"`);
         await settleScene();
     }
     log('Gujuo took the bowl four times and never blessed it');
@@ -296,13 +298,12 @@ export async function summonDemon(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     await settleScene();
-    const book = Inventory.items().find(item => item.id === LQ_ID.BOOK_OF_BINDING);
     const shaman = Npcs.query().name(LQ_NPC.UNGADULU).within(10).nearest();
-    if (!book || !shaman) {
-        log('no Book of Binding or no Ungadulu inside the octagram');
+    if (!shaman) {
+        log('no Ungadulu inside the octagram');
         return false;
     }
-    if (!(await book.useOn(shaman))) {
+    if (!(await offerTo(LQ_ID.BOOK_OF_BINDING, shaman, log))) {
         return false;
     }
     return Execution.delayUntil(() => Npcs.query().name(LQ_NPC.NEZIKCHENED).within(12).exists(), 25_000);
