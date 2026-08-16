@@ -4,6 +4,7 @@ import type Tile from '../../../../../geometry/Tile.js';
 import { Equipment } from '../../../../equipment/Equipment.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
+import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs, type Loc } from '../../../../locs/Locs.js';
@@ -30,6 +31,8 @@ import { heldOrBanked, lightCandle } from './supplies.js';
 const WALK_MS = 300_000;
 /** Circuits of the six chests per invocation, before the tick goes back to the engine. */
 const CHEST_ROUNDS = 3;
+/** What an empty chest answers with, and the only thing that separates it from a find in flight. */
+const CHEST_EMPTY = /search the chest, but find nothing/i;
 
 // Why: the bridge is not a baked edge and its tiles are walkable, so any route the pathfinder draws across them ferries the bot to the wrong side.
 export function templeWalk(dest: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
@@ -411,11 +414,19 @@ async function searchChest(chest: { loc: Tile; stand: Tile }, log: (m: string) =
         return false;
     }
     const before = Inventory.count(IKOV_NAME.ICE_ARROWS);
+    const mark = GameMessages.mark();
     if (!(await open.interact('Search'))) {
         return false;
     }
     // Why: a find raises an `~objbox`, which is a chat modal that has to be answered before anything else lands.
-    const found = await driveUntil(() => Inventory.count(IKOV_NAME.ICE_ARROWS) > before, [], log, 6000);
+    // Why: five of the six chests are empty and answer with one `mes` line and no modal, so without it as an oracle every circuit pays the full timeout five times over.
+    await driveUntil(
+        () => Inventory.count(IKOV_NAME.ICE_ARROWS) > before || GameMessages.sawSince(mark, CHEST_EMPTY),
+        [],
+        log,
+        6000
+    );
+    const found = Inventory.count(IKOV_NAME.ICE_ARROWS) > before;
     await clearBox();
     if (found) {
         log(`ikov: ${Inventory.count(IKOV_NAME.ICE_ARROWS)} ice arrows`);

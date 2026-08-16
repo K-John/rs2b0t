@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Twenty-two, and the first seven are engine behaviour rather than quest facts.
+Twenty-three, and the first seven are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
@@ -41,7 +41,7 @@ Twenty-two, and the first seven are engine behaviour rather than quest facts.
   and neither does harm when repeated, so the module searches and pulls on every pass
   through that stage instead of trying to tell them apart.
 
-Eight are the quest's own shape:
+Sixteen are the quest's own shape:
 
 - **The quest has two endings, and only one of them is a fight a bot should take.**
   Lucien's ending needs the staff carried out past five Guardians of Armadyl — level 45,
@@ -81,6 +81,12 @@ Eight are the quest's own shape:
   and sweeps mid-fight rather than walking out if the quiver empties. Twenty is a floor
   rather than a stockpile on purpose: one circuit of the six chests takes three minutes
   and clears it, where a target of thirty spent a second circuit collecting one arrow.
+- **A goal-only oracle pays the full timeout on every chest that is not the one.** A find
+  raises an `~objbox` and an empty chest answers with a bare
+  `mes("You search the chest, but find nothing.")`, so waiting on the arrow count alone
+  spends the six-second budget in full five times a circuit — ten seconds a chest in the
+  live log, half of it standing still. The wait clears on the count or on that line,
+  whichever comes first, and the count is still what decides whether it found anything.
 - **All six chests are `forceapproach=north`, and each placement rotates that.** Walking
   to within two tiles of the chest and clicking Open worked for the ones whose legal side
   the walk happened to land on and was dropped in silence for the rest — two of six on the
