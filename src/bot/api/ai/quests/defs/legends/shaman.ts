@@ -344,21 +344,52 @@ export async function askForSeeds(log: (m: string) => void): Promise<boolean> {
     return driveUntil(() => heldId(LQ_ID.YOMMI_SEEDS) > 0, SEEDS_PREFER, log, 90_000);
 }
 
+const GERMINATE_ATTEMPTS = 4;
+
+/** Close whatever page is still up, so the next use-on is not thrown away unread. */
+async function closeChat(log: (m: string) => void): Promise<void> {
+    if (!ChatDialog.isOpen() && !ChatDialog.canContinue()) {
+        return;
+    }
+    await driveUntil(() => !ChatDialog.isOpen() && !ChatDialog.canContinue(), [], log, 8_000);
+}
+
 /** Germinate the seeds in the bowl of pure water. */
 export async function germinateSeeds(log: (m: string) => void): Promise<boolean> {
-    if (heldId(LQ_ID.YOMMI_SEEDS_GERM) > 0) {
+    const done = (): boolean => heldId(LQ_ID.YOMMI_SEEDS_GERM) > 0;
+    if (done()) {
         return true;
     }
-    const bowl = Inventory.items().find(item => item.id === LQ_ID.GOLD_BOWL_BLESSED_PURE);
-    const seeds = Inventory.items().find(item => item.id === LQ_ID.YOMMI_SEEDS);
-    if (!bowl || !seeds) {
-        log('need both the germinated-water bowl and the raw seeds in the pack');
-        return false;
+    for (let i = 0; i < GERMINATE_ATTEMPTS; i++) {
+        // Why: the seeds arrive on the last page of Ungadulu's chat, and an `opheldu` sent while that page is still up is dropped without a word.
+        await closeChat(log);
+        await settleScene();
+        const bowl = Inventory.items().find(item => item.id === LQ_ID.GOLD_BOWL_BLESSED_PURE);
+        const seeds = Inventory.items().find(item => item.id === LQ_ID.YOMMI_SEEDS);
+        if (!bowl || !seeds) {
+            log(`pack holds ${bowl ? 'the pure bowl' : `bowls [${bowlsHeld()}]`} and ${seeds ? 'the seeds' : 'no seeds'}`);
+            return false;
+        }
+        // Why: `opheldu` runs the handler on the item clicked second and the bowl is the one that carries it, so the seeds go on the bowl — the script's own comment says the reverse is "nothing interesting happens", and that is exactly what eleven attempts got.
+        const sent = await seeds.useOn(bowl);
+        // Why: `~doubleobjbox` suspends the script until the box is answered, and the germinated seeds are added after it — so waiting for them without clearing the box waits for something the server is not going to do.
+        if (sent && await driveUntil(done, [], log, 20_000)) {
+            return true;
+        }
+        // Why: a use-on that lands and answers nothing is the one failure that tells you nothing, and this one has cost two runs already.
+        log(`seeds on bowl ${sent ? 'sent' : 'refused'}, chat "${modalText().slice(0, 60)}"`);
     }
-    // Why: `opheldu` runs the handler on the item clicked second and the bowl is the one that carries it, so the seeds go on the bowl — the script's own comment says the reverse is "nothing interesting happens", and that is exactly what eleven attempts got.
-    if (!(await seeds.useOn(bowl))) {
-        return false;
-    }
-    // Why: `~doubleobjbox` suspends the script until the box is answered, and the germinated seeds are added after it — so waiting for them without clearing the box waits for something the server is not going to do.
-    return driveUntil(() => heldId(LQ_ID.YOMMI_SEEDS_GERM) > 0, [], log, 20_000);
+    return done();
+}
+
+/** Which bowls are in the pack, for when the pure one is not. */
+function bowlsHeld(): string {
+    const names: Record<number, string> = {
+        [LQ_ID.GOLD_BOWL]: 'plain',
+        [LQ_ID.GOLD_BOWL_BLESSED]: 'blessed',
+        [LQ_ID.GOLD_BOWL_WATER]: 'water',
+        [LQ_ID.GOLD_BOWL_PURE]: 'pure',
+        [LQ_ID.GOLD_BOWL_BLESSED_WATER]: 'blessed+water'
+    };
+    return Object.entries(names).filter(([id]) => heldId(Number(id)) > 0).map(([, name]) => name).join(', ') || 'none';
 }
