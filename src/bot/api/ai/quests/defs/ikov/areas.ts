@@ -118,9 +118,10 @@ export const IKOV_TILE = {
     // Why: `spinningwheel` is `forceapproach=south` placed at angle 3, so the only legal side is east in world space.
     SPINNING_WHEEL: new Tile(2712, 3471, 1),
     SPINNING_WHEEL_STAIRS: new Tile(2714, 3472, 0),
-    HOBGOBLINS: new Tile(2447, 3345, 0),
-    /** Clear of the camp's aggro, on the road the walk from Ardougne comes in on. */
-    HOBGOBLIN_RETREAT: new Tile(2512, 3347, 0),
+    // Why: ten of the fourteen surface hobgoblins stand on the peninsula west of the Crafting Guild at (2939,3282), against six on the Ardougne coast — and Falador West is a shorter bank run than Ardougne's.
+    HOBGOBLINS: new Tile(2911, 3284, 0),
+    /** Clear of the camp's aggro, on the road north to the Falador West booth. */
+    HOBGOBLIN_RETREAT: new Tile(2933, 3323, 0),
 
     TEMPLE_LADDER: new Tile(2677, 3406, 0),
     ENTRANCE: new Tile(2677, 9806, 0),

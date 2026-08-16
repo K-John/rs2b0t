@@ -26,7 +26,7 @@ import {
     wearingBoots
 } from './dungeon.js';
 import { fightFireWarrior, killLucien } from './fight.js';
-import { RANGED_GEAR_NAMES, rangedArmourStep } from './gear.js';
+import { IKOV_GEAR_NAMES, RANGED_ARMOUR_NAMES, rangedArmourStep } from './gear.js';
 import { IKOV_STAGE, readIkovStage } from './journal.js';
 import { heldOrBanked, restockStep, sourcingShortfall, suppliesStep } from './supplies.js';
 import { joinTheGuardians, leaveTheFarSide } from './temple.js';
@@ -50,7 +50,7 @@ const IKOV_TOOLS = [
     'limpwurt root',
     'lever',
     'shiny key',
-    ...RANGED_GEAR_NAMES
+    ...IKOV_GEAR_NAMES
 ];
 
 /** Lobsters the bot takes to the Fire Warrior's door, and the pack size that sends it back for more. */
@@ -286,7 +286,7 @@ export const ikov: QuestModule = {
             `ikov: stage=${snap.stage ?? '?'} at ${where} step=${step.kind}`,
             `ikov: boots=${wearingBoots() ? 'worn' : 'no'} arrows=${snap.inv.get(IKOV_NAME.ICE_ARROWS.toLowerCase()) ?? 0}`
                 + ` roots=${held(snap, IKOV_OBJ.LIMPWURT_ROOT)} pendant=${haveFearPendant(snap) ? 'yes' : 'no'}`
-                + ` armour=${RANGED_GEAR_NAMES.filter(name => snap.worn.has(name)).length}/4 gate=${southGateOpen() ? 'open' : 'shut'}`
+                + ` armour=${RANGED_ARMOUR_NAMES.filter(name => snap.worn.has(name)).length}/4 gate=${southGateOpen() ? 'open' : 'shut'}`
                 + ` weight=${Game.weight()}kg`
         ];
     },

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import { rangedArmourStep } from '#/bot/api/ai/quests/defs/ikov/gear.js';
+import { meleeWeaponStep, rangedArmourStep } from '#/bot/api/ai/quests/defs/ikov/gear.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
 interface Wardrobe {
@@ -79,5 +79,37 @@ describe('Temple of Ikov ranged armour', () => {
             bank: [['leather boots', 1], ['shortbow', 1], ['studded body', 1]]
         }));
         expect(names(step)).toEqual(['Studded body']);
+    });
+});
+
+describe('Temple of Ikov melee weapon', () => {
+    test('an empty bank arms nothing, and the axe fallback stands', () => {
+        expect(meleeWeaponStep(snap())).toBeNull();
+    });
+
+    test('the best tier in the bank is the one withdrawn', () => {
+        const step = meleeWeaponStep(snap({
+            bank: [['bronze sword', 1], ['rune scimitar', 1], ['steel longsword', 1], ['mithril scimitar', 1]]
+        }));
+        expect(names(step)).toEqual(['Rune scimitar']);
+    });
+
+    // Why: a hobgoblin has 1 stab and 1 slash defence, so the faster weapon of a tier wins rather than the heavier one.
+    test('within a tier the scimitar beats the longsword', () => {
+        const step = meleeWeaponStep(snap({ bank: [['adamant longsword', 1], ['adamant scimitar', 1]] }));
+        expect(names(step)).toEqual(['Adamant scimitar']);
+    });
+
+    test('a weapon already in the pack is wielded rather than withdrawn again', () => {
+        const step = meleeWeaponStep(snap({ inv: [['rune scimitar', 1]], bank: [['rune scimitar', 1]] }));
+        expect(step?.kind === 'custom' && step.name).toBe('wield Rune scimitar');
+    });
+
+    test('the weapon already worn is left alone', () => {
+        expect(meleeWeaponStep(snap({ worn: ['rune scimitar'], bank: [['rune scimitar', 1]] }))).toBeNull();
+    });
+
+    test('an unread bank arms nothing rather than guessing', () => {
+        expect(meleeWeaponStep(snap({ bankKnown: false, bank: [['rune scimitar', 1]] }))).toBeNull();
     });
 });

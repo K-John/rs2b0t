@@ -16,7 +16,7 @@ import { Reachability } from '../../../../../event/webwalk/geometry/Reachability
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { heldId } from '../../exec/prompts.js';
 import { IKOV_FOODS, IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_OBJ, IKOV_TILE, ROOTS_WANTED } from './areas.js';
-import { rangedArmourStep } from './gear.js';
+import { meleeWeaponStep, rangedArmourStep } from './gear.js';
 
 /** Levels the sourcing route needs but the server never gates on the quest. */
 const IKOV_SOURCING_SKILLS: readonly { skill: string; level: number }[] = [
@@ -274,6 +274,15 @@ async function stowEmptyBow(log: (m: string) => void): Promise<boolean> {
 
 // Why: the crossing kit leaves the bot bare-handed, and a hundred-odd level-42 hobgoblins is not a fight to take with fists — the axe the yew was cut with is already banked and is a weapon.
 function armForTheFarm(snap: QuestSnapshot): QuestStep | null {
+    // Why: a spent bow is not a weapon however full the pack is, so the bow comes off before anything is picked to replace it.
+    if (!armedForMelee() && Equipment.contains(IKOV_NAME.YEW_SHORTBOW)) {
+        return { kind: 'custom', name: 'stow the empty bow', run: stowEmptyBow };
+    }
+    // Why: the bank is the armoury this quest never builds, so the best weapon in it beats the axe the yew was cut with.
+    const better = meleeWeaponStep(snap);
+    if (better) {
+        return better;
+    }
     // Why: the right-hand slot is what the loadout would have filled, so an armed bot keeps whatever it is already holding.
     if (armedForMelee()) {
         return null;
@@ -283,9 +292,6 @@ function armForTheFarm(snap: QuestSnapshot): QuestStep | null {
     }
     if ((snap.bankIds?.get(IKOV_OBJ.IRON_AXE) ?? 0) > 0) {
         return { kind: 'withdraw', items: [{ name: IKOV_NAME.IRON_AXE, id: IKOV_OBJ.IRON_AXE, qty: 1 }] };
-    }
-    if (Equipment.contains(IKOV_NAME.YEW_SHORTBOW)) {
-        return { kind: 'custom', name: 'stow the empty bow', run: stowEmptyBow };
     }
     // Why: a run resumed at this stage never walked the sourcing leg, so the axe it would have banked was never bought.
     if (snap.bankCoins + (snap.inv.get('coins') ?? 0) >= AXE_GP) {

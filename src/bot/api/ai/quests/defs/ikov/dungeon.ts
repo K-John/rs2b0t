@@ -445,15 +445,19 @@ async function searchChest(chest: { loc: Tile; stand: Tile }, log: (m: string) =
 }
 
 // Why: one chest holds the arrows and it is re-rolled after every find, so the search is a circuit rather than a chest — and returning on the first find would restart the circuit from the west every time.
+// Why: `~randomize_ice_arrow_chest` is a bare `random(6)` over all six coords, so the re-roll can land back on the chest that last paid out — and re-opening the one already underfoot costs a click where walking to the next costs the same odds plus ten tiles.
 async function searchIceChests(log: (m: string) => void): Promise<boolean> {
     const before = Inventory.count(IKOV_NAME.ICE_ARROWS);
+    const enough = (): boolean => Inventory.count(IKOV_NAME.ICE_ARROWS) >= ARROWS_WANTED;
     for (let round = 0; round < CHEST_ROUNDS; round++) {
         for (const chest of ICE_CHESTS) {
             await Sustain.run();
-            if (Inventory.count(IKOV_NAME.ICE_ARROWS) >= ARROWS_WANTED) {
+            if (enough()) {
                 return true;
             }
-            await searchChest(chest, log);
+            while ((await searchChest(chest, log)) && !enough()) {
+                await Sustain.run();
+            }
         }
     }
     return Inventory.count(IKOV_NAME.ICE_ARROWS) > before;

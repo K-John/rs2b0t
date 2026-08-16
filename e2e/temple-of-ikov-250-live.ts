@@ -8,12 +8,9 @@
 
 //   HEADED=1 bun e2e/temple-of-ikov-250-live.ts --until 100 --tick 200 --minutes 180
 //   HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 40 --kit warrior --until 60 --tick 200 --minutes 60
-import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
-
 import type { Page } from 'playwright-core';
 
-import { launchBrowser } from './lib/harness.js';
+import { deployIsolatedClient, launchBrowser } from './lib/harness.js';
 import {
     cheatQuiet,
     clearChatDialogs,
@@ -168,28 +165,6 @@ async function snapshot(page: Page): Promise<Snapshot> {
     }, [QUEST, ICE_ARROW_IDS, LIMPWURT_ROOT] as const);
 }
 
-/** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
-const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
-
-function deployBundle(): void {
-    const engine = process.env.ENGINE_DIR ?? `${homedir()}/code/rs2b2t-engine`;
-    const botDir = `${engine}/public/bot`;
-    if (!existsSync(botDir)) {
-        fail(`deploy: ${botDir} not found — set ENGINE_DIR to the engine serving ${args.base}`);
-    }
-    const build = Bun.spawnSync(['bun', 'run', 'build:bot'], { stdout: 'pipe', stderr: 'pipe' });
-    if (build.exitCode !== 0) {
-        fail(`deploy: build:bot failed\n${build.stderr.toString()}`);
-    }
-    const files = DEPLOYED.map(f => `out/${f}`).join(' ');
-    const copy = Bun.spawnSync(['sh', '-c', `cp ${files} "${botDir}/"`]);
-    if (copy.exitCode !== 0) {
-        fail(`deploy: could not copy the bundles into ${botDir}`);
-    }
-    console.log(`deploy: fresh ${DEPLOYED.join(', ')} -> ${botDir}`);
-}
-
 async function seedVar(page: Page, name: string, want: number): Promise<void> {
     await cheatQuiet(page, `setvar ${name} ${want}`);
     const set = await getServerVarQuiet(page, name);
@@ -199,9 +174,11 @@ async function seedVar(page: Page, name: string, want: number): Promise<void> {
     }
 }
 
-if (args.deploy) {
-    deployBundle();
-}
+// Why: `bot.html` hardcodes one bundle path and `public/bot` is shared, so a neighbouring harness deploying mid-boot decides which branch this run exercises.
+const client = args.deploy ? deployIsolatedClient(args.user) : null;
+const clientPage = client?.page ?? '/bot.html';
+// Why: a PASS leaves through `process.exit`, which skips `finally`, so the sweep hangs off the exit itself.
+process.on('exit', () => client?.cleanup());
 
 const browser = await launchBrowser({ swiftshader: true });
 try {
@@ -215,7 +192,7 @@ try {
         }
     });
 
-    await mainlandAccount(page, args.base, args.user);
+    await mainlandAccount(page, args.base, args.user, clientPage);
     console.log(`mainland-ready as '${args.user}'`);
 
     await cheatQuiet(page, `speed ${args.tickMs}`);

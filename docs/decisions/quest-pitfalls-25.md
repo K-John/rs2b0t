@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov, continued
 
-The twenty that are the quest's own shape; the seven that are engine behaviour are on the
+The twenty-one that are the quest's own shape; the seven that are engine behaviour are on the
 [first page](quest-pitfalls-24.md).
 
 - **The quest has two endings, and only one of them is a fight a bot should take.**
@@ -43,6 +43,11 @@ The twenty that are the quest's own shape; the seven that are engine behaviour a
   and sweeps mid-fight rather than walking out if the quiver empties. Twenty is a floor
   rather than a stockpile on purpose: one circuit of the six chests takes three minutes
   and clears it, where a target of thirty spent a second circuit collecting one arrow.
+- **The re-roll can land back on the chest that last paid out.**
+  `~randomize_ice_arrow_chest` is a bare `random(6)` over all six coords with no memory of
+  the current one, so a find leaves a one-in-six chance the next batch is under the same
+  lid. Walking on to the next chest buys the same odds plus ten tiles, so the leg
+  re-opens the one it is standing on until it comes up empty.
 - **A goal-only oracle pays the full timeout on every chest that is not the one.** A find
   raises an `~objbox` and an empty chest answers with a bare
   `mes("You search the chest, but find nothing.")`, so waiting on the arrow count alone
