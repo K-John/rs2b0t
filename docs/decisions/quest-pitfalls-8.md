@@ -1,189 +1,51 @@
 [Manual](../README.md) › [Quests](../QUESTS.md) › Quest pitfalls
 
-# Quest pitfalls: Underground Pass
+# Quest pitfalls: Sea Slug
 
-Thirty-four, and the first three are engine behaviour the quest only happens to expose.
+Ten, and the first three are all the same mistake — trusting a coordinate.
 
-- **An open modal suspends every NORMAL timer.** `Player.busy()` is
-  `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
-  `canAccess()`. Holding the quest journal open therefore walks the character through the
-  spiked grid and the spear and spring traps untouched — the combination in `%ibanmulti`
-  bits 22-31 never has to be guessed, and it could not be anyway, because the varp is
-  `scope=perm` with no `transmit`. `[softtimer,…]` is unaffected and still fires.
-- **The walk under a modal has to be an op-click.** `MoveClickHandler` calls
-  `clearPendingAction()` — which closes the modal — for every move except `opClick`. A
-  plain walk click cancels the stall on the first step, which is why the trick is
-  "click the lever", not "click the ground".
-- **The op-click and the modal must land in separate server ticks.** `moveClickRequest`
-  is settled after a whole tick is decoded: an op-click alone leaves it false and the walk
-  survives an open modal, while a modal opened in that same tick latches it true, and
-  `updateMovement` then freezes at the first 8×8 zone boundary *permanently*, because the
-  engine queue it waits on cannot drain while busy either. Proved by disabling the trap —
-  the character still froze at the boundary and resumed the instant the modal closed.
-  A bare tick delay does not prove the split; the client can flush both packets into one
-  tick. Wait for the first step, which means staging far enough back that the character is
-  still on safe ground by then.
-- **Watch what the script consumed, never where the character is standing.** Three separate steps here read
-  position as their oracle and all three lied. The guide rope answered "I can't reach that!" and never fired,
-  which looked like eight missed shots. The rock swing's op-click walks the player to the rock before the use
-  resolves, so "the tile changed" reported a swing that had not happened. An obstacle hop has the same shape.
-  Every one of these scripts deletes something first — the arrow, the rope — so the inventory delta is the
-  honest signal, and `GameMessages.since(mark)` is what separates a refusal from a failure.
-- **Check connectivity before writing a single leg.** A component report over the pass's own seam endpoints
-  answers FAIL for 10 of 14 anchors: the landing chamber is 119 tiles with no walkable exit, and the
-  portcullis lever and the furnace are twelve tiles apart in different components. Every seam is a scripted
-  obstacle whose tile the collision pack marks blocked, so `walkResilient` past one reports "unreachable" —
-  which reads as a missing loc, not a missing route. Five legs were written against the opposite assumption
-  before that was measured. `bun tools/nav/component-report.ts --seed …` costs a minute.
-- **The obstacles are all one shape.** Rockslides, ledges, stone bridges, obstacle pipes, collapsed bridges
-  and the rope swing are each a forced move over a blocked tile, so one loop crosses all of them: try the
-  navigator, and when it has no route, cross the nearest obstacle that ends closer to the target than
-  standing still does. An obstacle can be closer to the target than the player and still put them on its far
-  side going backwards, so a crossing that does not shorten the distance has to be spent, or the loop walks
-  between two sides of the same rock forever.
-- **A missing collision pack does not look like a missing file.** It presents as a per-destination
-  "no path to (x,z): unreachable" while short hops still work off the scene stepper. `out/collision.lcnav.gz`
-  is a separate artefact that `build:bot` does not bake — a hand-rolled deploy copying only the four bundle
-  files ships no graph at all. `deployIsolatedClient` copies the whole of `out/` and refuses to start without it.
-- **A prerequisite quest with no module can never be satisfied.** `readPlayerState` built
-  `completedQuests` from `QUEST_DEFS`, not from every known quest, so Biohazard — real,
-  finished, green in the journal — was invisible and this quest reported BLOCKED forever.
-  Eligibility is a property of the account, not of which modules happen to exist.
-- **Two earlier crossings into West Ardougne are dead by the time this quest runs.** Koftik and the cave
-  mouth are behind the wall, and the navigator has no edge through it. Plague City's garden dig is refused
-  the moment Biohazard starts — `mud_patch.rs2` answers "the ground's been filled in and packed hard" for
-  `%biohazard >= started` — and Omart will not re-hang Biohazard's rope ladder once that quest is finished,
-  which is the state every account arriving here is in. What a completed Biohazard leaves is the city gates:
-  `west_ardougne_open_city_doors` opens them outright at `%biohazard = complete`. Reusing Plague City's
-  crossing looked like the reuse-not-rebuild call and was wrong.
-- **Nothing records which orbs are already dark.** The varp is untransmitted and the
-  journal only says "after destroying four orbs" once the well has been used, so an orb
-  that is neither in the pack nor on its own floor tile has already been burned. The well
-  is the oracle for the sweep: it only descends once all four are out, and blasts the
-  character back with damage otherwise.
-- **Five separate NPCs are all called "Koftik".** `caveguide1` through `caveguide5` render
-  the same display name at five different points in the quest, and each has its own
-  dialogue. Match the guide by id. The same holds for the four "Orb of light" and two of
-  the three "Paladin's badge".
-- **The corridor traps cannot be routed around, only suspended.** `[timer,upass_trap]` is set to one tick
-  across map squares `0_37_151` and `0_38_151` and takes `hp/10 + 1` on a spear or 8% of base hitpoints on a
-  spring for every tick ended on one. Twenty trap tiles were lifted out of the map and given to the
-  pathfinder as avoid-zones: every route failed, and probing them one at a time showed each tile alone severs
-  a route — the corridor is a single tile wide at every trap. Three runs died there with a full pack. A
-  normal `[timer,…]` only runs under `canAccess()`, so an open quest journal stops all of it.
-- **An op-click can only name what the client already has in its build area.** That area is 104x104 but it
-  lags the player by up to two zones, so a target forty tiles off reads as absent and the click never sends —
-  one run stood still for six minutes clicking at a loc it could not see. Absence at range is therefore not
-  evidence of anything: reading "no orb on that tile" from across the corridor as "already burned" was about
-  to skip three of the four. Long stalled walks have to be chained over stepping stones instead, and down
-  here the stones are the traps' own `Search` and the two stone tablets.
-- **Two pockets of the first cavern share a rectangle.** A flood fill on foot gives the orb corridor as
-  x 2380-2466 / z 9664-9698 and the bridge-and-rope shelf as x 2431-2464 / z 9686-9731. A plain bounding box
-  therefore reads the shelf as the corridor, and a run that drifted onto the shelf declared the spiked grid
-  crossed while it was still on the wrong side of it. Bound a pocket by what is left after its neighbours are
-  taken out, not by its own extent.
-- **A seam vocabulary keyed on loc id alone is not enough.** The same id appears in both caverns and the same
-  op means different things at each end: taking `upass_swampbubbles1` for a crossing walked a route twenty
-  tiles off its approach before the script behind it was read. The unicorn tunnel is the sharper case — it is
-  a real seam, sixteen tiles from the boulder with a gain that reads as progress, and it telejumps to the
-  paladins' shelf four seams and a well behind. It is only worth offering when the journey crosses between
-  the caverns, which is the one thing it joins.
-- **The way back up to the paladins is the unicorn tunnel, not the mud pile.** `mudpile_upass` climbs into
-  the orb corridor, on the far side of the well and behind every trap already crossed.
-  `upass_area_2_3_entrance` is the one that telejumps between the second cavern and the paladins' shelf.
-- **This quest is fought, not walked.** Three paladins at level 62 for their crests, three demons for their
-  amulets and Kalrag for the blood. The kit's shortbow exists for one shot at one rope, so a module that
-  packs it and nothing else descends a one-way dungeon bare-handed — and `armFireArrow` leaves any melee
-  weapon in the pack, where it stays unless something puts it back on.
-
-- **A `Cross` op is not a promise of a crossing.** `upass_swampbubbles1` offers one and then drags the player
-  into a crevasse at (2485,9649) for fifteen per cent of their hitpoints, and `caverockpile` climbs honestly
-  but out to the first cavern's landing chamber, behind the bridge and the grid — a way home, not a way on.
-  Both sit on the route to the boulder with a gain that reads as progress. Read the script behind every op
-  before it joins a seam vocabulary.
-- **A seam's own tile is blocked — that is what makes it a seam.** A reachability flood asked about the loc's
-  tile answers no, and where the near side is a single walkable column (the second cavern's ledge is six such
-  tiles in a row) it answers no for every one. Ask about the cardinal neighbours, which are where a player
-  would stand.
-- **Every obstacle here rolls a skill, so one attempt is not a verdict.** The rockslide, the ledge, the stone
-  bridges, the collapsed bridge and the rope swing roll agility; the two locked cages roll thieving. A
-  failure leaves the player short — the ledge in a rat pit — and spending the obstacle on it is how a leg ran
-  out of ledges to try while standing at the door of the room it could not leave.
-- **Drops are not deliveries.** `ai_queue3` puts the paladin's coat of arms on its own tile, so a step waiting
-  for it to appear in the pack waits forever. The kill and the pickup are two separate things.
-
-- **An op-click on a ground-decor seam has to be sent from beside it.** The ledge is shape 22 on a tile the
-  collision pack calls blocked, so the server paths toward that tile, dead-ends, and answers "I can't reach
-  that!" — the crossing script never runs, and the step reads it as the agility roll failing. Twenty rolls at
-  ninety-five per cent each "failed" before the refusal was logged. `inOperableDistance` is
-  `reachedEntity || reachedObj`, which a cardinal neighbour satisfies: walk there at radius 0 first.
-
-- **`nearest()` cannot tell a diagonal neighbour from a cardinal one.** Both are Chebyshev distance one, and
-  `reachRectangle` takes a cardinal side and nothing else. The second cavern's ledge is six identical locs in
-  a column, and the nearest one to the character was always the diagonal — so four tries from one tile
-  produced four "I can't reach that!" and the leg spent every ledge it had. Ask for a Manhattan distance of
-  one when the op has to reach.
-
-- **Choosing a cardinal tile and then walking to it at radius one throws the choice away.** The ring is
-  cardinal because `reachRectangle` accepts nothing else, and a radius of one lands *beside* the tile that
-  was picked — which is the diagonal, and the op answers "You can't do that from here." The second cavern's
-  ledge refused four times that way with every try reported from the same diagonal tile, which reads as four
-  failed agility rolls. It survived six per-leg runs and only showed up end to end, because the walk usually
-  does land on the tile it aimed at.
-- **A pocket traveller is the wrong tool for a stand two tiles away.** The five tiles the fire arrow can be
-  shot from are a handful apart in one pocket, and the loop that tried each reached for the mover that
-  crosses the whole pass. So a stand that was not walkable read as "no route" rather than "try the next
-  one", and the traveller went hunting seams: forty-one "nowhere to stand" reports and eleven tiles of drift
-  away from the rope. Six per-leg runs never saw it because they all arrived on the same tile; the
-  end-to-end run arrived two tiles off and the first stand fell through. Short hops inside a pocket want the
-  plain walk.
-- **Proximity is not reach, for NPCs as well as locs.** Thirteen Iban disciples line the temple approach and
-  `nearest()` returned one through the temple wall. The attack sent, nothing happened, and the step spent its
-  whole three-minute wait in silence — twice, because one long wait looks exactly like a slow fight. Filter
-  the query by whether a cardinal neighbour can be stood on, take them in distance order, and give each a
-  short wait: a level-thirteen NPC with twenty hitpoints that is not dead in forty-five seconds is not being
-  fought at all.
-- **Iban's temple has no floor in the collision pack.** A flood over x 2130-2143 by z 4640-4655 at level 1
-  finds one isolated tile: not the altar, not Iban's own tile, not the tile the doors force-move the player
-  onto. So every distance-based approach inside answers "unreachable" from a tile the character is standing
-  on. Nothing there needs walking to — the doors are the entry and a use-on-loc is the throw, both of which
-  leave the pathing to the server, which is the only thing in the temple that can see the ground.
-- **Getting in is not getting out.** Kardia's house is a sealed fifteen-tile pocket — a flood from inside
-  gives x 2151-2157 by z 4565-4567 and stops at her door, because the collision pack calls a door tile
-  blocked. The doll is in there, so the leg that lifts it ends shut in, and every step after it answers
-  "unreachable" for fifty-five minutes. What got the character *in* was an op-click, where the server does
-  the pathing and can see the open door; the navigator, reading a static pack, never can. So the way out is
-  open the door and then `DirectNavigator`, which clicks rather than routes — and it has to outrank every
-  other step, because none of them can run until it does.
-- **A radius counts distance, not walls.** Kardia's chest is two tiles from her door and on the other side
-  of it, so `walkTo(chest, 3)` returned arrived from the street and the click that followed was refused by a
-  server that could not path there. The door was only opened on the branch where that walk failed — which it
-  never did. Anything indoors wants the reach helper that opens what stands in the way, not a distance test.
-- **The one-shot obstacle that reports itself as a failure.** Knocking with the cat sets a bit that is never
-  cleared, and every later knock answers "Inside you can hear the witch talking to her cat." That sentence is
-  the distraction holding. Reading it as a failure sent the leg back for the cat that had respawned behind
-  it, and it knocked at a door that would not take a second one for five minutes at a time. Three runs of
-  "Kardia would not come to the door" were three reports of a step that had already worked.
-- **Iban's temple is a dress code, not a door.** `@open_iban_door` wants both halves of the robe of Zamorak
-  worn and `inv_freespace(worn) = inv_size(worn) - 2` — exactly two worn slots, nothing else — or it answers
-  "Only followers of Zamorak may enter." A module that armours up for the paladins and the demons arrives at
-  the last door unable to open it. The robes drop from an Iban disciple, level thirteen with twenty
-  hitpoints, and thirteen of them line the approach at x 2149-2163. So the armour comes off for the doors
-  and goes back on after the throw, which also means the step that keeps gear on has to stand down over that
-  stretch rather than re-wearing it every tick.
-- **Two stages print the same journal page.** `upass_found_doll` and `upass_confronted_iban` share one branch
-  in `upass_journal`, so the parser can never answer `confronted` — and the throw, gated on that stage,
-  waited for a number that never arrives. Position is the readable fact: the doors force-move the player one
-  tile west, so standing on the temple floor is what "past the doors" means.
-- **Opening a door does not move anyone through it.** The loc swaps to its open variant and the player stays
-  put, so a step whose oracle is "the character is now west of the door" times out on its own success. The
-  open and the walk are two steps.
-- **A step that walks itself does not need permission to run.** Two elements of the doll refused to act
-  unless the character was already standing in that pocket — but every one of those steps opens with a walk
-  that routes across the platforms itself, so the guard could only ever block its own step. Where the
-  traveller can get there, asking where you are first is a deadlock with a reason string.
+- **A loc's level in the map file is not the level it stands on.** The fishing platform is
+  a bridge: its map squares carry `LINK_BELOW`, and `GameMap.loadLocations` drops every
+  loc one level when that flag is set. The NPC and OBJ sections are not shifted. So the
+  ladder, the crates, the panel and the crane all read one deck higher in `m43_51.jm2`
+  than Kennith and the damp sticks that sit beside them, and stands derived from the raw
+  file land in the sea.
+- **The crates are the wall of a room, not furniture on a deck.** A `wood1` run seals the
+  room's east side with one shut door, and the crates are its north wall. A stand on the
+  open deck sees the loc at two tiles, clicks it, and nothing happens — the server's own
+  approach walk cannot open a door, so the op dies silently with no refusal and no
+  message. `Reach.locOp` opens it; `walkResilient` plus a click does not.
+- **The crane refuses from three of its four sides.** `oploc1,fishingcrane` bails when
+  `coordz(coord) < coordz(movecoord(loc_coord, 0, 0, 3))`, and its 4x4 footprint runs
+  z 3286-3289, so only the deck row north of it passes. From anywhere else the answer is
+  "I need to get closer to use that.", which is what a missed click reads as too.
+- **The journal writes one page for two stages, twice.** `seaslug_journal.rs2` shares a
+  page between "spoken to Kennith" and "sailed to Kent", and again between "Kennith needs
+  an escape" and "panel opened". Where the character is standing separates the first pair.
+  For the second, kicking a panel that is already open costs one "nothing interesting
+  happens", so both halves run as one leg and the pair needs no separating at all.
+- **The boat puts the torch out.** `board_ardougne_to_fishing_platform` swaps every
+  `torch_lit` in the pack for a `torch_unlit`, and `ignite_light_source` refuses a
+  tinderbox anywhere inside the platform's zone. The torch is lit on the deck or not at
+  all — from the damp sticks and the broken glass that spawn there.
+- **Bailey has no line on stage 10.** His switch covers stages 3-9 and 11-12. A character
+  that reaches `need_kennith_path` without a torch cannot climb the ladder and cannot ask
+  for a replacement, so that resume is a dead end rather than a slow leg — the harness
+  seeds one, and `decide` says so instead of looping.
+- **A failed rub costs nothing.** `opheld1,dry_sticks` returns before it consumes
+  anything, so a miss costs the tick it took. At Firemaking 70 the roll lands about three
+  times in four, and one attempt is not a result.
+- **Two objects render "Torch".** 594 is lit and 596 is not, and every test that matters
+  in this quest — climb the ladder, talk to Bailey, sail home — turns on which one is
+  held.
+- **`mes` is a chat line, not a dialogue.** The ladder refusal, the panel, the crane and
+  the rub all print through `mes`, so `GameMessages` is the oracle for each of them and a
+  `driveDialog` waits out its timeout for a box that never opens.
+- **Swamp paste has a counter.** Khazard General Store stocks 500 at 42gp, 110 tiles south
+  of Caroline. Making it instead needs swamp tar, which spawns in the Lumbridge swamp and
+  Morytania and nowhere near Ardougne.
 
 ## See also
 
-- [Quest pitfalls: the map](quest-pitfalls.md)
-- [Quest pitfalls: engine behaviour](quest-pitfalls-engine.md)
+- [Quest pitfalls](quest-pitfalls.md) — the map
+- [Sea Slug harness recipe](../reference/quest-harness-recipes-7.md)

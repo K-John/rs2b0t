@@ -573,8 +573,9 @@ export const CASES: readonly Case[] = [
         harness: 'upass-265-live.ts',
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
         status: 'unvetted',
-        budgetMin: 90,
-        note: 'stage 0 to 2 proven live; stages 3 to 10 written but not yet run'
+        budgetMin: 110,
+        documentedIn: 'docs/reference/quest-harness-recipes-16.md',
+        note: 'every leg 0 to 10 proven live from its own seeded stage; end to end stalls in the second cavern'
     },
     {
         id: 'plague-pipe-366-live',
