@@ -154,9 +154,11 @@ describe('Temple of Ikov decide', () => {
         expect(step.kind).toBe('withdraw');
     });
 
-    test('kit in the pack, boots unfound: the crossing leg runs', () => {
+    // Why: `fetchBoots` returns true for arriving in the boots room, a leg before it holds anything, so a step that
+    // Why: chains straight on from it walks the gate check while standing in a pocket the ice-cavern half-plane covers.
+    test('kit in the pack, boots unfound: the boots leg runs on its own', () => {
         const step = decide(snap(IKOV_STAGE.STARTED, { inv: KIT, invNames: [['lit candle', 1], ['tinderbox', 1], ['knife', 1], ['pendant of lucien', 1]] }));
-        expect(label(step)).toBe('custom:fetch the boots and unlock the south gate');
+        expect(label(step)).toBe('custom:fetch the boots of lightness');
     });
 
     // Why: the bridge weighs the pack in grams and gives way at anything but negative, so the bow and the axe are banked before the bot goes underground.
@@ -179,9 +181,9 @@ describe('Temple of Ikov decide', () => {
     });
 
     // Why: the south gate is untransmitted, so a session that has never stood past it plans for the lava crossing rather than for the chests.
-    test('boots banked but no arrows: the gate is unlocked before the chests', () => {
+    test('boots in hand but no arrows: the gate is unlocked before the chests', () => {
         const step = decide(snap(IKOV_STAGE.STARTED, { inv: [...KIT, [IKOV_OBJ.BOOTS, 1]] }));
-        expect(label(step)).toBe('custom:fetch the boots and unlock the south gate');
+        expect(label(step)).toBe('custom:unlock the south gate');
     });
 
     // Why: the crossing gives way at any non-negative weight, so the leg that takes the lever carries no armour however much the bank holds.
@@ -190,7 +192,7 @@ describe('Temple of Ikov decide', () => {
             inv: [...KIT, [IKOV_OBJ.BOOTS, 1]],
             bankNames: [['studded body', 1], ['studded chaps', 1]]
         }));
-        expect(label(step)).toBe('custom:fetch the boots and unlock the south gate');
+        expect(label(step)).toBe('custom:unlock the south gate');
     });
 
     test('arrows in hand at stage 10: the trap lever is next', () => {

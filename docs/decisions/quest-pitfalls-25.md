@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov, continued
 
-The eighteen that are the quest's own shape; the seven that are engine behaviour are on the
+The twenty that are the quest's own shape; the seven that are engine behaviour are on the
 [first page](quest-pitfalls-24.md).
 
 - **The quest has two endings, and only one of them is a fight a bot should take.**
@@ -58,12 +58,23 @@ The eighteen that are the quest's own shape; the seven that are engine behaviour
   which needs no bridge once the lever is pulled. The quest sources no armour, so the
   bank is the wardrobe: the best ranged piece it holds per slot, feet and weapon left to
   the boots and the bow.
-- **Having stood in the ice cavern is the only record that the gate is unlocked.**
-  `%ikov_dungeon` is untransmitted and no journal line moves for the lever, so a module
-  that has to choose between a weight-limited descent and an armoured one has nothing to
-  read. It remembers the first walk past the gate for the session and plans for the
-  crossing until then, which costs a resumed run one bare descent and never risks an
-  armoured bot at the lava.
+- **Having stood past the gate is the only record that it is unlocked.** `%ikov_dungeon`
+  is untransmitted and no journal line moves for the lever, so a module that has to choose
+  between a weight-limited descent and an armoured one has nothing to read. It remembers
+  the first walk through the gate for the session and plans for the crossing until then,
+  which costs a resumed run one bare descent and never risks an armoured bot at the lava.
+- **`inIceCavern` is a half-plane, and the boots room is inside it.** The test is
+  `z <= 9802 || x >= 2688` — south or east of the temple proper — and the boots room sits
+  at z 9759-9768, so it answers true from a pocket the bot has to climb out of. Standing
+  in the cavern and having come through the gate are therefore different questions, and
+  only `pastSouthGate` answers the second.
+- **`fetchBoots` returns true for a leg of the descent, not for the boots.** Lighting the
+  candle, walking, climbing down and landing in the dark room is one call that answers
+  true with an empty pack; taking them and climbing out is the next. Merging it into a
+  larger step read that first true as "boots in hand" and ran the gate check from the dark
+  room, where the half-plane above said the gate was open — so the leg reported success
+  with no boots, the next pass climbed back out, and the two thrashed until the quest
+  parked three times. It keeps a step of its own, and `decide` re-reads the pack each pass.
 - **All six chests are `forceapproach=north`, and each placement rotates that.** Walking
   to within two tiles of the chest and clicking Open worked for the ones whose legal side
   the walk happened to land on and was dropped in silence for the rest — two of six on the

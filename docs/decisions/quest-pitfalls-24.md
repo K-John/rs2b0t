@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Twenty-five in all; the seven here are engine behaviour rather than quest facts.
+Twenty-seven in all; the seven here are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
@@ -41,7 +41,7 @@ Twenty-five in all; the seven here are engine behaviour rather than quest facts.
   and neither does harm when repeated, so the module searches and pulls on every pass
   through that stage instead of trying to tell them apart.
 
-The other eighteen are the quest's own shape, on the [second page](quest-pitfalls-25.md).
+The other twenty are the quest's own shape, on the [second page](quest-pitfalls-25.md).
 
 ## See also
 

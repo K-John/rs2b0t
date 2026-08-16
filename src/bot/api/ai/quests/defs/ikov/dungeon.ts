@@ -11,7 +11,7 @@ import { Locs, type Loc } from '../../../../locs/Locs.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Traversal } from '../../../../walking/Traversal.js';
-import type { QuestSnapshot } from '../../engine/types.js';
+import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import {
     ARROWS_WANTED,
@@ -22,11 +22,11 @@ import {
     IKOV_TILE,
     LAVA_BRIDGE_ZONE,
     inDarkRoom,
-    inIceCavern,
     inTrapPit,
+    pastSouthGate,
     westOfBridge
 } from './areas.js';
-import { lightCandle } from './supplies.js';
+import { heldOrBanked, lightCandle } from './supplies.js';
 
 const WALK_MS = 300_000;
 /** Circuits of the six chests per invocation, before the tick goes back to the engine. */
@@ -462,7 +462,7 @@ async function searchIceChests(log: (m: string) => void): Promise<boolean> {
 // Why: `%ikov_dungeon` is untransmitted, so whether the south gate opens is the only client-visible answer to "has the lever been pulled".
 async function enterIceCavern(log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
-    if (here && inIceCavern(here)) {
+    if (here && pastSouthGate(here)) {
         return gateIsOpen();
     }
     if (!(await templeWalk(IKOV_TILE.SOUTH_GATE_NORTH, 0, log))) {
@@ -495,7 +495,7 @@ function gateIsOpen(): boolean {
 
 function crossedIntoCavern(): boolean {
     const t = Game.tile();
-    return t !== null && inIceCavern(t);
+    return t !== null && pastSouthGate(t);
 }
 
 // Why: a stack of two to five arrows carries its own object id, and all five share one display name — so arrows are counted by name, never by id.
@@ -507,15 +507,29 @@ export function arrowsSecured(snap: QuestSnapshot): boolean {
     return (snap.inv.get(key) ?? 0) + (snap.bank?.get(key) ?? 0) >= ARROWS_WANTED;
 }
 
+/** The boots errand on its own; it takes a leg of the descent per call and holds nothing until the last. */
+export function bootsStep(snap: QuestSnapshot): QuestStep | null {
+    if (wearingBoots() || heldOrBanked(snap, IKOV_OBJ.BOOTS) > 0) {
+        return null;
+    }
+    return { kind: 'custom', name: 'fetch the boots of lightness', run: fetchBoots };
+}
+
 /**
- * Boots, then the south gate; a gate that refuses is what sends the leg across the lava after the lever.
+ * Cross the lava for the Lever and pull it, which is what the south gate reads.
  * @see docs/decisions/quest-pitfalls-25.md
  */
 export async function unlockSouthGate(log: (m: string) => void): Promise<boolean> {
     if (!(await escapePocket(log))) {
         return false;
     }
-    if (!(await fetchBoots(log))) {
+    // Why: the boots are the crossing's weight budget, and their own leg runs to completion before this one starts.
+    if (!wearingBoots()) {
+        await fetchBoots(log);
+    }
+    // Why: `fetchBoots` answers true for a leg of progress rather than for the boots, and one of those legs ends standing in the dark room — which the ice-cavern half-plane covers, so a gate check sent from there reads unlocked without a walk.
+    if (!wearingBoots()) {
+        log('ikov: the boots are not on yet — the gate check waits for them');
         return false;
     }
     if (await enterIceCavern(log)) {

@@ -10,6 +10,7 @@ import {
     inTemple,
     inTrapPit,
     onWineldaLedge,
+    pastSouthGate,
     westOfBridge
 } from '#/bot/api/ai/quests/defs/ikov/areas.js';
 
@@ -70,6 +71,21 @@ describe('Temple of Ikov regions', () => {
     test('the ice cavern excludes the corridor the south gate opens from', () => {
         expect(inIceCavern(IKOV_TILE.SOUTH_GATE_NORTH)).toBe(false);
         expect(inIceCavern(IKOV_TILE.SOUTH_GATE_SOUTH)).toBe(true);
+    });
+
+    // Why: `inIceCavern` is the half-plane south and east of the temple, and the boots room sits inside it — a leg that treats "in the cavern" as "past the gate" reads the dark room as an unlocked gate.
+    test('the boots room is inside the ice cavern half-plane', () => {
+        expect(inIceCavern(IKOV_TILE.BOOTS_SPAWN)).toBe(true);
+        expect(inDarkRoom(IKOV_TILE.BOOTS_SPAWN)).toBe(true);
+    });
+
+    test('past the south gate excludes the boots room and the corridor alike', () => {
+        expect(pastSouthGate(IKOV_TILE.BOOTS_SPAWN)).toBe(false);
+        expect(pastSouthGate(IKOV_TILE.SOUTH_GATE_NORTH)).toBe(false);
+        expect(pastSouthGate(IKOV_TILE.SOUTH_GATE_SOUTH)).toBe(true);
+        for (const { stand } of ICE_CHESTS) {
+            expect(pastSouthGate(stand)).toBe(true);
+        }
     });
 
     // Why: the far side wraps around the Fire Warrior's room, so the temple box has to stop at the corridor the wall opens into.

@@ -224,6 +224,13 @@ export function inIceCavern(t: { x: number; z: number }): boolean {
     return t.z <= 9802 || t.x >= 2688;
 }
 
+// Why: `inIceCavern` is a half-plane rather than a box, and the boots room sits inside it — so "south or east of the temple" is not the same question as "through the south gate", and only this one may stand in for the gate.
+
+/** Through the south gate, which the boots room is not however far south it lies. */
+export function pastSouthGate(t: { x: number; z: number }): boolean {
+    return inIceCavern(t) && !inDarkRoom(t);
+}
+
 export function inTrapPit(t: { x: number; z: number }): boolean {
     return t.x >= 2672 && t.x <= 2686 && t.z >= 9845 && t.z <= 9856;
 }

@@ -15,6 +15,7 @@ import {
 } from './areas.js';
 import {
     arrowsSecured,
+    bootsStep,
     escapePocket,
     pullTrapLever,
     southGateOpen,
@@ -240,7 +241,12 @@ export function decide(snap: QuestSnapshot): QuestStep {
             if (kit) {
                 return kit;
             }
-            return { kind: 'custom', name: 'fetch the boots and unlock the south gate', run: unlockSouthGate };
+            // Why: `fetchBoots` answers true for a leg of the descent rather than for the boots, so it owns a step of its own — chained straight into the gate check it runs that check from the boots room, which the ice-cavern half-plane covers.
+            const boots = bootsStep(snap);
+            if (boots) {
+                return boots;
+            }
+            return { kind: 'custom', name: 'unlock the south gate', run: unlockSouthGate };
         }
         // Why: past the lever the ice cavern needs no crossing, so this is the first leg that can wear anything — and nine level-61 ice spiders stand on the circuit.
         const armour = rangedArmourStep(snap);
