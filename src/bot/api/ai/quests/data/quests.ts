@@ -483,9 +483,8 @@ export const QUESTS: QuestRecord[] = [
             ],
             quests: ['priestperil']
         },
-        // The diary, the herbs, the vials and every building material are sourced in
-        // Mort'ton; the module owns its own loadout and draws coins, food, a tinderbox
-        // and the logs itself.
+        // Why: the diary, the herbs, the vials and every building material are sourced in Mort'ton.
+        // Why: the module owns its own loadout and draws coins, food, a tinderbox and the logs itself.
         items: []
     },
     {
