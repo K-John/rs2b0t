@@ -126,6 +126,9 @@ Twenty-two, and the first three are map and engine facts rather than quest ones.
   on without has nowhere to land. The seeded leg never showed it: a random event had taken
   a slot, and dropping that gift left the one the reed needed. The lobster count is the
   only number in the pack that is a float rather than a requirement, so the leg eats one.
+  Fixing it at the reed fixed it only at the reed: the herb, one stage later, met the same
+  full pack. The valve belongs where every step passes through it, not in the step that
+  happened to hit it first.
 
 - **The floor below a shop is four tiles from it.** `Tile.distanceTo` is a plan distance
   with no storey in it, so `ensureAt` let the walker stop underneath the Magic Guild

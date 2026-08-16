@@ -515,6 +515,19 @@ describe('Legends Quest decide', () => {
         expect(name(decide({ ...full, freeSlots: 3 }))).not.toBe('custom:drop what the quest has no use for');
     });
 
+    // Why: twenty-eight wanted things leave no slot for the herb the step is about to pick, and there is nothing spent or junk to shed.
+    test('a full pack of wanted things eats a lobster for the slot', () => {
+        const jungle = { x: 2836, z: 2917, level: 0 };
+        const full = snap({
+            stage: LQ_STAGE.ASKED_GUJUO_WATER,
+            invIds: [LQ_ID.GOLD_BOWL_BLESSED, LQ_ID.MACHETE, LQ_ID.COINS, LQ_ID.LOBSTER],
+            inv: [...Array.from({ length: 14 }, () => 'Lobster'), 'Coins'],
+            tile: jungle
+        });
+        expect(name(decide({ ...full, freeSlots: 0 }))).toBe('custom:eat a lobster to make room');
+        expect(name(decide({ ...full, freeSlots: 3 }))).not.toBe('custom:eat a lobster to make room');
+    });
+
     // Why: the book is gone from the pack once it is read, which is not the same as never having had it.
     test('the trials kit is not re-bought after the book has been read', () => {
         const jungle = { x: 2820, z: 2915, level: 0 };

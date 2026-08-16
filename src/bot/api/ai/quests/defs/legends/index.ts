@@ -228,7 +228,23 @@ function makeRoom(snap: QuestSnapshot, chosen: QuestStep): QuestStep {
     }
     // Why: a pack with spent kit in it is already being dropped by the step above, and two drops racing each other shed one item a pass.
     const junk = spentNow(snap).length > 0 ? [] : junkIds(snap);
-    return junk.length > 0 ? step('drop what the quest has no use for', ditch(junk)) : chosen;
+    if (junk.length > 0) {
+        return step('drop what the quest has no use for', ditch(junk));
+    }
+    // Why: twenty-eight wanted things still leave no slot for the reed, the herb or the lump the quest is about to hand over — and the lobster count is the only number in the pack that is a float rather than a requirement.
+    return held(snap, LQ_ID.LOBSTER) > 0 ? step('eat a lobster to make room', eatOne) : chosen;
+}
+
+/** Eat one lobster, for the slot rather than the hitpoints. */
+async function eatOne(log: (m: string) => void): Promise<boolean> {
+    const food = Inventory.items().find(item => item.id === LQ_ID.LOBSTER);
+    if (!food) {
+        log('no lobster left to eat for the slot');
+        return false;
+    }
+    await food.interact('Eat');
+    await Execution.delayTicks(2);
+    return Inventory.free() > 0;
 }
 
 // Why: the pack is tightest through the trials and the fights want the most food, so the float is chosen by where the quest is rather than once.
