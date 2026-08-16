@@ -69,12 +69,15 @@ const LADDER_BASE = new Tile(3310, 3509, 0);
 const LADDER_TOP = new Tile(3310, 3509, 1);
 const CAT_STAND = new Tile(3306, 3512, 1);
 
-// Why: the sixth crate sits in the corner behind the yard's shed, and the route round it is long enough that the server's own finder gives up and walks the character to the closest tile it liked — nine tiles short, with no refusal.
-// Why: it is searched first for the same reason, since the walk in is only reliable from the open ground by the fence and not from the tile the previous crate leaves the character on.
-/** Waypoints into and back out of that corner, each a leg short enough for the server to route in one go. */
 // Why: this is the one tile the server routes to from every crate, the ladder and the fence alike — aim anywhere else from beside a crate and the walk is refused in silence.
+
 /** The yard's hub: every leg inside it starts and ends here. */
 const YARD_HUB = new Tile(3305, 3504, 0);
+
+// Why: the sixth crate sits in the corner behind the yard's shed, and the route round it is long enough that the server's own finder gives up and walks the character to the closest tile it liked — nine tiles short, with no refusal.
+// Why: it is searched first for the same reason, since the walk in is only reliable from the open ground by the fence and not from the tile the previous crate leaves the character on.
+
+/** Waypoints into and back out of that corner, each a leg short enough for the server to route in one go. */
 const NW_CORNER_IN: Tile[] = [YARD_HUB, new Tile(3304, 3511, 0), new Tile(3300, 3512, 0), new Tile(3298, 3513, 0)];
 const NW_CORNER_OUT: Tile[] = [new Tile(3300, 3512, 0), new Tile(3304, 3511, 0), YARD_HUB];
 /** The way south, through the hub. */
@@ -104,6 +107,7 @@ const CRATE_SEARCH_MS = 30_000;
 
 // Why: `npc_find` measures the brothers against each other, not against us, and both wander two tiles from their own spawn.
 // Why: the check runs four chat lines into the conversation, so the gap has to start well inside the script's own limit of 3 — at 2 the pair drifted out of range on two attempts in three.
+
 /** How close the brothers must stand before the dialogue is opened. */
 const BROTHER_GAP = 1;
 
@@ -299,7 +303,7 @@ async function settleCutscene(log: (m: string) => void): Promise<void> {
 }
 
 // Why: which crate holds the kitten is a server-side coord the client never sees, so the only way through is to search them all.
-// Why: the whole yard sits in one scene and every crate blocks its own tile, so the Search op is sent from wherever the bot stands and the server walks it the rest of the way.
+// Why: the yard sits in one scene and every crate blocks its own tile, so the Search op is sent from wherever the bot stands and the server walks it the rest of the way.
 async function searchCratesForKitten(log: (m: string) => void): Promise<boolean> {
     const found = (): boolean => heldId(FLUFFS_OBJ.kitten) > 0;
     if (found()) {
@@ -474,7 +478,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 export const gertrudescat: QuestModule = {
     record: QUESTS.find(r => r.id === 'fluffs')!,
     bank: BANK,
-    // Why: nothing here fights, but the legs cross Port Sarim and the Lumbridge farms, and a death mid-quest costs the whole item chain.
+    // Why: nothing here fights, but the legs cross Port Sarim and the Lumbridge farms, and a death mid-quest costs the item chain.
     food: 4,
     // Why: the milk, the herb and the sardine are all consumed mid-quest, so the module fetches each on the leg that needs it rather than the provisioner refetching all three on every resume.
     tools: ['coins', 'bucket', 'doogle leaves', 'sardine', "fluffs' kitten"],

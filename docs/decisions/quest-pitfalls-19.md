@@ -14,7 +14,7 @@ every bot that walks into the lumber yard.
   from a solid tile even though the pack cannot plan it.
 - **A transport's `to` is where the graph continues, not where the player
   lands.** Those are the same tile for most crossings and two tiles apart for
-  this one. Moving `to` onto the real landing would fix the landing check and
+  this one. Moving `to` onto the landing tile would fix the landing check and
   break the graph, because an unwalkable node has no exits — both halves have to
   be satisfied separately.
 - **The landing check passes on the first crossing and fails on the retry.**
@@ -22,8 +22,8 @@ every bot that walks into the lumber yard.
   began, so a crossing entered from ten tiles away reads as progress and the
   same crossing entered from its own approach tile does not. A hop that looks
   proven end to end can still be the one wedging a repath. Loosening the rule is
-  not the fix — a short hop has to land exactly or every frame of a stile's
-  animation reads as crossed, which
+  not the fix — a short hop has to land on its planned tile or every frame of a
+  stile's animation reads as crossed, which
   [`shortCrossingLanding.test.ts`](../../test/event/webwalk/shortCrossingLanding.test.ts)
   exists to hold. The crossing that ends mid-span is recognised by *where* it
   stopped: standing on the loc's own tile.
@@ -90,7 +90,7 @@ every bot that walks into the lumber yard.
   three tiles away and never took a step. Wait the scene out, then drive the box
   shut.
 - **A use sent while a ladder still has the character delayed is dropped.** The
-  first offer to Fluffs after the climb did nothing and looked exactly like a
+  first offer to Fluffs after the climb did nothing and looked like a
   refusal; the second, seconds later, was accepted. Retry inside the leg, or
   spend an engine step per attempt.
 - **The journal pages are cumulative.** Every stage keeps the sentences of the
