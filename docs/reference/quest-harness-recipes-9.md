@@ -57,8 +57,9 @@ What the live runs paid for is in [Tai Bwo Wannai Trio's pitfalls](../decisions/
 ## Temple of Ikov — stage-scoped harness
 
 [`e2e/temple-of-ikov-250-live.ts`](../../e2e/temple-of-ikov-250-live.ts), members-only,
-so `:8890`. The end-to-end command is vetted: uncheated `--until 100` finished in 70
-minutes at `--tick 200`, and the hobgoblin farm is 55 of them.
+so `:8890`. The end-to-end command was vetted at 70 minutes on `--tick 200` before the
+ice cavern was split into a crossing leg and an armoured one; that split and the empty-chest
+oracle both change the clock, so the figure is a baseline rather than a current claim.
 
 ```sh
 HEADED=1 bun e2e/temple-of-ikov-250-live.ts --until 100 --tick 200 --minutes 180              # end to end
@@ -83,12 +84,14 @@ ending leaves `%ikov` at 80, not 100.
 | `roots` | + 20 limpwurt roots | the hobgoblin farm |
 | `guardian` | + shiny key | Winelda's ferry — the key is what walks a seeded stage-60 run in through McGrubor's Wood |
 
-The bank holds two million coins and sixty lobsters at every kit. Nothing else is
-seeded by default: the axe, the knife, the flax, the yew logs, the bow string, the
-candle, the arrows, the boots and the roots each have a source the bot walks to, and
-seeding one hides whether it can find it.
+The bank holds two million coins, three hundred lobsters and a set of studded leather at
+every kit. Nothing else is seeded by default: the axe, the knife, the flax, the yew logs,
+the bow string, the candle, the arrows, the boots and the roots each have a source the bot
+walks to, and seeding one hides whether it can find it. The armour is the exception,
+because the quest sources none — the module wears the best ranged pieces the bank already
+holds, so an unseeded bank proves only that it copes bare.
 
-Five facts govern this harness:
+Six facts govern this harness:
 
 - **`--stats 70` is the default**, not 99. Thieving 42 and Ranged 40 are the server
   gates; woodcutting 60, fletching 65 and crafting 10 are what the yew shortbow costs,
@@ -96,6 +99,10 @@ Five facts govern this harness:
 - **The lava bridge fails at any non-negative weight.** The boots are -10lb worn, so
   the leg that crosses carries the candle, the pendant and food and nothing else — the
   bow is 3lb and never goes near it.
+- **The armour goes on after the lever, never before it.** A studded body is 12lb, so the
+  crossing leg fetches the boots and the lever alone and climbs out; the chest circuit is a
+  second descent through the south gate, which needs no bridge. `--lever` skips the first
+  descent outright.
 - **The Fire Warrior refuses anything but ranged with ice arrows in the quiver.** A run
   that reaches him without both stands there swinging and never lands a hit.
 - **A seeded stage never walked the sourcing leg.** A run started at 50 has no axe
@@ -105,7 +112,7 @@ Five facts govern this harness:
   stage test seeded at 60 or 70 has to let the bot pick the key up before it can walk
   to Lucien.
 
-What the live runs paid for is in [Temple of Ikov's pitfalls](../decisions/quest-pitfalls-24.md).
+What the live runs paid for is in Temple of Ikov's pitfalls, [engine behaviour](../decisions/quest-pitfalls-24.md) and [the quest's own shape](../decisions/quest-pitfalls-25.md).
 
 ## See also
 

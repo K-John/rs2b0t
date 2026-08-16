@@ -685,11 +685,10 @@ export const CASES: readonly Case[] = [
         id: 'temple-of-ikov-250-live',
         harness: 'temple-of-ikov-250-live.ts',
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
-        status: 'vetted',
+        status: 'documented',
         budgetMin: 120,
-        provenAt: '7d6a6e7c',
         documentedIn: 'docs/reference/quest-harness-recipes-9.md',
-        note: 'members-only, :8890 — uncheated --until 100 finished in 70 minutes at --tick 200; the default kit is coins and lobsters, so the run sources its own bow, arrows, boots and roots'
+        note: 'members-only, :8890 — uncheated --until 100 finished in 70 minutes at --tick 200 as of 7d6a6e7c; the ice cavern has since split into a crossing leg and an armoured one, so that time needs re-proving'
     },
     {
         id: 'thievingbot-test',

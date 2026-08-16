@@ -11,7 +11,7 @@ import { Locs, type Loc } from '../../../../locs/Locs.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Traversal } from '../../../../walking/Traversal.js';
-import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
+import type { QuestSnapshot } from '../../engine/types.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import {
     ARROWS_WANTED,
@@ -26,13 +26,23 @@ import {
     inTrapPit,
     westOfBridge
 } from './areas.js';
-import { heldOrBanked, lightCandle } from './supplies.js';
+import { lightCandle } from './supplies.js';
 
 const WALK_MS = 300_000;
 /** Circuits of the six chests per invocation, before the tick goes back to the engine. */
 const CHEST_ROUNDS = 3;
 /** What an empty chest answers with, and the only thing that separates it from a find in flight. */
 const CHEST_EMPTY = /search the chest, but find nothing/i;
+
+// Why: `%ikov_dungeon` is untransmitted and no journal line moves for the lever, so having stood in the ice cavern is the only evidence the client keeps that the south gate is unlocked — and that is what tells the crossing leg apart from the armoured one.
+
+/** Set once a walk has put the bot past the south gate. */
+let southGateSeenOpen = false;
+
+/** Whether this session has seen the south gate open; false sends the next descent across the lava. */
+export function southGateOpen(): boolean {
+    return southGateSeenOpen;
+}
 
 // Why: the bridge is not a baked edge and its tiles are walkable, so any route the pathfinder draws across them ferries the bot to the wrong side.
 export function templeWalk(dest: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
@@ -453,7 +463,7 @@ async function searchIceChests(log: (m: string) => void): Promise<boolean> {
 async function enterIceCavern(log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
     if (here && inIceCavern(here)) {
-        return true;
+        return gateIsOpen();
     }
     if (!(await templeWalk(IKOV_TILE.SOUTH_GATE_NORTH, 0, log))) {
         return false;
@@ -461,7 +471,7 @@ async function enterIceCavern(log: (m: string) => void): Promise<boolean> {
     await DirectNavigator.walkTo(IKOV_TILE.SOUTH_GATE_SOUTH, 0, 8000);
     if (crossedIntoCavern()) {
         await settleScene();
-        return true;
+        return gateIsOpen();
     }
     const gate = locById(IKOV_LOC.SOUTH_GATE_LEFT, 4) ?? locById(IKOV_LOC.SOUTH_GATE_RIGHT, 4);
     if (gate && (await gate.interact('Open'))) {
@@ -475,6 +485,11 @@ async function enterIceCavern(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     await settleScene();
+    return gateIsOpen();
+}
+
+function gateIsOpen(): boolean {
+    southGateSeenOpen = true;
     return true;
 }
 
@@ -492,37 +507,45 @@ export function arrowsSecured(snap: QuestSnapshot): boolean {
     return (snap.inv.get(key) ?? 0) + (snap.bank?.get(key) ?? 0) >= ARROWS_WANTED;
 }
 
-/** The dungeon errand that has to happen before the Fire Warrior can be fought, or null when none is left. */
-export function dungeonPrepStep(snap: QuestSnapshot): QuestStep | null {
-    if (!wearingBoots() && heldOrBanked(snap, IKOV_OBJ.BOOTS) === 0) {
-        return { kind: 'custom', name: 'fetch the boots of lightness', run: fetchBoots };
-    }
-    if (arrowsSecured(snap)) {
-        return null;
-    }
-    return { kind: 'custom', name: 'stock ice arrows from the temple chests', run: iceArrowLeg };
-}
-
-/** Boots, then the south gate; a gate that refuses is what sends the leg after the lever. */
-async function iceArrowLeg(log: (m: string) => void): Promise<boolean> {
+/**
+ * Boots, then the south gate; a gate that refuses is what sends the leg across the lava after the lever.
+ * @see docs/decisions/quest-pitfalls-25.md
+ */
+export async function unlockSouthGate(log: (m: string) => void): Promise<boolean> {
     if (!(await escapePocket(log))) {
         return false;
     }
     if (!(await fetchBoots(log))) {
         return false;
     }
+    if (await enterIceCavern(log)) {
+        return true;
+    }
+    log('ikov: the south gate is still locked — fetching the lever across the lava');
+    if (!(await fetchIkovLever(log))) {
+        return false;
+    }
+    if (!(await mendAndPullLever(log))) {
+        return false;
+    }
+    if (await enterIceCavern(log)) {
+        return true;
+    }
+    log('ikov: the south gate refused even after the lever was pulled');
+    return false;
+}
+
+// Why: the lava is behind the bot by the time this runs, so this is the first leg of the quest that can carry weight — and the ice spiders on the circuit are what the armour is for.
+
+/** The chest circuit, which crosses nothing and so runs in whatever armour the bank dressed. */
+export async function stockIceArrows(log: (m: string) => void): Promise<boolean> {
+    if (!(await escapePocket(log))) {
+        return false;
+    }
     if (!(await enterIceCavern(log))) {
-        log('ikov: the south gate is still locked — fetching the lever across the lava');
-        if (!(await fetchIkovLever(log))) {
-            return false;
-        }
-        if (!(await mendAndPullLever(log))) {
-            return false;
-        }
-        if (!(await enterIceCavern(log))) {
-            log('ikov: the south gate refused even after the lever was pulled');
-            return false;
-        }
+        log('ikov: the south gate is shut again — the lever has to be pulled before the chests');
+        southGateSeenOpen = false;
+        return false;
     }
     return searchIceChests(log);
 }

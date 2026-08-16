@@ -13,8 +13,19 @@ import {
     ROOTS_WANTED,
     WINELDA_STOP
 } from './areas.js';
-import { arrowsSecured, dungeonPrepStep, escapePocket, pullTrapLever, templeWalk, wearFearPendant, wearingBoots } from './dungeon.js';
+import {
+    arrowsSecured,
+    escapePocket,
+    pullTrapLever,
+    southGateOpen,
+    stockIceArrows,
+    templeWalk,
+    unlockSouthGate,
+    wearFearPendant,
+    wearingBoots
+} from './dungeon.js';
 import { fightFireWarrior, killLucien } from './fight.js';
+import { RANGED_GEAR_NAMES, rangedArmourStep } from './gear.js';
 import { IKOV_STAGE, readIkovStage } from './journal.js';
 import { heldOrBanked, restockStep, sourcingShortfall, suppliesStep } from './supplies.js';
 import { joinTheGuardians, leaveTheFarSide } from './temple.js';
@@ -37,7 +48,8 @@ const IKOV_TOOLS = [
     'pendant',
     'limpwurt root',
     'lever',
-    'shiny key'
+    'shiny key',
+    ...RANGED_GEAR_NAMES
 ];
 
 /** Lobsters the bot takes to the Fire Warrior's door, and the pack size that sends it back for more. */
@@ -218,18 +230,24 @@ export function decide(snap: QuestSnapshot): QuestStep {
     }
 
     if (!arrowsSecured(snap) || needBoots) {
-        const trim = bridgeTrimStep(snap);
-        if (trim) {
-            return trim;
+        // Why: the boots and the lever are both on the far side of a bridge that fails at any non-negative weight, so that descent carries the crossing kit and no armour.
+        if (needBoots || !southGateOpen()) {
+            const trim = bridgeTrimStep(snap);
+            if (trim) {
+                return trim;
+            }
+            const kit = dungeonKitStep(snap);
+            if (kit) {
+                return kit;
+            }
+            return { kind: 'custom', name: 'fetch the boots and unlock the south gate', run: unlockSouthGate };
         }
-        const kit = dungeonKitStep(snap);
-        if (kit) {
-            return kit;
+        // Why: past the lever the ice cavern needs no crossing, so this is the first leg that can wear anything — and nine level-61 ice spiders stand on the circuit.
+        const armour = rangedArmourStep(snap);
+        if (armour) {
+            return armour;
         }
-        const prep = dungeonPrepStep(snap);
-        if (prep) {
-            return prep;
-        }
+        return { kind: 'custom', name: 'stock ice arrows from the temple chests', run: stockIceArrows };
     }
 
     if (stage < IKOV_STAGE.PULLED_LEVER) {
@@ -251,7 +269,7 @@ export const ikov: QuestModule = {
     food: 6,
     grind: ['Hobgoblin', 'Fire Warrior of Lesarkus', 'Lucien'],
     tools: IKOV_TOOLS,
-    // Why: the hobgoblin camp is the only unarmoured fight this quest takes and it is a crowd, so it eats at three quarters rather than at half — 0.55 left 38 hitpoints against three level-42 attackers and the bot died at twelve roots.
+    // Why: the ice cavern and the hobgoblin camp are both crowds and the bank may dress neither, so it eats at three quarters rather than at half — 0.55 left 38 hitpoints against three level-42 attackers and the bot died at twelve roots.
     sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.75 },
     readStage: readIkovStage,
     warnReadiness: sourcingShortfall,
@@ -262,6 +280,7 @@ export const ikov: QuestModule = {
             `ikov: stage=${snap.stage ?? '?'} at ${where} step=${step.kind}`,
             `ikov: boots=${wearingBoots() ? 'worn' : 'no'} arrows=${snap.inv.get(IKOV_NAME.ICE_ARROWS.toLowerCase()) ?? 0}`
                 + ` roots=${held(snap, IKOV_OBJ.LIMPWURT_ROOT)} pendant=${haveFearPendant(snap) ? 'yes' : 'no'}`
+                + ` armour=${RANGED_GEAR_NAMES.filter(name => snap.worn.has(name)).length}/4 gate=${southGateOpen() ? 'open' : 'shut'}`
                 + ` weight=${Game.weight()}kg`
         ];
     },

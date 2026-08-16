@@ -1,8 +1,10 @@
 /** Live Temple of Ikov harness (#250): --stage N, --until N, --kit none|dungeon|warrior|roots, base :8890.
  *  Why: the quest is members-only, so the :8888 sim has neither the temple content nor a `~bankitem` to seed with.
- *  Why: the default kit is coins and lobsters alone — the candle, the tinderbox, the knife, the yew shortbow,
- *  the ice arrows, the boots of lightness and the twenty limpwurt roots all have sources the bot has to find,
- *  and seeding any of them hides whether it can. The richer kits exist to isolate one leg, never to claim a pass. */
+ *  Why: the default kit is coins, lobsters and a set of studded leather — the candle, the tinderbox, the knife,
+ *  the yew shortbow, the ice arrows, the boots of lightness and the twenty limpwurt roots all have sources the bot
+ *  has to find, and seeding any of them hides whether it can. The armour is the exception because the quest sources
+ *  none: the module wears whatever the bank already holds, so an unseeded bank proves only that it copes bare.
+ *  The richer kits exist to isolate one leg, never to claim a pass. */
 
 //   HEADED=1 bun e2e/temple-of-ikov-250-live.ts --until 100 --tick 200 --minutes 180
 //   HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 40 --kit warrior --until 60 --tick 200 --minutes 60
@@ -80,11 +82,16 @@ function fail(msg: string): never {
 const QUEST = 'Temple of Ikov';
 const ARDOUGNE_WEST_BANK = { x: 2616, z: 3332, level: 0 };
 
-/** Coins and food. Everything else in this quest has a source in the world. */
+/** Coins, food and a wardrobe. Everything else in this quest has a source in the world. */
 const BASE_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
-    // Why: the hobgoblin camp is a crowd the bot fights in nothing but boots, and it costs about three lobsters a root — sixty ran the bank dry at nineteen.
-    { debugName: 'lobster', displayName: 'Lobster', qty: 300 }
+    // Why: the hobgoblin camp is a crowd and the ice cavern is nine level-61 spiders, and both cost about three lobsters a kill — sixty ran the bank dry at nineteen roots.
+    { debugName: 'lobster', displayName: 'Lobster', qty: 300 },
+    // Why: the module wears the best ranged armour the bank already holds rather than sourcing any, so an unseeded bank is a bot in boots — which is what the first runs died in.
+    { debugName: 'studded_body', displayName: 'Studded body', qty: 1 },
+    { debugName: 'studded_chaps', displayName: 'Studded chaps', qty: 1 },
+    { debugName: 'coif', displayName: 'Coif', qty: 1 },
+    { debugName: 'leather_vambraces', displayName: 'Leather vambraces', qty: 1 }
 ];
 
 /** Per-leg shortcuts: each entry is a source the bot would otherwise have to walk to. */

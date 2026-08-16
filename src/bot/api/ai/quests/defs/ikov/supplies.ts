@@ -16,6 +16,7 @@ import { Reachability } from '../../../../../event/webwalk/geometry/Reachability
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { heldId } from '../../exec/prompts.js';
 import { IKOV_FOODS, IKOV_LOC, IKOV_NAME, IKOV_NPC, IKOV_OBJ, IKOV_TILE, ROOTS_WANTED } from './areas.js';
+import { rangedArmourStep } from './gear.js';
 
 /** Levels the sourcing route needs but the server never gates on the quest. */
 const IKOV_SOURCING_SKILLS: readonly { skill: string; level: number }[] = [
@@ -322,8 +323,9 @@ function foodless(snap: QuestSnapshot): boolean {
 }
 
 // Why: 20 unstackable roots plus food fill the pack, so the farm banks in batches rather than holding the lot.
+// Why: the camp is three level-42 attackers at once and the bot fights it in whatever the ice cavern dressed it in, so the armour is checked here too — a resumed run never walked the leg that put it on.
 function rootStep(snap: QuestSnapshot): QuestStep {
-    const arm = armForTheFarm(snap) ?? restockStep(snap, FARM_FOOD, FARM_FOOD_FLOOR);
+    const arm = rangedArmourStep(snap) ?? armForTheFarm(snap) ?? restockStep(snap, FARM_FOOD, FARM_FOOD_FLOOR);
     if (arm) {
         return arm;
     }
@@ -346,7 +348,7 @@ interface SupplyWants {
 
 /**
  * The next surface acquisition for the wanted parts of the kit, or null when they are all in hand.
- * @see docs/decisions/quest-pitfalls-24.md
+ * @see docs/decisions/quest-pitfalls-25.md
  */
 export function suppliesStep(snap: QuestSnapshot, wants: SupplyWants): QuestStep | null {
     const needBow = wants.bow && heldOrBanked(snap, IKOV_OBJ.YEW_SHORTBOW) === 0;

@@ -136,7 +136,7 @@ async function shedLucienColours(log: (m: string) => void): Promise<boolean> {
 
 /**
  * Cross the wall and talk a guardian into the Armadyl pendant.
- * @see docs/decisions/quest-pitfalls-24.md
+ * @see docs/decisions/quest-pitfalls-25.md
  */
 export async function joinTheGuardians(log: (m: string) => void): Promise<boolean> {
     if (heldId(IKOV_OBJ.PENDANT_ARMADYL) > 0 || Equipment.contains(IKOV_NAME.PENDANT_ARMADYL)) {
