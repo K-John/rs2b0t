@@ -41,7 +41,8 @@ function hurt(): boolean {
     return max > 0 && Skills.effective('hitpoints') / max < EAT_BELOW;
 }
 
-async function drinkPrayer(log: (m: string) => void): Promise<boolean> {
+/** Drink one dose of prayer restore, if the pack has any. */
+export async function drinkPrayer(log: (m: string) => void): Promise<boolean> {
     const dose = Inventory.items().find(item => PRAYER_POTIONS.some(p => p.id === item.id));
     if (!dose) {
         return false;

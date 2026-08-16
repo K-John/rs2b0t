@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Twenty-nine, and the first three are map and engine facts rather than quest ones.
+Thirty, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -181,6 +181,14 @@ Twenty-nine, and the first three are map and engine facts rather than quest ones
   with nought free lands nothing, forever. The seeded bank hid it: the first pass withdrew
   seven cut gems and never touched the rock, and only a death made the module mine them.
   What the drop may shed and what a deposit would take are two lists, not one.
+
+- **A skill check that spends the skill can spend its way past its own gate.** Gujuo's
+  blessing rolls `stat_random(prayer, 80, 250)` and takes five points on every miss, which
+  at seventy is a four-in-five chance each throw — so six misses walk the prayer from
+  seventy down to forty, one under the forty-two the same script demands, and from then on
+  the answer is "you are too inexperienced" for ever. Three live offers went by with
+  `chat ""` in the log, because the driver had already closed the refusal by the time the
+  wait gave up. The flask the demon needs, this leg needs too.
 
 ## See also
 

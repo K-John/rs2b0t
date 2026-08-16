@@ -259,9 +259,14 @@ function foodFor(snap: QuestSnapshot, stage: number): number {
     return stage >= LQ_STAGE.ASKED_GUJUO_WATER ? FOOD.trials : FOOD.jungle;
 }
 
+// Why: the blessing is a prayer roll that takes five points on every miss and refuses below forty-two, so the leg needs a flask as much as the demon does — and the bowl in the pack is what says the blessing has not happened yet.
+
 /** How many prayer flasks this stage's next step wants. */
 function potsFor(snap: QuestSnapshot, stage: number): number {
-    return foodFor(snap, stage) === FOOD.fight ? FIGHT_POTS : 0;
+    if (foodFor(snap, stage) === FOOD.fight) {
+        return FIGHT_POTS;
+    }
+    return held(snap, LQ_ID.GOLD_BOWL) > 0 ? 1 : 0;
 }
 
 function stageStart(snap: QuestSnapshot): QuestStep {

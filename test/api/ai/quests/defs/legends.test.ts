@@ -558,6 +558,30 @@ describe('Legends Quest decide', () => {
         expect(name(decide({ ...full, freeSlots: 0 }))).not.toBe('custom:drop what the quest has no use for');
     });
 
+    // Why: the trance takes five prayer points on every miss and refuses below forty-two, so seventy runs out before the bowl is blessed unless a flask goes with it.
+    test('the plain golden bowl takes a prayer flask to the blessing', () => {
+        const withBowl = kitted({
+            stage: LQ_STAGE.ASKED_GUJUO_WATER,
+            invIds: [LQ_ID.GOLD_BOWL],
+            bankIds: [2434],
+            bank: ['Prayer potion(4)']
+        });
+        const step = decide(withBowl);
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' ? step.items[0].name : '').toBe('Prayer potion(4)');
+    });
+
+    // Why: once the bowl is blessed the flask is the demon's, not the blessing's, and asking for one here is a bank trip the leg does not need.
+    test('the blessed bowl asks for no flask of its own', () => {
+        const blessed = kitted({
+            stage: LQ_STAGE.ASKED_GUJUO_WATER,
+            invIds: [LQ_ID.GOLD_BOWL_BLESSED],
+            bankIds: [2434],
+            bank: ['Prayer potion(4)']
+        });
+        expect(name(decide(blessed))).not.toBe('withdraw');
+    });
+
     // Why: the book is gone from the pack once it is read, which is not the same as never having had it.
     test('the trials kit is not re-bought after the book has been read', () => {
         const jungle = { x: 2820, z: 2915, level: 0 };

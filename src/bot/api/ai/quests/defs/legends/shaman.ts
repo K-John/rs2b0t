@@ -4,9 +4,11 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
+import { Skills } from '../../../../skills/Skills.js';
 import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE, inOctagram } from './areas.js';
+import { drinkPrayer } from './fight.js';
 import { enterJungle, leaveJungle, summonGujuo, talkGujuo } from './jungle.js';
 import { climbOutOfTrials } from './trials.js';
 import { driveToEnd, driveUntil, heldId, here, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
@@ -140,6 +142,7 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
             log('no Gujuo in range for the bowl');
             return false;
         }
+        await topUpPrayer(log);
         const offered = await offerTo(LQ_ID.GOLD_BOWL, gujuo, log);
         if (offered && await driveUntil(blessed, BLESS_PREFER, log, 40_000)) {
             return true;
@@ -153,6 +156,14 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
 }
 
 const BLESS_ATTEMPTS = 4;
+
+// Why: the trance rolls `stat_random(prayer, 80, 250)` and takes five points on every miss, so seventy misses its way under the script's own forty-two floor in six throws — and Gujuo then refuses outright, in a chain the driver has already closed.
+const BLESS_PRAYER = 50;
+
+/** Put the prayer back above the trance's floor, so a run of misses cannot end the leg. */
+async function topUpPrayer(log: (m: string) => void): Promise<boolean> {
+    return Skills.effective('prayer') >= BLESS_PRAYER ? true : drinkPrayer(log);
+}
 
 const BOWL_ATTEMPTS = 6;
 
