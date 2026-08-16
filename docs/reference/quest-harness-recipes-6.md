@@ -1,68 +1,150 @@
 [Manual](../README.md) › [Testing](../TESTING.md) › Quest harness recipes
 
-# Quest harness recipes (T–Z)
+# Quest harness recipes (M–O)
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-The end-to-end command below is vetted: uncheated `--until 100` finished in 70 minutes at
-`--tick 200`, and the hobgoblin farm is 55 of them.
+## Monk's Friend — stage-scoped harness
 
-## Temple of Ikov — stage-scoped harness
+[`e2e/monks-friend-240-live.ts`](../../e2e/monks-friend-240-live.ts), members-only, so
+`:8890`. `--stage N` is the raw `%drunkmonkquest` value and relogs after seeding it;
+`--until N` is the value to reach, and `80` waits for the list to go green instead.
 
-[`e2e/temple-of-ikov-250-live.ts`](../../e2e/temple-of-ikov-250-live.ts), members-only,
+```sh
+HEADED=1 bun e2e/monks-friend-240-live.ts --stage 0 --until 80 --minutes 30 --tick 200  # end to end
+HEADED=1 bun e2e/monks-friend-240-live.ts --stage 0 --until 20 --minutes 20 --tick 200  # ladder, cave, hand-in
+HEADED=1 bun e2e/monks-friend-240-live.ts --stage 10 --until 20 --minutes 12 --tick 200 # the blanket alone
+HEADED=1 bun e2e/monks-friend-240-live.ts --stage 40 --until 60 --minutes 15 --tick 200 # jug, sink, Cedric
+HEADED=1 bun e2e/monks-friend-240-live.ts --stage 50 --until 70 --minutes 15 --tick 200 # axe, logs, the cart
+HEADED=1 bun e2e/monks-friend-240-live.ts --stage 70 --until 80 --minutes 12 --tick 200 # the party
+```
+
+Measured at `--tick 200`, no parks:
+
+| Stages | Minutes | Covers |
+|---|---|---|
+| 0 → 20 | 2 | Omad, the hidden ladder, the cave, the hand-in |
+| 20 → 40 | 1 | Omad names Cedric, Cedric asks for water |
+| 40 → 60 | 2 | the jug at Port Khazard, the guardhouse sink, the cart |
+| 50 → 70 | 2 | Kortan's iron axe, a forest tree, the logs |
+| 70 → 80 | 1 | the dance and `QUEST COMPLETE!` |
+| 0 → 80 | 5 | a clean account to green, 13 steps |
+
+Three details govern this harness:
+
+- **The relog after a seed does two jobs.** `update_questlist` recolours the list at
+  login, and the same script re-arms the `blanket_ladder` timer whenever
+  `%drunkmonkquest >= 10` — so `--stage 10` has no hidden ladder until it has relogged.
+  See [Quest pitfalls](../decisions/quest-pitfalls-10.md).
+- **The `quests` setting is a record id.** It seeds `drunkmonk`; the display name matches
+  nothing, is filtered out, and an empty selection runs every quest instead.
+- **The bank holds coins and food and nothing else.** The jug comes from Port Khazard's
+  general store, the water from the sink at (2610,3195), the axe from Aemad's and the
+  logs from a tree beside Cedric — seeding any of them hides whether the bot can find it.
+
+## Murder Mystery — leg-scoped harness
+
+[`e2e/murder-mystery-256-live.ts`](../../e2e/murder-mystery-256-live.ts), members-only,
 so `:8890`:
 
 ```sh
-HEADED=1 bun e2e/temple-of-ikov-250-live.ts --until 100 --tick 200 --minutes 180              # end to end
-HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 10 --kit dungeon --until 30 --minutes 45  # boots, lever, arrows
-HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 30 --kit warrior --until 40 --minutes 30  # the Fire Warrior
-HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 40 --kit roots --until 60 --minutes 30    # Winelda
-HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 60 --kit guardian --until 100 --minutes 45 # guardians and Lucien
+HEADED=1 bun e2e/murder-mystery-256-live.ts --stage 0 --until 5 --minutes 90 --tick 200            # end to end
+HEADED=1 bun e2e/murder-mystery-256-live.ts --stage 1 --until 2 --minutes 20 --tick 200            # pot, then the thread
+HEADED=1 bun e2e/murder-mystery-256-live.ts --stage 2 --until 3 --sus 4 --minutes 40 --tick 200    # the print hunt
+HEADED=1 bun e2e/murder-mystery-256-live.ts --stage 3 --until 4 --sus 4 --minutes 30 --tick 200    # salesman, suspect, loc
+HEADED=1 bun e2e/murder-mystery-256-live.ts --stage 4 --until 5 --sus 4 --minutes 20 --tick 200    # the hand-in
 ```
 
-`--stage N` sets `%ikov` and relogs. `--lever` sets bit 0 of `%ikov_dungeon`, the
-permanent unlock the south gate reads, so a stage test can skip the lava bridge.
-`--until 100` asserts the journal is green rather than a varp value — the Armadyl
-ending leaves `%ikov` at 80, not 100.
+`--stage` counts **legs**, not the varp: `%murderquest` only knows started and
+complete, and the three pieces of evidence live in `%murder_evidence` (bits 1 and 2)
+and `%murder_poisonproof_progress`. The legs are 0 not started, 1 started, 2 thread
+found, 3 prints matched, 4 poison proved, 5 complete, and the harness writes every
+variable that leg implies before relogging — `update_questlist` only recolours the
+journal at login.
 
-`--kit` is the seeding dial, and every step up it is a claim the run no longer makes:
+Three details govern this harness:
 
-| Kit | Adds | What it stops proving |
+- **`--sus N` pins the guilty sibling, 1 to 6 in Anna, Bob, Carol, David, Elizabeth,
+  Frank order.** The guard's own dialogue rolls `%murdersus`, so a seeded stage that
+  leaves it at 0 describes a murder with no murderer and every later check reads a
+  quest that cannot be finished. Left off, the harness rolls one and says which.
+  `--sus 4` is the most useful single run: green thread puts Anna first and David
+  second, so one pass covers a mismatch, a match, and a barrel on each floor.
+- **A seeded leg gets the evidence it produced, never the tools.** From leg 2 that is
+  the thread whose colour matches the roll, and from leg 3 the killer's print and the
+  guilty sibling's keepsake — the keepsake because the pack is what names the murderer
+  again after a restart. The empty pot is a tool: the bot buys its own from Arhein.
+- **The bank holds coins and food alone.** The flour, the flypaper, the six keepsakes
+  and the dagger are all at the mansion, and the pot is a gold piece in Catherby, so
+  seeding any of them hides whether the bot can find it.
+
+It serves its own client through `deployIsolatedClient`, so a neighbouring harness
+deploying mid-boot cannot decide which branch this run exercises; the queue-line check
+that remains proves this run's own deploy landed.
+
+Measured at `--tick 200`, no parks and no failed steps. The seeded legs pin `--sus 4`;
+the end-to-end run takes whatever the guard rolls, and three of them rolled Bob, David
+and David:
+
+| Legs | Minutes | Covers |
 |---|---|---|
-| `none` | — | nothing; the default |
-| `dungeon` | pendant, candle, tinderbox, knife | the Catherby shops and the Seers knife spawn |
-| `warrior` | + yew shortbow, 40 ice arrows, boots of lightness | the fletching chain, the ice chests, the webbed alcove |
-| `roots` | + 20 limpwurt roots | the hobgoblin farm |
-| `guardian` | + shiny key | Winelda's ferry — the key is what walks a seeded stage-60 run in through McGrubor's Wood |
+| 1 → 2 | 2 | Arhein's pot, then the thread off the window |
+| 2 → 3 | 3 | the dagger, Anna cleared, David matched, both floors |
+| 3 → 4 | 2 | the salesman, David's answer, the spiders' nest |
+| 4 → 5 | 2 | the hand-in and `QUEST COMPLETE!` |
+| 0 → 5 | 4 | a clean account to `QUEST COMPLETE!`, three times |
 
-The bank holds two million coins and sixty lobsters at every kit. Nothing else is
-seeded by default: the axe, the knife, the flax, the yew logs, the bow string, the
-candle, the arrows, the boots and the roots each have a source the bot walks to, and
-seeding one hides whether it can find it.
+The end-to-end run is shorter than the sum of its legs because a seeded leg pays for a
+walk out to wherever the previous leg would already have left the bot standing.
 
-Five facts govern this harness:
+## Nature Spirit — stage-scoped harness
 
-- **`--stats 70` is the default**, not 99. Thieving 42 and Ranged 40 are the server
-  gates; woodcutting 60, fletching 65 and crafting 10 are what the yew shortbow costs,
-  and the module warns rather than blocks below them.
-- **The lava bridge fails at any non-negative weight.** The boots are -10lb worn, so
-  the leg that crosses carries the candle, the pendant and food and nothing else — the
-  bow is 3lb and never goes near it.
-- **The Fire Warrior refuses anything but ranged with ice arrows in the quiver.** A run
-  that reaches him without both stands there swinging and never lands a hit.
-- **A seeded stage never walked the sourcing leg.** A run started at 50 has no axe
-  banked, and bare fists against level-42 hobgoblins is what killed the first attempt,
-  so the farm's arm check falls through to Aemad's counter when the bank is empty.
-- **Winelda's teleport is one-way.** Past it the shiny key is the only way out, so a
-  stage test seeded at 60 or 70 has to let the bot pick the key up before it can walk
-  to Lucien.
+[`e2e/naturespirit-239-live.ts`](../../e2e/naturespirit-239-live.ts), members-only,
+so `:8890`:
+
+```sh
+HEADED=1 bun e2e/naturespirit-239-live.ts --stage 0 --until 110 --minutes 120 --tick 200  # end to end
+HEADED=1 bun e2e/naturespirit-239-live.ts --stage 0 --until 40 --minutes 45 --tick 200    # camp chain
+HEADED=1 bun e2e/naturespirit-239-live.ts --stage 40 --until 75 --minutes 30 --tick 200   # ritual and grotto
+HEADED=1 bun e2e/naturespirit-239-live.ts --stage 70 --until 85 --minutes 20 --stocked    # the sickle
+HEADED=1 bun e2e/naturespirit-239-live.ts --stage 85 --until 110 --minutes 30 --tick 200  # the ghasts
+```
+
+Three things it does beyond the Horror shape:
+
+- **Sets both prerequisites.** Eligibility reads the quest-list colour, so
+  `prieststart` and `priestperil` are set and the run relogs — `update_questlist`
+  only recolours at login. `priestperil` goes to 61, not 60: the Salve barrier the
+  route depends on is `^priestperil_access_holy_barrier`.
+- **Gives the pack what the stage implies.** A mid-quest start hands over the
+  ghostspeak amulet, and from stage 75 the blessed sickle and a druid pouch — both
+  come from Filliman, so a run seeded past him otherwise describes an unreachable
+  state. Stage 0 gets none of it, which is what makes the end-to-end run the proof.
+- **`--stocked` banks a mould and a silver bar** — ordinary clutter on an
+  established account, and the only way to reach the cast without the Al Kharid
+  round trip. Leave it off for anything claiming the quest works.
+
+The bank holds coins and food alone by default. Nothing seeds a pickaxe: mining
+without one raises no refusal at all, so a seeded run would pass while the quest
+could not mine.
+
+Measured end to end at `--tick 200`: **19 minutes, 37 steps, no parks** — walking,
+with no teleports. Roughly half of that is the Mort Myre ↔ Al Kharid round trip the
+silver sickle costs.
 
 ## See also
 
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)
 - [Quest harness recipes (E)](quest-harness-recipes-4.md)
-- [Quest harness recipes (F–H)](quest-harness-recipes-2.md)
-- [Quest harness recipes (I–O)](quest-harness-recipes-3.md)
-- [Quest harness recipes (P–S)](quest-harness-recipes-5.md)
+- [Quest harness recipes (F)](quest-harness-recipes-2.md)
+- [Quest harness recipes (G)](quest-harness-recipes-11.md)
+- [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
+- [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
+- [Quest harness recipes (P–R)](quest-harness-recipes-5.md)
+- [Quest harness recipes (Sea–Shades)](quest-harness-recipes-7.md)
+- [Quest harness recipes (Sheep–Shield)](quest-harness-recipes-12.md)
+- [Quest harness recipes (Tai–Temple)](quest-harness-recipes-9.md)
+- [Quest harness recipes (Tree–Tribal)](quest-harness-recipes-13.md)
 - [Quest harness method](quest-harness-method.md)
 - [Seeding test accounts](seeding-test-accounts.md)

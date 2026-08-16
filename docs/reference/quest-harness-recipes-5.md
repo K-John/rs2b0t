@@ -1,6 +1,6 @@
 [Manual](../README.md) › [Testing](../TESTING.md) › Quest harness recipes
 
-# Quest harness recipes (P–S)
+# Quest harness recipes (P–R)
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
@@ -107,8 +107,15 @@ Five details govern this harness:
 
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)
 - [Quest harness recipes (E)](quest-harness-recipes-4.md)
-- [Quest harness recipes (F–H)](quest-harness-recipes-2.md)
-- [Quest harness recipes (I–O)](quest-harness-recipes-3.md)
-- [Quest harness recipes (T–Z)](quest-harness-recipes-6.md)
+- [Quest harness recipes (F)](quest-harness-recipes-2.md)
+- [Quest harness recipes (G)](quest-harness-recipes-11.md)
+- [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
+- [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
+- [Quest harness recipes (M–O)](quest-harness-recipes-6.md)
+- [Quest harness recipes (Sea–Shades)](quest-harness-recipes-7.md)
+- [Quest harness recipes (Sheep–Shield)](quest-harness-recipes-12.md)
+- [Quest harness recipes (Tai–Temple)](quest-harness-recipes-9.md)
+- [Quest harness recipes (Tree–Tribal)](quest-harness-recipes-13.md)
 - [Quest harness method](quest-harness-method.md)
 - [Seeding test accounts](seeding-test-accounts.md)

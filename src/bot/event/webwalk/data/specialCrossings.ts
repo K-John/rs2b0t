@@ -21,6 +21,16 @@ export interface SpecialCrossing {
      * (e.g. essence mine pads).
      */
     arrivalRadius?: number;
+    /** Direction-sensitive handlers must see the player on the baked edge source tile. */
+    exactApproach?: boolean;
+    /** Exact server staging tile that needs one final walk through the temporary open leaf. */
+    sceneStepFromTile?: { x: number; z: number; level: number };
+    /** Scripted movement can arrive before its queued `mes` pages close. */
+    settleDialogueAfterArrival?: boolean;
+    /** Source-authored random failure that permits a bounded retry of the same crossing. */
+    retryOnGameMessage?: { message: RegExp; attempts: number; reason: string };
+    /** A dispatched action that produced neither dialogue nor arrival may have been interrupted. */
+    retryIfUnacknowledged?: { attempts: number; reason: string };
     reopenAfterDialogue?: boolean;
     // Why: used when a permanent unlock is granted by starting a quest (Mort Myre / Nature Spirit via Drezel).
 
@@ -190,7 +200,18 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Baxtorian rope → ledge (#369)'
     },
 
-    { x: 3027, z: 3218, level: 1, npc: 'Seaman Thresnor', locName: 'Seaman Thresnor', action: 'Pay-fare', requires: { item: 'Coins', count: 30 }, dialogue: { choose: ['Yes please.'] }, toTile: { x: 2956, z: 3143, level: 1 }, label: 'Port Sarim->Musa ship' },
+    {
+        x: 3027,
+        z: 3218,
+        level: 1,
+        npc: 'Seaman Thresnor',
+        locName: 'Seaman Thresnor',
+        action: 'Pay-fare',
+        requires: { item: 'Coins', count: 30 },
+        dialogue: { choose: ['Yes please.'] },
+        toTile: { x: 2956, z: 3143, level: 1 },
+        label: 'Port Sarim->Musa ship'
+    },
     // Customs officer is ONE npc type; content branches on coordx(npc_coord) < 2815
     // (customs_officer.rs2). Key each reverse ship by pier stand + toTile — never type alone (#404).
     {
@@ -206,7 +227,18 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Musa->Port Sarim ship' // npc x ~2953–2955 ≥ 2815 → Port Sarim
     },
 
-    { x: 2683, z: 3272, level: 1, npc: 'Captain Barnaby', locName: 'Captain Barnaby', action: 'Pay-fare', requires: { item: 'Coins', count: 30 }, dialogue: { choose: ['Yes please.'] }, toTile: { x: 2775, z: 3234, level: 1 }, label: 'Ardougne->Brimhaven ship' },
+    {
+        x: 2683,
+        z: 3272,
+        level: 1,
+        npc: 'Captain Barnaby',
+        locName: 'Captain Barnaby',
+        action: 'Pay-fare',
+        requires: { item: 'Coins', count: 30 },
+        dialogue: { choose: ['Yes please.'] },
+        toTile: { x: 2775, z: 3234, level: 1 },
+        label: 'Ardougne->Brimhaven ship'
+    },
     {
         x: 2772,
         z: 3234,
@@ -222,6 +254,12 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
 
     { x: 2461, z: 3382, level: 0, locName: 'Gate', action: 'Open', dialogue: { choose: ['OK then'] }, reopenAfterDialogue: true, label: 'Gnome Stronghold gate (Femi boxes)' },
 
+    // Why: `[oploc1,_shipyard_gate]` sends anyone standing west of the gate with a shipyard worker in earshot into the Ka-Lu-Min challenge, and a wrong syllable makes him attack.
+    // Why: the four answers are one list because each page offers only its own — "Glough sent me.", then Ka, Lu, Min.
+    // Why: the gate opens by `p_teleport`, never by staying open, so the crossing lands on the far tile rather than a walk-through.
+    { x: 2945, z: 3041, level: 0, locName: 'Gate', action: 'Open', dialogue: { choose: ['Glough sent me.', 'Ka.', 'Lu.', 'Min.'] }, reopenAfterDialogue: true, label: 'Karamja shipyard gate (Ka-Lu-Min)' },
+    { x: 2945, z: 3042, level: 0, locName: 'Gate', action: 'Open', dialogue: { choose: ['Glough sent me.', 'Ka.', 'Lu.', 'Min.'] }, reopenAfterDialogue: true, label: 'Karamja shipyard gate (Ka-Lu-Min)' },
+
     // Why: shantay_pass.rs2 is one loc whose direction comes from coordz versus the loc — southbound (player north of the loc) consumes a pass and shows a disclaimer, northbound is free.
     // Why: transports.json already carries dual directed edges, so only south needs a specialCrossing for the plan-time item and dialog (#403 / #371).
     {
@@ -234,6 +272,158 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         dialogue: { choose: ["Yeah, that poster doesn't scare me!"] },
         toTile: { x: 3304, z: 3114, level: 0 },
         label: 'Shantay Pass -> Kharidian desert'
+    },
+
+    // Why: Tourist Trap barriers emit `mes` pages before scripted movement settles, so each direction has an exact recipe that drains its dialogue.
+    {
+        x: 3273,
+        z: 3028,
+        level: 0,
+        locName: 'Gate',
+        action: 'Open',
+        toTile: { x: 3274, z: 3028, level: 0 },
+        arrivalRadius: 0,
+        exactApproach: true,
+        settleDialogueAfterArrival: true,
+        label: 'Desert Mining Camp outer gate in (north leaf)'
+    },
+    {
+        x: 3274,
+        z: 3028,
+        level: 0,
+        locName: 'Gate',
+        action: 'Open',
+        toTile: { x: 3273, z: 3028, level: 0 },
+        arrivalRadius: 0,
+        settleDialogueAfterArrival: true,
+        label: 'Desert Mining Camp outer gate out (north leaf)'
+    },
+    {
+        x: 3273,
+        z: 3029,
+        level: 0,
+        locName: 'Gate',
+        action: 'Open',
+        toTile: { x: 3274, z: 3029, level: 0 },
+        arrivalRadius: 0,
+        exactApproach: true,
+        settleDialogueAfterArrival: true,
+        label: 'Desert Mining Camp outer gate in (south leaf)'
+    },
+    {
+        x: 3274,
+        z: 3029,
+        level: 0,
+        locName: 'Gate',
+        action: 'Open',
+        toTile: { x: 3273, z: 3029, level: 0 },
+        arrivalRadius: 0,
+        settleDialogueAfterArrival: true,
+        label: 'Desert Mining Camp outer gate out (south leaf)'
+    },
+    {
+        x: 3301,
+        z: 3036,
+        level: 0,
+        locName: 'Mine door entrance',
+        action: 'Open',
+        toTile: { x: 3278, z: 9427, level: 0 },
+        arrivalRadius: 0,
+        sceneStepFromTile: { x: 3278, z: 9426, level: 0 },
+        settleDialogueAfterArrival: true,
+        label: 'Desert Mining Camp mine door in'
+    },
+    {
+        x: 3278,
+        z: 9427,
+        level: 0,
+        locName: 'Mine door entrance',
+        action: 'Open',
+        toTile: { x: 3301, z: 3036, level: 0 },
+        arrivalRadius: 1,
+        settleDialogueAfterArrival: true,
+        label: 'Desert Mining Camp mine door out'
+    },
+    {
+        x: 3278,
+        z: 9415,
+        level: 0,
+        locName: 'Mine cave',
+        action: 'Walk through',
+        toTile: { x: 3286, z: 9415, level: 0 },
+        arrivalRadius: 1,
+        settleDialogueAfterArrival: true,
+        retryIfUnacknowledged: { attempts: 3, reason: 'interaction interrupted' },
+        label: 'Desert Mining Camp guarded cave in'
+    },
+    {
+        x: 3286,
+        z: 9415,
+        level: 0,
+        locName: 'Mine cave',
+        action: 'Walk through',
+        toTile: { x: 3278, z: 9415, level: 0 },
+        arrivalRadius: 1,
+        settleDialogueAfterArrival: true,
+        retryIfUnacknowledged: { attempts: 3, reason: 'interaction interrupted' },
+        label: 'Desert Mining Camp guarded cave out'
+    },
+    {
+        x: 3303,
+        z: 9416,
+        level: 0,
+        locName: 'Mine Cart',
+        action: 'Search',
+        dialogue: { choose: ['Yes, of course.'] },
+        toTile: { x: 3319, z: 9431, level: 0 },
+        arrivalRadius: 0,
+        settleDialogueAfterArrival: true,
+        retryOnGameMessage: {
+            message: /you fail to fit yourself into the cart/i,
+            attempts: 6,
+            reason: 'Agility roll failed'
+        },
+        label: 'Desert Mining Camp mine cart in'
+    },
+    {
+        x: 3319,
+        z: 9430,
+        level: 0,
+        locName: 'Mine Cart',
+        action: 'Search',
+        dialogue: { choose: ['Yes, of course.'] },
+        toTile: { x: 3302, z: 9417, level: 0 },
+        arrivalRadius: 0,
+        settleDialogueAfterArrival: true,
+        retryOnGameMessage: {
+            message: /you fail to fit yourself into the cart/i,
+            attempts: 6,
+            reason: 'Agility roll failed'
+        },
+        label: 'Desert Mining Camp mine cart out'
+    },
+    {
+        x: 3322,
+        z: 9448,
+        level: 0,
+        locName: 'Gate',
+        action: 'Open',
+        toTile: { x: 3322, z: 9449, level: 0 },
+        arrivalRadius: 0,
+        sceneStepFromTile: { x: 3322, z: 9448, level: 0 },
+        settleDialogueAfterArrival: true,
+        label: 'Desert Mining Camp wrought gate in'
+    },
+    {
+        x: 3322,
+        z: 9449,
+        level: 0,
+        locName: 'Gate',
+        action: 'Open',
+        toTile: { x: 3322, z: 9448, level: 0 },
+        arrivalRadius: 0,
+        settleDialogueAfterArrival: true,
+        label: 'Desert Mining Camp wrought gate out'
     },
 
     // Why: the server answers Open on the Mort Myre gate (#115) with a hard mesbox while Nature Spirit is not started; once started or complete the gate opens with no dialog.
@@ -253,12 +443,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
             // 3× meat pie + 3× apple pie (unstackable)
             freeSlots: 6,
             dialogue: {
-                choose: [
-                    'anything else interesting',
-                    'what is it, I may be able to help',
-                    "I'll go and look for him",
-                    "Yes, I'm sure"
-                ]
+                choose: ['anything else interesting', 'what is it, I may be able to help', "I'll go and look for him", "Yes, I'm sure"]
             }
         },
         label: 'Mort Myre gate (Ulizius)'
@@ -276,12 +461,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
             stand: { x: 3439, z: 9895, level: 0 },
             freeSlots: 6,
             dialogue: {
-                choose: [
-                    'anything else interesting',
-                    'what is it, I may be able to help',
-                    "I'll go and look for him",
-                    "Yes, I'm sure"
-                ]
+                choose: ['anything else interesting', 'what is it, I may be able to help', "I'll go and look for him", "Yes, I'm sure"]
             }
         },
         label: 'Mort Myre gate (Ulizius)'
@@ -751,18 +931,11 @@ export function specialCrossingAt(x: number, z: number, level: number): SpecialC
     return SPECIAL_CROSSINGS.find(c => c.x === x && c.z === z && c.level === level) ?? null;
 }
 
-function toTileMatches(
-    sc: SpecialCrossing,
-    step: { x: number; z: number; level: number }
-): boolean {
+function toTileMatches(sc: SpecialCrossing, step: { x: number; z: number; level: number }): boolean {
     if (!sc.toTile) {
         return true;
     }
-    return (
-        sc.toTile.x === step.x
-        && sc.toTile.z === step.z
-        && (sc.toTile.level === undefined || sc.toTile.level === step.level)
-    );
+    return sc.toTile.x === step.x && sc.toTile.z === step.z && (sc.toTile.level === undefined || sc.toTile.level === step.level);
 }
 
 // Why: both approach and destination levels are tried — ships and similar are stored from L0 → to L1 while SPECIAL_CROSSINGS are keyed at the stand/boarding level, often 1, so matching on either alone misses them.
@@ -826,11 +999,7 @@ export function specialCrossingForTransport(
     // Prefer loc/npc name match when the transport carries a name.
     const tname = (transport.locName ?? '').toLowerCase();
     if (tname) {
-        const byName = candidates.filter(
-            sc =>
-                sc.locName.toLowerCase() === tname
-                || (sc.npc !== undefined && sc.npc.toLowerCase() === tname)
-        );
+        const byName = candidates.filter(sc => sc.locName.toLowerCase() === tname || (sc.npc !== undefined && sc.npc.toLowerCase() === tname));
         if (byName.length > 0) {
             candidates = byName;
         }
@@ -857,10 +1026,7 @@ export function specialCrossingForTransport(
     }
     // Lowest origin rank wins; ties keep source order, which is what every
     // single-sided crossing already relied on.
-    return candidates.reduce<SpecialCrossing | null>(
-        (best, sc) => (best === null || rank.get(sc)! < rank.get(best)! ? sc : best),
-        null
-    );
+    return candidates.reduce<SpecialCrossing | null>((best, sc) => (best === null || rank.get(sc)! < rank.get(best)! ? sc : best), null);
 }
 
 export function pickChoice(options: string[], choose: string[]): string | null {

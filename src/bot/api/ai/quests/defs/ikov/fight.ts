@@ -282,7 +282,7 @@ function lucien(): Npc | null {
 
 /**
  * Kill Lucien for the Armadyl ending. He is level 14 and the pendant is what makes him attackable.
- * @see docs/decisions/quest-pitfalls-8.md
+ * @see docs/decisions/quest-pitfalls-24.md
  */
 export async function killLucien(log: (m: string) => void): Promise<boolean> {
     if (!Equipment.contains(IKOV_NAME.PENDANT_ARMADYL)) {

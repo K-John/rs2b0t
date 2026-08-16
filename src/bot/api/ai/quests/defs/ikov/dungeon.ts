@@ -153,7 +153,7 @@ async function crossBridge(goWest: boolean, log: (m: string) => void): Promise<b
 
 /**
  * Climb, cross or clamber out of whichever sealed part of the temple the bot woke up in.
- * @see docs/decisions/quest-pitfalls-8.md
+ * @see docs/decisions/quest-pitfalls-24.md
  */
 export async function escapePocket(log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
