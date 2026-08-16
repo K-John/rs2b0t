@@ -188,19 +188,21 @@ function inDeepDungeon(): boolean {
 }
 
 // Why: blue dragons hit 30 through the corridor between the gate and the coffins and 50 when they roll through the defence check, which Protect from Magic caps at 10.
+// Why: nothing behind the coffin wall breathes, and the catch in there runs for minutes, so the prayer comes down at the wall rather than at the gate.
 
-async function guardAgainstDragonfire(log: (m: string) => void): Promise<void> {
-    if (Prayer.available(PROTECT_FROM_MAGIC) && !Prayer.active(PROTECT_FROM_MAGIC)) {
-        if (await Prayer.set(PROTECT_FROM_MAGIC, true)) {
-            log('scorpcatcher: Protect from Magic on for the dragon corridor');
-        }
+async function dragonGuard(on: boolean, log: (m: string) => void): Promise<void> {
+    if (Prayer.active(PROTECT_FROM_MAGIC) === on) {
+        return;
+    }
+    if (await Prayer.set(PROTECT_FROM_MAGIC, on)) {
+        log(`scorpcatcher: Protect from Magic ${on ? 'on for the dragon corridor' : 'off past the coffin wall'}`);
     }
 }
 
 /** Through the dusty-key gate into the blue dragon half of Taverley Dungeon. */
 export async function enterDeepDungeon(log: (m: string) => void): Promise<boolean> {
     if (inDeepDungeon()) {
-        await guardAgainstDragonfire(log);
+        await dragonGuard(!inSecretRoom(), log);
         return true;
     }
     if (!(await fetchDustyKey(log))) {
@@ -209,7 +211,7 @@ export async function enterDeepDungeon(log: (m: string) => void): Promise<boolea
     if (!(await walkTo(SC_TILE.DEEP_GATE, 0, log))) {
         return false;
     }
-    await guardAgainstDragonfire(log);
+    await dragonGuard(true, log);
     log('scorpcatcher: unlocking the deep dungeon gate');
     return unlockWithKey(SC_ID.DUSTY_KEY, SC_ID.DEEP_GATE, inDeepDungeon, 'deep dungeon gate', log);
 }
@@ -226,7 +228,7 @@ export async function leaveDeepDungeon(log: (m: string) => void): Promise<boolea
     }
     const out = await openLoc(SC_ID.DEEP_GATE, 'Open', () => !inDeepDungeon(), 'deep dungeon gate', log);
     if (out) {
-        await Prayer.set(PROTECT_FROM_MAGIC, false);
+        await dragonGuard(false, log);
     }
     return out;
 }
@@ -241,16 +243,24 @@ function inSecretRoom(): boolean {
 /** Search the old wall by the two coffins, in or out of the secret room. */
 export async function crossSecretWall(inward: boolean, log: (m: string) => void): Promise<boolean> {
     if (inSecretRoom() === inward) {
+        await dragonGuard(!inward, log);
         return true;
     }
     const stand = inward ? SC_TILE.SECRET_WALL : SC_TILE.SECRET_ROOM;
     if (!(await walkTo(stand, 0, log))) {
         return false;
     }
+    // Why: the wall teleports rather than opens, so the corridor is reached in one tick and the prayer has to be up before the Search rather than after it.
+    if (!inward) {
+        await dragonGuard(true, log);
+    }
     log(`scorpcatcher: searching the old wall to get ${inward ? 'into' : 'out of'} the secret room`);
     if (!(await openLoc(SC_ID.SECRET_WALL, 'Search', () => inSecretRoom() === inward, 'old wall', log))) {
         return false;
     }
     await settleScene();
+    if (inward) {
+        await dragonGuard(false, log);
+    }
     return true;
 }
