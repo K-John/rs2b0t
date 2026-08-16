@@ -42,6 +42,7 @@ const KARAMJA = { x: 2850, z: 2960, level: 0 };
 
 /** Everything the module asks a booth for, so the kit branches fall through. */
 const FULL_KIT = [
+    LQ_ID.MAP_COMPLETE, LQ_ID.BULLROARER,
     LQ_ID.RUNE_AXE, LQ_ID.MACHETE, LQ_ID.LOCKPICK, LQ_ID.UNPOWERED_ORB, LQ_ID.RUNE_PICKAXE,
     LQ_ID.HAMMER, LQ_ID.KNIFE, LQ_ID.ROPE, LQ_ID.CHISEL, LQ_ID.VIAL_WATER,
     LQ_ID.SOUL_RUNE, LQ_ID.MIND_RUNE, LQ_ID.EARTH_RUNE, LQ_ID.LAW_RUNE, LQ_ID.LAW_RUNE,
@@ -82,6 +83,17 @@ function kitted(o: SnapOpts = {}): QuestSnapshot {
 }
 
 const name = (step: QuestStep): string => (step.kind === 'custom' ? `custom:${step.name}` : step.kind);
+
+/** The same pack minus what a death dropped. */
+function without(base: QuestSnapshot, shed: number[]): QuestSnapshot {
+    const invIds = new Map<number, number>();
+    base.invIds?.forEach((qty, id) => {
+        if (!shed.includes(id)) {
+            invIds.set(id, qty);
+        }
+    });
+    return { ...base, invIds };
+}
 
 /** Re-mining the seven gems after a death: the trials kit is whole, the map supplies are long gone. */
 function atTheGemRocks(gems: number[]): QuestSnapshot {
@@ -202,8 +214,24 @@ describe('Legends Quest decide', () => {
     });
 
     test('a mapped jungle trades the copy for the bull roarer', () => {
-        const step = decide(kitted({ stage: LQ_STAGE.MAPPED_JUNGLE }));
-        expect(name(step)).toBe('custom:trade a copy of the map for the bull roarer');
+        const mapped = snap({
+            stage: LQ_STAGE.MAPPED_JUNGLE,
+            invIds: [LQ_ID.MAP_COMPLETE, LQ_ID.MACHETE, LQ_ID.RUNE_AXE, LQ_ID.COINS],
+            inv: [...Array.from({ length: 14 }, () => 'Lobster'), 'Coins']
+        });
+        expect(name(decide(mapped))).toBe('custom:trade a copy of the map for the bull roarer');
+    });
+
+    // Why: a death drops the roarer and the map together, at a stage where the trade branch is long behind the run.
+    test('a roarer lost after the trade is replaced wherever the run has got to', () => {
+        const bare = without(kitted({ stage: LQ_STAGE.POOL_DRIED }), [LQ_ID.BULLROARER]);
+        expect(name(decide(bare))).toBe('custom:trade a copy of the map for the bull roarer');
+    });
+
+    // Why: the forester wants a map to copy, and Radimus only offers a replacement while neither map is held.
+    test('a roarer and a map both lost buy the map back first', () => {
+        const bare = without(kitted({ stage: LQ_STAGE.POOL_DRIED }), [LQ_ID.BULLROARER, LQ_ID.MAP_COMPLETE, LQ_ID.MAP]);
+        expect(name(decide(bare))).toBe('custom:buy a replacement map from Radimus');
     });
 
     test('with the roarer in hand the next step is Gujuo', () => {
@@ -444,7 +472,7 @@ describe('Legends Quest decide', () => {
 
     // Why: the outer gate shuts behind whoever picked it and the boulders drop back down, so a second descent is paid for in full.
     test('a re-descent fetches the lockpick and pickaxe again', () => {
-        const kit = [LQ_ID.RUNE_AXE, LQ_ID.MACHETE, LQ_ID.YOMMI_SEEDS_GERM, LQ_ID.UNPOWERED_ORB, LQ_ID.COSMIC_RUNE, LQ_ID.COSMIC_RUNE, LQ_ID.COSMIC_RUNE];
+        const kit = [LQ_ID.RUNE_AXE, LQ_ID.MACHETE, LQ_ID.BULLROARER, LQ_ID.YOMMI_SEEDS_GERM, LQ_ID.UNPOWERED_ORB, LQ_ID.COSMIC_RUNE, LQ_ID.COSMIC_RUNE, LQ_ID.COSMIC_RUNE];
         const lean = snap({
             stage: LQ_STAGE.SACRED_WATER,
             invIds: [...kit, ...Array.from({ length: 30 }, () => LQ_ID.WATER_RUNE)],

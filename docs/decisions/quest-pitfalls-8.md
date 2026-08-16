@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Thirty-two, and the first three are map and engine facts rather than quest ones.
+Thirty-three, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -206,6 +206,16 @@ Thirty-two, and the first three are map and engine facts rather than quest ones.
   bowl offered to a Gujuo too far away, the wait that never drove its box — and this is the
   third face of it. The stage-jumped leg passed every time, because there the seeds came out
   of a bank rather than out of a conversation.
+
+- **The item a stage hands you is kit for every stage after it.** Swinging the bull roarer
+  is what summons Gujuo, and Gujuo is wanted at the bowl, the recipe and the gilded totem —
+  but the branch that trades a map copy for a roarer runs at stage three and nowhere else.
+  A Jungle Savage takes a dislike to the noise the roarer makes, and the death that follows
+  drops the roarer and the map together at stage fourteen, where nothing looks for either.
+  Radimus sells a replacement map for thirty coins, but only while neither map is held, so
+  the recovery is three legs deep: buy the map, redraw all three thirds, trade it again. A
+  quest is resumable from any point only if every consumable it was ever handed can be got
+  back from wherever the run is standing.
 
 ## See also
 

@@ -18,7 +18,7 @@ import {
     speakToUngadulu,
     summonDemon
 } from './shaman.js';
-import { enterGuild, handInTotem, startQuest, takeMachete, takeTraining } from './guild.js';
+import { enterGuild, handInTotem, replaceMap, startQuest, takeMachete, takeTraining } from './guild.js';
 import { fight } from './fight.js';
 import { enterJungle, getBullroarer, leaveJungle, mapJungle, talkGujuo } from './jungle.js';
 import { legendsPocket, type LegendsPocket } from './pockets.js';
@@ -314,6 +314,24 @@ const GUJUO_RESCUE_PREFER = [
 ];
 
 const acceptRescue = talkGujuo(GUJUO_RESCUE_PREFER, undefined, 150_000, 'I will release Ungadulu...');
+
+/** Gujuo is still wanted, so the roarer is still kit rather than a keepsake. */
+function needsGujuo(stage: number): boolean {
+    return stage >= LQ_STAGE.MAPPED_JUNGLE && stage < LQ_STAGE.RETURNED_TO_RADIMUS;
+}
+
+// Why: the forester wants a map to copy and the map goes the same way the roarer does — Radimus sells a replacement for thirty coins, but only while neither is held.
+
+/** Get a roarer back: buy a map if that went too, redraw it, then trade it. */
+function regainRoarer(snap: QuestSnapshot): QuestStep | null {
+    if (held(snap, LQ_ID.MAP_COMPLETE) > 0) {
+        return step('trade a copy of the map for the bull roarer', getBullroarer);
+    }
+    if (held(snap, LQ_ID.MAP) === 0) {
+        return step('buy a replacement map from Radimus', replaceMap);
+    }
+    return fromShop(snap, MAP_KIT) ?? step('redraw the map of the Kharazi Jungle', mapJungle);
+}
 
 function stageBullroarer(snap: QuestSnapshot): QuestStep {
     if (held(snap, LQ_ID.BULLROARER) === 0) {
@@ -624,6 +642,12 @@ function choose(snap: QuestSnapshot): QuestStep {
         const chop = stage >= LQ_STAGE.MAPPED_JUNGLE && stage < LQ_STAGE.RETURNED_TO_RADIMUS ? fromShop(snap, CHOP_KIT) : null;
         if (chop) {
             return chop;
+        }
+        // Why: the roarer is the only way to summon Gujuo, and he is wanted at the bowl, the recipe and the gilded totem — but the branch that trades for one runs at stage three and nowhere else.
+        // Why: a Jungle Savage takes a dislike to the noise it makes, and the death that follows drops the roarer and the map together at stage fourteen.
+        const roarer = needsGujuo(stage) && held(snap, LQ_ID.BULLROARER) === 0 ? regainRoarer(snap) : null;
+        if (roarer) {
+            return roarer;
         }
     }
 

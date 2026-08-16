@@ -72,6 +72,33 @@ export async function startQuest(log: (m: string) => void): Promise<boolean> {
     return driveUntil(() => heldId(LQ_ID.MAP) > 0, START_PREFER, log, 60_000);
 }
 
+// Why: `radimus_erkle_midquest` only offers the lost-map topic when neither map is held, and it charges thirty coins for the copy.
+
+const LOST_MAP_PREFER = [
+    'Terrible, I lost my map of the Kharazi Jungle.',
+    "Yes, I'll pay for it."
+];
+
+/** Buy a replacement map from Radimus, for a run that died holding the old one. */
+export async function replaceMap(log: (m: string) => void): Promise<boolean> {
+    if (heldId(LQ_ID.MAP) > 0 || heldId(LQ_ID.MAP_COMPLETE) > 0) {
+        return true;
+    }
+    if (!(await enterGuild(log))) {
+        return false;
+    }
+    if (!(await Traversal.walkResilient(LQ_TILE.RADIMUS_STUDY, { radius: 2, attempts: 3, timeoutMs: 120_000, log }))) {
+        return false;
+    }
+    await settleScene();
+    const status = await Reach.npcDialog({ name: LQ_NPC.RADIMUS, near: LQ_TILE.RADIMUS_STUDY, log });
+    if (status !== 'done') {
+        log('Radimus Erkle never opened a dialogue for the replacement map');
+        return false;
+    }
+    return driveUntil(() => heldId(LQ_ID.MAP) > 0, LOST_MAP_PREFER, log, 60_000);
+}
+
 // Why: the cupboard is a shut loc that becomes an open one, and only the open half carries Search.
 // Why: the Search branch returns silently unless Radimus is within five tiles, so it is only ever run from his study.
 
