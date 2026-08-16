@@ -139,25 +139,28 @@ Four things it does beyond the Family Crest shape:
 The pack is full to its last slot through the trials, so a stage jump that seeds more than
 the leg needs will fail to withdraw rather than fail to walk.
 
-Measured on `:8890` at 200ms ticks, 70 in every skill, lobsters for food:
+Measured on `:8890` at 200ms ticks, 70 in every skill, lobsters for food. The wall clock is
+the elapsed time of one continuous `--stage 0 --until 75` run, which finished at t=5010s:
 
-| Leg | Varp | Wall clock |
-| --- | --- | --- |
-| Guild, machete, three thirds of the map | 0 → 2 | 820s |
-| Bullroarer, Gujuo, the cave mouth | 2 → 7 | 452s |
-| Gujuo names the sacred water | 7 → 8 | 320s |
-| Two gold bars, the anvil, the bless, the syphon | 8 → 10 | 603s |
-| Trials descent, seven gems, the book, Nezikchened | 10 → 12 | 1086s |
-| Ungadulu's seeds, the refill, germinated, the pool found fouled | 12 → 14 | 288s |
-| Gujuo's bravery recipe | 14 → 15 | 343s |
-| Two herbs, the potion, the winch, three guardians, Echned's dagger | 15 → 20 | 685s |
-| The Holy Force, the demon at the source, the water | 20 → 25 | 1055s |
-| The Yommi tree grown and the totem carved | 25 → 30 | 660s |
-| The evil totem replaced | 30 → 32 | 692s |
-| Nezikchened for the last time | 32 → 35 | 725s |
-| Gujuo's gilded totem | 35 → 45 | 736s |
-| Radimus takes the totem | 45 → 50 | 221s |
-| Four training sessions, quest complete | 50 → 75 | 232s |
+| Leg | Varp | First sample | Leg |
+| --- | --- | --- | --- |
+| Guild, machete, three thirds of the map | 0 → 2 | 340s | 262s |
+| Bullroarer, Gujuo, the cave mouth | 2 → 7 | 449s | 109s |
+| Gujuo names the sacred water | 7 → 8 | 667s | 218s |
+| Two gold bars, the anvil, the bless, the trials kit, the syphon | 8 → 10 | 2072s | 1405s |
+| Trials descent, seven gems, the book | 10 → 11 | 2497s | 425s |
+| Nezikchened at the octagram | 11 → 12 | 2563s | 66s |
+| Ungadulu's seeds, germinated, the pool found fouled | 12 → 14 | 2595s | 32s |
+| Gujuo's bravery recipe | 14 → 15 | 2661s | 66s |
+| Two herbs, the potion, the winch | 15 → 16 | 3197s | 536s |
+| Three guardians, the dragon's eye | 16 → 18 | 3655s | 458s |
+| The spirit roused, Echned's dagger | 18 → 20 | 3688s | 33s |
+| The Holy Force, the demon at the source, the water | 20 → 25 | 4463s | 775s |
+| The Yommi tree grown, carved, and the evil totem replaced | 25 → 32 | 4660s | 197s |
+| Nezikchened for the last time | 32 → 35 | 4714s | 54s |
+| Gujuo's gilded totem | 35 → 45 | 4725s | 11s |
+| Radimus takes the totem | 45 → 50 | 4999s | 274s |
+| Four training sessions, quest complete | 50 → 75 | 5010s | 11s |
 
 The trials descent is the longest single step in the quest: the outer gate rolls against
 thieving, three boulders roll against mining, the jagged wall rolls against agility, and
