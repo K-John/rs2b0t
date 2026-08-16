@@ -1,6 +1,6 @@
-/** Emit `defs/legends/pockets.ts`: the exact tile set of every sealed pocket in the Legends Quest caves, as z-indexed x runs.
- *  Why: the shaman caves and the Viyeldi caves are each a chain of pockets joined only by scripted crossings, and their component bounding boxes overlap — the trials corridor runs straight across the gem room's box and every Viyeldi descent ledge sits inside the main cave's — so no hand-written box can tell them apart. Flooding the baked pack can, and the answer is small enough to bake.
- *  Usage: bun tools/nav/legends-pockets.ts > src/bot/api/ai/quests/defs/legends/pockets.ts */
+// Why: the Legends pockets' bounding boxes overlap, so the tile sets are flooded from the baked pack rather than written by hand.
+
+/** Emit `defs/legends/pockets.ts` as z-indexed x runs: `bun tools/nav/legends-pockets.ts > src/bot/api/ai/quests/defs/legends/pockets.ts`. */
 import fs from 'node:fs';
 import { gunzipSync } from 'fflate';
 
