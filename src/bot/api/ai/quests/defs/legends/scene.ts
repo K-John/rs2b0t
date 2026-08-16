@@ -11,7 +11,7 @@ import { legendsArea, type LegendsArea } from './areas.js';
 
 export { driveChoice, driveUntil, heldId, locNear, promptLoc, settleScene, useOnLoc } from '../../exec/prompts.js';
 
-// Why: the use-on packet goes out from wherever the character stands and no walk follows it, so an npc five tiles off takes the offer and answers nothing — sent, accepted, silent for the whole budget.
+// Why: the use-on packet goes out from wherever the character stands and no walk follows it, so an npc five tiles off takes the offer and answers nothing — sent, accepted, silent for the budget.
 
 /** Offer an item to an npc, having first walked close enough for the offer to land. */
 export async function offerTo(itemId: number, npc: Npc, log: (m: string) => void): Promise<boolean> {
@@ -36,7 +36,7 @@ export function here(): LegendsArea {
 // Why: both the chat and the main modal are read, as the journal and the books use the main one and the boxes use the chat one.
 
 // Why: several conversations here end themselves rather than landing an item or a tile — Ungadulu collapses, Gujuo walks off — so their only honest goal is "the chain ran to its end".
-// Why: `driveUntil` with a goal that never becomes true burns its whole budget after the chat has closed, and `driveDialog` guesses the last option when nothing matches.
+// Why: `driveUntil` with a goal that never becomes true burns its budget after the chat has closed, and `driveDialog` guesses the last option when nothing matches.
 
 // Why: a chain can also run to an end that is not the end wanted — Gujuo greets, chats and says goodbye without ever offering the rescue — and that ending looks identical to the right one.
 

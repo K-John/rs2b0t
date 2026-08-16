@@ -123,7 +123,7 @@ const SHORT = /additional papyrus|additional charcoal|need some papyrus and char
 const MISSED = /make a mess but are able to rescue|snap your stick of charcoal|make a mess of the map|landing on your charcoal and papyrus/;
 const MAP_ATTEMPTS = 20;
 
-// Why: the roll is announced by "You prepare to start mapping this area..." and the result lands a box later, so waiting for the result without driving the first box waits out the whole timeout on every attempt.
+// Why: the roll is announced by "You prepare to start mapping this area..." and the result lands a box later, so waiting for the result without driving the first box waits out the timeout on every attempt.
 
 /** One "Complete" on the notes, and what the message box said about it. */
 async function drawSection(log: (m: string) => void): Promise<'done' | 'retry' | 'short'> {
@@ -160,7 +160,7 @@ async function drawSection(log: (m: string) => void): Promise<'done' | 'retry' |
 }
 
 // Why: the three section bits are `%legends_bits` and never reach the client, so the loop visits all three every pass and lets an already-drawn section say so.
-// Why: the notes turning into the completed copy is the only oracle for the whole leg.
+// Why: the notes turning into the completed copy is the leg's only oracle.
 
 /** Map all three thirds of the jungle. */
 export async function mapJungle(log: (m: string) => void): Promise<boolean> {
@@ -266,7 +266,7 @@ export async function summonGujuo(log: (m: string) => void): Promise<boolean> {
 
 // Why: Gujuo starts the conversation himself once summoned (`ai_opplayer2`), so opening one is a race the driver has to tolerate.
 
-// Why: half his conversations end themselves — he says goodbye and `npc_del`s — so those have no goal to wait on and `driveUntil` would burn its whole budget after the chat had closed.
+// Why: half his conversations end themselves — he says goodbye and `npc_del`s — so those have no goal to wait on and `driveUntil` would burn its budget after the chat had closed.
 
 /** Summon Gujuo and drive his conversation, to a goal or to its own end. */
 export function talkGujuo(prefer: string[], goal?: () => boolean, ms = 90_000, required?: string): (log: (m: string) => void) => Promise<boolean> {

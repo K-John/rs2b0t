@@ -35,7 +35,7 @@ function locById(id: number, within = 10, op?: string): Loc | null {
 
 // Why: the outer and inner gates are both out of `doors.json`, as one answers Open with "they're really shut" and the other with a brute-strength prompt, so the crossing after the open is a scene step the pathfinder never sees.
 
-/** Walk the last tile through a gate the module has just opened. */
+/** Walk the last tile through a gate the module has opened. */
 async function stepThrough(to: Tile, want: LegendsPocket, log: (m: string) => void, quiet = false): Promise<boolean> {
     await DirectNavigator.walkTo(to, 0, 8000);
     await settleScene();
@@ -351,7 +351,7 @@ export async function crossMarkedWall(reverse: boolean, log: (m: string) => void
     return placed;
 }
 
-// Why: each gem answers only its own carved rock, and a gem already hovering there is refused without being consumed — so a resume simply re-offers every gem and lets the wall sort them out.
+// Why: each gem answers only its own carved rock, and a gem already hovering there is refused without being consumed — so a resume re-offers every gem and lets the wall sort them out.
 
 /** Hover all seven gems over their rocks, which is what conjures the Book of Binding. */
 export async function placeGems(log: (m: string) => void): Promise<boolean> {
@@ -359,7 +359,7 @@ export async function placeGems(log: (m: string) => void): Promise<boolean> {
         if (heldId(gem.id) === 0) {
             continue;
         }
-        // Why: both the placement and the refusal are `mes` game messages rather than boxes, so a gem already hovering is invisible to the modal text and the leg would wait out its whole budget on it.
+        // Why: both the placement and the refusal are `mes` game messages rather than boxes, so a gem already hovering is invisible to the modal text and the leg would wait out its budget on it.
         const mark = GameMessages.mark();
         const placed = await useOnLoc(
             gem.id,
@@ -441,7 +441,7 @@ export async function castMagicGate(log: (m: string) => void): Promise<boolean> 
     return false;
 }
 
-// Why: from the north the gate pulls anyone who touches it straight through for free, which is the whole return trip.
+// Why: from the north the gate pulls anyone who touches it straight through for free, which is the return trip.
 
 /** Let the magic gate pull us back south into the gem room. */
 export async function fallThroughMagicGate(log: (m: string) => void): Promise<boolean> {
@@ -576,7 +576,7 @@ export async function descendToGemRoom(log: (m: string) => void): Promise<boolea
 
 // Why: the magic gate is the one-way crossing out of the gem room, so anything that still needs the gems has to stop short of it.
 
-/** The whole trials descent, from the shaman cave to the winch. */
+/** The trials descent, from the shaman cave to the winch. */
 export async function descendToWinch(log: (m: string) => void): Promise<boolean> {
     if (past('winchRoom')) {
         return true;
@@ -587,7 +587,7 @@ export async function descendToWinch(log: (m: string) => void): Promise<boolean>
     return castMagicGate(log);
 }
 
-/** The whole trials ascent, from the winch back to the shaman cave. */
+/** The trials ascent, from the winch back to the shaman cave. */
 export async function climbOutOfTrials(log: (m: string) => void): Promise<boolean> {
     const at = pocket();
     if (at === null || at === 'shamanCave' || at === 'octagram') {
@@ -639,7 +639,7 @@ export async function leaveShamanCave(log: (m: string) => void): Promise<boolean
     return ok;
 }
 
-// Why: Touch only crosses once the demon is dead — before that `legends_touch_fire_wall` just burns you for four — and the bowl crosses either way, so a dose is spent when one is carried.
+// Why: Touch only crosses once the demon is dead — before that `legends_touch_fire_wall` burns you for four — and the bowl crosses either way, so a dose is spent when one is carried.
 // Why: the bowl holds ten doses rather than one, so spending one on the way out costs nothing the quest needs back.
 
 /** Step back out of the octagram. */

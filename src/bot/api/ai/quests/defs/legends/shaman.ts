@@ -135,7 +135,7 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
     if (!(await summonGujuo(log))) {
         return false;
     }
-    // Why: the use-on lands and the greeting sometimes never arrives, and one long wait on a chat that is not coming spends the whole budget learning nothing — so the offer is made again rather than waited on.
+    // Why: the use-on lands and the greeting sometimes never arrives, and one long wait on a chat that is not coming spends the budget learning nothing — so the offer is made again rather than waited on.
     for (let i = 0; i < BLESS_ATTEMPTS; i++) {
         const gujuo = Npcs.query().name(LQ_NPC.GUJUO).within(12).nearest();
         if (!gujuo) {
@@ -370,7 +370,7 @@ export async function germinateSeeds(log: (m: string) => void): Promise<boolean>
             log(`pack holds ${bowl ? 'the pure bowl' : `bowls [${bowlsHeld()}]`} and ${seeds ? 'the seeds' : 'no seeds'}`);
             return false;
         }
-        // Why: `opheldu` runs the handler on the item clicked second and the bowl is the one that carries it, so the seeds go on the bowl — the script's own comment says the reverse is "nothing interesting happens", and that is exactly what eleven attempts got.
+        // Why: `opheldu` runs the handler on the item clicked second and the bowl is the one that carries it, so the seeds go on the bowl — the script's own comment says the reverse is "nothing interesting happens", and that is what eleven attempts got.
         const sent = await seeds.useOn(bowl);
         // Why: `~doubleobjbox` suspends the script until the box is answered, and the germinated seeds are added after it — so waiting for them without clearing the box waits for something the server is not going to do.
         if (sent && await driveUntil(done, [], log, 20_000)) {

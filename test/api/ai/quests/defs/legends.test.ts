@@ -95,7 +95,7 @@ function without(base: QuestSnapshot, shed: number[]): QuestSnapshot {
     return { ...base, invIds };
 }
 
-/** Re-mining the seven gems after a death: the trials kit is whole, the map supplies are long gone. */
+/** Re-mining the seven gems after a death: the trials kit is intact, the map supplies are long gone. */
 function atTheGemRocks(gems: number[]): QuestSnapshot {
     const shed: number[] = [LQ_ID.PAPYRUS, LQ_ID.CHARCOAL, ...GEM_IDS];
     const kit = FULL_KIT.filter(id => !shed.includes(id));
@@ -465,7 +465,7 @@ describe('Legends Quest decide', () => {
         const step = decide({ ...lean, freeSlots: 12 });
         expect(step.kind).toBe('withdraw');
         expect(step.kind === 'withdraw' && step.items[0]?.qty).toBe(10);
-        // Why: the ask is what the pack can take rather than what the leg wanted — after a death the whole kit comes back at once and ten lobsters have nowhere to go.
+        // Why: the ask is what the pack can take rather than what the leg wanted — after a death the kit comes back at once and ten lobsters have nowhere to go.
         const tight = decide({ ...lean, freeSlots: 3 });
         expect(tight.kind === 'withdraw' && tight.items[0]?.qty).toBe(3);
     });

@@ -39,7 +39,7 @@ async function axeOn(id: number, name: string, near: Tile, next: number, log: (m
 }
 
 // Why: every stage of the tree reverts to a rotten one fifty-one ticks after it grows, so planting, watering, felling, trimming and carving cannot be five decide ticks — a resume that arrives late finds a stump.
-// Why: the whole chain is therefore one step whose oracle is the totem pole in the pack.
+// Why: the chain is therefore one step whose oracle is the totem pole in the pack.
 
 /** Grow a Yommi tree from a germinated seed and carve it into a totem pole. */
 export async function growTotemPole(log: (m: string) => void): Promise<boolean> {
@@ -118,7 +118,7 @@ export async function growTotemPole(log: (m: string) => void): Promise<boolean> 
 
 const TOTEM_FIGHT_MS = 420_000;
 
-// Why: the first time the new pole touches an evil one the demon comes out of it, and the second time — after he is dead — is what actually swaps them.
+// Why: the first time the new pole touches an evil one the demon comes out of it, and the second time — after he is dead — is what swaps them.
 
 /** Put the new pole on an evil totem, fighting whatever comes out of it. */
 export async function replaceEvilTotem(log: (m: string) => void): Promise<boolean> {

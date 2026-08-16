@@ -344,7 +344,7 @@ try {
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
         // Why: `update_questlist` recomputes `%qp` from the quest varps whenever the client rebuilds the tab, and this account has fifteen quests' worth rather than the hundred and seven the guard wants.
-        // Why: the module only reads it when it parks and re-checks eligibility, which is exactly when a drifted value blocks the quest for good.
+        // Why: the module only reads it when it parks and re-checks eligibility, which is when a drifted value blocks the quest for good.
         if (last.qp < 107) { await cheatQuiet(page, 'setvar qp 107'); }
 
         // Why: the quest-complete recolour and the QP award land a tick behind `%legendsquest`, so a full run waits on the journal.

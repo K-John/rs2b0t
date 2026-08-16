@@ -17,7 +17,7 @@ export const LQ_FOODS = ['Lobster', 'Swordfish', 'Shark', 'Tuna'] as const;
 /** Enough to cross the trials, both cave fights and the walk home. */
 export const FOOD_CARRY = 14;
 
-/** Spending money for the shop legs; the whole list costs a few thousand. */
+/** Spending money for the shop legs; the list costs a few thousand. */
 export const COIN_CARRY = 50_000;
 
 export const SHOP_GP = {
@@ -126,7 +126,7 @@ export function junkIds(snap: QuestSnapshot): number[] {
         .filter(id => !KEEP_IDS.includes(id) && !FOOD_IDS.includes(id));
 }
 
-/** Something in the pack a deposit would actually take. */
+/** Something in the pack a deposit would take. */
 export function junkHeld(snap: QuestSnapshot): boolean {
     return junkIds(snap).length > 0;
 }
@@ -204,7 +204,7 @@ export function foodTopUp(snap: QuestSnapshot, want = FOOD_CARRY, bank?: Tile): 
     if (!food) {
         return null;
     }
-    // Why: a float the pack cannot hold is a withdraw that fills the last slot and asks again — after a death the whole kit comes back at once and ten lobsters have nowhere to go, so the ask is what fits rather than what was wanted.
+    // Why: a float the pack cannot hold is a withdraw that fills the last slot and asks again — after a death the kit comes back at once and ten lobsters have nowhere to go, so the ask is what fits rather than what was wanted.
     const room = Math.max(0, snap.freeSlots ?? 28);
     const take = Math.min(want - heldFood(snap), bankedName(snap, food), room);
     return take > 0 ? withdraw([{ name: food, qty: take }], bank) : null;

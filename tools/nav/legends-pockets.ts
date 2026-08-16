@@ -50,7 +50,7 @@ function flood(seed: NavPoint): Set<number> {
     return seen;
 }
 
-/** One seed per pocket, each taken from a tile the quest actually stands on. */
+/** One seed per pocket, each taken from a tile the quest stands on. */
 const POCKETS: readonly [string, NavPoint][] = [
     ['shamanCave', { x: 2773, z: 9341, level: 0 }],
     ['octagram', { x: 2792, z: 9328, level: 0 }],

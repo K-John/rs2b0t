@@ -360,7 +360,7 @@ export const LQ_TILE = {
     CAVE_EXIT: new Tile(2773, 9341, 0),
     CAVE_EXIT_LANDING: new Tile(2781, 2934, 0),
 
-    /** Just outside the octagram, on the west side, in speaking range of Ungadulu. */
+    /** Outside the octagram, on the west side, in speaking range of Ungadulu. */
     OCTAGRAM_OUTSIDE: new Tile(2785, 9328, 0),
     OCTAGRAM_INSIDE: new Tile(2790, 9328, 0),
     UNGADULU: new Tile(2792, 9327, 0),

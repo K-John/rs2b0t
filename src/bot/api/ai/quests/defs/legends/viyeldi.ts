@@ -63,7 +63,7 @@ async function climb(ledge: Ledge, dir: 'down' | 'up', log: (m: string) => void)
     if (pocket() === leg.to) {
         return true;
     }
-    // Why: a climb that overshoots lands on the cave floor rather than the next ledge, and from there the stand above is behind the rock we just came over.
+    // Why: a climb that overshoots lands on the cave floor rather than the next ledge, and from there the stand above is behind the rock already climbed.
     const at = pocket();
     if (dir === 'down' && (at === 'viyeldiMain' || at === 'viyeldiSource')) {
         return true;
@@ -144,7 +144,7 @@ export async function climbLedges(log: (m: string) => void): Promise<boolean> {
 const HERO_FIGHT_MS = 300_000;
 
 // Why: each guardian yields its own third of the dragon heart and nothing at all once that third is accounted for, and which thirds are already in the furnace is `%legends_bits` — invisible.
-// Why: the loop therefore visits all three in turn and lets a guardian that owes nothing simply drop nothing.
+// Why: the loop therefore visits all three in turn and lets a guardian that owes nothing drop nothing.
 
 /** Kill one Viyeldi guardian, if it still owes its crystal. */
 // Why: the three of them stand sixty tiles apart in a cave the scene only half covers, so a query from the rope landing finds none of them and the leg fails in no time at all.
@@ -380,7 +380,7 @@ const SOURCE_FIGHT_MS = 420_000;
 export async function banishSourceDemon(log: (m: string) => void): Promise<boolean> {
     const demon = (): boolean => Npcs.query().name(LQ_NPC.NEZIKCHENED).within(14).exists();
     const spirit = (): boolean => Npcs.query().name(LQ_NPC.ECHNED).within(10).exists();
-    // Why: the cast is one op with no dialogue and no message the client can read, so the demon appearing is the only oracle — and a miss is worth another go rather than a whole leg.
+    // Why: the cast is one op with no dialogue and no message the client can read, so the demon appearing is the only oracle — and a miss is worth another go rather than a fresh leg.
     for (let i = 0; i < 4 && !demon(); i++) {
         if (!(await crossBarrier(log))) {
             return false;
@@ -450,7 +450,7 @@ export { LEDGES };
 
 // Why: every leg that starts on the mainland walks to a mainland tile, so a run resumed anywhere under Karamja has to climb all the way out before the walker has a path at all.
 
-/** Climb, crawl and squeeze out of the whole cave complex onto open jungle. */
+/** Climb, crawl and squeeze out of the cave complex onto open jungle. */
 export async function leaveCaves(log: (m: string) => void): Promise<boolean> {
     if (legendsPocket(Game.tile()) === null && legendsArea(Game.tile()) !== 'viyeldiCaves') {
         return true;

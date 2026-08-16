@@ -147,7 +147,7 @@ function spentNow(snap: QuestSnapshot): number[] {
     if (held(snap, LQ_ID.MAP_COMPLETE) > 0 || (snap.stage ?? 0) >= LQ_STAGE.MAPPED_JUNGLE) {
         spent.push(LQ_ID.PAPYRUS, LQ_ID.CHARCOAL);
     }
-    // Why: the hammer's only job was the bowl, and the reed takes the machete just as happily as the knife — both are a slot the trials kit needs.
+    // Why: the hammer's only job was the bowl, and the reed takes the machete as happily as the knife — both are a slot the trials kit needs.
     if (held(snap, LQ_ID.GOLD_BOWL_BLESSED) > 0 || held(snap, LQ_ID.GOLD_BOWL_BLESSED_PURE) > 0) {
         spent.push(LQ_ID.HAMMER, LQ_ID.KNIFE);
     }
@@ -393,7 +393,7 @@ async function bookLeg(log: (m: string) => void): Promise<boolean> {
     return takeBookOfBinding(log);
 }
 
-// Why: the demon is `npc_del`ed on death, so his leaving the scene is what ends the fight — without it the loop sits out its whole budget and reports a win as a failure.
+// Why: the demon is `npc_del`ed on death, so his leaving the scene is what ends the fight — without it the loop sits out its budget and reports a win as a failure.
 
 async function summonAndFight(log: (m: string) => void): Promise<boolean> {
     if (!(await summonDemon(log))) {
@@ -427,7 +427,7 @@ function stageSeeds(snap: QuestSnapshot): QuestStep {
 }
 
 // Why: only `gujuo_helpme` moves the varp, and it is three menus deep — pool-dried, then the source, then the offer of help.
-// Why: the goodbye outranks the source question because the menu after the recipe offers both, and picking the source again walks the whole chain a second time.
+// Why: the goodbye outranks the source question because the menu after the recipe offers both, and picking the source again walks the chain a second time.
 const GUJUO_POTION_PREFER = [
     'If I went, could you help me?',
     'If I went in search of the source, could you help me?',

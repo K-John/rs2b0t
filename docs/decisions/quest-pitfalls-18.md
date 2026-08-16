@@ -17,7 +17,8 @@ Thirty-three, and the first three are map and engine facts rather than quest one
   *player* mid-cutscene inside the octagram is what it looks for. Read the op's handler
   before concluding a script contradicts itself.
 - **A spell aimed at scenery is `oploct`, and the client had no route to it.** The magic
-  trial gate opens for a charge-orb spell and nothing else — no op, no use-on, no npc.
+  trial gate opens for a charge-orb spell and nothing else: it carries no op, refuses
+  every use-on, and has no npc behind it.
   `Input.castOnLoc` and `Game.castOnLoc` are the same `TGT_BUTTON` + `TGT_LOC` pair
   `castOnNpc` already used for npcs; without them the leg is not expressible.
 - **Two gates advertise Open and answer something else.** The outer ancient gate replies
@@ -29,8 +30,8 @@ Thirty-three, and the first three are map and engine facts rather than quest one
   the pocket table is regenerated after the door bake rather than before it.
 - **The Kharazi Jungle is sealed by blocked ground with plants standing on it.** The jungle
   band is `blockwalk=no` scenery over map-blocked tiles, and `chop_jungle` teleports the
-  chopper two tiles towards whatever it fells — `map_blocked($dest)` is allowed exactly
-  when another jungle plant stands there. Nothing walks in. `(2816,2940)` is the one
+  chopper two tiles towards whatever it fells — `map_blocked($dest)` is allowed only
+  where another jungle plant stands. Nothing walks in. `(2816,2940)` is the one
   mainland tile with an unbroken two-plant column south of it, and a diagonal chop lands on
   blocked ground and answers "This way is blocked off".
 - **Planting the seed before the sacred water is collected always destroys it.** The soil
@@ -107,8 +108,7 @@ Thirty-three, and the first three are map and engine facts rather than quest one
   the loop's exit condition, not after its body.
 
 - **A random event's gift is a slot, and the pack has not got one.** Whatever hands out the
-  king's message hands it out mid-walk, and the reed at the pool wants exactly one free
-  slot. The bank-at-the-booth rescue only fires for a step that was already going to a
+  king's message hands it out mid-walk, and the reed at the pool wants one free slot. The bank-at-the-booth rescue only fires for a step that was already going to a
   bank, so a custom step met a full pack and retried it eight times. The whitelist that
   decides what a deposit would take is the same list that says what may be dropped where
   the character stands.
@@ -121,7 +121,7 @@ Thirty-three, and the first three are map and engine facts rather than quest one
   map is many rooms, the pocket is what the guard has to read.
 
 - **A pack of twenty-eight wanted things still has no room.** The trials kit, the armour,
-  the coin and three lobsters come to exactly twenty-eight slots, every one of them on the
+  the coin and three lobsters come to twenty-eight slots, every one of them on the
   keep list — so nothing is spent, nothing is junk, and the reed that the quest cannot go
   on without has nowhere to land. The seeded leg never showed it: a random event had taken
   a slot, and dropping that gift left the one the reed needed. The lobster count is the
@@ -134,8 +134,8 @@ Thirty-three, and the first three are map and engine facts rather than quest one
   with no storey in it, so `ensureAt` let the walker stop underneath the Magic Guild
   counter and call itself arrived; the buy then failed in under a millisecond, twenty-three
   times and counting, with the anchor directly overhead. Any "am I there yet" that compares
-  tiles has to compare the level too — and this one is shared by every quest, not just
-  this one.
+  tiles has to compare the level too — and this one is shared by every quest rather than
+  this one alone.
 
 - **The chat shuts between a page and the option list behind it.** Three quiet ticks read
   as "the conversation ended", and at 200ms ticks three ticks is most of the gap the modal
@@ -145,7 +145,7 @@ Thirty-three, and the first three are map and engine facts rather than quest one
   an ending; three is a blink.
 
 - **A float the pack cannot hold is a loop, not a shortfall.** Dying to the octagram demon
-  brings the whole trials kit back at once, and the fight float of ten lobsters then has
+  brings the trials kit back at once, and the fight float of ten lobsters then has
   nowhere to go: the withdraw fills the last slot, the pack-space valve eats one to make
   room, and the top-up asks for it straight back. Two steps, forever. The ask is what the
   pack can take, and the valve only ever eats the surplus above the float's own threshold.
