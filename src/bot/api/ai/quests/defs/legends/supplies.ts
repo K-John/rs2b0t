@@ -195,7 +195,9 @@ export function foodTopUp(snap: QuestSnapshot, want = FOOD_CARRY, bank?: Tile): 
     if (!food) {
         return null;
     }
-    const take = Math.min(want - heldFood(snap), bankedName(snap, food));
+    // Why: a float the pack cannot hold is a withdraw that fills the last slot and asks again — after a death the whole kit comes back at once and ten lobsters have nowhere to go, so the ask is what fits rather than what was wanted.
+    const room = Math.max(0, snap.freeSlots ?? 28);
+    const take = Math.min(want - heldFood(snap), bankedName(snap, food), room);
     return take > 0 ? withdraw([{ name: food, qty: take }], bank) : null;
 }
 

@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Twenty-seven, and the first three are map and engine facts rather than quest ones.
+Twenty-eight, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -144,6 +144,11 @@ Twenty-seven, and the first three are map and engine facts rather than quest one
   on the fifth pass, which is the tell: a race, not a wrong list. Ten ticks of silence is
   an ending; three is a blink.
 
+- **A float the pack cannot hold is a loop, not a shortfall.** Dying to the octagram demon
+  brings the whole trials kit back at once, and the fight float of ten lobsters then has
+  nowhere to go: the withdraw fills the last slot, the pack-space valve eats one to make
+  room, and the top-up asks for it straight back. Two steps, forever. The ask is what the
+  pack can take, and the valve only ever eats the surplus above the float's own threshold.
 - **A box that suspends the script is not a box you can wait out.** `~doubleobjbox` pauses
   `opheldu` where it stands and the germinated seeds are added *after* it, so waiting twelve
   seconds for them without clearing the box waits for something the server will never do —

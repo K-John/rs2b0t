@@ -232,7 +232,9 @@ function makeRoom(snap: QuestSnapshot, chosen: QuestStep): QuestStep {
         return step('drop what the quest has no use for', ditch(junk));
     }
     // Why: twenty-eight wanted things still leave no slot for the reed, the herb or the lump the quest is about to hand over — and the lobster count is the only number in the pack that is a float rather than a requirement.
-    return held(snap, LQ_ID.LOBSTER) > 0 ? step('eat a lobster to make room', eatOne) : chosen;
+    // Why: eating below the float's own top-up threshold buys a slot the next withdraw spends on another lobster, which after a death is a loop rather than a fix — so only the surplus is edible.
+    const spare = heldFood(snap) - Math.ceil(foodFor(snap, snap.stage ?? 0) / 2);
+    return spare > 0 && held(snap, LQ_ID.LOBSTER) > 0 ? step('eat a lobster to make room', eatOne) : chosen;
 }
 
 /** Eat one lobster, for the slot rather than the hitpoints. */

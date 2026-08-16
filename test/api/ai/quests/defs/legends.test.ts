@@ -395,7 +395,7 @@ describe('Legends Quest decide', () => {
             invIds: [LQ_ID.RUNE_AXE],
             bank: Array.from({ length: 30 }, () => 'Lobster')
         });
-        const step = decide(lean);
+        const step = decide({ ...lean, freeSlots: 12 });
         expect(step.kind).toBe('withdraw');
         expect(step.kind === 'withdraw' && step.items[0]?.qty).toBe(10);
     });
@@ -420,9 +420,12 @@ describe('Legends Quest decide', () => {
             invIds: [LQ_ID.GOLD_BOWL_BLESSED, LQ_ID.BOOK_OF_BINDING],
             bank: Array.from({ length: 30 }, () => 'Lobster')
         });
-        const step = decide(lean);
+        const step = decide({ ...lean, freeSlots: 12 });
         expect(step.kind).toBe('withdraw');
         expect(step.kind === 'withdraw' && step.items[0]?.qty).toBe(10);
+        // Why: the ask is what the pack can take rather than what the leg wanted — after a death the whole kit comes back at once and ten lobsters have nowhere to go.
+        const tight = decide({ ...lean, freeSlots: 3 });
+        expect(tight.kind === 'withdraw' && tight.items[0]?.qty).toBe(3);
     });
 
     // Why: the outer gate shuts behind whoever picked it and the boulders drop back down, so a second descent is paid for in full.
