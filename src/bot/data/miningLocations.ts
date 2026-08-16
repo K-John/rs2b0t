@@ -191,11 +191,11 @@ export const MINING_LOCATIONS: MiningLocation[] = [
     ),
     mine(
         'Desert Mining Camp',
-        // Why: 3325,9456 sits almost on the NE mithril/addy rocks, so the stand nudges west/north.
+        // Why: this anchor keeps both the west copper/tin and northeast mithril/addy clusters inside the named-camp leash.
         new Tile(3323, 9458, 0),
         BANK.shantay,
-        ['mithril', 'adamantite'],
-        'Underground NE rocks; requires completed Tourist Trap, camp keys and slave gear',
+        ['copper', 'tin', 'mithril', 'adamantite'],
+        'Underground rocks; requires completed Tourist Trap, camp keys and slave gear',
         true,
         // Guard/Mercenary 45 → 2×45+1. Route food mitigates damage but does not make low combat safe.
         91

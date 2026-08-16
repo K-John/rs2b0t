@@ -1,5 +1,18 @@
 import { describe, expect, test } from 'bun:test';
-import { desertCampBankCatchNeeded, desertCampBankTripDirection, DESERT_CAMP_ITEMS, desertCampRouteArea, desertCampRoutePhase, metalKeyCaptainAvailable, metalKeyCaptainClaimAcknowledged, metalKeyDuelNeedsRetreat, metalKeyRetreatAfterSustain, planDesertCampSupplies, type DesertCampSupplySnapshot } from '../../src/bot/scripts/DesertMiningCampRoute.js';
+import {
+    desertCampBankCatchNeeded,
+    desertCampBankTripDirection,
+    DESERT_CAMP_ITEMS,
+    DESERT_CAMP_KEEP_NAMES,
+    desertCampRouteArea,
+    desertCampRoutePhase,
+    metalKeyCaptainAvailable,
+    metalKeyCaptainClaimAcknowledged,
+    metalKeyDuelNeedsRetreat,
+    metalKeyRetreatAfterSustain,
+    planDesertCampSupplies,
+    type DesertCampSupplySnapshot
+} from '../../src/bot/scripts/DesertMiningCampRoute.js';
 
 const fullGear = Object.fromEntries([DESERT_CAMP_ITEMS.metalKey, DESERT_CAMP_ITEMS.wroughtKey, ...DESERT_CAMP_ITEMS.desert, ...DESERT_CAMP_ITEMS.slave].map(name => [name, 1]));
 
@@ -140,7 +153,7 @@ describe('Desert Mining Camp supply plan', () => {
             ok: true,
             recoverMetalKey: true,
             recoverWroughtKey: true,
-            requiredSlots: 10
+            requiredSlots: 7
         });
         expect(plan.missing).toEqual([]);
     });
@@ -190,7 +203,7 @@ describe('Desert Mining Camp supply plan', () => {
         });
     });
 
-    test('buys the complete desert swap when no bank copy survived', () => {
+    test('does not provision desert clothes when the slave disguise is available', () => {
         const bankGear = Object.fromEntries([DESERT_CAMP_ITEMS.metalKey, DESERT_CAMP_ITEMS.wroughtKey, ...DESERT_CAMP_ITEMS.slave].map(name => [name, 1]));
         const plan = planDesertCampSupplies(
             supply({
@@ -199,23 +212,54 @@ describe('Desert Mining Camp supply plan', () => {
         );
         expect(plan).toMatchObject({
             ok: true,
-            buyOutfit: [...DESERT_CAMP_ITEMS.desert],
+            recoverSlaveOutfit: false,
+            buyOutfit: [],
             buyPass: true,
-            coinTarget: 112
+            coinTarget: 5
         });
-        expect(plan.withdraw).toContainEqual({ name: DESERT_CAMP_ITEMS.coins, qty: 112 });
+        expect(plan.withdraw).toContainEqual({ name: DESERT_CAMP_ITEMS.coins, qty: 5 });
     });
 
-    test('missing slave gear is fatal and never substituted', () => {
+    test('provisions one desert outfit to replace a completely lost slave disguise', () => {
         const plan = planDesertCampSupplies(
             supply({
-                bank: { [DESERT_CAMP_ITEMS.coins]: 112 }
+                bank: { [DESERT_CAMP_ITEMS.coins]: 219 }
             })
         );
-        expect(plan.ok).toBe(false);
-        expect(plan.missing).toEqual(expect.arrayContaining([...DESERT_CAMP_ITEMS.slave]));
+        expect(plan).toMatchObject({
+            ok: true,
+            recoverSlaveOutfit: true,
+            coinTarget: 112,
+            requiredSlots: 8
+        });
+        expect(plan.buyOutfit).toEqual([...DESERT_CAMP_ITEMS.desert]);
+        expect(plan.missing).toEqual([]);
         expect(plan.missing).not.toContain(DESERT_CAMP_ITEMS.metalKey);
         expect(plan.missing).not.toContain(DESERT_CAMP_ITEMS.wroughtKey);
+    });
+
+    test('uses an existing desert outfit to recover partial slave gear', () => {
+        const plan = planDesertCampSupplies(
+            supply({
+                inventory: {
+                    [DESERT_CAMP_ITEMS.slave[0]]: 1,
+                    ...Object.fromEntries(DESERT_CAMP_ITEMS.desert.map(name => [name, 1]))
+                },
+                bank: {
+                    ...Object.fromEntries(DESERT_CAMP_ITEMS.desert.map(name => [name, 1])),
+                    [DESERT_CAMP_ITEMS.metalKey]: 1,
+                    [DESERT_CAMP_ITEMS.wroughtKey]: 1,
+                    [DESERT_CAMP_ITEMS.pass]: 1
+                }
+            })
+        );
+        expect(plan).toMatchObject({
+            ok: true,
+            recoverSlaveOutfit: true,
+            buyOutfit: [],
+            requiredSlots: 3
+        });
+        expect(plan.withdraw).toEqual([{ name: DESERT_CAMP_ITEMS.metalKey, qty: 1 }, { name: DESERT_CAMP_ITEMS.wroughtKey, qty: 1 }, { name: DESERT_CAMP_ITEMS.pass, qty: 1 }]);
     });
 
     test('rejects a loadout that cannot fit recovery and route supplies', () => {
@@ -229,8 +273,15 @@ describe('Desert Mining Camp supply plan', () => {
             })
         );
         expect(plan.ok).toBe(false);
-        expect(plan.requiredSlots).toBe(10);
-        expect(plan.missing).toContain('8 free inventory slot(s)');
+        expect(plan.requiredSlots).toBe(7);
+        expect(plan.missing).toContain('5 free inventory slot(s)');
+    });
+
+    test('banks desert clothes but keeps the slave disguise between trips', () => {
+        expect(DESERT_CAMP_KEEP_NAMES).toEqual(expect.arrayContaining([...DESERT_CAMP_ITEMS.slave]));
+        for (const name of DESERT_CAMP_ITEMS.desert) {
+            expect(DESERT_CAMP_KEEP_NAMES).not.toContain(name);
+        }
     });
 
     test('keeps a worn pickaxe equipped without reserving a pack slot', () => {

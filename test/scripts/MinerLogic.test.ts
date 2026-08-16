@@ -199,8 +199,10 @@ describe('Miner food restocking', () => {
 });
 
 describe('named-camp ore validation', () => {
-    test('rejects Coal at the mithril/adamantite Desert Mining Camp', () => {
-        expect(unsupportedCampOres(['Coal'], ['mithril', 'adamantite'])).toEqual(['Coal']);
+    test('accepts the four live Desert Mining Camp ores and rejects absent Coal', () => {
+        const supported = ['copper', 'tin', 'mithril', 'adamantite'];
+        expect(unsupportedCampOres(['Copper', 'Tin', 'Mithril', 'Adamantite'], supported)).toEqual([]);
+        expect(unsupportedCampOres(['Coal'], supported)).toEqual(['Coal']);
     });
 
     test('matches ore names case-insensitively and leaves freeform camps alone', () => {

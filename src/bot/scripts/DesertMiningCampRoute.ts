@@ -7,6 +7,7 @@ import Tile from '../geometry/Tile.js';
 import { Locs } from '../api/locs/Locs.js';
 import { Npcs } from '../api/npcs/Npcs.js';
 import { Bank } from '../api/bank/Bank.js';
+import { Banking } from '../api/bank/Banking.js';
 import { ChatDialog } from '../api/dialogue/ChatDialog.js';
 import { Equipment } from '../api/equipment/Equipment.js';
 import { Inventory } from '../api/inventory/Inventory.js';
@@ -29,7 +30,7 @@ export const DESERT_CAMP_ITEMS = {
 
 type DesertOutfitItem = (typeof DESERT_CAMP_ITEMS.desert)[number];
 
-export const DESERT_CAMP_KEEP_NAMES = [DESERT_CAMP_ITEMS.pass, DESERT_CAMP_ITEMS.disclaimer, DESERT_CAMP_ITEMS.cellKey, DESERT_CAMP_ITEMS.metalKey, DESERT_CAMP_ITEMS.wroughtKey, ...DESERT_CAMP_ITEMS.desert, ...DESERT_CAMP_ITEMS.slave] as const;
+export const DESERT_CAMP_KEEP_NAMES = [DESERT_CAMP_ITEMS.pass, DESERT_CAMP_ITEMS.disclaimer, DESERT_CAMP_ITEMS.cellKey, DESERT_CAMP_ITEMS.metalKey, DESERT_CAMP_ITEMS.wroughtKey, ...DESERT_CAMP_ITEMS.slave] as const;
 
 const DESERT_SHOP_BUDGET: Record<DesertOutfitItem, number> = {
     'Desert shirt': 43,
@@ -39,15 +40,17 @@ const DESERT_SHOP_BUDGET: Record<DesertOutfitItem, number> = {
 const FIXED_PASS_COST = 5;
 
 const SHANTAY_SHOP = new Tile(3304, 3123, 0);
+const SHANTAY_BANK = new Tile(3308, 3120, 0);
 const SHANTAY_NORTH = new Tile(3304, 3118, 0);
 const SHANTAY_SOUTH = new Tile(3304, 3114, 0);
 const CAPTAIN = new Tile(3270, 3029, 0);
 const CAMP_OUTSIDE = new Tile(3273, 3029, 0);
 const CAMP_INSIDE = new Tile(3274, 3029, 0);
+const MALE_SLAVE = new Tile(3302, 3016, 0);
 const SIAD_DESK = new Tile(3290, 3033, 1);
 export const DESERT_CAMP_MINE_ANCHOR = new Tile(3323, 9458, 0);
 
-const NPC = { mercenaryCaptain: 830 } as const;
+const NPC = { maleSlave: 825, escapedSlave: 826, mercenaryCaptain: 830 } as const;
 const LOC = { siadDesk: 2679 } as const;
 const CAPTAIN_KEY_DUEL = [
     'Wow! A real captain!',
@@ -123,6 +126,7 @@ export interface DesertCampSupplyPlan {
     withdraw: { name: string; qty: number }[];
     buyOutfit: DesertOutfitItem[];
     buyPass: boolean;
+    recoverSlaveOutfit: boolean;
     recoverMetalKey: boolean;
     recoverWroughtKey: boolean;
     coinTarget: number;
@@ -141,21 +145,31 @@ function owned(snap: DesertCampSupplySnapshot, name: string): boolean {
     return countOf(snap.inventory, name) + countOf(snap.equipment, name) > 0;
 }
 
+function available(snap: DesertCampSupplySnapshot, name: string): number {
+    return countOf(snap.inventory, name) + countOf(snap.equipment, name) + countOf(snap.bank, name);
+}
+
 export function planDesertCampSupplies(snap: DesertCampSupplySnapshot): DesertCampSupplyPlan {
     const withdraw: { name: string; qty: number }[] = [];
     const buyOutfit: DesertOutfitItem[] = [];
     const missing: string[] = [];
 
-    for (const name of DESERT_CAMP_ITEMS.slave) {
-        if (owned(snap, name)) continue;
-        if (countOf(snap.bank, name) > 0) withdraw.push({ name, qty: 1 });
-        else missing.push(name);
+    const recoverSlaveOutfit = DESERT_CAMP_ITEMS.slave.some(name => available(snap, name) === 0);
+    if (!recoverSlaveOutfit) {
+        for (const name of DESERT_CAMP_ITEMS.slave) {
+            if (!owned(snap, name)) withdraw.push({ name, qty: 1 });
+        }
     }
 
+    // Why: desert clothes are only the currency for recovering a lost slave
+    // disguise. Carrying a spare set costs three ore slots on every mining trip.
+    const desertTarget = recoverSlaveOutfit ? 1 : 0;
     for (const name of DESERT_CAMP_ITEMS.desert) {
-        if (owned(snap, name)) continue;
-        if (countOf(snap.bank, name) > 0) withdraw.push({ name, qty: 1 });
-        else buyOutfit.push(name);
+        const held = countOf(snap.inventory, name) + countOf(snap.equipment, name);
+        const needed = Math.max(0, desertTarget - held);
+        const banked = Math.min(needed, countOf(snap.bank, name));
+        if (banked > 0) withdraw.push({ name, qty: banked });
+        for (let copy = banked; copy < needed; copy++) buyOutfit.push(name);
     }
 
     const planKey = (name: string): boolean => {
@@ -187,7 +201,7 @@ export function planDesertCampSupplies(snap: DesertCampSupplySnapshot): DesertCa
         withdraw.push({ name: DESERT_CAMP_ITEMS.coins, qty: coinShortage });
     }
 
-    let requiredSlots = withdraw.reduce((slots, step) => slots + (countOf(snap.inventory, step.name) > 0 ? 0 : 1), 0);
+    let requiredSlots = withdraw.reduce((slots, step) => slots + (step.name === DESERT_CAMP_ITEMS.coins && countOf(snap.inventory, step.name) > 0 ? 0 : step.name === DESERT_CAMP_ITEMS.coins ? 1 : step.qty), 0);
     requiredSlots += buyOutfit.length;
     if (buyPass && countOf(snap.inventory, DESERT_CAMP_ITEMS.pass) === 0) requiredSlots++;
     // The desk grants every missing key in order. With neither camp key available,
@@ -208,6 +222,7 @@ export function planDesertCampSupplies(snap: DesertCampSupplySnapshot): DesertCa
         withdraw,
         buyOutfit,
         buyPass,
+        recoverSlaveOutfit,
         recoverMetalKey,
         recoverWroughtKey,
         coinTarget,
@@ -255,6 +270,13 @@ function liveCounts(items: { name: string | null; count: number }[]): Record<str
         if (item.name) out[item.name] = (out[item.name] ?? 0) + Math.max(1, item.count);
     }
     return out;
+}
+
+function equipmentCount(name: string): number {
+    const wanted = name.toLowerCase();
+    return Equipment.items()
+        .filter(item => item.name?.toLowerCase() === wanted)
+        .reduce((sum, item) => sum + item.count, 0);
 }
 
 function questComplete(): boolean {
@@ -305,11 +327,53 @@ export class DesertMiningCampRoute {
                 return this.fail(`desert camp: withdrawal did not land for ${step.name}`);
             }
         }
+        if (!plan.recoverSlaveOutfit && !(await this.bankOptionalDesertOutfit())) return false;
         this.host.log(
             `desert camp: route supplies ready; withdraw=${plan.withdraw.map(step => `${step.qty} ${step.name}`).join(', ') || 'none'}; ` +
                 `buyOutfit=${plan.buyOutfit.join(', ') || 'none'}; buyPass=${plan.buyPass}; ` +
-                `recoverMetal=${plan.recoverMetalKey}; recoverWrought=${plan.recoverWroughtKey}; slots=${plan.requiredSlots}`
+                `recoverSlave=${plan.recoverSlaveOutfit}; recoverMetal=${plan.recoverMetalKey}; ` +
+                `recoverWrought=${plan.recoverWroughtKey}; slots=${plan.requiredSlots}`
         );
+        return true;
+    }
+
+    private async bankOptionalDesertOutfit(): Promise<boolean> {
+        const optionalWasHeld = DESERT_CAMP_ITEMS.desert.some(name => Inventory.contains(name) || Equipment.contains(name));
+        const depositPackCopies = async (): Promise<boolean> => {
+            if (!Bank.isOpen()) {
+                this.host.log('desert camp: reopening Shantay bank after removing a worn desert item');
+                if (!(await Banking.open({ stand: SHANTAY_BANK, log: message => this.host.log(`  ${message}`) }))) {
+                    return this.fail('desert camp: could not reopen Shantay bank for the removed desert outfit');
+                }
+                if (!(await Execution.delayUntilTicks(() => Bank.snapshotReady(), 7))) {
+                    return this.fail('desert camp: reopened Shantay bank did not produce an authoritative item snapshot');
+                }
+            }
+            await Bank.depositAllMatching(name => DESERT_CAMP_ITEMS.desert.some(item => item.toLowerCase() === name.toLowerCase()));
+            if (!(await Execution.delayUntilTicks(() => DESERT_CAMP_ITEMS.desert.every(name => !Inventory.contains(name)), 7))) {
+                return this.fail(`desert camp: bank did not accept optional desert outfit: ${DESERT_CAMP_ITEMS.desert.filter(name => Inventory.contains(name)).join(', ')}`);
+            }
+            return true;
+        };
+
+        if (!(await depositPackCopies())) return false;
+        for (const name of DESERT_CAMP_ITEMS.desert) {
+            if (!Equipment.contains(name)) continue;
+            if (Bank.isOpen() && !(await Bank.close())) {
+                return this.fail(`desert camp: could not close Shantay bank before removing optional '${name}'`);
+            }
+            if (!(await Execution.delayUntilTicks(() => !Bank.isOpen(), 5))) {
+                return this.fail(`desert camp: Shantay bank stayed open before removing optional '${name}'`);
+            }
+            if (Inventory.free() < 1) return this.fail(`desert camp: no free slot to remove optional '${name}' at Shantay bank`);
+            if (!(await Equipment.unequip(name))) return this.fail(`desert camp: could not remove optional '${name}' at Shantay bank`);
+            if (!(await Execution.delayUntilTicks(() => Inventory.contains(name), 7))) {
+                return this.fail(`desert camp: removed optional '${name}' did not reach the backpack`);
+            }
+            if (!(await depositPackCopies())) return false;
+        }
+        if (!Bank.isOpen()) return this.fail('desert camp: Shantay bank closed while removing the optional desert outfit');
+        if (optionalWasHeld) this.host.log('desert camp: banked optional desert outfit; normal trips wear the slave disguise');
         return true;
     }
 
@@ -335,14 +399,14 @@ export class DesertMiningCampRoute {
     private async enter(area: DesertCampRouteArea): Promise<boolean> {
         if (area === 'mainland' || area === 'shantayNorth') {
             if (!(await this.finishShantayProvisioning())) return false;
-            if (!(await this.wear(DESERT_CAMP_ITEMS.desert, 'desert outfit'))) return false;
+            if (!(await this.wearTravelOutfit())) return false;
             if (!(await this.walk(SHANTAY_SOUTH, 1, 'Kharidian desert', 'desert'))) return false;
             this.host.log(`desert camp: shared walk completed Shantay south; tile=${this.tileLabel()}`);
             return true;
         }
 
         if (area === 'desert') {
-            if (!(await this.wear(DESERT_CAMP_ITEMS.desert, 'desert outfit'))) return false;
+            if (!(await this.wearTravelOutfit())) return false;
             if (!Inventory.contains(DESERT_CAMP_ITEMS.metalKey) && !(await this.recoverMetalKey())) return false;
             if (!(await this.walk(CAMP_INSIDE, 0, 'mining-camp surface', 'campSurface'))) return false;
             this.host.log(`desert camp: shared walk completed outer gate in; tile=${this.tileLabel()}`);
@@ -351,6 +415,7 @@ export class DesertMiningCampRoute {
 
         if (area === 'campSurface') {
             if (!Inventory.contains(DESERT_CAMP_ITEMS.wroughtKey) && !(await this.recoverDeskKeys())) return false;
+            if (!this.hasSlaveOutfit() && !(await this.recoverSlaveOutfit())) return false;
             if (!(await this.wear(DESERT_CAMP_ITEMS.slave, 'slave disguise'))) return false;
             if (!(await this.walk(DESERT_CAMP_MINE_ANCHOR, 4, 'deep mine', 'mineDeep'))) return false;
             this.host.log(`desert camp: shared walk completed camp surface → deep mine; tile=${this.tileLabel()}`);
@@ -379,7 +444,7 @@ export class DesertMiningCampRoute {
 
         if (area === 'campSurface') {
             if (!Inventory.contains(DESERT_CAMP_ITEMS.metalKey) && !(await this.recoverDeskKeys())) return false;
-            if (!(await this.wear(DESERT_CAMP_ITEMS.desert, 'desert outfit'))) return false;
+            if (!(await this.wear(DESERT_CAMP_ITEMS.slave, 'slave disguise'))) return false;
             if (!(await this.walk(CAMP_OUTSIDE, 0, 'outside mining-camp gate', 'desert'))) return false;
             this.host.log(`desert camp: shared walk completed outer gate out; tile=${this.tileLabel()}`);
             return true;
@@ -394,7 +459,8 @@ export class DesertMiningCampRoute {
     }
 
     private async finishShantayProvisioning(): Promise<boolean> {
-        const missingDesert = DESERT_CAMP_ITEMS.desert.filter(name => !Inventory.contains(name) && !Equipment.contains(name));
+        const desertTarget = this.hasSlaveOutfit() ? 0 : 1;
+        const missingDesert = DESERT_CAMP_ITEMS.desert.flatMap(name => Array.from({ length: Math.max(0, desertTarget - Inventory.count(name) - equipmentCount(name)) }, () => name));
         if (missingDesert.length > 0 && !(await this.buyDesertOutfit(missingDesert))) return false;
         if (!Inventory.contains(DESERT_CAMP_ITEMS.pass)) {
             if (Inventory.count(DESERT_CAMP_ITEMS.coins) < FIXED_PASS_COST) {
@@ -402,6 +468,48 @@ export class DesertMiningCampRoute {
             }
             if (!(await this.buyPass())) return false;
         }
+        return true;
+    }
+
+    private hasSlaveOutfit(): boolean {
+        return DESERT_CAMP_ITEMS.slave.every(name => Inventory.contains(name) || Equipment.contains(name));
+    }
+
+    private wearTravelOutfit(): Promise<boolean> {
+        return this.hasSlaveOutfit()
+            ? this.wear(DESERT_CAMP_ITEMS.slave, 'slave disguise')
+            : this.wear(DESERT_CAMP_ITEMS.desert, 'slave-disguise recovery outfit');
+    }
+
+    private async recoverSlaveOutfit(): Promise<boolean> {
+        const shortDesert = DESERT_CAMP_ITEMS.desert.filter(name => Inventory.count(name) + equipmentCount(name) < 1);
+        if (shortDesert.length > 0) {
+            return this.fail(`desert camp: slave-outfit recovery needs one complete desert outfit; short ${shortDesert.join(', ')}`);
+        }
+        if (!(await this.wear(DESERT_CAMP_ITEMS.desert, 'desert outfit'))) return false;
+        if (!(await this.walk(MALE_SLAVE, 3, 'male slave'))) return false;
+        const findSlave = () =>
+            Npcs.query()
+                .where(candidate => (candidate.id === NPC.maleSlave || candidate.id === NPC.escapedSlave) && candidate.actions().some(action => /^talk/i.test(action)))
+                .withinOf(MALE_SLAVE, 6)
+                .nearest();
+        if (!(await Execution.delayUntil(() => findSlave() !== null, 8_000))) {
+            return this.fail(`desert camp: no male slave 825/826 loaded near ${this.tileLabel()}`);
+        }
+        const slave = findSlave();
+        const talk = slave?.actions().find(action => /^talk/i.test(action));
+        if (!slave || !talk || !(await slave.interact(talk))) {
+            return this.fail(`desert camp: could not talk to the male slave at ${this.tileLabel()}`);
+        }
+        if (!(await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue(), 8_000))) {
+            return this.fail('desert camp: slave-outfit recovery dialogue did not open');
+        }
+        this.host.log('desert camp: trading one desert outfit to replace the missing slave disguise');
+        if (!(await this.drainInteractionDialog(["Yes, I'll trade."], () => this.hasSlaveOutfit()))) return false;
+        if (!this.hasSlaveOutfit()) {
+            return this.fail(`desert camp: slave trade ended without ${DESERT_CAMP_ITEMS.slave.filter(name => !Inventory.contains(name) && !Equipment.contains(name)).join(', ')}`);
+        }
+        this.host.log('desert camp: recovered complete slave disguise');
         return true;
     }
 
@@ -707,7 +815,13 @@ export class DesertMiningCampRoute {
         for (const name of items) {
             if (Equipment.contains(name)) continue;
             if (!Inventory.contains(name)) return this.fail(`desert camp: missing required ${label} item '${name}'`);
-            if (!(await Equipment.equip(name))) return this.fail(`desert camp: could not equip required ${label} item '${name}'`);
+            if (!(await Equipment.equip(name))) {
+                this.host.log(`desert camp: ${label} item '${name}' not yet confirmed — waiting for the live equipment state`);
+                if (!(await Execution.delayUntilTicks(() => Equipment.contains(name), 10))) {
+                    return this.fail(`desert camp: could not equip required ${label} item '${name}'`);
+                }
+                this.host.log(`desert camp: ${label} item '${name}' confirmed after a delayed equipment update`);
+            }
         }
         if (requirePickaxe && !this.hasPickaxe()) {
             return this.fail('desert camp: no pickaxe equipped or in the inventory');
@@ -758,9 +872,11 @@ export class DesertMiningCampRoute {
         return !ChatDialog.isOpen() && done() && sawQuietCompletion;
     }
 
-    private async drainInteractionDialog(allowedOptions: readonly string[]): Promise<boolean> {
+    private async drainInteractionDialog(allowedOptions: readonly string[], done?: () => boolean): Promise<boolean> {
+        let reachedDone = false;
         for (let step = 0; step < 140; step++) {
             if (EventSignal.pending()) return false;
+            if (done?.()) reachedDone = true;
             if (ChatDialog.canContinue()) {
                 if (!(await ChatDialog.continue())) return this.fail('desert camp: dialogue Continue failed');
                 await Execution.delayTicks(1);
@@ -778,7 +894,11 @@ export class DesertMiningCampRoute {
                 await Execution.delayTicks(1);
                 continue;
             }
-            if (!ChatDialog.isOpen()) return true;
+            if (!ChatDialog.isOpen()) {
+                if (!done || reachedDone) return true;
+                await Execution.delayTicks(1);
+                continue;
+            }
             await Execution.delayTicks(1);
         }
         return this.fail('desert camp: dialogue exceeded 140 steps');

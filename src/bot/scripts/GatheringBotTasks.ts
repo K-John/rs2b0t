@@ -2702,6 +2702,20 @@ export class Gather implements Task {
             return;
         }
         const tile = target.tile();
+        const here = Game.tile();
+        // Why: scenery interactions can report success while an off-screen target receives no route, leaving broad named camps to reclick forever.
+        if (here && Tile.from(here).distanceTo(tile) > 2) {
+            this.bot.setStatus(`gather: walking to ${this.bot.targetName()} @ ${tile}`);
+            const reached = await Traversal.walkTo(tile, {
+                radius: 1,
+                timeoutMs: 45_000,
+                log: message => this.bot.log(`  ${message}`)
+            });
+            if (!reached) {
+                this.bot.log(`gather: could not approach ${this.bot.targetName()} @ ${tile} from ${here}`);
+            }
+            return;
+        }
         const key = keyOf(tile);
         // Track whether this session produced ore/logs — successful deplete must not
         // soft-cooldown the tile (iron respawn ~6t < old 8t cooldown → far path thrash).
