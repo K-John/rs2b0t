@@ -53,6 +53,21 @@ function wornArrows(): number {
 }
 
 // Why: a sweep drops the recovered arrows into the pack, and one stack size is one obj id — so nocking is a separate act from holding them, and the count that decides whether a shot can go out is the quiver's.
+// Why: `iceArrowsHeld` adds the two together, which is the right question for "is the leg finished" and the wrong one for "can a shot go out" — reading it here left a pack full of swept arrows looking like a loaded bow.
+
+/** What a fight should do next, given what is nocked and what is packed. */
+export type ArrowAction = 'shoot' | 'nock' | 'sweep' | 'spent';
+
+/** Decide between shooting, nocking, sweeping and giving up. Pure, so the empty-quiver case is testable. */
+export function arrowAction(quiver: number, pack: number, sweepable: boolean): ArrowAction {
+    if (quiver > 0) {
+        return 'shoot';
+    }
+    if (pack > 0) {
+        return 'nock';
+    }
+    return sweepable ? 'sweep' : 'spent';
+}
 
 /** Move a pack stack into the quiver; true once there is something nocked to shoot. */
 async function nockArrows(): Promise<boolean> {
@@ -208,6 +223,8 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
     let missing = 0;
     let swings = 0;
     let refused = 0;
+    // Why: a sweep that recovers nothing must not be retried every tick, so the second empty quiver in a row is the end of the fight rather than another circuit of the floor.
+    let swept = false;
     // Why: auto-retaliate fights the warrior whether or not our Attack clicks land, so "did a shot go out" is the wrong test for whether the fight happened.
     let engaged = false;
     let lastTick = -1;
@@ -265,9 +282,15 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
         missing = 0;
         // Why: 80% of every shot lands on the floor, so an empty quiver mid-fight is a sweep rather than a loss.
         // Why: the quiver is the only count that matters here — `iceArrowsHeld` adds the pack, so a sweep that filled the pack read as armed and every Attack after it answered "There is no ammo left in your quiver" for the rest of the guard.
-        if (wornArrows() === 0) {
-            if (Inventory.count(IKOV_NAME.ICE_ARROWS) === 0) {
+        const next = arrowAction(wornArrows(), Inventory.count(IKOV_NAME.ICE_ARROWS), !swept);
+        if (next !== 'shoot') {
+            if (next === 'spent') {
+                log('ikov: nothing left to shoot the Fire Warrior with');
+                return false;
+            }
+            if (next === 'sweep') {
                 log('ikov: the quiver is empty — sweeping the spent arrows');
+                swept = true;
                 await pickUpArrows(log);
             }
             if (!(await nockArrows())) {
@@ -275,6 +298,7 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
                 return false;
             }
             log(`ikov: nocked ${wornArrows()} ice arrows`);
+            swept = false;
             attacking = -1;
             continue;
         }
