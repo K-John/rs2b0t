@@ -99,7 +99,7 @@ const PATH_REQUEST_TIMEOUT_MS = 30_000;
 const TRANSPORT_WAIT_MS = 8000;
 /** Ceiling on the client scene rebuild after a landing, before a hop's loc counts as absent. */
 const SCENE_REBUILD_MS = 3000;
-// Why: the same rebuild that hides a hop's loc also empties `toLocal` for the tiles ahead, so every click candidate fails and the follow repaths with nothing clicked — five times inside the window, then the whole walk starts over.
+// Why: the same rebuild that hides a hop's loc also empties `toLocal` for the tiles ahead, so every click candidate fails and the follow repaths with nothing clicked — five times inside the window, then the walk starts over from the top.
 /** All-candidate misses to sit out before repathing, while nothing has been clicked yet. */
 const CANDIDATE_SETTLE_TRIES = 3;
 const SCENE_STEP_MS = 8000;

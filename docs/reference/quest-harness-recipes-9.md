@@ -112,7 +112,7 @@ Six facts govern this harness:
   stage test seeded at 60 or 70 has to let the bot pick the key up before it can walk
   to Lucien.
 
-What the live runs paid for is in Temple of Ikov's pitfalls, [engine behaviour](../decisions/quest-pitfalls-24.md) and [the quest's own shape](../decisions/quest-pitfalls-25.md).
+What the live runs paid for is in Temple of Ikov's pitfalls, [engine behaviour](../decisions/quest-pitfalls-24.md), [the route](../decisions/quest-pitfalls-25.md) and [the fights](../decisions/quest-pitfalls-26.md).
 
 ## See also
 

@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Temple of Ikov
 
-Twenty-eight in all; the seven here are engine behaviour rather than quest facts.
+Thirty-one in all; the seven here are engine behaviour rather than quest facts.
 
 - **A weight check is a loadout constraint the pathfinder cannot see.** The lava bridge
   runs `if (weight >= 0) @ikov_bridgefail`, so the crossing is a property of what the
@@ -41,12 +41,13 @@ Twenty-eight in all; the seven here are engine behaviour rather than quest facts
   and neither does harm when repeated, so the module searches and pulls on every pass
   through that stage instead of trying to tell them apart.
 
-The other twenty-one are the quest's own shape, on the [second page](quest-pitfalls-25.md).
+The other twenty-four are the quest's own shape: the route on the [second page](quest-pitfalls-25.md), the fights and the farm on the [third](quest-pitfalls-26.md).
 
 ## See also
 
 - [Quest pitfalls](quest-pitfalls.md)
-- [Temple of Ikov, continued](quest-pitfalls-25.md)
+- [Temple of Ikov: the route](quest-pitfalls-25.md)
+- [Temple of Ikov: the fights](quest-pitfalls-26.md)
 - [Shield of Arrav](quest-pitfalls-7.md)
 - [Temple of Ikov's harness recipe](../reference/quest-harness-recipes-9.md)
 - [Add a quest](../how-to/add-a-quest.md)

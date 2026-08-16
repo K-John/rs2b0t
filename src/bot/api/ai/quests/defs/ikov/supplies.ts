@@ -354,7 +354,7 @@ interface SupplyWants {
 
 /**
  * The next surface acquisition for the wanted parts of the kit, or null when they are all in hand.
- * @see docs/decisions/quest-pitfalls-25.md
+ * @see docs/decisions/quest-pitfalls-26.md
  */
 export function suppliesStep(snap: QuestSnapshot, wants: SupplyWants): QuestStep | null {
     const needBow = wants.bow && heldOrBanked(snap, IKOV_OBJ.YEW_SHORTBOW) === 0;
