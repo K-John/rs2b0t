@@ -10,6 +10,7 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
+import { Prayer } from '../../../../prayer/Prayer.js';
 import { Skills } from '../../../../skills/Skills.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { Traversal } from '../../../../walking/Traversal.js';
@@ -220,9 +221,19 @@ const TITAN_GUARD_TICKS = 900;
 /** A lobster's worth of damage is enough to eat on; waiting spends the margin. */
 const EAT_AT_MISSING = 15;
 
+const PROTECT_MELEE = 'protect from melee';
+export const PROTECT_LEVEL = 43;
+
 function hungry(): boolean {
     const max = Skills.level('hitpoints');
     return max > 0 && Skills.effective('hitpoints') <= max - EAT_AT_MISSING;
+}
+
+// Why: the titan attacks in melee and nothing else, so Protect from Melee zeroes the fight for as long as the points last.
+
+/** True when melee protection is worth the tick's one action. */
+export function shouldProtect(prayerLevel: number, points: number, up: boolean): boolean {
+    return prayerLevel >= PROTECT_LEVEL && points > 0 && !up;
 }
 
 // Why: the titan full-heals and drops the stage to 7 for anyone who kills him without Excalibur worn, so the check is a refusal rather than a warning.
@@ -237,58 +248,74 @@ async function fightTitan(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(GRAIL_TILE.TITAN_STAND, 0, log))) {
         return false;
     }
+    if (Skills.level('prayer') < PROTECT_LEVEL) {
+        log(`prayer below ${PROTECT_LEVEL} — the titan will land hits this fight`);
+    }
     Game.setAutoRetaliate(true);
     Game.setCombatStyle('strength');
     let lastTick = -1;
     let reported = -1;
     let swings = 0;
     let attacking = -1;
-    for (let i = 0; i < TITAN_GUARD_TICKS; i++) {
-        if (EventSignal.pending()) {
-            log('titan: yielding to a runtime event');
-            return false;
-        }
-        if (!eastOfTitan(Game.tile())) {
-            log(`titan: down after ${swings} attacks — teleported past his crossing`);
-            await drain();
-            return true;
-        }
-        const now = Game.tick();
-        if (now === lastTick) {
+    try {
+        for (let i = 0; i < TITAN_GUARD_TICKS; i++) {
+            if (EventSignal.pending()) {
+                log('titan: yielding to a runtime event');
+                return false;
+            }
+            if (!eastOfTitan(Game.tile())) {
+                log(`titan: down after ${swings} attacks — teleported past his crossing`);
+                await drain();
+                return true;
+            }
+            const now = Game.tick();
+            if (now === lastTick) {
+                await Execution.delayTicks(1);
+                continue;
+            }
+            lastTick = now;
+            if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
+                await drain();
+                continue;
+            }
+            // Why: the server takes one op a tick and drops the rest, so the order is pray, eat, swing — a re-arm skipped for food never comes back while the damage keeps coming.
+            if (shouldProtect(Skills.level('prayer'), Prayer.points(), Prayer.active(PROTECT_MELEE))) {
+                await Prayer.set(PROTECT_MELEE, true);
+                continue;
+            }
+            if (hungry()) {
+                await Sustain.run();
+                continue;
+            }
+            const titan = Npcs.query().where(n => n.id === TITAN_ID).action('Attack').nearest();
+            if (!titan) {
+                await Execution.delayTicks(1);
+                continue;
+            }
+            if (now - reported >= 40) {
+                reported = now;
+                log(`titan: hp=${Skills.effective('hitpoints')}/${Skills.level('hitpoints')}`
+                    + ` prayer=${Prayer.points()} attacks=${swings}`);
+            }
+            // Melee keeps swinging on its own; re-clicking spends the tick's one action on re-targeting.
+            if (titan.index === attacking && Game.inCombat()) {
+                await Execution.delayTicks(1);
+                continue;
+            }
+            if (await titan.interact('Attack')) {
+                attacking = titan.index;
+                swings++;
+            }
             await Execution.delayTicks(1);
-            continue;
         }
-        lastTick = now;
-        if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
-            await drain();
-            continue;
+        log(`titan: gave up after ${TITAN_GUARD_TICKS} ticks (${swings} attacks)`);
+        return false;
+    } finally {
+        // Why: the win is a teleport out of his reach, but a yield leaves him swinging — dropping the prayer there hands back the hits it was bought to stop.
+        if (!Game.inCombat() && Prayer.active(PROTECT_MELEE)) {
+            await Prayer.set(PROTECT_MELEE, false);
         }
-        if (hungry()) {
-            await Sustain.run();
-            continue;
-        }
-        const titan = Npcs.query().where(n => n.id === TITAN_ID).action('Attack').nearest();
-        if (!titan) {
-            await Execution.delayTicks(1);
-            continue;
-        }
-        if (now - reported >= 40) {
-            reported = now;
-            log(`titan: hp=${Skills.effective('hitpoints')}/${Skills.level('hitpoints')} attacks=${swings}`);
-        }
-        // Melee keeps swinging on its own; re-clicking spends the tick's one action on re-targeting.
-        if (titan.index === attacking && Game.inCombat()) {
-            await Execution.delayTicks(1);
-            continue;
-        }
-        if (await titan.interact('Attack')) {
-            attacking = titan.index;
-            swings++;
-        }
-        await Execution.delayTicks(1);
     }
-    log(`titan: gave up after ${TITAN_GUARD_TICKS} ticks (${swings} attacks)`);
-    return false;
 }
 
 const RING_ATTEMPTS = 12;

@@ -61,5 +61,5 @@ Thirteen, and the first four are all one fight.
 ## See also
 
 - [Quest pitfalls: Shield of Arrav](quest-pitfalls-7.md)
-- [Harness recipes (H)](../reference/quest-harness-recipes-8.md)
+- [Harness recipes (Haz–Hol)](../reference/quest-harness-recipes-8.md)
 - [Quest engine](../reference/quest-engine.md)
