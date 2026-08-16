@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Thirty-one, and the first three are map and engine facts rather than quest ones.
+Thirty-two, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -198,6 +198,14 @@ Thirty-one, and the first three are map and engine facts rather than quest ones.
   fire, because a failure is not a stall. Every step kind needs the same last resort, and
   the two things filling the pack were both receipts: the sketch of a bowl that had already
   been forged, and the flask the blessing had already drunk.
+
+- **A use-on sent while a page is still up is dropped without a word.** The seeds arrive on
+  the last page of Ungadulu's chat, and the germinate step clicked them into the bowl before
+  that page had closed: accepted by the client, discarded by the server, twenty seconds of
+  silence, five times over. Two earlier legs had already been fixed for the same shape — the
+  bowl offered to a Gujuo too far away, the wait that never drove its box — and this is the
+  third face of it. The stage-jumped leg passed every time, because there the seeds came out
+  of a bank rather than out of a conversation.
 
 ## See also
 
