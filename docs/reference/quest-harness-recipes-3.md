@@ -148,8 +148,7 @@ Measured on `:8890` at 200ms ticks, 70 in every skill, lobsters for food:
 | Gujuo names the sacred water | 7 → 8 | 320s |
 | Two gold bars, the anvil, the bless, the syphon | 8 → 10 | 603s |
 | Trials descent, seven gems, the book, Nezikchened | 10 → 12 | 1086s |
-| Ungadulu's seeds, germinated | 12 → 13 | 310s |
-| The pool is found fouled | 13 → 14 | 321s |
+| Ungadulu's seeds, the refill, germinated, the pool found fouled | 12 → 14 | 288s |
 | Gujuo's bravery recipe | 14 → 15 | 343s |
 | Two herbs, the potion, the winch, three guardians, Echned's dagger | 15 → 20 | 685s |
 | The Holy Force, the demon at the source, the water | 20 → 25 | 1055s |
