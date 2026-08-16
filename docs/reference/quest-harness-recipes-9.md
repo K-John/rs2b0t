@@ -84,12 +84,13 @@ ending leaves `%ikov` at 80, not 100.
 | `roots` | + 20 limpwurt roots | the hobgoblin farm |
 | `guardian` | + shiny key | Winelda's ferry — the key is what walks a seeded stage-60 run in through McGrubor's Wood |
 
-The bank holds two million coins, three hundred lobsters and a set of studded leather at
-every kit. Nothing else is seeded by default: the axe, the knife, the flax, the yew logs,
+The bank holds two million coins, three hundred lobsters, a set of studded leather and a
+rune scimitar at every kit. Nothing else is seeded by default: the axe, the knife, the flax, the yew logs,
 the bow string, the candle, the arrows, the boots and the roots each have a source the bot
-walks to, and seeding one hides whether it can find it. The armour is the exception,
-because the quest sources none — the module wears the best ranged pieces the bank already
-holds, so an unseeded bank proves only that it copes bare.
+walks to, and seeding one hides whether it can find it. The armour and the weapon are the
+exception, because the quest sources neither — the module wears the best ranged pieces and
+wields the best melee weapon the bank already holds, so an unseeded bank proves only that
+it copes in boots with the yew axe.
 
 Six facts govern this harness:
 
