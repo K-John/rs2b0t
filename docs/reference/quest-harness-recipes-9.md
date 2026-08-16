@@ -102,8 +102,9 @@ Six facts govern this harness:
   bow is 3lb and never goes near it.
 - **The armour goes on after the lever, never before it.** A studded body is 12lb, so the
   crossing leg fetches the boots and the lever alone and climbs out; the chest circuit is a
-  second descent through the south gate, which needs no bridge. `--lever` skips the first
-  descent outright.
+  second descent through the south gate, which needs no bridge. `--lever` does not skip
+  that first descent: the module has no client-visible read on `%ikov_dungeon`, so it still
+  walks to the gate to learn it is open — what the flag saves is the lava crossing behind it.
 - **The Fire Warrior refuses anything but ranged with ice arrows in the quiver.** A run
   that reaches him without both stands there swinging and never lands a hit.
 - **A seeded stage never walked the sourcing leg.** A run started at 50 has no axe
