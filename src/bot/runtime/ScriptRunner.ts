@@ -3,8 +3,8 @@ import { resolveLoopCadence, type AbstractBot, type LoopCadence } from '../api/b
 import { Execution } from '../api/execution/Execution.js';
 import { RandomEvents } from './randomevents/RandomEvents.js';
 import { Sustain } from '../api/sustain/Sustain.js';
-import type { PaintFrame } from '../api/paint/Paint.js';
-import { paintState } from '../api/paint/paintLogic.js';
+import type { PaintFrame } from '../paint/Paint.js';
+import { paintState } from '../paint/paintLogic.js';
 import { BotHost } from './BotHost.js';
 import { RecoveryHints } from './RecoveryHints.js';
 import { Scheduler } from './Scheduler.js';
@@ -212,6 +212,7 @@ class ScriptRunnerImpl {
                 }
 
                 RandomEvents.setGrindTargets(bot.grindTargets());
+                RandomEvents.setIgnoredRandoms(() => bot.ignoredRandoms());
                 RandomEvents.setLampSkill(SettingsStore.globalBag().str('lampSkill', 'strength'));
                 Supervisor.resetProgress();
                 if (RecoveryHints.pendingRecovery) {
@@ -385,6 +386,8 @@ class ScriptRunnerImpl {
         } catch (err) {
             ctx.addLog('warn', `onStop threw: ${err}`);
         }
+
+        RandomEvents.setIgnoredRandoms([]);
 
         Sustain.set(null);
 

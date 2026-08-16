@@ -1,5 +1,5 @@
 import { actions, reader } from '../../adapter/ClientAdapter.js';
-import { Input } from '../input/Input.js';
+import { Input } from '../../input/Input.js';
 import { Execution } from '../execution/Execution.js';
 import { Npcs } from '../npcs/Npcs.js';
 import { Inventory } from '../inventory/Inventory.js';
@@ -70,9 +70,43 @@ export const Shop = {
                 await Input.invButton(it.id, it.slot, it.comId, opIndex + 1);
             }
             await Execution.delayUntil(() => countHeld(name) !== before, 3000);
-            // the whole batch lands in one server tick — settle so the recount sees all of it
+            // the batch lands in one server tick — settle so the recount sees all of it
             await Execution.delayTicks(1);
             const got = countHeld(name) - before;
+            if (got <= 0) {
+                break;
+            }
+
+            bought += got;
+        }
+
+        return bought;
+    },
+
+    // Why: a shop can stock two objects that render the same name — Thessalia's two priest-gown
+    // halves are 426 and 428 — and buying by name takes the first slot twice.
+
+    /** Buy by exact object id, for stock whose display name is shared. */
+    async buyById(id: number, n: number): Promise<number> {
+        let bought = 0;
+        while (bought < n && Shop.isOpen()) {
+            const it = reader.shopInv(SHOP_STOCK_COM).find(s => s.id === id);
+            if (!it || it.count === 0) {
+                break;
+            }
+
+            const batch = buyBatch(it.ops, n - bought);
+            if (batch.length === 0) {
+                break;
+            }
+
+            const before = heldById(id);
+            for (const opIndex of batch) {
+                await Input.invButton(it.id, it.slot, it.comId, opIndex + 1);
+            }
+            await Execution.delayUntil(() => heldById(id) !== before, 3000);
+            await Execution.delayTicks(1);
+            const got = heldById(id) - before;
             if (got <= 0) {
                 break;
             }
@@ -124,6 +158,10 @@ export const Shop = {
 
 function countHeld(name: string): number {
     return Inventory.count(name);
+}
+
+function heldById(id: number): number {
+    return Inventory.items().filter(item => item.id === id).reduce((sum, item) => sum + item.count, 0);
 }
 
 // The engine processes at most this many user-event packets per player tick

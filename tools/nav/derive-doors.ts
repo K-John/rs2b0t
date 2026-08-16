@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { LocLayer, LocShape, locShapeLayer } from '#/bot/nav/rsmod/flags.js';
+import { LocLayer, LocShape, locShapeLayer } from '#/bot/event/webwalk/rsmod/flags.js';
 
 import { Reader, bridgedLevel, forEachLoc, loadLocTypes, loadMapsquares, parseLands } from './lib.js';
 
@@ -19,7 +19,7 @@ const ANGLE_DIR: ('W' | 'N' | 'E' | 'S')[] = ['W', 'N', 'E', 'S'];
 function parseArgs(): { engine: string; out: string } {
     const args = process.argv.slice(2);
     let engine = '/Users/elliotninjaone/code/lostcity-dev/engine';
-    let out = 'src/bot/nav/data/doors.json';
+    let out = 'src/bot/event/webwalk/data/doors.json';
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--engine') {
             engine = args[++i];
@@ -67,7 +67,22 @@ function main(): void {
             // Family Crest's perfect-gold mine — each answers "This door is locked" unless its own combination of the three levers is set.
             // Why: the combination that opens one shuts another, so the quest drives the chain itself (defs/familycrest/mine.ts).
             'famcrest_doorh2', 'famcrest_doorh2i2', 'famcrest_doorg2h1',
-            'famcrest_doori2h1', 'famcrest_doorh2g1'
+            'famcrest_doori2h1', 'famcrest_doorh2g1',
+            // Fight Arena's cell doors never open, and door1 teleports the player into the arena at stages 9-11 rather than opening.
+            // Why: baked as edges the pathfinder routes into a cell it cannot leave, or walks a bot mid-errand into a boss fight.
+            'arena_prisondoor', 'arena_jeremydoor', 'fightarena_door1',
+            // Clock Tower's rat-cage gate: jail_doors.rs2 answers "This door doesn't seem to open from here..." to anyone outside it, and ctlevera is the way in.
+            // Why: its only map placement is the cage at 2595,9657 — Fight Arena's copies are loc_add, which no map derivation sees.
+            'ctratgatea',
+            // West Ardougne's plague house: loc_2534 answers "This door is locked." to everyone, and loc_2535 opens only for a warrant holder with a mourner in earshot, mid-conversation.
+            // Why: baked as edges the pathfinder alternates between the two and crosses neither.
+            'loc_2534', 'loc_2535',
+            // Why: the mourner headquarters' two doors are locked until the stew is poisoned and then open only to a worn doctor's gown behind an "In you go doc." the walker cannot answer, and baked as edges the route to the cauldron runs through the building — which is the one thing the stage needing the cauldron cannot do. The fence at 2541,3331 is the way in.
+            'mournerstewdoor',
+            // Shield of Arrav's three hideout doors. Why: the weapon store answers Open with "The door is securely locked" and yields only to an oplocu with the key, while the other two refuse until you have joined and then p_teleport you through — none is an edge the walker can step.
+            'phoenixdoor', 'phoenixdoor2', 'blackarmdoor',
+            // Khazard stronghold's front door. Why: quest_tree.rs2 opens it only for a player already north of it, so the pathfinder routed every trip to the chest through a door that answers "The door seems to be locked from the inside." — the crumbled wall is the way in, driven by defs/treegnome.
+            'khazard_stronghold_door'
         ]);
         const label = `${type.name ?? ''} ${type.debugname ?? ''}`.toLowerCase();
         if (label.includes('locked') || (type.debugname ?? '').startsWith('macro_') || SCRIPT_REFUSED.has(type.debugname ?? '')) {
@@ -79,6 +94,9 @@ function main(): void {
 
     const ONE_WAY_EXCLUDED = new Set([
         '3108,3353,0', '3109,3353,0',
+        // Handelmort Mansion's inner door: quest_totem.rs2 opens it only for a player north of it, and everything the mansion holds is reached by Cromperty's block instead.
+        // Why: baked both ways the pathfinder treats the mansion as a shortcut and the walker loops on "This door is securely locked"; the outward half is curated in travelCatalog.ts.
+        '2635,3321,0',
         // Gu'Tanoth's east gate: the ogre guard demands a bar of gold and teleports you down the hill otherwise, and nothing in the game needs that crossing.
         // Why: its north-west twin is left in — that guard refuses only until the relic is shown, after which the gate behaves as an ordinary door and everything west of it depends on the edge.
         '2549,3028,0', '2550,3028,0'

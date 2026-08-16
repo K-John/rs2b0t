@@ -8,9 +8,9 @@ import { Execution } from '#/bot/api/execution/Execution.js';
 import { Game } from '#/bot/api/game/Game.js';
 import { Traversal } from '#/bot/api/walking/Traversal.js';
 import { Bank } from '#/bot/api/bank/Bank.js';
-import { ChatDialog } from '#/bot/api/dialogue/ChatDialog.js';
+import { ChatDialog } from '#/bot/api/ui/dialogue/ChatDialog.js';
 import { Locs } from '#/bot/api/locs/Locs.js';
-import { Input } from '#/bot/api/input/Input.js';
+import { Input } from '#/bot/input/Input.js';
 
 const originals = {
     bankIsOpen: Bank.isOpen,

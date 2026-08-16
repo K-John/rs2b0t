@@ -5,7 +5,7 @@
 
 # Bundled scripts
 
-- Scripts: 52. Categories: 20.
+- Scripts: 52. Categories: 19.
 - Source: [`src/bot/scripts/`](../src/bot/scripts/). API: [scripting API](API.md).
 - Settings are the parameters the panel exposes before a script starts.
 
@@ -24,19 +24,18 @@
 - [Money making](#money-making) — 2
 - [Navigation](#navigation) — 1
 - [Prayer](#prayer) — 1
-- [Quest](#quest) — 2
+- [Quest](#quest) — 3
 - [Runecrafting](#runecrafting) — 3
 - [Smithing](#smithing) — 2
 - [Thieving](#thieving) — 3
 - [Treasure Trails](#treasure-trails) — 1
-- [Tutorial](#tutorial) — 1
 - [Woodcutting](#woodcutting) — 1
 
 ## Agility
 
 ### BrimhavenAgility
 
-Brimhaven Agility Arena — banks food+coins at Ardougne south, ships to Brimhaven, pays Cap'n Izzy, tags ticket pillars on the level-optimal path, and grinds centre spikes between tags
+Brimhaven Agility Arena — banks food+coins at Ardougne south, ships to Brimhaven, pays Cap'n Izzy, tags ticket pillars on the level-optimal path, and grinds centre spikes between tags. Optional steal restock (Thieving 20) takes cakes from the Baker's stall and coins from guards.
 
 - Tags: `brimhaven`, `arena`, `tickets`, `banking`, `food`
 
@@ -45,6 +44,7 @@ Brimhaven Agility Arena — banks food+coins at Ardougne south, ships to Brimhav
 | `loadout` | string | `""` | Loadout — one of:  |
 | `foodWithdraw` | number (1–27) | `25` | Food per trip |
 | `bankAtTickets` | number (1–5000) | `1000` | Bank at X tickets |
+| `stealRestock` | boolean | `false` | Steal cakes / GP when out |
 
 ### EdgevilleMonkeyBars
 
@@ -263,7 +263,7 @@ Wilderness green dragons N of Edgeville: melee/mage w/ anti-dragon shield, banks
 | `combatStyle` | string | `"melee"` | Combat style — one of: melee, mage |
 | `meleeStyle` | string | `"strength"` | Melee style — one of: attack, strength, controlled, defence |
 | `useSpecial` | boolean | `true` | Use special attacks |
-| `weapon` | string | `"Rune scimitar"` | Weapon — one of: Bronze scimitar, Iron scimitar, Steel scimitar, Black scimitar, Mithril scimitar, Adamant scimitar, Rune scimitar, Bronze sword, Iron sword, Steel sword, Black sword, Mithril sword, Adamant sword, Rune sword, Bronze longsword, Iron longsword, Steel longsword, Black longsword, Mithril longsword, Adamant longsword, Rune longsword, Dragon longsword, Bronze dagger, Iron dagger, Steel dagger, Black dagger, Mithril dagger, Adamant dagger, Rune dagger, Dragon dagger |
+| `weapon` | string | `"Rune scimitar"` | Weapon — one of: Bronze scimitar, Iron scimitar, Steel scimitar, Black scimitar, Mithril scimitar, Adamant scimitar, Rune scimitar, Bronze sword, Iron sword, Steel sword, Black sword, Mithril sword, Adamant sword, Rune sword, Bronze longsword, Iron longsword, Steel longsword, Black longsword, Mithril longsword, Adamant longsword, Rune longsword, Dragon longsword, Bronze dagger, Iron dagger, Steel dagger, Black dagger, Mithril dagger, Adamant dagger, Rune dagger, Dragon dagger, Dragon dagger(p) |
 | `staff` | string | `"Staff of fire"` | Staff — one of: Staff, Magic staff, Staff of air, Staff of water, Staff of earth, Staff of fire, Battlestaff, Air battlestaff, Water battlestaff, Earth battlestaff, Fire battlestaff, Mystic air staff, Mystic water staff, Mystic earth staff, Mystic fire staff |
 | `spell` | string | `"Fire Strike"` | Autocast spell — one of: Wind Strike, Water Strike, Earth Strike, Fire Strike, Wind Bolt, Water Bolt, Earth Bolt, Fire Bolt, Wind Blast, Water Blast, Earth Blast, Fire Blast, Wind Wave, Water Wave, Earth Wave, Fire Wave |
 | `runesWithdraw` | number (1–1000) | `150` | Casts of runes per bank trip |
@@ -455,7 +455,7 @@ Needle-and-thread crafting loop — banks for leather and makes the best item yo
 
 ### TannerBot
 
-Al Kharid tanning loop — banks hides, tans the whole load in one click at the Tanner, and every Nth trip keeps a slot free to buy out Dommik's thread
+Al Kharid tanning loop — banks hides, tans the full load in one click at the Tanner, and every Nth trip keeps a slot free to buy out Dommik's thread
 
 - Tags: `alkharid`, `leather`, `dragonhide`, `banking`, `afk`
 
@@ -714,9 +714,24 @@ All-in-one quest completer — queues the implemented quests (empty selection = 
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
-| `quests` | string[] | `[]` | Quest queue (empty = all) — one of: Rune Mysteries Quest, Doric's Quest, The Knight's Sword, Sheep Shearer, The Restless Ghost, Cook's Assistant, Ernest the Chicken, Witch's Potion, Romeo & Juliet, Prince Ali Rescue, Waterfall Quest, Goblin Diplomacy, Demon Slayer, Witch's House, Merlin's Crystal, Priest in Peril, Black Knight's Fortress, Druidic Ritual, Lost City, The Tourist Trap, Watch Tower, Vampire Slayer, Jungle Potion, Shilo Village, Elemental Workshop, Death Plateau, Troll Stronghold, Family Crest, Horror from the Deep, Dragon Slayer |
+| `quests` | string[] | `[]` | Quest queue (empty = all) — one of: Rune Mysteries Quest, Doric's Quest, The Knight's Sword, Sheep Shearer, The Restless Ghost, Cook's Assistant, Imp Catcher, Ernest the Chicken, Witch's Potion, Romeo & Juliet, Prince Ali Rescue, Pirate's Treasure, Shield of Arrav, Waterfall Quest, Goblin Diplomacy, Demon Slayer, Witch's House, Dwarf Cannon, Clock Tower, Monk's Friend, Merlin's Crystal, Holy Grail, Priest in Peril, Nature Spirit, Black Knight's Fortress, Druidic Ritual, Lost City, The Tourist Trap, Watch Tower, Vampire Slayer, Fishing Contest, Jungle Potion, Tai Bwo Wannai Trio, Shilo Village, Elemental Workshop, Death Plateau, Troll Stronghold, Plague City, Biohazard, Hazeel Cult, Tribal Totem, Family Crest, Horror from the Deep, Fight Arena, Sea Slug Quest, Murder Mystery, Tree Gnome Village, Dragon Slayer |
 | `loadout` | string | `""` | Loadout — one of:  |
+| `food` | string | `"Lobster"` | Food — one of: Shark, Lobster, Swordfish, Tuna, Salmon, Trout, Pike, Bass, Herring, Sardine, Anchovies, Shrimps, Cooked meat, Cooked chicken, Bread, Stew, Cake, Chocolate cake, Plain pizza, Meat pizza, Anchovy pizza, Pineapple pizza, Redberry pie, Meat pie, Apple pie |
+| `arravGang` | string | `"random"` | Shield of Arrav gang — one of: random, phoenix, blackarm |
+| `arravPartner` | string | `""` | Shield of Arrav partner |
+| `arravCerts` | number (1–50) | `2` | Shield of Arrav certificates |
 | `verbose` | boolean | `true` | Verbose step log |
+
+### ArravSupplier
+
+Shield of Arrav certificate faucet — joins both gangs from one account, farms both shield halves and banks certificates for other bots; never redeems, so the chest and the curator keep working
+
+- Tags: `quest`, `shield of arrav`, `certificate`, `supplier`
+
+| Setting | Type | Default | Notes |
+|---|---|---|---|
+| `certTarget` | number (2–200) | `10` | Certificates to bank |
+| `partner` | string | `""` | Bootstrap key partner |
 
 ### Barcrawl
 
@@ -866,14 +881,6 @@ Solves the easy clue scroll (or opens the casket) in your pack — banks everyth
 | `foodWithdraw` | number (1–27) | `8` | Food to withdraw |
 | `restorePrayer` | boolean | `true` | Top up prayer between trails |
 | `useTeleports` | boolean | `true` | Use teleports |
-
-## Tutorial
-
-### TutorialBot
-
-Completes Tutorial Island unassisted (no cheats)
-
-- Tags: `tutorial`, `onboarding`
 
 ## Woodcutting
 

@@ -4,10 +4,10 @@ import { EventSignal } from '../../api/execution/EventSignal.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { fleeCandidates } from './eventEvade.js';
 import { Game } from '../../api/game/Game.js';
-import { Reachability } from '../../nav/geometry/Reachability.js';
+import { Reachability } from '../../event/webwalk/geometry/Reachability.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { Bank } from '../../api/bank/Bank.js';
-import { ChatDialog } from '../../api/dialogue/ChatDialog.js';
+import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Equipment } from '../../api/equipment/Equipment.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Shop } from '../../api/shop/Shop.js';
@@ -158,6 +158,8 @@ class RandomEventsImpl {
 
     lampSkill = 'strength';
 
+    private ignoredProvider: () => readonly string[] = () => [];
+
     private readonly gearLoss = new GearLossTracker();
 
     private attempts = new Map<string, number>();
@@ -193,6 +195,15 @@ class RandomEventsImpl {
         this.grindTargets = names.map(n => n.toLowerCase());
     }
 
+    setIgnoredRandoms(names: readonly string[] | (() => readonly string[])): void {
+        this.ignoredProvider = typeof names === 'function' ? names : () => names;
+    }
+
+    isIgnored(name: string): boolean {
+        const want = name.toLowerCase();
+        return this.ignoredProvider().some(n => n.toLowerCase() === want);
+    }
+
     setLampSkill(skill: string): void {
         this.lampSkill = skill;
     }
@@ -210,7 +221,14 @@ class RandomEventsImpl {
     detect(): DetectedEvent | null {
         try {
             const event = this.detectRaw();
-            if (event && this.cooledDown(`${event.kind}:${event.name}`)) {
+            if (!event) {
+                return null;
+            }
+            // Why: Brimhaven platforms are 5x5, so evading Swarm never despawns it (#597).
+            if (this.isIgnored(event.name)) {
+                return null;
+            }
+            if (this.cooledDown(`${event.kind}:${event.name}`)) {
                 return null;
             }
             return event;
@@ -319,7 +337,7 @@ class RandomEventsImpl {
         this.handling = true;
         try {
             // detect/handle must never throw into ScriptRunner — a thrown error
-            // marks the whole script crashed even when the maze/dialog later succeeds.
+            // marks the script crashed even when the maze/dialog later succeeds.
             return await this.handleInner(log);
         } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
