@@ -348,5 +348,6 @@ export async function germinateSeeds(log: (m: string) => void): Promise<boolean>
     if (!(await seeds.useOn(bowl))) {
         return false;
     }
-    return Execution.delayUntil(() => heldId(LQ_ID.YOMMI_SEEDS_GERM) > 0, 12_000);
+    // Why: `~doubleobjbox` suspends the script until the box is answered, and the germinated seeds are added after it — so waiting for them without clearing the box waits for something the server is not going to do.
+    return driveUntil(() => heldId(LQ_ID.YOMMI_SEEDS_GERM) > 0, [], log, 20_000);
 }

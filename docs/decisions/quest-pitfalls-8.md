@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Legends Quest
 
-Twenty-six, and the first three are map and engine facts rather than quest ones.
+Twenty-seven, and the first three are map and engine facts rather than quest ones.
 
 - **Overlapping component boxes cannot be told apart by a rectangle, and this quest is
   eighteen of them.** The trials corridor floods to `x 2789-2814, z 9281-9318` and the gem
@@ -144,6 +144,12 @@ Twenty-six, and the first three are map and engine facts rather than quest ones.
   on the fifth pass, which is the tell: a race, not a wrong list. Ten ticks of silence is
   an ending; three is a blink.
 
+- **A box that suspends the script is not a box you can wait out.** `~doubleobjbox` pauses
+  `opheldu` where it stands and the germinated seeds are added *after* it, so waiting twelve
+  seconds for them without clearing the box waits for something the server will never do —
+  ten times over, in silence, with both items in the pack and the use-on accepted. The
+  stage-jumped leg passed the same code because the fill before it left a driver running.
+  Every wait that follows a box has to drive it.
 - **`opheldu` runs on the item clicked second, and the pair is not symmetric.** The bowl
   carries the handler and wants the seeds as `last_useitem`, so seeds-on-bowl germinates and
   bowl-on-seeds is "nothing interesting happens" — the script says so in a comment, and
