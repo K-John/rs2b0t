@@ -1,4 +1,5 @@
 import { actions, reader } from '../../../../../adapter/ClientAdapter.js';
+import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { EventSignal } from '../../../../execution/EventSignal.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
@@ -11,7 +12,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { promptLoc, settleScene } from '../../exec/prompts.js';
 import { SM_ID, SM_LOC, SM_LOC_ID, SM_NAME, SM_NPC, SM_TILE } from './areas.js';
-import { permSerumVialId, serumVialId } from './supplies.js';
+import { isCured, isPermSerum, markCured, permSerumVialId, serumVialId } from './supplies.js';
 
 // Why: `book` is opened by `if_openmain`, and its forward-page arrow is a graphic with no label, so the component id is the only handle on it.
 /** `book` interface root and its right-arrow button, from interface.pack. */
@@ -71,6 +72,75 @@ export function villager(cured: string, afflicted: string): Npc | null {
     return Npcs.query().where(n => n.name === cured || n.name === afflicted).within(12).nearest();
 }
 
+interface CureStop {
+    cured: string;
+    afflicted: string;
+    anchor: typeof SM_TILE.RAZMIRE;
+}
+
+/** The two villagers one dose of serum 207(p) each buys for good. */
+const PERM_CURE_STOPS: readonly CureStop[] = [
+    { cured: SM_NPC.RAZMIRE, afflicted: SM_NPC.RAZMIRE_AFFLICTED, anchor: SM_TILE.RAZMIRE },
+    { cured: SM_NPC.ULSQUIRE, afflicted: SM_NPC.ULSQUIRE_AFFLICTED, anchor: SM_TILE.ULSQUIRE }
+];
+
+/** True while a shopkeeper this run has not been settled. */
+export const curesOutstanding = (): boolean => PERM_CURE_STOPS.some(s => !isCured(s.cured));
+
+/** Put one dose of a serum into a villager, returning once his dialogue opens. */
+async function serumOnVillager(vialId: number, stop: CureStop, log: (m: string) => void): Promise<boolean> {
+    const npc = villager(stop.cured, stop.afflicted);
+    const serum = Inventory.items().find(i => i.id === vialId);
+    if (!npc || !serum) {
+        log(`no ${stop.cured} beside (${stop.anchor.x},${stop.anchor.z}) or no serum to use`);
+        return false;
+    }
+    if (!(await serum.useOn(npc))) {
+        return false;
+    }
+    if (!(await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue(), 8000))) {
+        log(`the serum on ${stop.cured} opened no dialogue`);
+        return false;
+    }
+    return true;
+}
+
+// Why: a dose of serum 207(p) sets a villager's permanent bit, and past that `opnpc1/3/4` never re-afflict him — the counters stay open and the last conversation costs nothing.
+// Why: a second dose on a villager already carrying the bit is refused in dialogue and consumes nothing, so the trip is safe to repeat and needs no oracle.
+
+/** Spend a dose of serum 207(p) on each shopkeeper. */
+export async function cureShopkeepers(log: (m: string) => void): Promise<boolean> {
+    if (permSerumVialId() === null) {
+        log('no serum 207(p) in the pack to cure the shopkeepers with');
+        return false;
+    }
+    for (const stop of PERM_CURE_STOPS) {
+        if (isCured(stop.cured)) {
+            continue;
+        }
+        const vial = permSerumVialId();
+        if (vial === null) {
+            // The flame had sanctity for fewer doses than there are villagers; the rest keep the temporary route.
+            PERM_CURE_STOPS.forEach(rest => markCured(rest.cured));
+            log(`no serum 207(p) left for ${stop.cured} — he keeps the temporary dose`);
+            return true;
+        }
+        await Modals.closeIfOpen();
+        if (!(await Traversal.walkResilient(stop.anchor, { radius: 2, attempts: 3, timeoutMs: 180_000, log }))) {
+            return false;
+        }
+        await settleScene();
+        if (!(await serumOnVillager(vial, stop, log))) {
+            return false;
+        }
+        markCured(stop.cured);
+        if (!(await driveOnce([], log))) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // Why: `opnpc1` on an afflicted villager only ever answers in gibberish, and the serum's `opnpcu` both sets the visible bit and opens the conversation in the same action.
 // Why: `npc_changetype` and the visible bit run the same 200-tick clock, so the villager's own name is the oracle for whether a dose is still needed.
 
@@ -100,18 +170,11 @@ export async function talkVillager(
         log(`no serum 207 in the pack to use on ${cured}`);
         return false;
     }
-    const npc = villager(cured, afflicted);
-    const serum = Inventory.items().find(i => i.id === vialId);
-    if (!npc || !serum) {
-        log(`no ${cured} beside (${anchor.x},${anchor.z}) or no serum to use`);
+    if (!(await serumOnVillager(vialId, { cured, afflicted, anchor }, log))) {
         return false;
     }
-    if (!(await serum.useOn(npc))) {
-        return false;
-    }
-    if (!(await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue(), 8000))) {
-        log(`the serum on ${cured} opened no dialogue`);
-        return false;
+    if (isPermSerum(vialId)) {
+        markCured(cured);
     }
     return driveOnce(script, log);
 }
@@ -180,10 +243,25 @@ export async function readDiary(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: the table hands out its three herbs once per player and never again, so a search that finds nothing is a dead end rather than a retry.
+// Why: `^shades_table_searched` is `scope=perm` with no `transmit`, so the refusal line is the only reading of it the bot gets.
+
+/** What a spent table answers with, from `quest_mortton.rs2`. */
+const TABLE_EMPTY = /search the table but find nothing/i;
+
+const spent = { table: false };
+
+/** True once the smashed table has told this run it has nothing left. */
+export const tableIsSpent = (): boolean => spent.table;
+
+/** Forget that the table was spent. */
+export const forgetTable = (): void => {
+    spent.table = false;
+};
 
 /** Search the smashed table for the two tarromin the serums need. */
 export async function searchTable(log: (m: string) => void): Promise<boolean> {
     const before = Inventory.countById(SM_ID.UNID_TARROMIN);
+    const mark = GameMessages.mark();
     const found = await promptLoc({
         name: SM_LOC.TABLE,
         op: 'Search',
@@ -194,6 +272,10 @@ export async function searchTable(log: (m: string) => void): Promise<boolean> {
         expectMs: 15_000
     }, log);
     await Modals.closeIfOpen();
+    if (GameMessages.sawSince(mark, TABLE_EMPTY)) {
+        spent.table = true;
+        log('the smashed table has already given up its herbs — it never refills');
+    }
     return found;
 }
 

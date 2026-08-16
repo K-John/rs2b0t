@@ -11,7 +11,7 @@ import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { settleScene, useOnLoc } from '../../exec/prompts.js';
 import { isTempleWall, SM_ID, SM_LOC, SM_LOC_ID, SM_TILE, SM_VARP } from './areas.js';
-import { permSerumVialId, serumVialId } from './supplies.js';
+import { PERM_CURES, permSerumDosesHeld, serumVialId } from './supplies.js';
 
 const REPAIR = 'Repair';
 const REINFORCE = 'Reinforce';
@@ -297,27 +297,42 @@ export function sacredOilDoses(): number {
         + Inventory.countById(SM_ID.SACRED_OIL1);
 }
 
-// Why: sanctifying converts every dose in the vial at no cost, and one dose of the result sets a villager's permanent bit, so the endgame conversation never needs another serum.
+// Why: sanctifying converts every dose in the vial at no cost, and one dose of the result sets a villager's permanent bit, so neither shopkeeper ever needs another serum.
+// Why: a vial converts in one go, so two single-dose vials are two trips to the flame at 20% sanctity each — the loop takes what the flame will still answer and reports what it fell short by.
 
-/** Turn a vial of serum 207 into serum 207(p) in the sacred flame. */
+/** True while the flame still owes the run a permanent dose and has the sanctity to strike it. */
+export const canSanctifySerum = (): boolean =>
+    permSerumDosesHeld() < PERM_CURES && templeSanctity() >= SANCTITY_TO_SANCTIFY_SERUM;
+
+/** Turn vials of serum 207 into serum 207(p) until the pack holds a dose for each villager. */
 export async function sanctifySerum(log: (m: string) => void): Promise<boolean> {
-    if (permSerumVialId() !== null) {
+    if (permSerumDosesHeld() >= PERM_CURES) {
         return true;
     }
-    const vial = serumVialId();
-    if (vial === null) {
+    if (serumVialId() === null) {
         log('no serum 207 left to sanctify');
         return false;
     }
-    if (templeSanctity() < SANCTITY_TO_SANCTIFY_SERUM) {
-        log(`sanctity is ${templeSanctity()}% — the flame wants ${SANCTITY_TO_SANCTIFY_SERUM}% for the serum`);
-        return false;
+    while (permSerumDosesHeld() < PERM_CURES) {
+        const vial = serumVialId();
+        if (vial === null || templeSanctity() < SANCTITY_TO_SANCTIFY_SERUM) {
+            break;
+        }
+        const before = permSerumDosesHeld();
+        const done = await useOnLoc(
+            vial,
+            { name: SM_LOC.ALTAR_LIT, near: SM_TILE.TEMPLE_INSIDE, id: SM_LOC_ID.ALTAR_LIT, within: WALL_RADIUS },
+            [],
+            () => permSerumDosesHeld() > before,
+            log
+        );
+        if (!done) {
+            break;
+        }
     }
-    return useOnLoc(
-        vial,
-        { name: SM_LOC.ALTAR_LIT, near: SM_TILE.TEMPLE_INSIDE, id: SM_LOC_ID.ALTAR_LIT, within: WALL_RADIUS },
-        [],
-        () => permSerumVialId() !== null,
-        log
-    );
+    const held = permSerumDosesHeld();
+    if (held < PERM_CURES) {
+        log(`sanctified ${held} of ${PERM_CURES} permanent doses — sanctity ${templeSanctity()}%`);
+    }
+    return held > 0;
 }

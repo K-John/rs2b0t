@@ -1,6 +1,7 @@
-import { describe, expect, test } from 'bun:test';
+import { beforeEach, describe, expect, test } from 'bun:test';
 
 import { SM_ID, SM_STAGE } from '#/bot/api/ai/quests/defs/mortton/areas.js';
+import { forgetCures } from '#/bot/api/ai/quests/defs/mortton/supplies.js';
 import { decide, mortton } from '#/bot/api/ai/quests/defs/mortton/index.js';
 import { SM_FLAG } from '#/bot/api/ai/quests/defs/mortton/journal.js';
 import { QUEST_DEFS } from '#/bot/api/ai/quests/defs/index.js';
@@ -157,9 +158,10 @@ describe('sourcing', () => {
         expect(named(decide(bare))).toBe('wear Rune scimitar');
     });
 
-    test('no ashes means a trip to the Varrock logs', () => {
+    test('no ashes means a trip to the logs, once an axe is in hand', () => {
         const bare = snap();
         bare.invIds = new Map([[SM_ID.COINS, 30_000], [SM_ID.TINDERBOX, 1], [SM_ID.LOGS, 1]]);
+        bare.inv = new Map([[FOOD.toLowerCase(), 6], ['bronze axe', 1]]);
         expect(named(decide(bare))).toBe('burn logs for ashes');
     });
 
@@ -169,6 +171,49 @@ describe('sourcing', () => {
             [SM_ID.COINS, 30_000], [SM_ID.TINDERBOX, 1], [SM_ID.PYRE_LOGS, 1], [SM_ID.SERUM3, 1]
         ]);
         expect(named(decide(bare))).toBe('stack the pyre logs');
+    });
+});
+
+// Why: Mort'ton has 29 dead trees and the Varrock spawn is a swamp crossing away, so the leg chops locally — which needs an axe the quest never carried before.
+describe('the axe', () => {
+    /** A pack that owes ashes: a tinderbox and the pyre log, nothing to burn for the serum. */
+    function needsAshes(): QuestSnapshot {
+        const bare = snap();
+        bare.invIds = new Map([[SM_ID.COINS, 30_000], [SM_ID.TINDERBOX, 1], [SM_ID.LOGS, 1]]);
+        return bare;
+    }
+
+    test('a banked axe is drawn before the burn', () => {
+        const bare = needsAshes();
+        bare.bank = new Map([['coins', 2_000_000], ['steel axe', 1]]);
+        const s = decide(bare);
+        expect(s.kind).toBe('withdraw');
+        expect(s.kind === 'withdraw' && s.items.map(i => i.name)).toEqual(['Steel axe']);
+    });
+
+    test('the best banked axe wins', () => {
+        const bare = needsAshes();
+        bare.bank = new Map([['coins', 2_000_000], ['bronze axe', 1], ['rune axe', 1]]);
+        const s = decide(bare);
+        expect(s.kind === 'withdraw' && s.items.map(i => i.name)).toEqual(['Rune axe']);
+    });
+
+    test('no axe anywhere is bought from Bob in Lumbridge', () => {
+        const s = decide(needsAshes());
+        expect(s.kind).toBe('buy');
+        expect(s.kind === 'buy' && s.item).toBe('Bronze axe');
+        expect(s.kind === 'buy' && s.shop?.npc).toBe('Bob');
+    });
+
+    test('a worn axe counts, so nothing is bought', () => {
+        const bare = needsAshes();
+        bare.worn = new Set(['bronze axe']);
+        expect(named(decide(bare))).toBe('burn logs for ashes');
+    });
+
+    // Why: the axe is only wanted for the logs — a pack that owes none should not detour to Lumbridge.
+    test('a pack with its ashes already burnt wants no axe', () => {
+        expect(named(step({ stage: SM_STAGE.READ_DIARY }))).toBe('search the smashed table for herbs');
     });
 });
 
@@ -254,6 +299,39 @@ describe('the temple', () => {
     test('a rebuilt temple with no sanctity of its own buys material first', () => {
         const s = step({ stage: SM_STAGE.CAN_LIGHT_ALTAR, invIds: [...SERUMS, [SM_ID.HAMMER, 1], [SM_ID.OLIVE_OIL3, 1]] });
         expect(named(s)).toBe('buy temple materials from Razmire');
+    });
+});
+
+describe('the permanent cure', () => {
+    const late: [number, number][] = [[SM_ID.REMAINS, 2], [SM_ID.HAMMER, 1], [SM_ID.SACRED_OIL3, 1]];
+    const sanctified = [`${SM_FLAG.SANCTITY}:40`, `${SM_FLAG.REPAIRED}:100`];
+
+    beforeEach(() => forgetCures());
+
+    // Why: past the altar the quest visits Razmire only if a restock is owed, so a leg of its own is what guarantees both shopkeepers get the dose.
+    test('a sanctified vial sends the bot back to both shopkeepers', () => {
+        const s = step({ stage: SM_STAGE.CREATED_SACRED_OIL, invIds: [...late, [SM_ID.SERUM_PERM3, 1]], flags: sanctified });
+        expect(named(s)).toBe('cure Razmire and Ulsquire for good');
+    });
+
+    test('a plain serum 207 is not the permanent cure, so the pyre leg runs', () => {
+        const s = step({ stage: SM_STAGE.CREATED_SACRED_OIL, invIds: [...late, [SM_ID.SERUM3, 1]], flags: sanctified });
+        expect(named(s)).toBe('soak the logs in sacred oil');
+    });
+
+    // Why: the flame is the earliest the cure can happen at all, so a run holding a sanctified vial at stage 60 should spend it before the oil trip pays Razmire another dose.
+    test('a vial made at the flame is spent before the stage-60 oil trip', () => {
+        const s = step({ stage: SM_STAGE.CAN_LIGHT_ALTAR, invIds: [[SM_ID.HAMMER, 1], [SM_ID.SERUM_PERM3, 1]], flags: sanctified });
+        expect(named(s)).toBe('cure Razmire and Ulsquire for good');
+    });
+
+    // Why: the cure leg walks to Razmire itself, so it goes in front of the restock rather than after it.
+    test('the cure comes before a restock at the same stage', () => {
+        const bare: [number, number][] = [[SM_ID.REMAINS, 2], [SM_ID.HAMMER, 1], [SM_ID.SERUM3, 1]];
+        expect(named(step({ stage: SM_STAGE.CREATED_SACRED_OIL, invIds: bare, flags: sanctified })))
+            .toBe("buy from Razmire's general store");
+        expect(named(step({ stage: SM_STAGE.CREATED_SACRED_OIL, invIds: [...bare, [SM_ID.SERUM_PERM3, 1]], flags: sanctified })))
+            .toBe('cure Razmire and Ulsquire for good');
     });
 });
 

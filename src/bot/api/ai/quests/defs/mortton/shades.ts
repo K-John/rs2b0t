@@ -61,13 +61,13 @@ export async function huntShade(log: (m: string) => void): Promise<boolean> {
     }
     let shade = target();
     if (!shade) {
-        if (!(await Traversal.walkResilient(SM_TILE.TOWN, { radius: 4, attempts: 3, timeoutMs: 180_000, log }))) {
+        if (!(await Traversal.walkResilient(SM_TILE.SHADE_LAIR, { radius: 4, attempts: 3, timeoutMs: 180_000, log }))) {
             return false;
         }
         await settleScene();
         shade = target();
         if (!shade) {
-            log('no Loar Shadow in the streets yet — they respawn on their own timer');
+            log('no Loar Shadow at the temple yet — they respawn on their own timer');
             await Execution.delayTicks(4);
             return false;
         }

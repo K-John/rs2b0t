@@ -3,34 +3,40 @@ import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.j
 import { flagValue } from '../../engine/types.js';
 import { KIT_KEEP, kitWanted } from '../fightarena/index.js';
 import { wearKit } from '../fightarena/legs.js';
-import { SM_ID, SM_NPC, SM_STAGE, SM_TILE } from './areas.js';
+import { SM_ID, SM_NAME, SM_NPC, SM_STAGE, SM_TILE } from './areas.js';
+import { farmHerbs } from './herbs.js';
 import { readMorttonProgress, SM_FLAG } from './journal.js';
 import { DOSES_PER_PYRE_LOG, lightPyre, layRemains, makePyreLogs, stackPyre } from './pyre.js';
 import { huntShade, REMAINS_WANTED } from './shades.js';
 import {
     ashesShort,
+    axeLeg,
+    bankedId,
     fillVial,
     heldId,
     kit,
     logsShort,
     makeAshes,
-    permSerumVialId,
+    forgetCures,
+    permSerumDoses,
     serumsShort,
     SM_TOOLS
 } from './supplies.js';
 import {
     altarLit,
+    canSanctifySerum,
     lightAltar,
     repairTemple,
     sanctifyOil,
     sanctifySerum,
     SANCTITY_TO_SANCTIFY_SERUM,
-    templeRepaired,
-    templeSanctity
+    templeRepaired
 } from './temple.js';
 import {
     BUILD_SETS,
     buildersOrder,
+    cureShopkeepers,
+    curesOutstanding,
     dropDown,
     dropJunk,
     generalOrder,
@@ -45,6 +51,7 @@ import {
     searchTable,
     setsThatFit,
     shopAtRazmire,
+    tableIsSpent,
     takeDiary,
     takeVial,
     ULSQUIRE_TEMPLE_SCRIPT,
@@ -87,6 +94,16 @@ function needsTemple(snap: QuestSnapshot): boolean {
         || (flagValue(snap.progress, SM_FLAG.REPAIRED) ?? 0) < 100;
 }
 
+// Why: the dose sets a permanent bit, so it goes in before any restock that would otherwise spend a serum re-curing Razmire for it — and the flame, which is the earliest a sanctified vial can exist, is the earliest this can fire.
+
+/** Spend the sanctified vial on both shopkeepers, or null when there is none to spend. */
+function cureLeg(snap: QuestSnapshot): QuestStep | null {
+    if (permSerumDoses(snap) === 0 || !curesOutstanding()) {
+        return null;
+    }
+    return custom('cure Razmire and Ulsquire for good', cureShopkeepers);
+}
+
 /** Fresh material for the temple, whether already carried or still in the pool. */
 function buildReady(snap: QuestSnapshot): boolean {
     const pool = flagValue(snap.progress, SM_FLAG.RESOURCES) ?? 0;
@@ -96,6 +113,24 @@ function buildReady(snap: QuestSnapshot): boolean {
         Math.floor(held(snap, SM_ID.SWAMP_PASTE) / 5)
     );
     return carried > 0 || pool > 5;
+}
+
+// Why: no shop on this route sells tarromin and the smashed table never refills, so a run that overspent its six doses has the bank and the Edgeville citizen drop table and nothing else.
+
+/** Where the next tarromin comes from once the smashed table has refused. */
+function tarrominLeg(snap: QuestSnapshot, stage: number): QuestStep {
+    if (!snap.bankKnown) {
+        return { kind: 'scanBank' };
+    }
+    const short = Math.max(1, serumsShort(snap, stage));
+    // Why: an unid is a herb the sink and the ashes can still turn into serum, so it is worth as much as a clean one and is checked first.
+    for (const [id, name] of [[SM_ID.UNID_TARROMIN, SM_NAME.HERB], [SM_ID.TARROMIN, SM_NAME.TARROMIN]] as const) {
+        const banked = bankedId(snap, id);
+        if (banked > 0) {
+            return { kind: 'withdraw', items: [{ name, qty: Math.min(short, banked), id }] };
+        }
+    }
+    return custom('kill men in Edgeville for herbs', farmHerbs(short));
 }
 
 // Why: the shelf, the table and the two vial spawns all sit in Herbi Flax's house, and the herb table is a one-shot, so the serum chain runs to completion before anything else is attempted.
@@ -121,7 +156,10 @@ function serumLeg(snap: QuestSnapshot, stage: number): QuestStep | null {
     if (held(snap, SM_ID.UNID_TARROMIN) > 0) {
         return custom('identify the tarromin', identifyTarromin);
     }
-    return custom('search the smashed table for herbs', searchTable);
+    // Why: the table is a one-shot, so re-offering it once it has refused is a loop that pays a swamp crossing every cycle.
+    return tableIsSpent()
+        ? tarrominLeg(snap, stage)
+        : custom('search the smashed table for herbs', searchTable);
 }
 
 // Why: five shades are killed a hundred and fifty tiles past the last bank, so the melee kit is drawn on the approach rather than at the fight.
@@ -180,7 +218,7 @@ async function altarLeg(log: (m: string) => void): Promise<boolean> {
     if (!(await sanctifyOil(log))) {
         return false;
     }
-    if (permSerumVialId() === null && templeSanctity() >= SANCTITY_TO_SANCTIFY_SERUM) {
+    if (canSanctifySerum()) {
         if (altarLit() === null) {
             await lightAltar(log);
         }
@@ -203,6 +241,10 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage >= SM_STAGE.COMPLETE) {
         return { kind: 'done' };
     }
+    // Why: the cure guard is process-wide because the permanent bit is not transmitted, and a quest this far back cannot have set it — so a second run in the same process starts its own count.
+    if (stage < SM_STAGE.CAN_LIGHT_ALTAR) {
+        forgetCures();
+    }
 
     const supplies = kit(snap, stage);
     if (supplies) {
@@ -214,6 +256,11 @@ export function decide(snap: QuestSnapshot): QuestStep {
     }
     // Why: the ashes and the pyre log both come from the Varrock spawns, so the burn happens once, before the swamp crossing.
     if (ashesShort(snap, stage) > 0 || logsShort(snap, stage) > 0) {
+        // Why: with an axe the leg chops Mort'ton's own dead trees, which is a walk across the street instead of a swamp crossing to the Varrock spawn.
+        const axe = axeLeg(snap);
+        if (axe) {
+            return axe;
+        }
         return custom('burn logs for ashes', makeAshes({
             ashes: held(snap, SM_ID.ASHES) + ashesShort(snap, stage),
             logs: held(snap, SM_ID.PYRE_LOGS) > 0 ? 0 : 1
@@ -273,10 +320,18 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return shop ?? custom('rebuild the Flamtaer temple', repairTemple);
         }
         case SM_STAGE.CAN_LIGHT_ALTAR: {
+            const cure = cureLeg(snap);
+            if (cure) {
+                return cure;
+            }
             const shop = shopLeg(snap, { building: needsTemple(snap), oil: true });
             return shop ?? custom('light the altar and sanctify the oil', altarLeg);
         }
         case SM_STAGE.CREATED_SACRED_OIL: {
+            const cure = cureLeg(snap);
+            if (cure) {
+                return cure;
+            }
             const shop = shopLeg(snap, { building: needsTemple(snap), oil: true });
             if (shop) {
                 return shop;

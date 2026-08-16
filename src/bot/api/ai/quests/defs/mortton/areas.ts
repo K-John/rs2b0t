@@ -79,6 +79,8 @@ export const SM_NAME = {
     COINS: 'Coins',
     DIARY: 'Diary',
     TARROMIN: 'Tarromin',
+    /** Every unidentified herb renders under this one name; the id is what tells them apart. */
+    HERB: 'Herb',
     VIAL_WATER: 'Vial of water',
     VIAL_EMPTY: 'Vial',
     ASHES: 'Ashes',
@@ -141,6 +143,9 @@ export const SM_TILE = {
     RAZMIRE: new Tile(3489, 3296, 0),
     ULSQUIRE: new Tile(3496, 3289, 0),
     TOWN: new Tile(3490, 3290, 0),
+    // Why: `mortton_temple_shadow_transform_center_coord` — Razmire's ai_timer walks every shade within 60 tiles here while the temple has any build, and a Shadow only rises into a Shade within 5 tiles of it, so the town spawns drain to this tile.
+    /** Where the shades gather, two tiles west of the temple's west wall. */
+    SHADE_LAIR: new Tile(3502, 3318, 0),
     /** The one gap in the temple shell, on the south face. */
     TEMPLE_DOOR: new Tile(3506, 3314, 0),
     /** Inside the shell, one tile south of the altar. */
@@ -152,6 +157,10 @@ export const SM_TILE = {
     VARROCK_BANK: new Tile(3253, 3420, 0)
 } as const;
 
+// Why: the four `citizen` spawns north of the Edgeville bank — (3093,3512), (3097,3512), (3100,3509) and (3100,3511) — are the only renewable tarromin on this route once the smashed table is spent.
+/** The stand the Edgeville men wander around. */
+export const EDGEVILLE_MEN = new Tile(3097, 3511, 0);
+
 export const VARROCK_GENERAL = { npc: 'Shop keeper', anchor: new Tile(3218, 3414, 0) };
 
 // Why: both villagers answer to their afflicted name until a dose of serum 207 lands on them, and revert 200 ticks later, so every query has to accept either name.
@@ -161,7 +170,9 @@ export const SM_NPC = {
     ULSQUIRE: 'Ulsquire Shauncy',
     ULSQUIRE_AFFLICTED: 'Afflicted(Ulsquire)',
     SHADOW: 'Loar Shadow',
-    SHADE: 'Loar Shade'
+    SHADE: 'Loar Shade',
+    /** The Edgeville citizens, whose drop table is the last tarromin on the route. */
+    MAN: 'Man'
 } as const;
 
 export const SM_NPC_ID = {

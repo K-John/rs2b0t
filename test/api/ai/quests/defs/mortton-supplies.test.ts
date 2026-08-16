@@ -41,6 +41,11 @@ describe('serum dose accounting', () => {
         expect(dosesNeeded(SM_STAGE.LIT_PYRE)).toBe(1);
     });
 
+    // Why: the two spare doses in the table's second vial fund the cures, so they are never billed and never send a run hunting herbs.
+    test('the permanent cures are not billed on top of the conversations', () => {
+        expect(dosesNeeded(SM_STAGE.CAN_LIGHT_ALTAR)).toBe(1);
+    });
+
     test('doses are counted across every vial size', () => {
         expect(serumDoses(pack([[SM_ID.SERUM4, 1], [SM_ID.SERUM1, 2]]))).toBe(6);
     });
