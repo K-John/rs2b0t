@@ -57,9 +57,11 @@ What the live runs paid for is in [Tai Bwo Wannai Trio's pitfalls](../decisions/
 ## Temple of Ikov — stage-scoped harness
 
 [`e2e/temple-of-ikov-250-live.ts`](../../e2e/temple-of-ikov-250-live.ts), members-only,
-so `:8890`. The end-to-end command was vetted at 70 minutes on `--tick 200` before the
-ice cavern was split into a crossing leg and an armoured one; that split and the empty-chest
-oracle both change the clock, so the figure is a baseline rather than a current claim.
+so `:8890`. The end-to-end command is vetted: uncheated `--until 100` finished in 39
+minutes at `--tick 200`, on twenty lobsters, with no parks and no deaths. It was 70
+minutes and about sixty lobsters before the ice cavern split into a crossing leg and an
+armoured one, the chest search learned to read an empty chest, and the roots farm moved
+to the peninsula in bank-picked gear.
 
 ```sh
 HEADED=1 bun e2e/temple-of-ikov-250-live.ts --until 100 --tick 200 --minutes 180              # end to end
