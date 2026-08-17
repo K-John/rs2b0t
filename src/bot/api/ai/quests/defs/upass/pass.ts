@@ -178,7 +178,7 @@ function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string
 /** Whether the character is in place for the op, and whether the walk to it is still to come. */
 type Placed = 'stood' | 'from-range' | 'no';
 
-async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promise<Placed> {
+async function standBeside(at: Tile, dest: Tile, note: (m: string) => void, skip = 0): Promise<Placed> {
     const me = here();
     if (skip === 0 && me && me.level === at.level && chebyshev(me, at) <= 1) {
         return 'stood';
@@ -195,7 +195,10 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
     for (let d = 1; d <= 4; d++) {
         ring.push([d, 0], [-d, 0], [0, d], [0, -d]);
     }
-    const nearMe = (a: Tile, b: Tile): number => chebyshev(a, me ?? a) - chebyshev(b, me ?? b);
+    // Why: a door with four sides puts the player out the side opposite the one it was used from, so the stand decides where the crossing lands. Sorted by what is nearest, the cage at (2380,9619) was always taken from the east and always landed east — while the side that matters opens south toward the unicorn area. Rank a stand by where crossing from it would put the character, and let nearness break the tie.
+    const mirror = (tile: Tile): Tile => new Tile(2 * at.x - tile.x, 2 * at.z - tile.z, at.level);
+    const nearMe = (a: Tile, b: Tile): number =>
+        (chebyshev(mirror(a), dest) - chebyshev(mirror(b), dest)) || (chebyshev(a, me ?? a) - chebyshev(b, me ?? b));
     const candidates = ring.map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level));
     // Why: a tile the character can stand *on* is the one worth having — `adjacentOk` accepts tiles it can only get next to, and a radius-zero walk then refuses exactly those. But strict as a veto is worse than the disease: it threw away the rope swing's stand and left the route with nothing at all. So strict first, loose behind it, and the walk's radius follows which list the tile came from.
     const strict = candidates
@@ -311,7 +314,7 @@ async function tryHops(
         // Why: an op sent from range walks the player before its script runs, so the approach alone clears any distance test — the crossing is measured from where that walk stopped, not from where it started.
         let origin = from;
         for (let attempt = 0; attempt < (kind.tries ?? 1); attempt++) {
-            const placed = await standBeside(obstacle.tile(), m => trace.push(m), attempt);
+            const placed = await standBeside(obstacle.tile(), dest, m => trace.push(m), attempt);
             if (placed === 'no') {
                 break;
             }
