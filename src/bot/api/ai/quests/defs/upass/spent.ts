@@ -10,8 +10,20 @@ export interface Stand {
 /** The stand tiles each seam has already been used from, by seam key. */
 export type SpentSides = Map<string, Stand[]>;
 
+/**
+ * Whether this seam has been used, and from where.
+ * Why: a seam already used FROM THIS SIDE is finished, while one used from the far side is the way back out of a cul-de-sac — worth having, and worth having last. Offered as an equal candidate it turns a maze into a pendulum, and a run crossed the same three stone bridges back and forth for nine minutes.
+ */
+export function spentStateHere(sides: SpentSides, key: string, reachable: (tile: Stand) => boolean): 'fresh' | 'here' | 'elsewhere' {
+    const used = sides.get(key);
+    if (used === undefined || used.length === 0) {
+        return 'fresh';
+    }
+    return used.some(reachable) ? 'here' : 'elsewhere';
+}
+
 export function spentHere(sides: SpentSides, key: string, reachable: (tile: Stand) => boolean): boolean {
-    return (sides.get(key) ?? []).some(reachable);
+    return spentStateHere(sides, key, reachable) === 'here';
 }
 
 export function spendFrom(sides: SpentSides, key: string, stand: Stand): void {
@@ -20,4 +32,19 @@ export function spendFrom(sides: SpentSides, key: string, stand: Stand): void {
         used.push(stand);
     }
     sides.set(key, used);
+}
+
+/** What one journey remembers: which side of each seam it has used, and which ground it has already walked. */
+export interface Journey {
+    sides: SpentSides;
+    visited: Set<string>;
+}
+
+/** Ground is remembered in eight-tile cells, which is coarse enough that a wander lands back inside one. */
+export function cellOf(tile: Stand): string {
+    return `${tile.x >> 3},${tile.z >> 3},${tile.level}`;
+}
+
+export function newJourney(): Journey {
+    return { sides: new Map(), visited: new Set() };
 }

@@ -139,5 +139,6 @@ the quest only happens to expose, and reaching a seam and Iban's temple are on t
 - [Quest pitfalls](quest-pitfalls.md)
 - [Quest pitfalls: engine behaviour](quest-pitfalls-engine.md)
 - [Underground Pass: reach and the temple](quest-pitfalls-30.md)
+- [Underground Pass: what the live legs paid for](quest-pitfalls-31.md)
 - [Underground Pass's harness recipe](../reference/quest-harness-recipes-16.md)
 - [Add a quest](../how-to/add-a-quest.md)

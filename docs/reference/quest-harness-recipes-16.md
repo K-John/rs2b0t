@@ -93,4 +93,5 @@ minutes, none of them toward the target.
 - [Quest harness recipes (Tree–Tribal)](quest-harness-recipes-13.md)
 - [Quest harness method](quest-harness-method.md)
 - [Quest pitfalls: Underground Pass](../decisions/quest-pitfalls-29.md)
+- [Quest pitfalls: Underground Pass, the live legs](../decisions/quest-pitfalls-31.md)
 - [Seeding test accounts](seeding-test-accounts.md)

@@ -9,7 +9,7 @@ import { Reachability } from '../../../../../event/webwalk/geometry/Reachability
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
-import { type SpentSides, type Stand, spendFrom, spentHere } from './spent.js';
+import { type SpentSides, type Stand, spendFrom, spentHere, spentStateHere } from './spent.js';
 import { CAVERN_LINKS, PLATFORM_LINKS, type PlatformLink, UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
 
 // Why: the pass is not one map the navigator can route across — a component report over its own seam endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision pack marks blocked, so `walkResilient` toward anything past one reports "unreachable" and the step reads as a missing loc. Movement here is therefore: walk inside the pocket, cross one obstacle, repeat.
@@ -23,8 +23,10 @@ interface HopKind {
     tries?: number;
     /** Only treat it as a seam below this z — the same loc is scenery elsewhere in the pass. */
     below?: number;
-    /** Only offer it when the journey wants what it joins. */
-    when?: (dest: Tile, from: { x: number; z: number; level: number }) => boolean;
+    /** Only offer this loc when the journey wants where it leads; `at` is the loc's own tile. */
+    when?: (dest: Tile, from: { x: number; z: number; level: number }, at: Tile) => boolean;
+    /** A telejump the map lays on rather than a seam to search for, so it leads the list when it is offered. */
+    jump?: boolean;
 }
 
 /** The first cavern is everything at or above this z; the second is everything below it. */
@@ -47,10 +49,9 @@ const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.COLLAPSED_A, op: 'Cross', tries: ROLL_TRIES },
     { loc: UP_LOC.COLLAPSED_B, op: 'Cross', tries: ROLL_TRIES },
     { loc: UP_LOC.ROCKSWING_BACK, op: 'Swing-on', tries: ROLL_TRIES },
-    // Why: a component report over leg 3's anchors puts the unicorn cage and the paladins' shelf in different pockets joined only by these — `upass_area_2_3_entrance` telejumps between them.
-    // Why: and only between them. The doors sit sixteen tiles from the boulder with a gain that reads as progress, so without this an errand inside the second cavern takes one and lands on the paladins' shelf, four seams and a well behind where it started.
-    { loc: UP_LOC.UNICORN_DOOR_L, op: 'Pass-through', when: (dest, from) => inFirstCavern(dest) !== inFirstCavern(from) },
-    { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through', when: (dest, from) => inFirstCavern(dest) !== inFirstCavern(from) },
+    // Why: `@upass_area_2_3_entrance` telejumps rather than opens, and the map fixes which way by the door's own angle: the pair at (2370,9665) and (2371,9665) is angle 1 and lands the player at (2401,9610) beside the loose railings, while the two pairs at z 9611 are angle 3 and land them at (2371,9666) in the first cavern. So the door worth taking is the one standing on the far side from the destination — keyed on the door's own tile, because the journey's endpoints can sit on the same side of the split while the only way between them is one of these.
+    { loc: UP_LOC.UNICORN_DOOR_L, op: 'Pass-through', jump: true, when: (dest, _from, at) => inFirstCavern(at) !== inFirstCavern(dest) },
+    { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through', jump: true, when: (dest, _from, at) => inFirstCavern(at) !== inFirstCavern(dest) },
     // Why: the second cavern's own seams. The route from the well down to the boulder crosses the slave
     // cages, the swamp and a pipe, and every one of them reads "unreachable" to the navigator.
     { loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', tries: LOCK_TRIES },
@@ -67,6 +68,8 @@ const MAX_HOPS = 24;
 const MIN_GAIN = 3;
 // Why: the seam out of a pocket can sit right across it — the rope swing off the bridge shelf is twenty tiles from where the bridge lands — so the search has to cover the pocket, not the neighbourhood. Drift is held off by the gain threshold and by spending an obstacle that led away, not by looking less far.
 const HOP_SEARCH = 32;
+// Why: the server paths for an op-click, and inside this range it can see ground the client's flood refuses — past it the click is a guess and the build area may not hold the loc at all.
+const SERVER_PATH_RANGE = 8;
 // Why: the pockets wind, so a thirty-tile obstacle is well past the flood's default four hundred steps.
 const REACH = { adjacentOk: true, maxSteps: 2_000 } as const;
 
@@ -187,7 +190,15 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
         .sort(nearMe);
     const sides = [...strict, ...loose];
     if (sides.length === 0) {
-        note(`nowhere to stand beside ${at.x},${at.z}`);
+        // Why: a seam whose approach the pack calls blocked has no reachable ring at all — the pipe into the railings is operated from a tile no flood will stand on. Close by, the server's own path search is the better authority: send the op from where we are and let it walk, and a refusal comes back in words rather than as a leg that retries forever. Far off it is a seam in another pocket and the click would not even send, so the report stands.
+        if (me !== null && me.level === at.level && chebyshev(me, at) <= SERVER_PATH_RANGE) {
+            note(`no stand beside ${at.x},${at.z} the flood will take — sending the op from (${me.x},${me.z}) and letting the server path`);
+            return true;
+        }
+        // Why: "nowhere to stand" has three causes that need different fixes — the ring is off the loaded scene, the scene calls every tile of it blocked, or the flood cannot walk there from this pocket. The counts separate them in one run rather than three.
+        const inScene = candidates.filter(tile => Reachability.probeable(tile)).length;
+        const walkable = candidates.filter(tile => Reachability.walkable(tile)).length;
+        note(`nowhere to stand beside ${at.x},${at.z} (${candidates.length} ring, ${inScene} in scene, ${walkable} walkable, 0 reachable)`);
         return false;
     }
     const pick = sides[skip % sides.length]!;
@@ -205,16 +216,15 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
 /** Obstacles in the scene: the ones worth a walk first, everything else behind the item-uses. */
 function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[]; trailing: Loc[] } {
     const found: Loc[] = [];
+    const jumps: Loc[] = [];
     for (const kind of HOP_KINDS) {
-        if (kind.when && !kind.when(dest, { ...from, level: dest.level })) {
-            continue;
-        }
         const locs = Locs.query()
             .where(loc => loc.id === kind.loc && (kind.below === undefined || loc.tile().z < kind.below))
             .action(kind.op)
             .within(HOP_SEARCH)
-            .results();
-        found.push(...locs);
+            .results()
+            .filter(loc => !kind.when || kind.when(dest, { ...from, level: dest.level }, loc.tile()));
+        (kind.jump === true ? jumps : found).push(...locs);
     }
     // Why: the obstacle worth crossing is the one that leaves the player closer to the target than standing still does — sorting by the target's distance from the obstacle is what encodes "forward".
     // Why: "any obstacle closer than I am" picks marginal ones that cross sideways and drift the route — three of them in a row carried a run twenty tiles the wrong way before the loop gave up.
@@ -225,8 +235,9 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[
     const byDistance = (a: Loc, b: Loc): number => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest);
     const gains = (loc: Loc): boolean => chebyshev(loc.tile(), dest) + MIN_GAIN <= mine;
     const open = (loc: Loc): boolean => seamReachable(loc.tile());
+    // Why: a telejump is the map's own transition and not one candidate among twenty — the door that lands beside the railings sits fifty-nine tiles from them, so every gain test ranks it last and the search spends a leg's worth of bridges proving the ones that gain lead nowhere.
     return {
-        leading: found.filter(loc => gains(loc) && open(loc)).sort(byDistance),
+        leading: [...jumps.sort(byDistance), ...found.filter(loc => gains(loc) && open(loc)).sort(byDistance)],
         trailing: [
             ...found.filter(loc => gains(loc) && !open(loc)).sort(byDistance),
             ...found.filter(loc => !gains(loc) && open(loc)).sort(byDistance),
@@ -339,14 +350,26 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: SpentSides
         return false;
     }
     const { leading, trailing } = hopsToward(dest, from);
-    if (await tryHops(leading, dest, from, log, spent)) {
+    const state = (loc: Loc): 'fresh' | 'here' | 'elsewhere' =>
+        spentStateHere(spent, `${loc.id}@${loc.tile().x},${loc.tile().z}`, tile =>
+            Reachability.canReach(new Tile(tile.x, tile.z, tile.level), { adjacentOk: false, maxSteps: REACH.maxSteps }));
+    const fresh = (list: readonly Loc[]): Loc[] => list.filter(loc => state(loc) === 'fresh');
+    if (await tryHops(fresh(leading), dest, from, log, spent)) {
         return true;
     }
     // Why: the rope swing and the spade dig are each the only way out of their pocket, and a seam the scene calls walled off costs a second of floods to disprove — eight of them ran before every rope swing in one leg. The item-uses come ahead of the seams nothing can reach.
     if (await useSeamToward(dest, log)) {
         return true;
     }
-    return tryHops(trailing, dest, from, log, spent);
+    if (await tryHops(fresh(trailing), dest, from, log, spent)) {
+        return true;
+    }
+    // Why: the way back is the last thing to try, not one candidate among the rest. A pocket with nothing fresh left is a dead end and backing out of it is the only move; a pocket with anything fresh should spend that first, or the route swings between two sides of the same bridge instead of exploring.
+    const back = [...leading, ...trailing].filter(loc => state(loc) === 'elsewhere');
+    if (back.length > 0) {
+        log(`pass: nothing fresh at (${from.x},${from.z}) — backing out over ${back.length} crossing(s) already used`);
+    }
+    return tryHops(back, dest, from, log, spent);
 }
 
 /** A seam crossed by using an item on a loc rather than by an op on it. */

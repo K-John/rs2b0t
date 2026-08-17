@@ -80,5 +80,6 @@ and the seams are on the [first page](quest-pitfalls-29.md).
 
 - [Quest pitfalls](quest-pitfalls.md)
 - [Underground Pass: the map and the traps](quest-pitfalls-29.md)
+- [Underground Pass: what the live legs paid for](quest-pitfalls-31.md)
 - [Underground Pass's harness recipe](../reference/quest-harness-recipes-16.md)
 - [Add a quest](../how-to/add-a-quest.md)
