@@ -4,6 +4,7 @@ import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
+import { DirectNavigator } from '../../../../../event/webwalk/DirectNavigator.js';
 import { Navigator } from '../../../../../event/webwalk/Navigator.js';
 import { Reachability } from '../../../../../event/webwalk/geometry/Reachability.js';
 import { Traversal } from '../../../../walking/Traversal.js';
@@ -661,6 +662,17 @@ export async function travelTo(dest: Tile, radius: number, log: (m: string) => v
                 return true;
             }
             navWorthTrying = false;
+            // Why: the navigator reads the collision pack, and the pack is wrong about this cavern in the direction that matters — a pocket probe from the stone bridges answers "cannot walk to" for every anchor in it, while the ledge it calls sealed is one the bot crosses every run. A raw click leaves the pathing to the server, which is looking at the ground rather than at a build of it, so it is worth one attempt before the seam search starts guessing.
+            const before = here();
+            if (await DirectNavigator.walkTo(dest, radius, 20_000)) {
+                return true;
+            }
+            const after = here();
+            if (before && after && chebyshev(before, after) >= 4) {
+                log(`pass: the server walked us from (${before.x},${before.z}) to (${after.x},${after.z}) where the pack had no route`);
+                navWorthTrying = true;
+                continue;
+            }
         }
         // Why: the platforms first, because their route is solved and the free search is not.
         if (at && at.level === dest.level && (await crossByRoute(at, dest, log))) {
