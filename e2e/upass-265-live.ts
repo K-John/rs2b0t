@@ -94,7 +94,7 @@ function ibanmultiFor(stage: number): number {
 /**
  * Coins, food, and the kit the module draws from the bank.
  * Why: the bow, arrows, tinderbox, spade, bucket and rope are shop stock the module does not yet buy for
- * itself, and the melee kit is whatever a real account would already own — seeded here, and called out as a
+ * itself, and the melee kit is whatever an established account would already own — seeded here, and called out as a
  * gap rather than hidden. A pack short of any of them stops at the cave mouth and says which.
  */
 const BANK_SEED: BankSeedItem[] = [
@@ -262,7 +262,7 @@ try {
     // Why: Biohazard gates both King Lathas's Underground Pass branch and the cave mouth itself, and it has
     // no module yet — seeding it complete is what makes this quest reachable at all.
     // Why: Plague City is seeded with it. Its dug tunnel is the only way through the Ardougne wall, and the
-    // real chain reaches this quest through it, so an unfinished garden is a harness artefact, not a case.
+    // live chain reaches this quest through it, so an unfinished garden is a harness artefact, not a case.
     await cheatQuiet(page, `setvar elenaquest ${PLAGUE_CITY_COMPLETE}`);
     await cheatQuiet(page, `setvar biohazard ${BIOHAZARD_COMPLETE}`);
     const bio = await getServerVarQuiet(page, 'biohazard');

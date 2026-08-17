@@ -11,8 +11,7 @@ export function crossingLanding(at: Tile, stand: Tile): Tile {
 
 /**
  * Rank the tiles a seam can be used from: by where crossing from each lands, then by how close each stands to the seam, then by how close it is to the character.
- * Why: MANHATTAN toward the destination, not chebyshev. The four-way cage at (2380,9619) opens south onto the only pocket that can operate the pipe into the unicorn area, and its eastern side leads nowhere — but chebyshev takes the greater of dx and dz, so eleven tiles of southward gain hid behind one tile of x and the route took the east side on every run.
- * Why: and the seam's own distance breaks the tie before the character's does. An op-click walks the player from the stand to the seam before its script runs, so a stand four tiles out spends three of them on the approach — which the crossing test then reads as the crossing, and a climb the chatbox reported as finished was logged as "did not cross".
+ * Why: MANHATTAN toward the destination, not chebyshev — the four-way cage at (2380,9619) opens south onto the only pocket that can operate the pipe into the unicorn area, and chebyshev takes the greater of dx and dz, so eleven tiles of southward gain hid behind one tile of x and the route took the east side on every run. The seam's own distance then breaks the tie before the character's does, because an op-click walks the player from the stand to the seam before its script runs: a stand four tiles out spends three of them on the approach, which the crossing test reads as the crossing, and a climb the chatbox reported as finished was logged as "did not cross".
  */
 export function bySideThatLands(
     at: Tile,

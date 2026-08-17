@@ -34,8 +34,7 @@ async function routes(from: { x: number; z: number; level: number }, to: Tile): 
 
 /**
  * Which area the character is standing in, or null when they are off the walkable graph.
- * Why: a sweep once walked the character ONTO the ledge column — a tile the pack calls blocked — and
- * every later question answered nonsense from there. Off the graph is an answer worth having.
+ * Why: a sweep once walked the character ONTO the ledge column — a tile the pack calls blocked — and every later question answered nonsense from there. Off the graph is an answer worth having.
  */
 export async function areaAt(me: { x: number; z: number; level: number }): Promise<string | null> {
     for (const area of UPASS_AREAS) {
@@ -106,9 +105,7 @@ export async function crossOnce(dest: Tile, log: (m: string) => void): Promise<'
     if (!me) {
         return 'nowhere';
     }
-    // Why: every area in the table is level 0 — the caverns. On the level-1 platforms no anchor can ever
-    // match, so the "off the walkable graph" branch fired on ground that is perfectly walkable and then
-    // walked at level-0 anchors from level 1. The table has nothing to say up there; `PLATFORM_LINKS` does.
+    // Why: every area in the table is level 0 — the caverns. On the level-1 platforms no anchor can ever match, so the "off the walkable graph" branch fired on ground that is perfectly walkable and then walked at level-0 anchors from level 1. The table has nothing to say up there; `PLATFORM_LINKS` does.
     if (me.level !== TABLE_LEVEL || dest.level !== TABLE_LEVEL) {
         return 'nowhere';
     }

@@ -75,8 +75,7 @@ const HOP_KINDS: readonly HopKind[] = [
     // Why: `@upass_area_2_3_entrance` telejumps rather than opens, and the map fixes which way by the door's own angle: the pair at (2370,9665) and (2371,9665) is angle 1 and lands the player at (2401,9610) beside the loose railings, while the two pairs at z 9611 are angle 3 and land them at (2371,9666) in the first cavern. So the door worth taking is the one standing on the far side from the destination — keyed on the door's own tile, because the journey's endpoints can sit on the same side of the split while the only way between them is one of these.
     { loc: UP_LOC.UNICORN_DOOR_L, op: 'Pass-through', landing: tunnelLanding },
     { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through', landing: tunnelLanding },
-    // Why: the second cavern's own seams. The route from the well down to the boulder crosses the slave
-    // cages, the swamp and a pipe, and every one of them reads "unreachable" to the navigator.
+    // Why: the second cavern's own seams. The route from the well down to the boulder crosses the slave cages, the swamp and a pipe, and every one of them reads "unreachable" to the navigator.
     // Why: a railing is used from its OWN tile, which no ring of neighbours offers — see `doors.ts`. And only the cage whose cell holds the mud is worth picking from the corridor.
     { loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', tries: LOCK_TRIES, landing: mudCellDoor, stands: doorStands, when: cageWorthTaking },
     { loc: UP_LOC.RAILINGS_HARD, op: 'Pick-lock', tries: LOCK_TRIES, stands: doorStands },
@@ -110,7 +109,7 @@ function chebyshev(a: { x: number; z: number }, b: { x: number; z: number }): nu
 }
 
 // Why: an op-click walks the player before its script resolves, so nothing can be judged until the walk has stopped. Two unchanged ticks is what "stopped" means here; the forced move of the crossing itself comes after, and shows up as the distance the caller then measures.
-// Why: `spoke` is the op's own verdict arriving in the chatbox, and it beats the tile every time — the script says what it did before it moves anyone, and on a refusal it never moves anyone at all. Without it a refused obstacle paid six ticks here and the whole crossing timeout after, for an answer the first tick already carried.
+// Why: `spoke` is the op's own verdict arriving in the chatbox, and it beats the tile every time — the script says what it did before it moves anyone, and on a refusal it never moves anyone at all. Without it a refused obstacle paid six ticks here and the crossing timeout on top, for an answer the first tick already carried.
 async function settleWalk(spoke: () => boolean = () => false): Promise<{ x: number; z: number; level: number } | null> {
     // Why: two still ticks are also true before the walk has begun, so every obstacle's first attempt was
     // judged on the tile it started from and thrown away — the locked cage crossed on try two every time.
@@ -179,7 +178,7 @@ function seamsInScene(within = HOP_SEARCH): Loc[] {
     return found;
 }
 
-// Why: "no obstacle makes progress" says nothing about why — whether the seam is out of the scene, on the wrong side of the gain threshold, or behind a wall. A pocket the route cannot leave is the one failure that costs a whole run, so it says what it could see and what it made of each one.
+// Why: "no obstacle makes progress" says nothing about why — whether the seam is out of the scene, on the wrong side of the gain threshold, or behind a wall. A pocket the route cannot leave is the one failure that costs a run, so it says what it could see and what it made of each one.
 function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string) => void): void {
     const mine = chebyshev(from, dest);
     const seams = seamsInScene(SWEEP_SEARCH)
@@ -240,7 +239,7 @@ async function standBeside(
     const candidates = named.length > 0
         ? [...named]
         : ring.map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level));
-    // Why: a tile the character can stand *on* is the one worth having — `adjacentOk` accepts tiles it can only get next to, and a radius-zero walk then refuses exactly those. But strict as a veto is worse than the disease: it threw away the rope swing's stand and left the route with nothing at all. So strict first, loose behind it, and the walk's radius follows which list the tile came from.
+    // Why: a tile the character can stand *on* is the one worth having — `adjacentOk` accepts tiles it can only get next to, and a radius-zero walk then refuses those same tiles. But strict as a veto is worse than the disease: it threw away the rope swing's stand and left the route with nothing at all. So strict first, loose behind it, and the walk's radius follows which list the tile came from.
     // Why: named stands keep the order they were given — the door's own tile before the tile across it — because that order says which way the crossing goes, and only one of the two is ever reachable.
     const rank = (list: Tile[]): Tile[] => (named.length > 0 ? list : list.sort(nearMe));
     const strict = rank(candidates
@@ -295,7 +294,7 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[
         filtered += all.length - locs.length;
         for (const loc of locs) {
             // Why: a telejump whose best end lands beside the destination leads the list however far off its door stands, and one whose ends are all worse keeps its turn at the back rather than being struck off — the route to the railings needs one of each, in that order.
-            // Why: and a landing the character is already standing on is not a gain. The cage into the mud cell carries that cell as its landing, so from inside the cell it led the list and took the route straight back out to the corridor it had just left.
+            // Why: and a landing the character is already standing on is not a gain. The cage into the mud cell carries that cell as its landing, so from inside the cell it led the list and took the route straight back out to the corridor it had left a moment before.
             const lands = (kind.landing?.(loc.tile()) ?? []).filter(tile => chebyshev(tile, from) > MIN_GAIN);
             const best = lands.length === 0 ? undefined : Math.min(...lands.map(tile => chebyshev(tile, dest)));
             (best !== undefined && best + MIN_GAIN <= mine ? jumps : found).push(loc);
@@ -305,7 +304,7 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[
     // Why: "any obstacle closer than I am" picks marginal ones that cross sideways and drift the route — three of them in a row carried a run twenty tiles the wrong way before the loop gave up.
     // Why: and an obstacle in the scene is not one this pocket can walk to. The stone bridges of the second cavern sit behind its locked cages, closer to the target than the cages are, so the search chose them first and burned eighteen seconds each proving it could not get there. The scene's own collision flags answer that for free.
     // Why: and a seam can be the only way on while sitting FURTHER from the target than the character already is — the pipe into the boulder's pocket is sixteen tiles from the boulder while the character stands fourteen away on the wrong side of it. A gain threshold alone therefore cannot leave that pocket, and the run oscillated through one cage door instead. So the gain is a preference, not a filter: seams that gain come first, the rest follow, and `spent` is what stops it going in circles.
-    // Why: and the scene's own verdict orders them too rather than vetoing them. It called the bridge the character had just walked a hundred and forty tiles to stand beside "walled off", which dropped it from the list entirely and sent the run over a different bridge, away from the target. Every one of these tests is a preference; the only hard filter left is whether the loc is in the scene at all.
+    // Why: and the scene's own verdict orders them too rather than vetoing them. It called the bridge the character had walked a hundred and forty tiles to stand beside "walled off", which dropped it from the list entirely and sent the run over a different bridge, away from the target. Every one of these tests is a preference; the only hard filter left is whether the loc is in the scene at all.
     const byDistance = (a: Loc, b: Loc): number => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest);
     const gains = (loc: Loc): boolean => chebyshev(loc.tile(), dest) + MIN_GAIN <= mine;
     const open = (loc: Loc): boolean => seamOpen(loc);
@@ -397,7 +396,7 @@ async function tryHops(
         let now = from;
         // Why: every one of these refuses in words — "You can't do that from here", "I can't reach that!", "The rock is being used" — and a step that only reports "did not cross" hides which. Twenty ledge rolls at ninety-five per cent each cannot all fail, so the script was never running.
         const mark = GameMessages.mark();
-        // Why: one line for the whole attempt, not one per try — the harness surfaces a bounded number of
+        // Why: one line covering the attempt, not one per try — the harness surfaces a bounded number of
         // log lines per tick, and four tries plus their walks arrive as the last of them and nothing else.
         const trace: string[] = [];
         let stood = false;

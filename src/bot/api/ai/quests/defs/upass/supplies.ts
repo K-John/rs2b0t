@@ -33,7 +33,7 @@ export function fromBank(snap: QuestSnapshot, item: UpassItem, qty: number): Que
     return withdraw([{ name: item.name, id: item.id, qty: Math.min(qty - have, stock) }]);
 }
 
-// Why: the pass has no bank and no shop, and every trip back out is the whole dungeon again — so the
+// Why: the pass has no bank and no shop, and every trip back out is the dungeon over again — so the
 // kit is drawn in one go before the cave mouth rather than fetched when each obstacle asks for it.
 
 /** Everything the pass consumes, in the order the quest reaches it. */
@@ -44,7 +44,7 @@ export const KIT: readonly { item: UpassItem; qty: number; reason: string }[] = 
     { item: UP_ITEM.SHORTBOW, qty: 1, reason: 'firing the bridge stay rope' },
     { item: UP_ITEM.BRONZE_ARROW, qty: ARROW_TARGET, reason: 'the fire arrow' },
     { item: UP_ITEM.TINDERBOX, qty: 1, reason: 'lighting the cloth arrow and burning the tomb' },
-    // Why: a probe of the second cavern from inside the slave cages reaches exactly one thing — the mud.
+    // Why: a probe of the second cavern from inside the slave cages reaches one thing and no other — the mud.
     // `upass_mud` takes a spade and nothing else, and every route south to the unicorn is behind it.
     { item: UP_ITEM.SPADE, qty: 1, reason: 'the filled-in tunnel out of the slave cages' },
     { item: UP_ITEM.BUCKET, qty: 1, reason: "the dwarf brew for Iban's tomb" },
@@ -200,7 +200,7 @@ function packGear(snap: QuestSnapshot, slots: readonly { kinds: readonly string[
     return null;
 }
 
-// Why: `armFireArrow` puts the shortbow in the right hand and the melee weapon in the pack, and nothing after the bridge takes it back out — the paladins were being fought bare-handed. Armour in the pack is the same problem plus five slots the orb sweep needs, so the whole set goes on rather than only the weapon.
+// Why: `armFireArrow` puts the shortbow in the right hand and the melee weapon in the pack, and nothing after the bridge takes it back out — the paladins were being fought bare-handed. Armour in the pack is the same problem plus five slots the orb sweep needs, so the full set goes on rather than only the weapon.
 
 // Why: a rune platebody wants Dragon Slayer, and `equip` answers a refusal the same way it answers a miss — with false — so a plain equip step retried one forever. A refusal is shed instead: the piece is written off, the step still succeeds, and the next cycle moves on to the rest of the set.
 

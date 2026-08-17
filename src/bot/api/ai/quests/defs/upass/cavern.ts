@@ -91,7 +91,7 @@ export async function catchCat(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     await settleScene();
-    // Why: the cat wanders its platform, so the query reaches further than the walk's own radius — and it says what it found, because a silent false here alternates the whole step between fetching a cat and knocking with nothing, re-routing across a bridge every time.
+    // Why: the cat wanders its platform, so the query reaches further than the walk's own radius — and it says what it found, because a silent false here alternates the step between fetching a cat and knocking with nothing, re-routing across a bridge every time.
     const cat = Npcs.query().where(n => n.id === UP_NPC.WITCH_CAT).within(20).nearest();
     const op = cat?.actions()[0];
     if (!cat || !op) {
@@ -107,7 +107,7 @@ export async function catchCat(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: knocking is what draws Kardia out, and she only comes if the cat is already by the door — the door's op1 answers with 25% damage while she is still inside.
-// Why: and the knock takes the cat, which the journal never records — so a snapshot reads "no cat, no doll" after the knock exactly as it reads it before the cat is caught, and the run went back for a cat that was already at the witch's door. Catching it, knocking, and opening the chest are therefore one step, ending on the doll, which the journal does record.
+// Why: and the knock takes the cat, which the journal never records — so a snapshot reads "no cat, no doll" after the knock as it reads it before the cat is caught, and the run went back for a cat that was already at the witch's door. Catching it, knocking, and opening the chest are therefore one step, ending on the doll, which the journal does record.
 
 /** Take the cat to Kardia's door, knock, and lift the doll from her chest while she is outside. */
 export async function stealTheDoll(log: (m: string) => void): Promise<boolean> {
@@ -140,7 +140,7 @@ export async function leaveWitchHouse(log: (m: string) => void): Promise<boolean
             log("the way out of Kardia's house would not open");
         }
         await driveUntil(() => locById(UP_LOC.WITCH_DOOR, 'Open', 8) === null, [], log, 6_000);
-        // Why: the collision pack still calls the door tile blocked, so every tile outside reads as unreachable and the navigator will not click. A raw walk leaves the pathing to the server, which is looking at the door that was just opened — the same reason an op-click got the character in.
+        // Why: the collision pack still calls the door tile blocked, so every tile outside reads as unreachable and the navigator will not click. A raw walk leaves the pathing to the server, which is looking at the door that has been opened — the same reason an op-click got the character in.
         await DirectNavigator.walkTo(UP_TILE.WITCH_DOOR_OUT, 0, 15_000);
     }
     if (!insideWitchHouse(Game.tile())) {

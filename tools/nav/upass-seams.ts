@@ -132,7 +132,7 @@ function readLocs(keep: (id: number) => boolean): Placed[] {
         }
         const mx = Number(m[1]);
         const mz = Number(m[2]);
-        // Why: the pass only occupies these map squares, and reading the whole world costs a minute.
+        // Why: the pass only occupies these map squares, and reading every square of the world costs a minute.
         if (mx < 33 || mx > 40 || (mz < 149 || mz > 156) && (mz < 70 || mz > 75)) {
             continue;
         }

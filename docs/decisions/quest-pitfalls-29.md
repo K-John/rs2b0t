@@ -37,7 +37,7 @@ the quest only happens to expose, and reaching a seam and Iban's temple are on t
   plain walk click cancels the stall on the first step, which is why the trick is
   "click the lever", not "click the ground".
 - **The op-click and the modal must land in separate server ticks.** `moveClickRequest`
-  is settled after a whole tick is decoded: an op-click alone leaves it false and the walk
+  is settled only once a full tick is decoded: an op-click alone leaves it false and the walk
   survives an open modal, while a modal opened in that same tick latches it true, and
   `updateMovement` then freezes at the first 8×8 zone boundary *permanently*, because the
   engine queue it waits on cannot drain while busy either. Proved by disabling the trap —
@@ -66,9 +66,9 @@ the quest only happens to expose, and reaching a seam and Iban's temple are on t
 - **A missing collision pack does not look like a missing file.** It presents as a per-destination
   "no path to (x,z): unreachable" while short hops still work off the scene stepper. `out/collision.lcnav.gz`
   is a separate artefact that `build:bot` does not bake — a hand-rolled deploy copying only the four bundle
-  files ships no graph at all. `deployIsolatedClient` copies the whole of `out/` and refuses to start without it.
+  files ships no graph at all. `deployIsolatedClient` copies all of `out/` and refuses to start without it.
 - **A prerequisite quest with no module can never be satisfied.** `readPlayerState` built
-  `completedQuests` from `QUEST_DEFS`, not from every known quest, so Biohazard — real,
+  `completedQuests` from `QUEST_DEFS`, not from every known quest, so Biohazard — present in the content,
   finished, green in the journal — was invisible and this quest reported BLOCKED forever.
   Eligibility is a property of the account, not of which modules happen to exist.
 - **Two earlier crossings into West Ardougne are dead by the time this quest runs.** Koftik and the cave
@@ -107,7 +107,7 @@ the quest only happens to expose, and reaching a seam and Iban's temple are on t
 - **A seam vocabulary keyed on loc id alone is not enough.** The same id appears in both caverns and the same
   op means different things at each end: taking `upass_swampbubbles1` for a crossing walked a route twenty
   tiles off its approach before the script behind it was read. The unicorn tunnel is the sharper case — it is
-  a real seam, sixteen tiles from the boulder with a gain that reads as progress, and it telejumps to the
+  a seam that works, sixteen tiles from the boulder with a gain that reads as progress, and it telejumps to the
   paladins' shelf four seams and a well behind. It is only worth offering when the journey crosses between
   the caverns, which is the one thing it joins.
 - **The way back up to the paladins is the unicorn tunnel, not the mud pile.** `mudpile_upass` climbs into

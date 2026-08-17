@@ -9,7 +9,7 @@ import { UPASS } from './journal.js';
 
 const POLL_TICKS = 2;
 
-// Why: `Player.tryInteract` returns early on `!canAccess()`, so no op script runs while the journal is up. A player who has stopped walking under an open journal can therefore never satisfy an oracle that waits on a script, and the rest of the timeout is spent proving it — three polls of standing still is the whole answer.
+// Why: `Player.tryInteract` returns early on `!canAccess()`, so no op script runs while the journal is up. A player who has stopped walking under an open journal can therefore never satisfy an oracle that waits on a script, and the rest of the timeout is spent proving it — three polls of standing still answer it.
 const IDLE_POLLS = 3;
 
 function tileNow(): { x: number; z: number; level: number } | null {
@@ -44,11 +44,11 @@ export interface StalledApproach {
     what: string;
     /** True once the walk has carried far enough for the caller's purposes. */
     arrived: () => boolean;
-    /** True once the attempt is lost — polled so a fall does not sit out the whole timeout. */
+    /** True once the attempt is lost — polled so a fall does not sit the timeout out. */
     abort?: () => boolean;
     /**
      * Leave the modal up on the way out.
-     * Why: a chain of these ends each leg standing on the next stepping stone, and down here the stepping stones are the trap tiles themselves — closing the journal to open it again a tick later is the whole exposure. The op-click that starts the next leg closes it anyway.
+     * Why: a chain of these ends each leg standing on the next stepping stone, and down here the stepping stones are the trap tiles themselves — closing the journal to open it again a tick later is all the exposure there is. The op-click that starts the next leg closes it anyway.
      */
     hold?: boolean;
     log: (m: string) => void;
@@ -62,7 +62,7 @@ export interface StalledWalk extends Omit<StalledApproach, 'send' | 'what'> {
 }
 
 /**
- * Cross timer-trapped ground on an op-click, holding the quest journal open for the whole walk.
+ * Cross timer-trapped ground on an op-click, holding the quest journal open for every step of the walk.
  * Leaves the modal closed; whether the op itself then ran is the caller's `arrived` to decide.
  */
 export async function stalledApproach(opts: StalledApproach): Promise<boolean> {
@@ -76,13 +76,13 @@ export async function stalledApproach(opts: StalledApproach): Promise<boolean> {
         log(`stall: ${what} would not send`);
         return false;
     }
-    // Why: the journal must land in a tick of its own. `moveClickRequest` is settled after a whole tick is decoded — an op-click alone leaves it false and the walk survives an open modal, while a modal opened in that same tick latches it true and `updateMovement` then freezes at the first 8x8 zone boundary, because the engine queue it waits on cannot drain while busy either. A bare tick delay does not prove the split (the click may not be decoded yet), so the first step is what the press waits on — which is why the caller has to stage far enough back that the player is still on safe ground by then.
+    // Why: the journal must land in a tick of its own. `moveClickRequest` is settled only once a full tick is decoded — an op-click alone leaves it false and the walk survives an open modal, while a modal opened in that same tick latches it true and `updateMovement` then freezes at the first 8x8 zone boundary, because the engine queue it waits on cannot drain while busy either. A bare tick delay does not prove the split (the click may not be decoded yet), so the first step is what the press waits on — which is why the caller has to stage far enough back that the player is still on safe ground by then.
     const moved = await Execution.delayUntilTicks(() => {
         const now = tileNow();
         return now !== null && from !== null && (now.x !== from.x || now.z !== from.z);
     }, 8);
     if (!moved) {
-        // Why: standing on the target already means no walk and so no trap tiles — the op just needs
+        // Why: standing on the target already means no walk and so no trap tiles — the op needs only
         // waiting out. Holding the journal up here would only hide the script that is meant to run.
         return Execution.delayUntilTicks(arrived, Math.ceil(timeoutMs / 600));
     }
@@ -167,7 +167,7 @@ async function finishGoal(goal: Stone & { inRange: () => boolean }, log: (m: str
 }
 
 /**
- * Reach `goal` over a chain of stalled op-clicks, holding the journal across the whole journey.
+ * Reach `goal` over a chain of stalled op-clicks, holding the journal across every leg of the journey.
  * Why: an op-click can only name a loc the client has in its build area, and that area lags the player, so the reach is far shorter than the corridor. The chain is what closes the gap.
  */
 export async function stalledJourney(opts: StalledJourney): Promise<boolean> {

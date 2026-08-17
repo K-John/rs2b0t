@@ -229,7 +229,7 @@ export async function burnOrbs(log: (m: string) => void): Promise<boolean> {
     return left === 0;
 }
 
-// Why: which orbs are already dark is not answerable from a snapshot — the bit is not on the wire, a burned orb has left the pack, and both the trap and the ground spawns refuse a second one silently. So the whole sweep is one step that keeps its own tally, rather than one site per decide cycle re-picking the orb it just burned. The well at the end is the oracle: it descends only once all four are dark.
+// Why: which orbs are already dark is not answerable from a snapshot — the bit is not on the wire, a burned orb has left the pack, and both the trap and the ground spawns refuse a second one silently. So the sweep is one step from end to end that keeps its own tally, rather than one site per decide cycle re-picking the orb it has burned. The well at the end is the oracle: it descends only once all four are dark.
 
 /** Take every orb the pack can hold, then burn the lot in one trip, then climb the well. */
 export async function sweepOrbs(log: (m: string) => void): Promise<boolean> {

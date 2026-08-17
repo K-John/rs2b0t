@@ -25,14 +25,14 @@ and the seams are on the [first page](quest-pitfalls-29.md).
   does land on the tile it aimed at.
 - **A pocket traveller is the wrong tool for a stand two tiles away.** The five tiles the fire arrow can be
   shot from are a handful apart in one pocket, and the loop that tried each reached for the mover that
-  crosses the whole pass. So a stand that was not walkable read as "no route" rather than "try the next
+  crosses every leg of the pass. So a stand that was not walkable read as "no route" rather than "try the next
   one", and the traveller went hunting seams: forty-one "nowhere to stand" reports and eleven tiles of drift
   away from the rope. Six per-leg runs never saw it because they all arrived on the same tile; the
   end-to-end run arrived two tiles off and the first stand fell through. Short hops inside a pocket want the
   plain walk.
 - **Proximity is not reach, for NPCs as well as locs.** Thirteen Iban disciples line the temple approach and
   `nearest()` returned one through the temple wall. The attack sent, nothing happened, and the step spent its
-  whole three-minute wait in silence — twice, because one long wait looks exactly like a slow fight. Filter
+  three-minute wait out in silence — twice, because one long wait is indistinguishable from a slow fight. Filter
   the query by whether a cardinal neighbour can be stood on, take them in distance order, and give each a
   short wait: a level-thirteen NPC with twenty hitpoints that is not dead in forty-five seconds is not being
   fought at all.
@@ -58,7 +58,7 @@ and the seams are on the [first page](quest-pitfalls-29.md).
   it, and it knocked at a door that would not take a second one for five minutes at a time. Three runs of
   "Kardia would not come to the door" were three reports of a step that had already worked.
 - **Iban's temple is a dress code, not a door.** `@open_iban_door` wants both halves of the robe of Zamorak
-  worn and `inv_freespace(worn) = inv_size(worn) - 2` — exactly two worn slots, nothing else — or it answers
+  worn and `inv_freespace(worn) = inv_size(worn) - 2` — two worn slots and nothing else — or it answers
   "Only followers of Zamorak may enter." A module that armours up for the paladins and the demons arrives at
   the last door unable to open it. The robes drop from an Iban disciple, level thirteen with twenty
   hitpoints, and thirteen of them line the approach at x 2149-2163. So the armour comes off for the doors

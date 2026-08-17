@@ -241,7 +241,7 @@ export async function armFireArrow(log: (m: string) => void): Promise<boolean> {
     return true;
 }
 
-// Why: the shot spends the arrow whether or not it lands — `inv_del(worn, $worn_ammo, 1)` runs before the `stat_random(ranged, 160, 300)` roll — and one damp cloth makes exactly one. Firing in a loop therefore spends every attempt after the first on an empty quiver. Koftik hands over another cloth whenever the pack holds none, so the retry is the decide() cycle rebuilding the arrow, and this step fires once.
+// Why: the shot spends the arrow whether or not it lands — `inv_del(worn, $worn_ammo, 1)` runs before the `stat_random(ranged, 160, 300)` roll — and one damp cloth makes one and no more. Firing in a loop therefore spends every attempt after the first on an empty quiver. Koftik hands over another cloth whenever the pack holds none, so the retry is the decide() cycle rebuilding the arrow, and this step fires once.
 // Why: the trigger is `aploc1`, which the engine only runs within ten tiles AND with line of sight (`inApproachDistance`). A stand that fails either test produces no script at all — no message, no arrow spent, no movement — which is indistinguishable from a miss unless the chat is read. Line of sight is not something the map data answers, so the stands are probed until one draws a reply.
 const SHOT_STANDS: readonly Tile[] = [
     new Tile(2448, 9721, 0),
@@ -254,7 +254,7 @@ const SHOT_STANDS: readonly Tile[] = [
 /** Fire the lit arrow at the bridge stay rope; the script walks the player across on a hit. */
 export async function shootGuiderope(log: (m: string) => void): Promise<boolean> {
     for (const stand of SHOT_STANDS) {
-        // Why: these five stands are a handful of tiles apart in one pocket, so a stand that is not walkable is the next stand's turn — not a reason to go hunting seams. `walkTo` reaches for the pocket traveller, and one bad stand sent it sweeping the whole cavern: forty-one "nowhere to stand" reports and eleven tiles of drift away from the rope, on the one run that started two tiles off.
+        // Why: these five stands are a handful of tiles apart in one pocket, so a stand that is not walkable is the next stand's turn — not a reason to go hunting seams. `walkTo` reaches for the pocket traveller, and one bad stand sent it sweeping the cavern end to end: forty-one "nowhere to stand" reports and eleven tiles of drift away from the rope, on the one run that started two tiles off.
         if (!(await Traversal.walkResilient(stand, { radius: 0, attempts: 1, timeoutMs: 20_000 }))) {
             continue;
         }

@@ -210,9 +210,9 @@ export async function searchCages(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-// Why: the doors only open for a follower of Zamorak wearing the robes and nothing else — the script counts worn slots and wants exactly two — so the armour comes off here and goes back on after the throw. The robes come off an Iban disciple: level thirteen, twenty hitpoints, and a dozen of them line the approach.
+// Why: the doors only open for a follower of Zamorak wearing the robes and nothing else — the script counts worn slots and wants two of them — so the armour comes off here and goes back on after the throw. The robes come off an Iban disciple: level thirteen, twenty hitpoints, and a dozen of them line the approach.
 
-// Why: thirteen disciples line the approach and `nearest()` picked one through the temple wall — the attack sent, nothing happened, and the step sat out its whole three-minute wait in silence, twice. Proximity is not reach. Take them in order of distance but only where a cardinal neighbour can be stood on, give each one a short wait rather than one long one, and say what happened when none of them dies.
+// Why: thirteen disciples line the approach and `nearest()` picked one through the temple wall — the attack sent, nothing happened, and the step sat out all three minutes of its wait in silence, twice. Proximity is not reach. Take them in order of distance but only where a cardinal neighbour can be stood on, give each one a short wait rather than one long one, and say what happened when none of them dies.
 
 /** Kill a disciple for both halves of the robe of Zamorak. */
 async function robeFromDisciple(log: (m: string) => void): Promise<boolean> {

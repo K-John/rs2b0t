@@ -56,7 +56,7 @@ The eleven the per-leg runs found after the module was written; the map and the 
   greater axis and hid eleven tiles of southward gain behind one tile of x.
 - **A landing under the character's feet is not a gain.** The cage into the mud cell carries that cell as
   its landing, which is what gets the route in; from inside, the same landing led the list and took the
-  character straight back out to the corridor it had just left.
+  character straight back out to the corridor it had left a moment before.
 - **The offline seam graph cannot be transcribed into a route.** Every crossing that is not a loc op is
   absent from it — the spade dig, the rope swing and both telejumps — so a breadth-first search over the
   report answers NO ROUTE between the well bottom and the railings, which the module walks. Read the report

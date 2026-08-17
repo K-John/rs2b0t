@@ -113,7 +113,7 @@ function orbLeg(snap: QuestSnapshot): QuestStep {
         // travelTo's vocabulary — a caller choosing seams here is what drifted the route before.
         return custom('cross the spiked grid with the journal held open', crossGrid);
     }
-    // Why: one step for the whole sweep. A burned orb has left the pack and reads as never collected, and neither the trap nor the ground spawns will hand over a second one — so a per-site decide cycle picks the same site forever. The step keeps its own tally and ends on the well.
+    // Why: one step for the sweep end to end. A burned orb has left the pack and reads as never collected, and neither the trap nor the ground spawns will hand over a second one — so a per-site decide cycle picks the same site forever. The step keeps its own tally and ends on the well.
     return custom('take and burn the four orbs, then climb the well', sweepOrbs);
 }
 
@@ -123,10 +123,7 @@ function unicornLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
         return paladinLeg();
     }
     if (held(snap, UP_ITEM.RAILING) === 0) {
-        // Why: six crossings stand between the well's corridor and that cage, and one step covering all of
-        // them is one step the engine retries forever — it recognises "the same step" by its description
-        // alone, so the attempt counter never resets and the watchdog parks a leg that is advancing. Each
-        // crossing is its own step, named after itself.
+        // Why: six crossings stand between the well's corridor and that cage, and one step covering all of them is one step the engine retries forever — it recognises "the same step" by its description alone, so the attempt counter never resets and the watchdog parks a leg that is advancing. Each crossing is its own step, named after itself.
         const next = outstandingCrossing();
         if (next !== null) {
             return custom(`cross ${next.what}`, takeNextCrossing);
@@ -248,7 +245,7 @@ function stageStep(snap: QuestSnapshot, area: UpassArea, stage: number): QuestSt
         return custom("let yourself out of Kardia's house", leaveWitchHouse);
     }
     // Why: the bow owns the right hand until the stay rope is shot, so the melee kit only goes on past the bridge — and it goes on before the orb sweep, which needs the five slots the armour would otherwise sit in.
-    // Why: a complete doll means the next door wants the robes of Zamorak and exactly nothing else on, so the armour has to stay off until Iban is in the pit — after which it goes back on for the walk out.
+    // Why: a complete doll means the next door wants the robes of Zamorak and nothing else at all on, so the armour has to stay off until Iban is in the pit — after which it goes back on for the walk out.
     const bare = flag(snap, UP_FLAG.DOLL_COMPLETE) && stage < UP_STAGE.DEFEATED_IBAN;
     const gear = stage >= UP_STAGE.PASSED_BRIDGE && !bare ? drawGear(snap) : null;
     if (gear) {

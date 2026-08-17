@@ -32,10 +32,7 @@ interface Crossing {
 
 // Why: `at` is carried because the ledge is six locs in a column and the two nearest the stand are BOTH chebyshev one from it — `nearest()` picks whichever, and the wrong one answers "I can't reach that!" without the script ever running.
 export const TO_RAILINGS: readonly Crossing[] = [
-    // Why: the run starts in the CORRIDOR, where the well drops the character — not in the mud pocket. The
-    // cage and the dig are the first two crossings of the same chain, and leaving them to a search is what
-    // had a leg standing in the corridor trying to reach a ledge two crossings away, a hundred and five
-    // times over.
+    // Why: the run starts in the CORRIDOR, where the well drops the character — not in the mud pocket. The cage and the dig are the first two crossings of the same chain, and leaving them to a search is what had a leg standing in the corridor trying to reach a ledge two crossings away, a hundred and five times over.
     {
         what: 'the cage into the mud cell',
         stand: new Tile(2393, 9655, 0), at: new Tile(2393, 9655, 0),
@@ -144,14 +141,10 @@ async function take(step: Crossing, log: (m: string) => void): Promise<boolean> 
 
 /**
  * Walk the cage corridor down to the loose railings, one named crossing at a time.
- * Why: a step whose landing the character can already walk to has happened, so the run resumes from
- * wherever it is rather than tracking an index — the six crossings are one-way and in one order.
+ * Why: a step whose landing the character can already walk to has happened, so the run resumes from wherever it is rather than tracking an index — the six crossings are one-way and in one order.
  */
 export async function reachLooseRailings(log: (m: string) => void): Promise<boolean> {
-    // Why: a run that does not apply from here says so once. The outstanding step is the first whose
-    // landing cannot be walked to, and if its stand cannot be walked to either then the character is off
-    // the chain entirely — from the unicorn area, past its far end. Walking at it anyway is seventy-three
-    // rounds of `could not stand`, twenty-eight minutes, and no way for the caller to learn anything.
+    // Why: a run that does not apply from here says so once. The outstanding step is the first whose landing cannot be walked to, and if its stand cannot be walked to either then the character is off the chain entirely — from the unicorn area, past its far end. Walking at it anyway is seventy-three rounds of `could not stand`, twenty-eight minutes, and no way for the caller to learn anything.
     const outstanding: Crossing[] = [];
     for (const step of TO_RAILINGS) {
         if (!(await canWalkTo(step.lands))) {

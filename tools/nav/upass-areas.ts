@@ -151,7 +151,7 @@ for (const name of fs.readdirSync(MAPS)) {
     }
 }
 
-// Why: an area's name has to survive a re-derivation, so it is the smallest packed tile in the pocket rather than the order the flood happened to meet it. The anchor is the tile the runtime routes to in order to ask "am I here".
+// Why: an area's name has to survive a re-derivation, so it is the smallest packed tile in the pocket rather than the order the flood happened to meet it. The anchor is the tile the runtime routes to, to ask "am I here".
 const anchors: NavPoint[] = [];
 const names: string[] = [];
 function canonical(seed: NavPoint): string {

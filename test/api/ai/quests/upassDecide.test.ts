@@ -5,7 +5,7 @@ import { decide } from '#/bot/api/ai/quests/defs/upass/index.js';
 import { UP_FLAG, UP_STAGE } from '#/bot/api/ai/quests/defs/upass/journal.js';
 import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
-// Why: decide() reads only a snapshot, so the whole routing table is testable without a client.
+// Why: decide() reads only a snapshot, so every branch of the routing table is testable without a client.
 type Stack = number | [number, number];
 const counts = (stacks: Stack[]): Map<number, number> =>
     new Map(stacks.map(s => (Array.isArray(s) ? s : [s, 1])));
@@ -178,7 +178,7 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(step)).toContain('stay rope');
     });
 
-    // Why: which orbs are already dark is not answerable from a snapshot — a burned orb has left the pack, and neither the trap nor the ground spawns hand over a second one. A per-site decide cycle therefore picks the same site forever, so the whole sweep is one step that keeps its own tally.
+    // Why: which orbs are already dark is not answerable from a snapshot — a burned orb has left the pack, and neither the trap nor the ground spawns hand over a second one. A per-site decide cycle therefore picks the same site forever, so the sweep is one step from end to end that keeps its own tally.
     test('past the grid, the orb phase is a single step whatever the pack holds', () => {
         const inside = { x: 2460, z: 9678, level: 0 };
         for (const carried of [[], [UP_ITEM.ORB1.id], [UP_ITEM.ORB1.id, UP_ITEM.ORB2.id, UP_ITEM.ORB3.id]]) {

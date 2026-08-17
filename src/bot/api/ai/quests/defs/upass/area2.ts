@@ -92,7 +92,7 @@ export function badgesHeld(snap: QuestSnapshot): number {
 }
 
 // Why: the three paladins only turn hostile once the main cavern has been entered, so before that they are killed one at a time from a standing start rather than left to aggro as a group.
-// Why: the well eats the crests and the journal never says it did, so a snapshot cannot tell "not killed yet" from "already fed" — and a run killed three respawned paladins after feeding the first three. The whole irreversible run of it is therefore one step, ending on the only thing the journal can see: the character standing on the level-1 platform past the temple doors.
+// Why: the well eats the crests and the journal never says it did, so a snapshot cannot tell "not killed yet" from "already fed" — and a run killed three respawned paladins after feeding the first three. Every irreversible part of it is therefore one step, ending on the only thing the journal can see: the character standing on the level-1 platform past the temple doors.
 
 /** Kill paladins, feed the well and pass the doors — whatever of that is still outstanding. */
 export async function crossTheTemple(log: (m: string) => void): Promise<boolean> {
