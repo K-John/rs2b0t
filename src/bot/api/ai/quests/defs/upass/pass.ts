@@ -161,15 +161,19 @@ function reportStuck(dest: Tile, from: { x: number; z: number }, log: (m: string
 
 // Why: a ground-decor seam sits on a tile the pack calls blocked, so the server's own path search for the op-click dead-ends and answers "I can't reach that!" — the script never runs, and the step reads it as a failed agility roll. `inOperableDistance` is `reachedEntity || reachedObj`, which a CARDINAL neighbour satisfies, so the walk is made explicit before the op is sent.
 // Why: and the client's own walkability for that tile is not the test. It disagrees with the server on a bridge structure, so trusting it short-circuited the walk and sent the op from twenty tiles away again.
-async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promise<boolean> {
+
+/** Whether the character is in place for the op, and whether the walk to it is still to come. */
+type Placed = 'stood' | 'from-range' | 'no';
+
+async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promise<Placed> {
     const me = here();
     if (skip === 0 && me && me.level === at.level && chebyshev(me, at) <= 1) {
-        return true;
+        return 'stood';
     }
     // Why: a three-tile loc reached from its far end leaves the character three out and already in place.
     if (skip === 0 && me && me.level === at.level && chebyshev(me, at) <= 4
         && Reachability.canReach(new Tile(at.x, at.z, at.level), { ...REACH, maxSteps: 64 })) {
-        return true;
+        return 'stood';
     }
     // Why: the client's flood and the walker disagree about single tiles — the ledge's east neighbour at z 9643 floods as reachable and the walker answers "unreachable beyond (2375,9644)".
     // Why: and `reached` can still refuse from a side the walk reaches, because a cavern wall stands between them. So a retry takes the NEXT side rather than sending the same op from the same tile again.
@@ -193,13 +197,13 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
         // Why: a seam whose approach the pack calls blocked has no reachable ring at all — the pipe into the railings is operated from a tile no flood will stand on. Close by, the server's own path search is the better authority: send the op from where we are and let it walk, and a refusal comes back in words rather than as a leg that retries forever. Far off it is a seam in another pocket and the click would not even send, so the report stands.
         if (me !== null && me.level === at.level && chebyshev(me, at) <= SERVER_PATH_RANGE) {
             note(`no stand beside ${at.x},${at.z} the flood will take — sending the op from (${me.x},${me.z}) and letting the server path`);
-            return true;
+            return 'from-range';
         }
         // Why: "nowhere to stand" has three causes that need different fixes — the ring is off the loaded scene, the scene calls every tile of it blocked, or the flood cannot walk there from this pocket. The counts separate them in one run rather than three.
         const inScene = candidates.filter(tile => Reachability.probeable(tile)).length;
         const walkable = candidates.filter(tile => Reachability.walkable(tile)).length;
         note(`nowhere to stand beside ${at.x},${at.z} (${candidates.length} ring, ${inScene} in scene, ${walkable} walkable, 0 reachable)`);
-        return false;
+        return 'no';
     }
     const pick = sides[skip % sides.length]!;
     const exact = skip % sides.length < strict.length;
@@ -207,10 +211,10 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
     // Why: walkResilient's own logging is a dozen lines a walk, and the caller keeps one line.
     if (await Traversal.walkResilient(pick, { radius: exact ? 0 : 1, attempts: 1, timeoutMs: 20_000 })) {
         note(`stood@${here()?.x},${here()?.z}`);
-        return true;
+        return 'stood';
     }
     note(`could not stand at ${pick.x},${pick.z}`);
-    return false;
+    return 'no';
 }
 
 /** Obstacles in the scene: the ones worth a walk first, everything else behind the item-uses. */
@@ -281,13 +285,19 @@ async function tryHops(
         const trace: string[] = [];
         let stood = false;
         // Why: the tile the op was sent from is the side of the seam it was spent on, and the only one the far side cannot walk to.
-        let stand: Stand | null = null;
+        let stand: { x: number; z: number; level: number } | null = null;
+        // Why: an op sent from range walks the player before its script runs, so the approach alone clears any distance test — the crossing is measured from where that walk stopped, not from where it started.
+        let origin = from;
         for (let attempt = 0; attempt < (kind.tries ?? 1); attempt++) {
-            if (!(await standBeside(obstacle.tile(), m => trace.push(m), attempt))) {
+            const placed = await standBeside(obstacle.tile(), m => trace.push(m), attempt);
+            if (placed === 'no') {
                 break;
             }
             stood = true;
             stand = here() ?? stand;
+            // Why: the walk to the stand is not the crossing either. A ring tile fourteen tiles off cleared every distance test on its own, and the pipe out of the cages reported a crossing it had only walked up to — which spent the seam and left the route in the pocket it started in.
+            origin = stand ?? from;
+            const fromRange = placed === 'from-range';
             // Why: a seam is often a row of identical locs — the ledge is six — and the one the search picked is not the one the character ended up beside. `reachRectangle` takes a cardinal side and nothing else, and `nearest()` cannot tell a diagonal neighbour from a cardinal one: both are distance one, so it kept returning the diagonal and the server kept answering "I can't reach that!".
             const me = here();
             const cardinal = me === null
@@ -304,8 +314,13 @@ async function tryHops(
                 break;
             }
             now = (await settleWalk()) ?? now;
+            if (fromRange) {
+                origin = { ...now };
+                stand = { ...now };
+                trace.push(`walked@${now.x},${now.z}`);
+            }
             trace.push(`try${attempt + 1}@${now.x},${now.z}`);
-            if (chebyshev(now, from) >= 2) {
+            if (chebyshev(now, origin) >= 2) {
                 break;
             }
             // Why: the walk can stop on the near side while the crossing script is still running — the two locked cages roll thieving over a two-tick delay before moving anyone. So a walk that landed nowhere useful is given the script's own time before it is called a failure.
@@ -316,14 +331,14 @@ async function tryHops(
             }, CROSS_TIMEOUT_MS);
             now = here() ?? now;
             trace.push(`then@${now.x},${now.z}`);
-            if (chebyshev(now, from) >= 2) {
+            if (chebyshev(now, origin) >= 2) {
                 break;
             }
         }
         await settleScene();
         // Why: a crossing counts when the script ran, not when the straight line got shorter. The bridge out of the main cavern lands the character eighty-four tiles from the witch's cat where they were seventy-eight away, and the log said "you manage to cross safely" while this called it a failure and spent the only way on. Distance across a pocket graph is not distance.
         // Why: two tiles, because the op-click walks the player before the script resolves — a one-tile drift toward the obstacle is the approach, and reading that as a crossing burned seventy seconds a round on a cage the character never reached.
-        if (chebyshev(now, from) < 2) {
+        if (chebyshev(now, origin) < 2) {
             // Why: a seam that could not be stood beside is not a seam that does not work — it is one the character was in the wrong pocket for. Spending it there meant that when the route finally put them three tiles from it, the search refused to try the crossing at all.
             if (stood && stand) {
                 spendFrom(spent, key, stand);
