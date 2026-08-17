@@ -16,8 +16,8 @@ export const COAL_ROCKS = new Tile(2581, 3480, 0);
 /** The range beside the Ardougne bank, for the rabbit the lazy guard wants. */
 export const ARDOUGNE_RANGE = new Tile(2648, 3298, 0);
 
-// Why: the bow, the arrows and the tinderbox are three more slots, and the pack was one short of the twenty-eight at Koftik — `make_clotharrow` refuses outright when the pack is full and the arrow stack is more than one, so the fire arrow could never be built. Two lobsters buy the headroom.
-export const FOOD_TARGET = 12;
+// Why: the float is sized by the bridge, not by the fights. `make_clotharrow` tests `inv_itemspace` for the cloth arrow BEFORE it deletes the damp cloth, and `light_firearrow` tests the same gate again, so the kit plus Koftik's cloth has to leave a slot spare or the run parks on "You don't have space to do that." Twelve was measured too tight live — the pass is walked twice and the second walk carries the bomb.
+export const FOOD_TARGET = 11;
 /** Four balls of wool weave one strip of cloth, and the loom takes them in one go. */
 export const WOOL_TARGET = 4;
 /** Three ropes: the swing spends one per attempt, and the walk back in takes it a second time. */
