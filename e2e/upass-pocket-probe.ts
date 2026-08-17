@@ -53,7 +53,11 @@ const ANCHORS: [string, number, number][] = [
     ['telejump landing', 2401, 9610],
     ['loose railings', 2397, 9606],
     ['boulder', 2398, 9596],
-    ['orb corridor', 2418, 9674]
+    ['orb corridor', 2418, 9674],
+    ['pipe 2388 east side', 2389, 9605],
+    ['pipe 2388 west side', 2387, 9605],
+    ['pipe 2413 west side', 2412, 9605],
+    ['pipe 2417 east side', 2419, 9605]
 ];
 
 async function report(page: Page, anchors: typeof ANCHORS): Promise<void> {
