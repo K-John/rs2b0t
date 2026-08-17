@@ -4,6 +4,8 @@ interface GameMessage {
 }
 
 export const CANT_REACH = /^i can't reach that/i;
+/** The op reached the loc and the server refused the SIDE it came from — a different tile, not another try. */
+export const WRONG_SIDE = /can't do that from here/i;
 
 const CAP = 64;
 

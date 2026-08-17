@@ -1,4 +1,4 @@
-import { CANT_REACH, GameMessages } from '../../../../chatbox/gameMessages.js';
+import { CANT_REACH, GameMessages, WRONG_SIDE } from '../../../../chatbox/gameMessages.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
@@ -331,6 +331,8 @@ async function tryHops(
             now = (await settleWalk()) ?? now;
             // Why: a refusal from range is the server's own path search saying no, and a second identical click cannot change it — the retries exist for a skill roll, and none was rolled.
             const rangedRefusal = fromRange && GameMessages.sawSince(mark, CANT_REACH);
+            // Why: "You can't do that from here" is the server refusing the SIDE, not a failed roll. The ledge answers it four times running to a character standing west of a crossing that only runs eastward, and every retry walks one tile further from the seam it is trying to use. One is the whole answer: spend it from this side and let the search look elsewhere.
+            const wrongSide = GameMessages.sawSince(mark, WRONG_SIDE);
             if (fromRange) {
                 origin = { ...now };
                 stand = { ...now };
@@ -348,7 +350,7 @@ async function tryHops(
             }, CROSS_TIMEOUT_MS);
             now = here() ?? now;
             trace.push(`then@${now.x},${now.z}`);
-            if (chebyshev(now, origin) >= 2 || rangedRefusal) {
+            if (chebyshev(now, origin) >= 2 || rangedRefusal || wrongSide) {
                 break;
             }
         }
@@ -370,7 +372,7 @@ async function tryHops(
         if (stand) {
             spendFrom(spent, key, stand);
         }
-        log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now.x},${now.z})`);
+        log(`pass: ${op} ${obstacle.name ?? obstacle.id} at (${obstacle.tile().x},${obstacle.tile().z}) → (${now.x},${now.z})`);
         return true;
     }
     return false;
