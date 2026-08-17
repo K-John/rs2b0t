@@ -30,8 +30,6 @@ interface HopKind {
 }
 
 /** The first cavern is everything at or above this z; the second is everything below it. */
-const CAVERN_SPLIT = 9664;
-const inFirstCavern = (t: { z: number }): boolean => t.z >= CAVERN_SPLIT;
 
 // Why: the two locked cages roll `stat_random(thieving, …)` and leave the player where they were on a
 // failure, so one send is not a verdict on the obstacle — it is one roll.

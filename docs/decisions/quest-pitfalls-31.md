@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass, what the live legs paid for
 
-The six the per-leg runs found after the module was written; the map and the traps are on the
+The nine the per-leg runs found after the module was written; the map and the traps are on the
 [first page](quest-pitfalls-29.md) and reaching a seam on the [second](quest-pitfalls-30.md).
 
 - **A region test and a step's own oracle have to agree.** The Ardougne wall gate leaves the character
@@ -28,6 +28,22 @@ The six the per-leg runs found after the module was written; the map and the tra
   can call every tile of it blocked, or the flood can be unable to walk there from this pocket. Only the
   third is a seam in another pocket; the first two are bugs. The count of each is one line and saves a run
   per diagnosis.
+- **A crossing measured from where the hop began credits the walk that approached it.** The route walks to
+  a seam's stand before sending the op, and that stand can be fourteen tiles off — which cleared the two-tile
+  "did we cross" test on its own. The pipe out of the slave cages was recorded as crossed when the character
+  had only walked up to it: the seam was struck off, and the search carried on believing it stood in the
+  pocket beyond. Measure from the tile the op was sent from, and re-take that baseline after an op sent from
+  range, because the server walks the player before the script runs.
+- **The unicorn doors are one shuttle with three ends, and the journal cannot say which one is live.**
+  `@upass_area_2_3_entrance` picks on the door's angle and on `%upass >= ^upass_killed_unicorn`: the z 9611
+  pairs always land at (2371,9666), and the pair at z 9665 lands at (2401,9610) beside the loose railings
+  before the unicorn dies and at (2376,9610) after. Stages 3 and 4 print the same journal page, so no module
+  can predict which. Score a door by the BEST of its ends, take it, and read where it landed.
+- **Ask the client, not the collision pack.** Three route arguments built on the pack were wrong — it called
+  the ledge's stand sealed when the bot crosses it every run, and it models a telejump as joining the pockets
+  its door sits between. `bun e2e/upass-pocket-probe.ts --from x,z` stands on a tile and reports which anchors
+  the loaded scene can walk to and what seams it holds. One run answers what an afternoon of flood-filling
+  guessed at.
 - **The offline seam graph cannot be transcribed into a route.** Every crossing that is not a loc op is
   absent from it — the spade dig, the rope swing and both telejumps — so a breadth-first search over the
   report answers NO ROUTE between the well bottom and the railings, which the module walks. Read the report
