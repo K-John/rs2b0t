@@ -153,6 +153,16 @@ function seamReachable(at: Tile): boolean {
     );
 }
 
+// Why: a seam with a forced side is not "open" because some neighbour of it happens to be reachable. `[oploc1,upass_ledge]` refuses every tile west of the column, so five of the ledge's six locs can only be stood beside from a tile in another pocket — and counting those as reachable ranked them ahead of the one loc whose stand the character was standing on. Where a kind names its stands, those tiles are the question.
+function seamOpen(loc: Loc): boolean {
+    const at = loc.tile();
+    const named = kindOf(loc)?.stands?.(at);
+    if (named !== undefined && named.length > 0) {
+        return named.some(tile => Reachability.canReach(tile, { adjacentOk: false, maxSteps: REACH.maxSteps }));
+    }
+    return seamReachable(at);
+}
+
 // Why: the sweep looks further than the hop search does. The main cavern's own exit is a collapsed bridge forty-three tiles off, while the one inside thirty-two belongs to a pocket this one cannot reach — so a sweep bounded by the hop radius only ever saw the wrong bridge.
 const SWEEP_SEARCH = 52;
 
@@ -297,13 +307,14 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[
     // Why: and the scene's own verdict orders them too rather than vetoing them. It called the bridge the character had just walked a hundred and forty tiles to stand beside "walled off", which dropped it from the list entirely and sent the run over a different bridge, away from the target. Every one of these tests is a preference; the only hard filter left is whether the loc is in the scene at all.
     const byDistance = (a: Loc, b: Loc): number => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest);
     const gains = (loc: Loc): boolean => chebyshev(loc.tile(), dest) + MIN_GAIN <= mine;
-    const open = (loc: Loc): boolean => seamReachable(loc.tile());
+    const open = (loc: Loc): boolean => seamOpen(loc);
     // Why: a telejump is the map's own transition and not one candidate among twenty — the door that lands beside the railings sits fifty-nine tiles from them, so every gain test ranks it last and the search spends a leg's worth of bridges proving the ones that gain lead nowhere.
     // Why: and reachability outranks gain among the rest — see `rank.ts`. Live at (2375,9644), the mud pocket's only exit is the ledge beside the character, which gains nothing by straight line, and it sat behind seven stone bridges with both sides blocked and ten cages in another cell.
+    // Why: a telejump leads on where it LANDS, not on where its door stands — but one this pocket cannot walk to leads nowhere at all. The two unicorn tunnels are twenty-one tiles the wrong way and walled off from the mud pocket, and they took the first two turns of every round there.
     const ordered = orderSeams(found, loc => ({ gains: gains(loc), open: open(loc) }), loc => chebyshev(loc.tile(), dest));
     return {
-        leading: [...jumps.sort(byDistance), ...ordered.filter(loc => gains(loc) && open(loc))],
-        trailing: ordered.filter(loc => !(gains(loc) && open(loc))),
+        leading: [...jumps.filter(open).sort(byDistance), ...ordered.filter(loc => gains(loc) && open(loc))],
+        trailing: [...ordered.filter(loc => !(gains(loc) && open(loc))), ...jumps.filter(loc => !open(loc)).sort(byDistance)],
         filtered
     };
 }
@@ -345,6 +356,15 @@ function kindOf(loc: Loc): HopKind | null {
     return HOP_KINDS.find(k => k.loc === loc.id) ?? null;
 }
 
+// Why: one key, used by both the freshness filter and the spend. The ledge is six locs collapsed into one seam by `group`, and the two were keying it differently — the filter said fresh on the loc's own tile while the spend said used on the group — so a ledge spent from one loc read as fresh on the next and the search kept offering a seam it had already answered.
+function seamKey(loc: Loc): string {
+    const at = loc.tile();
+    const span = kindOf(loc)?.group;
+    return span === undefined
+        ? `${loc.id}@${at.x},${at.z}`
+        : `${loc.id}@${Math.floor(at.x / span)},${Math.floor(at.z / span)}`;
+}
+
 /**
  * Cross one obstacle toward `dest`. Returns false when there is none that makes progress.
  * Why: the test is the distance to `dest`, not "the tile changed". An op-click walks the player before its script resolves, so a tile change is usually the approach — one run read a one-tile drift toward a cage it never reached as a crossing and spent seventy seconds a round on it. A roll that fails leaves the player where they were, which is a retry rather than a stop, so the locks get theirs.
@@ -360,10 +380,7 @@ async function tryHops(
     const skipped: string[] = [];
     for (const obstacle of list) {
         const at = obstacle.tile();
-        const span = kindOf(obstacle)?.group;
-        const key = span === undefined
-            ? `${obstacle.id}@${at.x},${at.z}`
-            : `${obstacle.id}@${Math.floor(at.x / span)},${Math.floor(at.z / span)}`;
+        const key = seamKey(obstacle);
         // Why: a stand the character can still walk to is a stand on this side of the seam, so a seam spent
         // from the pocket they are in now is the one to skip — and the one that let them in here is not.
         if (spentHere(spent, key, tile => Reachability.canReach(new Tile(tile.x, tile.z, tile.level), { adjacentOk: false, maxSteps: REACH.maxSteps }))) {
@@ -500,7 +517,7 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: SpentSides
     }
     const { leading, trailing, filtered } = hopsToward(dest, from);
     const state = (loc: Loc): 'fresh' | 'here' | 'elsewhere' =>
-        spentStateHere(spent, `${loc.id}@${loc.tile().x},${loc.tile().z}`, tile =>
+        spentStateHere(spent, seamKey(loc), tile =>
             Reachability.canReach(new Tile(tile.x, tile.z, tile.level), { adjacentOk: false, maxSteps: REACH.maxSteps }));
     const fresh = (list: readonly Loc[]): Loc[] => list.filter(loc => state(loc) === 'fresh');
     const mine = chebyshev(from, dest);
