@@ -25,8 +25,8 @@ interface HopKind {
     below?: number;
     /** Only offer this loc when the journey wants where it leads; `at` is the loc's own tile. */
     when?: (dest: Tile, from: { x: number; z: number; level: number }, at: Tile) => boolean;
-    /** Every tile this loc can put the player on, for a telejump whose far side is nowhere near it. */
-    landing?: () => readonly Tile[];
+    /** Every tile this loc can put the player on, for a crossing whose far side is nowhere near it. */
+    landing?: (at: Tile) => readonly Tile[];
 }
 
 /** The first cavern is everything at or above this z; the second is everything below it. */
@@ -45,6 +45,10 @@ const TUNNEL_TO_FIRST_CAVERN = new Tile(2371, 9666, 0);
 const TUNNEL_ENDS: readonly Tile[] = [TUNNEL_TO_FIRST_CAVERN, TUNNEL_TO_RAILINGS, TUNNEL_TO_UNICORN];
 const tunnelLanding = (): readonly Tile[] => TUNNEL_ENDS;
 
+// Why: the slave cage at (2393,9655) is the door of the cell the mud sits in, and the dig is the only way south out of the cages. Every other cage opens on a dead end, and by distance the search cannot tell them apart — one run picked four wrong cells in a row and then had nothing fresh left. The one that matters is the one whose cell holds the mud.
+const MUD_CELL = new Tile(2393, 9651, 0);
+const mudCellDoor = (at: Tile): readonly Tile[] => (at.x === 2393 && (at.z === 9655 || at.z === 9656) ? [MUD_CELL] : []);
+
 // Why: ordered by how often the route meets them, so the nearest-first search below settles quickly.
 const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.ROCKSLIDE, op: 'Climb-over', tries: ROLL_TRIES },
@@ -60,7 +64,7 @@ const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through', landing: tunnelLanding },
     // Why: the second cavern's own seams. The route from the well down to the boulder crosses the slave
     // cages, the swamp and a pipe, and every one of them reads "unreachable" to the navigator.
-    { loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', tries: LOCK_TRIES },
+    { loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', tries: LOCK_TRIES, landing: mudCellDoor },
     { loc: UP_LOC.RAILINGS_HARD, op: 'Pick-lock', tries: LOCK_TRIES },
 ];
 // Why: two locs that look like seams and are not. `upass_swampbubbles1` offers Cross and then drags the player into a crevasse at (2485,9649) for fifteen per cent of their hitpoints — it is a trap wearing a crossing's op. `caverockpile` does climb, but out to the first cavern's landing chamber at (2482,9715), which is behind the bridge and the grid: a way home, not a way on.
@@ -237,7 +241,7 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[
             .filter(loc => !kind.when || kind.when(dest, { ...from, level: dest.level }, loc.tile()));
         for (const loc of locs) {
             // Why: a telejump whose best end lands beside the destination leads the list however far off its door stands, and one whose ends are all worse keeps its turn at the back rather than being struck off — the route to the railings needs one of each, in that order.
-            const lands = kind.landing?.();
+            const lands = kind.landing?.(loc.tile());
             const best = lands === undefined ? undefined : Math.min(...lands.map(tile => chebyshev(tile, dest)));
             (best !== undefined && best + MIN_GAIN <= mine ? jumps : found).push(loc);
         }
@@ -406,6 +410,8 @@ interface UseSeam {
     locs: readonly number[];
     /** The script deletes the item before it rolls, so its leaving the pack is the one honest signal. */
     consumes: boolean;
+    /** Where the crossing puts the player, when that is nowhere near the loc it is used on. */
+    landing?: Tile;
     label: string;
 }
 
@@ -417,7 +423,8 @@ const USE_SEAMS: readonly UseSeam[] = [
         consumes: true,
         label: 'rope swing'
     },
-    { item: UP_ITEM.SPADE, locs: [UP_LOC.MUD_DIG], consumes: false, label: 'mud dig' }
+    // Why: `[oplocu,upass_mud]` ends in `p_teleport(0_37_150_24_46)`, so the dig lands the player at (2392,9646) — forty tiles nearer the boulder than the mud pile it is used on. Scored by the loc's own tile it reads as one tile of progress, under the gain threshold, and a character standing in the cell with a spade walks away from the only way south.
+    { item: UP_ITEM.SPADE, locs: [UP_LOC.MUD_DIG], consumes: false, landing: new Tile(2392, 9646, 0), label: 'mud dig' }
 ];
 
 async function useSeamToward(dest: Tile, log: (m: string) => void): Promise<boolean> {
@@ -435,7 +442,7 @@ async function useSeamToward(dest: Tile, log: (m: string) => void): Promise<bool
             .within(HOP_SEARCH)
             .nearest();
         if (!target
-            || chebyshev(target.tile(), dest) + MIN_GAIN > chebyshev(from, dest)
+            || chebyshev(seam.landing ?? target.tile(), dest) + MIN_GAIN > chebyshev(from, dest)
             || !seamReachable(target.tile())) {
             continue;
         }
