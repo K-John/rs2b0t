@@ -84,6 +84,15 @@ say.
   route is a chain of tiny rooms: land, walk two or three tiles, click the one portal
   whose loc id belongs to the route. Matching by name picks a wrong portal, because all
   of them are called `Portal`.
+- **Each portal jumps far enough to rebuild the scene, so the next portal is unqueryable
+  for a few ticks.** `Reach.locOp` read that blank as "loc absent", walked the stand and
+  returned `retry` without ever clicking, which the step reported as a wrong landing. The
+  run reached the seventh portal only because each attempt resumed one leg further on, at
+  28 attempts and one escape-rope reset. Positive evidence of scene sync is the rule
+  ([level-change lag](level-change-lag.md)).
+- **A tile the route only walks through is still mid-route.** Reading position by landing
+  tiles alone makes an attempt parked on a portal's stand tile look scattered, and the
+  escape rope then throws away every leg already won.
 - **A bearing that names a quadrant is two bisections, not a compass stride.**
   `draugen_locate` compares the coordinates axis by axis, so every reading is the sign of
   dx and the sign of dz. Walking a fixed number of tiles along the named compass point

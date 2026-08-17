@@ -4,6 +4,8 @@ import { FT_ID, decide, fremenniktrials, riddleAnswer } from '#/bot/api/ai/quest
 import { FT_STAGE } from '#/bot/api/ai/quests/defs/fremenniktrials/journal.js';
 import { resetBardLatch } from '#/bot/api/ai/quests/defs/fremenniktrials/bard.js';
 import { around, middle, narrow } from '#/bot/api/ai/quests/defs/fremenniktrials/hunter.js';
+import { MAZE_ROUTE } from '#/bot/api/ai/quests/defs/fremenniktrials/areas.js';
+import { mazeLegAt } from '#/bot/api/ai/quests/defs/fremenniktrials/navigator.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
 const ALL_TRIALS = ['navigator', 'merchant', 'hunter', 'seer', 'warrior', 'reveller', 'bard'] as const;
@@ -463,5 +465,33 @@ describe("the Draugen's search box", () => {
         const closing = narrow(north, { x: 2688, z: 3660 }, 'south')!;
 
         expect(middle(closing)).toMatchObject({ x: 2688, z: 3643 });
+    });
+});
+
+describe("Swensen's maze — where the route thinks we are", () => {
+    const tile = (x: number, z: number) => ({ x, z, level: 0 });
+
+    test('the ladder entry reads as the start of the route', () => {
+        expect(mazeLegAt(tile(2631, 10004))).toBe(0);
+    });
+
+    test('each landing reads as the leg that portal just finished', () => {
+        MAZE_ROUTE.forEach((hop, i) => {
+            expect(mazeLegAt(tile(hop.land.x, hop.land.z))).toBe(i + 1);
+        });
+    });
+
+    test('each stand reads as the leg whose portal is still to come', () => {
+        MAZE_ROUTE.forEach((hop, i) => {
+            expect(mazeLegAt(tile(hop.stand.x, hop.stand.z))).toBe(i);
+        });
+    });
+
+    test('a tile in neither set is scattered', () => {
+        expect(mazeLegAt(tile(2645, 10045))).toBe(-1);
+    });
+
+    test('no tile is read at all when the scene has no player', () => {
+        expect(mazeLegAt(null)).toBe(-1);
     });
 });

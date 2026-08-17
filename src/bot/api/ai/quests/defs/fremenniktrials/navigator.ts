@@ -1,3 +1,4 @@
+import type { WorldTile } from '../../../../../adapter/ClientAdapter.js';
 import { Game } from '../../../../game/Game.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Reach } from '../../../../walking/Reach.js';
@@ -20,9 +21,10 @@ export function navigatorStep(snap: QuestSnapshot): QuestStep | null {
     return { kind: 'custom', name: "walk Swensen's maze", run: runMaze };
 }
 
-/** Which leg of the route the current tile belongs to, or -1 when the maze has scattered us. */
-function legAt(): number {
-    const here = Game.tile();
+// Why: an attempt that ends before its portal fires leaves us on that portal's own stand tile, which is mid-route rather than scattered — reading it as scattered ropes out and throws away every leg already won.
+
+/** Which leg of the route a tile belongs to, or -1 when the maze has scattered us. */
+export function mazeLegAt(here: WorldTile | null): number {
     if (!here) {
         return -1;
     }
@@ -30,7 +32,15 @@ function legAt(): number {
         return 0;
     }
     const landed = MAZE_ROUTE.findIndex(leg => leg.land.distanceTo(here) <= NEAR);
-    return landed < 0 ? -1 : landed + 1;
+    if (landed >= 0) {
+        return landed + 1;
+    }
+    const standing = MAZE_ROUTE.findIndex(leg => leg.stand.distanceTo(here) <= NEAR);
+    return standing < 0 ? -1 : standing;
+}
+
+function legAt(): number {
+    return mazeLegAt(Game.tile());
 }
 
 async function escape(log: (m: string) => void): Promise<boolean> {
@@ -82,7 +92,11 @@ async function runMaze(log: (m: string) => void): Promise<boolean> {
             log
         });
         await settleScene();
-        if (status !== 'done' || legAt() !== leg + 1) {
+        if (status !== 'done') {
+            log(`portal ${leg + 1}: ${status}`);
+            return false;
+        }
+        if (legAt() !== leg + 1) {
             log(`portal ${leg + 1} did not land us where the route expects`);
             return false;
         }
