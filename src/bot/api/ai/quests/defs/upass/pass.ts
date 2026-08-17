@@ -247,8 +247,9 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[
             .filter(loc => !kind.when || kind.when(dest, { ...from, level: dest.level }, loc.tile()));
         for (const loc of locs) {
             // Why: a telejump whose best end lands beside the destination leads the list however far off its door stands, and one whose ends are all worse keeps its turn at the back rather than being struck off — the route to the railings needs one of each, in that order.
-            const lands = kind.landing?.(loc.tile());
-            const best = lands === undefined ? undefined : Math.min(...lands.map(tile => chebyshev(tile, dest)));
+            // Why: and a landing the character is already standing on is not a gain. The cage into the mud cell carries that cell as its landing, so from inside the cell it led the list and took the route straight back out to the corridor it had just left.
+            const lands = (kind.landing?.(loc.tile()) ?? []).filter(tile => chebyshev(tile, from) > MIN_GAIN);
+            const best = lands.length === 0 ? undefined : Math.min(...lands.map(tile => chebyshev(tile, dest)));
             (best !== undefined && best + MIN_GAIN <= mine ? jumps : found).push(loc);
         }
     }
