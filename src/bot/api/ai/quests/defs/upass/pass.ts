@@ -197,8 +197,10 @@ async function standBeside(at: Tile, dest: Tile, note: (m: string) => void, skip
     }
     // Why: a door with four sides puts the player out the side opposite the one it was used from, so the stand decides where the crossing lands. Sorted by what is nearest, the cage at (2380,9619) was always taken from the east and always landed east — while the side that matters opens south toward the unicorn area. Rank a stand by where crossing from it would put the character, and let nearness break the tie.
     const mirror = (tile: Tile): Tile => new Tile(2 * at.x - tile.x, 2 * at.z - tile.z, at.level);
+    // Why: MANHATTAN, not chebyshev. The four-way cage at (2380,9619) opens south onto the only pocket that can operate the pipe into the unicorn area, and its eastern side leads nowhere — but chebyshev takes the greater of dx and dz, so eleven tiles of southward gain hid behind one tile of x and the route took the east side on every run.
+    const toward = (tile: Tile): number => Math.abs(tile.x - dest.x) + Math.abs(tile.z - dest.z);
     const nearMe = (a: Tile, b: Tile): number =>
-        (chebyshev(mirror(a), dest) - chebyshev(mirror(b), dest)) || (chebyshev(a, me ?? a) - chebyshev(b, me ?? b));
+        (toward(mirror(a)) - toward(mirror(b))) || (chebyshev(a, me ?? a) - chebyshev(b, me ?? b));
     const candidates = ring.map(([dx, dz]) => new Tile(at.x + dx!, at.z + dz!, at.level));
     // Why: a tile the character can stand *on* is the one worth having — `adjacentOk` accepts tiles it can only get next to, and a radius-zero walk then refuses exactly those. But strict as a veto is worse than the disease: it threw away the rope swing's stand and left the route with nothing at all. So strict first, loose behind it, and the walk's radius follows which list the tile came from.
     const strict = candidates
