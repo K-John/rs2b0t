@@ -27,6 +27,8 @@ interface HopKind {
     when?: (dest: Tile, from: { x: number; z: number; level: number }, at: Tile) => boolean;
     /** Every tile this loc can put the player on, for a crossing whose far side is nowhere near it. */
     landing?: (at: Tile) => readonly Tile[];
+    /** Treat locs of this kind within this many tiles as ONE seam when spending it. */
+    group?: number;
 }
 
 /** The first cavern is everything at or above this z; the second is everything below it. */
@@ -53,7 +55,8 @@ const mudCellDoor = (at: Tile): readonly Tile[] => (at.x === 2393 && (at.z === 9
 const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.ROCKSLIDE, op: 'Climb-over', tries: ROLL_TRIES },
     { loc: UP_LOC.ROCK_BRIDGE, op: 'Cross', tries: ROLL_TRIES },
-    { loc: UP_LOC.LEDGE, op: 'Cross', tries: ROLL_TRIES },
+    // Why: the ledge is six locs in a column and each of their tiles is its own micro-pocket, so stepping from one to the next satisfies every crossing test — a run walked the column four times over, spending a hop each way. Crossing any of them is crossing the ledge.
+    { loc: UP_LOC.LEDGE, op: 'Cross', tries: ROLL_TRIES, group: 8 },
     { loc: UP_LOC.PIPE_AREA1, op: 'Squeeze-through' },
     { loc: UP_LOC.PIPE_AREA2, op: 'Squeeze-through' },
     { loc: UP_LOC.COLLAPSED_A, op: 'Cross', tries: ROLL_TRIES },
@@ -281,7 +284,11 @@ async function tryHops(
     spent: SpentSides
 ): Promise<boolean> {
     for (const obstacle of list) {
-        const key = `${obstacle.id}@${obstacle.tile().x},${obstacle.tile().z}`;
+        const at = obstacle.tile();
+        const span = kindOf(obstacle)?.group;
+        const key = span === undefined
+            ? `${obstacle.id}@${at.x},${at.z}`
+            : `${obstacle.id}@${Math.floor(at.x / span)},${Math.floor(at.z / span)}`;
         // Why: a stand the character can still walk to is a stand on this side of the seam, so a seam spent
         // from the pocket they are in now is the one to skip — and the one that let them in here is not.
         if (spentHere(spent, key, tile => Reachability.canReach(new Tile(tile.x, tile.z, tile.level), { adjacentOk: false, maxSteps: REACH.maxSteps }))) {
