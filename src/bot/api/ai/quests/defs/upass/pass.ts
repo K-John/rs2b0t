@@ -12,6 +12,7 @@ import { settleScene } from '../../exec/prompts.js';
 import { type SpentSides, type Stand, spendFrom, spentHere, spentStateHere } from './spent.js';
 import { MUD_CAGE, doorStands, mudCellDoor } from './doors.js';
 import { orderSeams } from './rank.js';
+import { crossOnce } from './cross.js';
 import { bySideThatLands } from './stand.js';
 import { verdictSince } from './verdict.js';
 import { CAVERN_LINKS, PLATFORM_LINKS, type PlatformLink, UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
@@ -858,6 +859,17 @@ export async function travelTo(dest: Tile, radius: number, log: (m: string) => v
                 return true;
             }
             navWorthTrying = false;
+        }
+        // Why: the derived route first, and the free search only where it has nothing to say. Every crossing in the pass has a fixed stand and a fixed landing that `tools/nav/upass-areas.ts` reads off the map and the scripts, so the area the character is standing in names the action — no gain threshold, no spent set, no sweep. The search below stays for the legs that are not loc ops at all: the fire arrow, the spiked grid, the orb corridor.
+        if (at && at.level === dest.level) {
+            const took = await crossOnce(dest, log);
+            if (took === 'crossed') {
+                navWorthTrying = await packRoute(here() ?? at, dest);
+                continue;
+            }
+            if (took === 'same') {
+                continue;
+            }
         }
         // Why: the platforms first, because their route is solved and the free search is not.
         if (at && at.level === dest.level && (await crossByRoute(at, dest, log))) {

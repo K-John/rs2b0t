@@ -151,19 +151,39 @@ for (const name of fs.readdirSync(MAPS)) {
     }
 }
 
-// Why: a pocket is named by the first anchor that reaches it, so the same ground always gets the same name however it is entered.
+// Why: an area's name has to survive a re-derivation, so it is the smallest packed tile in the pocket rather than the order the flood happened to meet it. The anchor is the tile the runtime routes to in order to ask "am I here".
 const anchors: NavPoint[] = [];
+const names: string[] = [];
+function canonical(seed: NavPoint): string {
+    const seen = new Set<number>();
+    const stack = [seed];
+    let smallest = Number.MAX_SAFE_INTEGER;
+    while (stack.length > 0 && seen.size < 3000) {
+        const t = stack.pop()!;
+        const key = (t.x << 16) | t.z;
+        if (seen.has(key) || !routes(seed, t)) {
+            continue;
+        }
+        seen.add(key);
+        smallest = Math.min(smallest, key);
+        for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            stack.push({ x: t.x + dx!, z: t.z + dz!, level: 0 });
+        }
+    }
+    return smallest.toString(16);
+}
 const areaOf = (t: NavPoint): string | null => {
     if (!walkable(t)) {
         return null;
     }
     for (let i = 0; i < anchors.length; i++) {
         if (routes(anchors[i]!, t)) {
-            return `A${i}`;
+            return names[i]!;
         }
     }
     anchors.push(t);
-    return `A${anchors.length - 1}`;
+    names.push(canonical(t));
+    return names[names.length - 1]!;
 };
 
 const edges: { from: string; to: string; seam: Seam }[] = [];
@@ -229,4 +249,33 @@ for (let i = 0; i + 1 < LANDMARKS.length; i++) {
     const [an, a] = LANDMARKS[i]!;
     const [bn, b] = LANDMARKS[i + 1]!;
     console.log(`  ${an} → ${bn}:\n    ${chain(a, b)}`);
+}
+
+// Why: the table the runtime reads, emitted rather than hand-copied — every tile in it came from the map and the script, and a re-derivation after a content change rewrites it.
+if (args.includes('--emit')) {
+    const seen = new Set<string>();
+    const lines: string[] = [];
+    for (let i = 0; i < anchors.length; i++) {
+        if (edges.some(e => e.from === names[i] || e.to === names[i])) {
+            lines.push(`    { area: '${names[i]}', anchor: new Tile(${anchors[i]!.x}, ${anchors[i]!.z}, 0) }`);
+        }
+    }
+    console.log('\n// ---- emit ----');
+    console.log('export const UPASS_AREAS: readonly UpassArea[] = [');
+    console.log(lines.join(',\n'));
+    console.log('];\n');
+    console.log('export const UPASS_CROSSINGS: readonly UpassCrossing[] = [');
+    const rows: string[] = [];
+    for (const e of edges) {
+        const key = `${e.from}>${e.to}>${e.seam.id}`;
+        if (seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        rows.push(`    { from: '${e.from}', to: '${e.to}', loc: ${e.seam.id}, op: '${e.seam.op}',`
+            + ` stand: new Tile(${e.seam.stand.x}, ${e.seam.stand.z}, 0),`
+            + ` lands: new Tile(${e.seam.lands.x}, ${e.seam.lands.z}, 0) }`);
+    }
+    console.log(rows.join(',\n'));
+    console.log('];');
 }
