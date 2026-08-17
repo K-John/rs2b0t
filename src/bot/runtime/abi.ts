@@ -171,6 +171,7 @@ import {
     toolsNeedingEquip
 } from '../api/acquisition/Tools.js';
 import { Traversal } from '../api/walking/Traversal.js';
+import { Reachability } from '../event/webwalk/geometry/Reachability.js';
 import {
     WALK_DESTINATIONS,
     WALK_OPTIONS,
@@ -238,6 +239,8 @@ export function installAbi(): void {
         Area,
         Traversal,
         DirectNavigator,
+        /** Client-side reachability probes, for a harness asking what this pocket can walk to. */
+        Reachability,
         /** Bot-side essence exit return (varp 64 is server-only — not on client wire). */
         EssenceSession,
 

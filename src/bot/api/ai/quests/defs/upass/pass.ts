@@ -26,7 +26,7 @@ interface HopKind {
     /** Only offer this loc when the journey wants where it leads; `at` is the loc's own tile. */
     when?: (dest: Tile, from: { x: number; z: number; level: number }, at: Tile) => boolean;
     /** Where this loc puts the player, for a telejump whose far side is nowhere near it. */
-    landing?: (at: Tile) => Tile;
+    landing?: (at: Tile, dest: Tile) => Tile;
 }
 
 /** The first cavern is everything at or above this z; the second is everything below it. */
@@ -42,7 +42,8 @@ const ROLL_TRIES = 4;
 // Why: `@upass_area_2_3_entrance` telejumps rather than opens, and the map fixes which way by the door's own angle: the pair at (2370,9665) and (2371,9665) is angle 1 and lands the player at (2401,9610) beside the loose railings, while the two pairs at z 9611 are angle 3 and land them at (2371,9666) in the first cavern. Neither landing is anywhere near the door, so a search that ranks these by where they STAND puts the one that finishes the journey last and takes the one that undoes it first.
 const TUNNEL_TO_RAILINGS = new Tile(2401, 9610, 0);
 const TUNNEL_TO_FIRST_CAVERN = new Tile(2371, 9666, 0);
-const tunnelLanding = (at: Tile): Tile => (inFirstCavern(at) ? TUNNEL_TO_RAILINGS : TUNNEL_TO_FIRST_CAVERN);
+// Why: the two door groups are one shuttle. Whichever is taken, the far end of the chain is the side the journey wants — from the unicorn area the z 9611 door lands in the first cavern, and the door waiting there lands beside the railings. Scoring a door by its own landing puts the first of those two hops sixty tiles further from the target than standing still, so the route never takes it and never reaches the second.
+const tunnelLanding = (_at: Tile, dest: Tile): Tile => (inFirstCavern(dest) ? TUNNEL_TO_FIRST_CAVERN : TUNNEL_TO_RAILINGS);
 
 // Why: ordered by how often the route meets them, so the nearest-first search below settles quickly.
 const HOP_KINDS: readonly HopKind[] = [
@@ -236,7 +237,7 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[
             .filter(loc => !kind.when || kind.when(dest, { ...from, level: dest.level }, loc.tile()));
         for (const loc of locs) {
             // Why: a telejump that lands beside the destination leads the list however far off its door stands, and one that lands on the wrong side of the pass keeps its turn at the back rather than being struck off — the route to the railings needs one of each, in that order.
-            const lands = kind.landing?.(loc.tile());
+            const lands = kind.landing?.(loc.tile(), dest);
             (lands !== undefined && chebyshev(lands, dest) + MIN_GAIN <= mine ? jumps : found).push(loc);
         }
     }
