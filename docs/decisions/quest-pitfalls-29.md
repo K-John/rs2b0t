@@ -2,10 +2,22 @@
 
 # Quest pitfalls: Underground Pass, the map and the traps
 
-The twenty-one the map, the traps and the seams paid for; the first three are engine behaviour
+The twenty-three the map, the traps and the seams paid for; the first five are engine behaviour
 the quest only happens to expose, and reaching a seam and Iban's temple are on the
 [second page](quest-pitfalls-30.md).
 
+- **The same modal suspends the op it was raised for.** `Player.tryInteract` returns early on
+  `!canAccess()`, so the script an op-click is aimed at cannot run while the journal is up: the
+  walk arrives and the interaction sits pending until the modal comes down. The portcullis lever
+  is where that costs a run — its `oploc1` is a `~forcemove` chain and that chain *is* the
+  crossing, so an oracle reading "through the portcullis" spent all thirty seconds standing
+  at (2466,9673) with the lever unpulled, then recovered east to a lip the collision pack calls
+  unreachable from the west side. The stalled walk ends where the trapped columns do, at the
+  lever; the journal comes down; the lever fires and carries the player through.
+- **A stalled walk that has stopped moving is over.** Nothing can change while the modal is up
+  and the tile is unchanged, so the rest of the timeout only proves it a second time — three
+  polls of standing still ends the attempt. Every corridor goal keyed on the pack rather than on
+  position (the orb pickups, the furnace, the well) paid thirty seconds each for that wait.
 - **An open modal suspends every NORMAL timer.** `Player.busy()` is
   `delayed || containsModalInterface()`, and `processTimers` runs a `[timer,…]` only under
   `canAccess()`. Holding the quest journal open therefore walks the character through the

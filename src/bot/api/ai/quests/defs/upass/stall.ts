@@ -9,6 +9,9 @@ import { UPASS } from './journal.js';
 
 const POLL_TICKS = 2;
 
+// Why: `Player.tryInteract` returns early on `!canAccess()`, so no op script runs while the journal is up. A player who has stopped walking under an open journal can therefore never satisfy an oracle that waits on a script, and the rest of the timeout is spent proving it — three polls of standing still is the whole answer.
+const IDLE_POLLS = 3;
+
 function tileNow(): { x: number; z: number; level: number } | null {
     return reader.worldTile();
 }
@@ -90,6 +93,8 @@ export async function stalledApproach(opts: StalledApproach): Promise<boolean> {
     try {
         const deadline = performance.now() + timeoutMs;
         let opened = false;
+        let last = tileNow();
+        let idle = 0;
         while (performance.now() < deadline) {
             if (arrived()) {
                 return true;
@@ -97,6 +102,13 @@ export async function stalledApproach(opts: StalledApproach): Promise<boolean> {
             if (opts.abort?.() === true) {
                 const at = tileNow();
                 log(`stall: attempt lost at (${at?.x},${at?.z})`);
+                return false;
+            }
+            const at = tileNow();
+            idle = at !== null && last !== null && at.x === last.x && at.z === last.z ? idle + 1 : 0;
+            last = at;
+            if (idle >= IDLE_POLLS && modalOpen()) {
+                log(`stall: the walk stopped at (${at?.x},${at?.z}) and the journal is up — whatever was clicked cannot run until it comes down`);
                 return false;
             }
             if (modalOpen()) {
