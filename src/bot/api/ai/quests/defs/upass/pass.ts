@@ -202,8 +202,8 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
     return false;
 }
 
-/** Obstacles in the scene, nearest the straight line toward `dest` first. */
-function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
+/** Obstacles in the scene: the ones worth a walk first, everything else behind the item-uses. */
+function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[]; trailing: Loc[] } {
     const found: Loc[] = [];
     for (const kind of HOP_KINDS) {
         if (kind.when && !kind.when(dest, { ...from, level: dest.level })) {
@@ -225,12 +225,14 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): Loc[] {
     const byDistance = (a: Loc, b: Loc): number => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest);
     const gains = (loc: Loc): boolean => chebyshev(loc.tile(), dest) + MIN_GAIN <= mine;
     const open = (loc: Loc): boolean => seamReachable(loc.tile());
-    return [
-        ...found.filter(loc => gains(loc) && open(loc)).sort(byDistance),
-        ...found.filter(loc => gains(loc) && !open(loc)).sort(byDistance),
-        ...found.filter(loc => !gains(loc) && open(loc)).sort(byDistance),
-        ...found.filter(loc => !gains(loc) && !open(loc)).sort(byDistance)
-    ];
+    return {
+        leading: found.filter(loc => gains(loc) && open(loc)).sort(byDistance),
+        trailing: [
+            ...found.filter(loc => gains(loc) && !open(loc)).sort(byDistance),
+            ...found.filter(loc => !gains(loc) && open(loc)).sort(byDistance),
+            ...found.filter(loc => !gains(loc) && !open(loc)).sort(byDistance)
+        ]
+    };
 }
 
 function kindOf(loc: Loc): HopKind | null {
@@ -241,12 +243,14 @@ function kindOf(loc: Loc): HopKind | null {
  * Cross one obstacle toward `dest`. Returns false when there is none that makes progress.
  * Why: the test is the distance to `dest`, not "the tile changed". An op-click walks the player before its script resolves, so a tile change is usually the approach — one run read a one-tile drift toward a cage it never reached as a crossing and spent seventy seconds a round on it. A roll that fails leaves the player where they were, which is a retry rather than a stop, so the locks get theirs.
  */
-async function hopToward(dest: Tile, log: (m: string) => void, spent: SpentSides): Promise<boolean> {
-    const from = here();
-    if (!from) {
-        return false;
-    }
-    for (const obstacle of hopsToward(dest, from)) {
+async function tryHops(
+    list: readonly Loc[],
+    dest: Tile,
+    from: { x: number; z: number; level: number },
+    log: (m: string) => void,
+    spent: SpentSides
+): Promise<boolean> {
+    for (const obstacle of list) {
         const key = `${obstacle.id}@${obstacle.tile().x},${obstacle.tile().z}`;
         // Why: a stand the character can still walk to is a stand on this side of the seam, so a seam spent
         // from the pocket they are in now is the one to skip — and the one that let them in here is not.
@@ -326,7 +330,23 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: SpentSides
         log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now.x},${now.z})`);
         return true;
     }
-    return useSeamToward(dest, log);
+    return false;
+}
+
+async function hopToward(dest: Tile, log: (m: string) => void, spent: SpentSides): Promise<boolean> {
+    const from = here();
+    if (!from) {
+        return false;
+    }
+    const { leading, trailing } = hopsToward(dest, from);
+    if (await tryHops(leading, dest, from, log, spent)) {
+        return true;
+    }
+    // Why: the rope swing and the spade dig are each the only way out of their pocket, and a seam the scene calls walled off costs a second of floods to disprove — eight of them ran before every rope swing in one leg. The item-uses come ahead of the seams nothing can reach.
+    if (await useSeamToward(dest, log)) {
+        return true;
+    }
+    return tryHops(trailing, dest, from, log, spent);
 }
 
 /** A seam crossed by using an item on a loc rather than by an op on it. */

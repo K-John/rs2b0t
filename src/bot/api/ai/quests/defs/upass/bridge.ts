@@ -86,10 +86,15 @@ async function openWallGate(from: Tile, to: Tile, log: (m: string) => void): Pro
     if (!(await gate.interact('Open'))) {
         return false;
     }
-    return driveUntil(() => {
+    if (!(await driveUntil(() => {
         const now = Game.tile();
         return now !== null && Math.abs(now.x - to.x) <= 3 && Math.abs(now.z - to.z) <= 4;
-    }, [], log, 12_000);
+    }, [], log, 12_000))) {
+        return false;
+    }
+    // Why: the gate leaves the character in the gateway itself, which the region test counts as neither side — so the step is asked to cross again, and its second attempt walks back east at a gate that has shut. The last three tiles onto the far stand are what makes the crossing readable, and they are a plain walk with nothing in the way.
+    await Traversal.walkResilient(to, { radius: 1, attempts: 2, timeoutMs: 20_000, log });
+    return upassArea(Game.tile()) === upassArea(to);
 }
 
 // Why: the gate teleport lands one tile short of the stand on either side, so "am I across yet" cannot be

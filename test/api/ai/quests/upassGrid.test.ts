@@ -6,7 +6,7 @@ import { pastGridTile } from '#/bot/api/ai/quests/defs/upass/areas.js';
 import { Execution } from '#/bot/api/execution/Execution.js';
 import { Game } from '#/bot/api/game/Game.js';
 import { Locs } from '#/bot/api/locs/Locs.js';
-import { stalledApproach } from '#/bot/api/ai/quests/defs/upass/stall.js';
+import { stalledApproach, stalledJourney } from '#/bot/api/ai/quests/defs/upass/stall.js';
 
 // Why: `Player.tryInteract` returns early on `!canAccess()`, and `canAccess()` is `!busy()` — so the script an op-click is aimed at cannot run while the quest journal is held open. The grid crossing rides the portcullis lever's `oploc1`, whose `~forcemove` chain is what carries the player through, so the walk arrives with the journal up and the script waits: an oracle reading only "through the portcullis" cannot answer true until the journal comes down. This fake is that ordering and nothing else.
 
@@ -19,7 +19,8 @@ const sim = {
     walkingTo: null as { x: number; z: number } | null,
     pendingOp: false,
     ticks: 0,
-    pulls: 0
+    pulls: 0,
+    onIdleTick: null as null | (() => void)
 };
 
 function reset(at: { x: number; z: number; level: number }): void {
@@ -29,6 +30,7 @@ function reset(at: { x: number; z: number; level: number }): void {
     sim.pendingOp = false;
     sim.ticks = 0;
     sim.pulls = 0;
+    sim.onIdleTick = null;
 }
 
 function step(): void {
@@ -42,6 +44,10 @@ function step(): void {
         if (sim.tile.x === sim.walkingTo.x && sim.tile.z === sim.walkingTo.z) {
             sim.walkingTo = null;
         }
+        return;
+    }
+    if (sim.onIdleTick !== null) {
+        sim.onIdleTick();
         return;
     }
     if (sim.pendingOp && !sim.modal && sim.tile.x === LEVER_STAND.x && sim.tile.z === LEVER_STAND.z) {
@@ -148,6 +154,43 @@ describe('a stalled walk whose oracle waits on a script', () => {
         expect(carried).toBe(false);
         expect(sim.tile).toEqual({ x: LEVER_STAND.x, z: LEVER_STAND.z, level: 0 });
         expect(lines.filter(l => l.includes('never reached the far side'))).toEqual([]);
+        expect(sim.ticks).toBeLessThan(30);
+    }, 60_000);
+});
+
+describe('a journey whose goal is an op script', () => {
+    test('drops the journal at the goal and finishes it, rather than reporting nothing steps there', async () => {
+        reset({ x: LEVER_STAND.x + 4, z: LEVER_STAND.z, level: 0 });
+        const lines: string[] = [];
+        const ORB = { x: LEVER_STAND.x, z: LEVER_STAND.z };
+
+        // Why: the orb pickups, the furnace and the well are all this shape — the op-click walks the character
+        // onto the goal, the journal goes up for that walk, and the Take cannot run until it comes down again.
+        sim.onIdleTick = () => {
+            if (sim.pendingOp && !sim.modal && sim.tile.x === ORB.x && sim.tile.z === ORB.z) {
+                sim.pendingOp = false;
+                sim.pulls++;
+            }
+        };
+        const reached = await stalledJourney({
+            goal: {
+                inRange: () => true,
+                arrived: () => sim.pulls > 0,
+                what: 'the Orb of light',
+                send: async () => {
+                    sim.walkingTo = { ...ORB };
+                    sim.pendingOp = true;
+                    return true;
+                }
+            },
+            nextStone: () => null,
+            log: m => lines.push(m)
+        });
+
+        expect(reached).toBe(true);
+        expect(sim.pulls).toBe(1);
+        expect(sim.modal).toBe(false);
+        expect(lines.filter(l => l.includes('steps toward'))).toEqual([]);
         expect(sim.ticks).toBeLessThan(30);
     }, 60_000);
 });

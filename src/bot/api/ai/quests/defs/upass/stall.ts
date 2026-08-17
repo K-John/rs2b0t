@@ -146,6 +146,27 @@ export interface StalledJourney {
 }
 
 /**
+ * Finish the last click with the journal down.
+ * Why: a goal keyed on what its script did — an orb in the pack, an orb gone from it — cannot come true while the journal is up, because `tryInteract` is gated on `canAccess()`. The stones have already carried the character onto the goal by the time this runs, so the modal comes down and the op is given its own ticks. The tile under a goal is never a trap tile; the traps are the stepping stones, and those keep the journal.
+ */
+async function finishGoal(goal: Stone & { inRange: () => boolean }, log: (m: string) => void): Promise<boolean> {
+    await releaseJournal();
+    if (await Execution.delayUntilTicks(goal.arrived, 8)) {
+        return true;
+    }
+    if (!(await goal.send())) {
+        log(`stall: ${goal.what} would not send with the journal down`);
+        return false;
+    }
+    const ran = await Execution.delayUntilTicks(goal.arrived, 15);
+    // Why: the journey walks on from here over trap tiles, and it only re-presses the journal after its next op-click has moved the character — so the modal goes back up before the walk rather than a step into it.
+    if (!ran) {
+        pressJournal();
+    }
+    return ran;
+}
+
+/**
  * Reach `goal` over a chain of stalled op-clicks, holding the journal across the whole journey.
  * Why: an op-click can only name a loc the client has in its build area, and that area lags the player, so the reach is far shorter than the corridor. The chain is what closes the gap.
  */
@@ -157,8 +178,13 @@ export async function stalledJourney(opts: StalledJourney): Promise<boolean> {
             if (goal.arrived()) {
                 return true;
             }
-            if (goal.inRange() && (await stalledApproach({ ...goal, hold: true, log }))) {
-                return true;
+            if (goal.inRange()) {
+                if (await stalledApproach({ ...goal, hold: true, log })) {
+                    return true;
+                }
+                if (await finishGoal(goal, log)) {
+                    return true;
+                }
             }
             const stone = nextStone();
             if (!stone) {
