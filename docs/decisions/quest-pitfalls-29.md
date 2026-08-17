@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass, the map and the traps
 
-The twenty-three the map, the traps and the seams paid for; the first five are engine behaviour
+The twenty-four the map, the traps and the seams paid for; the first five are engine behaviour
 the quest only happens to expose, and reaching a seam and Iban's temple are on the
 [second page](quest-pitfalls-30.md).
 
@@ -14,6 +14,14 @@ the quest only happens to expose, and reaching a seam and Iban's temple are on t
   at (2466,9673) with the lever unpulled, then recovered east to a lip the collision pack calls
   unreachable from the west side. The stalled walk ends where the trapped columns do, at the
   lever; the journal comes down; the lever fires and carries the player through.
+- **A crossing is spent from a side, not outright.** The guard against a route crossing the same seam back
+  and forth strikes it off the list once it has been used, which is right until the seam is the only way out
+  of what it led into. The slave cages are that case: the cage at (2384,9655) is the sole door of a
+  fourteen-tile cell, so the crossing that put a character inside deleted their own way out, and an hour of
+  the run was spent enumerating the seven other cages, all of them in pockets the cell cannot reach. Which
+  side a character is on is a question the loaded scene answers — a stand tile it can still walk to is a
+  stand tile on this side — so the spend is keyed on the tile the op was sent from. Crossing back records
+  the far side too, which is what stops the dead end being re-entered.
 - **A stalled walk that has stopped moving is over.** Nothing can change while the modal is up
   and the tile is unchanged, so the rest of the timeout only proves it a second time — three
   polls of standing still ends the attempt. Every corridor goal keyed on the pack rather than on

@@ -9,6 +9,7 @@ import { Reachability } from '../../../../../event/webwalk/geometry/Reachability
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
+import { type SpentSides, type Stand, spendFrom, spentHere } from './spent.js';
 import { CAVERN_LINKS, PLATFORM_LINKS, type PlatformLink, UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
 
 // Why: the pass is not one map the navigator can route across — a component report over its own seam endpoints answers FAIL for 10 of 14 anchors. Every seam is a scripted obstacle whose tile the collision pack marks blocked, so `walkResilient` toward anything past one reports "unreachable" and the step reads as a missing loc. Movement here is therefore: walk inside the pocket, cross one obstacle, repeat.
@@ -240,14 +241,16 @@ function kindOf(loc: Loc): HopKind | null {
  * Cross one obstacle toward `dest`. Returns false when there is none that makes progress.
  * Why: the test is the distance to `dest`, not "the tile changed". An op-click walks the player before its script resolves, so a tile change is usually the approach — one run read a one-tile drift toward a cage it never reached as a crossing and spent seventy seconds a round on it. A roll that fails leaves the player where they were, which is a retry rather than a stop, so the locks get theirs.
  */
-async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string>): Promise<boolean> {
+async function hopToward(dest: Tile, log: (m: string) => void, spent: SpentSides): Promise<boolean> {
     const from = here();
     if (!from) {
         return false;
     }
     for (const obstacle of hopsToward(dest, from)) {
         const key = `${obstacle.id}@${obstacle.tile().x},${obstacle.tile().z}`;
-        if (spent.has(key)) {
+        // Why: a stand the character can still walk to is a stand on this side of the seam, so a seam spent
+        // from the pocket they are in now is the one to skip — and the one that let them in here is not.
+        if (spentHere(spent, key, tile => Reachability.canReach(new Tile(tile.x, tile.z, tile.level), { adjacentOk: false, maxSteps: REACH.maxSteps }))) {
             continue;
         }
         const kind = kindOf(obstacle);
@@ -262,11 +265,14 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         // log lines per tick, and four tries plus their walks arrive as the last of them and nothing else.
         const trace: string[] = [];
         let stood = false;
+        // Why: the tile the op was sent from is the side of the seam it was spent on, and the only one the far side cannot walk to.
+        let stand: Stand | null = null;
         for (let attempt = 0; attempt < (kind.tries ?? 1); attempt++) {
             if (!(await standBeside(obstacle.tile(), m => trace.push(m), attempt))) {
                 break;
             }
             stood = true;
+            stand = here() ?? stand;
             // Why: a seam is often a row of identical locs — the ledge is six — and the one the search picked is not the one the character ended up beside. `reachRectangle` takes a cardinal side and nothing else, and `nearest()` cannot tell a diagonal neighbour from a cardinal one: both are distance one, so it kept returning the diagonal and the server kept answering "I can't reach that!".
             const me = here();
             const cardinal = me === null
@@ -304,8 +310,8 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
         // Why: two tiles, because the op-click walks the player before the script resolves — a one-tile drift toward the obstacle is the approach, and reading that as a crossing burned seventy seconds a round on a cage the character never reached.
         if (chebyshev(now, from) < 2) {
             // Why: a seam that could not be stood beside is not a seam that does not work — it is one the character was in the wrong pocket for. Spending it there meant that when the route finally put them three tiles from it, the search refused to try the crossing at all.
-            if (stood) {
-                spent.add(key);
+            if (stood && stand) {
+                spendFrom(spent, key, stand);
             }
             const said = GameMessages.since(mark).map(m => m.text).slice(-6).join(' / ') || 'nothing';
             log(`pass: ${op} ${obstacle.name ?? obstacle.id} at (${obstacle.tile().x},${obstacle.tile().z})`
@@ -313,8 +319,10 @@ async function hopToward(dest: Tile, log: (m: string) => void, spent: Set<string
                 + ` — ${trace.join(' | ')} — it said: ${said}`);
             continue;
         }
-        // Why: a crossing is spent whether it helped or not. Nothing here can tell which side of a seam is the useful one until the far side is walked, so the guard against crossing back and forth is that each one is used once per journey.
-        spent.add(key);
+        // Why: a crossing is spent whether it helped or not, because nothing here can tell which side of a seam is the useful one until the far side is walked — but only from the side it was crossed from, or the pocket it leads into has no way out of it.
+        if (stand) {
+            spendFrom(spent, key, stand);
+        }
         log(`pass: ${op} ${obstacle.name ?? obstacle.id} → (${now.x},${now.z})`);
         return true;
     }
@@ -517,7 +525,7 @@ async function crossByRoute(
 }
 
 /** Walk to the pocket's edge in each direction, looking for a crossing that was out of sight. */
-async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<string>): Promise<boolean> {
+async function sweepPocket(dest: Tile, log: (m: string) => void, spent: SpentSides): Promise<boolean> {
     const from = here();
     if (!from) {
         return false;
@@ -559,13 +567,13 @@ async function sweepPocket(dest: Tile, log: (m: string) => void, spent: Set<stri
  */
 
 // Why: `spent` has to outlive one call. Each decide cycle starts a fresh `travelTo`, and a seam that led nowhere last cycle is the nearest one again this cycle — which is how a run crossed the same cage door back and forth for four minutes. It is dropped once the destination is reached or changes.
-const spentByDest = new Map<string, Set<string>>();
+const spentByDest = new Map<string, SpentSides>();
 
 export async function travelTo(dest: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
     const destKey = `${dest.x},${dest.z},${dest.level}`;
     if (!spentByDest.has(destKey)) {
         spentByDest.clear();
-        spentByDest.set(destKey, new Set<string>());
+        spentByDest.set(destKey, new Map<string, Stand[]>());
     }
     const spent = spentByDest.get(destKey)!;
     // Why: once the navigator has said there is no route to this tile, saying it again costs a full walk
