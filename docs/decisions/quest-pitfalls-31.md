@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Underground Pass, what the live legs paid for
 
-The nine the per-leg runs found after the module was written; the map and the traps are on the
+The eleven the per-leg runs found after the module was written; the map and the traps are on the
 [first page](quest-pitfalls-29.md) and reaching a seam on the [second](quest-pitfalls-30.md).
 
 - **A region test and a step's own oracle have to agree.** The Ardougne wall gate leaves the character
@@ -44,6 +44,19 @@ The nine the per-leg runs found after the module was written; the map and the tr
   its door sits between. `bun e2e/upass-pocket-probe.ts --from x,z` stands on a tile and reports which anchors
   the loaded scene can walk to and what seams it holds. One run answers what an afternoon of flood-filling
   guessed at.
+- **A distance test cannot answer a question about topology, and the second cavern asks five of them.**
+  Which seam is worth taking is decided by where it LANDS the player, not where its loc stands — the spade
+  dig reads as one tile of progress and teleports forty, and the unicorn doors stand fifty-nine tiles from
+  the landing that finishes the journey. Whether a crossing happened is whether the pocket was left, not
+  whether the character moved two tiles — the slave cages stand ON the corridor they open off, so walking
+  past one counted as using it and struck it off. How many tries a seam deserves is a skill roll, and a
+  server refusal — "I can't reach that!", "You can't do that from here" — is not one. Which of a door's four
+  sides to stand on is decided by where crossing from it lands, because a door puts the player out the side
+  opposite the one it was used from. And ranking those sides wants MANHATTAN, since chebyshev takes the
+  greater axis and hid eleven tiles of southward gain behind one tile of x.
+- **A landing under the character's feet is not a gain.** The cage into the mud cell carries that cell as
+  its landing, which is what gets the route in; from inside, the same landing led the list and took the
+  character straight back out to the corridor it had just left.
 - **The offline seam graph cannot be transcribed into a route.** Every crossing that is not a loc op is
   absent from it — the spade dig, the rope swing and both telejumps — so a breadth-first search over the
   report answers NO ROUTE between the well bottom and the railings, which the module walks. Read the report
