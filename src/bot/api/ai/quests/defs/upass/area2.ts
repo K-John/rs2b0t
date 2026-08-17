@@ -6,19 +6,11 @@ import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import type { QuestSnapshot } from '../../engine/types.js';
 import { UP_BADGES, UP_ITEM, UP_LOC, UP_NPC, UP_TILE, countHeld, type UpassItem } from './areas.js';
 import { locById, walkTo } from './bridge.js';
-import { reachLooseRailings } from './railings.js';
 
 /** Search the middle cage for the loose railing that levers the boulder. */
 export async function takeRailing(log: (m: string) => void): Promise<boolean> {
     if (heldId(UP_ITEM.RAILING.id) > 0) {
         return true;
-    }
-    // Why: the ledge, two thieving railings and the pipe stand between the mud pocket and this cage, and
-    // they are four fixed crossings in one order — see `railings.ts`. Letting a search find them is what
-    // put a run on the ledge column reporting a cage thirty tiles away as crossed.
-    if (!(await reachLooseRailings(log))) {
-        log('could not reach the loose railings from the mud pocket');
-        return false;
     }
     if (!(await walkTo(UP_TILE.RAILINGS_LOOSE, 1, log))) {
         return false;

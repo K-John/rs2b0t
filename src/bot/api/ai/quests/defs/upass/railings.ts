@@ -4,6 +4,7 @@ import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Navigator } from '../../../../../event/webwalk/Navigator.js';
+import { Reachability } from '../../../../../event/webwalk/geometry/Reachability.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
@@ -67,6 +68,25 @@ export const TO_RAILINGS: readonly Crossing[] = [
         loc: UP_LOC.PIPE_AREA2, op: 'Squeeze-through', lands: new Tile(2412, 9605, 0)
     }
 ];
+
+// Why: the engine re-decides every tick and recognises "the same step" only by what it calls itself, so a step whose name covers six crossings is one step retried forever — the attempt counter never resets, no progress is visible, and the watchdog parks a leg that was advancing. Each crossing names itself, so crossing one resets the count for crossing two.
+// Why: the client's own flood, because `decide` is synchronous. Out of the loaded scene it reads unreachable, which is indistinguishable from "not crossed yet" — so the outstanding crossing is the first whose landing cannot be reached AND whose stand can. That is the one the character is standing in position for.
+export function outstandingCrossing(): Crossing | null {
+    const flood = { adjacentOk: false, maxSteps: 2_000 } as const;
+    return TO_RAILINGS.find(step =>
+        !Reachability.canReach(step.lands, flood) && Reachability.canReach(step.stand, flood)) ?? null;
+}
+
+/** Take one crossing and no more — the one the character is in position for. */
+export async function takeNextCrossing(log: (m: string) => void): Promise<boolean> {
+    const step = outstandingCrossing();
+    if (step === null) {
+        const me = Game.tile();
+        log(`pass: (${me?.x},${me?.z}) is in position for no crossing of the run to the loose railings`);
+        return false;
+    }
+    return take(step, log);
+}
 
 /** How long a crossing gets to land once its script has spoken. */
 const CROSS_MS = 12_000;

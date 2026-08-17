@@ -47,6 +47,7 @@ import {
     searchCages,
     throwDoll
 } from './doll.js';
+import { outstandingCrossing, takeNextCrossing } from './railings.js';
 import { drawGear, kitShortfall, meleeCarried, sourceKit, wearGear } from './supplies.js';
 
 const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep =>
@@ -120,6 +121,14 @@ function unicornLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
         return paladinLeg();
     }
     if (held(snap, UP_ITEM.RAILING) === 0) {
+        // Why: six crossings stand between the well's corridor and that cage, and one step covering all of
+        // them is one step the engine retries forever — it recognises "the same step" by its description
+        // alone, so the attempt counter never resets and the watchdog parks a leg that is advancing. Each
+        // crossing is its own step, named after itself.
+        const next = outstandingCrossing();
+        if (next !== null) {
+            return custom(`cross ${next.what}`, takeNextCrossing);
+        }
         return custom('search the cage bars for a loose railing', takeRailing);
     }
     return custom('crush the unicorn and take its horn', crushUnicorn);
