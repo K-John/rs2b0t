@@ -74,8 +74,8 @@ const MAX_HOPS = 24;
 const MIN_GAIN = 3;
 // Why: the seam out of a pocket can sit right across it — the rope swing off the bridge shelf is twenty tiles from where the bridge lands — so the search has to cover the pocket, not the neighbourhood. Drift is held off by the gain threshold and by spending an obstacle that led away, not by looking less far.
 const HOP_SEARCH = 32;
-// Why: the server paths for an op-click, and inside this range it can see ground the client's flood refuses — past it the click is a guess and the build area may not hold the loc at all.
-const SERVER_PATH_RANGE = 8;
+// Why: the server paths for an op-click, and inside the build area it can see ground the client's flood refuses. Every pipe in the second cavern is approached from a tile the pack calls blocked, so a flood-only rule never sends the op at all — and a pocket probe from the bridges answers "cannot walk to" for every anchor in the cavern, which is the maze being real rather than the reach being wrong. Past the build area the loc reads as absent and the click never sends, so that is where this stops.
+const SERVER_PATH_RANGE = 24;
 // Why: the pockets wind, so a thirty-tile obstacle is well past the flood's default four hundred steps.
 const REACH = { adjacentOk: true, maxSteps: 2_000 } as const;
 
