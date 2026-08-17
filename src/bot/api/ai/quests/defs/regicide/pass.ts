@@ -16,6 +16,7 @@ import {
     shootGuiderope
 } from '../upass/bridge.js';
 import { crossGrid } from '../upass/grid.js';
+import { OUT_OF_CAGES, outstandingCrossing, takeNextCrossing } from '../upass/railings.js';
 import { travelTo } from '../upass/pass.js';
 import { RG_LOC, RG_TILE, regicideArea } from './areas.js';
 import { climbOutOfPit, travelTirannwn } from './pockets.js';
@@ -41,38 +42,7 @@ function heldId(id: number): number {
     return Inventory.items().filter(item => item.id === id).length;
 }
 
-/** Where `cave_well` drops the player, and the pocket it drops them into. */
-const CAGES = { minX: 2369, maxX: 2429, minZ: 9640, maxZ: 9661 } as const;
-
-function inSlaveCages(tile: { x: number; z: number } | null): boolean {
-    return (
-        tile !== null
-        && tile.x >= CAGES.minX && tile.x <= CAGES.maxX
-        && tile.z >= CAGES.minZ && tile.z <= CAGES.maxZ
-    );
-}
-
-/**
- * The filled-in tunnel out of the slave cages, dug with a spade.
- * Why: `cave_well` lands at (2423,9660) and that pocket has one op that leaves it. The ledge reads like a second and is not — no tile of the pocket stands beside it. A leg that walked at the far side instead let the mover sweep for anything that gained ground; it picked a cage door twice, and "the cage slams shut behind you" left the run in an eight-tile cell with no edge out.
- */
-async function digOutOfCages(log: (m: string) => void): Promise<boolean> {
-    if (!(await travelTo(UP_TILE.MUD_DIG, 2, log))) {
-        return false;
-    }
-    await settleScene();
-    const mud = locById(UP_LOC.MUD_DIG, null, 8);
-    const spade = Inventory.items().find(item => item.id === UP_ITEM.SPADE.id);
-    if (!mud || !spade) {
-        log(mud ? 'no spade for the filled-in tunnel' : 'no pile of mud in the slave cages');
-        return false;
-    }
-    if (!(await spade.useOn(mud))) {
-        return false;
-    }
-    // Why: the dig ends on `p_teleport(0_37_150_24_46)`, so the far side of the tunnel is the only honest signal that it opened — the message prints on a pack without a spade too.
-    return driveUntil(() => !inSlaveCages(Game.tile()), [], log, 15_000);
-}
+// Why: the cage, the dig and the ledge come from `upass/railings.ts` rather than being walked at. `cave_well` drops this leg in the same corridor Underground Pass itself starts from, and that run already carries each crossing's stand, its loc's OWN tile and its landing. Aiming a mover at `UP_TILE.MUD_DIG` instead asked it to route to (2393,9650), which carries the loc — live it names no pocket, `crossOnce` answers "nowhere", and the free search walked the leg back up through both thieving railings for twenty-four hops while still pointed at the dig.
 
 /**
  * The bridge over the chasm, shot down with a lit arrow.
@@ -197,7 +167,9 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
             return (here?.z ?? 0) > SHELF_Z ? enterMainCavern(log) : climbWell(log);
         case 'area2':
             // Why: the paladins' shelf is entered by one loc and one only. Flooding it lists three ops on its rim — the temple doors out, the blood well, and `upass_unicorn_door`, which `p_telejump`s to (2371,9666) from its south face. So the shelf is behind the second cavern, and a leg that walked at `PALADINS` instead asked for a tile in another pocket: the mover swept for anything that gained ground, picked a slave-cage door, and "the cage slams shut behind you" left the run in an eight-tile cell with no edge out.
-            return inSlaveCages(here) ? digOutOfCages(log) : travelTo(UNICORN_AREA, 4, log);
+            return outstandingCrossing(OUT_OF_CAGES) === null
+                ? travelTo(UNICORN_AREA, 4, log)
+                : takeNextCrossing(log, OUT_OF_CAGES);
         case 'gridpit':
             return travelTo(UP_TILE.GRID_APPROACH, 3, log);
         case 'voyage':
