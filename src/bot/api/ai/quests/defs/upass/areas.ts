@@ -112,6 +112,8 @@ export const UP_LOC = {
     COLLAPSED_B: 3255,
     WITCH_DOOR: 3270,
     WITCH_CHEST: 3272,
+    // Why: `[oploc1,cavewitchchest]` runs `loc_change(cavewitchchestopen, 20)` before it searches, so for twenty ticks Kardia's chest is a DIFFERENT loc carrying a different op — 3273 with `Search` rather than 3272 with `Open`. Both run `@search_cavewitch_chest`.
+    WITCH_CHEST_OPEN: 3273,
     SEALED_CHEST: 3274,
     CAGE_DOVE: 3351,
     CAGE_EMPTY: 3352,

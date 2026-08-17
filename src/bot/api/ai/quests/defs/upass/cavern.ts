@@ -3,6 +3,7 @@ import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
+import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Reach } from '../../../../walking/Reach.js';
 import Tile from '../../../../../geometry/Tile.js';
@@ -11,6 +12,7 @@ import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import { DirectNavigator } from '../../../../../event/webwalk/DirectNavigator.js';
 import { UP_ITEM, UP_LOC, UP_NPC, UP_TILE, insideWitchHouse } from './areas.js';
 import { driveThroughBoxes, locById, walkTo } from './bridge.js';
+import { chestForm } from './chest.js';
 
 async function talkTo(npcId: number, name: string, near: Tile, prefer: string[], log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(near, 2, log))) {
@@ -193,19 +195,27 @@ export async function distractWitch(log: (m: string) => void): Promise<boolean> 
     return false;
 }
 
+// Why: the second box at any stage past `^upass_spoken_nilhoof`. It is the chest saying the doll is not coming, which is an answer rather than something to wait out.
+const DOLL_GONE = /doll's gone/i;
+
 /** Open the house and take the doll out of the chest. */
 export async function lootWitchChest(log: (m: string) => void): Promise<boolean> {
     if (heldId(UP_ITEM.DOLL.id) > 0) {
         return true;
     }
+    // Why: the chest is two locs and the first Open turns it into the other one for twenty ticks, so a round that retries inside that window has to ask for the form standing there — see `chest.ts`.
+    const form = chestForm((id, op) => locById(id, op, 10) !== null);
+    // Why: `~mesbox` ends in `.if_openchat`, so the box the chest raises is a CHAT modal — `Modals.isOpen()` reads `main` alone and never sees it. With that as the oracle the reach primitive had nothing to succeed on and sat out its window eight times over, twenty seconds each, while a box waited for a click nothing was sending. Both modals count now.
+    const prompted = (): boolean =>
+        heldId(UP_ITEM.DOLL.id) > 0 || ChatDialog.isOpen() || ChatDialog.canContinue() || Modals.isOpen();
     // Why: the chest is two tiles from the door and on the other side of Kardia's wall, so a walk that counts distance reports arrival from the street and the click that follows is refused by a server that cannot path to it. `Reach.locOp` is the one that opens what stands in the way.
     const status = await Reach.locOp({
         name: 'Chest',
-        id: UP_LOC.WITCH_CHEST,
-        op: 'Open',
+        id: form.id,
+        op: form.op,
         near: UP_TILE.WITCH_CHEST,
         within: 10,
-        expect: () => heldId(UP_ITEM.DOLL.id) > 0 || Modals.isOpen(),
+        expect: prompted,
         expectMs: 20_000,
         log
     });
@@ -213,6 +223,20 @@ export async function lootWitchChest(log: (m: string) => void): Promise<boolean>
         log("could not get inside Kardia's house");
         return false;
     }
-    // Why: the doll only lands once the second `~mesbox` is dismissed, so the boxes have to be clicked away.
-    return driveThroughBoxes(() => heldId(UP_ITEM.DOLL.id) > 0, [], log, 25_000);
+    // Why: `@search_cavewitch_chest` is `~mesbox` → `p_pausebutton` → three ticks → `~mesbox` → `inv_add`, so the doll lands only once BOTH boxes have been clicked through, and the gap between them has nothing open. Pressing continue is the only thing that advances a `p_pausebutton`: `Player.closeModal` throws a script suspended on one away rather than resuming it.
+    // Why: and at any stage past `^upass_spoken_nilhoof` the second box says the doll is gone and `~chatplayer` frames follow it — no doll is coming, so the chain is driven to its end and then reported, rather than waited out.
+    let empty = false;
+    const done = (): boolean => {
+        if (ChatDialog.texts().some(text => DOLL_GONE.test(text))) {
+            empty = true;
+        }
+        return heldId(UP_ITEM.DOLL.id) > 0
+            || (empty && !ChatDialog.isOpen() && !ChatDialog.canContinue());
+    };
+    await driveThroughBoxes(done, [], log, 25_000);
+    if (heldId(UP_ITEM.DOLL.id) > 0) {
+        return true;
+    }
+    log(empty ? "Kardia's chest is empty — the doll has already been taken" : 'the chest gave up no doll');
+    return false;
 }
