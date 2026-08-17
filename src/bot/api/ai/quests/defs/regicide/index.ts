@@ -61,7 +61,8 @@ function outfit(snap: QuestSnapshot, area: RegicideArea): QuestStep | null {
     if (junk && (snap.freeSlots ?? SLOTS_NEEDED) < SLOTS_NEEDED) {
         return { kind: 'deposit', keep: [RG_ITEM.LOBSTER.name], keepIds: KEEP_IDS, bank: RG_TILE.ARDOUGNE_BANK };
     }
-    return sourceKit(snap) ?? wearGear(snap);
+    // Why: the armour goes on before the kit comes out. The kit is 25 of the pack's 28 slots — four wool, three ropes and twelve lobsters among them — and `wearGear` draws the set five pieces at a time, so sourcing first leaves three free slots and the withdraw never fits. Worn armour costs no slot at all.
+    return wearGear(snap) ?? sourceKit(snap);
 }
 
 // Why: past the Arandar palisade there is one shop and no bank, and the way back in is the Underground Pass walked end to end — so a pack short of the kit stops on the mainland and says what is missing rather than crossing and parking at a loom it has no wool for.

@@ -112,6 +112,24 @@ describe('Regicide decide()', () => {
         );
     });
 
+    // Why: the kit is 25 of the pack's 28 slots and the armour is drawn five pieces at a time, so a bank trip that takes the food first has nowhere to put the set — and `wearGear` withdraws nothing while `sourceKit` is still asking for lobsters.
+    test('the armour is drawn before the food, because the kit fills the pack', () => {
+        const step = decide(
+            snapshot({
+                stage: RG_STAGE.SPOKEN_LATHAS,
+                tile: ARDOUGNE,
+                carried: [],
+                wornNames: [],
+                banked: KIT,
+                bank: new Map([['rune scimitar', 1], ['rune chainbody', 1], ['rune platelegs', 1], ['rune full helm', 1], ['rune kiteshield', 1]])
+            })
+        );
+        expect(step.kind).toBe('withdraw');
+        const drawn = step.kind === 'withdraw' ? step.items.map(i => i.name.toLowerCase()) : [];
+        expect(drawn).toContain('rune chainbody');
+        expect(drawn).not.toContain(RG_ITEM.LOBSTER.name.toLowerCase());
+    });
+
     test('the scouts are waited for inside the forest', () => {
         expect(name(decide(snapshot({ stage: RG_STAGE.SPOKEN_LATHAS })))).toContain('elf scouts');
     });
