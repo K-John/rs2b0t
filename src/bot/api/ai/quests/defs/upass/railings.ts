@@ -128,6 +128,23 @@ async function take(step: Crossing, log: (m: string) => void): Promise<boolean> 
  * wherever it is rather than tracking an index — the six crossings are one-way and in one order.
  */
 export async function reachLooseRailings(log: (m: string) => void): Promise<boolean> {
+    // Why: a run that does not apply from here says so once. The outstanding step is the first whose
+    // landing cannot be walked to, and if its stand cannot be walked to either then the character is off
+    // the chain entirely — from the unicorn area, past its far end. Walking at it anyway is seventy-three
+    // rounds of `could not stand`, twenty-eight minutes, and no way for the caller to learn anything.
+    const outstanding: Crossing[] = [];
+    for (const step of TO_RAILINGS) {
+        if (!(await canWalkTo(step.lands))) {
+            outstanding.push(step);
+        }
+    }
+    const next = outstanding[0];
+    if (next && !(await canWalkTo(next.stand))) {
+        const me = Game.tile();
+        log(`pass: (${me?.x},${me?.z}) is not on the run to the loose railings —`
+            + ` ${outstanding.length} crossing(s) outstanding and (${next.stand.x},${next.stand.z}) for ${next.what} is not walkable from here`);
+        return false;
+    }
     for (let round = 0; round < 3; round++) {
         let outstanding = 0;
         for (const step of TO_RAILINGS) {

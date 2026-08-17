@@ -162,7 +162,11 @@ const PACK_SEED: { debugName: string; qty: number }[] = [
 
 // Why: some things in the pass are handed over by a script that only runs once, so a leg seeded past it
 // starts without them. The doll comes out of Kardia's chest and nothing else gives another.
+// Why: and stage four needs the horn. `%upass` 3 and 4 print the same journal page, so the module reads
+// the pass by what it is carrying — with no horn and no badge it cannot tell "unicorn still alive" from
+// "unicorn killed and the horn already spent", and a stage-four start goes back for a railing it used.
 const STAGE_PACK: Record<number, string[]> = {
+    4: ['cave_unicorn_horn'],
     7: ['ibandoll'],
     8: ['ibandoll'],
     9: ['ibanstaff']
