@@ -11,6 +11,7 @@ import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
 import { type SpentSides, type Stand, spendFrom, spentHere, spentStateHere } from './spent.js';
 import { MUD_CAGE, doorStands, mudCellDoor } from './doors.js';
+import { orderSeams } from './rank.js';
 import { bySideThatLands } from './stand.js';
 import { verdictSince } from './verdict.js';
 import { CAVERN_LINKS, PLATFORM_LINKS, type PlatformLink, UP_ITEM, UP_LOC, type UpassItem } from './areas.js';
@@ -63,7 +64,8 @@ const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.ROCKSLIDE, op: 'Climb-over', tries: ROLL_TRIES },
     { loc: UP_LOC.ROCK_BRIDGE, op: 'Cross', tries: ROLL_TRIES },
     // Why: the ledge is six locs in a column and each of their tiles is its own micro-pocket, so stepping from one to the next satisfies every crossing test — a run walked the column four times over, spending a hop each way. Crossing any of them is crossing the ledge.
-    { loc: UP_LOC.LEDGE, op: 'Cross', tries: ROLL_TRIES, group: 8 },
+    // Why: and `[oploc1,upass_ledge]` opens with `if(coordx(coord) < coordx(loc_coord)) { mes("You can't do that from here."); return; }`, so the only side it runs from is the east. The ring offered the three western tiles too and spent an attempt on each proving it.
+    { loc: UP_LOC.LEDGE, op: 'Cross', tries: ROLL_TRIES, group: 8, stands: at => [new Tile(at.x + 1, at.z, at.level)] },
     { loc: UP_LOC.PIPE_AREA1, op: 'Squeeze-through' },
     { loc: UP_LOC.PIPE_AREA2, op: 'Squeeze-through' },
     { loc: UP_LOC.COLLAPSED_A, op: 'Cross', tries: ROLL_TRIES },
@@ -297,13 +299,11 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[
     const gains = (loc: Loc): boolean => chebyshev(loc.tile(), dest) + MIN_GAIN <= mine;
     const open = (loc: Loc): boolean => seamReachable(loc.tile());
     // Why: a telejump is the map's own transition and not one candidate among twenty — the door that lands beside the railings sits fifty-nine tiles from them, so every gain test ranks it last and the search spends a leg's worth of bridges proving the ones that gain lead nowhere.
+    // Why: and reachability outranks gain among the rest — see `rank.ts`. Live at (2375,9644), the mud pocket's only exit is the ledge beside the character, which gains nothing by straight line, and it sat behind seven stone bridges with both sides blocked and ten cages in another cell.
+    const ordered = orderSeams(found, loc => ({ gains: gains(loc), open: open(loc) }), loc => chebyshev(loc.tile(), dest));
     return {
-        leading: [...jumps.sort(byDistance), ...found.filter(loc => gains(loc) && open(loc)).sort(byDistance)],
-        trailing: [
-            ...found.filter(loc => gains(loc) && !open(loc)).sort(byDistance),
-            ...found.filter(loc => !gains(loc) && open(loc)).sort(byDistance),
-            ...found.filter(loc => !gains(loc) && !open(loc)).sort(byDistance)
-        ],
+        leading: [...jumps.sort(byDistance), ...ordered.filter(loc => gains(loc) && open(loc))],
+        trailing: ordered.filter(loc => !(gains(loc) && open(loc))),
         filtered
     };
 }
@@ -456,6 +456,7 @@ async function tryHops(
         const standTile = stand === null ? null : new Tile(stand.x, stand.z, stand.level);
         const gone = (): boolean => !Reachability.canReach(standTile!, { adjacentOk: false, maxSteps: REACH.maxSteps });
         const settle = verdictSince(mark) === 'crossing' ? CROSS_SETTLE_MS : verdictSince(mark) === null ? QUIET_MS : 0;
+        // Why: `settle` is read before the veto below, because a crossing still in flight has to land before the stand can be judged.
         const left = standTile === null || (settle === 0 ? gone() : await Execution.delayUntil(gone, settle));
         // Why: the crossing lands during that window, so where it left the character is only known after it — and a log that stops at the last try cannot tell an approach apart from a crossing that arrived late.
         const settled = here() ?? now;
@@ -465,7 +466,9 @@ async function tryHops(
         now = settled;
         // Why: a crossing counts when the script ran, not when the straight line got shorter. The bridge out of the main cavern lands the character eighty-four tiles from the witch's cat where they were seventy-eight away, and the log said "you manage to cross safely" while this called it a failure and spent the only way on. Distance across a pocket graph is not distance.
         // Why: two tiles, because the op-click walks the player before the script resolves — a one-tile drift toward the obstacle is the approach, and reading that as a crossing burned seventy seconds a round on a cage the character never reached.
-        if (chebyshev(now, origin) < moved || !left) {
+        // Why: a failed roll can move the character without crossing anything — the ledge's own failure is `p_exactmove(coord, coord + (-1,0))` into the rat pit, one tile west into a pocket the stand cannot walk back to, which clears both the distance floor and the reachability test. The script said it fell. Nothing measured afterwards outranks that.
+        const verdict = verdictSince(mark);
+        if (verdict === 'failed' || verdict === 'refused' || chebyshev(now, origin) < moved || !left) {
             // Why: a seam that could not be stood beside is not a seam that does not work — it is one the character was in the wrong pocket for. Spending it there meant that when the route finally put them three tiles from it, the search refused to try the crossing at all.
             if (stood && stand) {
                 spendFrom(spent, key, stand);
