@@ -164,33 +164,48 @@ const STAGE_TELE: Record<number, { x: number; z: number; level: number }> = {
 
 // Why: Tirannwn has one shop and no bank, and the way back out is the Arandar palisade — a stage seeded
 // inside the forest cannot walk back for the kit the module would otherwise buy in Ardougne.
-const PACK_SEED: { debugName: string; qty: number }[] = [
-    { debugName: 'ball_of_wool', qty: 4 },
-    { debugName: 'pestle_and_mortar', qty: 1 },
-    { debugName: 'bronze_pickaxe', qty: 1 },
+// Why: armour first, and the seed sized to the pack. `give` into a full pack is silent, so the old
+// order — food before armour, thirty slots into twenty-eight — dropped the med helm and the kiteshield on
+// every seeded run from stage 3 to 13, and the level-110 halberdier was fought two pieces down with nothing
+// in the log to say so.
+const PACK_SEED: { debugName: string; qty: number; slots: number }[] = [
+    { debugName: 'rune_scimitar', qty: 1, slots: 1 },
+    { debugName: 'rune_chainbody', qty: 1, slots: 1 },
+    { debugName: 'rune_platelegs', qty: 1, slots: 1 },
+    { debugName: 'rune_med_helm', qty: 1, slots: 1 },
+    { debugName: 'rune_kiteshield', qty: 1, slots: 1 },
+    { debugName: 'ball_of_wool', qty: 4, slots: 4 },
+    { debugName: 'pestle_and_mortar', qty: 1, slots: 1 },
+    { debugName: 'bronze_pickaxe', qty: 1, slots: 1 },
     // Why: the rope swing onto the grid shelf is the pass's one item-use seam, and a stage seeded inside
     // Tirannwn still needs them for the walk back in with the bomb.
-    { debugName: 'rope', qty: 3 },
+    { debugName: 'rope', qty: 3, slots: 3 },
     // Why: the chasm before it is shot down with a fire arrow, and `upass_bridge` keeps no state — a seeded
     // start still builds the arrow on every westbound walk.
-    { debugName: 'shortbow', qty: 1 },
-    { debugName: 'bronze_arrow', qty: 50 },
-    { debugName: 'tinderbox', qty: 1 },
-    { debugName: 'spade', qty: 1 },
-    { debugName: 'lobster', qty: 12 },
-    { debugName: 'rune_scimitar', qty: 1 },
-    { debugName: 'rune_chainbody', qty: 1 },
-    { debugName: 'rune_platelegs', qty: 1 },
-    { debugName: 'rune_med_helm', qty: 1 },
-    { debugName: 'rune_kiteshield', qty: 1 }
+    { debugName: 'shortbow', qty: 1, slots: 1 },
+    { debugName: 'bronze_arrow', qty: 50, slots: 1 },
+    { debugName: 'tinderbox', qty: 1, slots: 1 },
+    { debugName: 'spade', qty: 1, slots: 1 },
+    // Why: ten rather than the module's float of twelve, because five worn pieces have to fit alongside the
+    // kit before the bot has had a tick to put any of them on.
+    { debugName: 'lobster', qty: 10, slots: 10 }
 ];
 
+const PACK_SLOTS = PACK_SEED.reduce((n, item) => n + item.slots, 0);
+
 async function seedPack(page: Page): Promise<void> {
+    if (PACK_SLOTS > 28) {
+        fail(`pack seed wants ${PACK_SLOTS} slots and the pack holds 28 — trim it rather than letting give drop the tail`);
+    }
     for (const { debugName, qty } of PACK_SEED) {
         await cheatQuiet(page, `give ${debugName} ${qty}`);
     }
     await clearChatDialogs(page, 'pack-seed dialog(s)');
-    console.log(`pack seeded with ${PACK_SEED.length} item type(s) for a start inside Tirannwn`);
+    const held = (await snapshot(page)).packIds.length;
+    if (held !== PACK_SLOTS) {
+        fail(`pack seed wanted ${PACK_SLOTS} slots and the pack holds ${held} — a give was refused, so the run would start short of its kit`);
+    }
+    console.log(`pack seeded with ${PACK_SEED.length} item type(s) in ${PACK_SLOTS} slots for a start inside Tirannwn`);
 }
 
 async function setStats(page: Page, level: number): Promise<void> {
