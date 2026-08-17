@@ -309,8 +309,11 @@ try {
         fail(`Biohazard reads ${gates.biohazard} after the seed — the prerequisite gate will block the queue`);
     }
 
-    // Why: stage 2 is the first that begins underground — past the cave mouth there is no bank to draw from.
-    if (args.stage >= 2) {
+    // Why: stage ONE, not two. `STAGE_TELE[1]` is the cave mouth at (2436,3315), which is inside West
+    // Ardougne and already past the bank — so a stage-1 start cannot draw the kit and `readyToDescend`
+    // parks the queue on an empty pack, which reads as a broken leg rather than a fixture that never
+    // handed it anything. Only stage 0 begins where a bank is reachable.
+    if (args.stage >= 1) {
         await seedPack(page, args.stage);
     }
 

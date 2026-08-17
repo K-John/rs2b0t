@@ -1,15 +1,16 @@
 import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
+import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Navigator } from '../../../../../event/webwalk/Navigator.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
 import { settleScene } from '../../exec/prompts.js';
-import { UP_LOC } from './areas.js';
+import { UP_ITEM, UP_LOC } from './areas.js';
 import { verdictSince } from './verdict.js';
 
-// Why: the way from the mud pocket to the loose railings is four crossings and it never varies. A search over it offered five ledge locs whose stand is in another pocket, two telejumps twenty-one tiles the wrong way, seven walled stone bridges and ten cages in another cell — and reported a cage thirty tiles off as crossed. Spelled out, there is nothing to choose.
+// Why: the way from the well's corridor down to the loose railings is six crossings and it never varies. A search over it offered five ledge locs whose stand is in another pocket, two telejumps twenty-one tiles the wrong way, seven walled stone bridges and ten cages in another cell — and reported a cage thirty tiles off as crossed. Spelled out, there is nothing to choose.
 
 /** One crossing of the run: walk the stand, send the op at THAT loc, arrive on `lands`. */
 interface Crossing {
@@ -24,10 +25,26 @@ interface Crossing {
     op: string;
     /** Where the crossing puts the character — and the guard that says it has already happened. */
     lands: Tile;
+    /** The item to use on the loc, where the crossing is a use rather than an op. */
+    item?: { id: number; name: string };
 }
 
 // Why: `at` is carried because the ledge is six locs in a column and the two nearest the stand are BOTH chebyshev one from it — `nearest()` picks whichever, and the wrong one answers "I can't reach that!" without the script ever running.
 export const TO_RAILINGS: readonly Crossing[] = [
+    // Why: the run starts in the CORRIDOR, where the well drops the character — not in the mud pocket. The
+    // cage and the dig are the first two crossings of the same chain, and leaving them to a search is what
+    // had a leg standing in the corridor trying to reach a ledge two crossings away, a hundred and five
+    // times over.
+    {
+        what: 'the cage into the mud cell',
+        stand: new Tile(2393, 9655, 0), at: new Tile(2393, 9655, 0),
+        loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', lands: new Tile(2393, 9654, 0)
+    },
+    {
+        what: 'the spade dig south out of the cells',
+        stand: new Tile(2393, 9651, 0), at: new Tile(2393, 9650, 0),
+        loc: UP_LOC.MUD_DIG, op: 'Dig', item: UP_ITEM.SPADE, lands: new Tile(2392, 9646, 0)
+    },
     {
         what: 'the ledge south out of the mud pocket',
         stand: new Tile(2375, 9644, 0), at: new Tile(2374, 9644, 0),
@@ -71,17 +88,20 @@ async function take(step: Crossing, log: (m: string) => void): Promise<boolean> 
     }
     // Why: by its own tile, not by `nearest()`. Both (2374,9644) and (2374,9643) are one tile from the
     // stand, and only the first of them can be crossed from there.
-    const loc = Locs.query()
-        .where(l => l.id === step.loc && l.tile().x === step.at.x && l.tile().z === step.at.z)
-        .action(step.op)
-        .nearest();
+    const named = Locs.query()
+        .where(l => l.id === step.loc && l.tile().x === step.at.x && l.tile().z === step.at.z);
+    const loc = (step.item === undefined ? named.action(step.op) : named).nearest();
     if (!loc) {
         log(`pass: ${step.loc} is not at (${step.at.x},${step.at.z}) from (${Game.tile()?.x},${Game.tile()?.z})`);
         return false;
     }
     const mark = GameMessages.mark();
-    if (!(await loc.interact(step.op))) {
-        log(`pass: '${step.op}' would not send at ${step.what}`);
+    // Why: `[oplocu,upass_mud]` carries no op the client can send — the crossing is a spade used on it.
+    const sent = step.item === undefined
+        ? await loc.interact(step.op)
+        : await (Inventory.items().find(inv => inv.id === step.item!.id)?.useOn(loc) ?? false);
+    if (!sent) {
+        log(`pass: ${step.item ? `the ${step.item.name}` : `'${step.op}'`} would not send at ${step.what}`);
         return false;
     }
     await Execution.delayUntil(() => verdictSince(mark) !== null, QUIET_MS);
@@ -103,9 +123,9 @@ async function take(step: Crossing, log: (m: string) => void): Promise<boolean> 
 }
 
 /**
- * Walk the mud pocket down to the loose railings, one named crossing at a time.
+ * Walk the cage corridor down to the loose railings, one named crossing at a time.
  * Why: a step whose landing the character can already walk to has happened, so the run resumes from
- * wherever it is rather than tracking an index — the four crossings are one-way and in one order.
+ * wherever it is rather than tracking an index — the six crossings are one-way and in one order.
  */
 export async function reachLooseRailings(log: (m: string) => void): Promise<boolean> {
     for (let round = 0; round < 3; round++) {
