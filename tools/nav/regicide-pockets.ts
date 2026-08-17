@@ -1,12 +1,8 @@
-/** The seam graph of Tirannwn, and the routes it admits between Regicide's landmarks.
- *  Why: a component report over the quest's own anchors answers FAIL for every pair inside Tirannwn — the
- *  forest is two dozen sealed pockets whose only joins are scripted crossings the collision pack marks
- *  blocked. This derives that graph from the map so a leg is written against measured connectivity.
- *  Why: a seam is found by which pockets stand around the crossing loc, never by re-deriving the script's
- *  own forcemove arithmetic — the tripwires and pitfalls each land the player a different distance out, and
- *  guessing that produced a graph with four dead ends in it.
- *  Why: the dense-forest crossings are refused until `%regicide_quest >= ^regicide_spoken_tracker2`, so the
- *  routes are printed twice — once for the early quest, once for the rest of it. */
+/** The seam graph of Tirannwn, and the routes it admits between Regicide's landmarks. */
+
+// Why: a component report over the quest's own anchors answers FAIL for every pair inside Tirannwn — the forest is two dozen sealed pockets whose only joins are scripted crossings the collision pack marks blocked. This derives that graph from the map so a leg is written against measured connectivity.
+// Why: a seam is found by which pockets stand around the crossing loc, never by re-deriving the script's own forcemove arithmetic — the tripwires and pitfalls each land the player a different distance out, and guessing that produced a graph with four dead ends in it.
+// Why: the dense-forest crossings are refused until `%regicide_quest >= ^regicide_spoken_tracker2`, so the routes are printed twice — once for the early quest, once for the rest of it.
 
 //   bun tools/nav/regicide-pockets.ts            # report
 //   bun tools/nav/regicide-pockets.ts --bake     # rewrite src/bot/api/ai/quests/defs/regicide/seams.ts
@@ -33,8 +29,7 @@ loadDefaultNavEdges(finder);
 
 /** Every tile the quest stands on, so a discovered pocket gets a name that means something. */
 const LANDMARKS: [string, NavPoint][] = [
-    // Why: the Arandar palisade is the only join between Tirannwn and the rest of the map, and it is not in
-    // doors.json — the two sides are separate components to the navigator, so both get a name.
+    // Why: the Arandar palisade is the only join between Tirannwn and the rest of the map, and it is not in doors.json — the two sides are separate components to the navigator, so both get a name.
     ['ardougne', { x: 2384, z: 3337, level: 0 }],
     ['arandar', { x: 2384, z: 3331, level: 0 }],
     ['isafdar-entry', { x: 2313, z: 3215, level: 0 }],
@@ -48,10 +43,7 @@ const LANDMARKS: [string, NavPoint][] = [
     ['tyras-camp', { x: 2188, z: 3162, level: 0 }]
 ];
 
-// Why: a pocket is what can be WALKED, never what a pathfind can reach. An offline `findPath` crosses every
-// baked door, stair and shortcut edge with no world state to gate them, so labelling by one merged the two
-// sides of the Arandar palisade into a single pocket — and the live walker, which does apply those gates,
-// answered "no path to (2384,3333): unreachable" on the way out of the forest.
+// Why: a pocket is what can be WALKED, never what a pathfind can reach. An offline `findPath` crosses every baked door, stair and shortcut edge with no world state to gate them, so labelling by one merged the two sides of the Arandar palisade into a single pocket — and the live walker, which does apply those gates, answered "no path to (2384,3333): unreachable" on the way out of the forest.
 const STEP_DIRS = [
     [0, 1, 0x1],
     [1, 0, 0x2],
@@ -84,23 +76,12 @@ function flood(seed: NavPoint): Set<number> {
     return seen;
 }
 
-// Why: a pocket is what the WALKER can reach, which is more than plain walking — it opens ordinary doors and
-// takes ordinary shortcuts — and less than an offline pathfind, which has no world state to gate anything
-// with. So the test is a pathfind that refuses the quest's own crossings: those are what the module takes by
-// hand, and a labeller that walked them merged the two sides of the Arandar palisade into one pocket. The
-// live walker then answered "no path to (2384,3333): unreachable" on the way out of the forest.
-// Why: the log balances are the only crossing `derive-transports` bakes as an edge of its own, and the live
-// walker refuses them — so an offline pathfind that takes one merges two pockets the module has to cross by
-// hand, which is how the walk out of the forest ended at "no path to (2384,3333): unreachable". Everything
-// else the pathfinder can do here, the walker can do too.
+// Why: a pocket is what the WALKER can reach, which is more than plain walking — it opens ordinary doors and takes ordinary shortcuts — and less than an offline pathfind, which has no world state to gate anything with. So the test is a pathfind that refuses the quest's own crossings: those are what the module takes by hand, and a labeller that walked them merged the two sides of the Arandar palisade into one pocket. The live walker then answered "no path to (2384,3333): unreachable" on the way out of the forest.
+// Why: the log balances are the only crossing `derive-transports` bakes as an edge of its own, and the live walker refuses them — so an offline pathfind that takes one merges two pockets the module has to cross by hand, which is how the walk out of the forest ended at "no path to (2384,3333): unreachable". Everything else the pathfinder can do here, the walker can do too.
 const components: { name: string; rep: NavPoint; tiles: Set<number> }[] = [];
 const cache = new Map<number, string | null>();
 
-// Why: the Arandar palisade is the one crossing in this quest the offline pathfinder walks straight over —
-// it is not in `doors.json`, so the search steps across the gate's tile as if it were open ground, and the
-// two sides come back as one pocket. The live walker knows better, and answered "no path to (2384,3333):
-// unreachable" on the way out of the forest. Both sides are therefore pinned by a walk-only flood, which
-// the palisade does block, and never matched by the pathfind below.
+// Why: the Arandar palisade is the one crossing in this quest the offline pathfinder walks straight over — it is not in `doors.json`, so the search steps across the gate's tile as if it were open ground, and the two sides come back as one pocket. The live walker knows better, and answered "no path to (2384,3333): unreachable" on the way out of the forest. Both sides are therefore pinned by a walk-only flood, which the palisade does block, and never matched by the pathfind below.
 const PINNED = ['arandar', 'ardougne'];
 
 function pinPalisade(): void {
@@ -175,10 +156,7 @@ interface Seam {
     directed?: boolean;
 }
 
-// Why: a pitfall's four `_side` locs and a log balance's two `_start` locs are each usable from one side
-// only. `regicide_jump_pitfall` stages the player one tile off the loc AWAY from the player, so clicking
-// the far loc from the near bank stages them inside the pit and the trap timer drops them in before the
-// jump runs — which is what three consecutive falls into the same pit looked like on the first live run.
+// Why: a pitfall's four `_side` locs and a log balance's two `_start` locs are each usable from one side only. `regicide_jump_pitfall` stages the player one tile off the loc AWAY from the player, so clicking the far loc from the near bank stages them inside the pit and the trap timer drops them in before the jump runs — which is what three consecutive falls into the same pit looked like on the first live run.
 const DIRECTED = new Set(['pit', 'log']);
 
 const at = (x: number, z: number): NavPoint => ({ x, z, level: 0 });
@@ -192,9 +170,7 @@ function pitMid(x: number, z: number): NavPoint | null {
     return PIT_MIDS.find(mid => Math.abs(mid.x - x) + Math.abs(mid.z - z) === 1) ?? null;
 }
 
-// Why: the far plank of a log balance is walkable and goes nowhere — one tile with an exit onto the log and
-// none onto the bank. A stand has to be ground something can walk off, or the two ends of the same crossing
-// come back as two different pockets and the route only plans one way round.
+// Why: the far plank of a log balance is walkable and goes nowhere — one tile with an exit onto the log and none onto the bank. A stand has to be ground something can walk off, or the two ends of the same crossing come back as two different pockets and the route only plans one way round.
 const MIN_STAND_TILES = 4;
 
 /** The first tile the pack calls walkable AND walkable off, starting where told and stepping outwards. */
@@ -210,10 +186,7 @@ function firstWalkable(x: number, z: number, dx: number, dz: number, tries = 4):
 
 /**
  * The two tiles a crossing joins, read off the script that performs it.
- * Why: derived rather than searched. A ring search around the loc is simpler and wrong here — the three
- * dense-forest crossings west of the elf camp sit three tiles apart, so any ring wide enough to reach a
- * pitfall's landing tile also reaches past the neighbouring crossing and claims one seam does the work of
- * three.
+ * Why: derived rather than searched. A ring search around the loc is simpler and wrong here — the three dense-forest crossings west of the elf camp sit three tiles apart, so any ring wide enough to reach a pitfall's landing tile also reaches past the neighbouring crossing and claims one seam does the work of three.
  */
 function sidesOf(locId: number, x: number, z: number, angle: number, name: string): [NavPoint, NavPoint] | null {
     const acrossX = angle === 1 || angle === 3;
@@ -223,12 +196,7 @@ function sidesOf(locId: number, x: number, z: number, angle: number, name: strin
     }
     if (name.startsWith('regicide_logbalance')) {
         // `regicide_logbalance`: loc_coord, then ±1, then ±2, then ±2 — five tiles out, away from the centre.
-        // Why: the log spans a chasm, so its own tile and the one it lands on are both unwalkable to the
-        // pack even though the loc does not block — the banks either side are what a leg can stand on, and
-        // they are found by scanning outwards rather than assumed to be at a fixed offset.
-        // Why: the far end is the OTHER start loc's own bank, not a fixed offset — the tile the forcemove
-        // chain lands on is the far plank, which the pack reads as a one-tile island, and taking it for the
-        // stand gave the two ends of one log two different pockets and a route that only planned one way.
+        // Why: the log spans a chasm, so its own tile and the one it lands on are both unwalkable to the pack even though the loc does not block, and the far end is the OTHER start loc's own bank rather than a fixed offset — the tile the forcemove chain lands on is the far plank, which the pack reads as a one-tile island. So the banks either side are found by scanning outwards; taking the plank for the stand gave the two ends of one log two different pockets and a route that only planned one way.
         const horizontal = name !== 'regicide_logbalance3_start';
         const centre = name === 'regicide_logbalance1_start' ? 2200 : 2261;
         const forward = horizontal ? (x < centre ? 1 : -1) : (z < 3235 ? 1 : -1);
@@ -245,9 +213,7 @@ function sidesOf(locId: number, x: number, z: number, angle: number, name: strin
         return near && far ? [near, far] : null;
     }
     if (name === 'regicide_pitfall_side') {
-        // `regicide_jump_pitfall`: staged one tile off the side loc on the player's own side, and landed
-        // three past it. Which side that is comes from where the loc sits around its pit, not from its
-        // angle — a side loc is only ever taken from the bank it faces.
+        // `regicide_jump_pitfall`: staged one tile off the side loc on the player's own side, and landed three past it. Which side that is comes from where the loc sits around its pit, not from its angle — a side loc is only ever taken from the bank it faces.
         const mid = pitMid(x, z);
         if (mid === null) {
             return null;
@@ -400,9 +366,10 @@ for (const forests of [false, true]) {
     }
 }
 
-/** One pocket's tiles as `[z, xStart, xEnd]` runs.
- *  Why: the module has to answer "which pocket am I in" from a tile alone, and the client's own reachability
- *  probe only sees the loaded scene — a pocket ninety tiles across does not fit in it. */
+/**
+ * One pocket's tiles as `[z, xStart, xEnd]` runs.
+ * Why: the module has to answer "which pocket am I in" from a tile alone, and the client's own reachability probe only sees the loaded scene — a pocket ninety tiles across does not fit in it.
+ */
 function spansOf(tiles: Set<number>): [number, number, number][] {
     const rows = new Map<number, number[]>();
     for (const key of tiles) {
@@ -435,10 +402,8 @@ if (BAKE) {
         .map(s => `    { kind: '${s.kind}', loc: '${s.loc}', locId: ${s.locId}, op: '${s.op}', x: ${s.x}, z: ${s.z}${s.directed ? ', directed: true' : ''}, sides: [${s.sides
             .map(side => `{ pocket: '${side.pocket}', stand: { x: ${side.stand.x}, z: ${side.stand.z} } }`)
             .join(', ')}] }`);
-    // Why: only the pockets a seam touches, since a pocket with no crossing out of it is somewhere this
-    // quest can neither reach nor leave.
-    // Why: and never `ardougne`, which is the rest of the map — the navigator owns that side of the
-    // palisade, and flooding it would bake a quarter of a million tiles into the module.
+    // Why: only the pockets a seam touches, since a pocket with no crossing out of it is somewhere this quest can neither reach nor leave.
+    // Why: and never `ardougne`, which is the rest of the map — the navigator owns that side of the palisade, and flooding it would bake a quarter of a million tiles into the module.
     const reached = new Set(seams.flatMap(s => s.sides.map(side => side.pocket)));
     const pocketRows = components
         .filter(c => reached.has(c.name) && c.name !== 'ardougne')

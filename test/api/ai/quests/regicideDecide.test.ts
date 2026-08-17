@@ -81,8 +81,7 @@ describe('Regicide decide()', () => {
         expect(name(decide(snapshot({ stage: RG_STAGE.SPOKEN_LATHAS, tile: PASS })))).toContain('Underground Pass');
     });
 
-    // Why: `upass_bridge` writes no permanent state and its lever only sends the player east, so a finished
-    // Underground Pass still owes a fire arrow on every westbound walk — a pack without one crosses nothing.
+    // Why: `upass_bridge` writes no permanent state and its lever only sends the player east, so a finished Underground Pass still owes a fire arrow on every westbound walk — a pack without one crosses nothing.
     const BRIDGE_KIT = [RG_ITEM.SHORTBOW, RG_ITEM.BRONZE_ARROW, RG_ITEM.TINDERBOX, RG_ITEM.SPADE] as const;
 
     for (const item of BRIDGE_KIT) {
@@ -99,9 +98,7 @@ describe('Regicide decide()', () => {
         expect(step.kind === 'wait' && step.reason).toContain('melee weapon');
     });
 
-    // Why: the gate is re-asked every cycle and the pass is walked with the pack in hand, so anything keyed
-    // on the full float blocks the moment the pass spends some of it — the run parked at the bridge's west
-    // foot, across the chasm, on "have 49" of fifty arrows.
+    // Why: the gate is re-asked every cycle and the pass is walked with the pack in hand, so anything keyed on the full float blocks the moment the pass spends some of it — the run parked at the bridge's west foot, across the chasm, on "have 49" of fifty arrows.
     const SPENT: [string, [number, number]][] = [
         ['an arrow on the guide-rope shot', [RG_ITEM.BRONZE_ARROW.id, ARROW_TARGET - 1]],
         ['a rope on the rock swing', [RG_ITEM.ROPE.id, 1]],
@@ -142,8 +139,7 @@ describe('Regicide bomb chain', () => {
         expect(name(atStage([]))).toContain('weave');
     });
 
-    // Why: the pot is taken while the loom is still in sight, because the elf camp is four crossings from
-    // the swamp and eight from the palisade — going back for it is the forest crossed twice over.
+    // Why: the pot is taken while the loom is still in sight, because the elf camp is four crossings from the swamp and eight from the palisade — going back for it is the forest crossed twice over.
     test('the pot is taken while the pack is still in the elf camp', () => {
         expect(name(atStage([RG_ITEM.CLOTH.id]))).toContain('pot');
     });
@@ -186,8 +182,7 @@ describe('Regicide bomb chain', () => {
         expect(name(step)).toContain('Arandar');
     });
 
-    // Why: the mainland half is keyed on the same pack, so the same snapshot with a mainland tile has to
-    // pick up where the forest left off.
+    // Why: the mainland half is keyed on the same pack, so the same snapshot with a mainland tile has to pick up where the forest left off.
     const onMainland = (carried: Stack[]): QuestStep =>
         decide(snapshot({ stage: RG_STAGE.SPOKEN_IORWERTH2, tile: ARDOUGNE, carried: [...KIT, ...carried] }));
 
@@ -236,8 +231,7 @@ describe('Regicide bomb chain', () => {
         expect(name(onMainland([RG_ITEM.BARREL_FUSED.id, RG_ITEM.COOKED_RABBIT.id]))).toContain('Underground Pass');
     });
 
-    // Why: `regicide_cross_over3` clears the given-rabbit bit inside mapsquare 34_49, which the walk to the
-    // catapult crosses — so the guard is fed after arriving, and never before setting out.
+    // Why: `regicide_cross_over3` clears the given-rabbit bit inside mapsquare 34_49, which the walk to the catapult crosses — so the guard is fed after arriving, and never before setting out.
     test('the guard is fed after the bomb is back in the forest', () => {
         expect(name(atStage([RG_ITEM.BARREL_FUSED.id, RG_ITEM.COOKED_RABBIT.id]))).toContain('catapult guard');
     });

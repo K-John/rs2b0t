@@ -60,8 +60,7 @@ export async function takePot(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => heldId(RG_ITEM.POT.id) > before, 10_000);
 }
 
-// Why: `[oplocu,regicide_loom]` takes the wool four at a time and answers "You don't have enough of that
-// item" for anything less, so the weave is one action rather than a loop.
+// Why: `[oplocu,regicide_loom]` takes the wool four at a time and answers "You don't have enough of that item" for anything less, so the weave is one action rather than a loop.
 
 /** Four balls of wool woven into the strip of cloth that becomes the fuse. */
 export async function weaveCloth(log: (m: string) => void): Promise<boolean> {
@@ -95,9 +94,7 @@ export async function takeSulphur(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => heldId(RG_ITEM.SULPHUR.id) > before, 10_000);
 }
 
-// Why: `[opheldu,regicide_sulphar]` and `[opheldu,regicide_quicklime]` are declared on the lump, so the
-// pestle is the item used and the lump the target. The client cannot tell which way round a pair was
-// declared, so a refusal is answered by sending the other direction rather than by retrying the same one.
+// Why: `[opheldu,regicide_sulphar]` and `[opheldu,regicide_quicklime]` are declared on the lump, so the pestle is the item used and the lump the target. The client cannot tell which way round a pair was declared, so a refusal is answered by sending the other direction rather than by retrying the same one.
 
 async function grind(fromId: number, toId: number, log: (m: string) => void): Promise<boolean> {
     const pestle = Inventory.items().find(item => item.id === RG_ITEM.PESTLE.id);
@@ -126,9 +123,7 @@ export function grindQuicklime(log: (m: string) => void): Promise<boolean> {
     return grind(RG_ITEM.QUICKLIME.id, RG_ITEM.QUICKLIME_DUST.id, log);
 }
 
-// Why: `regicide_heat_quicklime` is reached through the generic `use_furnace` switch, so any furnace does.
-// The camp has one, but reaching it is six crossings deeper into the forest and six back — East Ardougne's
-// is sixty tiles from the bank the run passes through anyway on its way to the still.
+// Why: `regicide_heat_quicklime` is reached through the generic `use_furnace` switch, so any furnace does. The camp has one, but reaching it is six crossings deeper into the forest and six back — East Ardougne's is sixty tiles from the bank the run passes through anyway on its way to the still.
 // Why: it costs 8 damage without gloves (`inv_totalcat(worn, armour_hands)`), which the food float covers.
 
 /** Limestone burned to quicklime at the East Ardougne furnace. */
@@ -164,8 +159,7 @@ export async function catchRabbit(log: (m: string) => void): Promise<boolean> {
         log('no rabbit in the forest clearing');
         return false;
     }
-    // Why: `~npc_death` drops the meat on the floor rather than into the pack, so the kill and the pickup
-    // are two steps — and the drop lands under the rabbit, not under the player.
+    // Why: `~npc_death` drops the meat on the floor rather than into the pack, so the kill and the pickup are two steps — and the drop lands under the rabbit, not under the player.
     if (await driveUntil(() => heldId(RG_ITEM.RAW_RABBIT.id) > 0, [], log, 60_000)) {
         return true;
     }
@@ -196,17 +190,11 @@ export async function cookRabbit(log: (m: string) => void): Promise<boolean> {
 /** The plain `range` loc — the nearest one to the bank is a dozen tiles from it. */
 const RANGE_LOC = 2728;
 
-// ---------------------------------------------------------------------------
 // The fractionalising still
-// ---------------------------------------------------------------------------
 
-// Why: `%regicide_still_total` and `%regicide_still_settings` are the two varps in this quest with
-// `transmit=yes`, so the still is the one part of it the bot can read directly. `%temp` is not among them,
-// which is why the control law reads the heat needle rather than the temperature.
+// Why: `%regicide_still_total` and `%regicide_still_settings` are the two varps in this quest with `transmit=yes`, so the still is the one part of it the bot can read directly. `%temp` is not among them, which is why the control law reads the heat needle rather than the temperature.
 
-// Why: resolved by the label the client puts in its own menu, not by the id in `interface.pack`. The packed
-// ids are the server's, and pressing one the client does not agree with is silent — the first live run sent
-// `com_130` six hundred times and the pressure valve never moved off bit 26.
+// Why: resolved by the label the client puts in its own menu, not by the id in `interface.pack`. The packed ids are the server's, and pressing one the client does not agree with is silent — the first live run sent `com_130` six hundred times and the pressure valve never moved off bit 26.
 const STILL_LABELS = {
     valveShut: 'Turn pressure valve down',
     valveOpen: 'Turn pressure valve up',
@@ -229,14 +217,10 @@ const VARP_STILL_TOTAL = 330;
 const VARP_STILL_SETTINGS = 331;
 /** `if_close` hands over the naphtha at this tally. */
 const STILL_TARGET = 26;
-// Why: the tar regulator at full flow is +2 pressure a tick and the valve one step open is -2, which is the
-// only pairing that holds the gauge still — shut is +2 a tick and blows in six, wide open falls to zero and
-// the regulator has to come back down.
+// Why: the tar regulator at full flow is +2 pressure a tick and the valve one step open is -2, which is the only pairing that holds the gauge still — shut is +2 a tick and blows in six, wide open falls to zero and the regulator has to come back down.
 const VALVE_HOLD = 1;
 const REGULATOR_FULL = 2;
-// Why: the needle climbs one step a tick while `%temp` is 51-79 and three while it is over 80, and passing
-// bit 25 resets the tally to zero. Coal at six or below therefore peaks at nine, two clear of the ceiling, and
-// the four-tick gap is what stops two lumps landing inside one softtimer period and stacking the jump.
+// Why: the needle climbs one step a tick while `%temp` is 51-79 and three while it is over 80, and passing bit 25 resets the tally to zero. Coal at six or below therefore peaks at nine, two clear of the ceiling, and the four-tick gap is what stops two lumps landing inside one softtimer period and stacking the jump.
 const COAL_BELOW = 6;
 const COAL_GAP_TICKS = 4;
 /** Green zone for the progress check — heat needle bits 19 to 24. */
@@ -337,16 +321,14 @@ export async function distilNaphtha(log: (m: string) => void): Promise<boolean> 
             }
             actions.ifButton(comId);
         }
-        // Why: the gauges are the only feedback this has, and a run that makes no progress is
-        // indistinguishable from a run that never opened without them.
+        // Why: the gauges are the only feedback this has, and a run that makes no progress is indistinguishable from a run that never opened without them.
         if (tick % STILL_TRACE_TICKS === 0) {
             log(`still: total ${view.total}/${STILL_TARGET} heat ${view.heat} valve ${view.valve} reg ${view.regulator} → button ${button}`);
         }
         await Execution.delayTicks(1);
     }
     const finished = readStill().total >= STILL_TARGET;
-    // Why: `[if_close,regicide_still]` is what swaps the empty barrel for the naphtha — the tally alone
-    // hands over nothing, so the run is only finished once the interface has been shut.
+    // Why: `[if_close,regicide_still]` is what swaps the empty barrel for the naphtha — the tally alone hands over nothing, so the run is only finished once the interface has been shut.
     if (!(await closeStill())) {
         log('the still interface would not close');
         return false;
@@ -362,8 +344,7 @@ async function closeStill(): Promise<boolean> {
     if (await Modals.close()) {
         return true;
     }
-    // Why: the generic close is a CLOSE_BUTTON menu action, and this root's own shut is `com_89` —
-    // `[if_button,regicide_still:com_89] if_close`.
+    // Why: the generic close is a CLOSE_BUTTON menu action, and this root's own shut is `com_89` — `[if_button,regicide_still:com_89] if_close`.
     const close = stillButtonId('close');
     if (close !== -1) {
         actions.ifButton(close);
@@ -371,8 +352,7 @@ async function closeStill(): Promise<boolean> {
     return Execution.delayUntil(() => reader.modals().main !== STILL_ROOT, 5_000);
 }
 
-// Why: the two powders go into the naphtha in either order and the barrel seals itself on the second, so
-// this is one step that pours whichever it still has rather than two that have to be sequenced.
+// Why: the two powders go into the naphtha in either order and the barrel seals itself on the second, so this is one step that pours whichever it still has rather than two that have to be sequenced.
 
 /** Both powders into the naphtha, which seals the barrel into a bomb. */
 export async function mixBomb(log: (m: string) => void): Promise<boolean> {
@@ -389,8 +369,7 @@ export async function mixBomb(log: (m: string) => void): Promise<boolean> {
             return false;
         }
         if (!powder) {
-            // Why: the barrel seals on the SECOND powder, so a pack with one of them retries this step
-            // forever without saying which one the forest still owes.
+            // Why: the barrel seals on the SECOND powder, so a pack with one of them retries this step forever without saying which one the forest still owes.
             log(`no ${dust.name} to mix in — the bomb needs both powders`);
             return false;
         }

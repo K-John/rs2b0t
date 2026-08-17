@@ -3,8 +3,7 @@ import { Execution } from '../../../../execution/Execution.js';
 import { Quests } from '../../../../ui/questlog/Quests.js';
 import type { QuestProgress } from '../../engine/types.js';
 
-// Why: these are the `%regicide_quest` values themselves, so `--stage N` in the harness and the number the
-// module decides on are the same scale.
+// Why: these are the `%regicide_quest` values themselves, so `--stage N` in the harness and the number the module decides on are the same scale.
 export const RG_STAGE = {
     NOT_STARTED: 0,
     RECEIVED_MESSAGE: 1,
@@ -42,8 +41,7 @@ function normalize(lines: readonly string[] | string): string {
         .toLowerCase();
 }
 
-// Why: the journal is strictly additive — every stage keeps the earlier lines and appends its own — so the
-// deepest matching line wins and the list is ordered from the end of the quest backwards.
+// Why: the journal is strictly additive — every stage keeps the earlier lines and appends its own — so the deepest matching line wins and the list is ordered from the end of the quest backwards.
 const STAGE_LINES: readonly [string, number][] = [
     ['quest complete!', RG_STAGE.COMPLETE],
     ['when returning home i met an elf', RG_STAGE.SPOKEN_ARIANWYN],
@@ -62,8 +60,7 @@ const STAGE_LINES: readonly [string, number][] = [
     ['asked me to re-enter the underground', RG_STAGE.SPOKEN_LATHAS],
     ['a courier has given me a message', RG_STAGE.RECEIVED_MESSAGE],
     ['will send word when i can start', RG_STAGE.NOT_STARTED],
-    // Why: Underground Pass opens its own scroll with "I can start this quest by speaking to King Lathas"
-    // as well, and only the castle names this one — a looser needle reads any quest's scroll as Regicide's.
+    // Why: Underground Pass opens its own scroll with "I can start this quest by speaking to King Lathas" as well, and only the castle names this one — a looser needle reads any quest's scroll as Regicide's.
     ['king lathas in ardougne castle', RG_STAGE.NOT_STARTED]
 ];
 
@@ -74,8 +71,7 @@ const FLAG_LINES: readonly [string, string][] = [
 
 /**
  * Stage plus sub-progress from the journal text.
- * Why: `%regicide_quest` and `%regicide_bits` are both `scope=perm` with no `transmit`, so the journal
- * scroll is the only client-visible record of either.
+ * Why: `%regicide_quest` and `%regicide_bits` are both `scope=perm` with no `transmit`, so the journal scroll is the only client-visible record of either.
  */
 export function parseRegicideJournal(lines: readonly string[] | string): QuestProgress | undefined {
     const text = normalize(lines);

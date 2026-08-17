@@ -12,9 +12,7 @@ import { RG_ITEM, RG_LOC, RG_NPC, RG_TILE } from './areas.js';
 import { RG_STAGE } from './journal.js';
 import { walkTo } from './isafdar.js';
 
-// Why: `[zone,0_40_51_24_32]` — Arianwyn steps out of the trees at (2584,3296) on the road to Ardougne
-// castle, and only while the message is in the pack. The walk to King Lathas passes through it either way,
-// but the stop is explicit so a run that took another line into the castle is not left short a stage.
+// Why: `[zone,0_40_51_24_32]` — Arianwyn steps out of the trees at (2584,3296) on the road to Ardougne castle, and only while the message is in the pack. The walk to King Lathas passes through it either way, but the stop is explicit so a run that took another line into the castle is not left short a stage.
 const ARIANWYN_ZONE = new Tile(2586, 3299, 0);
 
 /** The cooked rabbit that gets the catapult's guard to look the other way. */
@@ -36,9 +34,7 @@ export async function feedLazyGuard(log: (m: string) => void): Promise<boolean> 
     return driveUntil(() => heldId(RG_ITEM.COOKED_RABBIT.id) === 0, [], log, 30_000);
 }
 
-// Why: the firing is a two-minute cutscene — the player is walked round the catapult, teleported into an
-// instanced copy of the camp to watch the tent burn, and put back at (2183,3185) — so the oracle is the
-// bomb leaving the pack, not the tile or the dialogue.
+// Why: the firing is a two-minute cutscene — the player is walked round the catapult, teleported into an instanced copy of the camp to watch the tent burn, and put back at (2183,3185) — so the oracle is the bomb leaving the pack, not the tile or the dialogue.
 
 /** The barrel bomb loaded and fired over the trees into King Tyras's tent. */
 export async function fireCatapult(log: (m: string) => void): Promise<boolean> {
@@ -59,8 +55,7 @@ export async function fireCatapult(log: (m: string) => void): Promise<boolean> {
         log('the catapult would not take the bomb');
         return false;
     }
-    // Why: the cutscene teleports twice and ends with a three-tick animation lock, so the next leg waits
-    // for the player to be back on the forest floor rather than starting mid-flight.
+    // Why: the cutscene teleports twice and ends with a three-tick animation lock, so the next leg waits for the player to be back on the forest floor rather than starting mid-flight.
     return Execution.delayUntil(() => (Game.tile()?.z ?? 9999) < 4000, 60_000);
 }
 
@@ -89,9 +84,7 @@ export async function meetArianwyn(log: (m: string) => void): Promise<boolean> {
             return false;
         }
     }
-    // Why: `[queue,arianwyn_dialogue]` re-queues itself sixteen times with a `p_walk(coord)` between beats,
-    // and one of them is an objbox rather than a chat line — so the goal is the elf leaving, not the
-    // dialogue closing.
+    // Why: `[queue,arianwyn_dialogue]` re-queues itself sixteen times with a `p_walk(coord)` between beats, and one of them is an objbox rather than a chat line — so the goal is the elf leaving, not the dialogue closing.
     return driveUntil(() => !elfNear() && !ChatDialog.isOpen(), [], log, 120_000);
 }
 

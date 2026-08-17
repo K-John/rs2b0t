@@ -48,13 +48,8 @@ function flag(snap: QuestSnapshot, name: string): boolean {
     return snap.progress?.flags.has(name) ?? false;
 }
 
-// Why: the pack has to have room before it crosses. `[if_close,regicide_still]` adds the naphtha BEFORE it
-// deletes the empty barrel, so a full pack loses the distillation outright, and the forest hands over a barrel,
-// a pot, a lump of sulphur and a rock of limestone with nowhere to put any of them.
-// Why: gated on there being something to deposit, not on the count alone. The kit is twenty slots of its
-// own — fourteen Lobsters, four balls of wool, three ropes, a pestle and a pickaxe — so a bare "fewer than
-// N free" test asks for room the quest can never have, and the step banks nothing and repeats until the
-// watchdog parks the run.
+// Why: the pack has to have room before it crosses. `[if_close,regicide_still]` adds the naphtha BEFORE it deletes the empty barrel, so a full pack loses the distillation outright, and the forest hands over a barrel, a pot, a lump of sulphur and a rock of limestone with nowhere to put any of them.
+// Why: gated on there being something to deposit, not on the count alone. The kit is twenty slots of its own — fourteen Lobsters, four balls of wool, three ropes, a pestle and a pickaxe — so a bare "fewer than N free" test asks for room the quest can never have, and the step banks nothing and repeats until the watchdog parks the run.
 const SLOTS_NEEDED = 6;
 
 /** Everything Tirannwn consumes, drawn and worn while a bank is still reachable. */
@@ -69,13 +64,10 @@ function outfit(snap: QuestSnapshot, area: RegicideArea): QuestStep | null {
     return sourceKit(snap) ?? wearGear(snap);
 }
 
-// Why: past the Arandar palisade there is one shop and no bank, and the way back in is the Underground Pass
-// walked end to end — so a pack short of the kit stops on the mainland and says what is missing rather than
-// crossing and parking at a loom it has no wool for.
+// Why: past the Arandar palisade there is one shop and no bank, and the way back in is the Underground Pass walked end to end — so a pack short of the kit stops on the mainland and says what is missing rather than crossing and parking at a loom it has no wool for.
 function readyForTirannwn(snap: QuestSnapshot): QuestStep | null {
     const missing = kitShortfall(snap);
-    // Why: the forest is fought through — two of Tyras's soldiers, the elf warriors that patrol the camp
-    // and a grizzly bear on the road to the loom — and there is nothing to fight them with past the gate.
+    // Why: the forest is fought through — two of Tyras's soldiers, the elf warriors that patrol the camp and a grizzly bear on the road to the loom — and there is nothing to fight them with past the gate.
     if (!meleeCarried(snap)) {
         missing.push('a melee weapon (the soldiers and the elf warriors), have none');
     }
@@ -91,9 +83,7 @@ function inTirannwn(snap: QuestSnapshot, area: RegicideArea, step: QuestStep): Q
     return area === 'tirannwn' ? step : crossIn(snap);
 }
 
-// ---------------------------------------------------------------------------
 // The bomb
-// ---------------------------------------------------------------------------
 
 /** True once the barrel is somewhere along the naphtha chain, so a second one is not fetched. */
 function barrelInPlay(snap: QuestSnapshot): boolean {
@@ -126,13 +116,9 @@ function rabbitDone(snap: QuestSnapshot): boolean {
     return held(snap, RG_ITEM.RAW_RABBIT) > 0 || held(snap, RG_ITEM.COOKED_RABBIT) > 0;
 }
 
-// Why: every raw ingredient is inside Tirannwn and the still that turns tar into naphtha is in Rimmington,
-// so the gathering is finished in one pass through the forest before the palisade is opened — the way back
-// in is the Underground Pass, and nobody wants to walk it twice for a forgotten ball of wool.
+// Why: every raw ingredient is inside Tirannwn and the still that turns tar into naphtha is in Rimmington, so the gathering is finished in one pass through the forest before the palisade is opened — the way back in is the Underground Pass, and nobody wants to walk it twice for a forgotten ball of wool.
 
-// Why: ordered by where each thing is rather than by the recipe — the loom, the barrel and the pot are all
-// in the elf camp, the tar and the sulphur are both in the old camp's swamp, and the quarry sits on the way
-// out to the palisade. What the forest cannot finish is left for the mainland leg.
+// Why: ordered by where each thing is rather than by the recipe — the loom, the barrel and the pot are all in the elf camp, the tar and the sulphur are both in the old camp's swamp, and the quarry sits on the way out to the palisade. What the forest cannot finish is left for the mainland leg.
 
 /** The next thing the forest still owes the bomb, or null once the pack can leave. */
 function gatherLeg(snap: QuestSnapshot): QuestStep | null {
@@ -187,9 +173,7 @@ function bombLeg(snap: QuestSnapshot, area: RegicideArea): QuestStep {
         if (area !== 'tirannwn') {
             return crossIn(snap);
         }
-        // Why: `regicide_cross_over3` clears `^regicide_given_rabbit` whenever it is taken inside mapsquare
-        // 34_49, and the walk from the Isafdar entry to the catapult takes that crossing — so the
-        // rabbit is handed over after arriving beside the catapult, never before setting out.
+        // Why: `regicide_cross_over3` clears `^regicide_given_rabbit` whenever it is taken inside mapsquare 34_49, and the walk from the Isafdar entry to the catapult takes that crossing — so the rabbit is handed over after arriving beside the catapult, never before setting out.
         return held(snap, RG_ITEM.COOKED_RABBIT) > 0
             ? custom('give the cooked rabbit to the catapult guard', feedLazyGuard)
             : custom('fire the barrel bomb over the trees', fireCatapult);
@@ -207,11 +191,8 @@ function bombLeg(snap: QuestSnapshot, area: RegicideArea): QuestStep {
     return crossIn(snap);
 }
 
-// ---------------------------------------------------------------------------
-
 function stageStep(snap: QuestSnapshot, area: RegicideArea, stage: number): QuestStep {
-    // Why: armour in the pack is five slots the bomb needs and a soldier fought in what the walk left on,
-    // so anything wearable goes on wherever it is found — the forest has no bank to shed it into either.
+    // Why: armour in the pack is five slots the bomb needs and a soldier fought in what the walk left on, so anything wearable goes on wherever it is found — the forest has no bank to shed it into either.
     const gear = drawGear(snap);
     if (gear) {
         return gear;
@@ -286,9 +267,7 @@ export const regicide: QuestModule = {
     bank: RG_TILE.ARDOUGNE_BANK,
     ownsInventory: true,
     readProgress: readRegicideProgress,
-    // Why: the forest's traps are timer damage taken while crossing a chokepoint rather than a fight — a
-    // failed pitfall jump is a flat 15 and the tripwires poison — so the eat threshold is high rather than
-    // the usual half.
+    // Why: the forest's traps are timer damage taken while crossing a chokepoint rather than a fight — a failed pitfall jump is a flat 15 and the tripwires poison — so the eat threshold is high rather than the usual half.
     sustain: { foods: [RG_ITEM.LOBSTER.name], eatBelowHp: 0.7 },
     warnReadiness: () =>
         `Regicide needs Underground Pass complete, Agility 56 and Crafting 10, and burns about ${COAL_TARGET} coal at the still.`,

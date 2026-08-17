@@ -3,9 +3,7 @@ import { gpShort } from '../../engine/provisioning.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { RG_ITEM, RG_TILE, banked, carried, type RegicideItem } from './areas.js';
 
-// Why: Tirannwn has one shop and no bank, and the way back out is either the Arandar palisade
-// or the Underground Pass walked end to end — so everything the forest consumes is bought and drawn in
-// Ardougne, one leg's walk from the bank, before the quest ever leaves the mainland.
+// Why: Tirannwn has one shop and no bank, and the way back out is either the Arandar palisade or the Underground Pass walked end to end — so everything the forest consumes is bought and drawn in Ardougne, one leg's walk from the bank, before the quest ever leaves the mainland.
 
 /** Aemad's Adventuring Supplies, twenty tiles from the Ardougne bank. */
 export const ARDOUGNE_STORE = { npc: 'Aemad', anchor: new Tile(2613, 3293, 0) };
@@ -18,9 +16,7 @@ export const COAL_ROCKS = new Tile(2581, 3480, 0);
 /** The range beside the Ardougne bank, for the rabbit the lazy guard wants. */
 export const ARDOUGNE_RANGE = new Tile(2648, 3298, 0);
 
-// Why: the bow, the arrows and the tinderbox are three more slots, and the pack was one short of the
-// twenty-eight at Koftik — `make_clotharrow` refuses outright when the pack is full and the arrow stack is
-// more than one, so the fire arrow could never be built. Two lobsters buy the headroom.
+// Why: the bow, the arrows and the tinderbox are three more slots, and the pack was one short of the twenty-eight at Koftik — `make_clotharrow` refuses outright when the pack is full and the arrow stack is more than one, so the fire arrow could never be built. Two lobsters buy the headroom.
 export const FOOD_TARGET = 12;
 /** Four balls of wool weave one strip of cloth, and the loom takes them in one go. */
 export const WOOL_TARGET = 4;
@@ -28,8 +24,7 @@ export const WOOL_TARGET = 4;
 export const ROPE_TARGET = 3;
 /** Arrows stack, so the float is free — one is spent per shot at the bridge stay rope, hit or miss. */
 export const ARROW_TARGET = 50;
-// Why: a clean distillation costs six coal under the module's own control law, and a blown pressure gauge
-// resets the tally to zero — so the float covers two failed runs before a trip back to the rocks.
+// Why: a clean distillation costs six coal under the module's own control law, and a blown pressure gauge resets the tally to zero — so the float covers two failed runs before a trip back to the rocks.
 export const COAL_TARGET = 18;
 /** Two barrels of tar, so a still that resets does not send the run back across the Underground Pass. */
 export const BARREL_TARGET = 2;
@@ -68,9 +63,7 @@ interface Supply {
     reason: string;
     /**
      * What the crossing refuses to go on without, when that is less than the float bought for it.
-     * Why: the gate is re-asked every cycle and the pass is walked with the pack in hand, so a gate keyed on
-     * the full float blocks the moment anything is spent — the guide-rope shot costs an arrow, the rock swing
-     * a rope, a trap a lobster, and the run parked at the bridge's west foot on "have 49" of fifty arrows.
+     * Why: the gate is re-asked every cycle and the pass is walked with the pack in hand, so a gate keyed on the full float blocks the moment anything is spent — the guide-rope shot costs an arrow, the rock swing a rope, a trap a lobster, and the run parked at the bridge's west foot on "have 49" of fifty arrows.
      */
     min?: number;
     /** Where to buy it when neither the pack nor the bank has one. */
@@ -101,9 +94,7 @@ export const KIT: readonly Supply[] = [
         shop: TAVERLEY_HERBLORE,
         estGp: 60
     },
-    // Why: the way into Tirannwn is the Underground Pass, and the rope swing onto the grid shelf is the one
-    // seam of it that is an item-use — `upass_rock_ropeswing` deletes the rope before it rolls agility, so a
-    // failed swing costs one. A pack without them stands on the bridge shelf until the watchdog parks it.
+    // Why: the way into Tirannwn is the Underground Pass, and the rope swing onto the grid shelf is the one seam of it that is an item-use — `upass_rock_ropeswing` deletes the rope before it rolls agility, so a failed swing costs one. A pack without them stands on the bridge shelf until the watchdog parks it.
     {
         item: RG_ITEM.ROPE,
         qty: ROPE_TARGET,
@@ -112,9 +103,7 @@ export const KIT: readonly Supply[] = [
         shop: ARDOUGNE_STORE,
         estGp: 120
     },
-    // Why: the chasm before the rope swing is crossed by shooting the bridge stay rope, and `upass_bridge`
-    // stores nothing — the lever that lowers the bridge again sits on the west bank and only sends the player
-    // east. So a completed Underground Pass still leaves the fire arrow to build on every westbound walk.
+    // Why: the chasm before the rope swing is crossed by shooting the bridge stay rope, and `upass_bridge` stores nothing — the lever that lowers the bridge again sits on the west bank and only sends the player east. So a completed Underground Pass still leaves the fire arrow to build on every westbound walk.
     {
         item: RG_ITEM.SHORTBOW,
         qty: 1,
@@ -137,12 +126,8 @@ export const KIT: readonly Supply[] = [
         shop: ARDOUGNE_STORE,
         estGp: 150
     },
-    // Why: past the well the pass drops into the slave cages, and the only op that leaves that pocket is
-    // `upass_mud`, which takes a spade and nothing else. The ledge reads as a second way out and is not one —
-    // no tile of the cage pocket stands beside it.
-    // Why: and it is drawn, never bought. Four shops in the world stock a spade — Karamja, Shilo, Rellekka
-    // and the lighthouse — and not one is on this side of the map, so a `shop` here sends the run to Aemad's
-    // to ask for something he has never sold.
+    // Why: past the well the pass drops into the slave cages, and the only op that leaves that pocket is `upass_mud`, which takes a spade and nothing else. The ledge reads as a second way out and is not one — no tile of the cage pocket stands beside it.
+    // Why: and it is drawn, never bought. Four shops in the world stock a spade — Karamja, Shilo, Rellekka and the lighthouse — and not one is on this side of the map, so a `shop` here sends the run to Aemad's to ask for something he has never sold.
     { item: RG_ITEM.SPADE, qty: 1, reason: 'the filled-in tunnel out of the slave cages' },
     { item: RG_ITEM.LOBSTER, qty: FOOD_TARGET, reason: 'the traps, the soldiers and the elf warriors', min: 1 }
 ];
