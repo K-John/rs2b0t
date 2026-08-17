@@ -13,26 +13,14 @@ export interface LocPlacement {
     z: number;
 }
 
-export interface NpcSpawn {
-    id: number;
-    level: number;
-    x: number;
-    z: number;
-}
-
 export interface ContentWorld {
     locs: LocPlacement[];
-    npcs: NpcSpawn[];
     landFlags: Map<number, number>;
     mapsquares: string[];
 }
 
 export function packCoord(level: number, x: number, z: number): number {
     return ((level & 0x3) << 28) | ((x & 0x3fff) << 14) | (z & 0x3fff);
-}
-
-export function unpackCoord(key: number): { level: number; x: number; z: number } {
-    return { level: (key >>> 28) & 0x3, x: (key >>> 14) & 0x3fff, z: key & 0x3fff };
 }
 
 export const CONTENT_ROOT = join(import.meta.dir, '..', 'content');
@@ -75,8 +63,6 @@ function readMapsquare(text: string, baseX: number, baseZ: number, out: ContentW
                 angle: parts.length > 2 ? parseInt(parts[2]!) : 0,
                 level, x, z,
             });
-        } else if (section === 'NPC') {
-            out.npcs.push({ id: parseInt(data), level, x, z });
         }
 
     }
@@ -95,7 +81,7 @@ export function readContentWorld(contentRoot?: string): ContentWorld {
         );
     }
 
-    const world: ContentWorld = { locs: [], npcs: [], landFlags: new Map(), mapsquares: [] };
+    const world: ContentWorld = { locs: [], landFlags: new Map(), mapsquares: [] };
 
     for (const file of readdirSync(mapsDir)) {
         const m = /^m(\d+)_(\d+)\.jm2$/.exec(file);
@@ -116,23 +102,7 @@ export function readContentWorld(contentRoot?: string): ContentWorld {
 }
 
 export function locPositions(contentRoot?: string): Map<number, LocPlacement[]> {
-    const byId = new Map<number, LocPlacement[]>();
-    for (const loc of readContentWorld(contentRoot).locs) {
-        const list = byId.get(loc.id);
-        if (list) list.push(loc);
-        else byId.set(loc.id, [loc]);
-    }
-    return byId;
-}
-
-export function npcPositions(contentRoot?: string): Map<number, NpcSpawn[]> {
-    const byId = new Map<number, NpcSpawn[]>();
-    for (const npc of readContentWorld(contentRoot).npcs) {
-        const list = byId.get(npc.id);
-        if (list) list.push(npc);
-        else byId.set(npc.id, [npc]);
-    }
-    return byId;
+    return Map.groupBy(readContentWorld(contentRoot).locs, loc => loc.id);
 }
 
 let locNames: Map<string, number> | null = null;
@@ -184,16 +154,12 @@ export function readLocDefs(contentRoot?: string): Map<string, LocDef> {
     const root = contentRoot ?? CONTENT_ROOT;
     const defs = new Map<string, LocDef>();
 
-    const walk = (dir: string): void => {
-        for (const entry of readdirSync(dir, { withFileTypes: true })) {
-            const full = join(dir, entry.name);
-            if (entry.isDirectory()) walk(full);
-            else if (entry.name.endsWith('.loc')) parseLocFile(readFileSync(full, 'utf-8'), defs);
-        }
-    };
-
     const scripts = join(root, 'scripts');
-    if (existsSync(scripts)) walk(scripts);
+    if (existsSync(scripts)) {
+        for (const file of readdirSync(scripts, { recursive: true, encoding: 'utf8' })) {
+            if (file.endsWith('.loc')) parseLocFile(readFileSync(join(scripts, file), 'utf-8'), defs);
+        }
+    }
 
     if (!contentRoot) locDefs = defs;
     return defs;

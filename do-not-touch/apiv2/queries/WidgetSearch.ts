@@ -1,16 +1,8 @@
 import type { GameSnapshot, WidgetSnapshot } from '../snapshots/GameSnapshot.js';
 
 function allWidgets(snapshot: GameSnapshot, rootComponentId?: number): WidgetSnapshot[] {
-    const out: WidgetSnapshot[] = [];
-    for (const w of snapshot.widgets) {
-        if (rootComponentId === undefined || w.rootComponentId === rootComponentId) out.push(w);
-    }
-    for (const tab of snapshot.sideTabs) {
-        for (const w of tab.widgets) {
-            if (rootComponentId === undefined || w.rootComponentId === rootComponentId) out.push(w);
-        }
-    }
-    return out;
+    const widgets = [...snapshot.widgets, ...snapshot.sideTabs.flatMap(tab => tab.widgets)];
+    return rootComponentId === undefined ? widgets : widgets.filter(widget => widget.rootComponentId === rootComponentId);
 }
 
 export function closeButtonComId(snapshot: GameSnapshot, rootComponentId: number): number {

@@ -10,16 +10,8 @@ export class Query<T> {
         return this;
     }
 
-    filter(predicate: QueryPredicate<T>): this {
-        return this.where(predicate);
-    }
-
     results(): T[] {
         return this.values.filter(value => this.predicates.every(predicate => predicate(value)));
-    }
-
-    result(): T[] {
-        return this.results();
     }
 
     first(): T | null {

@@ -133,15 +133,7 @@ export class ReadContext {
     }
 
     component(componentId: number): WidgetSnapshot | null {
-        for (const widget of this.snapshot.widgets) {
-            if (widget.componentId === componentId) return widget;
-        }
-        for (const tab of this.snapshot.sideTabs) {
-            for (const widget of tab.widgets) {
-                if (widget.componentId === componentId) return widget;
-            }
-        }
-        return null;
+        return [...this.snapshot.widgets, ...this.snapshot.sideTabs.flatMap(tab => tab.widgets)].find(widget => widget.componentId === componentId) ?? null;
     }
 
     varps(): VarpQuery<VarpSnapshot> {
@@ -240,7 +232,7 @@ export class ReadContext {
 }
 
 export class ReadApi {
-    constructor(private readonly source: SnapshotSource) {}
+    constructor(private readonly source: SnapshotSource = new LiveSnapshotSource()) {}
 
     snapshot(): GameSnapshot {
         return this.source.read();
@@ -249,8 +241,4 @@ export class ReadApi {
     read(): ReadContext {
         return new ReadContext(this.snapshot());
     }
-}
-
-export function createReadApi(source: SnapshotSource = new LiveSnapshotSource()): ReadApi {
-    return new ReadApi(source);
 }

@@ -16,11 +16,7 @@ function anyConfigured<T>(values: readonly T[], predicate: (value: T) => boolean
 }
 
 function wildcardRegex(pattern: string): RegExp {
-    let expression = '^';
-    for (const char of pattern) {
-        expression += char === '*' ? '.*' : char.replace(/[\\^$+?.()|[\]{}]/g, '\\$&');
-    }
-    return new RegExp(`${expression}$`, 'i');
+    return new RegExp(`^${pattern.split('*').map(RegExp.escape).join('.*')}$`, 'i');
 }
 
 export class EntityQuery<T extends QueryEntity> extends Query<T> {
@@ -28,10 +24,6 @@ export class EntityQuery<T extends QueryEntity> extends Query<T> {
     withName(...names: string[]): this {
         const wanted = names.map(normalized);
         return this.where(value => value.name !== null && wanted.includes(normalized(value.name)));
-    }
-
-    name(...names: string[]): this {
-        return this.withName(...names);
     }
 
     withId(...ids: number[]): this {
@@ -45,10 +37,6 @@ export class EntityQuery<T extends QueryEntity> extends Query<T> {
     withAction(...actions: string[]): this {
         const wanted = actions.map(normalized);
         return this.where(value => anyConfigured(value.actions, action => action !== null && wanted.includes(normalized(action))));
-    }
-
-    action(action: string): this {
-        return this.withAction(action);
     }
 
     nameContains(...terms: string[]): this {

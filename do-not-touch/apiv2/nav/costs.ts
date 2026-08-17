@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { CONTENT_ROOT } from './content';
+import { CONTENT_ROOT, readLocDefs } from './content';
 import type { TickCosts } from './types';
 
 export const PER_STEP = 0.5;
@@ -125,31 +125,13 @@ function contentScripts(contentRoot?: string): string {
     return join(contentRoot ?? CONTENT_ROOT, 'scripts');
 }
 
-function walk(dir: string, ext: string, out: string[] = []): string[] {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        const full = join(dir, entry.name);
-        if (entry.isDirectory()) walk(full, ext, out);
-        else if (entry.name.endsWith(ext)) out.push(full);
-    }
-    return out;
-}
-
-function locCategories(scripts: string): Map<string, string> {
-    const out = new Map<string, string>();
-    for (const file of walk(scripts, '.loc')) {
-        let name = '';
-        for (const raw of readFileSync(file, 'utf-8').split('\n')) {
-            const line = raw.trim();
-            if (line.startsWith('[') && line.endsWith(']')) name = line.slice(1, -1);
-            else if (name && line.startsWith('category=')) out.set(name, line.slice('category='.length));
-        }
-    }
-    return out;
+function files(dir: string, ext: string): string[] {
+    return readdirSync(dir, { recursive: true, encoding: 'utf8' }).filter(file => file.endsWith(ext)).map(file => join(dir, file));
 }
 
 function namedOpScripts(scripts: string): Set<string> {
     const out = new Set<string>();
-    for (const file of walk(scripts, '.rs2')) {
+    for (const file of files(scripts, '.rs2')) {
         for (const m of readFileSync(file, 'utf-8').matchAll(/^\[oploc[1-5],([^\],]+)\]/gm)) {
             const name = m[1];
             if (name !== undefined) out.add(name);
@@ -164,8 +146,8 @@ function buildByLoc(contentRoot?: string): ReadonlyMap<string, number> {
 
     const wanted = new Map(BY_CATEGORY);
     const overridden = namedOpScripts(scripts);
-    for (const [name, category] of locCategories(scripts)) {
-        const extra = wanted.get(category);
+    for (const [name, def] of readLocDefs(contentRoot)) {
+        const extra = def.category === undefined ? undefined : wanted.get(def.category);
         if (extra === undefined) continue;
         if (byLoc.has(name)) continue;
         if (overridden.has(name)) continue;

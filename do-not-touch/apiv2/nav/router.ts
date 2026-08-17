@@ -2,7 +2,7 @@ import { locIdsByName, readLocDefs } from './content';
 import { HALVES, Router, assertStepsStayInTheBox, type DoorStep, type RouterGraph } from './RouterCore';
 
 import { tickCosts } from './costs';
-import { buildCollisionGrid, buildDoorTable, findDoors, openDoors } from './doors';
+import { buildDoorTable, findDoors, openDoors } from './doors';
 import { rsmod, stepGrid } from './grid';
 import { buildTransportTable } from './transports';
 import {
@@ -142,7 +142,6 @@ export function routerReport(): RouterReport {
     const gridStarted = performance.now();
     const grid = stepGrid();
 
-    buildCollisionGrid();
     const gridMs = performance.now() - gridStarted;
 
     const costs = tickCosts();

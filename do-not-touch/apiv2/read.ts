@@ -50,6 +50,6 @@ export { VarpQuery, type VarpQueryEntity } from './queries/VarpQuery.js';
 export { SceneQuery, type SceneReachOptions } from './queries/SceneQuery.js';
 export { SideTabQuery, type SideTabQueryEntity } from './queries/SideTabQuery.js';
 export { WorldQuery, type WorldQueryEntity } from './queries/WorldQuery.js';
-export { ReadApi, ReadContext, createReadApi } from './ReadApi.js';
+export { ReadApi, ReadContext } from './ReadApi.js';
 export { LiveSnapshotSource } from './snapshots/LiveSnapshotSource.js';
-export type { SnapshotReader, SnapshotSource } from './snapshots/SnapshotSource.js';
+export type { SnapshotSource } from './snapshots/SnapshotSource.js';

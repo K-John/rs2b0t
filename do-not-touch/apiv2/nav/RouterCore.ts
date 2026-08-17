@@ -190,13 +190,6 @@ export class Router {
         return this.build(from, to, expanded, started);
     }
 
-    routeBetween(
-        from: { level: number; x: number; z: number },
-        to: { level: number; x: number; z: number },
-    ): RouteResult {
-        return this.route(idxOf(from.level, from.x, from.z), idxOf(to.level, to.x, to.z));
-    }
-
     private expand(i: number, d: number): number {
         let queued = 0;
         const dist = this.dist;
@@ -414,4 +407,3 @@ function chebyshev(a: number, b: number): number {
     const q = tileOf(b);
     return Math.max(Math.abs(p.x - q.x), Math.abs(p.z - q.z));
 }
-

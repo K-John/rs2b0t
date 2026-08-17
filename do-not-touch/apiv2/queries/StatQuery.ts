@@ -11,10 +11,6 @@ export class StatQuery extends Query<StatSnapshot> {
         return this.where(value => wanted.length > 0 && wanted.includes(normalized(value.name)));
     }
 
-    name(...names: string[]): this {
-        return this.withName(...names);
-    }
-
     withIndex(...indexes: number[]): this {
         return this.where(value => indexes.includes(value.index));
     }

@@ -14,10 +14,6 @@ export class ItemQuery<T extends ItemQueryEntity> extends EntityQuery<T> {
         return this.where(value => slots.includes(value.slot));
     }
 
-    slot(...slots: number[]): this {
-        return this.withSlot(...slots);
-    }
-
     withCount(count: number): this {
         return this.where(value => value.count === count);
     }

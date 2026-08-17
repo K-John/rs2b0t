@@ -4,30 +4,12 @@ import { join } from 'path';
 
 import * as rsmod from '../vendor/rsmod-pathfinder';
 
-import {
-    CONTENT_ROOT,
-    MAP_BLOCKED,
-    MAP_LINK_BELOW,
-    locIdsByName,
-    packCoord,
-    readContentWorld,
-    readLocDefs,
-    type LocDef,
-} from './content';
+import { CONTENT_ROOT, packCoord, readContentWorld } from './content';
 
-import { findDoors } from './doors';
+import { buildCollisionGrid, findDoors } from './doors';
 import { DIRS, LEVELS, N, PLANE, X0, X1, XSPAN, Z0, Z1, idxOf, type StepGrid } from './types';
 
 export { rsmod };
-
-const MAP_REMOVE_ROOFS = 0x4;
-
-const LAYER_WALL = 0;
-const LAYER_GROUND = 2;
-const LAYER_GROUND_DECOR = 3;
-
-const ANGLE_NORTH = 1;
-const ANGLE_SOUTH = 3;
 
 const WALK_BLOCKED = 2359552;
 
@@ -35,79 +17,11 @@ const COLLISION_NORMAL = 0;
 
 const ENCODING_VERSION = 1;
 
-let worldBuilt = false;
-
-export function buildWorldCollision(): void {
-    if (worldBuilt) return;
-    worldBuilt = true;
-
-    const world = readContentWorld();
-    const defs = readLocDefs();
-
-    const defsById = new Map<number, LocDef>();
-    for (const [name, id] of locIdsByName()) {
-        const def = defs.get(name);
-        if (def) defsById.set(id, def);
-    }
-
-    for (const square of world.mapsquares) {
-        const [mx, mz] = square.split('_').map(Number);
-        const baseX = mx! << 6;
-        const baseZ = mz! << 6;
-        for (let level = 0; level < LEVELS; level++) {
-            for (let zx = 0; zx < 8; zx++) {
-                for (let zz = 0; zz < 8; zz++) {
-                    rsmod.allocateIfAbsent(baseX + (zx << 3), baseZ + (zz << 3), level);
-                }
-            }
-        }
-    }
-
-    for (const [key, flags] of world.landFlags) {
-        const level = (key >>> 28) & 0x3;
-        const x = (key >>> 14) & 0x3fff;
-        const z = key & 0x3fff;
-
-        if ((flags & MAP_REMOVE_ROOFS) !== 0) rsmod.changeRoof(x, z, level, true);
-        if ((flags & MAP_BLOCKED) !== MAP_BLOCKED) continue;
-
-        const actual = bridgedLevel(world.landFlags, level, x, z);
-        if (actual < 0) continue;
-        rsmod.changeFloor(x, z, actual, true);
-    }
-
-    for (const loc of world.locs) {
-        const def = defsById.get(loc.id);
-        if (!def || !def.blockwalk) continue;
-
-        const actual = bridgedLevel(world.landFlags, loc.level, loc.x, loc.z);
-        if (actual < 0) continue;
-
-        const layer = rsmod.locShapeLayer(loc.shape);
-        if (layer === LAYER_WALL) {
-            rsmod.changeWall(loc.x, loc.z, actual, loc.angle, loc.shape, def.blockrange, false, true);
-        } else if (layer === LAYER_GROUND) {
-            if (loc.angle === ANGLE_NORTH || loc.angle === ANGLE_SOUTH) {
-                rsmod.changeLoc(loc.x, loc.z, actual, def.length, def.width, def.blockrange, false, true);
-            } else {
-                rsmod.changeLoc(loc.x, loc.z, actual, def.width, def.length, def.blockrange, false, true);
-            }
-        } else if (layer === LAYER_GROUND_DECOR && def.active === 1) {
-            rsmod.changeFloor(loc.x, loc.z, actual, true);
-        }
-    }
-}
-
 function shutEveryDoor(): void {
     const census = findDoors();
     for (const door of [...census.doors, ...census.maze, ...census.oneWay]) {
         rsmod.changeWall(door.x, door.z, door.level, door.angle, door.shape, door.blockrange, false, true);
     }
-}
-
-function bridgedLevel(landFlags: Map<number, number>, level: number, x: number, z: number): number {
-    const source = landFlags.get(packCoord(1, x, z)) ?? 0;
-    return (source & MAP_LINK_BELOW) === MAP_LINK_BELOW ? level - 1 : level;
 }
 
 function flooredZones(): Set<number> {
@@ -139,7 +53,7 @@ export function buildStepGrid(): GridReport {
     const started = performance.now();
 
     const worldStarted = performance.now();
-    buildWorldCollision();
+    buildCollisionGrid();
     shutEveryDoor();
     const worldMs = performance.now() - worldStarted;
 
@@ -204,7 +118,7 @@ export function stepGridReport(): GridReport {
     if (cached) {
 
         const worldStarted = performance.now();
-        buildWorldCollision();
+        buildCollisionGrid();
         shutEveryDoor();
         const worldMs = performance.now() - worldStarted;
 
@@ -239,14 +153,10 @@ function cachePath(): string {
     }
     stamp(join(CONTENT_ROOT, 'pack', 'loc.pack'));
 
-    const walk = (dir: string): void => {
-        for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1))) {
-            const full = join(dir, entry.name);
-            if (entry.isDirectory()) walk(full);
-            else if (entry.name.endsWith('.loc')) stamp(full);
-        }
-    };
-    walk(join(CONTENT_ROOT, 'scripts'));
+    const scripts = join(CONTENT_ROOT, 'scripts');
+    for (const file of readdirSync(scripts, { recursive: true, encoding: 'utf8' }).sort()) {
+        if (file.endsWith('.loc')) stamp(join(scripts, file));
+    }
 
     return join(CACHE_DIR, `steps-${hash.digest('hex').slice(0, 16)}.bin`);
 }

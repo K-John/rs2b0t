@@ -20,14 +20,6 @@ export class WorldQuery<T extends WorldQueryEntity> extends EntityQuery<T> {
         return this.where(value => containsTile(value.tile, area));
     }
 
-    withinArea(area: WorldArea): this {
-        return this.inside(area);
-    }
-
-    inArea(area: WorldArea): this {
-        return this.inside(area);
-    }
-
     onLevel(level: number): this {
         return this.where(value => value.tile.level === level);
     }
@@ -50,7 +42,4 @@ export class WorldQuery<T extends WorldQueryEntity> extends EntityQuery<T> {
         }, null);
     }
 
-    nearestToPlayer(): T | null {
-        return this.nearest();
-    }
 }

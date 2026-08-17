@@ -11,7 +11,8 @@ import {
     type LocPlacement,
 } from './content';
 import { tickCosts } from './costs';
-import { buildWorldCollision, rsmod } from './grid';
+import { buildCollisionGrid } from './doors';
+import { rsmod } from './grid';
 import { idxOf, tileOf, type StepGrid, type TickCosts, type Transport, type TransportTable } from './types';
 
 const CELLAR_SHIFT = 6400;
@@ -445,7 +446,7 @@ function landingOf(dest: Destination, at: number): number {
 
 export function buildTransportTable(grid: StepGrid, costs?: TickCosts, contentRoot?: string): TransportTable {
 
-    buildWorldCollision();
+    buildCollisionGrid();
 
     const placements = resolvePlacements(contentRoot);
     const priced = costs ?? tickCosts(contentRoot);
