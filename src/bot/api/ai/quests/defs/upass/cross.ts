@@ -19,6 +19,8 @@ const USED_ON: Record<number, { item: number; name: string }> = {
     3216: { item: 952, name: 'Spade' }
 };
 
+/** The level every area in the table sits on — the caverns. The platforms are `PLATFORM_LINKS`. */
+const TABLE_LEVEL = 0;
 /** How long a crossing gets to land once its script has spoken. */
 const CROSS_MS = 12_000;
 /** What a silent op gets — three ticks covers a teleport door end to end. */
@@ -102,6 +104,12 @@ async function operate(edge: UpassCrossing, log: (m: string) => void): Promise<b
 export async function crossOnce(dest: Tile, log: (m: string) => void): Promise<'crossed' | 'same' | 'nowhere'> {
     const me = here();
     if (!me) {
+        return 'nowhere';
+    }
+    // Why: every area in the table is level 0 — the caverns. On the level-1 platforms no anchor can ever
+    // match, so the "off the walkable graph" branch fired on ground that is perfectly walkable and then
+    // walked at level-0 anchors from level 1. The table has nothing to say up there; `PLATFORM_LINKS` does.
+    if (me.level !== TABLE_LEVEL || dest.level !== TABLE_LEVEL) {
         return 'nowhere';
     }
     const from = await areaAt(me);

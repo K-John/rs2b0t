@@ -28,9 +28,11 @@ import {
     ascendFromDwarves,
     askKlank,
     askNilhoof,
+    catchCat,
     descendToDwarves,
+    distractWitch,
     leaveWitchHouse,
-    stealTheDoll,
+    lootWitchChest,
     wearGauntlets
 } from './cavern.js';
 import {
@@ -153,8 +155,18 @@ function witchLeg(snap: QuestSnapshot, area: UpassArea): QuestStep {
             ? custom('take a tinderbox from Klank', askKlank)
             : custom('climb back up out of the dwarves cave', ascendFromDwarves);
     }
-    // Why: the knock takes the cat and the journal never records it, so "no cat, no doll" reads the same before the cat is caught and after it has been left at Kardia's door — one run went back for a cat that was already there. The three of them are one step, ending on the doll.
-    return custom("take Kardia's cat to her door and lift the doll", stealTheDoll);
+    // Why: the knock takes the cat and the journal never records it, so "no cat, no doll" reads the same before the cat is caught and after it has been left at Kardia's door — one run went back for a cat that was already there. What tells those apart is where the character is standing: the knock leaves them at her door and nothing else does.
+    // Why: three steps rather than one, because the engine recognises "the same step" by its description alone — a name covering the cat platform, the door and the chest is one step retried forever, and the walk to the cat is fifty-six tiles across four bridges. Each part names itself so finishing one resets the count for the next.
+    const at = snap.tile;
+    const atHerDoor = at !== undefined && at !== null && at.level === UP_TILE.WITCH_DOOR.level
+        && Math.max(Math.abs(at.x - UP_TILE.WITCH_DOOR.x), Math.abs(at.z - UP_TILE.WITCH_DOOR.z)) <= 6;
+    if (!atHerDoor && held(snap, UP_ITEM.WITCH_CAT) === 0) {
+        return custom('catch the witches cat', catchCat);
+    }
+    if (held(snap, UP_ITEM.WITCH_CAT) > 0) {
+        return custom("knock on Kardia's door with the cat", distractWitch);
+    }
+    return custom("open Kardia's chest and take the doll", lootWitchChest);
 }
 
 // Why: the four elements are ordered by where they are rather than by the doll — ashes and blood hang off
