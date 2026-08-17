@@ -7,6 +7,7 @@ import Tile from '../../geometry/Tile.js';
 import { Traversal } from '../../api/walking/Traversal.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
 import { Bank } from '../../api/bank/Bank.js';
+import { Shop } from '../../api/shop/Shop.js';
 import { ChatDialog } from '../../api/ui/dialogue/ChatDialog.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Paint } from '../../paint/Paint.js';
@@ -21,14 +22,15 @@ import type { SettingsSchema } from '../../runtime/Settings.js';
 import {
     ARDY_BANK,
     ARENA_ENTRANCE,
+    KARAMJA_GENERAL,
     ARENA_VARP,
+    BOAT_FARE,
     CENTRE_PLATFORM,
     DEFAULT_BANK_TICKETS,
     DEFAULT_FOOD_PER_TRIP,
     EAT_AT_HP,
     LADDER_DOWN_STAND,
     PILLARS,
-    SPIKE_PLATFORMS,
     TICKET_NAME,
     canStartObstacle,
     coinsToWithdraw,
@@ -42,11 +44,14 @@ import {
     STEAL_THIEVING_MIN,
     needsCakeSteal,
     needsCoinsRestock,
+    needsFoodSaleForBoat,
+    strandedWithoutBoatFare,
+    hintMissed,
+    TICKET_CAP_PER_HOUR,
     nextHop,
     obstacleOutcome,
     onArenaPlatform,
     onBrimhavenSurface,
-    pathPlatforms,
     pillarFromHint,
     pillarTagged,
     platformAt,
@@ -54,7 +59,8 @@ import {
     shouldBank,
     shouldEat,
     ticketInventoryGain,
-    waitPlatform,
+    onTicketHub,
+    walkTrapStand,
     wantRunForGoal,
     type ArenaEdge
 } from './BrimhavenAgilityLogic.js';
@@ -105,10 +111,21 @@ export default class BrimhavenAgility extends TaskBot {
 
     private ticketsCollected = 0;
     private tags = 0;
+    private misses = 0;
+    private falls = 0;
+    private hops = 0;
+    private lastHint = -1;
+    private pendingHint = -1;
+    private taggedThisHint = false;
+    private chaseStartedAt = 0;
+    private lastTagMs = 0;
+    private wasInPit = false;
+    lastHopFrom = -1;
+    lastHopTo = -1;
+    avoidHop = -1;
     private status = 'starting';
     private startedAt = Date.now();
     private xpAtStart = 0;
-    private spikeToggle = 0;
 
     override async onStart(): Promise<void> {
         await Execution.delayUntil(() => Game.ingame() && Game.tile() !== null, 0);
@@ -138,7 +155,7 @@ export default class BrimhavenAgility extends TaskBot {
         });
 
         this.log(
-            `BrimhavenAgility — food '${this.foodName}' x${this.foodPerTrip}, bank@${this.bankAtTickets} tickets, eat@${EAT_AT_HP}hp${this.stealRestock ? ', steal restock on' : ''}`
+            `BrimhavenAgility — food '${this.foodName}' x${this.foodPerTrip}, bank@${this.bankAtTickets} tickets, eat@${EAT_AT_HP}hp, ticket cap ${TICKET_CAP_PER_HOUR}/hr${this.stealRestock ? ', steal restock on' : ''}`
         );
 
         this.add(
@@ -146,6 +163,7 @@ export default class BrimhavenAgility extends TaskBot {
             new Eat(this),
             new ClimbOutOfPit(this),
             new LeaveForSteal(this),
+            new SellFoodForBoat(this),
             new StealFood(this),
             new StealCoins(this),
             new BankTrip(this),
@@ -168,6 +186,74 @@ export default class BrimhavenAgility extends TaskBot {
             bankAtTickets: this.bankAtTickets,
             stealRestock: this.stealRestock
         };
+    }
+
+    ticketsEarned(): number {
+        return this.ticketsCollected;
+    }
+
+    pace() {
+        const mins = (Date.now() - this.startedAt) / 60_000;
+        return {
+            tickets: this.ticketsCollected,
+            ticketsPerHour: mins > 0.2 ? (this.ticketsCollected / mins) * 60 : 0,
+            tags: this.tags,
+            misses: this.misses,
+            falls: this.falls,
+            hops: this.hops,
+            lastTagMs: this.lastTagMs,
+            cap: TICKET_CAP_PER_HOUR,
+            target: this.targetPillar(),
+            platform: this.platform(),
+            tagged: this.tagged()
+        };
+    }
+
+    noteHint(): void {
+        const hint = this.targetPillar();
+        if (hint < 0 || hint === this.lastHint) {
+            this.pendingHint = -1;
+            return;
+        }
+        // Hint tiles can snap to a neighbour for one read — require two matches.
+        if (hint !== this.pendingHint) {
+            this.pendingHint = hint;
+            return;
+        }
+        if (hintMissed(this.lastHint, hint, this.taggedThisHint)) {
+            this.misses++;
+            this.log(`missed pillar ${this.lastHint} — streak broken (misses ${this.misses})`);
+        }
+        this.lastHint = hint;
+        this.pendingHint = -1;
+        this.taggedThisHint = false;
+        this.chaseStartedAt = Date.now();
+        this.log(`hint → pillar ${hint}`);
+    }
+
+    noteHop(): void {
+        this.hops++;
+    }
+
+    noteFall(): void {
+        if (this.wasInPit) {
+            return;
+        }
+        this.wasInPit = true;
+        this.falls++;
+        this.avoidHop = this.lastHopTo;
+        this.log(`fell into the pit (falls ${this.falls}) — avoiding hop to ${this.avoidHop}`);
+    }
+
+    noteOutOfPit(): void {
+        this.wasInPit = false;
+    }
+
+    noteTag(): void {
+        this.tags++;
+        this.taggedThisHint = true;
+        this.lastTagMs = this.chaseStartedAt > 0 ? Date.now() - this.chaseStartedAt : 0;
+        this.log(`tagged pillar ${this.platform()} in ${this.lastTagMs}ms (tickets ${this.ticketCount()})`);
     }
 
     foodInPack(): number {
@@ -195,6 +281,15 @@ export default class BrimhavenAgility extends TaskBot {
 
     needsCakesNow(): boolean {
         return needsCakeSteal(this.foodInPack(), this.cakesInPack(), this.stealRestock, this.needsCoinsNow());
+    }
+
+    onBrimhavenNow(): boolean {
+        const here = this.here();
+        return here !== null && onBrimhavenSurface(here.x, here.z, here.level);
+    }
+
+    needsFoodSaleForBoatNow(): boolean {
+        return needsFoodSaleForBoat(this.coinCount(), this.edibleInPack(), this.onBrimhavenNow());
     }
 
     stunned(): boolean {
@@ -265,30 +360,22 @@ export default class BrimhavenAgility extends TaskBot {
     }
 
     countTag(): void {
-        this.tags++;
-    }
-
-    nextSpikePlatform(): number {
-        const cur = this.platform();
-        if (cur === SPIKE_PLATFORMS[0]) {
-            return SPIKE_PLATFORMS[1];
-        }
-        if (cur === SPIKE_PLATFORMS[1]) {
-            return SPIKE_PLATFORMS[0];
-        }
-        return SPIKE_PLATFORMS[this.spikeToggle++ % 2];
+        this.noteTag();
     }
 
     override onPaint(ctx: CanvasRenderingContext2D): void {
         const p = Paint.begin(ctx, { dock: 'chatbox', accent: '#3bb0b0' });
         p.title(`Brimhaven — ${this.status}`);
         const mins = (Date.now() - this.startedAt) / 60_000;
+        const pace = this.pace();
         const xp = Skills.xp('agility') - this.xpAtStart;
         const xph = mins > 0.5 ? `${((xp / mins) * 60 / 1000).toFixed(1)}k` : '—';
-        p.row(`Runtime: ${fmtDuration(mins)}`, `Tags: ${this.tags}`, `XP/hr: ${xph}`);
-        p.row(`Tickets earned: ${this.ticketsCollected}`);
-        p.row(`Food: ${this.foodInPack()}`, `HP: ${this.hp()}`, `Agility: ${this.agility()}`);
-        p.row(`Platform: ${this.platform()}`, `Target: ${this.targetPillar()}`);
+        const tph = mins > 0.2 ? pace.ticketsPerHour.toFixed(0) : '—';
+        p.row(`Runtime: ${fmtDuration(mins)}`, `Tickets: ${pace.tickets}`, `Tickets/hr: ${tph}`);
+        p.row(`Tags: ${pace.tags}`, `Missed: ${pace.misses}`, `Falls: ${pace.falls}`);
+        p.row(`Hops: ${pace.hops}`, `Last tag: ${pace.lastTagMs > 0 ? `${(pace.lastTagMs / 1000).toFixed(1)}s` : '—'}`, `XP/hr: ${xph}`);
+        p.row(`HP: ${this.hp()}`, `Agility: ${this.agility()}`);
+        p.row(`Platform: ${pace.platform}`, `Target: ${pace.target}`, pace.tagged ? 'tagged' : 'chasing');
         p.gap();
         ScriptRunner.paintControls(p);
         p.end();
@@ -317,10 +404,55 @@ class LeaveForSteal implements Task {
     }
 }
 
+class SellFoodForBoat implements Task {
+    constructor(private bot: BrimhavenAgility) {}
+    validate(): boolean {
+        return this.bot.needsFoodSaleForBoatNow() && !this.bot.inArenaNow();
+    }
+    async execute(): Promise<void> {
+        this.bot.setStatus('selling food at the Karamja General Store');
+        if (!(await Traversal.walkResilient(new Tile(KARAMJA_GENERAL.x, KARAMJA_GENERAL.z, 0), {
+            radius: 3,
+            attempts: 4,
+            timeoutMs: 180_000,
+            log: m => this.bot.log(`  ${m}`)
+        }))) {
+            this.bot.log('could not reach the Karamja General Store');
+            return;
+        }
+        if (!(await Shop.open('Shop keeper')) && !(await Shop.open('Shop assistant'))) {
+            this.bot.log('could not open the Karamja General Store');
+            return;
+        }
+        while (this.bot.coinCount() < BOAT_FARE) {
+            const item = findEdible(this.bot.cfg().food);
+            if (!item?.name) {
+                break;
+            }
+            const beforeCoins = this.bot.coinCount();
+            const sold = await Shop.sell(item.name, 1);
+            if (sold <= 0 || this.bot.coinCount() <= beforeCoins) {
+                const msg = `Karamja store did not buy ${item.name} — still ${this.bot.coinCount()} coins, need ${BOAT_FARE} for the Ardougne ship`;
+                await Shop.close();
+                this.bot.setStatus(`stopped — ${msg}`);
+                ScriptRunner.stop(msg);
+                return;
+            }
+            this.bot.log(`sold ${item.name} (${this.bot.coinCount()} coins)`);
+        }
+        await Shop.close();
+        if (strandedWithoutBoatFare(this.bot.coinCount(), this.bot.edibleInPack(), true)) {
+            const msg = `sold food but only have ${this.bot.coinCount()} coins — need ${BOAT_FARE} for the Ardougne ship`;
+            this.bot.setStatus(`stopped — ${msg}`);
+            ScriptRunner.stop(msg);
+        }
+    }
+}
+
 class StealFood implements Task {
     constructor(private bot: BrimhavenAgility) {}
     validate(): boolean {
-        return this.bot.needsCakesNow() && !this.bot.inArenaNow();
+        return this.bot.needsCakesNow() && !this.bot.inArenaNow() && !this.bot.needsFoodSaleForBoatNow();
     }
     async execute(): Promise<void> {
         if (Game.inCombat()) {
@@ -347,7 +479,7 @@ class StealFood implements Task {
 class StealCoins implements Task {
     constructor(private bot: BrimhavenAgility) {}
     validate(): boolean {
-        return this.bot.cfg().stealRestock && this.bot.needsCoinsNow() && !this.bot.inArenaNow() && !this.bot.needsCakesNow();
+        return this.bot.cfg().stealRestock && this.bot.needsCoinsNow() && !this.bot.inArenaNow() && !this.bot.needsCakesNow() && !this.bot.needsFoodSaleForBoatNow();
     }
     async execute(): Promise<void> {
         const thieving = Skills.level('thieving');
@@ -429,6 +561,9 @@ class Eat implements Task {
 class BankTrip implements Task {
     constructor(private bot: BrimhavenAgility) {}
     validate(): boolean {
+        if (this.bot.needsFoodSaleForBoatNow()) {
+            return false;
+        }
         const steal = this.bot.cfg().stealRestock;
         if (this.bot.inArenaNow()) {
             return shouldBank(this.bot.ticketCount(), this.bot.foodInPack(), this.bot.cfg().bankAtTickets, steal);
@@ -634,6 +769,7 @@ class ClimbOutOfPit implements Task {
         return this.bot.inPitNow();
     }
     async execute(): Promise<void> {
+        this.bot.noteFall();
         this.bot.setStatus('climbing out of the pit');
         const rope =
             Locs.query().name('Climbing rope').within(20).nearest() ??
@@ -659,7 +795,9 @@ class ClimbOutOfPit implements Task {
         // Wait until back on the platform plane and idle so the next hop can fire immediately.
         if (!(await Execution.delayUntil(() => !this.bot.inPitNow() && !Game.animating(), 8000))) {
             this.bot.log('still in the pit after climbing rope');
+            return;
         }
+        this.bot.noteOutOfPit();
     }
 }
 
@@ -674,6 +812,7 @@ class TagPillar implements Task {
         return target >= 0 && here === target && target < 24;
     }
     async execute(): Promise<void> {
+        this.bot.noteHint();
         this.bot.setStatus('tagging ticket dispenser');
         const ticketsBefore = this.bot.ticketCount();
         const taggedBefore = this.bot.tagged();
@@ -688,16 +827,31 @@ class TagPillar implements Task {
             return;
         }
         const op = dispenser.actions().find(a => /tag/i.test(a)) ?? 'Tag';
-        await dispenser.interact(op);
+        const dt = dispenser.tile();
+        const here = this.bot.here();
+        if (here && here.distanceTo(dt) > 1) {
+            await DirectNavigator.walkTo(dt, 1, 3000);
+        }
         // first tag shows a mesbox; subsequent give a ticket + objbox
-        await Execution.delayUntil(
-            () =>
-                this.bot.tagged() !== taggedBefore ||
-                this.bot.ticketCount() > ticketsBefore ||
-                reader.modals().chat !== -1 ||
-                reader.modals().main !== -1,
-            5000
-        );
+        for (let attempt = 0; attempt < 5; attempt++) {
+            if (this.bot.tagged() !== taggedBefore || this.bot.ticketCount() > ticketsBefore) {
+                break;
+            }
+            const live =
+                Locs.query().name('Ticket Dispenser').within(6).nearest() ?? dispenser;
+            await live.interact(op);
+            const started = await Execution.delayUntil(
+                () =>
+                    this.bot.tagged() !== taggedBefore ||
+                    this.bot.ticketCount() > ticketsBefore ||
+                    reader.modals().chat !== -1 ||
+                    reader.modals().main !== -1,
+                800
+            );
+            if (started) {
+                break;
+            }
+        }
         // clear mesbox/objbox so ContinueDialog/next task can run
         for (let i = 0; i < 4 && (ChatDialog.canContinue() || reader.modals().main !== -1); i++) {
             if (ChatDialog.canContinue()) {
@@ -709,7 +863,6 @@ class TagPillar implements Task {
         }
         if (this.bot.ticketCount() > ticketsBefore || this.bot.tagged()) {
             this.bot.countTag();
-            this.bot.log(`tagged pillar ${this.bot.platform()} (tickets ${this.bot.ticketCount()})`);
         }
     }
 }
@@ -731,19 +884,24 @@ class CrossObstacle implements Task {
             return false;
         }
         const target = this.bot.targetPillar();
-        // path to the active pillar unless already tagged and waiting
-        if (this.bot.tagged() || target < 0) {
-            const wait = waitPlatform(this.bot.agility(), here);
-            return here !== wait && pathPlatforms(here, wait, this.bot.agility()) !== null;
+        const chasing = !this.bot.tagged() && target >= 0;
+        if (chasing) {
+            return here !== target && nextHop(here, target, this.bot.agility()) !== null;
         }
-        return here !== target && nextHop(here, target, this.bot.agility()) !== null;
+        // After a tag, walk back to the centre hub. Sitting on a tagged corner
+        // is what turns the next arrow into a 50s cross-map miss.
+        if (onTicketHub(here)) {
+            return false;
+        }
+        return nextHop(here, CENTRE_PLATFORM, this.bot.agility()) !== null;
     }
     async execute(): Promise<void> {
+        this.bot.noteHint();
         const here = this.bot.platform();
         const target = this.bot.targetPillar();
-        const chasingTag = !this.bot.tagged() && target >= 0;
-        const goal = chasingTag ? target : waitPlatform(this.bot.agility(), here);
-        const hop = nextHop(here, goal, this.bot.agility());
+        const chasing = !this.bot.tagged() && target >= 0;
+        const goal = chasing ? target : CENTRE_PLATFORM;
+        const hop = nextHop(here, goal, this.bot.agility(), this.bot.avoidHop);
         if (hop === null) {
             this.bot.log(`no path from platform ${here} to ${goal} at agility ${this.bot.agility()}`);
             return;
@@ -753,9 +911,15 @@ class CrossObstacle implements Task {
             this.bot.log(`no usable edge ${here}->${hop}`);
             return;
         }
-        this.bot.log(`crossing ${edge.kind} ${here}→${hop} (goal ${goal})`);
-        this.bot.setStatus(`crossing ${edge.kind} ${here}→${hop}`);
-        await ensureRun(wantRunForGoal(chasingTag));
+        this.bot.lastHopFrom = here;
+        this.bot.lastHopTo = hop;
+        if (this.bot.avoidHop === hop) {
+            this.bot.avoidHop = -1;
+        }
+        this.bot.noteHop();
+        this.bot.log(`crossing ${edge.kind} ${here}→${hop} (goal ${goal}${chasing ? '' : ', back to centre'})`);
+        this.bot.setStatus(chasing ? `crossing ${edge.kind} ${here}→${hop}` : `back to centre ${here}→${hop}`);
+        await ensureRun(wantRunForGoal(chasing));
         await crossEdge(this.bot, edge, here, hop);
     }
 }
@@ -773,49 +937,12 @@ class SpikeWait implements Task {
         if (!this.bot.tagged() && this.bot.targetPillar() >= 0 && this.bot.platform() !== this.bot.targetPillar()) {
             return false;
         }
-        if (this.bot.agility() < 20) {
-            // park near centre without grinding spikes
-            return this.bot.platform() === CENTRE_PLATFORM || this.bot.platform() < 0;
-        }
-        const p = this.bot.platform();
-        return p === SPIKE_PLATFORMS[0] || p === SPIKE_PLATFORMS[1];
+        return this.bot.tagged() || this.bot.targetPillar() < 0 || this.bot.platform() === this.bot.targetPillar();
     }
     async execute(): Promise<void> {
-        if (this.bot.agility() < 20) {
-            this.bot.setStatus('waiting for next pillar');
-            await Execution.delayTicks(1);
-            return;
-        }
-        if (!canStartObstacle(Game.animating(), false)) {
-            return;
-        }
-        // already tagged this round — keep jumping spikes for XP until the arrow moves
-        if (!this.bot.tagged() && this.bot.targetPillar() === this.bot.platform()) {
-            // should tag first
-            return;
-        }
-        // Spikes / centre wait: walk to save energy for the next pillar chase.
-        await ensureRun(false);
-        const dest = this.bot.nextSpikePlatform();
-        const here = this.bot.platform();
-        if (here < 0) {
-            return;
-        }
-        const edge = edgeBetween(here, dest, this.bot.agility());
-        if (!edge) {
-            // walk onto the other spike platform via path
-            const hop = nextHop(here, dest, this.bot.agility());
-            if (hop !== null) {
-                const e = edgeBetween(here, hop, this.bot.agility());
-                if (e) {
-                    this.bot.setStatus(`to spikes via ${e.kind}`);
-                    await crossEdge(this.bot, e, here, hop);
-                }
-            }
-            return;
-        }
-        this.bot.setStatus('spike grind');
-        await crossEdge(this.bot, edge, here, dest);
+        this.bot.noteHint();
+        this.bot.setStatus(this.bot.tagged() ? 'waiting for next pillar' : 'on target — tag');
+        await Execution.delayTicks(1);
     }
 }
 
@@ -949,19 +1076,21 @@ async function waitObstacleSettled(bot: BrimhavenAgility, from: number, to: numb
 }
 
 async function crossEdge(bot: BrimhavenAgility, edge: ArenaEdge, from: number, to: number): Promise<void> {
-    const dest = PILLARS[to];
-
     if (edge.mode === 'walk') {
-        // traps fire on zone entry. Use the client pathfinder (not the overworld
-        // collision pack) so island→island steps stay in the arena scene.
+        // traps fire on the gap tiles. Walk onto the source-side trigger; a dest
+        // island click paths around the loc and drops into the pit.
+        const dest = walkTrapStand(from, to) ?? PILLARS[to];
         const local = reader.toLocal(dest.x, dest.z);
         if (!local) {
             bot.log(`  dest ${dest.x},${dest.z} not in scene`);
             return;
         }
         if (!actions.walkTo(local.lx, local.lz)) {
-            bot.log(`  walkTo(${local.lx},${local.lz}) refused`);
-            return;
+            bot.log(`  walkTo(${local.lx},${local.lz}) refused — DirectNavigator`);
+            if (!(await DirectNavigator.walkTo(new Tile(dest.x, dest.z, 3), 0, 4000))) {
+                bot.log(`  could not walk trap trigger ${dest.x},${dest.z}`);
+                return;
+            }
         }
         await waitObstacleSettled(bot, from, to, 8_000);
         return;
@@ -991,11 +1120,10 @@ async function crossEdge(bot: BrimhavenAgility, edge: ArenaEdge, from: number, t
         return;
     }
     const here0 = bot.here();
-    if (!here0?.equals(approach)) {
+    if (!here0?.equals(approach) && bot.platform() === from) {
         bot.log(`  stage ${approach.x},${approach.z} before ${edge.kind} ${from}→${to}`);
-        if (!(await DirectNavigator.walkTo(approach, 0, 6000))) {
-            bot.log(`  could not reach stage ${approach.x},${approach.z}; interaction skipped`);
-            return;
+        if (!(await DirectNavigator.walkTo(approach, 0, 4000))) {
+            bot.log(`  stage ${approach.x},${approach.z} missed — clicking ${edge.kind} from here`);
         }
     }
 
