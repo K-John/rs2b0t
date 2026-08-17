@@ -10,7 +10,7 @@ export interface RegicideItem {
 // both half-mixes — every lookup here goes through the id, never the name.
 export const RG_ITEM = {
     COINS: { id: 995, name: 'Coins' },
-    LOBSTER: { id: 379, name: 'Lobster' },
+    SHARK: { id: 385, name: 'Shark' },
     COAL: { id: 453, name: 'Coal' },
     PICKAXE: { id: 1265, name: 'Bronze pickaxe' },
     PESTLE: { id: 233, name: 'Pestle and mortar' },

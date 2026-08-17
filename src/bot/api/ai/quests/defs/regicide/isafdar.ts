@@ -143,7 +143,7 @@ async function fightSoldier(log: (m: string) => void): Promise<boolean> {
         }
         await Sustain.run();
         // Why: a pack with nothing left in it is the one thing this step has to notice for itself — carrying on from here is how a run ends at a Lumbridge grave with its kit on the far side of the palisade, and there is no walking back for it.
-        if (Skills.hpFraction() < BAIL_HP && Inventory.count(RG_ITEM.LOBSTER.name) === 0) {
+        if (Skills.hpFraction() < BAIL_HP && Inventory.count(RG_ITEM.SHARK.name) === 0) {
             log(`breaking off the fight at ${Math.round(Skills.hpFraction() * 100)}% with no food left`);
             return false;
         }

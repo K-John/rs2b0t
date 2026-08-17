@@ -25,7 +25,7 @@ const KIT: Stack[] = [
     [RG_ITEM.BRONZE_ARROW.id, ARROW_TARGET],
     RG_ITEM.TINDERBOX.id,
     RG_ITEM.SPADE.id,
-    [RG_ITEM.LOBSTER.id, FOOD_TARGET]
+    [RG_ITEM.SHARK.id, FOOD_TARGET]
 ];
 const WEAPON = 'rune scimitar';
 
@@ -102,7 +102,7 @@ describe('Regicide decide()', () => {
     const SPENT: [string, [number, number]][] = [
         ['an arrow on the guide-rope shot', [RG_ITEM.BRONZE_ARROW.id, ARROW_TARGET - 1]],
         ['a rope on the rock swing', [RG_ITEM.ROPE.id, 1]],
-        ['lobsters on the traps', [RG_ITEM.LOBSTER.id, 1]]
+        ['sharks on the traps', [RG_ITEM.SHARK.id, 1]]
     ];
 
     test.each(SPENT)('a pack that spent %s still walks on', (_what, left) => {
@@ -112,7 +112,7 @@ describe('Regicide decide()', () => {
         );
     });
 
-    // Why: the kit is 25 of the pack's 28 slots and the armour is drawn five pieces at a time, so a bank trip that takes the food first has nowhere to put the set — and `wearGear` withdraws nothing while `sourceKit` is still asking for lobsters.
+    // Why: the kit is 24 of the pack's 28 slots and the armour is drawn five pieces at a time, so a bank trip that takes the food first has nowhere to put the set — and `wearGear` withdraws nothing while `sourceKit` is still asking for sharks.
     test('the armour is drawn before the food, because the kit fills the pack', () => {
         const step = decide(
             snapshot({
@@ -127,7 +127,7 @@ describe('Regicide decide()', () => {
         expect(step.kind).toBe('withdraw');
         const drawn = step.kind === 'withdraw' ? step.items.map(i => i.name.toLowerCase()) : [];
         expect(drawn).toContain('rune chainbody');
-        expect(drawn).not.toContain(RG_ITEM.LOBSTER.name.toLowerCase());
+        expect(drawn).not.toContain(RG_ITEM.SHARK.name.toLowerCase());
     });
 
     test('the scouts are waited for inside the forest', () => {

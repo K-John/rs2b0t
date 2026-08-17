@@ -5,7 +5,7 @@
  *  Why: Underground Pass is seeded complete varp AND bits. The bits matter as much as the stage: `cave_well`
  *  only descends with all four orb bits set and the temple doors only open with the three badges and the
  *  horn thrown, and this quest walks back through both of them to reach the Well of Voyage.
- *  Why: stats are 70 across the board and the bank holds coins, Lobsters and armour alone — the wool, the
+ *  Why: stats are 70 across the board and the bank holds coins, Sharks and armour alone — the wool, the
  *  pickaxe and the pestle are bought by the module, and every quest item is sourced in the world. */
 
 //   HEADED=1 bun e2e/regicide-257-live.ts --stage 0 --until 2 --minutes 25 --tick 150
@@ -68,7 +68,7 @@ function parse(argv: string[]): Args {
         until: 15,
         minutes: 60,
         tickMs: 300,
-        food: 'Lobster',
+        food: 'Shark',
         stats: 70,
         tele: true,
         deploy: true,
@@ -122,7 +122,7 @@ const IBANMULTI_ALL = (1 << 22) - 1;
 
 const BANK_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
-    { debugName: 'lobster', displayName: 'Lobster', qty: 40 },
+    { debugName: 'shark', displayName: 'Shark', qty: 40 },
     // Why: rune chain and med helm rather than plate and full helm — those two want Dragon Slayer, which
     // this account has not done, and `Equipment.equip` refuses them silently.
     // Why: no shop this side of the map stocks a spade, and the pass has one way out of the slave cages.
@@ -188,7 +188,7 @@ const PACK_SEED: { debugName: string; qty: number; slots: number }[] = [
     { debugName: 'spade', qty: 1, slots: 1 },
     // Why: ten rather than the module's float of twelve, because five worn pieces have to fit alongside the
     // kit before the bot has had a tick to put any of them on.
-    { debugName: 'lobster', qty: 10, slots: 10 }
+    { debugName: 'shark', qty: 10, slots: 10 }
 ];
 
 const PACK_SLOTS = PACK_SEED.reduce((n, item) => n + item.slots, 0);

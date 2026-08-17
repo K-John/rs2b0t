@@ -63,7 +63,7 @@ interface Supply {
     reason: string;
     /**
      * What the crossing refuses to go on without, when that is less than the float bought for it.
-     * Why: the gate is re-asked every cycle and the pass is walked with the pack in hand, so a gate keyed on the full float blocks the moment anything is spent — the guide-rope shot costs an arrow, the rock swing a rope, a trap a lobster, and the run parked at the bridge's west foot on "have 49" of fifty arrows.
+     * Why: the gate is re-asked every cycle and the pass is walked with the pack in hand, so a gate keyed on the full float blocks the moment anything is spent — the guide-rope shot costs an arrow, the rock swing a rope, a trap a shark, and the run parked at the bridge's west foot on "have 49" of fifty arrows.
      */
     min?: number;
     /** Where to buy it when neither the pack nor the bank has one. */
@@ -129,7 +129,7 @@ export const KIT: readonly Supply[] = [
     // Why: past the well the pass drops into the slave cages, and the only op that leaves that pocket is `upass_mud`, which takes a spade and nothing else. The ledge reads as a second way out and is not one — no tile of the cage pocket stands beside it.
     // Why: and it is drawn, never bought. Four shops in the world stock a spade — Karamja, Shilo, Rellekka and the lighthouse — and not one is on this side of the map, so a `shop` here sends the run to Aemad's to ask for something he has never sold.
     { item: RG_ITEM.SPADE, qty: 1, reason: 'the filled-in tunnel out of the slave cages' },
-    { item: RG_ITEM.LOBSTER, qty: FOOD_TARGET, reason: 'the traps, the soldiers and the elf warriors', min: 1 }
+    { item: RG_ITEM.SHARK, qty: FOOD_TARGET, reason: 'the traps, the soldiers and the elf warriors', min: 1 }
 ];
 
 export const KEEP_IDS: readonly number[] = Object.values(RG_ITEM).map(item => item.id);
