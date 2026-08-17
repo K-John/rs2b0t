@@ -8,11 +8,7 @@ import { Game } from '#/bot/api/game/Game.js';
 import { Locs } from '#/bot/api/locs/Locs.js';
 import { stalledApproach } from '#/bot/api/ai/quests/defs/upass/stall.js';
 
-// Why: `Player.tryInteract` returns early on `!canAccess()`, and `canAccess()` is `!busy()` — so the script an
-// op-click is aimed at cannot run while the quest journal is held open. The grid crossing rides the portcullis
-// lever's `oploc1`, whose `~forcemove` chain is what carries the player through, so the walk arrives with the
-// journal up and the script waits: an oracle reading only "through the portcullis" cannot answer true until the
-// journal comes down. This fake is that ordering and nothing else.
+// Why: `Player.tryInteract` returns early on `!canAccess()`, and `canAccess()` is `!busy()` — so the script an op-click is aimed at cannot run while the quest journal is held open. The grid crossing rides the portcullis lever's `oploc1`, whose `~forcemove` chain is what carries the player through, so the walk arrives with the journal up and the script waits: an oracle reading only "through the portcullis" cannot answer true until the journal comes down. This fake is that ordering and nothing else.
 
 const GRID_APPROACH = { x: 2479, z: 9679, level: 0 };
 const LEVER_STAND = { x: 2466, z: 9673, level: 0 };
@@ -136,9 +132,7 @@ describe('a stalled walk whose oracle waits on a script', () => {
         reset(GRID_APPROACH);
         const lines: string[] = [];
 
-        // Why: an inventory oracle is the shape every corridor goal uses — the orb pickup, the furnace, the
-        // well. None of them can come true while the journal is up, so once the walk stops there is nothing
-        // left to wait for.
+        // Why: an inventory oracle is the shape every corridor goal uses — the orb pickup, the furnace, the well. None of them can come true while the journal is up, so once the walk stops there is nothing left to wait for.
         const carried = await stalledApproach({
             send: async () => {
                 sim.walkingTo = { x: LEVER_STAND.x, z: LEVER_STAND.z };
