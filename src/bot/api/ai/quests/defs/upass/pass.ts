@@ -355,9 +355,12 @@ async function tryHops(
             }
         }
         await settleScene();
+        // Why: two tiles is not proof for a door. The slave cages stand ON the corridor they open off, so a walk from one side of a cage to the other along that corridor clears any distance test without opening anything — and the cage is then struck off as used. What a crossing does is leave the pocket: `~open_and_close_door2` shuts behind the player, and a ledge or a bridge puts a chasm in the way. So the stand has to be somewhere the character can no longer walk to.
+        const left = stand === null
+            || !Reachability.canReach(new Tile(stand.x, stand.z, stand.level), { adjacentOk: false, maxSteps: REACH.maxSteps });
         // Why: a crossing counts when the script ran, not when the straight line got shorter. The bridge out of the main cavern lands the character eighty-four tiles from the witch's cat where they were seventy-eight away, and the log said "you manage to cross safely" while this called it a failure and spent the only way on. Distance across a pocket graph is not distance.
         // Why: two tiles, because the op-click walks the player before the script resolves — a one-tile drift toward the obstacle is the approach, and reading that as a crossing burned seventy seconds a round on a cage the character never reached.
-        if (chebyshev(now, origin) < 2) {
+        if (chebyshev(now, origin) < 2 || !left) {
             // Why: a seam that could not be stood beside is not a seam that does not work — it is one the character was in the wrong pocket for. Spending it there meant that when the route finally put them three tiles from it, the search refused to try the crossing at all.
             if (stood && stand) {
                 spendFrom(spent, key, stand);
