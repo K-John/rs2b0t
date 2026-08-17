@@ -25,8 +25,8 @@ interface HopKind {
     below?: number;
     /** Only offer this loc when the journey wants where it leads; `at` is the loc's own tile. */
     when?: (dest: Tile, from: { x: number; z: number; level: number }, at: Tile) => boolean;
-    /** A telejump the map lays on rather than a seam to search for, so it leads the list when it is offered. */
-    jump?: boolean;
+    /** Where this loc puts the player, for a telejump whose far side is nowhere near it. */
+    landing?: (at: Tile) => Tile;
 }
 
 /** The first cavern is everything at or above this z; the second is everything below it. */
@@ -39,6 +39,11 @@ const LOCK_TRIES = 5;
 // Why: the rockslide, the ledge, the stone bridges and the collapsed bridge each roll agility and drop the player short on a failure — the ledge into a rat pit for five. Spending the obstacle on one roll is how a leg ran out of ledges to try while standing next to six of them.
 const ROLL_TRIES = 4;
 
+// Why: `@upass_area_2_3_entrance` telejumps rather than opens, and the map fixes which way by the door's own angle: the pair at (2370,9665) and (2371,9665) is angle 1 and lands the player at (2401,9610) beside the loose railings, while the two pairs at z 9611 are angle 3 and land them at (2371,9666) in the first cavern. Neither landing is anywhere near the door, so a search that ranks these by where they STAND puts the one that finishes the journey last and takes the one that undoes it first.
+const TUNNEL_TO_RAILINGS = new Tile(2401, 9610, 0);
+const TUNNEL_TO_FIRST_CAVERN = new Tile(2371, 9666, 0);
+const tunnelLanding = (at: Tile): Tile => (inFirstCavern(at) ? TUNNEL_TO_RAILINGS : TUNNEL_TO_FIRST_CAVERN);
+
 // Why: ordered by how often the route meets them, so the nearest-first search below settles quickly.
 const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.ROCKSLIDE, op: 'Climb-over', tries: ROLL_TRIES },
@@ -50,8 +55,8 @@ const HOP_KINDS: readonly HopKind[] = [
     { loc: UP_LOC.COLLAPSED_B, op: 'Cross', tries: ROLL_TRIES },
     { loc: UP_LOC.ROCKSWING_BACK, op: 'Swing-on', tries: ROLL_TRIES },
     // Why: `@upass_area_2_3_entrance` telejumps rather than opens, and the map fixes which way by the door's own angle: the pair at (2370,9665) and (2371,9665) is angle 1 and lands the player at (2401,9610) beside the loose railings, while the two pairs at z 9611 are angle 3 and land them at (2371,9666) in the first cavern. So the door worth taking is the one standing on the far side from the destination — keyed on the door's own tile, because the journey's endpoints can sit on the same side of the split while the only way between them is one of these.
-    { loc: UP_LOC.UNICORN_DOOR_L, op: 'Pass-through', jump: true, when: (dest, _from, at) => inFirstCavern(at) !== inFirstCavern(dest) },
-    { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through', jump: true, when: (dest, _from, at) => inFirstCavern(at) !== inFirstCavern(dest) },
+    { loc: UP_LOC.UNICORN_DOOR_L, op: 'Pass-through', landing: tunnelLanding },
+    { loc: UP_LOC.UNICORN_DOOR_R, op: 'Pass-through', landing: tunnelLanding },
     // Why: the second cavern's own seams. The route from the well down to the boulder crosses the slave
     // cages, the swamp and a pipe, and every one of them reads "unreachable" to the navigator.
     { loc: UP_LOC.RAILINGS_LOCKED, op: 'Pick-lock', tries: LOCK_TRIES },
@@ -221,6 +226,7 @@ async function standBeside(at: Tile, note: (m: string) => void, skip = 0): Promi
 function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[]; trailing: Loc[] } {
     const found: Loc[] = [];
     const jumps: Loc[] = [];
+    const mine = chebyshev(from, dest);
     for (const kind of HOP_KINDS) {
         const locs = Locs.query()
             .where(loc => loc.id === kind.loc && (kind.below === undefined || loc.tile().z < kind.below))
@@ -228,14 +234,17 @@ function hopsToward(dest: Tile, from: { x: number; z: number }): { leading: Loc[
             .within(HOP_SEARCH)
             .results()
             .filter(loc => !kind.when || kind.when(dest, { ...from, level: dest.level }, loc.tile()));
-        (kind.jump === true ? jumps : found).push(...locs);
+        for (const loc of locs) {
+            // Why: a telejump that lands beside the destination leads the list however far off its door stands, and one that lands on the wrong side of the pass keeps its turn at the back rather than being struck off — the route to the railings needs one of each, in that order.
+            const lands = kind.landing?.(loc.tile());
+            (lands !== undefined && chebyshev(lands, dest) + MIN_GAIN <= mine ? jumps : found).push(loc);
+        }
     }
     // Why: the obstacle worth crossing is the one that leaves the player closer to the target than standing still does — sorting by the target's distance from the obstacle is what encodes "forward".
     // Why: "any obstacle closer than I am" picks marginal ones that cross sideways and drift the route — three of them in a row carried a run twenty tiles the wrong way before the loop gave up.
     // Why: and an obstacle in the scene is not one this pocket can walk to. The stone bridges of the second cavern sit behind its locked cages, closer to the target than the cages are, so the search chose them first and burned eighteen seconds each proving it could not get there. The scene's own collision flags answer that for free.
     // Why: and a seam can be the only way on while sitting FURTHER from the target than the character already is — the pipe into the boulder's pocket is sixteen tiles from the boulder while the character stands fourteen away on the wrong side of it. A gain threshold alone therefore cannot leave that pocket, and the run oscillated through one cage door instead. So the gain is a preference, not a filter: seams that gain come first, the rest follow, and `spent` is what stops it going in circles.
     // Why: and the scene's own verdict orders them too rather than vetoing them. It called the bridge the character had just walked a hundred and forty tiles to stand beside "walled off", which dropped it from the list entirely and sent the run over a different bridge, away from the target. Every one of these tests is a preference; the only hard filter left is whether the loc is in the scene at all.
-    const mine = chebyshev(from, dest);
     const byDistance = (a: Loc, b: Loc): number => chebyshev(a.tile(), dest) - chebyshev(b.tile(), dest);
     const gains = (loc: Loc): boolean => chebyshev(loc.tile(), dest) + MIN_GAIN <= mine;
     const open = (loc: Loc): boolean => seamReachable(loc.tile());
