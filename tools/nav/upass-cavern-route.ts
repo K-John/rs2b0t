@@ -41,7 +41,32 @@ for (const name of fs.readdirSync(MAPS)) {
     const mx = Number(m[1]);
     const mz = Number(m[2]);
     let section = '';
-    for (const line of fs.readFileSync(path.join(MAPS, name), 'utf8').split('\n')) {
+    // Why: `GameMap` reads a loc's level as `level - 1` wherever the LEVEL-1 land flag carries LINK_BELOW (0x2), so every ledge and stone bridge in the second cavern is written at level 1 and stands at level 0. Filtering on the file's own level dropped all of them, and the report read as a cavern with no ledges and no bridges in it.
+    const linkBelow = new Set<number>();
+    const lines = fs.readFileSync(path.join(MAPS, name), 'utf8').split('\n');
+    for (const line of lines) {
+        if (line.startsWith('====')) {
+            section = line.replace(/=/g, '').trim();
+            continue;
+        }
+        if (section !== 'MAP') {
+            continue;
+        }
+        const [head, rest] = line.split(':');
+        if (!head || !rest) {
+            continue;
+        }
+        const [lvl, lx, lz] = head.trim().split(/\s+/).map(Number);
+        if (lvl !== 1) {
+            continue;
+        }
+        const flag = rest.trim().split(/\s+/).find(token => /^f\d+$/.test(token));
+        if (flag !== undefined && (Number(flag.slice(1)) & 0x2) === 0x2) {
+            linkBelow.add((lx! << 8) | lz!);
+        }
+    }
+    section = '';
+    for (const line of lines) {
         if (line.startsWith('====')) {
             section = line.replace(/=/g, '').trim();
             continue;
@@ -58,7 +83,8 @@ for (const name of fs.readdirSync(MAPS)) {
             continue;
         }
         const [lvl, lx, lz] = head.trim().split(/\s+/).map(Number);
-        if (lvl !== 0) {
+        const level = linkBelow.has((lx! << 8) | lz!) ? lvl! - 1 : lvl!;
+        if (level !== 0) {
             continue;
         }
         found.push({ id, tile: { x: mx * 64 + lx!, z: mz * 64 + lz!, level: 0 } });
