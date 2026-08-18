@@ -383,3 +383,31 @@ describe('shaping the pack for the walk back', () => {
         expect(name(step)).toContain('Underground Pass');
     });
 });
+
+// Why: nothing in the content deletes the King's message — the messenger's `inv_add` is the only site that touches its count, and King Lathas reads `%regicide_quest` rather than the pack. It would otherwise ride the pass twice and the coal run as a dead slot. Iorwerth's letter is the opposite: Lathas takes that one, so it stays.
+describe('the King\'s message is a prop the quest never reclaims', () => {
+    const CHAIN: Stack[] = [
+        RG_ITEM.BARREL_TAR.id, RG_ITEM.CLOTH.id, RG_ITEM.SULPHUR_DUST.id, RG_ITEM.QUICKLIME_DUST.id,
+        RG_ITEM.POT.id, RG_ITEM.PICKAXE.id, RG_ITEM.PESTLE.id, [RG_ITEM.SHARK.id, STILL_FOOD]
+    ];
+
+    test('the coal run banks it', () => {
+        const step = decide(snapshot({
+            stage: RG_STAGE.SPOKEN_IORWERTH2,
+            tile: ARDOUGNE,
+            carried: [...CHAIN, RG_ITEM.SUMMONS.id]
+        }));
+        expect(step.kind).toBe('deposit');
+        expect(step.kind === 'deposit' && step.keepIds).not.toContain(RG_ITEM.SUMMONS.id);
+    });
+
+    test('the walk back keeps Iorwerth\'s letter, which Lathas does take', () => {
+        const shaped: Stack[] = [
+            RG_ITEM.BARREL_FUSED.id, RG_ITEM.MESSAGE.id, RG_ITEM.SPADE.id, [RG_ITEM.ROPE.id, ROPE_TARGET],
+            RG_ITEM.SHORTBOW.id, [RG_ITEM.BRONZE_ARROW.id, ARROW_TARGET], RG_ITEM.TINDERBOX.id,
+            [RG_ITEM.SHARK.id, FOOD_TARGET]
+        ];
+        const step = decide(snapshot({ stage: RG_STAGE.SPOKEN_IORWERTH2, tile: ARDOUGNE, carried: shaped }));
+        expect(name(step)).toContain('Underground Pass');
+    });
+});

@@ -89,6 +89,7 @@ const returnRun = (): PackPlan => ({
     what: 'the walk back through the pass',
     allow: [],
     caps: RETURN_KIT.map(supply => ({ item: supply.item, qty: supply.qty })),
+    shed: SPENT_BY_NOW,
     freeNeeded: FIRE_ARROW_SLOTS
 });
 
@@ -183,6 +184,9 @@ function gatherLeg(snap: QuestSnapshot): QuestStep | null {
     return null;
 }
 
+// Why: the King's message is a prop the quest never reclaims. Nothing in the content deletes it — the messenger's `inv_add` is the only site that touches the count, and King Lathas is keyed on `%regicide_quest` rather than on holding it — so it rides the pass twice and the coal run as a dead slot unless a plan says otherwise. Iorwerth's letter is the opposite and stays: Lathas reads that one out of the pack.
+const SPENT_BY_NOW: readonly number[] = [RG_ITEM.SUMMONS.id];
+
 // Why: the coal run carries the chain, the two tools that build it and a short food float — and nothing else. Coal does not stack, so the twelve the still burns want twelve slots free before the first swing at the rock; the kit is twenty-four slots and leaves four.
 // Why: the room asked for is what is LEFT to mine, not the full float. Coal accumulates in the pack, so a plan that keeps asking for twelve free once six are already held parks a leg that was one swing from finishing — which is how this read live: "needs 12 free slot(s) and the pack has 11" with six coal in hand.
 const coalRun = (snap: QuestSnapshot): PackPlan => ({
@@ -193,6 +197,7 @@ const coalRun = (snap: QuestSnapshot): PackPlan => ({
         RG_ITEM.COOKED_RABBIT.id, RG_ITEM.PICKAXE.id, RG_ITEM.PESTLE.id, RG_ITEM.COAL.id
     ],
     caps: [{ item: RG_ITEM.SHARK, qty: STILL_FOOD }],
+    shed: SPENT_BY_NOW,
     freeNeeded: Math.max(0, COAL_TARGET - carried(snap, RG_ITEM.COAL))
 });
 
