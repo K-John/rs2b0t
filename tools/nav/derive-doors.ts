@@ -84,7 +84,19 @@ function main(): void {
             // The Legends Quest trials. Why: the outer gate answers Open with "You push on the doors, they're really shut" and yields only to a Search with a lockpick, and the inner one raises a brute-strength prompt and a roll that a walker cannot answer. Baked as edges the pathfinder routes into both and the walker loops a tile short.
             'lglockpickgatebottoml', 'lglockpickgatebottomr', 'lgstrengthtrialgatel', 'lgstrengthtrialgater',
             // Khazard stronghold's front door. Why: quest_tree.rs2 opens it only for a player already north of it, so the pathfinder routed every trip to the chest through a door that answers "The door seems to be locked from the inside." — the crumbled wall is the way in, driven by defs/treegnome.
-            'khazard_stronghold_door'
+            'khazard_stronghold_door',
+            // Peer the Seer's puzzle house. door1 opens only to a solved combination lock and an empty pack; door2 answers "This door is locked tightly shut." and yields to an oplocu with the key from inside.
+            // Why: baked as edges the pathfinder routes a bot into a sealed pocket it then cannot leave, which is where a Fremennik Trials run wedged.
+            'viking_seers_door1', 'viking_seers_door2',
+            // Why: the longhall's backstage door stays in — the bouncer refuses only the inward crossing, and the stage behind it is a dead end nothing routes through, so removing it would seal the bard in after his performance.
+            // Rellekka's north fence: "Only Fremenniks may pass this gate." until the trials are over.
+            'viking_fencegate_l', 'viking_fencegate_r',
+            // Hero's Quest's five Brimhaven doors. Why: each refuses until its own stage and gang, and
+            // `~open_and_close_door` teleports rather than opens — defs/heroquest/doors.ts owns them.
+            'grubordoor', 'garvdoor', 'herokitchendoor', 'pete_sidedoor', 'pete_treasuredoor',
+            // Taverley's two key doors. Why: jail_doors.rs2 yields only to an oplocu with the jail key
+            // or the dusty key, so defs/heroquest/eel.ts owns both crossings.
+            'dungeonjail', 'deepdungeondoor'
         ]);
         const label = `${type.name ?? ''} ${type.debugname ?? ''}`.toLowerCase();
         if (label.includes('locked') || (type.debugname ?? '').startsWith('macro_') || SCRIPT_REFUSED.has(type.debugname ?? '')) {

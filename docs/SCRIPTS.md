@@ -283,9 +283,9 @@ Wilderness green dragons N of Edgeville: melee/mage w/ anti-dragon shield, banks
 
 ### HillGiant
 
-Edgeville dungeon hill giants — fetches the brass key if the bank has none, unlocks the hut, and banks limpwurt roots and big bones at Varrock West
+Edgeville dungeon hill giants — enters through the public trapdoor and banks limpwurt roots and big bones at Edgeville
 
-- Tags: `combat`, `giants`, `edgeville`, `varrock`, `banking`, `looting`
+- Tags: `combat`, `giants`, `edgeville`, `banking`, `looting`
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
@@ -635,7 +635,7 @@ Mines the selected rock types, then banks the ore at the nearest bank or drops i
 |---|---|---|---|
 | `rocks` | string[] | `["Iron"]` | Rock types — one of: Clay, Copper, Tin, Iron, Silver, Coal, Gold, Mithril, Adamantite, Runite |
 | `leashRadius` | number (2–64) | `10` | Leash radius (tiles) |
-| `location` | string | `"Auto"` | Location / full inventory — one of: Auto, Al Kharid Mine (29 Combat recommended), Barbarian Village, Coal Trucks (55 Combat recommended), Crafting Guild, Desert Mining Camp (91 Combat recommended), Dwarven Mine (65 Combat recommended), Edgeville Dungeon Mine (85 Combat recommended), Fight Arena Mine, Grand Tree Mine, Heroes Guild, Lava Maze Runite Mine (69 Combat recommended), Legends Guild Iron (east), Legends Guild Iron (west), Mining Guild, North Brimhaven Mine, Rimmington Mine, Shilo Village, South-east Ardougne Mine, Southeast Varrock Mine, Southwest Varrock Mine, West Lumbridge Swamp Mine, Wilderness Hobgoblin Mine (57 Combat recommended), Wilderness Skeleton Mine (45 Combat recommended), None |
+| `location` | string | `"Auto"` | Location / full inventory — one of: Auto, Al Kharid Mine (29 Combat recommended), Barbarian Village, Coal Trucks (55 Combat recommended), Crafting Guild, Desert Mining Camp (91 Combat recommended), Desert Mining Camp Surface (91 Combat recommended), Dwarven Mine (65 Combat recommended), Edgeville Dungeon Mine (85 Combat recommended), Fight Arena Mine, Grand Tree Mine, Heroes Guild, Lava Maze Runite Mine (69 Combat recommended), Legends Guild Iron (east), Legends Guild Iron (west), Mining Guild, North Brimhaven Mine, Rimmington Mine, Shilo Village, South-east Ardougne Mine, Southeast Varrock Mine, Southwest Varrock Mine, West Lumbridge Swamp Mine, Wilderness Hobgoblin Mine (57 Combat recommended), Wilderness Skeleton Mine (45 Combat recommended), None |
 | `food` | string | `"Lobster"` | Food — one of: Shark, Lobster, Swordfish, Tuna, Salmon, Trout, Pike, Bass, Herring, Sardine, Anchovies, Shrimps, Cooked meat, Cooked chicken, Bread, Stew, Cake, Chocolate cake, Plain pizza, Meat pizza, Anchovy pizza, Pineapple pizza, Redberry pie, Meat pie, Apple pie |
 | `foodWithdraw` | number (0–27) | `0` | Food to withdraw |
 | `tickManip` | string | `"Off"` | Tick manip — one of: Off |
@@ -671,12 +671,11 @@ World shop-run supply loop — cycles shop clusters buying Herblore supplies, fe
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
-| `buyItems` | string[] | `["Adamant arrow","Adamant arrowtips","Air rune","Body rune","Bronze arrow","Bronze arrowtips","Chaos rune","Cosmic rune","Death rune","Earth rune","Eye of newt","Feather","Fire rune","Iron arrow","Iron arrowtips","Law rune","Mind rune","Mithril arrow","Mithril arrowtips","Nature rune","Rune arrow","Rune arrowtips","Soul rune","Steel arrow","Steel arrowtips","Vial","Water rune"]` | Items to buy — one of: Adamant arrow, Adamant arrowtips, Air rune, Body rune, Bronze arrow, Bronze arrowtips, Chaos rune, Cosmic rune, Death rune, Earth rune, Eye of newt, Feather, Fire rune, Iron arrow, Iron arrowtips, Law rune, Mind rune, Mithril arrow, Mithril arrowtips, Nature rune, Rune arrow, Rune arrowtips, Soul rune, Steel arrow, Steel arrowtips, Vial, Water rune |
+| `buyItems` | string[] | `["Adamant arrow","Adamant arrowtips","Air rune","Body rune","Bronze arrow","Bronze arrowtips","Chaos rune","Cosmic rune","Death rune","Earth rune","Eye of newt","Feather","Fire rune","Iron arrow","Iron arrowtips","Law rune","Mind rune","Mithril arrow","Mithril arrowtips","Nature rune","Rune arrow","Rune arrowtips","Soul rune","Steel arrow","Steel arrowtips","Vial","Vial of water","Water rune"]` | Items to buy — one of: Adamant arrow, Adamant arrowtips, Air rune, Body rune, Bronze arrow, Bronze arrowtips, Chaos rune, Cosmic rune, Death rune, Earth rune, Eye of newt, Feather, Fire rune, Iron arrow, Iron arrowtips, Law rune, Mind rune, Mithril arrow, Mithril arrowtips, Nature rune, Rune arrow, Rune arrowtips, Soul rune, Steel arrow, Steel arrowtips, Vial, Vial of water, Water rune |
 | `gpBufferPct` | number (0–100) | `25` | Gp buffer % |
 | `maxGpPerLeg` | number (1000–) | `100000` | Max gp per withdrawal |
 | `stopFloorGp` | number (0–) | `5000` | Stop below bank gp |
 | `mageArena` | boolean | `true` | Mage Arena leg |
-| `route` | string | `"live"` | Route — one of: live, smoke-varrock |
 
 ## Navigation
 
@@ -714,12 +713,13 @@ All-in-one quest completer — queues the implemented quests (empty selection = 
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
-| `quests` | string[] | `[]` | Quest queue (empty = all) — one of: Rune Mysteries Quest, Doric's Quest, The Knight's Sword, Sheep Shearer, The Restless Ghost, Cook's Assistant, Imp Catcher, Ernest the Chicken, Witch's Potion, Romeo & Juliet, Prince Ali Rescue, Pirate's Treasure, Shield of Arrav, Waterfall Quest, Goblin Diplomacy, Demon Slayer, Witch's House, Dwarf Cannon, Clock Tower, Monk's Friend, Merlin's Crystal, Holy Grail, Priest in Peril, Nature Spirit, Black Knight's Fortress, Druidic Ritual, Lost City, The Tourist Trap, Watch Tower, Vampire Slayer, Fishing Contest, Jungle Potion, Tai Bwo Wannai Trio, Shilo Village, Elemental Workshop, Death Plateau, Troll Stronghold, Plague City, Biohazard, Hazeel Cult, Tribal Totem, Family Crest, Horror from the Deep, Fight Arena, Sea Slug Quest, Murder Mystery, Tree Gnome Village, Dragon Slayer, Legends Quest |
+| `quests` | string[] | `[]` | Quest queue (empty = all) — one of: Rune Mysteries Quest, Doric's Quest, The Knight's Sword, Sheep Shearer, The Restless Ghost, Cook's Assistant, Imp Catcher, Ernest the Chicken, Witch's Potion, Romeo & Juliet, Prince Ali Rescue, Pirate's Treasure, Shield of Arrav, Gertrude's Cat, Waterfall Quest, Goblin Diplomacy, Demon Slayer, Witch's House, Dwarf Cannon, Clock Tower, Observatory Quest, Monk's Friend, Merlin's Crystal, Holy Grail, Priest in Peril, Nature Spirit, Shades of Mortton, Black Knight's Fortress, Druidic Ritual, Lost City, The Tourist Trap, Watch Tower, Vampire Slayer, Fishing Contest, Jungle Potion, Tai Bwo Wannai Trio, Shilo Village, Elemental Workshop, Death Plateau, Troll Stronghold, Eadgar's Ruse, Plague City, Biohazard, Hazeel Cult, Tribal Totem, Sheep Herder, Family Crest, Horror from the Deep, Scorpion Catcher, Fight Arena, Big Chompy Bird Hunting, Sea Slug Quest, Murder Mystery, Tree Gnome Village, The Grand Tree, Temple of Ikov, Digsite Quest, Underground Pass, Regicide, The Fremennik Trials, Dragon Slayer, Hero's Quest, Legends Quest |
 | `loadout` | string | `""` | Loadout — one of:  |
 | `food` | string | `"Lobster"` | Food — one of: Shark, Lobster, Swordfish, Tuna, Salmon, Trout, Pike, Bass, Herring, Sardine, Anchovies, Shrimps, Cooked meat, Cooked chicken, Bread, Stew, Cake, Chocolate cake, Plain pizza, Meat pizza, Anchovy pizza, Pineapple pizza, Redberry pie, Meat pie, Apple pie |
 | `arravGang` | string | `"random"` | Shield of Arrav gang — one of: random, phoenix, blackarm |
 | `arravPartner` | string | `""` | Shield of Arrav partner |
 | `arravCerts` | number (1–50) | `2` | Shield of Arrav certificates |
+| `heroPartner` | string | `""` | Hero's Quest partner |
 | `verbose` | boolean | `true` | Verbose step log |
 
 ### ArravSupplier

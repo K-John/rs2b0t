@@ -603,8 +603,7 @@ export class QuestEngine implements Task {
         for (const name of skillNames) {
             skillLevels.set(name, Skills.level(name));
         }
-        // Why: whether a prerequisite is complete is a fact about the account, not about whether this bot can run that quest.
-        // Why: reading only the implemented records made Legends permanently BLOCKED on an account that had finished Heroes' Quest and Underground Pass by hand, as neither has a module and neither could ever land in the set.
+        // Why: what the account has finished is read from every known quest, not only the ones with a module. A prerequisite whose own quest has no module yet — Biohazard ahead of Underground Pass, Heroes' Quest ahead of Legends — would otherwise be unsatisfiable, and the quest it gates would report BLOCKED forever.
         const completedQuests = new Set<string>();
         for (const r of QUESTS) {
             if (Quests.status(r.name) === 'complete') {

@@ -51,6 +51,16 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'chompy-bird-235-live',
+        harness: 'chompy-bird-235-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'vetted',
+        budgetMin: 90,
+        provenAt: '51ea75ed',
+        documentedIn: 'docs/reference/quest-harness-recipes-17.md',
+        note: 'uncheated --stage 0 --until 65 finished in 13 minutes at --tick 200; members-only, so it needs the :8890 world'
+    },
+    {
         id: 'clue-guardian-eat-live',
         harness: 'clue-guardian-eat-live.ts',
         covers: { scripts: ['ClueSolver'] },
@@ -76,6 +86,12 @@ export const CASES: readonly Case[] = [
         budgetMin: 60,
         provenAt: 'ae6a6bc5',
         note: 'Clock Tower start to finish in 6 minutes at --tick 200; --stage counts placed cogs'
+    },
+    {
+        id: 'scorpion-catcher-258-live',
+        harness: 'scorpion-catcher-258-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'unvetted'
     },
     {
         id: 'coaltrucks-test',
@@ -116,6 +132,22 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'desert-camp-surface-live',
+        harness: 'desert-camp-surface-live.ts',
+        covers: { scripts: ['GatheringBot'] },
+        status: 'unvetted'
+    },
+    {
+        id: 'digsite-251-live',
+        harness: 'digsite-251-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'vetted',
+        budgetMin: 150,
+        provenAt: 'a0f40788',
+        documentedIn: 'docs/reference/quest-harness-recipes-15.md',
+        note: 'uncheated --stage 0 --until 9 at --tick 150'
+    },
+    {
         id: 'doric-level3-test',
         harness: 'doric-level3-test.ts',
         covers: { scripts: ['AIOQuester'] },
@@ -139,6 +171,15 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'unvetted',
         budgetMin: 60
+    },
+    {
+        id: 'eadgar-ruse-241-live',
+        harness: 'eadgar-ruse-241-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'documented',
+        budgetMin: 180,
+        documentedIn: 'docs/reference/quest-harness-recipes-4.md',
+        note: "Eadgar's Ruse leg by leg at --tick 200; --stage jumps %eadgar_quest, --unfreed exercises the free-Eadgar recovery"
     },
     {
         id: 'entrana-gear-368-live',
@@ -202,6 +243,16 @@ export const CASES: readonly Case[] = [
         note: 'uncheated --stage 0 --until 5 finished in 6 minutes at --tick 150; --stage is %fishingcompo'
     },
     {
+        id: 'fremennik-trials-266-live',
+        harness: 'fremennik-trials-266-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'vetted',
+        provenAt: '7a90d351',
+        budgetMin: 180,
+        documentedIn: 'docs/reference/quest-harness-recipes-18.md',
+        note: 'Seven trials at 70 stats and --tick 200; --stage counts whole trials won. Koschei passes on a roll that lands on the last hitpoint, so a run can spend one death and a walk back from Lumbridge'
+    },
+    {
         id: 'gatheringbot-cooker-pair-test',
         harness: 'gatheringbot-cooker-pair-test.ts',
         covers: { scripts: ['GatheringBot'] },
@@ -230,10 +281,25 @@ export const CASES: readonly Case[] = [
         documentedIn: 'package.json verify:gatheringbot'
     },
     {
+        id: 'gertrudes-cat-245-live',
+        harness: 'gertrudes-cat-245-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'documented',
+        budgetMin: 60,
+        documentedIn: 'docs/reference/quest-harness-recipes-11.md'
+    },
+    {
         id: 'greendragon-pk-flee-test',
         harness: 'greendragon-pk-flee-test.ts',
         covers: { scripts: ['GreenDragon'] },
         status: 'unvetted'
+    },
+    {
+        id: 'grand-tree-247-live',
+        harness: 'grand-tree-247-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'unvetted',
+        budgetMin: 90
     },
     {
         id: 'greendragon-test',
@@ -262,6 +328,25 @@ export const CASES: readonly Case[] = [
         harness: 'herblore-secondaries-test.ts',
         covers: { scripts: ['HerbloreSecondaries'] },
         status: 'unvetted'
+    },
+    {
+        id: 'heros-quest-items-249-live',
+        harness: 'heros-quest-items-249-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 60,
+        documentedIn: 'docs/reference/quest-harness-recipes-19.md',
+        note: 'one account seeded at stage 13 — proves the eel chain, the feather and the hand-in'
+    },
+    {
+        id: 'heros-quest-pair-249-live',
+        harness: 'heros-quest-pair-249-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 90,
+        manual: true,
+        documentedIn: 'docs/reference/quest-harness-recipes-19.md',
+        note: 'two accounts, one per gang; --stage grip proves the armband dance in 9min at --tick 300'
     },
     {
         id: 'hillgiant-bank-428-live',
@@ -403,6 +488,15 @@ export const CASES: readonly Case[] = [
         note: "Monk's Friend start to finish in 5 minutes at --tick 200; --stage is the raw %drunkmonkquest"
     },
     {
+        id: 'mortton-255-live',
+        harness: 'mortton-255-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'vetted',
+        provenAt: '929f506d',
+        budgetMin: 120,
+        documentedIn: 'docs/reference/quest-harness-recipes-3.md'
+    },
+    {
         id: 'mossgiant-dart-test',
         harness: 'mossgiant-dart-test.ts',
         covers: { scripts: ['MossGiant'] },
@@ -412,6 +506,12 @@ export const CASES: readonly Case[] = [
         id: 'mulecrafter-test',
         harness: 'mulecrafter-test.ts',
         covers: { scripts: ['MuleCrafter'] },
+        status: 'unvetted'
+    },
+    {
+        id: 'multibox-profile-transfer-test',
+        harness: 'multibox-profile-transfer-test.ts',
+        covers: { subsystems: ['multibox'] },
         status: 'unvetted'
     },
     {
@@ -447,7 +547,7 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'documented',
         budgetMin: 120,
-        documentedIn: 'docs/reference/quest-harness-recipes-6.md'
+        documentedIn: 'docs/reference/quest-harness-recipes-14.md'
     },
     {
         id: 'nav-path-paint-live',
@@ -484,6 +584,15 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'observatory-252-live',
+        harness: 'observatory-252-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'vetted',
+        budgetMin: 90,
+        provenAt: '8b21aef5',
+        note: 'Observatory Quest start to finish in 14 minutes at --tick 200, 70 stats; --stage is the raw %itgronigen'
+    },
+    {
         id: 'route-walk-live',
         harness: 'nav/route-walk-live.ts',
         covers: { subsystems: ['nav'] },
@@ -510,6 +619,23 @@ export const CASES: readonly Case[] = [
         provenAt: '3ab5d0a4',
         documentedIn: 'docs/reference/quest-harness-recipes-5.md',
         note: 'clean account to journal complete in 23min at --tick 300, no parks'
+    },
+    {
+        id: 'upass-265-live',
+        harness: 'upass-265-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 110,
+        documentedIn: 'docs/reference/quest-harness-recipes-16.md',
+        note: 'every leg 0 to 10 proven live from its own seeded stage; end to end stalls in the second cavern'
+    },
+    {
+        id: 'regicide-257-live',
+        harness: 'regicide-257-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 90,
+        note: 'seeds Underground Pass complete varp and bits; --stage is the %regicide_quest value, 0 to 15'
     },
     {
         id: 'plague-pipe-366-live',
@@ -583,6 +709,13 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'sheep-herder-260-live',
+        harness: 'sheep-herder-260-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 90
+    },
+    {
         id: 'shield-of-arrav-232-live',
         harness: 'shield-of-arrav-232-live.ts',
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
@@ -635,6 +768,16 @@ export const CASES: readonly Case[] = [
         status: 'documented',
         budgetMin: 180,
         documentedIn: 'docs/reference/quest-harness-recipes-9.md'
+    },
+    {
+        id: 'temple-of-ikov-250-live',
+        harness: 'temple-of-ikov-250-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'vetted',
+        budgetMin: 90,
+        provenAt: '760bae8f',
+        documentedIn: 'docs/reference/quest-harness-recipes-9.md',
+        note: 'members-only, :8890 — uncheated --until 100 finished in 39 minutes at --tick 200 on 20 lobsters, no parks and no deaths; the default kit is coins, food and the gear the bank already holds'
     },
     {
         id: 'thievingbot-test',

@@ -156,6 +156,10 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
     // Why: without a key the graph must route around the hut (#421, #423).
     { x: 3115, z: 3450, level: 0, locName: 'Door', action: 'Open', useItem: { id: 983, name: 'Brass key' }, requires: { item: 'Brass key', count: 1 }, label: 'Hill giant hut brass key door' },
 
+    // Why: ikov_shinykeydoor answers Open with "The door is locked." from both sides, and the ladder it fences off is the only way back from where Winelda drops you (#250).
+    // Why: keyed rather than removed, because pruning it without the key is what stops the pathfinder walking a keyless bot into McGrubor's Wood for a door it cannot open.
+    { x: 2657, z: 3496, level: 0, locName: 'Door', action: 'Open', requires: { item: 'Shiny key', count: 1 }, label: 'Temple of Ikov shiny key door (#250)' },
+
     // Why: the Baxtorian Falls approach (#369 / #320) uses the same stands as FireGiantLogic — Board Log raft @ ~2510,3493 → crash mound 2512,3481.
     // Why: walk south to the throw stand 2512,3477, inside THROW_ZONE z 3476–3481.
     // Why: Rope on Rock @ 2512,3468 → PastRock (~2513,3468, r≤3).
@@ -249,6 +253,12 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
     },
 
     { x: 2461, z: 3382, level: 0, locName: 'Gate', action: 'Open', dialogue: { choose: ['OK then'] }, reopenAfterDialogue: true, label: 'Gnome Stronghold gate (Femi boxes)' },
+
+    // Why: `[oploc1,_shipyard_gate]` sends anyone standing west of the gate with a shipyard worker in earshot into the Ka-Lu-Min challenge, and a wrong syllable makes him attack.
+    // Why: the four answers are one list because each page offers only its own — "Glough sent me.", then Ka, Lu, Min.
+    // Why: the gate opens by `p_teleport`, never by staying open, so the crossing lands on the far tile rather than a walk-through.
+    { x: 2945, z: 3041, level: 0, locName: 'Gate', action: 'Open', dialogue: { choose: ['Glough sent me.', 'Ka.', 'Lu.', 'Min.'] }, reopenAfterDialogue: true, label: 'Karamja shipyard gate (Ka-Lu-Min)' },
+    { x: 2945, z: 3042, level: 0, locName: 'Gate', action: 'Open', dialogue: { choose: ['Glough sent me.', 'Ka.', 'Lu.', 'Min.'] }, reopenAfterDialogue: true, label: 'Karamja shipyard gate (Ka-Lu-Min)' },
 
     // Why: shantay_pass.rs2 is one loc whose direction comes from coordz versus the loc — southbound (player north of the loc) consumes a pass and shows a disclaimer, northbound is free.
     // Why: transports.json already carries dual directed edges, so only south needs a specialCrossing for the plan-time item and dialog (#403 / #371).
