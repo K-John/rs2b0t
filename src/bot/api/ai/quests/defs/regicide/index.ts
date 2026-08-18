@@ -316,13 +316,19 @@ export const regicide: QuestModule = {
     observe: (snap, step) => {
         const at = snap.tile;
         const pocket = at && at.level === 0 ? pocketAt(at) : null;
-        const kit = (item: RegicideItem): string => `${item.name.split(' ')[0]!.toLowerCase()}=${held(snap, item)}`;
+        // Why: hand-labelled, because the five barrel states all begin with the word "Barrel" and a name-derived key printed `barrel=0 barrel=0 barrel=0` five times over — the one line that says where along the chain the bomb is, saying nothing.
+        const kit = (label: string, item: RegicideItem): string => `${label}=${held(snap, item)}`;
         const said = GameMessages.recent(3).map(m => m.text).join(' / ');
         return [
             `regicide: stage=${snap.stage ?? '?'} ${formatTile(at)} area=${regicideArea(at)}${pocket ? `/${pocket}` : ''}`
                 + ` step=${step.kind === 'custom' ? step.name : step.kind} free=${snap.freeSlots ?? '?'} hp=${Math.round(Skills.hpFraction() * 100)}%`,
-            `regicide: ${[RG_ITEM.SUMMONS, RG_ITEM.MESSAGE, RG_ITEM.PENDANT, RG_ITEM.SPADE, RG_ITEM.ROPE, RG_ITEM.BRONZE_ARROW, RG_ITEM.SHARK].map(kit).join(' ')}`
-                + ` | bomb: ${[RG_ITEM.BARREL, RG_ITEM.BARREL_TAR, RG_ITEM.BARREL_NAPHTHA, RG_ITEM.BARREL_LID, RG_ITEM.BARREL_FUSED, RG_ITEM.CLOTH].map(kit).join(' ')}`,
+            `regicide: ${[kit('summons', RG_ITEM.SUMMONS), kit('letter', RG_ITEM.MESSAGE), kit('pendant', RG_ITEM.PENDANT),
+                kit('spade', RG_ITEM.SPADE), kit('rope', RG_ITEM.ROPE), kit('arrows', RG_ITEM.BRONZE_ARROW),
+                kit('bow', RG_ITEM.SHORTBOW), kit('tinderbox', RG_ITEM.TINDERBOX), kit('coal', RG_ITEM.COAL),
+                kit('food', RG_ITEM.SHARK)].join(' ')}`
+                + ` | bomb: ${[kit('empty', RG_ITEM.BARREL), kit('tar', RG_ITEM.BARREL_TAR), kit('naphtha', RG_ITEM.BARREL_NAPHTHA),
+                    kit('lidded', RG_ITEM.BARREL_LID), kit('fused', RG_ITEM.BARREL_FUSED), kit('cloth', RG_ITEM.CLOTH),
+                    kit('sulphur', RG_ITEM.SULPHUR_DUST), kit('quicklime', RG_ITEM.QUICKLIME_DUST)].join(' ')}`,
             said === '' ? 'regicide: the server has said nothing recently' : `regicide: last said — ${said}`
         ];
     },
