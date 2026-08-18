@@ -191,21 +191,36 @@ const PACK_SEED: { debugName: string; qty: number; slots: number }[] = [
     { debugName: 'shark', qty: 10, slots: 10 }
 ];
 
-const PACK_SLOTS = PACK_SEED.reduce((n, item) => n + item.slots, 0);
+// Why: stages 13 and 14 carry Iorwerth's letter and nothing else does. `[zone,0_40_51_24_32]` only queues
+// Arianwyn while `inv_total(inv, regicide_iorwerth_message) > 0`, and stage 14 hands that same scroll to King
+// Lathas — so a seeded leg without it walks the Ardougne road forever and parks. One shark pays for the slot.
+const LETTER_FROM_STAGE = 13;
 
-async function seedPack(page: Page): Promise<void> {
-    if (PACK_SLOTS > 28) {
-        fail(`pack seed wants ${PACK_SLOTS} slots and the pack holds 28 — trim it rather than letting give drop the tail`);
+function packSeedFor(stage: number): { debugName: string; qty: number; slots: number }[] {
+    if (stage < LETTER_FROM_STAGE) {
+        return [...PACK_SEED];
     }
-    for (const { debugName, qty } of PACK_SEED) {
+    return [
+        ...PACK_SEED.map(item => (item.debugName === 'shark' ? { ...item, qty: item.qty - 1, slots: item.slots - 1 } : item)),
+        { debugName: 'regicide_iorwerth_message', qty: 1, slots: 1 }
+    ];
+}
+
+async function seedPack(page: Page, stage: number): Promise<void> {
+    const seed = packSeedFor(stage);
+    const slots = seed.reduce((n, item) => n + item.slots, 0);
+    if (slots > 28) {
+        fail(`pack seed wants ${slots} slots and the pack holds 28 — trim it rather than letting give drop the tail`);
+    }
+    for (const { debugName, qty } of seed) {
         await cheatQuiet(page, `give ${debugName} ${qty}`);
     }
     await clearChatDialogs(page, 'pack-seed dialog(s)');
     const held = (await snapshot(page)).packIds.length;
-    if (held !== PACK_SLOTS) {
-        fail(`pack seed wanted ${PACK_SLOTS} slots and the pack holds ${held} — a give was refused, so the run would start short of its kit`);
+    if (held !== slots) {
+        fail(`pack seed wanted ${slots} slots and the pack holds ${held} — a give was refused, so the run would start short of its kit`);
     }
-    console.log(`pack seeded with ${PACK_SEED.length} item type(s) in ${PACK_SLOTS} slots for a start inside Tirannwn`);
+    console.log(`pack seeded with ${seed.length} item type(s) in ${slots} slots for a start inside Tirannwn`);
 }
 
 async function setStats(page: Page, level: number): Promise<void> {
@@ -332,9 +347,10 @@ try {
         fail(`Underground Pass reads ${gates.upass} after the seed — Regicide will report BLOCKED`);
     }
 
-    // Why: stage 3 is the first that begins past the palisade, where there is no bank to draw from.
-    if (args.pack && args.stage >= 3 && args.stage <= 13) {
-        await seedPack(page);
+    // Why: stage 3 is the first that begins past the palisade, where there is no bank to draw from, and 14 is
+    // the last that still needs a pack — it walks to King Lathas with Iorwerth's letter and hands it over.
+    if (args.pack && args.stage >= 3 && args.stage <= 14) {
+        await seedPack(page, args.stage);
     }
     // Why: the bomb is a dozen steps in three regions, so a leg part-way along it has to be handed the
     // pack that leg starts from — there is no varp that records how far the chemistry has got.
