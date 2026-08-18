@@ -246,6 +246,7 @@ export const LQ_LOC = {
     BOOKCASE: 'Bookcase',
     CREVICE: 'Crevice',
     ANCIENT_GATE: 'Ancient Gate',
+    GUILD_GATE: 'Gate',
     BOULDER: 'Boulder',
     JAGGED_WALL: 'Jagged wall',
     MARKED_WALL: 'Marked wall',
@@ -275,6 +276,8 @@ export const LQ_LOC = {
 
 /** Exact loc ids, for the several places where a display name is shared. */
 export const LQ_LOC_ID = {
+    GUILD_GATE_L: 2391,
+    GUILD_GATE_R: 2392,
     LOCKPICK_GATE_L: 2912,
     LOCKPICK_GATE_R: 2913,
     // Why: `next_loc_stage` swings each leaf to `inac_lglockpickgatebottom*`, which is a model and nothing else — no name and no ops. A query for the shut id then finds nothing, which is indistinguishable from the gate being out of the scene unless the open ids are known too.

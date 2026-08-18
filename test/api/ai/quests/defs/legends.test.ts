@@ -310,9 +310,19 @@ describe('Legends Quest decide', () => {
         expect(name(step)).toBe("custom:take the machete from Radimus' cupboard");
     });
 
-    test('started with the kit maps the jungle', () => {
-        const step = decide(kitted({ stage: LQ_STAGE.STARTED }));
-        expect(name(step)).toBe('custom:map all three thirds of the Kharazi Jungle');
+    // Why: the kit fixture carries the finished copy, which is the one thing that means the mapping is over — so a snapshot about to map holds the blank notes instead.
+    test('started with the kit and blank notes maps the jungle', () => {
+        const blank = kitted({ stage: LQ_STAGE.STARTED });
+        const invIds = new Map(blank.invIds);
+        invIds.delete(LQ_ID.MAP_COMPLETE);
+        invIds.set(LQ_ID.MAP, 1);
+        expect(name(decide({ ...blank, invIds }))).toBe('custom:map all three thirds of the Kharazi Jungle');
+    });
+
+    // Why: `radimus_notes.rs2` swaps the notes for the copy and only then advances the stage, and it clears the three section bits as it goes — so the copy in the pack with the stage still at one is a state the loop can reach, and `mapJungle` answers true in no time at all from there, which the engine hands straight back for ever.
+    test('the finished copy ends the mapping whatever the stage says', () => {
+        const done = kitted({ stage: LQ_STAGE.STARTED });
+        expect(name(decide(done))).not.toBe('custom:map all three thirds of the Kharazi Jungle');
     });
 
     test('a mapped jungle trades the copy for the bull roarer', () => {

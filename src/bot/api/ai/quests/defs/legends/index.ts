@@ -313,6 +313,11 @@ function stageStart(snap: QuestSnapshot): QuestStep {
 // Why: he counts the bank as well as the pack — `quest_legends.rs2` answers "I hear that you have enough machetes in your bank to start your own store" and hands over nothing — so one sitting in the bank turns the cupboard into a step that fails for ever. Whatever put it there, the withdraw is the way out.
 
 function stageMapping(snap: QuestSnapshot): QuestStep {
+    // Why: the completed notes are the mapping's own receipt, so holding them means the leg is done whatever the varp says — `radimus_notes.rs2` only advances the stage when it swaps the notes, and it clears the three section bits as it goes, so a pack that has the copy and a stage that has not moved is a state the loop can reach.
+    // Why: without this `mapJungle` answers true in no time at all and the engine hands it straight back, which is a step that succeeds for ever and parks the quest at stage one.
+    if (held(snap, LQ_ID.MAP_COMPLETE) > 0) {
+        return stageBullroarer(snap);
+    }
     if (held(snap, LQ_ID.MACHETE) === 0) {
         const machete = { id: LQ_ID.MACHETE, name: LQ_ITEM.MACHETE };
         return inTheOpen(snap, fromBank(snap, machete, 1, LEG_BANK.karamja)

@@ -33,15 +33,53 @@ const GUARD_PREFER = [
 // Why: `legends_guard_eligible` answers a short quest list with a `multi2` the entry options are not in, and a short quest-point total with a `chatnpc` and no menu at all — the conversation ends there. Either way the drive returns with the gate shut, the step fails, and the engine sends the run back to the same guard for as long as it is left running.
 const GUARD_REFUSED = /complete more quests|107 quest points|quest point/i;
 
+// Why: `legends_guard_start` only has a conversation before the quest starts. From stage one on he nods you past and says nothing at all, so `Reach.npcDialog` waits out its budget on a chat that is never coming — which is what parked a run carrying the gilded totem back to Radimus, five times over.
+// Why: from then on the gate is the way in. `open_legends_gate` looks for a guard within fourteen tiles, has him nod, and swings the doors for anyone past `legends_not_started`.
+
+/** The gate line; north of it is the guild side. */
+const GUILD_GATE_Z = 3349;
+
+const pastGuildGate = (): boolean => {
+    const here = Game.tile();
+    return here !== null && here.level === 0 && here.x >= 2722 && here.x <= 2733 && here.z > GUILD_GATE_Z;
+};
+
+/** Open the guild gate, which needs no conversation once the quest has begun. */
+async function walkThroughGate(log: (m: string) => void): Promise<boolean> {
+    for (const id of [LQ_LOC_ID.GUILD_GATE_L, LQ_LOC_ID.GUILD_GATE_R]) {
+        const opened = await promptLoc(
+            {
+                name: LQ_LOC.GUILD_GATE,
+                op: 'Open',
+                near: LQ_TILE.GUARD,
+                within: 6,
+                id,
+                expect: pastGuildGate,
+                expectMs: 12_000
+            },
+            log
+        );
+        if (opened) {
+            await settleScene();
+            return true;
+        }
+    }
+    log('the Legends Guild gate would not open');
+    return false;
+}
+
 /** Talk the patrolling guard into opening the gate. */
 export async function enterGuild(log: (m: string) => void): Promise<boolean> {
-    if (insideGuild()) {
+    if (insideGuild() || pastGuildGate()) {
         return true;
     }
     if (!(await Traversal.walkResilient(LQ_TILE.GUARD, { radius: 3, attempts: 3, timeoutMs: 180_000, log }))) {
         return false;
     }
     await settleScene();
+    if (Quests.status(LEGENDS_QUEST) !== 'notStarted') {
+        return walkThroughGate(log);
+    }
     // Why: the guard patrols, so the leash-limited `gotoNpc` loses him — `Reach` searches the scene and lets the server chase.
     const status = await Reach.npcDialog({ name: LQ_NPC.GUARD, near: LQ_TILE.GUARD, log });
     if (status !== 'done') {
