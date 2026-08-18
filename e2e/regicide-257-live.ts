@@ -370,7 +370,11 @@ try {
     console.log(`started AIOQuester — watching for %regicide_quest to reach ${args.until}`);
 
     const deadline = Date.now() + args.minutes * 60_000;
-    let lastLogTime = 0;
+    // Why: keyed on the line, not on its timestamp. The ring stamps milliseconds, and `time > lastLogTime`
+    // drops every line after the first whenever a step logs a burst inside one tick — which is what a
+    // diagnostic is. The quest module's own `observe` writes three lines and only the first ever reached this
+    // log, so a parked leg looked like it had one thing to say when it had three.
+    const printed = new Set<string>();
     let reached = args.stage;
     let queueChecked = false;
     while (Date.now() < deadline) {
@@ -384,10 +388,16 @@ try {
             console.log(`queue confirmed: ${queue.msg}`);
         }
         for (const line of last.logs) {
-            if (line.time > lastLogTime) {
-                lastLogTime = line.time;
-                console.log(`  [${Math.round((Date.now() - t0) / 1000)}s] ${line.level}: ${line.msg}`);
+            const key = `${line.time}|${line.msg}`;
+            if (printed.has(key)) {
+                continue;
             }
+            printed.add(key);
+            console.log(`  [${Math.round((Date.now() - t0) / 1000)}s] ${line.level}: ${line.msg}`);
+        }
+        // Why: the ring the snapshot reads is the last eighty lines, so anything older cannot come back.
+        if (printed.size > 4_000) {
+            printed.clear();
         }
         const stage = (await getServerVarQuiet(page, 'regicide_quest')) ?? reached;
         if (stage > reached) {

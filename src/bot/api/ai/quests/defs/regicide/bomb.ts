@@ -2,7 +2,7 @@ import { actions, reader } from '../../../../../adapter/ClientAdapter.js';
 import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
-import { GroundItems } from '../../../../grounditems/GroundItems.js';
+import { GroundItems, type GroundItem } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
@@ -172,27 +172,62 @@ function rabbitNear(): Npc | null {
         .nearest();
 }
 
+/** How long the rabbit gets before the step gives the decide cycle its turn back. */
+const RABBIT_MS = 45_000;
+/** How long one attack is left to run before it is renewed. */
+const RABBIT_RENEW_MS = 4_000;
+
+function rabbitMeat(): GroundItem | null {
+    return GroundItems.query().where(item => item.id === RG_ITEM.RAW_RABBIT.id).within(12).nearest();
+}
+
+// Why: the meat never enters the pack. `[ai_queue3,_rabbit]` is `obj_add(npc_coord, raw_rabbit, 1, …)` — it drops on the floor under the rabbit, gated on `npc_findhero`, so waiting for the pack to change is waiting for something that cannot happen. A minute of it ran thirty-nine times over thirty-eight minutes and the step never once said why.
+// Why: and one `Attack` click is not enough. The rabbit has `wanderrange=5` and five hitpoints, so it walks out of the interaction as often as it dies in it — the attack is renewed until the meat is on the ground.
+
 /** A rabbit out of the forest, for the guard who cannot catch one himself. */
 export async function catchRabbit(log: (m: string) => void): Promise<boolean> {
+    if (heldId(RG_ITEM.RAW_RABBIT.id) > 0) {
+        return true;
+    }
+    if (rabbitMeat() !== null) {
+        return takeRabbitCorpse(log);
+    }
     if (!rabbitNear() && !(await walkTo(RG_TILE.RABBITS, 5, RG_STAGE.SPOKEN_IORWERTH2, log))) {
         return false;
     }
     await settleScene();
-    const rabbit = rabbitNear();
-    if (!rabbit || !(await rabbit.interact('Attack'))) {
-        log('no rabbit in the forest clearing');
-        return false;
+    const deadline = performance.now() + RABBIT_MS;
+    let renewAt = 0;
+    let sent = 0;
+    while (performance.now() < deadline) {
+        if (rabbitMeat() !== null) {
+            return takeRabbitCorpse(log);
+        }
+        const rabbit = rabbitNear();
+        if (!rabbit) {
+            log(`no rabbit within 14 of (${Game.tile()?.x},${Game.tile()?.z}) after ${sent} attack(s) — they wander five tiles and respawn on a fifty-tick timer`);
+            return false;
+        }
+        if (performance.now() >= renewAt) {
+            if (!(await rabbit.interact('Attack'))) {
+                return false;
+            }
+            sent++;
+            renewAt = performance.now() + RABBIT_RENEW_MS;
+        }
+        await Execution.delayTicks(1);
     }
-    // Why: `~npc_death` drops the meat on the floor rather than into the pack, so the kill and the pickup are two steps — and the drop lands under the rabbit, not under the player.
-    if (await driveUntil(() => heldId(RG_ITEM.RAW_RABBIT.id) > 0, [], log, 60_000)) {
-        return true;
-    }
-    return takeRabbitCorpse(log);
+    log(`the rabbit outlasted ${Math.round(RABBIT_MS / 1000)}s and ${sent} attack(s) with no meat on the ground`);
+    return false;
 }
 
 async function takeRabbitCorpse(log: (m: string) => void): Promise<boolean> {
-    const meat = GroundItems.query().where(item => item.id === RG_ITEM.RAW_RABBIT.id).within(10).nearest();
-    if (!meat || !(await meat.interact('Take'))) {
+    const meat = rabbitMeat();
+    if (!meat) {
+        log('no raw rabbit on the forest floor to pick up');
+        return false;
+    }
+    if (!(await meat.interact('Take'))) {
         return false;
     }
     log('picked the rabbit up off the forest floor');
