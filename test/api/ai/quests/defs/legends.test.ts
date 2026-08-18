@@ -526,6 +526,27 @@ describe('Legends Quest decide', () => {
         expect(name(decide(ready))).toBe('custom:cut a hollow reed at the sacred pool');
     });
 
+    // Why: `potsFor` answers zero the moment the bowl is blessed, which is stage 8 — and the spent list is a DROP, so a live run threw the flask on the floor at a booth with three demon fights still ahead.
+    test('a prayer flask is not spent while a demon is still alive', () => {
+        const midQuest = kitted({
+            stage: LQ_STAGE.ASKED_GUJUO_WATER,
+            invIds: [LQ_ID.GOLD_BOWL_BLESSED, PRAYER_POTIONS[0]!.id]
+        });
+        const step = decide({ ...midQuest, freeSlots: 1 });
+        const dropped = step.kind === 'custom' && step.name.includes('finished with');
+        expect(dropped && JSON.stringify(step)).not.toContain(String(PRAYER_POTIONS[0]!.id));
+    });
+
+    // Why: once the last demon is dead the flask is a slot and nothing else.
+    test('a prayer flask is spent once the last demon is dead', () => {
+        const done = kitted({
+            stage: LQ_STAGE.DEFEATED_NEZI_FINAL,
+            invIds: [PRAYER_POTIONS[0]!.id, LQ_ID.SWAMP_ROCK]
+        });
+        const step = decide({ ...done, freeSlots: 1 });
+        expect(name(step)).toBe('custom:drop what the quest has finished with');
+    });
+
     // Why: `stat_sub(prayer, 0, 90)` runs as the book opens, and `potionTopUp` answers null when the bank is empty — which walked a filled bowl and an empty prayer book into the demon and said nothing.
     test('no flask in the pack or the bank parks before the book is opened', () => {
         const jungle = { x: 2820, z: 2915, level: 0 };

@@ -160,8 +160,9 @@ function spentNow(snap: QuestSnapshot): number[] {
     if (BOWLS.some(id => held(snap, id) > 0)) {
         spent.push(LQ_ID.GOLD_BOWL_SKETCH);
     }
-    // Why: the flask the blessing drank from belongs to the demon, and the trials pack is twenty-eight wanted things without it.
-    if (potsFor(snap, snap.stage ?? 0) === 0) {
+    // Why: a flask is spent only once the last demon is dead. `potsFor` answers zero the moment the bowl is blessed, which is stage 8 — with three Nezikchened fights, three aggressive guardians and the trials descent still ahead of it, and this list is a DROP rather than a deposit, so a live run threw the flask on the floor while standing at a booth.
+    // Why: the slot it costs comes off the lobster count instead, which `foodFor` already gives up for it.
+    if ((snap.stage ?? 0) >= LQ_STAGE.DEFEATED_NEZI_FINAL) {
         spent.push(...PRAYER_POTIONS.map(pot => pot.id));
     }
     return spent.filter(id => held(snap, id) > 0);
