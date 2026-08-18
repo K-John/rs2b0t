@@ -24,12 +24,15 @@ import { climbOutOfPit, travelTirannwn } from './pockets.js';
 // Why: this leg is the Underground Pass walked a second time, with the quest already finished. Both of its hard gates are `%ibanmulti` bits that stay set — `cave_well` wants the four orb bits and `bloodwell_upass` the three badges and the horn — so what is left is the physical crossings, which is what upass's own pocket-crossing mover was built for. Nothing here re-solves the quest; it re-walks it.
 // Why: and the way out at the far end is Iban's own temple door. `open_iban_door` grows a branch at `%regicide_quest >= ^regicide_spoken_lathas` that teleports the player `loc + (-129, +64)` — the Well of Voyage room — instead of into the temple.
 
-/** The paladins' shelf is the north end of the first cavern; the orb corridor is everything below it. */
-const SHELF_Z = 9700;
+// Why: the way up out of the second cavern is the unicorn tunnel, not the cage. `upass_area_2_3_entrance` picks its landing by the door's own angle: the pair at z 9611 is angle 3 and `p_telejump`s to (2371,9666) in the first cavern, while the pair at z 9665 is angle 1 and goes the other way to the loose railings. Aiming at the cage instead arrives and then has nothing to do — `travelTo` reports "leg to (2375,9604) from (2375,9604)" and the step succeeds without moving until the watchdog parks it.
+// Why: and asking `travelTo` for a tile on the shelf does not work either, because `upass/route.ts` names neither pocket — `areaAt` answers null across the first cavern, so `crossOnce` returns "nowhere" and the free search walks the ledge column instead. The door is taken by hand, by its own tile.
+const UNICORN_TUNNEL_STAND = new Tile(2376, 9610, 0);
+const UNICORN_TUNNEL_DOORS: readonly Tile[] = [new Tile(2375, 9611, 0), new Tile(2376, 9611, 0)];
 
-// Why: the shelf, not the cage. The unicorn cage at (2375,9604) is where Underground Pass goes for the horn, and this leg wants none of that — it wants the way UP, which is the unicorn tunnel at the south end of the second cavern. Aiming at the cage arrives and then has nothing to do: `travelTo` reports "leg to (2375,9604) from (2375,9604)" and the step succeeds without moving until the watchdog parks it.
-// Why: and the tunnel is one of `travelTo`'s own seams now that `upass/route.ts` names both pockets, so asking for a tile on the shelf is enough — the crossing is chosen by the area graph rather than by a sweep. The earlier note here, that walking at the shelf lands the run in a slave cage, was written against the free search that `crossOnce` replaced.
-const SHELF_TARGET = UP_TILE.BLOODWELL;
+// Why: the shelf and the orb corridor are disjoint pockets whose bounding boxes overlap — flooding the pack from the blood well gives 825 tiles over x 2369-2428, z 9666-9726, and from the well 613 over x 2380-2464, z 9664-9698, sharing not one tile. So no single coordinate test covers the overlap, but the two bands the corridor cannot reach do cover every tile this leg stands on: the tunnel lands at (2371,9666), west of the corridor's own west edge.
+export function onShelf(tile: { x: number; z: number } | null): boolean {
+    return tile !== null && (tile.x <= 2379 || tile.z >= 9699);
+}
 
 // Why: the chasm splits area1 in two and nothing walks across it. Flooding the collision pack from the cave landing and from the bridge's west foot gives two tile sets that do not share a single tile, and this is the line between them: the east side is z 9710-9726 and never reaches west of x 2446, the west side never reaches east of x 2442 in that band. A bare x test would read the grid approach (2479,9679) as east.
 const BRIDGE_EAST_Z = 9710;
@@ -137,6 +140,35 @@ async function leaveVoyageTemple(log: (m: string) => void): Promise<boolean> {
 }
 
 /**
+ * Up the unicorn tunnel from the second cavern onto the paladins' shelf.
+ * Why: by the door's own tile rather than `nearest()`. Four of these doors stand in the cavern and only the pair at z 9611 lands on the shelf — the others send the leg back to the loose railings, which is the way it came.
+ */
+async function climbUnicornTunnel(log: (m: string) => void): Promise<boolean> {
+    if (!(await travelTo(UNICORN_TUNNEL_STAND, 1, log))) {
+        log(`could not stand at (${UNICORN_TUNNEL_STAND.x},${UNICORN_TUNNEL_STAND.z}) for the unicorn tunnel`);
+        return false;
+    }
+    await settleScene();
+    const door = Locs.query()
+        .where(loc => (loc.id === UP_LOC.UNICORN_DOOR_L || loc.id === UP_LOC.UNICORN_DOOR_R)
+            && UNICORN_TUNNEL_DOORS.some(at => at.x === loc.tile().x && at.z === loc.tile().z))
+        .nearest();
+    const op = door?.actions()[0];
+    if (!door || !op) {
+        log(`no unicorn tunnel door at z 9611 from (${Game.tile()?.x},${Game.tile()?.z})`);
+        return false;
+    }
+    if (!(await door.interact(op))) {
+        return false;
+    }
+    const climbed = await driveUntil(() => onShelf(Game.tile()) && upassArea(Game.tile()) === 'area1', [], log, 15_000);
+    log(climbed
+        ? `unicorn tunnel → the shelf at (${Game.tile()?.x},${Game.tile()?.z})`
+        : `the unicorn tunnel left us at (${Game.tile()?.x},${Game.tile()?.z}), not on the shelf`);
+    return climbed;
+}
+
+/**
  * One leg of the walk from the mainland to Isafdar. Called until `regicideArea` reads `tirannwn`.
  * Why: every leg is keyed on where the player already is rather than on a remembered step, because the pass teleports on failure — a pitfall, the well, Iban's door — and a remembered step would resume in the wrong pocket after any of them.
  */
@@ -165,11 +197,11 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
             if (!pastGridTile(here)) {
                 return crossGrid(log);
             }
-            return (here?.z ?? 0) > SHELF_Z ? enterMainCavern(log) : climbWell(log);
+            return onShelf(here) ? enterMainCavern(log) : climbWell(log);
         case 'area2':
             // Why: the paladins' shelf is entered by one loc and one only. Flooding it lists three ops on its rim — the temple doors out, the blood well, and `upass_unicorn_door`, which `p_telejump`s to (2371,9666) from its south face. So the shelf is behind the second cavern, and a leg that walked at `PALADINS` instead asked for a tile in another pocket: the mover swept for anything that gained ground, picked a slave-cage door, and "the cage slams shut behind you" left the run in an eight-tile cell with no edge out.
             return outstandingCrossing(OUT_OF_CAGES) === null
-                ? travelTo(SHELF_TARGET, 3, log)
+                ? climbUnicornTunnel(log)
                 : takeNextCrossing(log, OUT_OF_CAGES);
         case 'gridpit':
             return travelTo(UP_TILE.GRID_APPROACH, 3, log);

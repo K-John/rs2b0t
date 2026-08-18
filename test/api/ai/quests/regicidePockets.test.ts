@@ -5,6 +5,7 @@ import { ARDOUGNE, FOREST_STAGE, GATE_STAGE, planRoute, pocketAt } from '#/bot/a
 import { eastOfChasm } from '#/bot/api/ai/quests/defs/regicide/pass.js';
 import { REGICIDE_POCKETS, REGICIDE_SEAMS } from '#/bot/api/ai/quests/defs/regicide/seams.js';
 import { RG_STAGE } from '#/bot/api/ai/quests/defs/regicide/journal.js';
+import { onShelf } from '#/bot/api/ai/quests/defs/regicide/pass.js';
 
 // Why: the seam table is generated from the collision pack by `tools/nav/regicide-pockets.ts`, so these are the assertions that catch a regeneration that silently lost a crossing — a lost seam is not a compile error, it is a leg that walks into a wall thirty minutes into a run.
 
@@ -146,5 +147,26 @@ describe('the Underground Pass chasm', () => {
 
     test('an unknown tile is not assumed to be east of it', () => {
         expect(eastOfChasm(null)).toBe(false);
+    });
+});
+
+// Why: the shelf and the orb corridor are the two halves of the first cavern and they share no tile, but their bounding boxes overlap — so the split is the two bands the corridor cannot reach, and these cases pin both edges of it. A regenerated collision pack that moved either boundary would otherwise send the leg back down the well from the shelf, forever.
+describe('the paladins shelf against the orb corridor', () => {
+    const CASES: [string, { x: number; z: number }, boolean][] = [
+        ['the unicorn tunnel landing', { x: 2371, z: 9666 }, true],
+        ['the blood well', { x: 2373, z: 9718 }, true],
+        ['the paladins', { x: 2424, z: 9719 }, true],
+        ['the shelf west edge', { x: 2369, z: 9670 }, true],
+        ['the corridor well', { x: 2416, z: 9674 }, false],
+        ['the corridor west edge', { x: 2380, z: 9680 }, false],
+        ['the corridor north edge', { x: 2440, z: 9698 }, false]
+    ];
+
+    test.each(CASES)('%s', (_what, tile, expected) => {
+        expect(onShelf(tile)).toBe(expected);
+    });
+
+    test('a missing tile is not the shelf', () => {
+        expect(onShelf(null)).toBe(false);
     });
 });
