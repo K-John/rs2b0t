@@ -258,11 +258,7 @@ export class PaintFrame {
         return this.list(id, lines, this.rowsLeft(lines.length, opts), opts);
     }
 
-    /**
-     * A scrollable `fill` laid `columns` across, reading left to right. A short
-     * wide panel holds several times the entries this way, and the wheel still
-     * moves a full row, so the reading order never breaks.
-     */
+    /** A `fill` laid `columns` across, reading left to right; the wheel moves a full row. */
     grid(id: string, lines: PaintLine[], columns: number, opts: PaintFillOptions = {}): number {
         if (this.collapsed) {
             return 0;
