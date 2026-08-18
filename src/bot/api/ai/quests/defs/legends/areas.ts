@@ -271,6 +271,9 @@ export const LQ_LOC = {
 export const LQ_LOC_ID = {
     LOCKPICK_GATE_L: 2912,
     LOCKPICK_GATE_R: 2913,
+    // Why: `next_loc_stage` swings each leaf to `inac_lglockpickgatebottom*`, which is a model and nothing else — no name and no ops. A query for the shut id then finds nothing, which is indistinguishable from the gate being out of the scene unless the open ids are known too.
+    LOCKPICK_GATE_L_OPEN: 2914,
+    LOCKPICK_GATE_R_OPEN: 2915,
     STRENGTH_GATE_L: 2922,
     STRENGTH_GATE_R: 2923,
     BOULDER_1: 2919,

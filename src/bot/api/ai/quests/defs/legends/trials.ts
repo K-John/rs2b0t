@@ -126,6 +126,7 @@ export async function openOuterGate(log: (m: string) => void): Promise<boolean> 
         return false;
     }
     // Why: `search_outer_ancient_gate` is a seven-box chain and each box is gone the tick after the driver clicks it, so the open is read off the gate losing its Search op rather than off the text.
+    // Why: losing the op is what `next_loc_stage` does — the leaf becomes `inac_lglockpickgatebottom*`, a model with no name and no ops — so absence here means open rather than missing.
     const shut = (): boolean =>
         (locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Search') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Search')) !== null;
     for (let i = 0; i < PICK_ATTEMPTS; i++) {
@@ -143,6 +144,12 @@ export async function openOuterGate(log: (m: string) => void): Promise<boolean> 
     return false;
 }
 
+/** The outer gate's leaves, whichever stage they are standing in. */
+const outerShut = (): Loc | null =>
+    locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Open') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Open');
+const outerOpen = (): Loc | null =>
+    locById(LQ_LOC_ID.LOCKPICK_GATE_L_OPEN, 6) ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R_OPEN, 6);
+
 /** Open the outer gate from the inside, where it needs no lockpick at all. */
 export async function leaveOuterGate(log: (m: string) => void): Promise<boolean> {
     if (pocket() !== 'outerGate') {
@@ -153,17 +160,24 @@ export async function leaveOuterGate(log: (m: string) => void): Promise<boolean>
     }
     // Why: the lever swings the doors shut again behind whoever pulled it, so one open and one step is a coin toss — the crossing is retried until it lands.
     for (let i = 0; i < 6; i++) {
-        const gate = locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Open') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Open');
-        if (gate && (await gate.interact('Open'))) {
-            await driveUntil(() => modalText() !== '', [], log, 6000);
-            await clearBoxes();
+        const gate = outerShut();
+        if (gate) {
+            if (await gate.interact('Open')) {
+                // Why: `open_outer_ancient_gate` raises a box and suspends on it, so the teleport only comes after it has been clicked away.
+                await driveUntil(() => modalText() !== '', [], log, 6000);
+                await clearBoxes();
+            }
+        } else if (!outerOpen()) {
+            // Why: neither stage in the scene means the walk landed somewhere the gate is not, which no amount of retrying fixes.
+            log(`no ancient gate in either stage within six tiles of (${LQ_TILE.LOCKPICK_GATE_SOUTH.x},${LQ_TILE.LOCKPICK_GATE_SOUTH.z})`);
+            return false;
         }
         if (await stepThrough(LQ_TILE.LOCKPICK_GATE_NORTH, 'crevice', log, true)) {
             return true;
         }
         await Traversal.walkResilient(LQ_TILE.LOCKPICK_GATE_SOUTH, { radius: 0, attempts: 2, timeoutMs: 30_000, log });
     }
-    log('six pulls and the outer gate would not let us back out');
+    log(`six pulls and the outer gate would not let us back out (shut leaf ${outerShut() ? 'present' : 'absent'}, open leaf ${outerOpen() ? 'present' : 'absent'})`);
     return false;
 }
 
