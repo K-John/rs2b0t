@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { RG_ITEM } from '#/bot/api/ai/quests/defs/regicide/areas.js';
 import { decide } from '#/bot/api/ai/quests/defs/regicide/index.js';
 import { RG_FLAG, RG_STAGE } from '#/bot/api/ai/quests/defs/regicide/journal.js';
-import { ARROW_TARGET, FOOD_TARGET, RETURN_KIT, ROPE_TARGET, STILL_FOOD, WOOL_TARGET } from '#/bot/api/ai/quests/defs/regicide/supplies.js';
+import { ARROW_TARGET, COAL_TARGET, FOOD_TARGET, RETURN_KIT, ROPE_TARGET, STILL_FOOD, WOOL_TARGET } from '#/bot/api/ai/quests/defs/regicide/supplies.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
 // Why: decide() reads only a snapshot, so the routing table is testable end to end without a client.
@@ -327,5 +327,33 @@ describe('the walk back through the pass', () => {
                 [RG_ITEM.SHARK.id, FOOD_TARGET]]
         }));
         expect(name(step)).toContain('Underground Pass');
+    });
+});
+
+// Why: coal accumulates in the pack, so the room the plan asks for is what is left to mine. Asking for the full float once half of it is already held parks a leg that is one swing from finishing.
+describe('room for the coal', () => {
+    const CHAIN: Stack[] = [
+        RG_ITEM.BARREL_TAR.id, RG_ITEM.CLOTH.id, RG_ITEM.SULPHUR_DUST.id, RG_ITEM.QUICKLIME_DUST.id,
+        RG_ITEM.POT.id, RG_ITEM.PICKAXE.id, RG_ITEM.PESTLE.id, [RG_ITEM.SHARK.id, STILL_FOOD]
+    ];
+
+    test('a pack part way through the coal keeps mining', () => {
+        const step = decide(snapshot({
+            stage: RG_STAGE.SPOKEN_IORWERTH2,
+            tile: ARDOUGNE,
+            carried: [...CHAIN, [RG_ITEM.COAL.id, 6]],
+            freeSlots: 11
+        }));
+        expect(step.kind).toBe('mineRock');
+    });
+
+    test('a pack with the float already mined moves on to the still', () => {
+        const step = decide(snapshot({
+            stage: RG_STAGE.SPOKEN_IORWERTH2,
+            tile: ARDOUGNE,
+            carried: [...CHAIN, [RG_ITEM.COAL.id, COAL_TARGET]],
+            freeSlots: 5
+        }));
+        expect(name(step)).toContain('distil');
     });
 });

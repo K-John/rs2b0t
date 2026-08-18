@@ -174,7 +174,8 @@ function gatherLeg(snap: QuestSnapshot): QuestStep | null {
 }
 
 // Why: the coal run carries the chain, the two tools that build it and a short food float — and nothing else. Coal does not stack, so the twelve the still burns want twelve slots free before the first swing at the rock; the kit is twenty-four slots and leaves four.
-const COAL_RUN: PackPlan = {
+// Why: the room asked for is what is LEFT to mine, not the whole float. Coal accumulates in the pack, so a plan that keeps asking for twelve free once six are already held parks a leg that was one swing from finishing — which is how this read live: "needs 12 free slot(s) and the pack has 11" with six coal in hand.
+const coalRun = (snap: QuestSnapshot): PackPlan => ({
     what: 'the coal run',
     allow: [
         RG_ITEM.BARREL_TAR.id, RG_ITEM.BARREL_NAPHTHA.id, RG_ITEM.CLOTH.id,
@@ -182,8 +183,8 @@ const COAL_RUN: PackPlan = {
         RG_ITEM.COOKED_RABBIT.id, RG_ITEM.PICKAXE.id, RG_ITEM.PESTLE.id, RG_ITEM.COAL.id
     ],
     caps: [{ item: RG_ITEM.SHARK, qty: STILL_FOOD }],
-    freeNeeded: COAL_TARGET
-};
+    freeNeeded: Math.max(0, COAL_TARGET - carried(snap, RG_ITEM.COAL))
+});
 
 /** The chemistry the forest cannot do: a furnace, a range, coal, and Rimmington's still. */
 function mainlandLeg(snap: QuestSnapshot): QuestStep {
@@ -204,7 +205,7 @@ function mainlandLeg(snap: QuestSnapshot): QuestStep {
         return custom('mix the powders into the naphtha', mixBomb);
     }
     if (carried(snap, RG_ITEM.COAL) < COAL_TARGET) {
-        const shaped = managePack(snap, COAL_RUN);
+        const shaped = managePack(snap, coalRun(snap));
         if (shaped) {
             return shaped;
         }
