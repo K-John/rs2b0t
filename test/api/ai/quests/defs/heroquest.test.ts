@@ -52,7 +52,7 @@ afterEach(() => {
     resetHeroGangCache();
 });
 
-// Why: `no path to (2793,3180,0): unreachable without 30x Coins` is the whole failure — the Ardougne
+// Why: `no path to (2793,3180,0): unreachable without 30x Coins` is the failure in full — the Ardougne
 // ferry is 30 coins and the pathfinder refuses the route without them in the pack.
 describe("hero's quest coin float", () => {
     test('an empty pack withdraws before anything else', () => {
@@ -217,7 +217,7 @@ describe("hero's quest gang branches", () => {
         expect((step as { name: string }).name).toContain('arrow slit');
     });
 
-    // Why: the chest hands over exactly two, one of which is the rival's payment.
+    // Why: the chest hands over two, one of which is the rival's payment.
     test('two candlesticks means one is owed to the rival', () => {
         withGang('blackarm');
         HeroConfig.partner = 'rival';

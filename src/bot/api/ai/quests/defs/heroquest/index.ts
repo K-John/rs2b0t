@@ -64,11 +64,8 @@ export function inSealedPocket(snap: QuestSnapshot): boolean {
 // such plan reads `unreachable` — the custom legs cross their own doors, these steps cannot.
 const NEEDS_STREET = new Set(['buy', 'withdraw', 'deposit', 'scanBank', 'mineRock']);
 
-// Why: the Ardougne ferry is 30 coins and the pathfinder refuses the route without them —
-// `no path to (2793,3180,0): unreachable without 30x Coins` is the whole failure. A purchase pays its
-// own way in, but the legs between purchases do not, so the quest keeps a float.
-// Why: a low-water mark rather than a target, because a float restored on every pass costs a bank trip
-// after every shop.
+// Why: `no path to (2793,3180,0): unreachable without 30x Coins` — the Ardougne ferry is 30 coins and
+// the legs between purchases carry none, so the quest holds a float at a low-water mark.
 const LOW_COINS = 200;
 const COIN_TOP_UP = 10_000;
 

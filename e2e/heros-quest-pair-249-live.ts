@@ -72,9 +72,9 @@ function fail(msg: string): never {
 
 const QUEST = "Hero's Quest";
 const VARROCK_WEST_BANK = { x: 3185, z: 3440, level: 0 };
-// Why: the walk-and-shop half of this quest takes ten minutes a side and is proven on its own; the
-// two-bot dance is the part worth iterating on, so `--stage grip` starts at the stage that begins it
-// with the kit already banked — the crossing to Brimhaven is still walked.
+// Why: the walk-and-shop half of this quest takes ten minutes a side and is proven on its own, so
+// `--stage grip` starts at the stage the two-bot dance begins with the kit already banked — the
+// crossing to Brimhaven is still walked.
 const GRIP_STAGE: Record<'phoenix' | 'blackarm', number> = { phoenix: 4, blackarm: 11 };
 const GRIP_SEED: Record<'phoenix' | 'blackarm', BankSeedItem[]> = {
     phoenix: [
@@ -104,7 +104,7 @@ const STATS = [
 ];
 
 // Why: the four prerequisites are another six hours of running quests that are not the one under test,
-// so they are set rather than earned — at exactly the values `quest.constant` calls complete, because
+// so they are set rather than earned — at the values `quest.constant` calls complete, because
 // `~send_quest_progress` colours the list green only on `current >= complete`.
 const PREREQS: [string, number][] = [
     ['zanaris', 6],

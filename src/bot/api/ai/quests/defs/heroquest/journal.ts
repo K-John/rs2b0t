@@ -4,7 +4,7 @@ import { Quests } from '../../../../ui/questlog/Quests.js';
 import type { QuestProgress } from '../../engine/types.js';
 import { HERO_NAME } from './areas.js';
 
-/** `%heroquest`, exactly as `quest_hero.constant` numbers it. */
+/** `%heroquest`, numbered as `quest_hero.constant` numbers it. */
 export const HERO_STAGE = {
     NOT_STARTED: 0,
     STARTED: 1,
@@ -23,9 +23,8 @@ export const HERO_STAGE = {
     COMPLETE: 14
 } as const;
 
-// Why: colour tags become a space, so no needle may span a tag boundary.
-// Why: the page is padded, and every needle below starts with one, because a needle without a word
-// boundary matches its neighbour — "she gave me" contains "he gave me".
+// Why: colour tags become a space, so no needle may span a tag boundary, and every needle below opens
+// with one, because "she gave me" contains "he gave me".
 function normalize(lines: readonly string[] | string): string {
     const body = (typeof lines === 'string' ? lines : lines.join(' '))
         .replace(/@[a-z0-9]{3}@/gi, ' ')
@@ -35,9 +34,8 @@ function normalize(lines: readonly string[] | string): string {
     return body.length === 0 ? '' : ` ${body} `;
 }
 
-// Why: the page keeps every earlier line struck through, so an early needle still matches in a late
-// state and this order is the only thing separating them. Each needle is the stage's own next-step
-// line, which no later page repeats.
+// Why: the page keeps every earlier line struck through, so this order is what separates the stages —
+// each needle is that stage's own next-step line, which no later page repeats.
 const STAGES: readonly [string, number][] = [
     [' quest complete!', HERO_STAGE.COMPLETE],
     [' in reward she gave me a master thief', HERO_STAGE.BLACKARM_ARMBAND],

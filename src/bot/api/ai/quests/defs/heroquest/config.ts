@@ -9,10 +9,10 @@ export const HeroConfig: { partner: string } = { partner: '' };
 let cached: HeroGang | null = null;
 let cachedFor = '';
 
-// Why: Grip refuses a Black Arm attacker and Katrine refuses a Phoenix candlestick, so the branch a
-// character walks here is the gang it joined for Shield of Arrav — never a second, independent roll.
-// Why: the character name lands a few ticks after login, and re-resolving every tick would flip the
-// gang mid-run.
+// Why: Grip refuses a Black Arm attacker and Katrine a Phoenix candlestick, so the gang here is the one
+// the character joined for Shield of Arrav rather than a second roll.
+
+// Why: the name lands a few ticks after login, so re-resolving every tick would flip the gang mid-run.
 export function heroGang(): HeroGang {
     const name = Game.myName() ?? '';
     const fingerprint = `${ArravConfig.gang}|${name}`;

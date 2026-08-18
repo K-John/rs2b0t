@@ -73,9 +73,8 @@ function keyringOnFloor(): boolean {
     return GroundItems.query().where(g => g.id === HERO_ID.GRIP_KEYS).within(GROUND_RANGE).nearest() !== null;
 }
 
-// Why: Grip's own spawn is six tiles from the slit, which is inside bow range and behind three walls —
-// clicking him there spends every tick on an attack the server drops. The only line is the slit's own
-// row, which is where the rival's drinks cabinet walks him.
+// Why: Grip's spawn is six tiles from the slit, in bow range and behind three walls, so the server
+// drops every attack there — the slit's own row is the only line, and the cabinet walks him onto it.
 function gripOnTheRow(): Npc | null {
     const target = grip();
     const here = Game.tile();

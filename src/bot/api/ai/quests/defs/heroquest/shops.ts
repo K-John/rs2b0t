@@ -19,9 +19,8 @@ export interface Purchasable {
     sources: readonly ShopSource[];
 }
 
-// Why: `World.restock` skips a null slot, and a shared shop that sells its last unit loses the slot —
-// a single-unit stockist is a one-shot source, and a bought-out one never comes back. Two stockists is
-// the only thing that makes an `allstock=no` item dependable.
+// Why: `World.restock` skips a null slot, so a shared shop that sells its last unit never gets it back
+// — two stockists is what makes an `allstock=no` item dependable.
 
 /** Buy from the first stockist that still has one. */
 export async function buyFromAny(item: Purchasable, log: (m: string) => void): Promise<boolean> {

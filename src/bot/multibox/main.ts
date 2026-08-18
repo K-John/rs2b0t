@@ -6,10 +6,12 @@ import { DomSlotOps, orderedSlotElements } from './DomSlotOps.js';
 import { MultiBoxController } from './MultiBoxController.js';
 import { ProfileChooser } from './ProfileChooser.js';
 import { vault, type Profile } from './ProfileVault.js';
-import { renderRailTile } from './RailTile.js';
+import { renderRailTile, slotIsRunning } from './RailTile.js';
 import { ResourcePanel } from './ResourcePanel.js';
+import { SettingsPanel } from './SettingsPanel.js';
 import { TabBar } from './TabBar.js';
 import { VaultPrompt } from './VaultPrompt.js';
+import type { ProfileSnapshot } from './ProfileTransfer.js';
 import type { Account } from './types.js';
 
 if (typeof window !== 'undefined') {
@@ -270,6 +272,30 @@ function boot(): void {
         return ok;
     }
 
+    function applyImportedTabs(data: ProfileSnapshot): void {
+        const live = controller.snapshot();
+        if (live.length === 0) {
+            controller.setTabState(data.tabs, data.activeTab);
+            tabsHydrated = true;
+            renderRail();
+            return;
+        }
+        const extra = data.tabs.filter(tab => !controller.tabs().includes(tab));
+        if (extra.length > 0) {
+            controller.setTabState([...controller.tabs().slice(1), ...extra], controller.activeTab());
+        }
+        renderRail();
+    }
+
+    const settings = new SettingsPanel({
+        ensureUnlocked: () => ensureUnlocked(),
+        snapshot: () => vault.snapshot(),
+        replaceAll: data => vault.replaceAll(data),
+        onImported: applyImportedTabs
+    });
+    document.body.appendChild(settings.el);
+    document.getElementById('mbx-settings')!.addEventListener('click', () => settings.open());
+
     addTile.addEventListener('click', () => {
         void ensureUnlocked().then(ok => {
             if (ok) {
@@ -309,7 +335,7 @@ function boot(): void {
     function renderRail(): void {
         tabBar.render(controller.tabs(), controller.activeTab());
         const snaps = controller.snapshot();
-        resources.setBotCount(snaps.length);
+        resources.setBotCount(snaps.length, snaps.filter(slotIsRunning).length);
         const empty = snaps.length === 0;
         startAll.disabled = empty;
         stopAll.disabled = empty;

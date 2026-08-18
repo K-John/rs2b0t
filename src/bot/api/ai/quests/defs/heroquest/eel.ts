@@ -102,9 +102,8 @@ export async function farmHarralander(log: (m: string) => void): Promise<boolean
     return true;
 }
 
-// Why: `jail_doors.rs2` answers Open with "This <name> is locked" to anyone outside, and opens only for
-// an oplocu with the right key — the jail key for Velrak's cell, the dusty key for the deep dungeon.
-// Why: neither key is consumed, so one of each lasts the quest and every later trip is free.
+// Why: `jail_doors.rs2` answers Open with "This <name> is locked" outside and opens only for an oplocu
+// with the right key — jail key for Velrak's cell, dusty key for the deep dungeon, neither consumed.
 
 /** Kill the Jailer and take the jail key he drops. */
 export async function killJailer(log: (m: string) => void): Promise<boolean> {
@@ -219,7 +218,7 @@ async function fishInside(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: the Taverley range sits in a pocket the baked graph has no door into, so Catherby's is the
-// nearest cooking surface the walker can actually reach from the dungeon ladder.
+// nearest cooking surface the walker can reach from the dungeon ladder.
 
 /** Cook the eel on the Catherby range — level 53, and it never burns. */
 export async function cookLavaEel(log: (m: string) => void): Promise<boolean> {

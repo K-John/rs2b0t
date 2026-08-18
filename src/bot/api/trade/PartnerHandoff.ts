@@ -20,8 +20,7 @@ export const OPEN_REQUEST_EVERY_MS = 3_000;
 export type OpenTradeAction = 'done' | 'wait' | 'request' | 'give-up';
 
 // Why: `[opplayer4,_]` opens the window on the second of the two clicks and keeps its varps with no
-// expiry, so re-sending completes a handshake whose first click was dropped, and a partner out of
-// range is walking rather than missing.
+// expiry, so re-sending completes a handshake whose first click was dropped.
 export function decideOpenTrade(input: {
     tradeActive: boolean;
     partnerNear: boolean;
@@ -106,11 +105,11 @@ export interface HandoffSpec {
 export async function runHandoff(spec: HandoffSpec): Promise<boolean> {
     const { partner, id, name, giving, label, log } = spec;
     let confirmed = false;
-    // Why: an item already moved into the offer is gone from the pack view, so a give is only believed
+    // Why: an item already moved into the offer is gone from the pack view, so a give is believed only
     // once the window is shut and the pack reads back.
-    // Why: the baseline is taken only with no window open — grabbing one by declining an open trade
-    // kills the handshake the partner is in — and a leg that restarts mid-trade falls back to having
-    // clicked the confirm.
+
+    // Why: the baseline is taken with no window open, because declining an open trade to grab one kills
+    // the handshake the partner is in.
     const before = Trade.active() ? null : Inventory.countById(id);
     const packReadable = (): boolean => Inventory.used() > 0;
     const landed = (): boolean => {

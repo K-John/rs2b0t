@@ -46,7 +46,7 @@ describe('decideHeroHandoff', () => {
         expect(decideHeroHandoff(input({ stage: HERO_STAGE.BLACKARM_MANSION, hasKey: true }))).toBeNull();
     });
 
-    // Why: the chest hands over exactly two, one of which is the rival's payment for the kill.
+    // Why: the chest hands over two, one of which is the rival's payment for the kill.
     test('two candlesticks owes the rival one', () => {
         expect(decideHeroHandoff(input({
             stage: HERO_STAGE.BLACKARM_LOOTED,

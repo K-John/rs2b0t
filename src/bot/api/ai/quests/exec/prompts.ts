@@ -102,8 +102,7 @@ export interface DoorCrossing {
     op?: string;
     /** Id of the key to use on the loc, for a door whose Open answers "This door is locked". */
     useItem?: number;
-    // Why: `~check_axis` reads which side you are on off one coordinate, so a door that teleports by
-    // axis has to be clicked from its own tile — an adjacent stand opens it as if you were leaving.
+    // Why: `~check_axis` reads your side off one coordinate, so an axis door is clicked from its own tile.
     /** How far off the stand counts as arrived. Zero for an axis-tested door. */
     standRadius?: number;
     log: (m: string) => void;

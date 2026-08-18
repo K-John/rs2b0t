@@ -77,17 +77,23 @@ function main(): void {
             // West Ardougne's plague house: loc_2534 answers "This door is locked." to everyone, and loc_2535 opens only for a warrant holder with a mourner in earshot, mid-conversation.
             // Why: baked as edges the pathfinder alternates between the two and crosses neither.
             'loc_2534', 'loc_2535',
+            // Why: the mourner headquarters' two doors are locked until the stew is poisoned and then open only to a worn doctor's gown behind an "In you go doc." the walker cannot answer, and baked as edges the route to the cauldron runs through the building — which is the one thing the stage needing the cauldron cannot do. The fence at 2541,3331 is the way in.
+            'mournerstewdoor',
             // Shield of Arrav's three hideout doors. Why: the weapon store answers Open with "The door is securely locked" and yields only to an oplocu with the key, while the other two refuse until you have joined and then p_teleport you through — none is an edge the walker can step.
             'phoenixdoor', 'phoenixdoor2', 'blackarmdoor',
-            // Hero's Quest's five Brimhaven doors. Why: each one refuses until its own stage and gang,
-            // and `~open_and_close_door` teleports the actor rather than opening — a baked edge sends
-            // the pathfinder through a wall it can never step. defs/heroquest/doors.ts owns both
-            // directions of every one, which the sealed pockets behind them require.
+            // Khazard stronghold's front door. Why: quest_tree.rs2 opens it only for a player already north of it, so the pathfinder routed every trip to the chest through a door that answers "The door seems to be locked from the inside." — the crumbled wall is the way in, driven by defs/treegnome.
+            'khazard_stronghold_door',
+            // Peer the Seer's puzzle house. door1 opens only to a solved combination lock and an empty pack; door2 answers "This door is locked tightly shut." and yields to an oplocu with the key from inside.
+            // Why: baked as edges the pathfinder routes a bot into a sealed pocket it then cannot leave, which is where a Fremennik Trials run wedged.
+            'viking_seers_door1', 'viking_seers_door2',
+            // Why: the longhall's backstage door stays in — the bouncer refuses only the inward crossing, and the stage behind it is a dead end nothing routes through, so removing it would seal the bard in after his performance.
+            // Rellekka's north fence: "Only Fremenniks may pass this gate." until the trials are over.
+            'viking_fencegate_l', 'viking_fencegate_r',
+            // Hero's Quest's five Brimhaven doors. Why: each refuses until its own stage and gang, and
+            // `~open_and_close_door` teleports rather than opens — defs/heroquest/doors.ts owns them.
             'grubordoor', 'garvdoor', 'herokitchendoor', 'pete_sidedoor', 'pete_treasuredoor',
-            // Taverley dungeon's two key doors. Why: jail_doors.rs2 answers Open with "This <name> is
-            // locked" from the outside and yields only to an oplocu with the jail key or the dusty key,
-            // so a baked edge walks the pathfinder at a gate it can never open. defs/heroquest/eel.ts
-            // owns both, which the lava eel spot behind the deep gate requires.
+            // Taverley's two key doors. Why: jail_doors.rs2 yields only to an oplocu with the jail key
+            // or the dusty key, so defs/heroquest/eel.ts owns both crossings.
             'dungeonjail', 'deepdungeondoor'
         ]);
         const label = `${type.name ?? ''} ${type.debugname ?? ''}`.toLowerCase();

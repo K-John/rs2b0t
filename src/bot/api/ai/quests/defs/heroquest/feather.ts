@@ -16,10 +16,8 @@ import { HERO_ID, HERO_NAMED, HERO_NPC, HERO_SHOP, HERO_TILE, onEntrana } from '
 import { kitStep, type Purchasable } from './shops.js';
 import { anywhere, bankedId, foodName, heldFood, heldId, wornId } from './state.js';
 
-// Why: the Ice Queen is level 111 with 104 hitpoints and hits through anything less; the kit is bought
-// on the Champions' Guild upper floor, where Valaine's shop already takes the Black Arm bot.
-// Why: the float is the obj's own `cost` times the shop's sell multiplier, with headroom — a shop
-// below its base stock charges more, and a float short of the asking price buys nothing at all.
+// Why: the Ice Queen is level 111 with 104 hitpoints, and the kit is Scavvo's on the Champions' Guild
+// upper floor. Each float clears the asking price of a shop below base stock, which buys at more.
 const COMBAT_KIT: readonly Purchasable[] = [
     { id: 1113, name: 'Rune chainbody', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 80_000 }] },
     { id: 1079, name: 'Rune platelegs', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 100_000 }] },
@@ -73,7 +71,7 @@ function glovesOnFloor(): { interact(op: string): boolean | Promise<boolean> } |
 }
 
 // Why: on the `:8890` content every entrance to the lair sits on a plateau the map flags seal, so this
-// leg says so once rather than repathing forever. See docs/decisions/quest-pitfalls-14.md.
+// leg says so once rather than repathing forever. See docs/decisions/quest-pitfalls-35.md.
 
 /** Kill the Ice Queen and take the gloves she drops. */
 export async function killIceQueen(log: (m: string) => void): Promise<boolean> {
@@ -106,9 +104,8 @@ export async function killIceQueen(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => Inventory.countById(HERO_ID.ICE_GLOVES) > 0, 8_000);
 }
 
-// Why: every ferry lands on the ship's deck at level 1, and the Gangplank loc is absent from the scene
-// for a tick or two after the region change — one click at the wrong moment leaves a bot on the deck,
-// where `onEntrana` reads false and the leg walks it back to the monk it just paid.
+// Why: every ferry lands on the deck at level 1 and the Gangplank loc is absent from the scene for a
+// tick or two after the region change, so a click too early leaves the bot aboard and `onEntrana` false.
 
 /** Cross the gangplank off whatever deck the character is standing on. */
 async function stepOffShip(log: (m: string) => void): Promise<boolean> {

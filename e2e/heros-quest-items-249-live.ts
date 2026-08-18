@@ -3,7 +3,7 @@
  *  Why: the armband is the only half of this quest that needs two accounts, so proving the rest costs
  *  one browser and no rendezvous.
  *  Why: the ice gloves are seeded. Every ladder into the Ice Queen's lair stands on a White Wolf
- *  Mountain plateau the map flags seal, and she is the only source — see quest-pitfalls-14. */
+ *  Mountain plateau the map flags seal, and she is the only source — see quest-pitfalls-35. */
 
 //   HEADED=1 bun e2e/heros-quest-items-249-live.ts --tick 300 --minutes 60
 //   HEADED=1 bun e2e/heros-quest-items-249-live.ts --skip-eel --minutes 30
@@ -151,7 +151,7 @@ try {
     await mainlandAccount(page, args.base, args.user, client.page);
     await cheatQuiet(page, `speed ${args.tickMs}`);
     await setStats(page, args.stats);
-    // Why: exactly the values `quest.constant` calls complete — `~send_quest_progress` colours the list
+    // Why: the values `quest.constant` calls complete — `~send_quest_progress` colours the list
     // green only on `current >= complete`.
     for (const [name, value] of [['zanaris', 6], ['dragonquest', 10], ['arthur', 7], ['blackarmgang', 4]] as const) {
         await cheatQuiet(page, `setvar ${name} ${value}`);

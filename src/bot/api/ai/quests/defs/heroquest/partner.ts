@@ -19,10 +19,10 @@ export interface HeroHandoffInput {
     ready: boolean;
 }
 
-// Why: Grip re-issues the spare whenever `~obj_gettotal(misc_key)` reads zero, so a Black Arm bot that
-// gives one away and then asks him for another trades keys forever. The flag stops the fetching; the
-// lure counter re-opens it, because a rival that died holding the key needs a second one.
-// Why: session scope is enough — a restart fetches one more key, which is correct work rather than a wedge.
+// Why: Grip re-issues the spare whenever `~obj_gettotal(misc_key)` reads zero, so the flag stops a bot
+// trading keys forever and the lure counter re-opens it for a rival that died holding one.
+
+// Why: session scope is enough — a restart fetches one more key, which is correct work.
 export const HeroHandoffState = { gaveKey: false, lureFailures: 0 };
 
 /** How many fruitless lures it takes before the Black Arm bot fetches the rival another key. */
@@ -38,9 +38,8 @@ export function shouldFetchKey(state: { gaveKey: boolean; lureFailures: number }
     return !state.gaveKey || state.lureFailures >= LURE_RETRIES_BEFORE_REFETCH;
 }
 
-// Why: `open_and_close_door` teleports the actor and re-shuts in three ticks, so the Black Arm bot
-// cannot hold the side door open for anyone. Grip's spare key is tradeable and his own keyring is not,
-// which fixes both directions: the key goes over, the keyring is taken off the floor.
+// Why: `open_and_close_door` teleports the actor and re-shuts in three ticks, so the door opens for
+// nobody else — the tradeable spare key goes over and the untradeable keyring comes off the floor.
 
 /** Who owes whom, from the snapshot alone. */
 export function decideHeroHandoff(input: HeroHandoffInput): HeroHandoff | null {
@@ -52,9 +51,8 @@ export function decideHeroHandoff(input: HeroHandoffInput): HeroHandoff | null {
         if (input.stage >= HERO_STAGE.BLACKARM_PAPERS_GIVEN && input.stage < HERO_STAGE.BLACKARM_ARMBAND && input.hasKey) {
             return 'give-key';
         }
-        // Why: the chest hands over exactly two, one of which is the rival's payment.
-        // Why: bounded above by the armband, because `opencandlechest` refuses while one is held or
-        // banked — past that stage a second pair cannot exist and a trade for it would hang.
+        // Why: the chest hands over two, one of them the rival's payment, and the armband bounds it
+        // above because `opencandlechest` refuses while one is held or banked.
         if (input.stage >= HERO_STAGE.BLACKARM_LOOTED
             && input.stage < HERO_STAGE.BLACKARM_ARMBAND
             && input.candlesticks >= 2) {

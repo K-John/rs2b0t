@@ -1,85 +1,78 @@
 [Manual](../README.md) › [Quests](../QUESTS.md) › Quest pitfalls
 
-# Quest pitfalls: Hero's Quest
+# Quest pitfalls: Tai Bwo Wannai Trio
 
-Sixteen, and the first one is a wall the quest cannot be finished through.
+Four brothers, one island, no bank, and a 30gp ferry between the two. Everything below
+cost either a read of the content scripts or a live run.
 
-- **An area with a one-way exit has no entrance.** The Ice Queen's lair is reachable from the surface
-  only by eight `ladder_cellar_inside_down` locs, and every one of them stands on a White Wolf Mountain
-  plateau (x 2800-2861, z 3500-3521) whose whole boundary carries the map's `BLOCK_MAP_SQUARE` flag.
-  Three `ladder_from_cellar` locs climb *out* of it onto walkable ground, so a flood from the lair
-  reaches 531 012 nodes and a flood from Varrock reaches 528 821 — the lair can reach the world and the
-  world cannot reach the lair. `GameMap.loadLands` blocks on exactly the flag the collision builder
-  reads, so the engine agrees with the pack. `ice_gloves` drops from nothing else, which puts the
-  Entranan firebird feather out of reach on this content. Diff the two floods before believing a
-  reachability failure is the walker's fault.
-- **A wall with `blockrange=no` is the intended route.** Grip is sealed from the side room by
-  `snipable_wall` (2637) at (2780,3198), beside a `castlearrowslit`. Nothing walks between the two
-  pockets; the Phoenix bot shoots him through the wall from three tiles away while the Black Arm bot
-  opens his drinks cabinet, which `npc_walk`s him onto that row. A quest whose kill has no melee route
-  is not a broken map — read the loc's `blockrange` before assuming a path is missing.
-- **`~open_and_close_door` teleports the actor and re-shuts in three ticks.** No door in this engine can
-  be held open for a partner. What crosses a party is a tradeable key, not an opened door: Grip's spare
-  (`misc_key`) is tradeable and goes over, while his keyring (`grip_keys`) is not and is instead
-  `obj_addall`ed on death for both players to see.
-- **A cooking range inside a sealed pocket is not a cooking range.** Taverley's (2844,3367) has no
-  reachable stand at all, and the two Brimhaven ranges are the Shrimp and Parrot kitchen and a room the
-  graph has no door into. Test every candidate surface against the pathfinder before pinning one;
-  Catherby's (2817,3444) is the nearest one a walker can reach from the Taverley dungeon ladder.
-- **A fishing spot can be behind a key, two NPCs deep.** The Taverley lava spots (2889-2891, 9766)
-  sit past `deepdungeondoor`, whose `oploc1` answers "This gate is locked" and whose `oplocu` wants the
-  dusty key; the dusty key comes from Velrak, whose cell answers only to the jail key, which the Jailer
-  drops for 100 ticks where every other drop lasts 200. Neither key is consumed. A leg that walks
-  straight at the spot loops on the locked gate forever — read the door's script before trusting a
-  baked edge, and remember `~check_axis` reads the door's own tile as the outside.
-- **A pocket predicate can need a rectangle cover, not a rectangle.** The deep dungeon interleaves with
-  the rest of Taverley's across x 2881-2923, so one box over the pair claims a thousand corridor tiles.
-  Four boxes, greedily grown from the flood and clipped to its bounding box, hold all 2473 pocket tiles
-  and no tile of the main component. Grow the cover from the flood; never eyeball the box.
-- **A sealed pocket is cheapest to enter and leave inside one step.** `fishLavaEel` crosses the gate,
-  fishes and crosses back before it returns, so no bank, shop or range walk is ever planned from inside
-  it. `decide()` still owns an egress for both Taverley pockets, because a restart taken mid-leg can
-  leave a bot standing in either.
-- **An item with no shop and no ground spawn is a drop table.** Harralander appears in no `.inv` in the
-  content and in no map OBJ section, so the only source is the chaos druid herb table — 46 in 128 for a
-  herb, 14 in 128 of that table for this one, about 25 kills. Grep the shop configs and the map objs
-  before designing a leg around buying something.
-- **`forceapproach` rotates with the placement angle.** Grip's cabinet is `east` at angle 3, which is
-  north in world space; the candlestick chest is `north` at angle 2, which is south. `(dir + angle) & 3`
-  is the only way to the legal side, and the wrong one produces nothing at all.
-- **Two pockets can interleave along one row.** The Brimhaven hideout and the alley outside it share
-  z 3167-3170 across x 2806-2810, so a single rectangle over the pair puts Grubor's own doorstep inside
-  the hideout and every crossing then reads as already done. A pocket predicate is a union of boxes as
-  often as it is one.
-- **A door's two sides are named by its angle, not by the map.** `grubordoor` is a west wall, so its
-  sides are (2810,3170) and (2811,3170) — east and west of one tile, where the other four doors in this
-  quest are north and south of one. Derive the stands from the angle every time.
-- **An option tree can gate its own options.** `grip_chat_options` only offers "Anything I can do now?",
-  which is what hands over the spare key, after "So what do my duties involve?" has been asked. A
-  `prefer` list has to name both, in that order, and one that leaves the tree.
-- **A trapdoor model is not a trapdoor.** `trapdoor_nonactive` and `ikov_trapdoor` carry a model and
-  nothing else — no name, no ops, no script. Three of them sit exactly where the Ice Queen lair's
-  one-way exits surface, which is what makes the sealed plateau look like it has entrances.
-- **A bought-out shop is a dead shop.** `World.restock` reads `inv.items[index]` and skips a null
-  slot, and a shared `allstock=no` shop that sells its last unit loses the slot — so Valaine's one
-  pair of black platelegs never came back, and the bot spent 188 attempts over four minutes buying
-  from an empty shelf. A purchase needs a list of stockists, not a shop; the legs also come from
-  Louie in Al Kharid. Only the black full helm is single-sourced, and that is a known fragility.
-- **A pocket the module owns is a pocket the module owes both ways.** Every `enter*` here leaves
-  whichever other pocket it is standing in first, and every leg that walks to a bank, a shop or a
-  partner calls `returnToStreet()` before it plans. Without that, the Black Arm bot took Trobert's
-  papers inside the hideout and then read `no path to (2774,3187,0): unreachable` at Garv's door
-  forever — the way in was fine and the way out was missing.
-- **A paid crossing is a pathfinding requirement, not a step.** `no path to (2793,3180,0):
-  unreachable without 30x Coins` is the whole failure: the Ardougne ferry costs 30 coins and the
-  planner refuses the route without them in the pack. A quest that buys things pays its own way in by
-  accident and stalls the moment a leg between purchases needs the boat, so `ownsInventory` owes a
-  float of its own — topped up below a low-water mark, never restored to a target, or every shop
-  costs a bank trip.
+- **A quest whose start is across a toll buys its kit first.** `decide()`
+  originally answered stage 0 with "talk to Timfraku", and the navigator replied
+  `unreachable without 30x Coins` — the bot stood at the Ardougne booth it had walked
+  straight past. Provisioning runs before the pre-start branch, not after it, wherever
+  the first NPC is behind a fare.
+- **Two of this quest's six varps are on the wire.** `tbwt_main` and `tbwt_tiadeche`
+  carry `transmit=yes`; `tbwt_tinsay`, `tbwt_tamayu`, `tbwt_lubufu` and `tbwt_flags`
+  do not. That is the exception [the varp decision](quest-state-not-varps.md) names, so
+  the module reads the first two with `reader.varp` and opens the journal only for the
+  rest — and only while `tbwt_main` is in the brothers phase.
+- **"Nothing of interest." is three different brothers' opening line.** The journal
+  appends each brother's block under its own `Tiadeche:` / `Tinsay:` / `Tamayu:` /
+  `Lubufu:` heading, so a marker is only meaningful inside its own slice of the page.
+  Matching across the page reads Tinsay's intro as Tamayu's.
+- **The order of the brothers is forced, and no guide states it.** Tamayu is the only
+  NPC who will skin a monkey and he refuses until his own hunt is over; Tinsay writes
+  Tiadeche's crafting manual only once his three deliveries are done; and Tiadeche's
+  first catch is the raw Karambwan the poisoned spear is ground from. Lubufu → Tiadeche's
+  catch → Tamayu → Tinsay → Tiadeche's manual is the only order that closes.
+- **Melee cannot kill the monkey while the quest is live.** `opnpc2,monkey` measures
+  `~player_attackrange` and dodges anything at range 1, in silence apart from a chat
+  line. The kit is a shortbow from the start rather than a swap for one kill.
+- **Karamja has two ranges and neither can be used.** The Brimhaven one at (2787,3191)
+  is inside the Shrimp and Parrot kitchen, whose door answers "This door seems to be
+  locked..." until Heroes' Quest; the one at (2814,3161) sits in a room the baked graph
+  has no door into, and every path to it comes back `unreachable`. A live run burned
+  four minutes wedged against the first before the second was ruled out on the
+  collision pack. The cooking source is the permanent jungle fire at (2789,3048),
+  eleven tiles from the village and reachable with no hops at all.
+- **The only furnace on Karamja is inside Shilo Village.** Tai Bwo Wannai Trio does not
+  require Shilo, so the Jogre bones are burnt with a tinderbox instead:
+  `light_jogre_bones_inv` drops them at the player's tile, lights them three ticks
+  later, burns for 25-50 ticks, and only then puts burnt bones back on the ground. A
+  `walktrigger` clears the timer, so nothing may move until the fire catches.
+- **A tile that will not take a fire says so once and then says nothing.** `area_allow_loc_add`
+  refuses with a single chat line, and the bones are already on the floor by then, so the step
+  reads the refusal, steps aside, and picks them back up — waiting the ninety seconds out
+  instead cost a minute and a half of a live run for nothing.
+- **Three of this quest's objects share a display name with two others each.**
+  "Karambwan vessel" is the empty one and the baited one, "Karamjan rum" is the bottle,
+  the banana-stuffed reject and the sliced-banana version, and "Karambwan paste" is the
+  raw, cooked and poisonous grind. Every check is by id, and the deposit keep-list is a
+  list of ids.
+- **A raw Karambwan burns three times in ten, and re-fishing one is a four-minute round
+  trip.** The bait comes from the Holy Lake and the only shoal the vessel may be
+  lowered into is a hundred and sixty tiles away outside Brimhaven, so the step carries
+  four Karambwanji and lands two Karambwan on the one visit. The cook step waits for
+  the *input* to disappear rather than for the product to appear, so a burn is noticed
+  at once rather than at the end of a thirty-second timeout.
+- **Lubufu re-arms his brush-off on every talk inside it.** The first conversation ends
+  with a ten-tick `longqueue`, and talking again inside that window replays "I said go
+  away!" *and starts the queue over*. The introduction is one step that talks, waits the
+  queue out, and talks again.
+- **His apprenticeship is counted, and the journal cannot count it.** Stages 25 to 27
+  render one identical page: three more questions, any three, and he offers on the
+  third. The step asks until the vessel is in the pack rather than until a stage moves.
+- **The bait count is not on the page either.** Every stage from 5 to 24 renders "I
+  need to give Lubufu 20 Karambwanji", so the module cannot know how many he already
+  holds. It fishes a pack-full, hands the lot over, and reads the page again — he
+  counts them in himself and keeps only what he still wants, so the leftovers stay in
+  the pack and go on to bait the vessel and grind into Tinsay's marinade.
+- **Every one of these five NPCs wanders, and the first Talk-to after a long walk
+  lands where they were.** Three separate live legs failed on `'X' never opened a
+  dialogue` and passed on the retry a step later. One settle and a second attempt
+  inside the step costs a tick; a failed step costs the walk again.
 
 ## See also
 
-- [Quest pitfalls](quest-pitfalls.md)
-- [Shield of Arrav](quest-pitfalls-7.md)
-- [Hero's Quest harness recipe](../reference/quest-harness-recipes-2.md)
-- [Add a quest](../how-to/add-a-quest.md)
+- [Engine behaviour](quest-pitfalls-engine.md)
+- [Tooling and verification habits](quest-pitfalls-habits.md)
+- [Harness recipes (Tai–Temple)](../reference/quest-harness-recipes-9.md)

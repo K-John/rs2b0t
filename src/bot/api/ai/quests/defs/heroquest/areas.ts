@@ -403,9 +403,8 @@ export function inVelrakCell(t: WorldTile | null | undefined): boolean {
     return within(t, 2928, 2934, 9683, 9689, 0);
 }
 
-// Why: the deep dungeon and the rest of Taverley's interleave across x 2881-2923, so one rectangle over
-// the pair calls a thousand corridor tiles the deep dungeon. These four are a rectangle cover of the
-// flood: every one of the pocket's 2473 tiles is inside one, and no tile of the main component is.
+// Why: the deep dungeon and the rest of Taverley's interleave across x 2881-2923, so these four boxes
+// cover the flood instead: all 2473 pocket tiles inside one, no tile of the main component.
 
 /** Past the dusty-key gate, where the lava eels are fished. */
 export function inDeepDungeon(t: WorldTile | null | undefined): boolean {

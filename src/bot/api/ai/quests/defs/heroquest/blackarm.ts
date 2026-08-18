@@ -32,9 +32,9 @@ import { HeroHandoffState, shouldFetchKey } from './partner.js';
 import { kitOwned, kitStep, type Purchasable } from './shops.js';
 import { heldId } from './state.js';
 
-// Why: Garv checks all three worn and refuses silently otherwise. The legs name both stockists, Louie
-// first: Valaine restocks a sold pair every 20 000 ticks and Louie every 1 200, so the Champions'
-// Guild shelf stays empty for hours after one bot has been through it.
+// Why: Garv checks all three worn and refuses silently otherwise, and Louie leads because Valaine
+// restocks every 20 000 ticks to his 1 200.
+
 /** Hartigen's disguise. */
 const DISGUISE: readonly Purchasable[] = [
     {
@@ -126,12 +126,11 @@ async function takeKeyring(log: (m: string) => void): Promise<boolean> {
     return took;
 }
 
-// Why: the side room is sealed from the hall by a `snipable_wall` (blockrange=no), so the rival shoots
-// Grip through the arrow slit — and only reaches him at all while the drinks cabinet has walked him
-// onto that row.
-// Why: `summon_grip` walks Grip six tiles and `npc_setmode(null)` six ticks later turns him round, so
-// one lure holds the row for a couple of seconds and the rival's click has to land inside it. Hence a
-// loop rather than one lure and a wait; the open cabinet's Search re-runs the summon.
+// Why: `snipable_wall` (blockrange=no) seals the side room, so the rival shoots Grip through the arrow
+// slit, and reaches him only while the drinks cabinet has walked him onto that row.
+
+// Why: `summon_grip` walks him six tiles and `npc_setmode(null)` turns him round six ticks later, so
+// the loop re-runs the cabinet's Search rather than luring once and waiting.
 
 /** Walk Grip to the arrow slit over and over until the rival drops him, then take the keyring. */
 export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<boolean> {
