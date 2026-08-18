@@ -1,5 +1,8 @@
+import { GameMessages } from '../../../../chatbox/gameMessages.js';
+import { Skills } from '../../../../skills/Skills.js';
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
+import { formatTile } from '../../engine/trace.js';
 import { drawGear, meleeCarried, wearGear } from '../upass/supplies.js';
 import {
     RG_ITEM,
@@ -9,7 +12,8 @@ import {
     countHeld,
     held,
     regicideArea,
-    type RegicideArea
+    type RegicideArea,
+    type RegicideItem
 } from './areas.js';
 import {
     catchRabbit,
@@ -27,6 +31,7 @@ import {
     weaveCloth
 } from './bomb.js';
 import { feedLazyGuard, fireCatapult, meetArianwyn, reportToIorwerth, reportToLathas } from './finish.js';
+import { pocketAt } from './pockets.js';
 import {
     askIorwerth,
     askTracker,
@@ -272,5 +277,20 @@ export const regicide: QuestModule = {
     sustain: { foods: [RG_ITEM.SHARK.name], eatBelowHp: 0.7 },
     warnReadiness: () =>
         `Regicide needs Underground Pass complete, Agility 56 and Crafting 10, and burns about ${COAL_TARGET} coal at the still.`,
+    // Why: a failed step used to print `no inventory change` and nothing else, and that one line hid a ground-decor refusal for forty-five minutes and a missing letter across two legs. What a parked leg needs to say is where it is, what it is carrying that the step is keyed on, and what the server last said — the refusal is almost always already in the chat.
+    // Why: three lines, joined. The live harness surfaces a bounded number of log lines per poll, so a diagnostic that prints one line per item arrives as the last line and reads as silence.
+    observe: (snap, step) => {
+        const at = snap.tile;
+        const pocket = at && at.level === 0 ? pocketAt(at) : null;
+        const kit = (item: RegicideItem): string => `${item.name.split(' ')[0]!.toLowerCase()}=${held(snap, item)}`;
+        const said = GameMessages.recent(3).map(m => m.text).join(' / ');
+        return [
+            `regicide: stage=${snap.stage ?? '?'} ${formatTile(at)} area=${regicideArea(at)}${pocket ? `/${pocket}` : ''}`
+                + ` step=${step.kind === 'custom' ? step.name : step.kind} free=${snap.freeSlots ?? '?'} hp=${Math.round(Skills.hpFraction() * 100)}%`,
+            `regicide: ${[RG_ITEM.SUMMONS, RG_ITEM.MESSAGE, RG_ITEM.PENDANT, RG_ITEM.SPADE, RG_ITEM.ROPE, RG_ITEM.BRONZE_ARROW, RG_ITEM.SHARK].map(kit).join(' ')}`
+                + ` | bomb: ${[RG_ITEM.BARREL, RG_ITEM.BARREL_TAR, RG_ITEM.BARREL_NAPHTHA, RG_ITEM.BARREL_LID, RG_ITEM.BARREL_FUSED, RG_ITEM.CLOTH].map(kit).join(' ')}`,
+            said === '' ? 'regicide: the server has said nothing recently' : `regicide: last said — ${said}`
+        ];
+    },
     decide
 };

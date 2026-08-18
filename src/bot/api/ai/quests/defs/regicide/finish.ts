@@ -6,6 +6,7 @@ import { Npcs } from '../../../../npcs/Npcs.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import Tile from '../../../../../geometry/Tile.js';
+import { formatTile } from '../../engine/trace.js';
 import { talkStrict } from '../../exec/primitives.js';
 import { driveUntil, heldId, settleScene } from '../../exec/prompts.js';
 import { RG_ITEM, RG_LOC, RG_NPC, RG_TILE } from './areas.js';
@@ -73,14 +74,20 @@ export async function reportToIorwerth(log: (m: string) => void): Promise<boolea
 
 /** Arianwyn's ambush on the Ardougne road, which breaks the seal on the letter. */
 export async function meetArianwyn(log: (m: string) => void): Promise<boolean> {
+    // Why: `[zone,0_40_51_24_32]` queues Arianwyn only while `inv_total(inv, regicide_iorwerth_message) > 0`, so a pack without the letter stands in the zone forever and the step has nothing to report. Say it once rather than time out in silence eleven times.
+    if (heldId(RG_ITEM.MESSAGE.id) === 0) {
+        log(`no ${RG_ITEM.MESSAGE.name} in the pack — the Ardougne road zone only calls Arianwyn out while the letter is held`);
+        return false;
+    }
     if (!(await Traversal.walkResilient(ARIANWYN_ZONE, { radius: 1, attempts: 3, timeoutMs: 300_000, log }))) {
         return false;
     }
     const elfNear = (): boolean =>
         Npcs.query().where(npc => npc.id === RG_NPC.ARIANWYN).within(8).nearest() !== null;
     if (!ChatDialog.isOpen() && !ChatDialog.canContinue() && !elfNear()) {
-        log('waiting on the Ardougne road for Arianwyn');
+        log(`waiting on the Ardougne road for Arianwyn at ${formatTile(Game.tile())}, letter held`);
         if (!(await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue() || elfNear(), 60_000))) {
+            log(`Arianwyn did not step out within 60s at ${formatTile(Game.tile())} — the zone is (2584,3296)-ish and fires on entry, so a leg already standing in it has to leave and re-enter`);
             return false;
         }
     }
@@ -90,6 +97,11 @@ export async function meetArianwyn(log: (m: string) => void): Promise<boolean> {
 
 /** King Lathas takes the letter and pays out. */
 export async function reportToLathas(log: (m: string) => void): Promise<boolean> {
+    // Why: his reward branch reads the letter out of the pack, so without it the conversation opens, says nothing new and closes — which the step could only report as "no inventory change".
+    if (heldId(RG_ITEM.MESSAGE.id) === 0) {
+        log(`no ${RG_ITEM.MESSAGE.name} in the pack — King Lathas pays out on the letter, so there is nothing to hand him`);
+        return false;
+    }
     if (!(await Traversal.walkResilient(RG_TILE.LATHAS, { radius: 2, attempts: 3, timeoutMs: 300_000, log }))) {
         return false;
     }

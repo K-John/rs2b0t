@@ -27,8 +27,9 @@ import { climbOutOfPit, travelTirannwn } from './pockets.js';
 /** The paladins' shelf is the north end of the first cavern; the orb corridor is everything below it. */
 const SHELF_Z = 9700;
 
-// Why: `upass_area_2_3_entrance` is a hub, not a door — from its south face it `p_telejump`s to (2371,9666) on the paladins' shelf, and from the other to (2376,9610) beside the unicorn cage. The shelf is what this leg wants, and the walkways below the ledge are the way up to the hub: a leg aimed straight at the doors walks the maze backwards, and the mover crossed the same two rock bridges for six minutes saying "...and make it" each time.
-const UNICORN_AREA = UP_TILE.UNICORN_CAGE;
+// Why: the shelf, not the cage. The unicorn cage at (2375,9604) is where Underground Pass goes for the horn, and this leg wants none of that — it wants the way UP, which is the unicorn tunnel at the south end of the second cavern. Aiming at the cage arrives and then has nothing to do: `travelTo` reports "leg to (2375,9604) from (2375,9604)" and the step succeeds without moving until the watchdog parks it.
+// Why: and the tunnel is one of `travelTo`'s own seams now that `upass/route.ts` names both pockets, so asking for a tile on the shelf is enough — the crossing is chosen by the area graph rather than by a sweep. The earlier note here, that walking at the shelf lands the run in a slave cage, was written against the free search that `crossOnce` replaced.
+const SHELF_TARGET = UP_TILE.BLOODWELL;
 
 // Why: the chasm splits area1 in two and nothing walks across it. Flooding the collision pack from the cave landing and from the bridge's west foot gives two tile sets that do not share a single tile, and this is the line between them: the east side is z 9710-9726 and never reaches west of x 2446, the west side never reaches east of x 2442 in that band. A bare x test would read the grid approach (2479,9679) as east.
 const BRIDGE_EAST_Z = 9710;
@@ -168,7 +169,7 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
         case 'area2':
             // Why: the paladins' shelf is entered by one loc and one only. Flooding it lists three ops on its rim — the temple doors out, the blood well, and `upass_unicorn_door`, which `p_telejump`s to (2371,9666) from its south face. So the shelf is behind the second cavern, and a leg that walked at `PALADINS` instead asked for a tile in another pocket: the mover swept for anything that gained ground, picked a slave-cage door, and "the cage slams shut behind you" left the run in an eight-tile cell with no edge out.
             return outstandingCrossing(OUT_OF_CAGES) === null
-                ? travelTo(UNICORN_AREA, 4, log)
+                ? travelTo(SHELF_TARGET, 3, log)
                 : takeNextCrossing(log, OUT_OF_CAGES);
         case 'gridpit':
             return travelTo(UP_TILE.GRID_APPROACH, 3, log);
