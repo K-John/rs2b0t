@@ -184,8 +184,18 @@ describe('Regicide bomb chain', () => {
         expect(name(atStage([...FOREST_KIT, RG_ITEM.RAW_RABBIT.id, RG_ITEM.SULPHUR.id]))).toContain('grind');
     });
 
-    test('limestone is the last thing the forest owes, and the quarry is on the way out', () => {
+    // Why: the quarry is past the palisade, so from inside the forest the limestone is a crossing before it is a rock. A `mineRock` emitted from the elf camp anchors a plain walk, which answers "no path to (2323,3269): unreachable" and mines nothing.
+    test('limestone is a crossing while the pack is still in the forest', () => {
         const step = atStage([...FOREST_KIT, RG_ITEM.RAW_RABBIT.id, RG_ITEM.SULPHUR_DUST.id]);
+        expect(name(step)).toContain('Arandar quarry');
+    });
+
+    test('limestone is a rock once the quarry is in reach', () => {
+        const step = decide(snapshot({
+            stage: RG_STAGE.SPOKEN_IORWERTH2,
+            carried: [...KIT, ...FOREST_KIT, RG_ITEM.RAW_RABBIT.id, RG_ITEM.SULPHUR_DUST.id],
+            tile: { x: 2323, z: 3266, level: 0 }
+        }));
         expect(step.kind).toBe('mineRock');
         expect(step.kind === 'mineRock' && step.rock).toBe('Limestone');
     });

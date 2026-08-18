@@ -126,6 +126,12 @@ function rabbitDone(snap: QuestSnapshot): boolean {
 
 // Why: ordered by where each thing is rather than by the recipe — the loom, the barrel and the pot are all in the elf camp, the tar and the sulphur are both in the old camp's swamp, and the quarry sits on the way out to the palisade. What the forest cannot finish is left for the mainland leg.
 
+/** True once the quarry is close enough that the generic mining step can walk the rest itself. */
+function nearQuarry(tile: QuestSnapshot['tile']): boolean {
+    return tile !== null && tile !== undefined
+        && Math.max(Math.abs(tile.x - RG_TILE.QUARRY.x), Math.abs(tile.z - RG_TILE.QUARRY.z)) <= 12;
+}
+
 /** The next thing the forest still owes the bomb, or null once the pack can leave. */
 function gatherLeg(snap: QuestSnapshot): QuestStep | null {
     if (!clothDone(snap)) {
@@ -148,7 +154,10 @@ function gatherLeg(snap: QuestSnapshot): QuestStep | null {
             : custom('grind the sulphur to dust', grindSulphur);
     }
     if (!quicklimeDone(snap) && held(snap, RG_ITEM.QUICKLIME) === 0 && held(snap, RG_ITEM.LIMESTONE) === 0) {
-        return { kind: 'mineRock', rock: 'Limestone', item: RG_ITEM.LIMESTONE.name, qty: 1, anchor: RG_TILE.QUARRY };
+        // Why: the quarry is on the ARANDAR side of the palisade, and `regicideArea` still calls that Tirannwn — so the gathering leg owns it, but the walk to it crosses a seam. A bare `mineRock` anchors a plain `walkResilient`, which from any pocket inside the forest answers "no path to (2323,3269): unreachable" and mines nothing, thirty-four times over fifteen minutes.
+        return nearQuarry(snap.tile)
+            ? { kind: 'mineRock', rock: 'Limestone', item: RG_ITEM.LIMESTONE.name, qty: 1, anchor: RG_TILE.QUARRY }
+            : custom('cross out to the Arandar quarry', log => leaveTirannwn(RG_TILE.QUARRY, snap.stage ?? RG_STAGE.SPOKEN_IORWERTH2, log));
     }
     return null;
 }
