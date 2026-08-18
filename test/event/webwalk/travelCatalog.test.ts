@@ -11,6 +11,7 @@ import {
     gliderEdges,
     entranaFerryEdges,
     shiloCartEdges,
+    shiloGateEdges,
     essenceEntryEdges,
     wildyLeverEdges,
     mageArenaBarrierEdges,
@@ -105,6 +106,7 @@ describe('ferries / cart', () => {
             + gliderEdges().length
             + entranaFerryEdges().length
             + shiloCartEdges().length
+            + shiloGateEdges().length
             + essenceEntryEdges().length
             + essenceExitEdges().length
             + wildyLeverEdges().length
@@ -198,5 +200,32 @@ describe('essence / levers', () => {
         const e = wildyLeverEdges();
         expect(e).toHaveLength(2);
         expect(e.every(x => x.kind === 'portal' && x.action === 'Pull')).toBe(true);
+    });
+});
+
+// Why: the collision pack sees the barricade and the timber defence but not the way through them, so every approach to Shilo routed through Hajedy's cart — a sea crossing and a walk, for a village with a door on the far side of the wall.
+describe('Shilo Village gates', () => {
+    const byName = (n: string) => shiloGateEdges().find(e => e.locName === n);
+
+    test('the broken cart jumps the strip out onto open Karamja', () => {
+        const cart = byName('Broken cart');
+        expect(cart?.action).toBe('Search');
+        // `[oploc2,shilo_brokencart]` telejumps to movecoord(loc_coord, 3, 0, 1) from the village side.
+        expect(cart?.to).toEqual({ x: 2880, z: 2952, level: 0 });
+        // the stand is beside the cart, which is also the side `coordx(coord) <= coordx(loc_coord)` wants
+        expect(cart?.from.x).toBeLessThanOrEqual(2877);
+    });
+
+    test('Mosol Rei walks you in', () => {
+        const mosol = byName('Mosol Rei');
+        expect(mosol?.action).toBe('Talk-to');
+        // p_telejump(0_44_46_50_8)
+        expect(mosol?.to).toEqual({ x: 2866, z: 2952, level: 0 });
+    });
+
+    test('both are gated on the quest that opens the village', () => {
+        for (const e of shiloGateEdges()) {
+            expect(e.requires?.quests?.some(q => q.quest === 'Shilo Village')).toBe(true);
+        }
     });
 });

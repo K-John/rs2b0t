@@ -216,6 +216,30 @@ export function shiloCartEdges(): TransportEdgeData[] {
     ];
 }
 
+// Why: the cart is not the only way in and out of Shilo. A wooden gate, a metal gate and a broken cart lead east onto open Karamja, and the collision pack sees none of it — the barricade and the timber defence wall the strip in, so the pathfinder routed every approach through Hajedy and never took the door in front of it.
+// Why: `[oploc2,shilo_brokencart]` telejumps from the village side to `movecoord(loc_coord, 3, 0, 1)`, and Mosol Rei's "Yes, I'll give it a go!" telejumps to `0_44_46_50_8` — both fixed landings, so both are edges rather than walks.
+// Why: the two gates in between are already door edges out of `doors.json`; only the ends of the corridor were missing.
+
+// Why: the cart is a three-by-three loc and its own tiles are blocked, so the stand is the walkable tile beside it on the village side — which is also the side `coordx(coord) <= coordx(loc_coord)` wants for the jump out.
+/** Beside the broken cart, village side; the Search telejumps out to open ground. */
+const SHILO_CART = { x: 2876, z: 2953, level: 0 } as NavPoint;
+const SHILO_CART_OUT = { x: 2880, z: 2952, level: 0 } as NavPoint;
+/** Where Mosol Rei's "shall I show you the way?" puts you down. */
+const SHILO_MOSOL = { x: 2883, z: 2951, level: 0 } as NavPoint;
+const SHILO_MOSOL_IN = { x: 2866, z: 2952, level: 0 } as NavPoint;
+
+/** Shilo Village's own gates: Mosol Rei in, the broken cart out. */
+export function shiloGateEdges(): TransportEdgeData[] {
+    const shiloDone: TransportRequires = {
+        members: true,
+        quests: REQ.shiloComplete.quests
+    };
+    return [
+        edge(SHILO_CART, SHILO_CART_OUT, 'Broken cart', 'Search', 'agility_shortcut', 'shilo_cart_climb_out', shiloDone),
+        edge(SHILO_MOSOL, SHILO_MOSOL_IN, 'Mosol Rei', 'Talk-to', 'npc', 'shilo_mosol_leads_in', shiloDone)
+    ];
+}
+
 // Why: in `essence_mine.rs2` the landing is `random(enum essence_mine_teleports)` over 22 tiles across mapsquare 45_75, then `map_findsquare(..., 0, 1, lineofsight)`.
 // Why: that is not a static destination, so these rows are blacklisted from the path graph (#388) and scripts needing the mine own the wizard hop via a specialCrossings Talk-to.
 // Why: `essenceEntrySetsReturn` is kept on the audit rows so docs and tests know which wizard sets which session return; it is not plan-usable while blacklisted.
@@ -596,6 +620,7 @@ export function curatedTravelEdges(): TransportEdgeData[] {
         ...gliderEdges(),
         ...entranaFerryEdges(),
         ...shiloCartEdges(),
+        ...shiloGateEdges(),
         ...essenceEntryEdges(),
         // Session multiloc: portal × return, gated by WorldState.essenceExitReturn.
         // Replaces the four hard-coded Sedridor-only rows formerly in transports.json.

@@ -10,7 +10,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import { LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE, inOctagram } from './areas.js';
 import { drinkPrayer } from './fight.js';
 import { enterJungle, leaveJungle, summonGujuo, talkGujuo } from './jungle.js';
-import { climbOutOfTrials } from './trials.js';
+import { climbOutOfTrials, leaveOctagram } from './trials.js';
 import { driveToEnd, driveUntil, heldId, here, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 const CRAWL_ATTEMPTS = 6;
@@ -58,6 +58,11 @@ const UNGADULU_PREFER = ['Who are you?', 'Where do I get pure water from?'];
 
 /** Talk to Ungadulu through the flames until he has named the sacred water. */
 export async function speakToUngadulu(log: (m: string) => void): Promise<boolean> {
+    // Why: from inside the ring, Investigate raises "Leap out of the flaming octagram." and "Attract the shaman's attention." instead of his conversation — neither is a thing `UNGADULU_PREFER` can answer, so the drive abandons, the step fails and the engine sends the run straight back to Gujuo, over and over.
+    if (inOctagram(Game.tile()) && !(await leaveOctagram(log))) {
+        log('cannot get out of the octagram to talk to Ungadulu through the flames');
+        return false;
+    }
     if (!(await enterShamanCave(log))) {
         return false;
     }
@@ -78,7 +83,9 @@ export async function speakToUngadulu(log: (m: string) => void): Promise<boolean
         log('the fire wall raised nothing — is Ungadulu still in the octagram?');
         return false;
     }
-    return driveToEnd(UNGADULU_PREFER, log, 60_000);
+    // Why: "Who are you?" is what sets `asked_ungadulu_who`, and that bit is the reason for coming here — Gujuo's pure-water topic is gated on it.
+    // Why: named as required because a chain of boxes with no options at all ends quietly and reads as a conversation that ran its course. `npc_find(coord, ungadulu_good, 10, 0)` failing gives that: two message boxes, no menu, and a `driveToEnd` that reports success having asked nothing.
+    return driveToEnd(UNGADULU_PREFER, log, 60_000, 'Who are you?');
 }
 
 // Why: the last two are the menu he offers once the sketch is handed over, and abandoning there logs a miss on a chain that has already done its job.
