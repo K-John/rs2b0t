@@ -81,16 +81,26 @@ function readyForTirannwn(snap: QuestSnapshot, kit: readonly Supply[]): QuestSte
     return missing.length === 0 ? null : { kind: 'wait', reason: `not equipped for Tirannwn: ${missing.join('; ')}` };
 }
 
-// Why: the second crossing is not the first. Once the barrel bomb exists the recipe is spent — the wool is cloth, the limestone is dust — so the pack wants the five crossings, the food and the bomb, and redrawing the full kit puts nine dead slots beside a bomb that has to fit as well.
+// Why: the fire arrow is built inside the pass with Koftik's damp cloth in hand, and `make_clotharrow` tests `inv_itemspace` BEFORE it deletes the cloth. Two spare slots is the cloth and the arrow it becomes; a pack that crosses full reads "You don't have space to do that." at the bridge with no bank within an hour's walk.
+const FIRE_ARROW_SLOTS = 3;
+
+// Why: the walk back is planned, not sourced. `sourceKit` only ever adds, so a pack that finished the still crossed carrying five leftover coal and eleven food and had no room for the fire arrow — the leftovers have to be banked on the way past, which a kit list cannot say and a plan can.
+const returnRun = (): PackPlan => ({
+    what: 'the walk back through the pass',
+    allow: [],
+    caps: RETURN_KIT.map(supply => ({ item: supply.item, qty: supply.qty })),
+    freeNeeded: FIRE_ARROW_SLOTS
+});
+
 /** Into Tirannwn the only way it opens before the deed is done: the pass, and the Well of Voyage. */
 function crossIn(snap: QuestSnapshot): QuestStep {
     const carryingBomb = held(snap, RG_ITEM.BARREL_FUSED) > 0 || held(snap, RG_ITEM.BARREL_LID) > 0;
     const kit = carryingBomb ? RETURN_KIT : KIT;
-    // Why: sourced only on the mainland. From inside the pass a withdraw step aims the walk at Ardougne, which is the wrong side of every crossing already made.
+    // Why: shaped only on the mainland. From inside the pass a bank step aims the walk at Ardougne, which is the wrong side of every crossing already made.
     if (regicideArea(snap.tile) === 'mainland') {
-        const drawn = sourceKit(snap, kit);
-        if (drawn) {
-            return drawn;
+        const shaped = carryingBomb ? managePack(snap, returnRun()) : sourceKit(snap, kit);
+        if (shaped) {
+            return shaped;
         }
     }
     return readyForTirannwn(snap, kit) ?? custom('walk the Underground Pass to the Well of Voyage', enterTirannwn);
@@ -174,7 +184,7 @@ function gatherLeg(snap: QuestSnapshot): QuestStep | null {
 }
 
 // Why: the coal run carries the chain, the two tools that build it and a short food float — and nothing else. Coal does not stack, so the twelve the still burns want twelve slots free before the first swing at the rock; the kit is twenty-four slots and leaves four.
-// Why: the room asked for is what is LEFT to mine, not the whole float. Coal accumulates in the pack, so a plan that keeps asking for twelve free once six are already held parks a leg that was one swing from finishing — which is how this read live: "needs 12 free slot(s) and the pack has 11" with six coal in hand.
+// Why: the room asked for is what is LEFT to mine, not the full float. Coal accumulates in the pack, so a plan that keeps asking for twelve free once six are already held parks a leg that was one swing from finishing — which is how this read live: "needs 12 free slot(s) and the pack has 11" with six coal in hand.
 const coalRun = (snap: QuestSnapshot): PackPlan => ({
     what: 'the coal run',
     allow: [

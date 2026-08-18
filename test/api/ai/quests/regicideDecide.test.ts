@@ -269,8 +269,9 @@ describe('Regicide bomb chain', () => {
         expect(name(onMainland([RG_ITEM.CLOTH.id, RG_ITEM.BARREL_LID.id, RG_ITEM.COOKED_RABBIT.id]))).toContain('fuse');
     });
 
-    test('a fused bomb on the mainland walks back through the pass', () => {
-        expect(name(onMainland([RG_ITEM.BARREL_FUSED.id, RG_ITEM.COOKED_RABBIT.id]))).toContain('Underground Pass');
+    // Why: the recipe is still in the pack at this point — the wool, the pickaxe, the pestle — and none of it crosses. The bomb waits for a bank trip rather than carrying nine dead slots into the pass.
+    test('a fused bomb beside the spent recipe is shaped before it crosses', () => {
+        expect(onMainland([RG_ITEM.BARREL_FUSED.id, RG_ITEM.COOKED_RABBIT.id]).kind).toBe('deposit');
     });
 
     // Why: `regicide_cross_over3` clears the given-rabbit bit inside mapsquare 34_49, which the walk to the catapult crosses — so the guard is fed after arriving, and never before setting out.
@@ -355,5 +356,30 @@ describe('room for the coal', () => {
             freeSlots: 5
         }));
         expect(name(step)).toContain('distil');
+    });
+});
+
+// Why: the still leaves coal and a full food float in the pack, and `sourceKit` only ever adds — so the walk back crossed with no room and `make_clotharrow` answered "You don't have space to do that." at the bridge, an hour from the nearest bank.
+describe('shaping the pack for the walk back', () => {
+    const LEFTOVERS: Stack[] = [
+        RG_ITEM.BARREL_FUSED.id, RG_ITEM.SPADE.id, [RG_ITEM.ROPE.id, ROPE_TARGET], RG_ITEM.SHORTBOW.id,
+        [RG_ITEM.BRONZE_ARROW.id, ARROW_TARGET], RG_ITEM.TINDERBOX.id, [RG_ITEM.SHARK.id, FOOD_TARGET],
+        [RG_ITEM.COAL.id, 5], RG_ITEM.PICKAXE.id, RG_ITEM.PESTLE.id
+    ];
+
+    test('the leftover coal and tools are banked before crossing', () => {
+        const step = decide(snapshot({ stage: RG_STAGE.SPOKEN_IORWERTH2, tile: ARDOUGNE, carried: LEFTOVERS, freeSlots: 0 }));
+        expect(step.kind).toBe('deposit');
+        expect(step.kind === 'deposit' && step.keepIds).not.toContain(RG_ITEM.COAL.id);
+        expect(step.kind === 'deposit' && step.keepIds).toContain(RG_ITEM.BARREL_FUSED.id);
+    });
+
+    test('a shaped pack with room for the fire arrow crosses', () => {
+        const shaped: Stack[] = [
+            RG_ITEM.BARREL_FUSED.id, RG_ITEM.SPADE.id, [RG_ITEM.ROPE.id, ROPE_TARGET], RG_ITEM.SHORTBOW.id,
+            [RG_ITEM.BRONZE_ARROW.id, ARROW_TARGET], RG_ITEM.TINDERBOX.id, [RG_ITEM.SHARK.id, FOOD_TARGET]
+        ];
+        const step = decide(snapshot({ stage: RG_STAGE.SPOKEN_IORWERTH2, tile: ARDOUGNE, carried: shaped }));
+        expect(name(step)).toContain('Underground Pass');
     });
 });
