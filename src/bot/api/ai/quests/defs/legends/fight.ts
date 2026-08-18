@@ -10,6 +10,9 @@ import { PRAYER_POTIONS } from './supplies.js';
 
 const PROTECT_MELEE = 'Protect from Melee';
 
+/** How many off-toggles to send before reporting the prayer stuck on. */
+const PRAYER_OFF_ATTEMPTS = 3;
+
 /** Ticks between re-issuing Attack when the engine says we are already in combat. */
 const SWING_GAP = 5;
 
@@ -109,8 +112,15 @@ export async function fight(plan: FightPlan, log: (m: string) => void): Promise<
             await Execution.delayTicks(1);
         }
     } finally {
+        // Why: the server runs one op per tick and drops the rest, and this toggle is sent on the tick the fight ended — the same tick the loop may have spent on a swing — so the one send most likely to be dropped is the one that switches the prayer back off.
+        // Why: left on it drains through the walk out and empties the flask the next fight was carrying it for. `Prayer.set` returns false when the toggle does not land, and a single call threw that away.
         if (wantPray) {
-            await Prayer.set(PROTECT_MELEE, false);
+            for (let i = 0; i < PRAYER_OFF_ATTEMPTS && Prayer.active(PROTECT_MELEE); i++) {
+                await Prayer.set(PROTECT_MELEE, false);
+            }
+            if (Prayer.active(PROTECT_MELEE)) {
+                log('Protect from Melee would not switch off');
+            }
         }
     }
     log(`${plan.npc} outlasted the fight budget`);

@@ -660,7 +660,9 @@ function choose(snap: QuestSnapshot): QuestStep {
     if (area === 'mainland' && !carryingWater(snap)) {
         const kit = upkeep(snap, foodFor(snap, stage), potsFor(snap, stage));
         if (kit) {
-            return kit;
+            // Why: what the quest is finished with goes out before the bank hands anything over, or the top-up is capped by whatever room the junk left. A live run withdrew five lobsters into its last five slots and dropped four lumps of rock on the next pass — the float came out four short and the drop bought nothing.
+            const finished = spentNow(snap);
+            return finished.length > 0 ? step('drop what the quest has finished with', ditch(finished)) : kit;
         }
         // Why: the machete and the axe are what open the jungle band, and every leg from the map onwards has to cross it — so a death that drops them is a dead run unless they are replaced like food.
         // Why: stage 1 is left alone, since Radimus hands the first machete over for nothing.

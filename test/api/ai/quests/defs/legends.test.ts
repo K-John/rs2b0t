@@ -728,12 +728,25 @@ describe('Legends Quest decide', () => {
     test('junk well clear of the reserve rides along rather than costing a deposit', () => {
         const roomy = snap({
             stage: LQ_STAGE.SACRED_WATER,
-            invIds: [LQ_ID.RUNE_AXE, LQ_ID.MACHETE, LQ_ID.YOMMI_SEEDS_GERM, LQ_ID.SWAMP_ROCK],
+            // Why: Logs rather than a lump of rock — the rock is on the spent list, which is shed ahead of a bank errand and would answer this before the deposit rule got a look in.
+            invIds: [LQ_ID.RUNE_AXE, LQ_ID.MACHETE, LQ_ID.YOMMI_SEEDS_GERM, 1511],
             inv: [...Array.from({ length: 14 }, () => 'Lobster')],
             bankIds: [LQ_ID.LOCKPICK, LQ_ID.UNPOWERED_ORB],
             bank: ['Coins']
         });
         expect(decide({ ...roomy, freeSlots: 20 }).kind).toBe('withdraw');
+    });
+
+    // Why: a live run withdrew five lobsters into its last five slots and dropped four lumps of rock on the next pass — the float came out four short and the drop bought nothing.
+    test('what the quest is finished with goes out before the bank hands anything over', () => {
+        const rocky = snap({
+            stage: LQ_STAGE.TALK_GUJUO_POOL,
+            invIds: [LQ_ID.RUNE_AXE, LQ_ID.MACHETE, LQ_ID.COINS, ...Array.from({ length: 4 }, () => LQ_ID.SWAMP_ROCK)],
+            inv: ['Coins'],
+            bankIds: [LQ_ID.COINS, ...Array.from({ length: 20 }, () => LQ_ID.LOBSTER)],
+            bank: ['Coins', 'Lobster']
+        });
+        expect(name(decide({ ...rocky, freeSlots: 5 }))).toBe('custom:drop what the quest has finished with');
     });
 
     // Why: a random event's gift takes the slot the reed wants, and nothing is walking to a bank to be rid of it.
@@ -777,11 +790,12 @@ describe('Legends Quest decide', () => {
 
     // Why: the trance takes five prayer points on every miss and refuses below forty-two, so seventy runs out before the bowl is blessed unless a flask goes with it.
     test('the plain golden bowl takes a prayer flask to the blessing', () => {
-        const withBowl = kitted({
+        const withBowl = snap({
             stage: LQ_STAGE.ASKED_GUJUO_WATER,
-            invIds: [LQ_ID.GOLD_BOWL],
+            invIds: [LQ_ID.GOLD_BOWL, LQ_ID.MACHETE, LQ_ID.RUNE_AXE, LQ_ID.COINS],
+            inv: ['Coins', ...Array.from({ length: 14 }, () => 'Lobster')],
             bankIds: [2434],
-            bank: ['Prayer potion(4)']
+            bank: ['Prayer potion(4)', 'Coins']
         });
         const step = decide(withBowl);
         expect(step.kind).toBe('withdraw');
