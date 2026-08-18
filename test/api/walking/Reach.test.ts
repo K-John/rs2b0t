@@ -10,7 +10,7 @@ import { Npcs } from '#/bot/api/npcs/Npcs.js';
 import { WalkExecutor } from '#/bot/event/webwalk/WalkExecutor.js';
 import { stubProps } from '../../lib/stubSingletons.js';
 
-let sceneLoc: { name: string; ops: string[]; tile: { x: number; z: number; level: number }; interactResult: boolean } | null;
+let sceneLoc: { name: string; id?: number; ops: string[]; tile: { x: number; z: number; level: number }; interactResult: boolean } | null;
 let sceneDoor: { name: string; ops: string[]; tile: { x: number; z: number; level: number }; distance: number; interactResult: boolean } | null;
 let sceneNpc: { name: string; tile: { x: number; z: number; level: number }; interactResult: boolean } | null;
 let walkCalls: { x: number; z: number; level: number }[];
@@ -18,6 +18,7 @@ let walkResult: boolean;
 let _walkLastOutcome: string;
 let canReachResult: boolean;
 let cantReach: boolean;
+let locBlankQueries: number;
 let locInteractCount: number;
 let doorInteractCount: number;
 let npcInteractCount: number;
@@ -35,10 +36,22 @@ const restoreExec = stubProps(Execution, {
     delayTicks: async () => {}
 });
 
+/** Re-checks the predicate up to `rounds` times, the way Execution.delayUntil polls across ticks. */
+const pollingDelayUntil = (rounds: number) => async (cond: () => boolean): Promise<boolean> => {
+    for (let i = 0; i < rounds; i++) {
+        if (cond()) {
+            return true;
+        }
+    }
+    return cond();
+};
+
+/** Scene queries that come back blank before the loc appears, standing in for a rebuild in flight. */
 const locHandle = () =>
-    sceneLoc
+    sceneLoc && locBlankQueries-- <= 0
         ? {
             name: sceneLoc.name,
+            id: sceneLoc.id ?? 0,
             tile: () => sceneLoc!.tile,
             actions: () => sceneLoc!.ops,
             interact: async () => {
@@ -99,7 +112,15 @@ const restoreLocs = stubProps(Locs, {
         ({
             name: () => ({
                 action: () => ({
-                    within: () => ({ nearest: locHandle }),
+                    within: () => ({
+                        nearest: locHandle,
+                        where: (p: (l: unknown) => boolean) => ({
+                            nearest: () => {
+                                const h = locHandle();
+                                return h && p(h) ? h : null;
+                            }
+                        })
+                    }),
                     where: (p: (l: unknown) => boolean) => whereChain([p]),
                     nearest: locHandle
                 }),
@@ -157,6 +178,7 @@ beforeEach(() => {
     WalkExecutor.lastOutcome = 'failed';
     canReachResult = true;
     cantReach = false;
+    locBlankQueries = 0;
     locInteractCount = 0;
     doorInteractCount = 0;
     npcInteractCount = 0;
@@ -287,6 +309,18 @@ describe('Reach.locOp', () => {
         expect(walkCalls.length).toBe(1);
         expect(walkCalls[0]).toEqual({ x: 5, z: 5, level: 0 });
     });
+    test('an id that matches the scene loc still clicks it', async () => {
+        sceneLoc = { name: 'Crate', id: 2071, ops: ['Search'], tile: { x: 6, z: 5, level: 0 }, interactResult: true };
+        const r = await Reach.locOp({ name: 'Crate', op: 'Search', near: { x: 5, z: 5, level: 0 }, id: 2071, expect: () => expectFlips });
+        expect(r).toBe('done');
+        expect(locInteractCount).toBe(1);
+    });
+    test('a same-named loc with the wrong id is never clicked', async () => {
+        sceneLoc = { name: 'Crate', id: 366, ops: ['Search'], tile: { x: 6, z: 5, level: 0 }, interactResult: true };
+        const r = await Reach.locOp({ name: 'Crate', op: 'Search', near: { x: 5, z: 5, level: 0 }, id: 2071, expect: () => expectFlips });
+        expect(r).not.toBe('done');
+        expect(locInteractCount).toBe(0);
+    });
     test("server 'can't reach' → open the blocking door, then the op lands → done", async () => {
         sceneLoc = { name: 'Staircase', ops: ['Climb-up'], tile: { x: 8, z: 5, level: 0 }, interactResult: true };
         sceneDoor = { name: 'Door', ops: ['Open'], tile: { x: 1, z: 0, level: 0 }, distance: 1, interactResult: true };
@@ -321,6 +355,32 @@ describe('Reach.locOp', () => {
         expectFlips = false;
         const r = await Reach.locOp({ name: 'Ladder', op: 'Climb-down', near: { x: 5, z: 5, level: 0 }, expect: () => expectFlips });
         expect(r).toBe('retry');
+    });
+    test('a scene still rebuilding at the stand is waited out, not read as absent', async () => {
+        sceneLoc = { name: 'Portal', id: 4171, ops: ['Use'], tile: { x: 5, z: 5, level: 0 }, interactResult: true };
+        locBlankQueries = 3;
+        const restore = stubProps(Execution, { delayUntil: pollingDelayUntil(6) });
+        try {
+            const r = await Reach.locOp({ name: 'Portal', op: 'Use', near: { x: 5, z: 5, level: 0 }, id: 4171, expect: () => expectFlips });
+            expect(r).toBe('done');
+            expect(locInteractCount).toBe(1);
+        } finally {
+            restore();
+        }
+    });
+    test('a blank scene far from the stand still walks the hint without waiting', async () => {
+        reader.worldTile = () => ({ x: 90, z: 90, level: 0 });
+        let waited = false;
+        const restore = stubProps(Execution, { delayUntil: async () => { waited = true; return false; } });
+        try {
+            const r = await Reach.locOp({ name: 'Ladder', op: 'Climb-down', near: { x: 5, z: 5, level: 0 }, expect: () => expectFlips });
+            expect(r).toBe('retry');
+            expect(waited).toBe(false);
+            expect(walkCalls.length).toBe(1);
+        } finally {
+            restore();
+            reader.worldTile = () => ({ x: 0, z: 0, level: 0 });
+        }
     });
 });
 

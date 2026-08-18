@@ -48,6 +48,20 @@ export interface QuestSnapshot {
     freeSlots?: number;
 }
 
+// Why: display names collide — "Broken shield", "Certificate", "Fishing spot" and "Gate" each name more than one thing — so a name lookup silently accepts the wrong object.
+
+/** How many of an exact object id the pack holds. */
+export function heldId(snap: QuestSnapshot, id: number): number {
+    return snap.invIds?.get(id) ?? 0;
+}
+
+// Why: an unread bank is not an empty bank, and a bare count sends the bot to a booth for something it never saw.
+
+/** How many of an exact object id the last bank read saw; 0 until one lands. */
+export function bankedId(snap: QuestSnapshot, id: number): number {
+    return snap.bankKnown ? (snap.bankIds?.get(id) ?? 0) : 0;
+}
+
 export type QuestStep =
     | { kind: 'talk'; stop: NpcStop }
     | { kind: 'grabGround'; item: string; anchor: Tile; waitIfMissing?: boolean }
@@ -89,6 +103,9 @@ export interface QuestModule {
     exit?: (log: (m: string) => void) => Promise<boolean>;
     /** The module owns all banking/loadout decisions, including restarts in bankless areas. */
     ownsInventory?: boolean;
+    // Why: food is the bulkiest withdrawal a quest makes, so a module that arms itself from the bank has to be dressed before the pack fills, or the gear has nowhere to land.
+    /** False to hold the food float back this pass; absent means withdraw it as soon as the bank is known. */
+    foodReady?: (snap: QuestSnapshot) => boolean;
     /** Read an exact quest stage from client-visible state. Async journals are supported. */
     readStage?: () => number | undefined | Promise<number | undefined>;
     /** Supersedes readStage: the stage plus sub-progress the stage number cannot carry. */

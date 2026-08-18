@@ -94,6 +94,8 @@ export interface LocPrompt {
     expect: () => boolean;
     expectMs?: number;
     within?: number;
+    /** Exact loc id, when the display name is shared with something else in range. */
+    id?: number;
 }
 
 /**
@@ -109,6 +111,7 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
         op: step.op,
         near: step.near,
         within: step.within,
+        id: step.id,
         expect: () => step.expect() || ChatDialog.isOpen() || ChatDialog.canContinue(),
         log
     });
@@ -126,7 +129,7 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
  */
 export async function useOnLoc(
     itemId: number,
-    loc: { name: string; near: Tile; within?: number },
+    loc: { name: string; near: Tile; within?: number; id?: number },
     prefer: string[],
     expect: () => boolean,
     log: (m: string) => void
@@ -138,10 +141,15 @@ export async function useOnLoc(
         return false;
     }
     await settleScene();
-    const target = Locs.query().name(loc.name).within(loc.within ?? 12).nearest();
+    // Why: same-named locs a tile apart are the rule inside a quest area, and `nearest` picks the decoy.
+    const target = Locs.query()
+        .name(loc.name)
+        .where(l => loc.id === undefined || l.id === loc.id)
+        .within(loc.within ?? 12)
+        .nearest();
     const item = Inventory.items().find(entry => entry.id === itemId);
     if (!target || !item) {
-        log(`no '${loc.name}' or no item ${itemId} to use on it near (${loc.near.x},${loc.near.z})`);
+        log(`no '${loc.name}'${loc.id === undefined ? '' : ` id ${loc.id}`} or no item ${itemId} to use on it near (${loc.near.x},${loc.near.z})`);
         return false;
     }
     if (!(await item.useOn(target))) {

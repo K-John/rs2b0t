@@ -171,6 +171,7 @@ import {
     toolsNeedingEquip
 } from '../api/acquisition/Tools.js';
 import { Traversal } from '../api/walking/Traversal.js';
+import { Reachability } from '../event/webwalk/geometry/Reachability.js';
 import {
     WALK_DESTINATIONS,
     WALK_OPTIONS,
@@ -202,12 +203,13 @@ import { bus, type EventMap } from '../api/events/EventBus.js';
 import { DirectNavigator } from '../event/webwalk/DirectNavigator.js';
 import { EssenceSession } from '../event/webwalk/essenceSession.js';
 // Harness-only hooks, absent from packages/rs2b0t-api/index.d.ts and consumed
-// solely by tools/merlin-mordred-353-live.ts.
+// solely by e2e/merlin-mordred-353-live.ts.
 import {
     liveFortressStep,
     liveMordredBriefed,
     liveResetMordredBrief
 } from '../api/ai/quests/defs/merlinscrystal.js';
+import { crossGrid } from '../api/ai/quests/defs/upass/grid.js';
 import { defineBot, registerScript } from './defineBot.js';
 import { Loadouts } from '../api/loadout/loadoutStore.js';
 
@@ -220,11 +222,12 @@ export function installAbi(): void {
         Execution,
         defineBot,
         registerScript,
-        /** Live-harness hooks (Merlin #353 fortress / Mordred latch). */
+        /** Live-harness hooks (Merlin #353 fortress / Mordred latch, Underground Pass #265 stalled walk). */
         questLive: Object.freeze({
             merlinFortress: liveFortressStep,
             merlinResetMordredBrief: liveResetMordredBrief,
-            merlinMordredBriefed: liveMordredBriefed
+            merlinMordredBriefed: liveMordredBriefed,
+            upassCrossGrid: crossGrid
         }),
         events: Object.freeze({
             on: <K extends keyof EventMap>(event: K, cb: (payload: EventMap[K]) => void): (() => void) => bus.on(event, cb),
@@ -236,6 +239,8 @@ export function installAbi(): void {
         Area,
         Traversal,
         DirectNavigator,
+        /** Client-side reachability probes, for a harness asking what this pocket can walk to. */
+        Reachability,
         /** Bot-side essence exit return (varp 64 is server-only — not on client wire). */
         EssenceSession,
 

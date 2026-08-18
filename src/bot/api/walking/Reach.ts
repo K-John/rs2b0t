@@ -19,6 +19,10 @@ interface ReachLocOpts {
     op: string;
     near: WorldTile;
     within?: number;
+    // Why: display names collide — four ordinary crates answer "Search" within six tiles of Wydin's grocery crate, and the nearest is rarely the one the quest means.
+
+    /** Exact loc id, when the display name is shared with something else in range. */
+    id?: number;
     expect: () => boolean;
     expectMs?: number;
     log?: (m: string) => void;
@@ -60,6 +64,20 @@ async function closeIn(near: WorldTile, radius: number, log: (m: string) => void
         return 'unreachable';
     }
     return 'retry';
+}
+
+/** How long a blank scene at the stand is worth re-asking, matching the transport layer's ceiling. */
+const LOC_SCENE_MS = 3000;
+
+// Why: a teleport or level change empties every scene query for a few ticks, so blank while standing where the loc lives means not-yet-rebuilt, not absent (docs/decisions/level-change-lag.md). Walking the hint instead skips the op entirely and hands the caller a 'retry' it reads as a failure.
+
+/** Re-ask for a loc the player is already standing among, so a rebuild in flight does not read as absent. */
+async function sceneSettled(find: () => unknown, near: WorldTile, within: number): Promise<boolean> {
+    const here = reader.worldTile();
+    if (!here || here.level !== near.level || chebyshev(here, near) > within) {
+        return false;
+    }
+    return Execution.delayUntil(() => find() !== null, LOC_SCENE_MS);
 }
 
 const REACH_DOOR_ATTEMPTS = 8;
@@ -176,8 +194,13 @@ export const Reach = {
 
     async locOp(opts: ReachLocOpts): Promise<ReachStatus> {
         const log = opts.log ?? ((): void => {});
-        const find = () => Locs.query().name(opts.name).action(opts.op).within(opts.within ?? 10).nearest();
-        if (!find()) {
+        const find = () => Locs.query()
+            .name(opts.name)
+            .action(opts.op)
+            .within(opts.within ?? 10)
+            .where(l => opts.id === undefined || l.id === opts.id)
+            .nearest();
+        if (!find() && !(await sceneSettled(find, opts.near, opts.within ?? 10))) {
             return closeIn(opts.near, 2, log);
         }
         const arrived = await Traversal.walkResilient(opts.near, { radius: 1, attempts: 4, timeoutMs: 90_000, log });

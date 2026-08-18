@@ -1,101 +1,149 @@
 [Manual](../README.md) › [Testing](../TESTING.md) › Quest harness recipes
 
-# Quest harness recipes (G–Z)
+# Quest harness recipes (F)
 
-## Horror from the Deep — stage-scoped harness
+## Family Crest — stage-scoped harness
 
-[`tools/horror-deep-216-live.ts`](../../tools/horror-deep-216-live.ts), same shape,
-also members-only:
-
-```sh
-HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 10 --minutes 210        # end to end
-HEADED=1 bun tools/horror-deep-216-live.ts --stage 4 --until 5 --seedkit --minutes 25 # the strange wall
-HEADED=1 bun tools/horror-deep-216-live.ts --stage 1 --barcrawl 0 \
-  --bits horrorbridgeleft,horrorbridgeright --minutes 120                            # the barcrawl
-HEADED=1 bun tools/horror-deep-216-live.ts --stage 0 --until 10 --teleports          # end to end, hops on
-```
-
-Four things it does that the Family Crest one does not:
-
-- **Deploys `navworker.js` as well as `botclient.js`.** The transport graph is
-  compiled into the nav worker, which is its own entrypoint, so a run that
-  deploys only the client walks on the old edges — and the symptom is a flat
-  `no path to (…): unreachable` for a route the offline probe likes.
-- **Seeds every `deephorror` sub-bit that the stage implies.** The bridge, the
-  key and the three lamp repairs are separate bits of one varp, so a bare
-  `setvar horrorquest 4` describes a state the quest cannot reach.
-- **`--seedkit` hands over the dungeon load** so a run can iterate on the wall or
-  the fight without the twenty-minute Varrock round trip. It is a debugging
-  shortcut: leave it off for anything that claims the quest works, or the item
-  sourcing is never exercised.
-- **`--teleports` turns the Global `navTeleports` setting on *and banks law
-  runes*.** Both halves are load-bearing. The nav layer only injects a hop the
-  live inventory can pay for, and law is the one rune the module will not shop
-  for — the Magic Guild and the Mage Arena are the only two shops that stock it
-  — so flipping the toggle against a bank without law measures the walking run
-  again under a different name.
-
-Measured end to end at `--tick 200`: **68 minutes walking, 45 with `--teleports`**
-(16 hops — Camelot ×11, Varrock ×3, Falador, Lumbridge — and no parks).
-
-**Pin `--tick` when you are comparing two runs.** The default is 300ms and the
-end-to-end baseline was measured at `--tick 200`; a run at the default is 1.5×
-slower per tick, so any wall-clock comparison against it measures the flag. Two
-runs at 300ms also wedged on the first step, with Larrissa one tile away
-and every `Talk-to` refused in silence — the nav probe rules out geometry (all
-the tiles around her are mutually reachable at cost 1) and the engine's own
-recovery named a leftover **main** modal, which refuses dialogue like
-this. The poll line now prints `MAIN-MODAL=<id>` whenever one is open, so the
-next occurrence names the interface instead of having to be inferred.
-
-Two more tools sit alongside it.
-[`tools/horror-journal-dump.ts`](../../tools/horror-journal-dump.ts) prints the
-quest journal verbatim at each stage — `~quest_journal` word-wraps the page and
-re-emits the active colour tags on every line it produces, so needles have to be
-written against what the client receives, not against the `.rs2`.
-[`tools/nav/horror-probe.ts`](../../tools/nav/horror-probe.ts) checks every tile the
-module names against a flood from the mainland, and lists the sealed pockets
-deliberately so a map change fails loudly instead of quietly.
-
-Next lower probe (update `EW_PROVEN_COMBAT_FLOOR` only if green):
+Family Crest is eleven server stages across four kingdoms, so it has its own
+harness rather than a `e2e/aio-quest-test.ts` invocation:
+[`e2e/family-crest-210-live.ts`](../../e2e/family-crest-210-live.ts). It seeds a
+fixed bank, jumps `%crestquest`, and passes when the journal reaches `--until`.
 
 ```sh
-HEADED=1 bun tools/aio-quest-test.ts http://localhost:8890 ewprobe elemental_workshop 25 \
-  'bank:knife:1,bank:hammer:1,bank:bronze_pickaxe:1,bank:thread:2,bank:leather:1,bank:needle:1,bank:coal:8,bank:lobster:25,bank:steel_scimitar:1,bank:coins:50000' \
-  'mining:20,smithing:20,crafting:20,attack:45,strength:45,defence:30,hitpoints:45' \
-  Lobster 'speed 300' '2725,3491'
+HEADED=1 bun e2e/family-crest-210-live.ts --stage 7 --until 8 --minutes 28   # the gold mine
+HEADED=1 bun e2e/family-crest-210-live.ts --stage 0 --minutes 120            # end to end
 ```
 
-Expect `check the bank` / `withdraw` after book/key. After journal **ENTERED**,
-death recovery re-enters with **Push** (no key) and re-withdraws bank tools.
+Two things that harness has to do and a plain `setvar` does not:
 
-**Recipe for future quest harnesses:**
+- **Relog after the stage jump.** `update_questlist` recolours the journal entry
+  at login only, and every module reads the tab rather than the varp — so a
+  `setvar crestquest 7` without a relog leaves the quest reading *not started*.
+- **Clear `crest_spells_levers_gauntlets` too.** The lever bits and the
+  four-blasts-cast bits share that varp, so a stage jump that leaves it set
+  starts Chronozon already weakened and the fight proves nothing.
 
-1. Prefer `bank:obj:qty` / `givebank` / `~bankitem` over give→deposit loops for unstackable food.
-2. Ideal smoke → realistic bank-seed → **lower non-required stats until red**;
-   keep proven floor + failed floor + next probe in the module; `warnReadiness`.
-3. Leave the pack empty after bank seed so provisioning runs.
-4. Drain dialogs before `~bankitem`; prefer `givebank` mid-setup.
-5. Assert journal complete + clean stop.
-6. Later: power-level tactics (safespot vs melee) from the same skill snapshot.
+It is **members-only** (`map_members`), so it needs the :8890 world, not :8888.
 
-- **`::death` is a clean kill** (`~damage_self(999)`): respawn is Lumbridge `(3221,3218)`,
-  and `move_priciest_item_on_hero_to_death` keeps *one* of each of the three priciest items
-  — so a coin stack comes back as a single coin. Use it to drive death recovery through a death
-  rather than seeding a post-death pose.
-- **A stage test seeds only what that stage produces, never its tools.** See
-  [Quests](../how-to/add-a-quest.md) — every Watch Tower stage-10 test handed the bot
-  a pickaxe, so all of them passed while the quest could not mine.
-  [`tools/shilo-solo-test.ts`](../../tools/shilo-solo-test.ts) is the current worked
-  example: `--stage`/`--bits` jump the quest varps, `--tele` drops the account beside
-  the leg under test, and `--speed 300` runs the engine at 2× ticks.
-- **Measure throughput per tick, never per hour.** A dev world does not tick at 600ms
-  and `--speed` changes it again, so an actions/hour figure read off a sim is fiction.
-  [`tools/roguespurse-test.ts`](../../tools/roguespurse-test.ts) reports herbs/**tick**
-  from the `host.tickCount` delta, which is comparable to the engine's own limits
-  (5 user events per tick) and to a 600ms world.
+Caleb's five cooked fish and the two rubies are bank seeds by design — no shop
+in the game stocks cooked bass or shrimp, and the Ardougne gem merchant restocks
+a single ruby every 60k ticks. Everything else (moulds, antipoison, blast runes,
+a pickaxe) is bought live.
+
+## Fight Arena — stage-scoped harness
+
+[`e2e/fight-arena-233-live.ts`](../../e2e/fight-arena-233-live.ts). Members content, so
+`:8890` only.
+
+| Flag | Default | Purpose |
+|---|---|---|
+| `--stage N` | 0 | `setvar arenaquest N`, then relog so the quest list recolours |
+| `--until N` | 14 | stop at this stage; 14 waits for the journal to go green |
+| `--tick N` | 150 | server tick in ms; 150 is double speed |
+| `--minutes N` | 120 | wall-clock budget |
+| `--food NAME` | Lobster | the AIO Quester's food setting |
+| `--no-deploy` | off | skip the build and copy |
+
+It deploys **its own copy of the client** through `deployIsolatedClient`: everything in
+`out/` lands in `public/bot/<user>/`, and a generated `bot-<user>.html` points at it. Two
+runs on one engine no longer overwrite each other, and the copy is swept on exit. That
+also carries `navworker.js` and `collision.lcnav.gz`, both of which this quest needs —
+refusing the arena's doors changed the transport graph, and a client-only deploy leaves
+the navigator on the old edges.
+
+The bank seed is coins, food and a rune melee kit — `rune_chainbody` rather than
+`rune_platebody`, which wants Dragon Slayer. Nothing the quest can find in the world is
+seeded: the Khazard disguise comes from the chest, the keys from the drunk guard and the
+brew from the barman.
+
+Stage starts: 1 and 2 at the chest, 3 and 5 outside the guard door, 6 and 8 on the arena
+floor, 9 in the prison cell, 10 to 12 on the arena floor.
+
+What the legs proved, at `--tick 150` on `:8890`:
+
+| Leg | Result | What it covered |
+|---|---|---|
+| 0 → 2 | PASS, 1 min | Lady Servil, the journal parse, the chest's north-only stand, the disguise, the guard door |
+| 2 → 5 | PASS, 3 min | the drunk guard, the walk out for a brew (`coins 1000→995`), the keys (`khali brew 1→0, cell keys 0→1`) |
+| 5 → 9 | PASS, 3 min | the keys reclaimed after a death, the cell-gate cutscene, the ogre — 10 attacks, no damage taken under Protect from Melee |
+| 9 → 12 | PASS, 5 min | Hengrad's cutscene out of the cell, the scorpion, Bouncer, the agreement — hitpoints never left 99, prayer 99 → 53 |
+| 12 → 14 | PASS, 2 min | both scripted doors outward, the walk to Lady Servil, `QUEST COMPLETE`, 2 quest points |
+| 0 → 14 | PASS, 7 min | the uncheated run: 26 steps, no parks, nothing seeded but coins, food and a banked rune kit |
+
+The 5 → 9 leg overshoots its `--until 8` on purpose, and a leg that starts inside a pocket
+spends its first three minutes watching the engine fail to reach a bank. Both are
+explained in [Fight Arena's pitfalls](../decisions/quest-pitfalls-4.md).
+
+## Fishing Contest — stage-scoped harness
+
+[`e2e/fishing-contest-244-live.ts`](../../e2e/fishing-contest-244-live.ts). Members
+content, so `:8890` only.
+
+| Flag | Default | Purpose |
+|---|---|---|
+| `--stage N` | 0 | the `%fishingcompo` value, 0 to 4, with its companion varps and the pass |
+| `--until N` | 5 | stop at this stage; 5 waits for the journal to go green |
+| `--tick N` | 300 | server tick in ms; 150 is double speed |
+| `--minutes N` | 75 | wall-clock budget |
+| `--food NAME` | Lobster | the AIO Quester's food setting |
+| `--stats N` | 99 | every skill, since the road crosses White Wolf Mountain |
+| `--no-deploy` | off | skip the build and copy |
+
+It deploys **its own copy of the client** through `deployIsolatedClient`: everything in
+`out/` lands in `public/bot/<user>/` and a generated `bot-<user>.html` points at it, so a
+neighbouring harness cannot decide mid-boot which branch this run exercises. The copy is
+swept on exit, and it carries `navworker.js` and `collision.lcnav.gz` — this quest walks
+from Draynor to Kandarin, so a client-only deploy would leave the navigator on old edges.
+
+`--stage` writes three varps rather than one. `%fishingcompo` is the contest stage,
+`%hemenster_comp_stage` counts the fee and the catches, and `%hemenster_pipe_stashed`
+records the clove — and Bonzo re-seats a contest whose fee counter disagrees with the
+stage, so a bare `setvar fishingcompo 3` describes a state the engine will not honour.
+Each is read back, and the seed relogs because `update_questlist` recolours the tab at
+login only.
+
+The bank holds coins and food and nothing else: the clove comes from Morgan's cupboard in
+Draynor, the spade from a house floor, the rod from Harry's in Catherby and the worms from
+McGrubor's Wood. Stage 0 and 1 start at the Draynor bank; 2 and up start at Catherby,
+because past the fee the quest never leaves Kandarin.
+
+`--stage 2` is the exception: it hands over a clove, a rod and five worms, because a
+character standing in a paid-up contest is carrying them, and making that leg walk to
+Draynor for a clove buries the garlic stash it exists to test under a fifteen-minute round
+trip. `--stage 3` seeds nothing, so it still proves the rod and the worms are sourced.
+
+What the legs proved, at `--tick 150` on `:8890`:
+
+| Leg | Result | What it covered |
+|---|---|---|
+| 0 → 5 | **PASS, 6 min** | the uncheated run: 16 steps, no parks, `QUEST COMPLETE` and 1 quest point |
+| 2 → 4 | PASS, 2 min | the gate, the garlic stash, three carp — zero failed steps |
+| 3 → 4 | PASS, 4 min | the rod at Harry's, the spade at Edmond's, the worm dig and three carp |
+
+Every leg is proved by an inventory delta rather than a log line: `garlic 0→1` at the
+cupboard, `spade 0→1` at the spawn, `fishing pass 0→1` from the dwarf, `coins 1000→995`
+at Harry's, `red vine worm 0→5` in the wood, `coins 995→990` to Bonzo, `garlic 1→0` at the
+pipe, three `raw giant carp` and finally `fishing trophy 1→0`. The eleven pitfalls the
+live runs paid for are in [Fishing Contest's pitfalls](../decisions/quest-pitfalls-13.md).
 
 ## See also
 
-- [Quest harness recipes (A–F)](quest-harness-recipes.md)
+- [Quest harness recipes (A–D)](quest-harness-recipes.md)
+- [Quest harness recipes (Big)](quest-harness-recipes-17.md)
+- [Quest harness recipes (Dig)](quest-harness-recipes-15.md)
+- [Quest harness recipes (E)](quest-harness-recipes-4.md)
+- [Quest harness recipes (Fre)](quest-harness-recipes-18.md)
+- [Quest harness recipes (G)](quest-harness-recipes-11.md)
+- [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
+- [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
+- [Quest harness recipes (M)](quest-harness-recipes-6.md)
+- [Quest harness recipes (N–O)](quest-harness-recipes-14.md)
+- [Quest harness recipes (P–R)](quest-harness-recipes-5.md)
+- [Quest harness recipes (Sea–Shades)](quest-harness-recipes-7.md)
+- [Quest harness recipes (Sheep–Shield)](quest-harness-recipes-12.md)
+- [Quest harness recipes (Tai–Temple)](quest-harness-recipes-9.md)
+- [Quest harness recipes (Tree–Tribal)](quest-harness-recipes-13.md)
+- [Quest harness recipes (U)](quest-harness-recipes-16.md)
+- [Quest harness method](quest-harness-method.md)
 - [Seeding test accounts](seeding-test-accounts.md)

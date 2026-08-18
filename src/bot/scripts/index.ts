@@ -66,6 +66,7 @@ import ShopBuyout, { SHOPBUYOUT_SETTINGS } from './ShopBuyout/ShopBuyout.js';
 import FlaxRunner, { SETTINGS as FLAXRUNNER_SETTINGS } from './FlaxRunner/FlaxRunner.js';
 import { ShopRunner, SHOPRUNNER_SETTINGS } from './ShopRunner/ShopRunner.js';
 import AIOTeleport, { SETTINGS as AIOTELEPORT_SETTINGS } from './AIOTeleport/AIOTeleport.js';
+import ArravSupplier, { ARRAV_SUPPLIER_SETTINGS } from './ArravSupplier/ArravSupplier.js';
 import Barcrawl from './Barcrawl/Barcrawl.js';
 import DuelArena, { DUEL_ARENA_SETTINGS } from './DuelArena/DuelArena.js';
 import TravelBot, { TRAVEL_SETTINGS } from '../../../do-not-touch/scripts/travel/TravelBot.js';
@@ -87,6 +88,15 @@ ScriptRegistry.register({
     tags: ['quest', 'queue', 'aio'],
     settingsSchema: AIO_SETTINGS,
     create: () => new AIOQuester()
+});
+
+ScriptRegistry.register({
+    name: 'ArravSupplier',
+    description: 'Shield of Arrav certificate faucet — joins both gangs from one account, farms both shield halves and banks certificates for other bots; never redeems, so the chest and the curator keep working',
+    category: 'Quest',
+    tags: ['quest', 'shield of arrav', 'certificate', 'supplier'],
+    settingsSchema: ARRAV_SUPPLIER_SETTINGS,
+    create: () => new ArravSupplier()
 });
 
 ScriptRegistry.register({
@@ -580,7 +590,7 @@ ScriptRegistry.register({
 ScriptRegistry.register({
     name: 'BrimhavenAgility',
     description:
-        'Brimhaven Agility Arena — banks food+coins at Ardougne south, ships to Brimhaven, pays Cap\'n Izzy, tags ticket pillars on the level-optimal path, and grinds centre spikes between tags',
+        'Brimhaven Agility Arena — banks food+coins at Ardougne south, ships to Brimhaven, pays Cap\'n Izzy, tags ticket pillars on the level-optimal path, and grinds centre spikes between tags. Optional steal restock (Thieving 20) takes cakes from the Baker\'s stall and coins from guards.',
     category: 'Agility',
     tags: ['brimhaven', 'arena', 'tickets', 'banking', 'food'],
     settingsSchema: BRIMHAVEN_AGILITY_SETTINGS,
@@ -643,9 +653,9 @@ ScriptRegistry.register({
 
 ScriptRegistry.register({
     name: 'HillGiant',
-    description: 'Edgeville dungeon hill giants — fetches the brass key if the bank has none, unlocks the hut, and banks limpwurt roots and big bones at Varrock West',
+    description: 'Edgeville dungeon hill giants — enters through the public trapdoor and banks limpwurt roots and big bones at Edgeville',
     category: 'Combat',
-    tags: ['combat', 'giants', 'edgeville', 'varrock', 'banking', 'looting'],
+    tags: ['combat', 'giants', 'edgeville', 'banking', 'looting'],
     settingsSchema: HILL_GIANT_SETTINGS,
     create: () => new HillGiant()
 });
