@@ -13,9 +13,10 @@ HEADED=1 bun e2e/legends-quest-253-live.ts --stage 0 --until 2 --minutes 30 --ki
 HEADED=1 bun e2e/legends-quest-253-live.ts --stage 5 --until 12 --minutes 60 --kit     # the cave, the bowl, the trials
 HEADED=1 bun e2e/legends-quest-253-live.ts --stage 15 --until 25 --minutes 60 --kit    # the Viyeldi caves
 HEADED=1 bun e2e/legends-quest-253-live.ts --stage 25 --until 45 --minutes 45 --kit    # the totem pole
+HEADED=1 bun e2e/legends-quest-253-live.ts --stage 7 --until 8 --nobits                # the resume recovery
 ```
 
-Four things it does beyond the Family Crest shape:
+Five things it does beyond the Family Crest shape:
 
 - **Sets seven prerequisite varps and the quest-point total.** The Legends guard checks
   Family Crest, Heroes' Quest, Shilo Village, Underground Pass and Waterfall Quest before
@@ -26,21 +27,33 @@ Four things it does beyond the Family Crest shape:
   quest's own gates with headroom and is the only combat profile a headed run has proved.
   `setstat` is an engine branch with no level-up cascade, so unlike `~maxme` it leaves the
   player undelayed and the next command lands.
-- **Banks at Ardougne West, not on Karamja.** Nothing on the island banks in this content:
-  the map icon in Shilo Village has no booth and no banker behind it, and every tile of
-  that village is behind Vigroy's cart anyway.
+- **Banks at Shilo Village.** Karamja's only bank has no booth — the teller is `shilobanker`
+  (npc 499), whose `op3=Bank` runs `@openbank` outright, which is why a booth-only open read
+  it as a map icon with nothing behind it. It is eighteen tiles off Hajedy's cart, and
+  `shiloCartEdges` gates the crossing on Shilo Village being complete. Only the Legends
+  Guild leg banks at Ardougne West.
 - **Seeds only what has no source.** The rune axe, the lockpick, the unpowered orb, three
-  cosmic runes and the seven gems have neither a counter nor a rock the walker can reach.
+  cosmic runes and the seven gems have neither a counter nor a rock the walker can reach —
+  the Magic Guild stocks no cosmic rune at all, and the only shop that does is the Mage
+  Arena's.
   Everything else — papyrus, charcoal, the machete, the knife, the rope, the five wall
   runes, thirty water runes and two gold bars — the module buys at Jiminua's or the Magic
   Guild, or mines at Brimhaven and smelts at Ardougne. `--kit` seeds those too, which makes
   a stage leg the thing under test; leave it off for anything claiming the quest works.
 
+- **`--nobits` leaves `%legends_bits` clear.** The seeding is what a continuous run would have
+  set, and for stage 7 that includes `asked_ungadulu_who` — the one bit that makes Gujuo offer
+  the pure-water topic on the first ask. A leg run with it set walks the happy path by
+  construction and never touches the recovery in `askGujuoForWater`, which is the branch a
+  resume depends on. Use it to test that branch; leave it off for a timing run.
+
 The pack is full to its last slot through the trials, so a stage jump that seeds more than
 the leg needs will fail to withdraw rather than fail to walk.
 
 Measured on `:8890` at 200ms ticks, 70 in every skill, lobsters for food. The wall clock is
-the elapsed time of one continuous `--stage 0 --until 75` run, which finished at t=5010s:
+the elapsed time of one continuous `--stage 0 --until 75` run, which finished at t=5010s.
+The 8 → 10 leg predates Shilo banking and the pre-quest shopping, both of which take
+crossings out of it:
 
 | Leg | Varp | First sample | Leg |
 | --- | --- | --- | --- |

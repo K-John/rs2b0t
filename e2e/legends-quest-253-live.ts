@@ -4,6 +4,7 @@
 
 //   HEADED=1 bun e2e/legends-quest-253-live.ts --stage 0 --minutes 180          # full run
 //   HEADED=1 bun e2e/legends-quest-253-live.ts --stage 8 --until 12 --kit       # one leg, pre-kitted
+//   HEADED=1 bun e2e/legends-quest-253-live.ts --stage 7 --until 8 --nobits      # the recovery a resume needs
 import type { Page } from 'playwright-core';
 import { deployIsolatedClient, launchBrowser } from './lib/harness.js';
 import {
@@ -27,6 +28,10 @@ interface Args {
     tickMs: number;
     /** Seed the gems, gold bars and papyrus the module would otherwise mine and buy. */
     kit: boolean;
+    // Why: `bitsFor` hands a stage jump the `%legends_bits` a continuous run would have set, which for stage 7 includes `asked_ungadulu_who` — the one bit that makes Gujuo offer the pure-water topic first time. A leg run with it set never exercises the recovery in `askGujuoForWater`.
+
+    /** Leave `%legends_bits` clear, to test the recovery a resume needs. */
+    noBits: boolean;
     deploy: boolean;
 }
 
@@ -39,12 +44,14 @@ function parse(argv: string[]): Args {
         minutes: 180,
         tickMs: 300,
         kit: false,
+        noBits: false,
         deploy: true
     };
     for (let i = 0; i < argv.length; i++) {
         const flag = argv[i];
         // Why: these two take no value, so reading one first eats the next flag and drops both when they come last.
         if (flag === '--kit') { out.kit = true; continue; }
+        if (flag === '--nobits') { out.noBits = true; continue; }
         if (flag === '--no-deploy') { out.deploy = false; continue; }
         const value = argv[++i];
         if (value === undefined) { break; }
@@ -275,7 +282,10 @@ try {
     }
     if (args.stage > 0) {
         await cheatQuiet(page, `setvar legendsquest ${args.stage}`);
-        const bits = bitsFor(args.stage);
+        const bits = args.noBits ? 0 : bitsFor(args.stage);
+        if (args.noBits) {
+            console.log('  legends_bits left clear (--nobits) — the module has to recover them itself');
+        }
         if (bits > 0) {
             await cheatQuiet(page, `setvar legends_bits ${bits}`);
         }
