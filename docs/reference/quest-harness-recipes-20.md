@@ -50,7 +50,7 @@ Five things it does beyond the Family Crest shape:
 The pack is full to its last slot through the trials, so a stage jump that seeds more than
 the leg needs will fail to withdraw rather than fail to walk.
 
-Measured on `:8890` at 200ms ticks, 70 in every skill, lobsters for food. The wall clock is
+Measured on `:8890` at 200ms ticks, 70 in every skill, sharks for food — the quest draws its float best-first and every fight in it is one that float has to outlast. The wall clock is
 the elapsed time of one continuous `--stage 0 --until 75` run, which finished at t=5010s.
 The 8 → 10 leg predates Shilo banking and the pre-quest shopping, both of which take
 crossings out of it:

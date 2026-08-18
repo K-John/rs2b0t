@@ -111,7 +111,7 @@ const BANK_SEED: BankSeedItem[] = [
     { debugName: 'ruby', displayName: 'Ruby', qty: 1 },
     { debugName: 'diamond', displayName: 'Diamond', qty: 1 },
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
-    { debugName: 'lobster', displayName: 'Lobster', qty: 200 },
+    { debugName: 'shark', displayName: 'Shark', qty: 200 },
     { debugName: '4doseprayerrestore', displayName: 'Prayer potion(4)', qty: 8 },
     { debugName: 'rune_scimitar', displayName: 'Rune scimitar', qty: 1 },
     { debugName: 'rune_chainbody', displayName: 'Rune chainbody', qty: 1 },
@@ -332,7 +332,7 @@ try {
     console.log(`start tile → ${start.x},${start.z},${start.level}`);
 
     await page.evaluate(() => sessionStorage.setItem('rs2b0t:set:AIOQuester:quests', 'legends'));
-    await page.evaluate(() => sessionStorage.setItem('rs2b0t:set:AIOQuester:food', 'Lobster'));
+    await page.evaluate(() => sessionStorage.setItem('rs2b0t:set:AIOQuester:food', 'Shark'));
     await startScript(page, 'AIOQuester');
     console.log(`started AIOQuester — watching for legendsquest >= ${args.until}`);
 
