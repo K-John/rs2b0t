@@ -4,6 +4,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { Quests } from '../../../../ui/questlog/Quests.js';
 import { LEGENDS_QUEST, LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE } from './areas.js';
+import { LegendsConfig } from './config.js';
 import { driveUntil, heldId, locNear, modalText, promptLoc, settleScene } from './scene.js';
 
 /** Inside the guild wall: the gate sits on z=3349 and everything past it is the compound. */
@@ -200,7 +201,20 @@ export async function enterMainHall(log: (m: string) => void): Promise<boolean> 
 }
 
 // Why: one conversation walks all four sessions — each choice re-offers the menu until the fourth, which queues the completion.
-const TRAINING_PREFER = ["Yes, I'll train now.", '* Attack *', '* Defence *'];
+// Why: the four menus are `p_choice4` pages of three skills and a link to the next, so reaching a skill off page one means taking the link until its page is up.
+// Why: every page carries one link and no more, so listing all four costs nothing and the chosen skill coming first is what makes the walk stop when it arrives.
+
+/** Say yes, then page to the chosen skill and take it. */
+function trainingPrefer(): string[] {
+    return [
+        "Yes, I'll train now.",
+        `* ${LegendsConfig.reward} *`,
+        '--- Go to Skill Menu 1 ----',
+        '--- Go to Skill Menu 2 ----',
+        '--- Go to Skill Menu 3 ----',
+        '--- Go to Skill Menu 4 ----'
+    ];
+}
 
 /** Take Radimus' four training sessions, which is what completes the quest. */
 export async function takeTraining(log: (m: string) => void): Promise<boolean> {
@@ -216,5 +230,5 @@ export async function takeTraining(log: (m: string) => void): Promise<boolean> {
         log('Radimus Erkle never opened a dialogue in the main hall');
         return false;
     }
-    return driveUntil(() => Quests.status(LEGENDS_QUEST) === 'complete', TRAINING_PREFER, log, 120_000);
+    return driveUntil(() => Quests.status(LEGENDS_QUEST) === 'complete', trainingPrefer(), log, 120_000);
 }

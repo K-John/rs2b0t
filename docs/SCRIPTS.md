@@ -720,6 +720,7 @@ All-in-one quest completer — queues the implemented quests (empty selection = 
 | `arravPartner` | string | `""` | Shield of Arrav partner |
 | `arravCerts` | number (1–50) | `2` | Shield of Arrav certificates |
 | `heroPartner` | string | `""` | Hero's Quest partner |
+| `legendsReward` | string | `"Prayer"` | Legends Quest reward — one of: Attack, Defence, Strength, Hitpoints, Prayer, Magic, Woodcutting, Crafting, Smithing, Herblore, Agility, Thieving |
 | `verbose` | boolean | `true` | Verbose step log |
 
 ### ArravSupplier

@@ -1,9 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import {
-    resolveConsumeAction,
-    resolveSustainPolicy,
-    selectSustainConsumable
-} from '#/bot/scripts/AIOQuester/AIOQuesterLogic.js';
+import { LEGENDS_REWARD_OPTIONS, LegendsConfig } from '#/bot/api/ai/quests/defs/legends/config.js';
+import { applyLegendsSettings, resolveConsumeAction, resolveSustainPolicy, selectSustainConsumable } from '#/bot/scripts/AIOQuester/AIOQuesterLogic.js';
 
 interface FoodStub {
     name: string | null;
@@ -150,5 +147,24 @@ describe('resolveSustainPolicy', () => {
 
     test('leaves single-stage food alone', () => {
         expect(resolveSustainPolicy(' Shark ').foods).toEqual(['shark']);
+    });
+});
+
+// Why: Radimus offers twelve skills over four `p_choice4` pages, so an unknown one would page the menus round for ever rather than picking anything.
+describe('applyLegendsSettings', () => {
+    test('takes a skill Radimus offers', () => {
+        applyLegendsSettings({ reward: 'Agility' });
+        expect(LegendsConfig.reward).toBe('Agility');
+    });
+
+    test('falls back to Prayer for a skill he does not', () => {
+        applyLegendsSettings({ reward: 'Runecraft' });
+        expect(LegendsConfig.reward).toBe('Prayer');
+    });
+
+    test('every option is one of the twelve on his menus', () => {
+        expect(LEGENDS_REWARD_OPTIONS).toHaveLength(12);
+        expect(LEGENDS_REWARD_OPTIONS).toContain('Prayer');
+        expect(LEGENDS_REWARD_OPTIONS).not.toContain('Runecraft');
     });
 });

@@ -21,11 +21,13 @@ import { LOADOUT_SETTING, selectedLoadout } from '../../api/loadout/loadoutSetti
 import type { QueueRow } from '../../api/ai/quests/engine/queue.js';
 import type { QuestModule } from '../../api/ai/quests/engine/types.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
+import { LEGENDS_REWARD_OPTIONS } from '../../api/ai/quests/defs/legends/config.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import {
     ARRAV_GANG_OPTIONS,
     applyArravSettings,
     applyHeroSettings,
+    applyLegendsSettings,
     resolveSustainPolicy,
     selectSustainConsumable,
     type ResolvedSustainPolicy,
@@ -97,6 +99,14 @@ export const AIO_SETTINGS: SettingsSchema = {
         group: "Hero's Quest",
         help: 'character name of the bot running the other gang; the master thief armband cannot be earned alone, and the gang itself comes from the Shield of Arrav setting'
     },
+    legendsReward: {
+        type: 'string',
+        default: 'Prayer',
+        options: [...LEGENDS_REWARD_OPTIONS],
+        label: 'Legends Quest reward',
+        group: 'Legends Quest',
+        help: "which skill Radimus' four training sessions go into; Prayer by default, as the quest's own three demon fights are survived on Protect from Melee"
+    },
     verbose: {
         type: 'boolean',
         default: true,
@@ -153,6 +163,7 @@ export default class AIOQuester extends TaskBot {
             certs: this.settings.num('arravCerts', 2)
         });
         applyHeroSettings({ partner: this.settings.str('heroPartner', '') });
+        applyLegendsSettings({ reward: this.settings.str('legendsReward', 'Prayer') });
         Sustain.set(async () => { if (this.shouldEat()) { await this.eatOnce(); } });
         // A death must release the active quest operation before the engine can recover it.
         EventSignal.setInterrupt(() => this.skipRequested || this.died);
