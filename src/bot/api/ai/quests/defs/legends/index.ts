@@ -48,6 +48,7 @@ import {
     deposit,
     dressForCombat,
     foodTopUp,
+    fromBank,
     held,
     heldFood,
     ditchIds,
@@ -304,10 +305,13 @@ function stageStart(snap: QuestSnapshot): QuestStep {
 }
 
 // Why: Radimus keeps a free machete in the cupboard beside his desk and refuses a second one, so the counter in Shilo is the fallback rather than the first stop.
+// Why: he counts the bank as well as the pack — `quest_legends.rs2` answers "I hear that you have enough machetes in your bank to start your own store" and hands over nothing — so one sitting in the bank turns the cupboard into a step that fails for ever. Whatever put it there, the withdraw is the way out.
 
 function stageMapping(snap: QuestSnapshot): QuestStep {
     if (held(snap, LQ_ID.MACHETE) === 0) {
-        return inTheOpen(snap, step("take the machete from Radimus' cupboard", takeMachete));
+        const machete = { id: LQ_ID.MACHETE, name: LQ_ITEM.MACHETE };
+        return inTheOpen(snap, fromBank(snap, machete, 1, LEG_BANK.karamja)
+            ?? step("take the machete from Radimus' cupboard", takeMachete));
     }
     const kit = legendsArea(snap.tile) === 'mainland'
         ? fromShop(snap, CHOP_KIT) ?? fromShop(snap, MAP_KIT)

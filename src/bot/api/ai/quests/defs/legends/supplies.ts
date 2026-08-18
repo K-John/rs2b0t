@@ -19,11 +19,17 @@ export const FOOD_CARRY = 14;
 
 // Why: every purchase here is a `buy` step, which tops the pack up to its own `estGp` at the booth — so this is not a shopping budget but fare money (the Brimhaven ferry at 30, Hajedy's cart at 100, and a planner that refuses a route whose fare is not in the pack), and it is small because all of it rides through three fights with a level-187 demon and a death drops it.
 /** Fare money for the crossings; every counter purchase funds itself at the booth. */
-export const COIN_CARRY = 10_000;
+export const COIN_CARRY = 5_000;
 
+// Why: the trigger is a floor rather than half the float. Half the float sends the run to a booth with thousands still in the pack, and the fares this covers are thirty and a hundred coins — so it is only worth a trip once there is nothing left to pay one with.
+/** Coins below which a leg passing a booth restores the float. */
+export const COIN_FLOOR = 1_000;
+
+// Why: `calc_shop_value` returns `oc_cost` unchanged while a shop sits at its base stock — the Magic Guild's multipliers are sell 1000 / delta 10, so the divisor and the multiplier cancel — and climbs only as the shelf is emptied.
+// Why: so the guild list is two soul runes at 1250, four law at 40, two mind at 3, two earth at 4 and 150 water at 4, which is about 3.8k with the water's own depletion in it. Even bought down to the last soul rune on a shared world it is nearer 5k than 60k, and `estGp` is what the buy step tops the pack up to before it opens the counter.
 export const SHOP_GP = {
     JIMINUA: 3000,
-    MAGIC_GUILD: 60_000
+    MAGIC_GUILD: 12_000
 } as const;
 
 export const PRAYER_POTIONS: readonly LqItem[] = [
@@ -183,7 +189,7 @@ export function bankOnly(snap: QuestSnapshot, item: LqItem, qty: number, bank?: 
 
 export function coinTopUp(snap: QuestSnapshot, want = COIN_CARRY, bank?: Tile): QuestStep | null {
     const have = heldName(snap, LQ_ITEM.COINS);
-    if (have >= want / 2) {
+    if (have >= Math.min(COIN_FLOOR, want)) {
         return null;
     }
     if (!snap.bankKnown) {
@@ -289,9 +295,9 @@ export function sourcePickaxe(snap: QuestSnapshot, bank?: Tile): QuestStep | nul
     return { kind: 'buy', item: 'Bronze pickaxe', qty: 1, shop: LQ_SHOP.JIMINUA, estGp: SHOP_GP.JIMINUA, bank };
 }
 
+// Why: no machete on this list. Radimus keeps a free one in the cupboard and counts the bank when he decides whether to hand it over, so provisioning one is a purchase that also breaks the step that would have got it for nothing.
 /** Jiminua's counter in Tai Bwo Wannai stocks everything on this list. */
 export const JIMINUA_KIT: readonly { item: LqItem; qty: number }[] = [
-    { item: { id: LQ_ID.MACHETE, name: LQ_ITEM.MACHETE }, qty: 1 },
     { item: { id: LQ_ID.PAPYRUS, name: LQ_ITEM.PAPYRUS }, qty: 8 },
     { item: { id: LQ_ID.CHARCOAL, name: LQ_ITEM.CHARCOAL }, qty: 8 },
     { item: { id: LQ_ID.KNIFE, name: LQ_ITEM.KNIFE }, qty: 1 },

@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { LQ_ID, LQ_STAGE, LQ_TILE, inJungleBand, inOctagram, jungleSection, legendsArea } from '#/bot/api/ai/quests/defs/legends/areas.js';
 import { decide, legends } from '#/bot/api/ai/quests/defs/legends/index.js';
 import { legendsPocket } from '#/bot/api/ai/quests/defs/legends/pockets.js';
-import { KEEP_IDS, LQ_FOODS, PRAYER_POTIONS } from '#/bot/api/ai/quests/defs/legends/supplies.js';
+import { KEEP_IDS, LQ_FOODS, PRAYER_POTIONS, SHOP_GP, coinTopUp } from '#/bot/api/ai/quests/defs/legends/supplies.js';
 import { QUEST_DEFS } from '#/bot/api/ai/quests/defs/index.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
@@ -181,6 +181,23 @@ describe('legendsPocket', () => {
 });
 
 // Why: both counters are a sea crossing from everything the quest then does, and sourcing per leg alternated between them and the bank across the length of stage 8 — Ardougne bank, Jiminua's on Karamja, then a gold rock back on the mainland, three regions in three consecutive steps.
+// Why: `estGp` is what the buy step tops the pack up to before it opens a counter, so a padded estimate is money carried through three demon fights rather than headroom.
+describe('what the counters cost', () => {
+    test('the guild estimate is headroom over the list, not a round number', () => {
+        // two soul at 1250, four law at 40, two mind at 3, two earth at 4, 150 water at 4 — about 3.8k with depletion.
+        expect(SHOP_GP.MAGIC_GUILD).toBeLessThan(20_000);
+        expect(SHOP_GP.MAGIC_GUILD).toBeGreaterThan(5_000);
+    });
+
+    test('the coin float is restored from a floor, not from half of itself', () => {
+        const bank = ['Coins'];
+        const low = snap({ stage: LQ_STAGE.STARTED, inv: [], invIds: [], bank, bankIds: [LQ_ID.COINS] });
+        expect(coinTopUp(low)?.kind).toBe('withdraw');
+        const floored = snap({ stage: LQ_STAGE.STARTED, inv: ['Coins'], invIds: [LQ_ID.COINS], bank, bankIds: [LQ_ID.COINS] });
+        expect(coinTopUp(floored)).toBeNull();
+    });
+});
+
 describe('provisioning before the quest starts', () => {
     // Why: the coin and food floats run ahead of the stage switch, so a fixture under either of them never reaches the provisioning branch at all.
     const FLOAT = { inv: ['Coins', ...Array.from({ length: 4 }, () => 'Lobster')], bank: ['Coins'] };
@@ -278,6 +295,13 @@ describe('Legends Quest decide', () => {
     test('not started shops before it asks Radimus for the quest', () => {
         const step = decide(snap({ journal: 'notStarted', stage: LQ_STAGE.NOT_STARTED }));
         expect(step.kind).toBe('buy');
+    });
+
+    // Why: `quest_legends.rs2` counts the bank as well as the pack — "I hear that you have enough machetes in your bank to start your own store" and it hands over nothing, so the cupboard step failed for ever against a banked one.
+    test('a banked machete is withdrawn rather than asked of the cupboard', () => {
+        const step = decide(snap({ stage: LQ_STAGE.STARTED, bankIds: [LQ_ID.MACHETE], bank: ['Machete'] }));
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' && step.items[0]?.name).toBe('Machete');
     });
 
     test('started with no machete takes one from the cupboard', () => {
