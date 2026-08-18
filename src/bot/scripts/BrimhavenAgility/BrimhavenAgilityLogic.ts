@@ -503,12 +503,13 @@ export function usableEdges(agility: number): ArenaEdge[] {
 // Why: a random ticket-grid plank is `plank_broke1` and dumps you in the pit with no agility roll.
 // Why: below 20 the plank is the only 5↔6 link; at 20+ spikes/handholds replace it.
 // Why: the SE landing still needs 24↔23 when the rope swing is awkward.
+// Why: dart fails drain current agility (`stat_drain`) and 100% fail below 40 — using them as a cheap hop is a doom loop.
 function pathingEdges(agility: number): ArenaEdge[] {
     return usableEdges(agility).filter(e => {
         if (e.a === 24 || e.b === 24) {
             return true;
         }
-        if (e.kind === 'blade') {
+        if (e.kind === 'blade' || e.kind === 'darts') {
             return false;
         }
         if (e.kind === 'plank' && agility >= 20) {
@@ -618,7 +619,8 @@ export function nextHop(from: number, goal: number, agility: number, avoid = -1)
     }
     const rem = hopDistFrom(goal, arenaAdj(agility));
     const need = (rem.get(from) ?? 0) - 1;
-    for (const e of usableEdges(agility)) {
+    // Why: usableEdges still lists dart/blade traps; taking those after a fall is the drain doom loop.
+    for (const e of pathingEdges(agility)) {
         const n = e.a === from ? e.b : e.b === from ? e.a : -1;
         if (n >= 0 && n !== avoid && rem.get(n) === need) {
             return n;

@@ -483,6 +483,12 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'multibox-profile-transfer-test',
+        harness: 'multibox-profile-transfer-test.ts',
+        covers: { subsystems: ['multibox'] },
+        status: 'unvetted'
+    },
+    {
         id: 'multibox-tab-renderer-test',
         harness: 'multibox-tab-renderer-test.ts',
         covers: { subsystems: ['multibox'] },
