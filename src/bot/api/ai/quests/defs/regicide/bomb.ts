@@ -1,8 +1,11 @@
 import { actions, reader } from '../../../../../adapter/ClientAdapter.js';
+import { GameMessages } from '../../../../chatbox/gameMessages.js';
 import { Execution } from '../../../../execution/Execution.js';
+import { Game } from '../../../../game/Game.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
+import type { Loc } from '../../../../model/Loc.js';
 import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
 import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Traversal } from '../../../../walking/Traversal.js';
@@ -13,18 +16,39 @@ import { walkTo } from './isafdar.js';
 
 const GRIND_MS = 12_000;
 
+// Why: cardinal first, because `reachRectangle` takes a cardinal side and nothing else, and a ground-decor loc sits on a tile the pack calls blocked so the server cannot path onto it. The coal-tar seep is three `forcedecor` locs shoulder to shoulder and `nearest()` ranks a diagonal the same as the one due south — it picked the same unreachable one forty-five times, and the refusal never showed because the step only ever reported "no inventory change".
+// @see docs/decisions/quest-pitfalls-30.md
+function reachableLoc(locIds: readonly number[]): Loc | null {
+    const here = Game.tile();
+    const found = Locs.query().where(loc => locIds.includes(loc.id)).within(10).results();
+    if (here === null) {
+        return found[0] ?? null;
+    }
+    const manhattan = (loc: Loc): number => Math.abs(loc.tile().x - here.x) + Math.abs(loc.tile().z - here.z);
+    return found.slice().sort((a, b) => manhattan(a) - manhattan(b))[0] ?? null;
+}
+
 async function useHeldOnLoc(itemId: number, locIds: readonly number[], expect: () => boolean, log: (m: string) => void): Promise<boolean> {
     await settleScene();
-    const target = Locs.query().where(loc => locIds.includes(loc.id)).within(10).nearest();
+    const target = reachableLoc(locIds);
     const item = Inventory.items().find(entry => entry.id === itemId);
     if (!target || !item) {
         log(`nothing to use ${itemId} on within reach`);
         return false;
     }
+    const mark = GameMessages.mark();
     if (!(await item.useOn(target))) {
         return false;
     }
-    return driveUntil(expect, [], log, GRIND_MS);
+    if (await driveUntil(expect, [], log, GRIND_MS)) {
+        return true;
+    }
+    // Why: "I can't reach that!" is the server saying the pair is wrong, not the action. Swallowing it is what made a reach failure read as a recipe that did nothing.
+    const said = GameMessages.since(mark).map(m => m.text).slice(-2).join(' / ');
+    const at = target.tile();
+    const me = Game.tile();
+    log(`using ${itemId} on ${target.id}@(${at.x},${at.z}) from (${me?.x},${me?.z}) changed nothing${said ? ` — it said: ${said}` : ''}`);
+    return false;
 }
 
 /** An empty barrel off the floor of the elf camp. */
