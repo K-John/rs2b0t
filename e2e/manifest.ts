@@ -330,6 +330,25 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'heros-quest-items-249-live',
+        harness: 'heros-quest-items-249-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 60,
+        documentedIn: 'docs/reference/quest-harness-recipes-19.md',
+        note: 'one account seeded at stage 13 — proves the eel chain, the feather and the hand-in'
+    },
+    {
+        id: 'heros-quest-pair-249-live',
+        harness: 'heros-quest-pair-249-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 90,
+        manual: true,
+        documentedIn: 'docs/reference/quest-harness-recipes-19.md',
+        note: 'two accounts, one per gang; --stage grip proves the armband dance in 9min at --tick 300'
+    },
+    {
         id: 'hillgiant-bank-428-live',
         harness: 'hillgiant-bank-428-live.ts',
         covers: { scripts: ['HillGiant'] },

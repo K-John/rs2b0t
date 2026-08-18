@@ -94,6 +94,7 @@ Per leg — stage 0 to 3 **5 min**, 3 to 4 **4 min**, 4 to 8 **14 min**, 8 to co
 - [Quest harness recipes (F)](quest-harness-recipes-2.md)
 - [Quest harness recipes (Fre)](quest-harness-recipes-18.md)
 - [Quest harness recipes (G)](quest-harness-recipes-11.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
 - [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)

@@ -47,6 +47,7 @@ away.
 - [Quest harness recipes (F)](quest-harness-recipes-2.md)
 - [Quest harness recipes (G)](quest-harness-recipes-11.md)
 - [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
 - [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)

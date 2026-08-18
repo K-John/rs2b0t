@@ -77,6 +77,7 @@ free-to-play wherever it is farmed.
 - [Quest harness recipes (Fre)](quest-harness-recipes-18.md)
 - [Quest harness recipes (G)](quest-harness-recipes-11.md)
 - [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)
 - [Quest harness recipes (N–O)](quest-harness-recipes-14.md)

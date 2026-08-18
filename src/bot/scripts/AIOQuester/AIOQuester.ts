@@ -25,6 +25,7 @@ import type { SettingsSchema } from '../../runtime/Settings.js';
 import {
     ARRAV_GANG_OPTIONS,
     applyArravSettings,
+    applyHeroSettings,
     resolveSustainPolicy,
     selectSustainConsumable,
     type ResolvedSustainPolicy,
@@ -89,6 +90,13 @@ export const AIO_SETTINGS: SettingsSchema = {
         group: 'Shield of Arrav',
         help: 'how many certificates to mint before redeeming one; each pair costs both bots a fresh shield half, and the surplus banks for other bots'
     },
+    heroPartner: {
+        type: 'string',
+        default: '',
+        label: "Hero's Quest partner",
+        group: "Hero's Quest",
+        help: 'character name of the bot running the other gang; the master thief armband cannot be earned alone, and the gang itself comes from the Shield of Arrav setting'
+    },
     verbose: {
         type: 'boolean',
         default: true,
@@ -141,6 +149,7 @@ export default class AIOQuester extends TaskBot {
             partner: this.settings.str('arravPartner', ''),
             certs: this.settings.num('arravCerts', 2)
         });
+        applyHeroSettings({ partner: this.settings.str('heroPartner', '') });
         Sustain.set(async () => { if (this.shouldEat()) { await this.eatOnce(); } });
         // A death must release the active quest operation before the engine can recover it.
         EventSignal.setInterrupt(() => this.skipRequested || this.died);

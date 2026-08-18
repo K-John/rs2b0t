@@ -44,6 +44,7 @@ import { seaslug } from './seaslug/index.js';
 import { murder } from './murder/index.js';
 import { tribaltotem } from './tribaltotem.js';
 import { fishingcontest } from './fishingcontest/index.js';
+import { heroquest } from './heroquest/index.js';
 import { tbwt } from './tbwt/index.js';
 import { biohazard } from './biohazard/index.js';
 import { holygrail } from './holygrail/index.js';
@@ -61,6 +62,7 @@ import { upass } from './upass/index.js';
 import { fremenniktrials } from './fremenniktrials/index.js';
 import { regicide } from './regicide/index.js';
 
+// Why: Hero's Quest is after Dragon Slayer: it is gated at 55 quest points and on Lost City, Merlin's Crystal, Dragon Slayer and Shield of Arrav all being green.
 // Why: Dragon Slayer is last, as it is gated at 32 quest points and the queue has to earn them on the way past everything else before it becomes runnable.
 // Why: Death Plateau comes before Troll Stronghold, which requires it complete.
 // Why: Plague City comes before Family Crest, whose Ardougne legs ride the teleport it unlocks.
@@ -82,7 +84,7 @@ import { regicide } from './regicide/index.js';
 // Why: Underground Pass follows Biohazard, which it requires complete, and sits second to last as the longest single run in the queue.
 // Why: Regicide comes straight after Underground Pass, which it requires complete — and which is also the only way back into Tirannwn until its own catapult has fired.
 // Why: The Fremennik Trials wants Woodcutting and Crafting 40, so it runs after the skilling quests rather than among the early ones.
-export const QUEST_DEFS: QuestModule[] = [runemysteries, doric, knightssword, sheepshearer, restlessghost, cooksassistant, impcatcher, ernest, hetty, romeojuliet, princeali, piratestreasure, shieldofarrav, gertrudescat, waterfall, goblindiplomacy, demonslayer, witchshouse, dwarfcannon, clocktower, observatory, monksfriend, merlinscrystal, holygrail, priestperil, druidspirit, mortton, blackknight, druidicritual, lostcity, touristtrap, watchtower, vampireslayer, fishingcontest, junglepotion, tbwt, shilo, elementalworkshop, deathplateau, trollstronghold, eadgar, plaguecity, biohazard, hazeelcult, tribaltotem, sheepherder, familycrest, horror, scorpcatcher, fightarena, chompybird, seaslug, murder, treegnome, grandtree, ikov, digsite, upass, regicide, fremenniktrials, dragonslayer];
+export const QUEST_DEFS: QuestModule[] = [runemysteries, doric, knightssword, sheepshearer, restlessghost, cooksassistant, impcatcher, ernest, hetty, romeojuliet, princeali, piratestreasure, shieldofarrav, gertrudescat, waterfall, goblindiplomacy, demonslayer, witchshouse, dwarfcannon, clocktower, observatory, monksfriend, merlinscrystal, holygrail, priestperil, druidspirit, mortton, blackknight, druidicritual, lostcity, touristtrap, watchtower, vampireslayer, fishingcontest, junglepotion, tbwt, shilo, elementalworkshop, deathplateau, trollstronghold, eadgar, plaguecity, biohazard, hazeelcult, tribaltotem, sheepherder, familycrest, horror, scorpcatcher, fightarena, chompybird, seaslug, murder, treegnome, grandtree, ikov, digsite, upass, regicide, fremenniktrials, dragonslayer, heroquest];
 
 export function defById(id: string): QuestModule | undefined {
     return QUEST_DEFS.find(d => d.record.id === id);

@@ -88,7 +88,13 @@ function main(): void {
             'viking_seers_door1', 'viking_seers_door2',
             // Why: the longhall's backstage door stays in — the bouncer refuses only the inward crossing, and the stage behind it is a dead end nothing routes through, so removing it would seal the bard in after his performance.
             // Rellekka's north fence: "Only Fremenniks may pass this gate." until the trials are over.
-            'viking_fencegate_l', 'viking_fencegate_r'
+            'viking_fencegate_l', 'viking_fencegate_r',
+            // Hero's Quest's five Brimhaven doors. Why: each refuses until its own stage and gang, and
+            // `~open_and_close_door` teleports rather than opens — defs/heroquest/doors.ts owns them.
+            'grubordoor', 'garvdoor', 'herokitchendoor', 'pete_sidedoor', 'pete_treasuredoor',
+            // Taverley's two key doors. Why: jail_doors.rs2 yields only to an oplocu with the jail key
+            // or the dusty key, so defs/heroquest/eel.ts owns both crossings.
+            'dungeonjail', 'deepdungeondoor'
         ]);
         const label = `${type.name ?? ''} ${type.debugname ?? ''}`.toLowerCase();
         if (label.includes('locked') || (type.debugname ?? '').startsWith('macro_') || SCRIPT_REFUSED.has(type.debugname ?? '')) {

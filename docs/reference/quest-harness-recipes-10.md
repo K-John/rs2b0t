@@ -69,6 +69,7 @@ deliberately so a map change fails loudly instead of quietly.
 - [Quest harness recipes (Fre)](quest-harness-recipes-18.md)
 - [Quest harness recipes (G)](quest-harness-recipes-11.md)
 - [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)
 - [Quest harness recipes (N–O)](quest-harness-recipes-14.md)
