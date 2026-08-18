@@ -178,6 +178,8 @@ const BOULDERS: readonly { id: number; from: LegendsPocket; north: Tile; to: Leg
 
 // Why: mining a boulder teleports the miner past it and drops another behind, so each of the three is a one-shot crossing that has to be re-mined from the other side to come back.
 // Why: `stat_random(mining, 90, 255)` decides each swing and a failure costs a mining level, so the loop is generous.
+// Why: a missed swing answers with the scratch line and changes nothing else, so waiting on the crossing alone spends the whole per-swing budget on every miss — twenty of those is five minutes per boulder, and there are three of them each way.
+const SCRATCHED = /only succeed in scratching the rock/;
 
 /** Smash one trial boulder and land on the far side of it. */
 async function mineBoulder(boulder: (typeof BOULDERS)[number], reverse: boolean, log: (m: string) => void): Promise<boolean> {
@@ -200,10 +202,11 @@ async function mineBoulder(boulder: (typeof BOULDERS)[number], reverse: boolean,
             log(`boulder ${boulder.id} is not in the scene from (${stand.x},${stand.z})`);
             return false;
         }
+        const mark = GameMessages.mark();
         if (!(await rock.interact('Smash-to-bits'))) {
             continue;
         }
-        await Execution.delayUntil(() => pocket() === want, 15_000);
+        await Execution.delayUntil(() => pocket() === want || GameMessages.sawSince(mark, SCRATCHED), 15_000);
     }
     log(`twenty swings and boulder ${boulder.id} is still in the way`);
     return false;
@@ -322,6 +325,15 @@ export async function crossMarkedWall(reverse: boolean, log: (m: string) => void
         return false;
     }
     await settleScene();
+    // Why: `[oploc1,lgancientwalldoor]` answers "You see no way to use that.... Perhaps you should search it?" until `^legends_law_rune_2_used` is set, and that bit is invisible from here — so a Use tried first spends its whole `expectMs` proving the wall is still shut. A rune still in the pack is the client-visible proof the wall has not been fed, and feeding it opens the door itself.
+    // Why: offering a spare rune to an already-fed wall is safe — `legends_wall_wrong_rune` jumps straight to `enter_marked_wall` once the fifth is in, so the rune is neither burned nor lost.
+    if (!reverse && WALL_RUNES.some(rune => heldId(rune.id) > 0)) {
+        const placed = await placeWallRunes(stand, want, log);
+        if (placed) {
+            await settleScene();
+        }
+        return placed;
+    }
     // Why: once the fifth rune is in, both walls answer a plain Use, which is also the only way back.
     const opened = await promptLoc(
         {

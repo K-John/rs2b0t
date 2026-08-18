@@ -55,6 +55,8 @@ import {
     owned,
     PRAYER_POTIONS,
     potionTopUp,
+    potsBanked,
+    potsHeld,
     sourceBankOnly,
     sourceFrom,
     sourceGems,
@@ -92,7 +94,8 @@ function inTheOpen(snap: QuestSnapshot, whenOpen: QuestStep): QuestStep {
 // Why: the pack is full to the last slot through the trials — map, machete, axe, lockpick, pickaxe, rope, orb, five rune stacks, seven gems and the bowl — so the food float is a number per leg rather than a constant.
 // Why: the mapping leg carries six papyrus and six charcoal and neither stacks, and the trials leg carries the seven gems and the five wall runes on top of the descent kit — so both floats are what is left rather than what is comfortable.
 // Why: the descent kit is six slots and the quest carries seven more it must not bank, so ten lobsters and four flasks is what the rest holds.
-const FOOD = { jungle: 4, trials: 3, fight: 10 } as const;
+// Why: the fight float is one lobster short of the ten the demon wants, and that slot is the prayer flask — the potion is what holds Protect from Melee up, and the prayer the summon drains cannot be eaten back.
+const FOOD = { jungle: 4, trials: 3, fight: 9 } as const;
 
 const CHOP_KIT = [
     { item: { id: LQ_ID.RUNE_AXE, name: LQ_ITEM.RUNE_AXE }, qty: 1 },
@@ -221,26 +224,34 @@ function trialsKit(snap: QuestSnapshot): QuestStep | null {
 /** Three four-dose flasks, which is fourteen minutes of protection and the last slot the descent leaves. */
 const FIGHT_POTS = 3;
 
-/** Coin, food, prayer potions and a melee kit, taken only where a booth is reachable. */
+// Why: the flask is fetched before the food, not after it. Summoning Nezikchened runs `stat_sub(prayer, 0, 90)` — the fight opens on a tenth of the prayer bar — so Protect from Melee is only armour if there is a dose to put it back, and a pack topped up on lobsters first has no slot left to put one in.
+
+/** Coin, prayer potions, food and a melee kit, taken only where a booth is reachable. */
 function upkeep(snap: QuestSnapshot, food: number, pots = 0): QuestStep | null {
     const bank = LEG_BANK.karamja;
     return coinTopUp(snap, undefined, bank)
-        ?? (heldFood(snap) < Math.ceil(food / 2) ? foodTopUp(snap, food, bank) : null)
         ?? potionTopUp(snap, pots, bank)
+        ?? (heldFood(snap) < Math.ceil(food / 2) ? foodTopUp(snap, food, bank) : null)
         ?? dressForCombat(snap, bank);
 }
 
 // Why: the trials hand back three lumps of rock and every chop leaves its logs, and the pack is already full to its last slot — so a withdraw decided with no room fails for ever.
 // Why: a step that is not going to a bank has nowhere to put them, and a random event's gift arrives whatever the step is — the reed, which wants one slot, met a full pack twice.
 
+/** Free slots at or below which a bank trip empties the pack of junk on its way past. */
+const JUNK_RESERVE = 4;
+
 /** Make room: at the booth the step was going to anyway, or on the ground. */
 function makeRoom(snap: QuestSnapshot, chosen: QuestStep): QuestStep {
+    // Why: a booth is the tidiest place to shed a slot, but only for something a deposit would take — falling through is what a shop counter with nothing bankable needs.
+    // Why: the reserve, rather than the last slot, is what triggers it: a step already opening the bank pays nothing to empty the pack there, and every hand-over this quest makes — the reed, a herb, a lump of rock, the sketch, the seeds, the spell — wants a slot the pack does not have if it is shed only once full.
+    // Why: it is a reserve rather than "any junk at all" because a junk item the bank will not take leaves the count unmoved, and the deposit would then be chosen for ever in place of the withdraw.
+    if ((chosen.kind === 'withdraw' || chosen.kind === 'buy') && (snap.freeSlots ?? 28) <= JUNK_RESERVE && junkHeld(snap)) {
+        return deposit(chosen.bank ?? LEG_BANK.karamja);
+    }
+    // Why: everything below sheds where the character stands, which is irreversible — so it waits for the pack to be out of room rather than trusting the keep list on every pass.
     if ((snap.freeSlots ?? 1) > 0) {
         return chosen;
-    }
-    // Why: a booth is the tidiest place to shed a slot, but only for something a deposit would take — falling through is what a shop counter with nothing bankable needs.
-    if ((chosen.kind === 'withdraw' || chosen.kind === 'buy') && junkHeld(snap)) {
-        return deposit(chosen.bank ?? LEG_BANK.karamja);
     }
     // Why: a pack with spent kit in it is already being dropped by the step above, and two drops racing each other shed one item a pass.
     const junk = spentNow(snap).length > 0 ? [] : ditchIds(snap);
@@ -377,6 +388,12 @@ function stageBowl(snap: QuestSnapshot): QuestStep {
     const off = offIsland(snap, errands);
     if (off) {
         return off;
+    }
+    // Why: `stat_sub(prayer, 0, 90)` runs as the book opens, so the demon starts the fight with nine tenths of the prayer bar already gone and Protect from Melee lapses within the minute. `potionTopUp` answers null when the bank holds no flask, which walks a filled bowl and an empty prayer book into a level-187 demon and says nothing.
+    // Why: this is the last branch that still has a bank behind it — the fill is next and `jungle_tree` boils the bowl off on any chop back across the band.
+    const flask = held(snap, LQ_ID.BOOK_OF_BINDING) > 0 && potsHeld(snap) === 0 && potsBanked(snap) === 0;
+    if (flask) {
+        return { kind: 'wait', reason: 'no prayer potion in the pack or the bank, and opening the book drains nine tenths of the prayer bar before the demon lands a blow' };
     }
     if (held(snap, LQ_ID.HOLLOW_REED) === 0) {
         return step('cut a hollow reed at the sacred pool', cutReed);

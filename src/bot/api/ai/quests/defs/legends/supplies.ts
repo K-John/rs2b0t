@@ -17,8 +17,9 @@ export const LQ_FOODS = ['Lobster', 'Swordfish', 'Shark', 'Tuna'] as const;
 /** Enough to cross the trials, both cave fights and the walk home. */
 export const FOOD_CARRY = 14;
 
-/** Spending money for the shop legs; the list costs a few thousand. */
-export const COIN_CARRY = 50_000;
+// Why: every purchase here is a `buy` step, which tops the pack up to its own `estGp` at the booth — so this is not a shopping budget but fare money (the Brimhaven ferry at 30, Hajedy's cart at 100, and a planner that refuses a route whose fare is not in the pack), and it is small because all of it rides through three fights with a level-187 demon and a death drops it.
+/** Fare money for the crossings; every counter purchase funds itself at the booth. */
+export const COIN_CARRY = 10_000;
 
 export const SHOP_GP = {
     JIMINUA: 3000,
@@ -160,12 +161,15 @@ export function fromBank(snap: QuestSnapshot, item: LqItem, qty = 1, bank?: Tile
 }
 
 /** Bank first, then the counter that stocks it. */
-export function source(snap: QuestSnapshot, item: LqItem, qty: number, shop: Shop, estGp: number, bank?: Tile): QuestStep | null {
-    if (owned(snap, item.id) >= qty) {
+// Why: `stock` is what the counter is asked for, `qty` is what the leg needs — the magic gate eats a cast on every descent and the Magic Guild is in Yanille, so buying one descent's worth walks the sea and the hill again for the next one. Runes stack, so a run's worth costs the same slot as one.
+
+export function source(snap: QuestSnapshot, item: LqItem, qty: number, shop: Shop, estGp: number, bank?: Tile, stock = qty): QuestStep | null {
+    const have = owned(snap, item.id);
+    if (have >= qty) {
         return null;
     }
     return fromBank(snap, item, qty, bank)
-        ?? { kind: 'buy', item: item.name, qty: qty - owned(snap, item.id), shop, estGp, bank };
+        ?? { kind: 'buy', item: item.name, qty: Math.max(stock, qty) - have, shop, estGp, bank };
 }
 
 /** Bank only — nothing in the game sells this. */
@@ -213,6 +217,16 @@ export function foodTopUp(snap: QuestSnapshot, want = FOOD_CARRY, bank?: Tile): 
 // Why: Nezikchened is level 187 with 150 hitpoints and casts from range, and Protect from Melee is the only thing that makes him survivable at 70 — so the points have to outlast the fight rather than the walk to it.
 
 /** Withdraw prayer potions up to `want` doses' worth of flasks. */
+/** Prayer doses in the pack. */
+export function potsHeld(snap: QuestSnapshot): number {
+    return PRAYER_POTIONS.reduce((sum, pot) => sum + held(snap, pot.id), 0);
+}
+
+/** Prayer doses the bank could still hand over. */
+export function potsBanked(snap: QuestSnapshot): number {
+    return PRAYER_POTIONS.reduce((sum, pot) => sum + banked(snap, pot.id), 0);
+}
+
 export function potionTopUp(snap: QuestSnapshot, want: number, bank?: Tile): QuestStep | null {
     if (want <= 0) {
         return null;
@@ -287,21 +301,26 @@ export const JIMINUA_KIT: readonly { item: LqItem; qty: number }[] = [
     { item: { id: LQ_ID.VIAL_WATER, name: LQ_ITEM.VIAL_WATER }, qty: 1 }
 ];
 
-/** The Magic Guild counter is the only soul rune in the game. */
-/** The five the marked wall swallows, in the one order it accepts. */
-export const RUNE_KIT: readonly { item: LqItem; qty: number }[] = [
-    { item: { id: LQ_ID.SOUL_RUNE, name: LQ_ITEM.SOUL_RUNE }, qty: 1 },
-    { item: { id: LQ_ID.MIND_RUNE, name: LQ_ITEM.MIND_RUNE }, qty: 1 },
-    { item: { id: LQ_ID.EARTH_RUNE, name: LQ_ITEM.EARTH_RUNE }, qty: 1 },
-    { item: { id: LQ_ID.LAW_RUNE, name: LQ_ITEM.LAW_RUNE }, qty: 2 }
+// Why: the wall keeps its five in `%legends_bits`, so they are spent once and never again — but a death on the way down drops them, and the replacement is another trip to Yanille for the only soul rune in the game. A spare set stacks into the same slots.
+
+/** The five the marked wall swallows, in the one order it accepts, from the Magic Guild counter. */
+export const RUNE_KIT: readonly { item: LqItem; qty: number; stock?: number }[] = [
+    { item: { id: LQ_ID.SOUL_RUNE, name: LQ_ITEM.SOUL_RUNE }, qty: 1, stock: 2 },
+    { item: { id: LQ_ID.MIND_RUNE, name: LQ_ITEM.MIND_RUNE }, qty: 1, stock: 2 },
+    { item: { id: LQ_ID.EARTH_RUNE, name: LQ_ITEM.EARTH_RUNE }, qty: 1, stock: 2 },
+    { item: { id: LQ_ID.LAW_RUNE, name: LQ_ITEM.LAW_RUNE }, qty: 2, stock: 4 }
 ];
 
 // Why: the magic gate eats an orb and a cast every time it is crossed downwards, while everything else in the trials is spent once and stays spent — so the two kits are asked for separately.
+// Why: the Magic Guild counter is in Yanille, which from Karamja is the ship, the walk and the bank, so the descent's cast is bought a run's worth at a time — a rune stack is one slot whatever the count, which makes every later descent a check rather than a crossing.
+
+/** How many descents one shopping trip is stocked for. */
+const DESCENTS_STOCKED = 5;
 
 /** One charge-water-orb cast, which is what the magic gate is. */
-export const ORB_RUNE_KIT: readonly { item: LqItem; qty: number }[] = [
-    { item: { id: LQ_ID.COSMIC_RUNE, name: LQ_ITEM.COSMIC_RUNE }, qty: 3 },
-    { item: { id: LQ_ID.WATER_RUNE, name: LQ_ITEM.WATER_RUNE }, qty: 30 }
+export const ORB_RUNE_KIT: readonly { item: LqItem; qty: number; stock?: number }[] = [
+    { item: { id: LQ_ID.COSMIC_RUNE, name: LQ_ITEM.COSMIC_RUNE }, qty: 3, stock: 3 * DESCENTS_STOCKED },
+    { item: { id: LQ_ID.WATER_RUNE, name: LQ_ITEM.WATER_RUNE }, qty: 30, stock: 30 * DESCENTS_STOCKED }
 ];
 
 /** Nothing in the game sells this, and the Yommi tree takes no lesser axe. */
@@ -319,13 +338,13 @@ export const DESCENT_KIT: readonly { item: LqItem; qty: number }[] = [
 
 export function sourceFrom(
     snap: QuestSnapshot,
-    kit: readonly { item: LqItem; qty: number }[],
+    kit: readonly { item: LqItem; qty: number; stock?: number }[],
     shop: Shop,
     estGp: number,
     bank?: Tile
 ): QuestStep | null {
     for (const want of kit) {
-        const step = source(snap, want.item, want.qty, shop, estGp, bank);
+        const step = source(snap, want.item, want.qty, shop, estGp, bank, want.stock);
         if (step) {
             return step;
         }
@@ -422,12 +441,12 @@ export function warnLegendsReadiness(): string | null {
 /** The profile a headed end-to-end run has cleared. */
 export const LQ_PROVEN_COMBAT_FLOOR = 70;
 
-// Why: nothing on Karamja banks, so the island's legs draw on Ardougne West across the Brimhaven ship — the same booth Shilo Village uses.
+// Why: Shilo Village banks Karamja, which is the island's difference — Ardougne West is the Brimhaven ship and a walk each way, and the gold, the gems, Jiminua's counter and the jungle are all on this side of that crossing.
 export const LEG_BANK = {
     /** Ardougne West is the nearest booth to the Legends Guild gate. */
     guild: LQ_BANK.ARDOUGNE,
-    /** Every Karamja leg, by way of the ship. */
-    karamja: LQ_BANK.ARDOUGNE,
+    /** Every Karamja leg, at Shilo's teller rather than across the sea. */
+    karamja: LQ_BANK.SHILO,
     /** The Magic Guild counter is upstairs in Yanille, sixty tiles from its booth. */
     runes: LQ_BANK.YANILLE
 } as const;

@@ -217,7 +217,8 @@ export async function executeStep(step: QuestStep, hops: LadderHop[], log: (m: s
                 if (!(await openBankLeg('buy: no known bank for coins', step.bank, log))) {
                     return false;
                 }
-                await Bank.withdrawX('Coins', step.estGp);
+                // Why: `withdrawX` takes its count ON TOP of the pack, so asking for the full estimate draws it twice — Legends' 50k float plus a 60k guild estimate carried 110k into a quest that fights a level-187 demon three times.
+                await Bank.withdrawX('Coins', step.estGp - Inventory.count('Coins'));
                 await Modals.close();
                 if (Inventory.count('Coins') < step.estGp) {
                     log(`buy: bank could not cover ${step.estGp} gp for ${step.item}`);

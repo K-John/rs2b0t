@@ -5,9 +5,10 @@ import { RG_ITEM, RG_TILE, banked, carried, type RegicideItem } from './areas.js
 // Why: a plan is a whitelist plus a set of counts, because the deposit step cannot keep a partial stack. An item with a target is left out of the deposit and drawn back, which settles in three cycles: shed, draw, done.
 
 // Why: a plan is a whitelist, so anything it forgets to name goes to the bank. Everything here can be had again — Iorwerth hands over a fresh scroll at `~obj_gettotal(regicide_iorwerth_message) = 0`, the messenger's timer re-arms at every login, and the barrel chain restarts at the elf camp — but the cheapest of those replacements is the Underground Pass walked end to end, twice. They are kept by default and a plan has to name them to shed one.
-// Why: the scroll is on this list only while it is owed to King Lathas. His reward branch reads it out of the pack and the quest is over — after that it is a slot, so a plan naming it in `shed` drops it.
+// Why: Iorwerth's letter is on this list only while it is owed to King Lathas. His reward branch reads it out of the pack and the quest is over — after that it is a slot, so a plan naming it in `shed` drops it.
+// Why: the King's message is not on it at all. `regicide_kings_messenger.rs2` is the only site that adds one and it sets `%regicide_quest` on the same line, so the stage never depends on holding it; the only script that reads it is `[opheld1,regicide_quest_kings_summons]`, which paints a letter on the screen. Nothing deletes it either, so kept by default it is one dead slot for the rest of the account's life.
 const KEEP_BY_DEFAULT: readonly number[] = [
-    RG_ITEM.SUMMONS.id, RG_ITEM.MESSAGE.id, RG_ITEM.PENDANT.id,
+    RG_ITEM.MESSAGE.id, RG_ITEM.PENDANT.id,
     RG_ITEM.BARREL.id, RG_ITEM.BARREL_TAR.id, RG_ITEM.BARREL_NAPHTHA.id,
     RG_ITEM.BARREL_LID.id, RG_ITEM.BARREL_FUSED.id,
     RG_ITEM.MIX_QUICKLIME.id, RG_ITEM.MIX_SULPHUR.id,

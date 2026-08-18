@@ -1,6 +1,7 @@
 // docs/reference/quest-primitives.md
 import { reader } from '../../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../execution/Execution.js';
+import { GameMessages } from '../../../chatbox/gameMessages.js';
 import { Modals } from '../../../ui/widgets/Modals.js';
 import { Reach } from '../../../walking/Reach.js';
 import type Tile from '../../../../geometry/Tile.js';
@@ -108,9 +109,10 @@ export interface DoorCrossing {
     log: (m: string) => void;
 }
 
-const DOOR_MS = 12_000;
+// Why: `open_and_close_door` teleports in the same script run as the click, with at most one `p_delay(1)` between its two teleports — so a crossing that is going to land has landed within a couple of ticks, and a longer cap only buys standing still on a door that refused.
+const DOOR_MS = 3_000;
 // Why: the server runs the door's script a tick after the click, so the dialogue check needs a window.
-const DIALOG_MS = 5_000;
+const DIALOG_MS = 2_000;
 // Why: a quest door can be a kingdom away — the Brimhaven crossings are reached from Varrock by ferry,
 // and a two-minute budget times out mid-ocean and reports the door as missing.
 const DOOR_WALK_MS = 300_000;
@@ -146,6 +148,8 @@ export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
         log(`no ${name.toLowerCase()} ${id} offering '${op}' within four tiles of (${stand.x},${stand.z})`);
         return false;
     }
+    // Why: the door prints nothing on a crossing — `open_and_close_door` is two teleports, a `loc_change` and a synth — so a game message arriving instead of the crossing is the script saying no, whatever the wording. Marked before the click, as the refusal is often the click's own answer.
+    const said = GameMessages.mark();
     // Why: a key door's `oploc1` answers "This <name> is locked" and only its `oplocu` opens, so the
     // crossing is a use-item on the leaf rather than a click on its op.
     if (door.useItem !== undefined) {
@@ -170,7 +174,11 @@ export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
             await driveChoice([...door.prefer], log);
         }
     }
-    await Execution.delayUntil(isFar, DOOR_MS);
+    await Execution.delayUntil(() => isFar() || GameMessages.since(said).length > 0, DOOR_MS);
+    if (!isFar() && GameMessages.since(said).length > 0) {
+        // Why: a quest door that narrates its own crossing would otherwise be abandoned a tick early, and an early abandon costs one retry where a full cap costs the wait.
+        await Execution.delayTicks(2);
+    }
     if (!isFar()) {
         return false;
     }
@@ -189,6 +197,8 @@ export interface LocPrompt {
     within?: number;
     /** Exact loc id, when the display name is shared with something else in range. */
     id?: number;
+    /** Game-message pattern the loc's script answers with when the op cannot work yet. */
+    refused?: RegExp;
 }
 
 /**
@@ -206,6 +216,7 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
         within: step.within,
         id: step.id,
         expect: () => step.expect() || ChatDialog.isOpen() || ChatDialog.canContinue(),
+        refused: step.refused,
         log
     });
     if (status !== 'done') {

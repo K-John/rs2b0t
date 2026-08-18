@@ -16,12 +16,22 @@ const CHOP_ATTEMPTS = 14;
 const CHOP_MS = 180_000;
 
 // Why: every plant felled on the way through the band leaves its logs in a pack that has no slot to spare, and the reed at the pool is what fails for want of one.
+// Why: the crossing and the last swing's `inv_add` land in the same tick, so a pack read straight off the loop is one or two logs out of date — those survived every crossing and are what fills the pack over a run.
+
+const isLogs = (name: string | null | undefined): boolean => (name ?? '').toLowerCase().endsWith('logs');
 
 /** Drop whatever the band's plants left behind. */
 async function dropLogs(): Promise<void> {
-    for (const log of Inventory.items().filter(item => (item.name ?? '').toLowerCase().endsWith('logs'))) {
-        await log.interact('Drop');
-        await Execution.delayTicks(1);
+    for (let pass = 0; pass < 3; pass++) {
+        await settleScene();
+        const logs = Inventory.items().filter(item => isLogs(item.name));
+        if (logs.length === 0) {
+            return;
+        }
+        for (const log of logs) {
+            await log.interact('Drop');
+            await Execution.delayTicks(1);
+        }
     }
 }
 

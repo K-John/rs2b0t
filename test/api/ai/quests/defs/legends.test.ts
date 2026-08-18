@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { LQ_ID, LQ_STAGE, LQ_TILE, inJungleBand, inOctagram, jungleSection, legendsArea } from '#/bot/api/ai/quests/defs/legends/areas.js';
 import { decide, legends } from '#/bot/api/ai/quests/defs/legends/index.js';
 import { legendsPocket } from '#/bot/api/ai/quests/defs/legends/pockets.js';
-import { KEEP_IDS, LQ_FOODS } from '#/bot/api/ai/quests/defs/legends/supplies.js';
+import { KEEP_IDS, LQ_FOODS, PRAYER_POTIONS } from '#/bot/api/ai/quests/defs/legends/supplies.js';
 import { QUEST_DEFS } from '#/bot/api/ai/quests/defs/index.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
@@ -421,8 +421,17 @@ describe('Legends Quest decide', () => {
         const jungle = { x: 2820, z: 2915, level: 0 };
         const bare = snap({ stage: LQ_STAGE.FILLED_BOWL, invIds: [LQ_ID.GOLD_BOWL_BLESSED], tile: jungle });
         expect(name(decide(bare))).toBe('custom:cut back out of the Kharazi Jungle');
-        const ready = kitted({ stage: LQ_STAGE.FILLED_BOWL, invIds: [LQ_ID.GOLD_BOWL_BLESSED, LQ_ID.BOOK_OF_BINDING], tile: jungle });
+        const ready = kitted({ stage: LQ_STAGE.FILLED_BOWL, invIds: [LQ_ID.GOLD_BOWL_BLESSED, LQ_ID.BOOK_OF_BINDING, PRAYER_POTIONS[0]!.id], tile: jungle });
         expect(name(decide(ready))).toBe('custom:cut a hollow reed at the sacred pool');
+    });
+
+    // Why: `stat_sub(prayer, 0, 90)` runs as the book opens, and `potionTopUp` answers null when the bank is empty — which walked a filled bowl and an empty prayer book into the demon and said nothing.
+    test('no flask in the pack or the bank parks before the book is opened', () => {
+        const jungle = { x: 2820, z: 2915, level: 0 };
+        const dry = kitted({ stage: LQ_STAGE.FILLED_BOWL, invIds: [LQ_ID.GOLD_BOWL_BLESSED, LQ_ID.BOOK_OF_BINDING], tile: jungle });
+        const step = decide(dry);
+        expect(step.kind).toBe('wait');
+        expect(step.kind === 'wait' && step.reason).toContain('prayer potion');
     });
 
     test('a filled bowl on the mainland is never sent back to a booth', () => {
@@ -439,7 +448,7 @@ describe('Legends Quest decide', () => {
         });
         const step = decide({ ...lean, freeSlots: 12 });
         expect(step.kind).toBe('withdraw');
-        expect(step.kind === 'withdraw' && step.items[0]?.qty).toBe(10);
+        expect(step.kind === 'withdraw' && step.items[0]?.qty).toBe(9);
     });
 
     // Why: a death drops the machete and the axe, and every leg past the map has to cross the band to get anywhere.
@@ -464,10 +473,23 @@ describe('Legends Quest decide', () => {
         });
         const step = decide({ ...lean, freeSlots: 12 });
         expect(step.kind).toBe('withdraw');
-        expect(step.kind === 'withdraw' && step.items[0]?.qty).toBe(10);
-        // Why: the ask is what the pack can take rather than what the leg wanted — after a death the kit comes back at once and ten lobsters have nowhere to go.
+        expect(step.kind === 'withdraw' && step.items[0]?.qty).toBe(9);
+        // Why: the ask is what the pack can take rather than what the leg wanted — after a death the kit comes back at once and nine lobsters have nowhere to go.
         const tight = decide({ ...lean, freeSlots: 3 });
         expect(tight.kind === 'withdraw' && tight.items[0]?.qty).toBe(3);
+    });
+
+    // Why: `stat_sub(prayer, 0, 90)` runs as Nezikchened is summoned, so the fight opens on a tenth of the bar and Protect from Melee is only armour if there is a dose to put it back. A pack topped up on lobsters first has no slot to put one in.
+    test('a banked prayer flask is fetched before the fight food', () => {
+        const lean = snap({
+            stage: LQ_STAGE.FILLED_BOWL,
+            invIds: [LQ_ID.GOLD_BOWL_BLESSED, LQ_ID.BOOK_OF_BINDING],
+            bankIds: [PRAYER_POTIONS[0]!.id, PRAYER_POTIONS[0]!.id, PRAYER_POTIONS[0]!.id],
+            bank: Array.from({ length: 30 }, () => 'Lobster')
+        });
+        const step = decide({ ...lean, freeSlots: 12 });
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' && step.items[0]?.name).toBe(PRAYER_POTIONS[0]!.name);
     });
 
     // Why: the outer gate shuts behind whoever picked it and the boulders drop back down, so a second descent is paid for in full.
@@ -566,7 +588,8 @@ describe('Legends Quest decide', () => {
     });
 
     // Why: a withdraw decided with no room fails for ever, and the trials and the band both hand back things the keep list does not want.
-    test('a full pack banks the junk at the booth the withdraw was going to', () => {
+    // Why: the reserve rather than the last slot is the trigger — a step already opening the bank pays nothing to empty the pack there, and every hand-over this quest makes wants a slot a pack shed only when full does not have.
+    test('a pack down to its reserve banks the junk at the booth the withdraw was going to', () => {
         const full = snap({
             stage: LQ_STAGE.SACRED_WATER,
             invIds: [LQ_ID.RUNE_AXE, LQ_ID.MACHETE, LQ_ID.YOMMI_SEEDS_GERM, 1511, 1511],
@@ -575,7 +598,20 @@ describe('Legends Quest decide', () => {
             bank: ['Coins']
         });
         expect(decide({ ...full, freeSlots: 0 }).kind).toBe('deposit');
-        expect(decide({ ...full, freeSlots: 3 }).kind).toBe('withdraw');
+        expect(decide({ ...full, freeSlots: 3 }).kind).toBe('deposit');
+        expect(decide({ ...full, freeSlots: 20 }).kind).toBe('withdraw');
+    });
+
+    // Why: a junk item the bank will not take leaves the free count where it was, so a deposit chosen on "any junk at all" would be chosen again in place of the withdraw for ever.
+    test('junk well clear of the reserve rides along rather than costing a deposit', () => {
+        const roomy = snap({
+            stage: LQ_STAGE.SACRED_WATER,
+            invIds: [LQ_ID.RUNE_AXE, LQ_ID.MACHETE, LQ_ID.YOMMI_SEEDS_GERM, LQ_ID.SWAMP_ROCK],
+            inv: [...Array.from({ length: 14 }, () => 'Lobster')],
+            bankIds: [LQ_ID.LOCKPICK, LQ_ID.UNPOWERED_ORB],
+            bank: ['Coins']
+        });
+        expect(decide({ ...roomy, freeSlots: 20 }).kind).toBe('withdraw');
     });
 
     // Why: a random event's gift takes the slot the reed wants, and nothing is walking to a bank to be rid of it.

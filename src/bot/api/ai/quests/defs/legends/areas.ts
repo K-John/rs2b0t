@@ -314,13 +314,15 @@ export const LQ_LOC_ID = {
     YOMMI_TOTEM: 2954
 } as const;
 
-// Why: Karamja has no bank in this content — the map icon in Shilo Village has no booth and no banker behind it — so every top-up is the Brimhaven ship and Ardougne West, which is where Shilo Village banks too.
+// Why: Shilo Village is Karamja's only bank and it has no booth — the teller is an npc with a Bank op, which is why a booth-only open read it as an icon with nothing behind it. It is eighteen tiles off Hajedy's cart and the village is gated on the Shilo Village quest, which Legends' own quest-point gate has long since passed.
 export const LQ_BANK = {
     ARDOUGNE: new Tile(2616, 3332, 0),
-    YANILLE: new Tile(2612, 3092, 0)
+    YANILLE: new Tile(2612, 3092, 0),
+    /** Shilo Village's teller — no booth, an npc with a Bank op, eighteen tiles off Hajedy's cart. */
+    SHILO: new Tile(2852, 2954, 0)
 } as const;
 
-// Why: Obli's counter in Shilo Village stocks the same list and is thirty tiles from the gem rocks, and every tile of that village is behind Vigroy's cart — a component the navigator has no edge into.
+// Why: Obli's counter in Shilo Village stocks the same list and is thirty tiles from the gem rocks, but Jiminua's is the one Tai Bwo Wannai leg already passes.
 export const LQ_SHOP = {
     /** Jiminua's Jungle Store, Tai Bwo Wannai — papyrus, charcoal, machete, knife, rope, vials, chisel, hammer, pickaxe. */
     JIMINUA: { npc: 'Jiminua', anchor: new Tile(2767, 3122, 0) },
