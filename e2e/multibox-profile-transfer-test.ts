@@ -25,6 +25,9 @@ const server = Bun.serve({
         if (path === '/multibox.html' || path === '/') {
             return new Response(Bun.file('public-bot/multibox.html'), { headers: { 'cache-control': 'no-store' } });
         }
+        if (path === '/bot.html') {
+            return new Response(Bun.file('public-bot/bot.html'), { headers: { 'cache-control': 'no-store' } });
+        }
         if (path.startsWith('/bot/')) {
             const file = join('out', path.slice('/bot/'.length));
             return new Response(Bun.file(file), { headers: { 'cache-control': 'no-store' } });
@@ -69,7 +72,18 @@ try {
             { username: 'import_bob', password: 'b' }
         ],
         tabs: ['miners'],
-        activeTab: 'miners'
+        activeTab: 'miners',
+        storage: {
+            import_alice: {
+                selectedScript: 'Miner',
+                'set:Miner:rock': 'iron',
+                'set:Global:runAuto': 'false'
+            },
+            import_bob: {
+                selectedScript: 'BrimhavenAgility',
+                'set:BrimhavenAgility:food': 'Lobster'
+            }
+        }
     });
     const incomingPath = join(mkdtempSync(join(tmpdir(), 'mbx-profile-')), 'rs2b0t-profiles.json');
     writeFileSync(incomingPath, incoming);
@@ -83,7 +97,24 @@ try {
     if (!hidden) {
         fail('settings stayed open after a successful import');
     }
-    console.log(`imported ${names.join(', ')}`);
+    const stored = await page.evaluate(() => ({
+        script: localStorage.getItem('rs2b0t:import_alice:selectedScript'),
+        rock: localStorage.getItem('rs2b0t:import_alice:set:Miner:rock'),
+        run: localStorage.getItem('rs2b0t:import_alice:set:Global:runAuto'),
+        food: localStorage.getItem('rs2b0t:import_bob:set:BrimhavenAgility:food'),
+        sessionScript: sessionStorage.getItem('rs2b0t:import_alice:selectedScript'),
+        settingsAfterOn: document.getElementById('mbx-renderers-on')!.compareDocumentPosition(document.getElementById('mbx-settings')!) & Node.DOCUMENT_POSITION_FOLLOWING
+    }));
+    if (stored.script !== 'Miner' || stored.rock !== 'iron' || stored.run !== 'false' || stored.food !== 'Lobster') {
+        fail(`imported box storage: ${JSON.stringify(stored)}`);
+    }
+    if (stored.sessionScript !== 'Miner') {
+        fail(`sessionStorage did not receive selectedScript: ${JSON.stringify(stored)}`);
+    }
+    if (!stored.settingsAfterOn) {
+        fail('settings button is not after turn-all-renderers-on');
+    }
+    console.log(`imported ${names.join(', ')} with script settings`);
     console.log('PASS: settings export/import');
 } finally {
     await browser.close();
