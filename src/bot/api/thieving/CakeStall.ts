@@ -37,6 +37,13 @@ export function carriedCakes(): number {
     return countMatching(Inventory.items(), CAKE_ITEMS);
 }
 
+// Why: the gate counts what the driver can supply, so a caller measuring some other food can never spin on a stall that is already stocked.
+
+/** True when the stall still owes the pack food, measured the way {@link stealCakes} measures it. */
+export function needsCakeRestock(target: number): boolean {
+    return !Inventory.isFull() && carriedCakes() < target;
+}
+
 function stockedStall() {
     return Locs.query()
         .name(STALL_NAME)

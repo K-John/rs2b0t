@@ -108,7 +108,7 @@ afterAll(() => {
     Object.assign(RealInventory.Inventory, realInventoryFns);
 });
 
-const { stealCakes } = await import('#/bot/api/thieving/CakeStall.js');
+const { needsCakeRestock, stealCakes } = await import('#/bot/api/thieving/CakeStall.js');
 
 const say = (text: string): void => {
     chatHandler?.({ text });
@@ -239,5 +239,30 @@ describe('stealCakes driver', () => {
         };
         expect(await stealCakes(opts({ fillTo: 3 }))).toBe('stocked');
         expect(cakeCount).toBe(3);
+    });
+});
+
+describe('needsCakeRestock', () => {
+    beforeEach(() => {
+        Object.assign(RealInventory.Inventory, stubInventory);
+        cakeCount = 0;
+    });
+
+    test('true below the target, false at it', () => {
+        cakeCount = 7;
+        expect(needsCakeRestock(8)).toBe(true);
+        cakeCount = 8;
+        expect(needsCakeRestock(8)).toBe(false);
+    });
+
+    test('a full pack never asks for another cake', () => {
+        cakeCount = 28;
+        expect(needsCakeRestock(40)).toBe(false);
+    });
+
+    test('a stocked driver settles the gate — the caller cannot re-enter forever', async () => {
+        cakeCount = 13;
+        expect(await stealCakes(opts({ fillTo: 8 }))).toBe('stocked');
+        expect(needsCakeRestock(8)).toBe(false);
     });
 });
