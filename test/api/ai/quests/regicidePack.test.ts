@@ -105,11 +105,11 @@ describe('regicide pack planning', () => {
     });
 });
 
-// Why: a plan is a whitelist, so anything it forgets to name is banked — and the scroll, the pendant and every barrel state are one-way. Banking one does not cost a walk, it ends the run.
-describe('what no plan may bank', () => {
+// Why: a plan is a whitelist, so anything it forgets to name is banked. All of this can be had again — Iorwerth reissues the scroll, the messenger's timer re-arms — but the cheapest replacement is the pass walked end to end, so it is kept unless a plan names it.
+describe('what a plan keeps without being asked', () => {
     const BARE: PackPlan = { what: 'a plan that names nothing', allow: [] };
 
-    const IRREPLACEABLE: [string, { id: number; name: string }][] = [
+    const COSTLY: [string, { id: number; name: string }][] = [
         ['the summons', RG_ITEM.SUMMONS],
         ['Iorwerth\'s letter', RG_ITEM.MESSAGE],
         ['the crystal pendant', RG_ITEM.PENDANT],
@@ -121,7 +121,7 @@ describe('what no plan may bank', () => {
         ['the fuse cloth', RG_ITEM.CLOTH]
     ];
 
-    test.each(IRREPLACEABLE)('%s survives a plan that does not name it', (_what, item) => {
+    test.each(COSTLY)('%s survives a plan that does not name it', (_what, item) => {
         expect(managePack(snapshot({ carried: [[item.id, 1]] }), BARE)).toBeNull();
     });
 
@@ -131,5 +131,20 @@ describe('what no plan may bank', () => {
         expect(step?.kind).toBe('deposit');
         expect(step?.kind === 'deposit' && step.keepIds).toContain(RG_ITEM.BARREL_FUSED.id);
         expect(step?.kind === 'deposit' && step.keepIds).not.toContain(RG_ITEM.SPADE.id);
+    });
+});
+
+// Why: the scroll is owed to King Lathas and nothing after him, so a leg that is finished with it says so and the slot comes back. Keeping it forever is the same mistake as banking it too early, one slot the other way.
+describe('shedding what a leg is finished with', () => {
+    test('a plan that sheds the letter banks it', () => {
+        const snap = snapshot({ carried: [[RG_ITEM.MESSAGE.id, 1], [RG_ITEM.SHARK.id, 1]] });
+        const step = managePack(snap, { what: 'after the king', allow: [RG_ITEM.SHARK.id], shed: [RG_ITEM.MESSAGE.id] });
+        expect(step?.kind).toBe('deposit');
+        expect(step?.kind === 'deposit' && step.keepIds).not.toContain(RG_ITEM.MESSAGE.id);
+    });
+
+    test('a plan that does not shed it keeps it', () => {
+        const snap = snapshot({ carried: [[RG_ITEM.MESSAGE.id, 1]] });
+        expect(managePack(snap, { what: 'before the king', allow: [] })).toBeNull();
     });
 });

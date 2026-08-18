@@ -4,8 +4,9 @@ import { RG_ITEM, RG_TILE, banked, carried, type RegicideItem } from './areas.js
 // Why: this quest spends its middle out of reach of a bank, and every leg of it wants the pack shaped differently — the kit is twenty-four slots, the bomb chain grows to six, and the still burns twelve coal that do not stack. Deciding that at each site is what produced a mining step swinging at a full inventory, a fire arrow with nowhere to go and a distillation lost to a full pack.
 // Why: a plan is a whitelist plus a set of counts, because the deposit step cannot keep a partial stack. An item with a target is left out of the deposit and drawn back, which settles in three cycles: shed, draw, done.
 
-// Why: a plan is a whitelist, so anything it forgets to name goes to the bank — and some of what this quest carries cannot be bought, drawn or made twice. The scroll comes from a messenger who spawns once, the pendant from a conversation that does not repeat, and every barrel state is a one-way step along a chain that starts back at the elf camp on the far side of the pass. Banking one of those does not cost a walk, it ends the run.
-const NEVER_BANK: readonly number[] = [
+// Why: a plan is a whitelist, so anything it forgets to name goes to the bank. Everything here can be had again — Iorwerth hands over a fresh scroll at `~obj_gettotal(regicide_iorwerth_message) = 0`, the messenger's timer re-arms at every login, and the barrel chain restarts at the elf camp — but the cheapest of those replacements is the Underground Pass walked end to end, twice. They are kept by default and a plan has to name them to shed one.
+// Why: the scroll is on this list only while it is owed to King Lathas. His reward branch reads it out of the pack and the quest is over — after that it is a slot, so a plan naming it in `shed` drops it.
+const KEEP_BY_DEFAULT: readonly number[] = [
     RG_ITEM.SUMMONS.id, RG_ITEM.MESSAGE.id, RG_ITEM.PENDANT.id,
     RG_ITEM.BARREL.id, RG_ITEM.BARREL_TAR.id, RG_ITEM.BARREL_NAPHTHA.id,
     RG_ITEM.BARREL_LID.id, RG_ITEM.BARREL_FUSED.id,
@@ -23,13 +24,18 @@ export interface PackPlan {
     caps?: readonly { item: RegicideItem; qty: number }[];
     /** Free slots the next step needs before it starts. */
     freeNeeded?: number;
+    /** Kept-by-default items this leg is finished with, so they go with the rest. */
+    shed?: readonly number[];
 }
 
 const capped = (plan: PackPlan, id: number): boolean =>
     (plan.caps ?? []).some(cap => cap.item.id === id);
 
-/** Everything the plan allows, plus what no plan may bank. */
-const allowed = (plan: PackPlan): number[] => [...plan.allow, ...NEVER_BANK];
+/** Everything the plan allows, plus what is too expensive to replace to shed by accident. */
+function allowed(plan: PackPlan): number[] {
+    const shed = new Set(plan.shed ?? []);
+    return [...plan.allow, ...KEEP_BY_DEFAULT.filter(id => !shed.has(id))];
+}
 
 /** True when the pack holds something this leg has no use for. */
 function holdsJunk(snap: QuestSnapshot, plan: PackPlan): boolean {
