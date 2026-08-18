@@ -4,7 +4,7 @@ import { LQ_ID, LQ_STAGE, LQ_TILE, inJungleBand, inOctagram, jungleSection, lege
 import { decide, legends } from '#/bot/api/ai/quests/defs/legends/index.js';
 import { legendsPocket } from '#/bot/api/ai/quests/defs/legends/pockets.js';
 
-import { KEEP_IDS, LQ_FOODS, PRAYER_POTIONS, SHOP_GP, coinTopUp } from '#/bot/api/ai/quests/defs/legends/supplies.js';
+import { FOOD_FOR_SLOT, KEEP_IDS, LQ_FOODS, PRAYER_POTIONS, SHOP_GP, coinTopUp } from '#/bot/api/ai/quests/defs/legends/supplies.js';
 import { QUEST_DEFS } from '#/bot/api/ai/quests/defs/index.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
@@ -873,9 +873,15 @@ describe('the module', () => {
         expect(legends.coinFloat).toBe(0);
     });
 
-    test('eats lobster first', () => {
-        expect(legends.sustain?.foods[0]).toBe('Lobster');
-        expect(LQ_FOODS[0]).toBe('Lobster');
+    // Why: the float is drawn best-first, since every fight in this quest is one it has to outlast.
+    test('prefers shark, then swordfish, then lobster, then tuna', () => {
+        expect([...LQ_FOODS]).toEqual(['Shark', 'Swordfish', 'Lobster', 'Tuna']);
+        expect(legends.sustain?.foods[0]).toBe('Shark');
+    });
+
+    // Why: a slot is bought with the worst food held, which is the opposite order — the point is to keep the heal the demon needs.
+    test('buys a slot with the worst food, not the best', () => {
+        expect(FOOD_FOR_SLOT.map(f => f.name)).toEqual(['Tuna', 'Lobster', 'Swordfish', 'Shark']);
     });
 
     test('the keep list holds every quest item the deposit would otherwise lose', () => {

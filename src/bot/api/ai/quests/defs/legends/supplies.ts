@@ -11,8 +11,9 @@ export interface LqItem {
 
 type Shop = { npc: string; anchor: Tile };
 
-/** Lobster first: the only food this quest's harness banks, the rest are fallbacks. */
-export const LQ_FOODS = ['Lobster', 'Swordfish', 'Shark', 'Tuna'] as const;
+// Why: best first, since `foodTopUp` takes the first of these the bank holds and every fight in this quest is one the float has to outlast — Nezikchened three times and three aggressive guardians. The rest are fallbacks in descending heal.
+/** What the float is drawn from, in the order it is preferred. */
+export const LQ_FOODS = ['Shark', 'Swordfish', 'Lobster', 'Tuna'] as const;
 
 /** Enough to cross the trials, both cave fights and the walk home. */
 export const FOOD_CARRY = 14;
@@ -126,7 +127,16 @@ export const KEEP_IDS: readonly number[] = [
 // Why: the trials hand back three lumps of rock and the pack is already full to its last slot, so a top-up decided with no room fails its withdraw for ever.
 
 /** Ids the deposit keeps by name rather than by id, so they do not read as junk. */
-const FOOD_IDS: readonly number[] = [LQ_ID.LOBSTER, 373, 385, 361];
+const FOOD_IDS: readonly number[] = [LQ_ID.SHARK, LQ_ID.SWORDFISH, LQ_ID.LOBSTER, LQ_ID.TUNA];
+
+// Why: a slot is bought with the worst food held, not the best — the opposite order to the float, since the point is to keep the heal that has to outlast the demon.
+/** The food to eat for a slot, worst first. */
+export const FOOD_FOR_SLOT: readonly { id: number; name: string }[] = [
+    { id: LQ_ID.TUNA, name: LQ_ITEM.TUNA },
+    { id: LQ_ID.LOBSTER, name: LQ_ITEM.LOBSTER },
+    { id: LQ_ID.SWORDFISH, name: LQ_ITEM.SWORDFISH },
+    { id: LQ_ID.SHARK, name: LQ_ITEM.SHARK }
+];
 
 /** Everything in the pack this quest has no use for, random-event gifts included. */
 export function junkIds(snap: QuestSnapshot): number[] {
@@ -445,7 +455,7 @@ const COUNTERS: readonly {
 // Why: a shared counter with `allstock=no` can be bought out, and a shopping list that parks on one empty shelf blocks a run the per-leg sourcing could still finish. The give-up is the engine's own no-progress count.
 const PROVISION_GIVE_UP = 3;
 
-/** Coins and food ride along; everything a counter just sold goes into the bank. */
+/** Coins and food ride along; everything a counter sold goes into the bank. */
 function provisionDeposit(bank: Tile): QuestStep {
     return { kind: 'deposit', keep: [...LQ_FOODS], keepIds: [LQ_ID.COINS], bank };
 }

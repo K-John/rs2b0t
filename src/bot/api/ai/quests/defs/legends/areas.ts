@@ -140,6 +140,9 @@ export const LQ_ID = {
 
     RUNE_SCIMITAR: 1333,
     LOBSTER: 379,
+    SWORDFISH: 373,
+    SHARK: 385,
+    TUNA: 361,
 
     /** What each trial boulder leaves behind, worth nothing and one slot. */
     SWAMP_ROCK: 594
@@ -208,7 +211,10 @@ export const LQ_ITEM = {
     DIAMOND: 'Diamond',
 
     RUNE_SCIMITAR: 'Rune scimitar',
-    LOBSTER: 'Lobster'
+    LOBSTER: 'Lobster',
+    SWORDFISH: 'Swordfish',
+    SHARK: 'Shark',
+    TUNA: 'Tuna'
 } as const;
 
 // Why: an NPC's display name comes from the `.npc` config, never from a guide — every walkthrough calls him Sir Radimus Erkle and the server calls him Radimus Erkle.
