@@ -45,7 +45,7 @@ export class Traveller {
 
     async follow(route: RouteResult, options: TravelOptions = {}): Promise<TravelOutcome> {
         if (!route.ok) {
-            return { kind: 'refused', at: this.read().worldTile() ?? { x: 0, z: 0, level: 0 }, reason: 'the planner found no route' };
+            return { kind: 'refused', at: this.here(), reason: 'the planner found no route' };
         }
 
         const closeEnough = options.closeEnough ?? 2;
@@ -68,7 +68,7 @@ export class Traveller {
     }
 
     private here(): WorldTile {
-        return this.read().worldTile() ?? { x: 0, z: 0, level: 0 };
+        return this.read().snapshot.localPlayer?.tile ?? { x: 0, z: 0, level: 0 };
     }
 
     private async walkLeg(

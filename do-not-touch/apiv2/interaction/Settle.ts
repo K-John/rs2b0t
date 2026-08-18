@@ -43,7 +43,7 @@ export class Settle {
     interactions!: Interactions;
 
     private async watch(before: ReadContext, options: SettleOptions): Promise<Outcome> {
-        const startTick = before.tick();
+        const startTick = before.snapshot.tick;
         const wallDeadline = Date.now() + (options.budgetMs ?? options.budgetTicks * LIVE_TICK_MS * BACKSTOP_MULTIPLIER);
 
         for (;;) {
@@ -51,16 +51,16 @@ export class Settle {
 
             for (const [arm, evidence] of Object.entries(options.arms)) {
                 if (evidence(now, before)) {
-                    return { kind: 'matched', arm, now, before, tick: now.tick() };
+                    return { kind: 'matched', arm, now, before, tick: now.snapshot.tick };
                 }
             }
 
-            if (!now.attached() || !now.ingame()) {
-                return { kind: 'expired', now, before, tick: now.tick() };
+            if (!now.snapshot.attached || !now.snapshot.ingame) {
+                return { kind: 'expired', now, before, tick: now.snapshot.tick };
             }
 
-            if (now.tick() - startTick >= options.budgetTicks || Date.now() >= wallDeadline) {
-                return { kind: 'expired', now, before, tick: now.tick() };
+            if (now.snapshot.tick - startTick >= options.budgetTicks || Date.now() >= wallDeadline) {
+                return { kind: 'expired', now, before, tick: now.snapshot.tick };
             }
 
             await this.sleep(this.pollMs);

@@ -7,7 +7,6 @@ import { fmtDuration } from '../../../src/bot/paint/paintLogic.js';
 import { LiveSnapshotSource } from '../../apiv2/snapshots/LiveSnapshotSource.js';
 import { createInteractions } from '../../apiv2/interaction/createInteractions.js';
 import { liveDriver } from '../../apiv2/interaction/LiveInteractionDriver.js';
-import { ReadContext } from '../../apiv2/ReadApi.js';
 import { Traveller } from '../../apiv2/travel/Traveller.js';
 import { browserRouter } from '../../apiv2/nav/browserRouter.js';
 import { idxOf } from '../../apiv2/nav/types.js';
@@ -49,7 +48,6 @@ export default class TravelBot extends LoopingBot {
 
         const source = new LiveSnapshotSource();
         const { interactions, settle } = createInteractions({ source, driver: liveDriver });
-        const read = (): ReadContext => new ReadContext(source.read());
         const traveller = new Traveller(source, interactions, settle);
 
         this.status = 'loading route planner';
@@ -63,7 +61,7 @@ export default class TravelBot extends LoopingBot {
             return;
         }
 
-        const here = read().worldTile();
+        const here = source.read().localPlayer?.tile ?? null;
         if (here === null) {
             this.log('no world tile — not ingame yet');
             this.status = 'not ingame';

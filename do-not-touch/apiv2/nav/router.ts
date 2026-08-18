@@ -35,8 +35,7 @@ function buildDoorSteps(
     table: { doors: readonly DoorPlacement[]; blockedBy: ReadonlyMap<number, readonly number[]> },
     doorTicks: readonly number[],
     steps: Uint8Array,
-): { bits: Uint8Array; from: Map<number, DoorStep[]>; unpriced: number } {
-    const bits = new Uint8Array((N + 7) >> 3);
+): { from: Map<number, DoorStep[]>; unpriced: number } {
     const from = new Map<number, DoorStep[]>();
     let unpriced = 0;
 
@@ -71,10 +70,9 @@ function buildDoorSteps(
         const list = from.get(i);
         if (list) list.push(step);
         else from.set(i, [step]);
-        bits[i >> 3]! |= 1 << (i & 7);
     }
 
-    return { bits, from, unpriced };
+    return { from, unpriced };
 }
 
 export function buildGraph(grid: StepGrid, costs: TickCosts): { graph: RouterGraph; doorMs: number; transportMs: number } {

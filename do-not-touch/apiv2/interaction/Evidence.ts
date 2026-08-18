@@ -5,7 +5,7 @@ export const CANNOT_REACH = "I can't reach that!";
 
 export function arrived(tile: WorldTile, radius = 0): Evidence {
     return now => {
-        const here = now.worldTile();
+        const here = now.snapshot.localPlayer?.tile ?? null;
         if (here === null || here.level !== tile.level) return false;
         return Math.max(Math.abs(here.x - tile.x), Math.abs(here.z - tile.z)) <= radius;
     };
@@ -45,7 +45,7 @@ export function xpGained(skillIndex: number, atLeast = 1): Evidence {
 
 export function engaged(target: NpcSnapshot | PlayerSnapshot): Evidence {
     return (now, before) => {
-        const me = now.localPlayer();
+        const me = now.snapshot.localPlayer;
         if (me !== null && me.target !== null && me.target.index === target.index && me.target.kind === target.kind) return true;
 
         const find = (context: Parameters<Evidence>[0]): NpcSnapshot | PlayerSnapshot | null =>
@@ -58,7 +58,7 @@ export function engaged(target: NpcSnapshot | PlayerSnapshot): Evidence {
 
 export function modalOpened(rootComponentId?: number): Evidence {
     return now => {
-        const modals = now.modals();
+        const modals = now.snapshot.modals;
         if (rootComponentId === undefined) return modals.main !== -1 || modals.side !== -1 || modals.chat !== -1 || modals.tutorial !== -1;
         return modals.main === rootComponentId || modals.side === rootComponentId || modals.chat === rootComponentId || modals.tutorial === rootComponentId;
     };
@@ -66,7 +66,7 @@ export function modalOpened(rootComponentId?: number): Evidence {
 
 export function modalClosed(rootComponentId?: number): Evidence {
     return now => {
-        const modals = now.modals();
+        const modals = now.snapshot.modals;
         if (rootComponentId === undefined) return modals.main === -1 && modals.side === -1 && modals.chat === -1 && modals.tutorial === -1;
         return modals.main !== rootComponentId && modals.side !== rootComponentId && modals.chat !== rootComponentId && modals.tutorial !== rootComponentId;
     };
@@ -101,7 +101,7 @@ export function serverRefused(): Evidence {
         const was = before.snapshot.mapFlag;
         if (was === null || now.snapshot.mapFlag !== null) return false;
 
-        const here = now.worldTile();
+        const here = now.snapshot.localPlayer?.tile ?? null;
         const scene = now.snapshot.scene;
         if (here === null || !scene.available) return true;
         return here.x - scene.baseX !== was.lx || here.z - scene.baseZ !== was.lz;
@@ -109,7 +109,7 @@ export function serverRefused(): Evidence {
 }
 
 export function sceneReady(): Evidence {
-    return now => now.sceneState() === 2 && now.scene().base().x !== 0;
+    return now => now.snapshot.sceneState === 2 && now.snapshot.scene.baseX !== 0;
 }
 
 export function inventoryChanged(): Evidence {

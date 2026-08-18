@@ -1,25 +1,17 @@
-import { LiveSnapshotSource } from './snapshots/LiveSnapshotSource.js';
 import type {
     ChatOptionSnapshot,
-    CameraSnapshot,
     GameSnapshot,
     GroundItemSnapshot,
     ItemSnapshot,
     LocSnapshot,
-    LocalPlayerSnapshot,
     MakeProductSnapshot,
-    ModalSnapshot,
     NpcSnapshot,
     PlayerSnapshot,
     QuestStatusSnapshot,
     SideTabSnapshot,
-    ToggleControlsSnapshot,
     VarpSnapshot,
-    WidgetSnapshot,
-    WorldStateSnapshot,
-    WorldTile
+    WidgetSnapshot
 } from './snapshots/GameSnapshot.js';
-import type { SnapshotSource } from './snapshots/SnapshotSource.js';
 import { ItemQuery } from './queries/ItemQuery.js';
 import { GroundItemQuery } from './queries/GroundItemQuery.js';
 import { LocalQuery } from './queries/LocalQuery.js';
@@ -35,30 +27,6 @@ import { SideTabQuery } from './queries/SideTabQuery.js';
 
 export class ReadContext {
     constructor(readonly snapshot: GameSnapshot) {}
-
-    tick(): number {
-        return this.snapshot.tick;
-    }
-
-    attached(): boolean {
-        return this.snapshot.attached;
-    }
-
-    ingame(): boolean {
-        return this.snapshot.ingame;
-    }
-
-    sceneState(): number {
-        return this.snapshot.sceneState;
-    }
-
-    localPlayer(): LocalPlayerSnapshot | null {
-        return this.snapshot.localPlayer;
-    }
-
-    selfSlot(): number {
-        return this.snapshot.selfSlot;
-    }
 
     stats(): StatQuery {
         return new StatQuery(this.snapshot.stats);
@@ -88,10 +56,6 @@ export class ReadContext {
         return new ItemQuery(this.snapshot.equipment);
     }
 
-    inventoryCapacity(): number {
-        return this.snapshot.inventorySize;
-    }
-
     bank(): ItemQuery<ItemSnapshot> {
         return new ItemQuery(this.snapshot.bankItems);
     }
@@ -100,20 +64,12 @@ export class ReadContext {
         return new ItemQuery(this.snapshot.bankSideItems);
     }
 
-    bankComponentId(): number {
-        return this.snapshot.bankComponentId;
-    }
-
     chat(): ChatQuery {
         return new ChatQuery(this.snapshot.chat);
     }
 
     chatOptions(): Query<ChatOptionSnapshot> {
         return new Query(this.snapshot.chatOptions);
-    }
-
-    chatContinueComponentId(): number {
-        return this.snapshot.chatContinueComponentId;
     }
 
     makeProducts(): Query<MakeProductSnapshot> {
@@ -140,16 +96,8 @@ export class ReadContext {
         return new VarpQuery(this.snapshot.varps);
     }
 
-    world(): WorldStateSnapshot {
-        return this.snapshot.world;
-    }
-
     scene(): SceneQuery {
         return new SceneQuery(this.snapshot.scene, this.snapshot.localPlayer?.tile ?? null);
-    }
-
-    camera(): CameraSnapshot {
-        return this.snapshot.camera;
     }
 
     tradeMyOffer(): ItemQuery<ItemSnapshot> {
@@ -164,54 +112,6 @@ export class ReadContext {
         return new ItemQuery(this.snapshot.trade.sidePack);
     }
 
-    modals(): ModalSnapshot {
-        return this.snapshot.modals;
-    }
-
-    countDialogOpen(): boolean {
-        return this.snapshot.countDialogOpen;
-    }
-
-    activeSideTab(): number {
-        return this.snapshot.activeSideTab;
-    }
-
-    loginMessage(): string {
-        return this.snapshot.loginMessage;
-    }
-
-    menuEntries(): readonly string[] {
-        return this.snapshot.menuEntries;
-    }
-
-    mainModalTexts(): readonly string[] {
-        return this.snapshot.mainModalTexts;
-    }
-
-    chatModalTexts(): readonly string[] {
-        return this.snapshot.chatModalTexts;
-    }
-
-    runControls(): ToggleControlsSnapshot | null {
-        return this.snapshot.runControls;
-    }
-
-    retaliateControls(): ToggleControlsSnapshot | null {
-        return this.snapshot.retaliateControls;
-    }
-
-    worldTile(): WorldTile | null {
-        return this.snapshot.localPlayer?.tile ?? null;
-    }
-
-    loginCredentials(): { username: string; password: string } {
-        return this.snapshot.loginCredentials;
-    }
-
-    varp(index: number): number {
-        return this.snapshot.varps.find(v => v.index === index)?.value ?? 0;
-    }
-
     componentItems(componentId: number): ItemQuery<ItemSnapshot> {
         const widget = this.component(componentId);
         return new ItemQuery(widget?.items ?? []);
@@ -224,21 +124,5 @@ export class ReadContext {
     componentModelObjId(componentId: number): number | null {
         const com = this.component(componentId);
         return com !== null && com.modelType === 4 ? com.modelId : null;
-    }
-
-    sideTabInterface(tab: number): number {
-        return this.snapshot.sideTabs.find(t => t.index === tab)?.rootComponentId ?? -1;
-    }
-}
-
-export class ReadApi {
-    constructor(private readonly source: SnapshotSource = new LiveSnapshotSource()) {}
-
-    snapshot(): GameSnapshot {
-        return this.source.read();
-    }
-
-    read(): ReadContext {
-        return new ReadContext(this.snapshot());
     }
 }
