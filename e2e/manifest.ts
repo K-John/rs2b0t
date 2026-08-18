@@ -39,8 +39,9 @@ export const CASES: readonly Case[] = [
         id: 'ardyfighter-restock-loop-live',
         harness: 'ardyfighter-restock-loop-live.ts',
         covers: { scripts: ['ArdyFighter'] },
-        status: 'unvetted',
-        budgetMin: 5
+        status: 'vetted',
+        budgetMin: 5,
+        provenAt: 'b0ae0134ec44db595faa9d58947fb30e14f6e56c'
     },
     {
         id: 'baxtorian-rope-369-live',
