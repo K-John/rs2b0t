@@ -48,6 +48,7 @@ unencrypted under a different key; it is detected rather than silently discarded
 
 `ProfileChooser` is the load-or-create screen and `VaultPrompt` the unlock prompt. Both
 are DOM view modules named explicitly in the [DOM fence](import-fences.md).
+Settings exports the unlocked vault as plaintext JSON and replaces it on import.
 
 ## Login coordination
 
