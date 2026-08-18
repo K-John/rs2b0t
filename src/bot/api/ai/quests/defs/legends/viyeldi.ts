@@ -103,6 +103,12 @@ async function climb(ledge: Ledge, dir: 'down' | 'up', log: (m: string) => void)
     return false;
 }
 
+// Why: every climb rolls `stat_random(agility, 110, 250)` and a miss drops the climber down the rock rather than stopping them, so a descent lands anywhere from the next pocket to the cave floor.
+/** The pockets the six climbs pass through, in the order they are met. */
+const DESCENT_ORDER: readonly LegendsPocket[] = [
+    'viyeldiLedge', 'descentOne', 'descentTwo', 'descentThree', 'descentFour', 'descentFive', 'viyeldiMain'
+];
+
 /** Work down the six ledges from the rope landing to the cave floor. */
 export async function descendLedges(log: (m: string) => void): Promise<boolean> {
     if (legendsArea(Game.tile()) !== 'viyeldiCaves') {
@@ -110,8 +116,13 @@ export async function descendLedges(log: (m: string) => void): Promise<boolean> 
         return false;
     }
     for (const ledge of LEDGES) {
-        if (pocket() === 'viyeldiMain' || pocket() === 'viyeldiSource') {
+        const at = pocket();
+        if (at === 'viyeldiMain' || at === 'viyeldiSource') {
             return true;
+        }
+        // Why: a fall past a ledge leaves its stand one-way behind us, and walking the list from the top sends the character at a tile the pocket it landed in cannot reach — which reads `no path to (2386,4727,0): unreachable` for as long as the leg is given.
+        if (at !== null && DESCENT_ORDER.indexOf(at) >= DESCENT_ORDER.indexOf(ledge.down.to)) {
+            continue;
         }
         if (!(await climb(ledge, 'down', log))) {
             return false;
@@ -154,10 +165,23 @@ const HERO_SWEEP: readonly Tile[] = [
     new Tile(2400, 4725, 0)
 ];
 
+// Why: `nearest` picks by straight line and the descent pockets are sealed one-way, so a guardian standing three tiles up a ledge already climbed past beats the one on the cave floor — and the walk to it answers `no path to (2386,4727,0): unreachable` for as long as the leg is given.
+// Why: the pocket the character is standing in is the test, since every guardian worth fighting shares it.
+
+/** The named guardian, if one is standing somewhere this pocket can walk to. */
+function guardianHere(name: string): Npc | null {
+    const at = pocket();
+    return Npcs.query()
+        .name(name)
+        .where(npc => at === null || legendsPocket(npc.tile()) === at)
+        .within(48)
+        .nearest();
+}
+
 /** Walk the cave until the named guardian is in the scene. */
 async function findGuardian(name: string, log: (m: string) => void): Promise<Npc | null> {
     for (const anchor of HERO_SWEEP) {
-        const seen = Npcs.query().name(name).within(48).nearest();
+        const seen = guardianHere(name);
         if (seen) {
             return seen;
         }
@@ -165,7 +189,7 @@ async function findGuardian(name: string, log: (m: string) => void): Promise<Npc
             await settleScene();
         }
     }
-    return Npcs.query().name(name).within(48).nearest();
+    return guardianHere(name);
 }
 
 async function fightGuardian(name: string, section: number, log: (m: string) => void): Promise<boolean> {

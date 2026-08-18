@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { LQ_ID, LQ_STAGE, LQ_TILE, inJungleBand, inOctagram, jungleSection, legendsArea } from '#/bot/api/ai/quests/defs/legends/areas.js';
 import { decide, legends } from '#/bot/api/ai/quests/defs/legends/index.js';
 import { legendsPocket } from '#/bot/api/ai/quests/defs/legends/pockets.js';
+
 import { KEEP_IDS, LQ_FOODS, PRAYER_POTIONS, SHOP_GP, coinTopUp } from '#/bot/api/ai/quests/defs/legends/supplies.js';
 import { QUEST_DEFS } from '#/bot/api/ai/quests/defs/index.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
@@ -894,5 +895,21 @@ describe('the module', () => {
         expect(wanted).toContain('Cosmic rune');
         // Why: eligibility runs before a booth has ever been opened, so a `mustHave` would block the quest at startup.
         expect(legends.record.items.every(item => item.kind === 'acquirable')).toBe(true);
+    });
+});
+
+// Why: every Viyeldi climb rolls `stat_random(agility, 110, 250)` and a miss drops the climber down the rock, so a descent lands anywhere from the next pocket to the cave floor — and the stands above are one-way behind it.
+describe('the Viyeldi descent after a fall', () => {
+    const at = (x: number, z: number): string => legendsPocket({ x, z, level: 0 } as never) ?? '—';
+
+    test('the cave floor is a different pocket from the ledge stands above it', () => {
+        expect(at(2385, 4730)).toBe('viyeldiMain');
+        expect(at(2386, 4727)).toBe('descentThree');
+        expect(at(2388, 4728)).toBe('descentFour');
+    });
+
+    // Why: this is the tile a live run ground on — three tiles from the character and in a pocket the fall had already put behind it.
+    test('a guardian standing above the floor is not in the pocket the floor can walk to', () => {
+        expect(at(2385, 4730)).not.toBe(at(2386, 4727));
     });
 });
