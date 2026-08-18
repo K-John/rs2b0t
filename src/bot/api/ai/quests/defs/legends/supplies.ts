@@ -317,9 +317,8 @@ export const RUNE_KIT: readonly { item: LqItem; qty: number; stock?: number }[] 
 /** How many descents one shopping trip is stocked for. */
 const DESCENTS_STOCKED = 5;
 
-/** One charge-water-orb cast, which is what the magic gate is. */
+/** The counter half of one charge-water-orb cast, which is what the magic gate is. */
 export const ORB_RUNE_KIT: readonly { item: LqItem; qty: number; stock?: number }[] = [
-    { item: { id: LQ_ID.COSMIC_RUNE, name: LQ_ITEM.COSMIC_RUNE }, qty: 3, stock: 3 * DESCENTS_STOCKED },
     { item: { id: LQ_ID.WATER_RUNE, name: LQ_ITEM.WATER_RUNE }, qty: 30, stock: 30 * DESCENTS_STOCKED }
 ];
 
@@ -330,10 +329,13 @@ export const BANK_ONLY_KIT: readonly { item: LqItem; qty: number }[] = [
 
 // Why: the outer gate shuts behind whoever picked it and the three boulders drop back down behind whoever mined them, so the descent is paid for again in full every time it is made.
 
-/** The lockpick and the orb, both spent on every descent and stocked by no counter. */
+// Why: the cosmic runes sit here rather than with the water ones they are cast alongside. The Magic Guild counter stocks fire, water, air, earth, mind, body, soul, nature, chaos, blood, law and death and no cosmic at all — the only shop in the game that sells one is the Mage Arena's, which is deep Wilderness and behind a setting. Asked for at a counter that cannot sell it, the leg buys nothing and says nothing.
+
+/** The lockpick, the orb and the cast's cosmic runes — all spent on every descent, none stocked by a counter. */
 export const DESCENT_KIT: readonly { item: LqItem; qty: number }[] = [
     { item: { id: LQ_ID.LOCKPICK, name: LQ_ITEM.LOCKPICK }, qty: 1 },
-    { item: { id: LQ_ID.UNPOWERED_ORB, name: LQ_ITEM.UNPOWERED_ORB }, qty: 1 }
+    { item: { id: LQ_ID.UNPOWERED_ORB, name: LQ_ITEM.UNPOWERED_ORB }, qty: 1 },
+    { item: { id: LQ_ID.COSMIC_RUNE, name: LQ_ITEM.COSMIC_RUNE }, qty: 3 }
 ];
 
 export function sourceFrom(
@@ -417,6 +419,51 @@ export function sourceGoldBars(snap: QuestSnapshot, bank?: Tile): QuestStep | nu
         return pickaxe;
     }
     return { kind: 'mineRock', rock: 'Gold', item: 'Gold ore', qty: 1, anchor: LQ_TILE.GOLD_ROCKS };
+}
+
+// Why: every counter this quest uses is a sea crossing or a kingdom away from the next thing it needs — Jiminua's is on Karamja, the Magic Guild is upstairs in Yanille — and sourcing per leg alternated between them and the bank across the length of stage 8. Bought once, banked once, every later leg is a withdraw.
+// Why: the check is against `qty` and the purchase is against `stock`, the same split `source` makes, so a pack that already holds a descent's worth is not sent shopping for four more.
+
+/** Each counter this quest ever buys from, in one visit apiece, banked before the next. */
+const COUNTERS: readonly {
+    shop: Shop;
+    estGp: number;
+    bank: Tile;
+    kit: readonly { item: LqItem; qty: number; stock?: number }[];
+}[] = [
+    { shop: LQ_SHOP.MAGIC_GUILD, estGp: SHOP_GP.MAGIC_GUILD, bank: LQ_BANK.YANILLE, kit: [...RUNE_KIT, ...ORB_RUNE_KIT] },
+    { shop: LQ_SHOP.JIMINUA, estGp: SHOP_GP.JIMINUA, bank: LQ_BANK.SHILO, kit: JIMINUA_KIT }
+];
+
+// Why: a shared counter with `allstock=no` can be bought out, and a shopping list that parks on one empty shelf blocks a run the per-leg sourcing could still finish. The give-up is the engine's own no-progress count.
+const PROVISION_GIVE_UP = 3;
+
+/** Coins and food ride along; everything a counter just sold goes into the bank. */
+function provisionDeposit(bank: Tile): QuestStep {
+    return { kind: 'deposit', keep: [...LQ_FOODS], keepIds: [LQ_ID.COINS], bank };
+}
+
+/** Stock the bank from every counter before the quest touches the field, or null once it is stocked. */
+export function provision(snap: QuestSnapshot): QuestStep | null {
+    if (snap.noProgress >= PROVISION_GIVE_UP) {
+        return null;
+    }
+    for (const counter of COUNTERS) {
+        const short = counter.kit.find(want => owned(snap, want.item.id) + banked(snap, want.item.id) < want.qty);
+        if (short) {
+            if (!snap.bankKnown) {
+                return scanBank(counter.bank);
+            }
+            const have = owned(snap, short.item.id) + banked(snap, short.item.id);
+            const target = Math.max(short.stock ?? short.qty, short.qty);
+            return { kind: 'buy', item: short.item.name, qty: target - have, shop: counter.shop, estGp: counter.estGp, bank: counter.bank };
+        }
+        // Why: banked at this counter's own booth rather than carried to the next, as the two lists together are more slots than the pack has.
+        if (counter.kit.some(want => held(snap, want.item.id) > 0)) {
+            return provisionDeposit(counter.bank);
+        }
+    }
+    return null;
 }
 
 export function warnLegendsReadiness(): string | null {

@@ -24,7 +24,7 @@ function counts(names: string[]): Map<string, number> {
     const out = new Map<string, number>();
     for (const name of names) {
         const key = name.toLowerCase();
-        out.set(key, (out.get(key) ?? 0) + 1);
+        out.set(key, (out.get(key) ?? 0) + (key === 'coins' ? 20_000 : 1));
     }
     return out;
 }
@@ -180,6 +180,82 @@ describe('legendsPocket', () => {
     }
 });
 
+// Why: both counters are a sea crossing from everything the quest then does, and sourcing per leg alternated between them and the bank across the length of stage 8 — Ardougne bank, Jiminua's on Karamja, then a gold rock back on the mainland, three regions in three consecutive steps.
+describe('provisioning before the quest starts', () => {
+    // Why: the coin and food floats run ahead of the stage switch, so a fixture under either of them never reaches the provisioning branch at all.
+    const FLOAT = { inv: ['Coins', ...Array.from({ length: 4 }, () => 'Lobster')], bank: ['Coins'] };
+    const bare = (o: SnapOpts = {}): QuestSnapshot =>
+        snap({
+            stage: LQ_STAGE.NOT_STARTED,
+            journal: 'notStarted',
+            ...FLOAT,
+            invIds: [LQ_ID.COINS, ...Array.from({ length: 4 }, () => LQ_ID.LOBSTER)],
+            bankIds: [LQ_ID.COINS],
+            ...o
+        });
+
+    test('the first errand is the Magic Guild counter, not Radimus', () => {
+        const step = decide(bare());
+        expect(step.kind).toBe('buy');
+        expect(step.kind === 'buy' && step.shop.npc).toBe('Magic Store owner');
+    });
+
+    test('the guild list is banked before the walk to Jiminua', () => {
+        const bought = bare({
+            invIds: [
+                LQ_ID.COINS, ...Array.from({ length: 4 }, () => LQ_ID.LOBSTER),
+                LQ_ID.SOUL_RUNE, LQ_ID.MIND_RUNE, LQ_ID.EARTH_RUNE, LQ_ID.LAW_RUNE, LQ_ID.LAW_RUNE,
+                ...Array.from({ length: 30 }, () => LQ_ID.WATER_RUNE)
+            ]
+        });
+        const step = decide(bought);
+        expect(step.kind).toBe('deposit');
+        expect(step.kind === 'deposit' && step.bank?.x).toBe(2612);
+    });
+
+    test('a stocked bank walks straight to Radimus', () => {
+        const stocked = bare({
+            bankIds: [
+                LQ_ID.COINS, LQ_ID.SOUL_RUNE, LQ_ID.MIND_RUNE, LQ_ID.EARTH_RUNE, LQ_ID.LAW_RUNE, LQ_ID.LAW_RUNE,
+                ...Array.from({ length: 30 }, () => LQ_ID.WATER_RUNE),
+                LQ_ID.MACHETE, ...Array.from({ length: 8 }, () => LQ_ID.PAPYRUS), ...Array.from({ length: 8 }, () => LQ_ID.CHARCOAL),
+                LQ_ID.KNIFE, LQ_ID.ROPE, LQ_ID.HAMMER, LQ_ID.CHISEL, LQ_ID.VIAL_WATER
+            ]
+        });
+        expect(name(decide(stocked))).toBe('custom:ask Radimus Erkle for the quest');
+    });
+
+    // Why: Jiminua's is a shared counter with `allstock=no`, and a shopping list that parks on one empty shelf blocks a run the per-leg sourcing could still finish.
+    test('a counter that will not sell falls through to the quest rather than parking', () => {
+        expect(name(decide({ ...bare(), noProgress: 3 }))).toBe('custom:ask Radimus Erkle for the quest');
+    });
+
+    // Why: the Magic Guild stocks no cosmic rune at all — the only counter in the game that sells one is the Mage Arena's, which is deep Wilderness and behind a setting.
+    test('cosmic runes are never asked of a counter', () => {
+        const asked: string[] = [];
+        let cur = bare();
+        for (let i = 0; i < 20; i++) {
+            const step = decide(cur);
+            if (step.kind !== 'buy') break;
+            asked.push(step.item);
+            const ids = new Map(cur.invIds);
+            const id = BUY_ID[step.item];
+            if (id === undefined) break;
+            ids.set(id, (ids.get(id) ?? 0) + step.qty);
+            cur = { ...cur, invIds: ids };
+        }
+        expect(asked).not.toContain('Cosmic rune');
+        expect(asked.length).toBeGreaterThan(0);
+    });
+});
+
+const BUY_ID: Record<string, number> = {
+    'Soul rune': LQ_ID.SOUL_RUNE, 'Mind rune': LQ_ID.MIND_RUNE, 'Earth rune': LQ_ID.EARTH_RUNE,
+    'Law rune': LQ_ID.LAW_RUNE, 'Water rune': LQ_ID.WATER_RUNE, Machete: LQ_ID.MACHETE,
+    Papyrus: LQ_ID.PAPYRUS, Charcoal: LQ_ID.CHARCOAL, Knife: LQ_ID.KNIFE, Rope: LQ_ID.ROPE,
+    Hammer: LQ_ID.HAMMER, Chisel: LQ_ID.CHISEL, 'Vial of water': LQ_ID.VIAL_WATER
+};
+
 describe('Legends Quest decide', () => {
     test('a complete journal is done', () => {
         expect(decide(snap({ journal: 'complete' })).kind).toBe('done');
@@ -198,9 +274,10 @@ describe('Legends Quest decide', () => {
         expect(name(step)).toBe('custom:climb back out of the caves');
     });
 
-    test('not started asks Radimus for the quest', () => {
+    // Why: the shopping now runs ahead of Radimus, so an empty bank shops first — the walk to him is what happens once both counters have been emptied into it.
+    test('not started shops before it asks Radimus for the quest', () => {
         const step = decide(snap({ journal: 'notStarted', stage: LQ_STAGE.NOT_STARTED }));
-        expect(name(step)).toBe('custom:ask Radimus Erkle for the quest');
+        expect(step.kind).toBe('buy');
     });
 
     test('started with no machete takes one from the cupboard', () => {

@@ -56,6 +56,7 @@ import {
     PRAYER_POTIONS,
     potionTopUp,
     potsBanked,
+    provision,
     potsHeld,
     sourceBankOnly,
     sourceFrom,
@@ -296,8 +297,10 @@ function potsFor(snap: QuestSnapshot, stage: number): number {
     return held(snap, LQ_ID.GOLD_BOWL) > 0 ? 1 : 0;
 }
 
+// Why: the shopping happens before Radimus is asked for the quest, because both counters are a sea crossing from everything the quest then does — and a list bought per leg walked Karamja to Yanille to Ardougne and back across the length of stage 8.
+
 function stageStart(snap: QuestSnapshot): QuestStep {
-    return inTheOpen(snap, step('ask Radimus Erkle for the quest', startQuest));
+    return inTheOpen(snap, provision(snap) ?? step('ask Radimus Erkle for the quest', startQuest));
 }
 
 // Why: Radimus keeps a free machete in the cupboard beside his desk and refuses a second one, so the counter in Shilo is the fallback rather than the first stop.
