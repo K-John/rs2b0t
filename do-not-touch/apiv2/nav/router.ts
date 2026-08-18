@@ -7,7 +7,6 @@ import { rsmod, stepGrid } from './grid';
 import { buildTransportTable } from './transports';
 import {
     DIRS,
-    N,
     edgeKey,
     idxOf,
     tileOf,
