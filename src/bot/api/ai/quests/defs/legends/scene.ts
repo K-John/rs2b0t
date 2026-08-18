@@ -110,12 +110,17 @@ export async function driveBoxes(expect: () => boolean, ms: number, prefer: stri
         if (expect()) {
             return true;
         }
+        // Why: both of these can answer at once without having changed anything — `driveChoice` returns on an option list it cannot answer, and `Modals.close` returns on a root with no close button — so a bare `continue` would spin the loop flat out until the deadline and starve the tick it is waiting for.
         if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
-            await driveChatChoice(prefer, () => {});
+            if (!(await driveChatChoice(prefer, () => {}))) {
+                await Execution.delayTicks(1);
+            }
             continue;
         }
         if (Modals.isOpen()) {
-            await Modals.close();
+            if (!(await Modals.close())) {
+                await Execution.delayTicks(1);
+            }
             continue;
         }
         await Sustain.run();
