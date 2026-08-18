@@ -8,7 +8,7 @@ import type Tile from '../../../../../geometry/Tile.js';
 import { EVIL_TOTEMS, FERTILE_SOILS, LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC } from './areas.js';
 import { fight } from './fight.js';
 import { enterJungle, talkGujuo } from './jungle.js';
-import { driveUntil, heldId, modalText, settleScene, useOnLoc } from './scene.js';
+import { clearBoxes, driveUntil, heldId, modalText, settleScene, useOnLoc } from './scene.js';
 
 const PLANT_ATTEMPTS = 3;
 const GROW_MS = 90_000;
@@ -78,7 +78,7 @@ export async function growTotemPole(log: (m: string) => void): Promise<boolean> 
             () => treeAt(LQ_LOC_ID.YOMMI_SAPLING, soil) !== null || /withers and dies/.test(modalText()),
             log
         );
-        await driveUntil(() => modalText() === '', [], log, 6000);
+        await clearBoxes();
     }
 
     if (treeAt(LQ_LOC_ID.YOMMI_SAPLING, soil)) {
@@ -146,7 +146,7 @@ export async function replaceEvilTotem(log: (m: string) => void): Promise<boolea
                 () => heldId(LQ_ID.TOTEM_POLE) === 0 || enemyNear(LQ_NPC.NEZIKCHENED),
                 log
             );
-            await driveUntil(() => modalText() === '', [], log, 8000);
+            await clearBoxes();
         }
         if (heldId(LQ_ID.TOTEM_POLE) === 0) {
             return true;

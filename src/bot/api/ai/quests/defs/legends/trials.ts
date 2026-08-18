@@ -9,7 +9,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { GEM_ROCKS, LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_TILE, WALL_RUNES, inOctagram, legendsArea } from './areas.js';
 import { legendsPocket, type LegendsPocket } from './pockets.js';
-import { driveUntil, heldId, modalText, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { clearBoxes, driveUntil, heldId, modalText, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 /** Which sealed pocket of the cave complex we are standing in. */
 export function pocket(): LegendsPocket | null {
@@ -132,7 +132,7 @@ export async function openOuterGate(log: (m: string) => void): Promise<boolean> 
         const gate = locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Search') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Search');
         if (gate && (await gate.interact('Search'))) {
             await driveUntil(() => !shut() || /tumble the lock mechanism|fail to pick the lock/.test(modalText()), [], log, 30_000);
-            await driveUntil(() => modalText() === '', [], log, 8000);
+            await clearBoxes();
         }
         if (await stepThrough(LQ_TILE.LOCKPICK_GATE_SOUTH, 'outerGate', log, true)) {
             return true;
@@ -156,7 +156,7 @@ export async function leaveOuterGate(log: (m: string) => void): Promise<boolean>
         const gate = locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Open') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Open');
         if (gate && (await gate.interact('Open'))) {
             await driveUntil(() => modalText() !== '', [], log, 6000);
-            await driveUntil(() => modalText() === '', [], log, 8000);
+            await clearBoxes();
         }
         if (await stepThrough(LQ_TILE.LOCKPICK_GATE_NORTH, 'crevice', log, true)) {
             return true;
@@ -237,7 +237,7 @@ export async function openInnerGate(reverse: boolean, log: (m: string) => void):
                 log,
                 25_000
             );
-            await driveUntil(() => modalText() === '', [], log, 8000);
+            await clearBoxes();
         }
         if (await stepThrough(landing, want, log, true)) {
             return true;
@@ -309,7 +309,8 @@ async function placeWallRunes(wall: Tile, want: LegendsPocket, log: (m: string) 
             () => SLID.test(modalText()) || pocket() === want || GameMessages.sawSince(mark, BURNED),
             log
         );
-        await driveUntil(() => pocket() === want || modalText() === '', ["Yes, I'll go through!"], log, 10_000);
+        await driveUntil(() => pocket() === want, ["Yes, I'll go through!"], log, 8000);
+        await clearBoxes();
     }
     return pocket() === want;
 }
@@ -384,7 +385,7 @@ export async function placeGems(log: (m: string) => void): Promise<boolean> {
             log(`the ${gem.name} would not settle over its rock at (${gem.rock.x},${gem.rock.z})`);
             return false;
         }
-        await driveUntil(() => modalText() === '', [], log, 6000);
+        await clearBoxes();
     }
     return true;
 }

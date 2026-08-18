@@ -9,7 +9,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { JUNGLE_BAND, LQ_ID, LQ_LOC, LQ_NPC, LQ_TILE, inJungleBand, jungleSection, legendsArea } from './areas.js';
-import { driveToEnd, driveUntil, heldId, here, modalText, offerTo, settleScene } from './scene.js';
+import { clearBoxes, driveToEnd, driveUntil, heldId, here, modalText, offerTo, settleScene } from './scene.js';
 import { leaveCaves } from './viyeldi.js';
 
 const CHOP_ATTEMPTS = 14;
@@ -158,7 +158,7 @@ async function drawSection(log: (m: string) => void): Promise<'done' | 'retry' |
         log,
         20_000
     );
-    await driveUntil(() => modalText() === '', [], log, 8000);
+    await clearBoxes();
     if (heldId(LQ_ID.MAP_COMPLETE) > 0 || MAPPED.test(said)) {
         return 'done';
     }

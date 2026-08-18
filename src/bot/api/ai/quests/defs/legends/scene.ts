@@ -2,6 +2,7 @@ import { reader } from '../../../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
+import { Modals } from '../../../../ui/widgets/Modals.js';
 import type { Npc } from '../../../../model/Npc.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
@@ -92,6 +93,17 @@ export async function driveToEnd(prefer: string[], log: (m: string) => void, ms 
         await Execution.delayTicks(1);
     }
     return spoke && !ChatDialog.isOpen();
+}
+
+// Why: `~mesbox` renders in the MAIN modal, and the chat driver only ever clicks the CHAT one — `ChatDialog.canContinue()` reads `chatContinueComId`. So a box chain raised by a loc script is readable by `modalText` and dismissable by nothing, and every `driveUntil(() => modalText() === '')` waiting for one to clear itself spends its budget in full. The trials are seven such chains.
+
+/** Click through whatever boxes the last interaction raised. */
+export async function clearBoxes(max = 8): Promise<void> {
+    for (let i = 0; i < max && Modals.isOpen(); i++) {
+        if (!(await Modals.close())) {
+            return;
+        }
+    }
 }
 
 /** Whatever a modal box is currently showing, normalised for matching. */

@@ -8,7 +8,7 @@ import Tile from '../../../../../geometry/Tile.js';
 import { HEROES, LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE, legendsArea } from './areas.js';
 import { fight } from './fight.js';
 import { legendsPocket, type LegendsPocket } from './pockets.js';
-import { driveUntil, heldId, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { clearBoxes, driveUntil, heldId, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
 import { climbOutOfTrials, leaveOctagram, leaveShamanCave, pocket } from './trials.js';
 
 interface Ledge {
@@ -438,7 +438,7 @@ export async function collectSacredWater(log: (m: string) => void): Promise<bool
             log
         );
         if (filled) {
-            await driveUntil(() => modalText() === '', [], log, 6000);
+            await clearBoxes();
             return true;
         }
     }
