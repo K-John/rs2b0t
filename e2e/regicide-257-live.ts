@@ -347,9 +347,11 @@ try {
         fail(`Underground Pass reads ${gates.upass} after the seed — Regicide will report BLOCKED`);
     }
 
-    // Why: stage 3 is the first that begins past the palisade, where there is no bank to draw from, and 14 is
-    // the last that still needs a pack — it walks to King Lathas with Iorwerth's letter and hands it over.
-    if (args.pack && args.stage >= 3 && args.stage <= 14) {
+    // Why: from stage 2, not stage 3. Stage 2 is the walk through the Underground Pass, and its leg starts at
+    // the Ardougne bank where `outfit` would otherwise buy the kit first — seven minutes of Taverley and
+    // Catherby before the leg reaches the thing it is testing. Stages 0 and 1 already prove the shopping.
+    // Why: 14 is the last that still needs a pack — it walks to King Lathas with Iorwerth's letter.
+    if (args.pack && args.stage >= 2 && args.stage <= 14) {
         await seedPack(page, args.stage);
     }
     // Why: the bomb is a dozen steps in three regions, so a leg part-way along it has to be handed the
