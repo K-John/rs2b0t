@@ -108,6 +108,10 @@ export async function crawlBackFromCrevice(log: (m: string) => void): Promise<bo
 
 const PICK_ATTEMPTS = 10;
 
+// Why: `stat_random(thieving, 0, 255)` decides the lock and `stat_random(strength, 0, 255)` the doors, and both leave the character on the stand with the gate still shut — so a miss is a re-click, not a crossing.
+const PICK_MISSED = /fail to pick the lock/;
+const FORCE_MISSED = /run out of steam/;
+
 // Why: only Search with a lockpick opens the outer gate, and it rolls against thieving each time; Open answers "You push on the doors, they're really shut" from the entering side for ever.
 
 /** Pick the outer ancient gate and step through it. */
@@ -133,7 +137,13 @@ export async function openOuterGate(log: (m: string) => void): Promise<boolean> 
         const gate = locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Search') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Search');
         if (gate && (await gate.interact('Search'))) {
             await driveUntil(() => !shut() || /tumble the lock mechanism|fail to pick the lock/.test(modalText()), [], log, 30_000);
+            // Why: read before the boxes go, since clearing them is what takes the text away.
+            const missed = PICK_MISSED.test(modalText());
             await clearBoxes();
+            // Why: a missed roll leaves the door shut and the character where it was, so the next Search goes straight in — the crossing below cannot land and the walk back is to a tile already underfoot, and paying for both is most of the time this leg spends.
+            if (missed) {
+                continue;
+            }
         }
         if (await stepThrough(LQ_TILE.LOCKPICK_GATE_SOUTH, 'outerGate', log, true)) {
             return true;
@@ -251,7 +261,11 @@ export async function openInnerGate(reverse: boolean, log: (m: string) => void):
                 log,
                 25_000
             );
+            const missed = FORCE_MISSED.test(modalText());
             await clearBoxes();
+            if (missed) {
+                continue;
+            }
         }
         if (await stepThrough(landing, want, log, true)) {
             return true;
