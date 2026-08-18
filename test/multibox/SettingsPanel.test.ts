@@ -6,24 +6,25 @@ import { SettingsPanel } from '#/bot/multibox/SettingsPanel.js';
 const snap: ProfileSnapshot = {
     profiles: [{ username: 'alice', password: 'secret', tab: 'miners' }],
     tabs: ['miners'],
-    activeTab: 'miners'
+    activeTab: 'miners',
+    storage: { alice: { selectedScript: 'Miner', 'set:Miner:rock': 'iron' } }
 };
 
-const empty: ProfileSnapshot = { profiles: [], tabs: [], activeTab: 'Main' };
+const empty: ProfileSnapshot = { profiles: [], tabs: [], activeTab: 'Main', storage: {} };
 
 afterEach(() => {
     document.body.innerHTML = '';
 });
 
 describe('SettingsPanel', () => {
-    test('the settings button sits under turn-all-renderers-off', async () => {
+    test('the settings button sits under turn-all-renderers-on', async () => {
         const html = await Bun.file('public-bot/multibox.html').text();
         const off = html.indexOf('id="mbx-renderers-off"');
-        const settings = html.indexOf('id="mbx-settings"');
         const on = html.indexOf('id="mbx-renderers-on"');
+        const settings = html.indexOf('id="mbx-settings"');
         expect(off).toBeGreaterThan(0);
-        expect(settings).toBeGreaterThan(off);
-        expect(on).toBeGreaterThan(settings);
+        expect(on).toBeGreaterThan(off);
+        expect(settings).toBeGreaterThan(on);
         expect(html).toContain('>settings<');
         expect(html).toContain('turn all renderers off');
     });
@@ -51,6 +52,7 @@ describe('SettingsPanel', () => {
         expect(downloads).toHaveLength(1);
         expect(downloads[0].name).toBe('rs2b0t-profiles.json');
         expect(parseable(downloads[0].text).profiles[0].username).toBe('alice');
+        expect(parseable(downloads[0].text).storage.alice.selectedScript).toBe('Miner');
 
         await panel.importText(serializeProfileFile(empty));
         expect(current).toEqual(empty);
