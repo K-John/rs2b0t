@@ -71,7 +71,8 @@ interface Supply {
     estGp?: number;
 }
 
-/** Everything Tirannwn needs, in the order the quest reaches it. */
+// Why: grouped by where each thing is sold, not by the order the quest reaches it. Aemad stocks five of the nine and the old order asked for them in four separate visits, with Taverley and Catherby in between — the circuit ran Ardougne, Taverley, Ardougne, Catherby, Ardougne and cost about three minutes of walking.
+// Why: the bank items last, because the bank is in Ardougne and the pass is entered from West Ardougne, so finishing there is the one ordering that does not walk the loop twice.
 export const KIT: readonly Supply[] = [
     {
         item: RG_ITEM.BALL_OF_WOOL,
@@ -87,13 +88,6 @@ export const KIT: readonly Supply[] = [
         shop: ARDOUGNE_STORE,
         estGp: 40
     },
-    {
-        item: RG_ITEM.PESTLE,
-        qty: 1,
-        reason: 'grinding the sulphur and the quicklime',
-        shop: TAVERLEY_HERBLORE,
-        estGp: 60
-    },
     // Why: the way into Tirannwn is the Underground Pass, and the rope swing onto the grid shelf is the one seam of it that is an item-use — `upass_rock_ropeswing` deletes the rope before it rolls agility, so a failed swing costs one. A pack without them stands on the bridge shelf until the watchdog parks it.
     {
         item: RG_ITEM.ROPE,
@@ -102,14 +96,6 @@ export const KIT: readonly Supply[] = [
         min: 1,
         shop: ARDOUGNE_STORE,
         estGp: 120
-    },
-    // Why: the chasm before the rope swing is crossed by shooting the bridge stay rope, and `upass_bridge` stores nothing — the lever that lowers the bridge again sits on the west bank and only sends the player east. So a completed Underground Pass still leaves the fire arrow to build on every westbound walk.
-    {
-        item: RG_ITEM.SHORTBOW,
-        qty: 1,
-        reason: "firing the bridge stay rope; Aemad's stocks no bow",
-        shop: CATHERBY_ARCHERY,
-        estGp: 150
     },
     {
         item: RG_ITEM.BRONZE_ARROW,
@@ -124,6 +110,21 @@ export const KIT: readonly Supply[] = [
         qty: 1,
         reason: 'lighting the cloth-wrapped arrow',
         shop: ARDOUGNE_STORE,
+        estGp: 150
+    },
+    {
+        item: RG_ITEM.PESTLE,
+        qty: 1,
+        reason: 'grinding the sulphur and the quicklime',
+        shop: TAVERLEY_HERBLORE,
+        estGp: 60
+    },
+    // Why: the chasm before the rope swing is crossed by shooting the bridge stay rope, and `upass_bridge` stores nothing — the lever that lowers the bridge again sits on the west bank and only sends the player east. So a completed Underground Pass still leaves the fire arrow to build on every westbound walk.
+    {
+        item: RG_ITEM.SHORTBOW,
+        qty: 1,
+        reason: "firing the bridge stay rope; Aemad's stocks no bow",
+        shop: CATHERBY_ARCHERY,
         estGp: 150
     },
     // Why: past the well the pass drops into the slave cages, and the only op that leaves that pocket is `upass_mud`, which takes a spade and nothing else. The ledge reads as a second way out and is not one — no tile of the cage pocket stands beside it.
