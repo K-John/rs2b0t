@@ -125,6 +125,12 @@ export async function descendLedges(log: (m: string) => void): Promise<boolean> 
             continue;
         }
         if (!(await climb(ledge, 'down', log))) {
+            // Why: `pockets.ts` covers the ledges and the floor, not every tile a fall can bounce off — and from a tile it does not cover the stand above may be one-way behind us, which reads as a climb that will not take rather than a descent already past.
+            // Why: the loop is finite either way, so trying the next rung down costs one climb and recovers a run that would otherwise sit at a stand it cannot reach.
+            if (at === null) {
+                log(`no pocket covers (${Game.tile()?.x},${Game.tile()?.z}) — trying the next ledge down`);
+                continue;
+            }
             return false;
         }
     }

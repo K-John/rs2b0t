@@ -169,12 +169,18 @@ export async function leaveOuterGate(log: (m: string) => void): Promise<boolean>
         return false;
     }
     // Why: the lever swings the doors shut again behind whoever pulled it, so one open and one step is a coin toss — the crossing is retried until it lands.
+    let lastClick = 'never dispatched';
+    let lastBox = '';
     for (let i = 0; i < 6; i++) {
         const gate = outerShut();
         if (gate) {
-            if (await gate.interact('Open')) {
+            const dispatched = await gate.interact('Open');
+            lastClick = dispatched ? 'dispatched' : 'refused';
+            if (dispatched) {
                 // Why: `open_outer_ancient_gate` raises a box and suspends on it, so the teleport only comes after it has been clicked away.
                 await driveUntil(() => modalText() !== '', [], log, 6000);
+                // Why: read before clearing, since the box is the only thing that says which branch `check_axis` took — the push-on-the-doors message is the gate deciding we are outside trying to get in.
+                lastBox = modalText().slice(0, 120);
                 await clearBoxes();
             }
         } else if (!outerOpen()) {
@@ -187,7 +193,8 @@ export async function leaveOuterGate(log: (m: string) => void): Promise<boolean>
         }
         await Traversal.walkResilient(LQ_TILE.LOCKPICK_GATE_SOUTH, { radius: 0, attempts: 2, timeoutMs: 30_000, log });
     }
-    log(`six pulls and the outer gate would not let us back out (shut leaf ${outerShut() ? 'present' : 'absent'}, open leaf ${outerOpen() ? 'present' : 'absent'})`);
+    const me = Game.tile();
+    log(`six pulls and the outer gate would not let us back out — shut leaf ${outerShut() ? 'present' : 'absent'}, open leaf ${outerOpen() ? 'present' : 'absent'}, click ${lastClick}, stood at (${me?.x},${me?.z}), box "${lastBox}"`);
     return false;
 }
 
