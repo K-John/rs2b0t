@@ -24,6 +24,8 @@ export const WOOL_TARGET = 4;
 export const ROPE_TARGET = 3;
 /** Arrows stack, so the float is free — one is spent per shot at the bridge stay rope, hit or miss. */
 export const ARROW_TARGET = 50;
+/** Food carried through the coal run and the walk to Rimmington, where there is no bank. */
+export const STILL_FOOD = 4;
 // Why: twelve, which is two clean distillations at six apiece. Eighteen was three, and coal does not stack — with the bomb chain and the food alongside it the pack ran out of room at four, and the mining step kept swinging at a full inventory.
 export const COAL_TARGET = 12;
 /** Two barrels of tar, so a still that resets does not send the run back across the Underground Pass. */
@@ -57,7 +59,7 @@ function buyOrWait(snap: QuestSnapshot, step: Extract<QuestStep, { kind: 'buy' }
     return step;
 }
 
-interface Supply {
+export interface Supply {
     item: RegicideItem;
     qty: number;
     reason: string;
@@ -135,9 +137,18 @@ export const KIT: readonly Supply[] = [
 
 export const KEEP_IDS: readonly number[] = Object.values(RG_ITEM).map(item => item.id);
 
+// Why: the walk back in carries the crossings and the food, and nothing that built the bomb. The wool is already cloth, the limestone is already dust, and the pickaxe and the pestle have no rock and no lump left to work — redrawing the full kit for the second crossing is nine slots of dead weight beside a barrel bomb that has to fit too.
+const RETURN_IDS = new Set<number>([
+    RG_ITEM.SPADE.id, RG_ITEM.ROPE.id, RG_ITEM.SHORTBOW.id,
+    RG_ITEM.BRONZE_ARROW.id, RG_ITEM.TINDERBOX.id, RG_ITEM.SHARK.id
+]);
+
+/** What the second crossing needs, which is the first crossing minus the recipe. */
+export const RETURN_KIT: readonly Supply[] = KIT.filter(supply => RETURN_IDS.has(supply.item.id));
+
 /** The next missing piece of kit, or null once the pack is ready for Tirannwn. */
-export function sourceKit(snap: QuestSnapshot): QuestStep | null {
-    for (const supply of KIT) {
+export function sourceKit(snap: QuestSnapshot, kit: readonly Supply[] = KIT): QuestStep | null {
+    for (const supply of kit) {
         if (carried(snap, supply.item) >= supply.qty) {
             continue;
         }
@@ -159,8 +170,8 @@ export function sourceKit(snap: QuestSnapshot): QuestStep | null {
 }
 
 /** What the kit is still short of, for an honest stop rather than a silent retry loop. */
-export function kitShortfall(snap: QuestSnapshot): string[] {
-    return KIT.filter(supply => carried(snap, supply.item) < (supply.min ?? supply.qty)).map(
+export function kitShortfall(snap: QuestSnapshot, kit: readonly Supply[] = KIT): string[] {
+    return kit.filter(supply => carried(snap, supply.item) < (supply.min ?? supply.qty)).map(
         supply => `${supply.min ?? supply.qty}x ${supply.item.name} (${supply.reason}), have ${carried(snap, supply.item)}`
     );
 }

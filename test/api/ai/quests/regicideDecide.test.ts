@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { RG_ITEM } from '#/bot/api/ai/quests/defs/regicide/areas.js';
 import { decide } from '#/bot/api/ai/quests/defs/regicide/index.js';
 import { RG_FLAG, RG_STAGE } from '#/bot/api/ai/quests/defs/regicide/journal.js';
-import { ARROW_TARGET, FOOD_TARGET, ROPE_TARGET, WOOL_TARGET } from '#/bot/api/ai/quests/defs/regicide/supplies.js';
+import { ARROW_TARGET, FOOD_TARGET, RETURN_KIT, ROPE_TARGET, STILL_FOOD, WOOL_TARGET } from '#/bot/api/ai/quests/defs/regicide/supplies.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
 
 // Why: decide() reads only a snapshot, so the routing table is testable end to end without a client.
@@ -238,11 +238,14 @@ describe('Regicide bomb chain', () => {
         expect(step.kind === 'deposit' && step.keepIds).toContain(RG_ITEM.BARREL_TAR.id);
     });
 
-    test('coal is sourced once the pass kit is out of the way', () => {
-        const PASS_IDS: number[] = [RG_ITEM.SPADE.id, RG_ITEM.ROPE.id, RG_ITEM.SHORTBOW.id, RG_ITEM.BRONZE_ARROW.id, RG_ITEM.TINDERBOX.id];
-        const stowed = [...KIT, ...CARRIED_OUT, RG_ITEM.COOKED_RABBIT.id, RG_ITEM.QUICKLIME_DUST.id]
-            .filter(entry => !PASS_IDS.includes(Array.isArray(entry) ? entry[0] : entry));
-        const step = decide(snapshot({ stage: RG_STAGE.SPOKEN_IORWERTH2, tile: ARDOUGNE, carried: stowed }));
+    // Why: the pack shaped to the coal run — the chain, the two tools and a short food float. Anything else and the plan sends it to the bank first.
+    test('coal is sourced once the pack is shaped for it', () => {
+        const shaped: Stack[] = [
+            RG_ITEM.BARREL_TAR.id, RG_ITEM.CLOTH.id, RG_ITEM.SULPHUR_DUST.id, RG_ITEM.QUICKLIME_DUST.id,
+            RG_ITEM.POT.id, RG_ITEM.COOKED_RABBIT.id, RG_ITEM.PICKAXE.id, RG_ITEM.PESTLE.id,
+            [RG_ITEM.SHARK.id, STILL_FOOD]
+        ];
+        const step = decide(snapshot({ stage: RG_STAGE.SPOKEN_IORWERTH2, tile: ARDOUGNE, carried: shaped }));
         expect(step.kind).toBe('mineRock');
         expect(step.kind === 'mineRock' && step.rock).toBe('Coal');
     });
@@ -295,5 +298,34 @@ describe('Regicide endgame', () => {
 
     test('once Arianwyn has spoken, the letter goes to King Lathas', () => {
         expect(name(decide(snapshot({ stage: RG_STAGE.SPOKEN_ARIANWYN, tile: ARDOUGNE })))).toContain('King Lathas');
+    });
+});
+
+// Why: the bomb is built, so the recipe is spent — the wool is cloth and the limestone is dust. A second crossing that redraws the full kit puts nine dead slots beside a barrel bomb that has to fit as well.
+describe('the walk back through the pass', () => {
+    const CROSSINGS = [RG_ITEM.SPADE, RG_ITEM.ROPE, RG_ITEM.SHORTBOW, RG_ITEM.BRONZE_ARROW, RG_ITEM.TINDERBOX, RG_ITEM.SHARK];
+    const RECIPE = [RG_ITEM.BALL_OF_WOOL, RG_ITEM.PICKAXE, RG_ITEM.PESTLE];
+
+    test('the return kit keeps every crossing', () => {
+        for (const item of CROSSINGS) {
+            expect(RETURN_KIT.some(supply => supply.item.id === item.id)).toBe(true);
+        }
+    });
+
+    test('the return kit drops the recipe', () => {
+        for (const item of RECIPE) {
+            expect(RETURN_KIT.some(supply => supply.item.id === item.id)).toBe(false);
+        }
+    });
+
+    test('a bomb in the pack is not sent back for wool', () => {
+        const step = decide(snapshot({
+            stage: RG_STAGE.SPOKEN_IORWERTH2,
+            tile: ARDOUGNE,
+            carried: [RG_ITEM.BARREL_FUSED.id, RG_ITEM.SPADE.id, [RG_ITEM.ROPE.id, ROPE_TARGET],
+                RG_ITEM.SHORTBOW.id, [RG_ITEM.BRONZE_ARROW.id, ARROW_TARGET], RG_ITEM.TINDERBOX.id,
+                [RG_ITEM.SHARK.id, FOOD_TARGET]]
+        }));
+        expect(name(step)).toContain('Underground Pass');
     });
 });

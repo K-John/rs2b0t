@@ -31,6 +31,7 @@ import {
     weaveCloth
 } from './bomb.js';
 import { feedLazyGuard, fireCatapult, meetArianwyn, reportToIorwerth, reportToLathas } from './finish.js';
+import { managePack, type PackPlan } from './pack.js';
 import { pocketAt } from './pockets.js';
 import {
     askIorwerth,
@@ -44,7 +45,7 @@ import {
 } from './isafdar.js';
 import { RG_FLAG, RG_STAGE, readRegicideProgress } from './journal.js';
 import { enterTirannwn, leaveTirannwn } from './pass.js';
-import { COAL_TARGET, KEEP_IDS, kitShortfall, sourceCoal, sourceKit } from './supplies.js';
+import { COAL_TARGET, KEEP_IDS, KIT, RETURN_KIT, STILL_FOOD, kitShortfall, sourceCoal, sourceKit, type Supply } from './supplies.js';
 
 const custom = (name: string, run: (log: (m: string) => void) => Promise<boolean>): QuestStep =>
     ({ kind: 'custom', name, run });
@@ -71,8 +72,8 @@ function outfit(snap: QuestSnapshot, area: RegicideArea): QuestStep | null {
 }
 
 // Why: past the Arandar palisade there is one shop and no bank, and the way back in is the Underground Pass walked end to end — so a pack short of the kit stops on the mainland and says what is missing rather than crossing and parking at a loom it has no wool for.
-function readyForTirannwn(snap: QuestSnapshot): QuestStep | null {
-    const missing = kitShortfall(snap);
+function readyForTirannwn(snap: QuestSnapshot, kit: readonly Supply[]): QuestStep | null {
+    const missing = kitShortfall(snap, kit);
     // Why: the forest is fought through — two of Tyras's soldiers, the elf warriors that patrol the camp and a grizzly bear on the road to the loom — and there is nothing to fight them with past the gate.
     if (!meleeCarried(snap)) {
         missing.push('a melee weapon (the soldiers and the elf warriors), have none');
@@ -80,16 +81,19 @@ function readyForTirannwn(snap: QuestSnapshot): QuestStep | null {
     return missing.length === 0 ? null : { kind: 'wait', reason: `not equipped for Tirannwn: ${missing.join('; ')}` };
 }
 
+// Why: the second crossing is not the first. Once the barrel bomb exists the recipe is spent — the wool is cloth, the limestone is dust — so the pack wants the five crossings, the food and the bomb, and redrawing the full kit puts nine dead slots beside a bomb that has to fit as well.
 /** Into Tirannwn the only way it opens before the deed is done: the pass, and the Well of Voyage. */
 function crossIn(snap: QuestSnapshot): QuestStep {
-    // Why: the kit was banked for the coal, so it is drawn again here rather than waited for. Only on the mainland — from inside the pass a withdraw step aims the walk at Ardougne, which is the wrong side of every crossing already made.
+    const carryingBomb = held(snap, RG_ITEM.BARREL_FUSED) > 0 || held(snap, RG_ITEM.BARREL_LID) > 0;
+    const kit = carryingBomb ? RETURN_KIT : KIT;
+    // Why: sourced only on the mainland. From inside the pass a withdraw step aims the walk at Ardougne, which is the wrong side of every crossing already made.
     if (regicideArea(snap.tile) === 'mainland') {
-        const kit = sourceKit(snap);
-        if (kit) {
-            return kit;
+        const drawn = sourceKit(snap, kit);
+        if (drawn) {
+            return drawn;
         }
     }
-    return readyForTirannwn(snap) ?? custom('walk the Underground Pass to the Well of Voyage', enterTirannwn);
+    return readyForTirannwn(snap, kit) ?? custom('walk the Underground Pass to the Well of Voyage', enterTirannwn);
 }
 
 function inTirannwn(snap: QuestSnapshot, area: RegicideArea, step: QuestStep): QuestStep {
@@ -169,17 +173,17 @@ function gatherLeg(snap: QuestSnapshot): QuestStep | null {
     return null;
 }
 
-// Why: the pass kit is dead weight for the chemistry and the still wants coal by the slot — a spade, three ropes, a bow, a stack of arrows and a tinderbox are seven slots the coal needs and the walk back in does not need yet. They go to the bank here and `crossIn` draws them again before the pass is walked a second time.
-const PASS_ONLY: readonly RegicideItem[] = [RG_ITEM.SPADE, RG_ITEM.ROPE, RG_ITEM.SHORTBOW, RG_ITEM.BRONZE_ARROW, RG_ITEM.TINDERBOX];
-const CHEMISTRY_IDS: readonly number[] = KEEP_IDS.filter(id => !PASS_ONLY.some(item => item.id === id));
-
-/** Bank the pass kit to make room for the coal. */
-function stowPassKit(snap: QuestSnapshot): QuestStep | null {
-    if (countHeld(snap, PASS_ONLY) === 0) {
-        return null;
-    }
-    return { kind: 'deposit', keep: [RG_ITEM.SHARK.name], keepIds: CHEMISTRY_IDS, bank: RG_TILE.ARDOUGNE_BANK };
-}
+// Why: the coal run carries the chain, the two tools that build it and a short food float — and nothing else. Coal does not stack, so the twelve the still burns want twelve slots free before the first swing at the rock; the kit is twenty-four slots and leaves four.
+const COAL_RUN: PackPlan = {
+    what: 'the coal run',
+    allow: [
+        RG_ITEM.BARREL_TAR.id, RG_ITEM.BARREL_NAPHTHA.id, RG_ITEM.CLOTH.id,
+        RG_ITEM.SULPHUR_DUST.id, RG_ITEM.QUICKLIME_DUST.id, RG_ITEM.POT.id,
+        RG_ITEM.COOKED_RABBIT.id, RG_ITEM.PICKAXE.id, RG_ITEM.PESTLE.id, RG_ITEM.COAL.id
+    ],
+    caps: [{ item: RG_ITEM.SHARK, qty: STILL_FOOD }],
+    freeNeeded: COAL_TARGET
+};
 
 /** The chemistry the forest cannot do: a furnace, a range, coal, and Rimmington's still. */
 function mainlandLeg(snap: QuestSnapshot): QuestStep {
@@ -200,9 +204,9 @@ function mainlandLeg(snap: QuestSnapshot): QuestStep {
         return custom('mix the powders into the naphtha', mixBomb);
     }
     if (carried(snap, RG_ITEM.COAL) < COAL_TARGET) {
-        const stow = stowPassKit(snap);
-        if (stow) {
-            return stow;
+        const shaped = managePack(snap, COAL_RUN);
+        if (shaped) {
+            return shaped;
         }
     }
     return sourceCoal(snap) ?? custom('distil the coal tar into naphtha', distilNaphtha);
