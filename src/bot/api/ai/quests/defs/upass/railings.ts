@@ -14,7 +14,7 @@ import { verdictSince } from './verdict.js';
 // Why: the way from the well's corridor down to the loose railings is six crossings and it never varies. A search over it offered five ledge locs whose stand is in another pocket, two telejumps twenty-one tiles the wrong way, seven walled stone bridges and ten cages in another cell — and reported a cage thirty tiles off as crossed. Spelled out, there is nothing to choose.
 
 /** One crossing of the run: walk the stand, send the op at THAT loc, arrive on `lands`. */
-interface Crossing {
+export interface Crossing {
     what: string;
     /** Stepping stones walked before the stand, where one walk will not carry it. */
     via?: readonly Tile[];
@@ -31,7 +31,8 @@ interface Crossing {
 }
 
 // Why: `at` is carried because the ledge is six locs in a column and the two nearest the stand are BOTH chebyshev one from it — `nearest()` picks whichever, and the wrong one answers "I can't reach that!" without the script ever running.
-export const TO_RAILINGS: readonly Crossing[] = [
+// Why: the cage, the dig and the ledge are their own chain because Regicide walks them too — it re-enters the pass westbound with the quest finished, and the well drops it in the same corridor. Aiming a mover at the dig's own tile instead is what sent a leg back up through the thieving railings for twenty-four hops: (2393,9650) carries the loc, so live it routes to nothing and the free search takes over.
+export const OUT_OF_CAGES: readonly Crossing[] = [
     // Why: the run starts in the CORRIDOR, where the well drops the character — not in the mud pocket. The cage and the dig are the first two crossings of the same chain, and leaving them to a search is what had a leg standing in the corridor trying to reach a ledge two crossings away, a hundred and five times over.
     {
         what: 'the cage into the mud cell',
@@ -47,7 +48,11 @@ export const TO_RAILINGS: readonly Crossing[] = [
         what: 'the ledge south out of the mud pocket',
         stand: new Tile(2375, 9644, 0), at: new Tile(2374, 9644, 0),
         loc: UP_LOC.LEDGE, op: 'Cross', lands: new Tile(2374, 9638, 0)
-    },
+    }
+];
+
+export const TO_RAILINGS: readonly Crossing[] = [
+    ...OUT_OF_CAGES,
     {
         what: 'the first thieving railing',
         stand: new Tile(2380, 9619, 0), at: new Tile(2380, 9619, 0),
@@ -68,18 +73,18 @@ export const TO_RAILINGS: readonly Crossing[] = [
 
 // Why: the engine re-decides every tick and recognises "the same step" only by what it calls itself, so a step whose name covers six crossings is one step retried forever — the attempt counter never resets, no progress is visible, and the watchdog parks a leg that was advancing. Each crossing names itself, so crossing one resets the count for crossing two.
 // Why: the client's own flood, because `decide` is synchronous. Out of the loaded scene it reads unreachable, which is indistinguishable from "not crossed yet" — so the outstanding crossing is the first whose landing cannot be reached AND whose stand can. That is the one the character is standing in position for.
-export function outstandingCrossing(): Crossing | null {
+export function outstandingCrossing(chain: readonly Crossing[] = TO_RAILINGS): Crossing | null {
     const flood = { adjacentOk: false, maxSteps: 2_000 } as const;
-    return TO_RAILINGS.find(step =>
+    return chain.find(step =>
         !Reachability.canReach(step.lands, flood) && Reachability.canReach(step.stand, flood)) ?? null;
 }
 
 /** Take one crossing and no more — the one the character is in position for. */
-export async function takeNextCrossing(log: (m: string) => void): Promise<boolean> {
-    const step = outstandingCrossing();
+export async function takeNextCrossing(log: (m: string) => void, chain: readonly Crossing[] = TO_RAILINGS): Promise<boolean> {
+    const step = outstandingCrossing(chain);
     if (step === null) {
         const me = Game.tile();
-        log(`pass: (${me?.x},${me?.z}) is in position for no crossing of the run to the loose railings`);
+        log(`pass: (${me?.x},${me?.z}) is in position for no crossing of the run`);
         return false;
     }
     return take(step, log);

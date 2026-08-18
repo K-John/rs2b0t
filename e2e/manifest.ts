@@ -604,6 +604,14 @@ export const CASES: readonly Case[] = [
         note: 'every leg 0 to 10 proven live from its own seeded stage; end to end stalls in the second cavern'
     },
     {
+        id: 'regicide-257-live',
+        harness: 'regicide-257-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 90,
+        note: 'seeds Underground Pass complete varp and bits; --stage is the %regicide_quest value, 0 to 15'
+    },
+    {
         id: 'plague-pipe-366-live',
         harness: 'plague-pipe-366-live.ts',
         covers: { subsystems: ['world'] },
