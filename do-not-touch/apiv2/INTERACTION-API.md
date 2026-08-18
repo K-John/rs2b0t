@@ -31,8 +31,8 @@ Tests can supply a fake source, driver, sleep function, and polling interval.
 - Other collections: `stats`, `chat`, `chatOptions`, `makeProducts`,
   `questStatuses`, and `varps`.
 
-Read scalar state directly from `context.snapshot`, including the tick,
-connection state, local player, modals, controls, camera, and world state.
+Scalar state is available through the existing `ReadContext` accessors or
+directly from `context.snapshot`.
 
 ## Sending
 
