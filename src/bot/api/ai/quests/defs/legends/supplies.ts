@@ -110,7 +110,8 @@ export const KEEP_IDS: readonly number[] = [
     LQ_ID.TOTEM_POLE, LQ_ID.GILDED_TOTEM,
     LQ_ID.MACHETE, LQ_ID.RUNE_AXE, LQ_ID.LOCKPICK, LQ_ID.UNPOWERED_ORB,
     LQ_ID.PAPYRUS, LQ_ID.CHARCOAL, LQ_ID.GOLD_BAR, LQ_ID.HAMMER, LQ_ID.KNIFE,
-    LQ_ID.ROPE, LQ_ID.CHISEL, LQ_ID.VIAL_WATER, LQ_ID.VIAL,
+    // Why: the vial of water is kit and the empty one is what drinking the bravery potion leaves behind — the quest never fills one, since Jiminua's sells the filled vial the recipe wants.
+    LQ_ID.ROPE, LQ_ID.CHISEL, LQ_ID.VIAL_WATER,
     LQ_ID.SOUL_RUNE, LQ_ID.MIND_RUNE, LQ_ID.EARTH_RUNE, LQ_ID.LAW_RUNE,
     LQ_ID.WATER_RUNE, LQ_ID.COSMIC_RUNE, LQ_ID.AIR_RUNE, LQ_ID.FIRE_RUNE, LQ_ID.DEATH_RUNE,
     ...GEM_ROCKS.map(g => g.id),

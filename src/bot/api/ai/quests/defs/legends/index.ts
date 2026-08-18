@@ -148,7 +148,7 @@ const BOWLS: readonly number[] = [
 
 /** What the quest is done with, given where it has got to. */
 function spentNow(snap: QuestSnapshot): number[] {
-    const spent: number[] = [LQ_ID.SWAMP_ROCK];
+    const spent: number[] = [LQ_ID.SWAMP_ROCK, LQ_ID.VIAL];
     if (held(snap, LQ_ID.MAP_COMPLETE) > 0 || (snap.stage ?? 0) >= LQ_STAGE.MAPPED_JUNGLE) {
         spent.push(LQ_ID.PAPYRUS, LQ_ID.CHARCOAL);
     }

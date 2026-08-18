@@ -4,7 +4,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { Quests } from '../../../../ui/questlog/Quests.js';
 import { LEGENDS_QUEST, LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE } from './areas.js';
-import { driveUntil, heldId, locNear, promptLoc, settleScene } from './scene.js';
+import { driveUntil, heldId, locNear, modalText, promptLoc, settleScene } from './scene.js';
 
 /** Inside the guild wall: the gate sits on z=3349 and everything past it is the compound. */
 export function insideGuild(): boolean {
@@ -24,8 +24,13 @@ export function inMainHall(): boolean {
 const GUARD_PREFER = [
     "Yes, I'd like to talk to Grand Vizier Erkle",
     'Can I go on the quest?',
-    'What is this place?'
+    'What is this place?',
+    // Why: last, so it is only taken when none of the ways in are on offer — and then it makes the guard read the missing quests into the log rather than leaving the refusal unexplained.
+    'Which quests do I need to complete?'
 ];
+
+// Why: `legends_guard_eligible` answers a short quest list with a `multi2` the entry options are not in, and a short quest-point total with a `chatnpc` and no menu at all — the conversation ends there. Either way the drive returns with the gate shut, the step fails, and the engine sends the run back to the same guard for as long as it is left running.
+const GUARD_REFUSED = /complete more quests|107 quest points|quest point/i;
 
 /** Talk the patrolling guard into opening the gate. */
 export async function enterGuild(log: (m: string) => void): Promise<boolean> {
@@ -43,7 +48,25 @@ export async function enterGuild(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     // Why: the gate opens inside the conversation and teleports us through, so the goal is the tile rather than the dialogue closing.
-    return driveUntil(insideGuild, GUARD_PREFER, log, 60_000);
+    // Why: the refusal is caught while the chat is still up, since it is gone from `modalText` the moment the conversation closes.
+    let refused = '';
+    const entered = await driveUntil(
+        () => {
+            if (refused === '' && GUARD_REFUSED.test(modalText())) {
+                refused = modalText();
+            }
+            return insideGuild();
+        },
+        GUARD_PREFER,
+        log,
+        60_000
+    );
+    if (!entered) {
+        log(refused === ''
+            ? 'the guard conversation ended with the gate still shut'
+            : `the Legends guard refused entry — ${refused.slice(0, 200)}`);
+    }
+    return entered;
 }
 
 const START_PREFER = [
