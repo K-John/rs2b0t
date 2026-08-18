@@ -2,6 +2,7 @@ import { DirectNavigator } from '../../../../../event/webwalk/DirectNavigator.js
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { GameMessages } from '../../../../chatbox/gameMessages.js';
+import { Sustain } from '../../../../sustain/Sustain.js';
 import { GroundItems, type GroundItem } from '../../../../grounditems/GroundItems.js';
 import { Locs } from '../../../../locs/Locs.js';
 import type { Loc } from '../../../../model/Loc.js';
@@ -9,7 +10,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { GEM_ROCKS, LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_TILE, WALL_RUNES, inOctagram, legendsArea } from './areas.js';
 import { legendsPocket, type LegendsPocket } from './pockets.js';
-import { clearBoxes, driveUntil, heldId, modalText, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { clearBoxes, driveBoxes, driveUntil, heldId, modalText, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 /** Which sealed pocket of the cave complex we are standing in. */
 export function pocket(): LegendsPocket | null {
@@ -134,9 +135,10 @@ export async function openOuterGate(log: (m: string) => void): Promise<boolean> 
     const shut = (): boolean =>
         (locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Search') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Search')) !== null;
     for (let i = 0; i < PICK_ATTEMPTS; i++) {
+        await Sustain.run();
         const gate = locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Search') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Search');
         if (gate && (await gate.interact('Search'))) {
-            await driveUntil(() => !shut() || /tumble the lock mechanism|fail to pick the lock/.test(modalText()), [], log, 30_000);
+            await driveBoxes(() => !shut() || /tumble the lock mechanism|fail to pick the lock/.test(modalText()), 30_000);
             // Why: read before the boxes go, since clearing them is what takes the text away.
             const missed = PICK_MISSED.test(modalText());
             await clearBoxes();
@@ -172,13 +174,14 @@ export async function leaveOuterGate(log: (m: string) => void): Promise<boolean>
     let lastClick = 'never dispatched';
     let lastBox = '';
     for (let i = 0; i < 6; i++) {
+        await Sustain.run();
         const gate = outerShut();
         if (gate) {
             const dispatched = await gate.interact('Open');
             lastClick = dispatched ? 'dispatched' : 'refused';
             if (dispatched) {
                 // Why: `open_outer_ancient_gate` raises a box and suspends on it, so the teleport only comes after it has been clicked away.
-                await driveUntil(() => modalText() !== '', [], log, 6000);
+                await driveBoxes(() => modalText() !== '', 6000);
                 // Why: read before clearing, since the box is the only thing that says which branch `check_axis` took — the push-on-the-doors message is the gate deciding we are outside trying to get in.
                 lastBox = modalText().slice(0, 120);
                 await clearBoxes();
@@ -233,6 +236,7 @@ async function mineBoulder(boulder: (typeof BOULDERS)[number], reverse: boolean,
             log(`boulder ${boulder.id} is not in the scene from (${stand.x},${stand.z})`);
             return false;
         }
+        await Sustain.run();
         const mark = GameMessages.mark();
         if (!(await rock.interact('Smash-to-bits'))) {
             continue;
@@ -260,13 +264,13 @@ export async function openInnerGate(reverse: boolean, log: (m: string) => void):
     }
     // Why: a forced gate keeps its Open op — that is how it is shut again — and the success box is gone the tick after the driver clicks it, so the crossing itself is the only oracle.
     for (let i = 0; i < STRENGTH_ATTEMPTS; i++) {
+        await Sustain.run();
         const gate = locById(LQ_LOC_ID.STRENGTH_GATE_L, 6, 'Open') ?? locById(LQ_LOC_ID.STRENGTH_GATE_R, 6, 'Open');
         if (gate && (await gate.interact('Open'))) {
-            await driveUntil(
+            await driveBoxes(
                 () => /manage to force the doors open|run out of steam/.test(modalText()),
-                ["Yes, I'm very strong"],
-                log,
-                25_000
+                25_000,
+                ["Yes, I'm very strong"]
             );
             const missed = FORCE_MISSED.test(modalText());
             await clearBoxes();
