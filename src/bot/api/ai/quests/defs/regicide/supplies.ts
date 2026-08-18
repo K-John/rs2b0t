@@ -24,8 +24,8 @@ export const WOOL_TARGET = 4;
 export const ROPE_TARGET = 3;
 /** Arrows stack, so the float is free — one is spent per shot at the bridge stay rope, hit or miss. */
 export const ARROW_TARGET = 50;
-// Why: a clean distillation costs six coal under the module's own control law, and a blown pressure gauge resets the tally to zero — so the float covers two failed runs before a trip back to the rocks.
-export const COAL_TARGET = 18;
+// Why: twelve, which is two clean distillations at six apiece. Eighteen was three, and coal does not stack — with the bomb chain and the food alongside it the pack ran out of room at four, and the mining step kept swinging at a full inventory.
+export const COAL_TARGET = 12;
 /** Two barrels of tar, so a still that resets does not send the run back across the Underground Pass. */
 export const BARREL_TARGET = 2;
 

@@ -82,6 +82,13 @@ function readyForTirannwn(snap: QuestSnapshot): QuestStep | null {
 
 /** Into Tirannwn the only way it opens before the deed is done: the pass, and the Well of Voyage. */
 function crossIn(snap: QuestSnapshot): QuestStep {
+    // Why: the kit was banked for the coal, so it is drawn again here rather than waited for. Only on the mainland — from inside the pass a withdraw step aims the walk at Ardougne, which is the wrong side of every crossing already made.
+    if (regicideArea(snap.tile) === 'mainland') {
+        const kit = sourceKit(snap);
+        if (kit) {
+            return kit;
+        }
+    }
     return readyForTirannwn(snap) ?? custom('walk the Underground Pass to the Well of Voyage', enterTirannwn);
 }
 
@@ -162,6 +169,18 @@ function gatherLeg(snap: QuestSnapshot): QuestStep | null {
     return null;
 }
 
+// Why: the pass kit is dead weight for the chemistry and the still wants coal by the slot — a spade, three ropes, a bow, a stack of arrows and a tinderbox are seven slots the coal needs and the walk back in does not need yet. They go to the bank here and `crossIn` draws them again before the pass is walked a second time.
+const PASS_ONLY: readonly RegicideItem[] = [RG_ITEM.SPADE, RG_ITEM.ROPE, RG_ITEM.SHORTBOW, RG_ITEM.BRONZE_ARROW, RG_ITEM.TINDERBOX];
+const CHEMISTRY_IDS: readonly number[] = KEEP_IDS.filter(id => !PASS_ONLY.some(item => item.id === id));
+
+/** Bank the pass kit to make room for the coal. */
+function stowPassKit(snap: QuestSnapshot): QuestStep | null {
+    if (countHeld(snap, PASS_ONLY) === 0) {
+        return null;
+    }
+    return { kind: 'deposit', keep: [RG_ITEM.SHARK.name], keepIds: CHEMISTRY_IDS, bank: RG_TILE.ARDOUGNE_BANK };
+}
+
 /** The chemistry the forest cannot do: a furnace, a range, coal, and Rimmington's still. */
 function mainlandLeg(snap: QuestSnapshot): QuestStep {
     if (held(snap, RG_ITEM.RAW_RABBIT) > 0) {
@@ -179,6 +198,12 @@ function mainlandLeg(snap: QuestSnapshot): QuestStep {
     }
     if (held(snap, RG_ITEM.BARREL_NAPHTHA) > 0 || countHeld(snap, RG_MIXES) > 0) {
         return custom('mix the powders into the naphtha', mixBomb);
+    }
+    if (carried(snap, RG_ITEM.COAL) < COAL_TARGET) {
+        const stow = stowPassKit(snap);
+        if (stow) {
+            return stow;
+        }
     }
     return sourceCoal(snap) ?? custom('distil the coal tar into naphtha', distilNaphtha);
 }

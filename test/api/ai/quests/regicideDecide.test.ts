@@ -230,8 +230,19 @@ describe('Regicide bomb chain', () => {
         expect(name(step)).toContain('grind the quicklime');
     });
 
-    test('coal is sourced before the tar is distilled', () => {
+    // Why: the pass kit is seven slots and coal does not stack, so the bank trip comes first — a pack still holding the spade, the ropes, the bow and the arrows runs out of room at four coal and swings at a full inventory for the rest of the leg.
+    test('the pass kit is banked before the coal is mined', () => {
         const step = onMainland([...CARRIED_OUT, RG_ITEM.COOKED_RABBIT.id, RG_ITEM.QUICKLIME_DUST.id]);
+        expect(step.kind).toBe('deposit');
+        expect(step.kind === 'deposit' && step.keepIds).not.toContain(RG_ITEM.SPADE.id);
+        expect(step.kind === 'deposit' && step.keepIds).toContain(RG_ITEM.BARREL_TAR.id);
+    });
+
+    test('coal is sourced once the pass kit is out of the way', () => {
+        const PASS_IDS: number[] = [RG_ITEM.SPADE.id, RG_ITEM.ROPE.id, RG_ITEM.SHORTBOW.id, RG_ITEM.BRONZE_ARROW.id, RG_ITEM.TINDERBOX.id];
+        const stowed = [...KIT, ...CARRIED_OUT, RG_ITEM.COOKED_RABBIT.id, RG_ITEM.QUICKLIME_DUST.id]
+            .filter(entry => !PASS_IDS.includes(Array.isArray(entry) ? entry[0] : entry));
+        const step = decide(snapshot({ stage: RG_STAGE.SPOKEN_IORWERTH2, tile: ARDOUGNE, carried: stowed }));
         expect(step.kind).toBe('mineRock');
         expect(step.kind === 'mineRock' && step.rock).toBe('Coal');
     });
