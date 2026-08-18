@@ -11,7 +11,9 @@ const KEEP_BY_DEFAULT: readonly number[] = [
     RG_ITEM.BARREL.id, RG_ITEM.BARREL_TAR.id, RG_ITEM.BARREL_NAPHTHA.id,
     RG_ITEM.BARREL_LID.id, RG_ITEM.BARREL_FUSED.id,
     RG_ITEM.MIX_QUICKLIME.id, RG_ITEM.MIX_SULPHUR.id,
-    RG_ITEM.CLOTH.id, RG_ITEM.SULPHUR_DUST.id, RG_ITEM.QUICKLIME_DUST.id
+    RG_ITEM.CLOTH.id, RG_ITEM.SULPHUR_DUST.id, RG_ITEM.QUICKLIME_DUST.id,
+    // Why: the rabbit is not food, it is the catapult's gate. `[oplocu,regicide_catapult]` returns silently unless `^regicide_given_rabbit` is set, and that bit is only set by handing this to the lazy guard — who stands beside the catapult, on the far side of the pass. Banking it walks the run to the catapult with nothing to open it, which reads as the catapult refusing the bomb.
+    RG_ITEM.RAW_RABBIT.id, RG_ITEM.COOKED_RABBIT.id
 ];
 
 /** What the pack should hold for one leg, and the room the next step needs. */

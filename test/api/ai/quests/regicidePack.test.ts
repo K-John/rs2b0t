@@ -148,3 +148,13 @@ describe('shedding what a leg is finished with', () => {
         expect(managePack(snap, { what: 'before the king', allow: [] })).toBeNull();
     });
 });
+
+// Why: `[oplocu,regicide_catapult]` returns silently unless `^regicide_given_rabbit` is set, and only the lazy guard beside the catapult sets it. A plan that banks the rabbit walks the bomb across the pass with nothing to open the catapult.
+describe('the rabbit is the catapult gate, not food', () => {
+    test.each([['raw', RG_ITEM.RAW_RABBIT], ['cooked', RG_ITEM.COOKED_RABBIT]] as [string, { id: number }][])(
+        'a %s rabbit survives a plan that does not name it',
+        (_what, item) => {
+            expect(managePack(snapshot({ carried: [[item.id, 1]] }), { what: 'the walk back', allow: [] })).toBeNull();
+        }
+    );
+});

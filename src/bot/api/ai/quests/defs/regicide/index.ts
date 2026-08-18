@@ -340,7 +340,7 @@ export const regicide: QuestModule = {
             `regicide: ${[kit('summons', RG_ITEM.SUMMONS), kit('letter', RG_ITEM.MESSAGE), kit('pendant', RG_ITEM.PENDANT),
                 kit('spade', RG_ITEM.SPADE), kit('rope', RG_ITEM.ROPE), kit('arrows', RG_ITEM.BRONZE_ARROW),
                 kit('bow', RG_ITEM.SHORTBOW), kit('tinderbox', RG_ITEM.TINDERBOX), kit('coal', RG_ITEM.COAL),
-                kit('food', RG_ITEM.SHARK)].join(' ')}`
+                kit('rabbit', RG_ITEM.COOKED_RABBIT), kit('food', RG_ITEM.SHARK)].join(' ')}`
                 + ` | bomb: ${[kit('empty', RG_ITEM.BARREL), kit('tar', RG_ITEM.BARREL_TAR), kit('naphtha', RG_ITEM.BARREL_NAPHTHA),
                     kit('lidded', RG_ITEM.BARREL_LID), kit('fused', RG_ITEM.BARREL_FUSED), kit('cloth', RG_ITEM.CLOTH),
                     kit('sulphur', RG_ITEM.SULPHUR_DUST), kit('quicklime', RG_ITEM.QUICKLIME_DUST)].join(' ')}`,
