@@ -283,14 +283,20 @@ export async function enterOctagram(log: (m: string) => void): Promise<boolean> 
             return true;
         }
     }
+    // Why: every chop through the dense band boils the bowl dry, blessed or not, and the octagram is reached through that band — so a bowl filled before the last crossing arrives empty and the splash above never runs.
+    if (heldId(LQ_ID.GOLD_BOWL_BLESSED_PURE) === 0) {
+        log('no pure water in the bowl at the flames — the fill has to be the last thing before the cave, as crossing the band boils it off');
+    }
     // Why: once the demon is dead Ungadulu's spell walks anyone through the flames on a plain Touch, which is the only way in for a leg that no longer carries water.
+    // Why: bounded, because before the demon is dead Touch cannot work at all, and `Reach` would otherwise spend eight attempts of its own budget proving it — which is a leg standing at the wall rather than going back for water.
     const touched = await promptLoc(
         {
             name: LQ_LOC.FIRE_WALL,
             op: 'Touch',
             near: LQ_TILE.FIRE_WALL_WEST,
             within: 2,
-            expect: () => inOctagram(Game.tile())
+            expect: () => inOctagram(Game.tile()),
+            expectMs: 6000
         },
         log
     );
