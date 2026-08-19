@@ -63,6 +63,7 @@ export async function driveChoice(prefer: string[], log: (m: string) => void): P
 }
 
 // Why: a scripted chain leaves gaps where nothing is open yet, and `driveChoice` alone returns at the first of them, leaving the rest of the chain unrun.
+// Why: the goal is tested between chains and not between clicks, because `driveChoice` runs a chain to its end — so a goal matching one box's text never sees it, and the wait spends its budget on a chain that already said the thing. `GameMessages.sawSince` is durable and safe to want here; transient `modalText` wants `driveBoxes` instead.
 
 /**
  * Keep answering prompts until the goal lands.
