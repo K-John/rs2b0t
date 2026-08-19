@@ -4,6 +4,7 @@ import { SETTINGS, shouldKeepBankItem } from '#/bot/scripts/AutoFighter/AutoFigh
 import {
     autoBankEnabled,
     BANKING_OPTIONS,
+    shouldBankAfterMinutes,
     BURIAL_BONE_NAME,
     CUSTOM_COORDINATES,
     DEFAULT_LOOT,
@@ -54,6 +55,20 @@ describe('AutoFighter data', () => {
         expect(autoBankEnabled('Auto')).toBe(true);
         expect(autoBankEnabled('auto')).toBe(true);
         expect(autoBankEnabled('None')).toBe(false);
+    });
+    test('timed bank matches CowKiller: Auto + interval + loot + elapsed', () => {
+        expect(SETTINGS.bankEveryMinutes).toMatchObject({
+            type: 'number',
+            default: 0,
+            min: 0,
+            max: 120,
+            showIf: { key: 'banking', anyOf: ['Auto'] }
+        });
+        expect(shouldBankAfterMinutes(true, 10, 10, 1)).toBe(true);
+        expect(shouldBankAfterMinutes(true, 10, 9.9, 20)).toBe(false);
+        expect(shouldBankAfterMinutes(true, 10, 99, 0)).toBe(false);
+        expect(shouldBankAfterMinutes(true, 0, 99, 20)).toBe(false);
+        expect(shouldBankAfterMinutes(false, 10, 99, 20)).toBe(false);
     });
     test('banking deposits only the generic reward Casket when common junk is enabled', () => {
         expect(SETTINGS.bankCommonJunk).toMatchObject({ type: 'boolean', default: true });
