@@ -714,7 +714,7 @@ export class QuestEngine implements Task {
             const key = name.toLowerCase();
             counts.set(key, Inventory.count(name) + (this.lastBankCounts.get(key) ?? 0));
         }
-        return { counts };
+        return { counts, bankKnown: this.bankKnown };
     }
 
     private refreshBankCounts(acceptSettledEmpty = false): void {

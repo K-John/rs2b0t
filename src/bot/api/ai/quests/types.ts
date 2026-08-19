@@ -31,6 +31,8 @@ export interface PlayerState {
 
 export interface BankInventorySnapshot {
     counts: Map<string, number>;
+    /** False until a bank has actually been read; an unread bank is not an empty one. */
+    bankKnown?: boolean;
 }
 
 type QuestStatusV = 'DONE' | 'READY' | 'BLOCKED';
