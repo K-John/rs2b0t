@@ -18,7 +18,6 @@ import { DirectNavigator } from './DirectNavigator.js';
 import type { TransportInfo, Waypoint } from './PathFinder.js';
 import {
     chebyshev,
-    clientFirstStepOnPackedPath,
     clientWalkLeftSource,
     crossingEligible,
     locateOnPath,
@@ -1149,9 +1148,6 @@ class WalkExecutorImpl {
                     const clientPath =
                         typeof reader.lastWalkPathWorld === 'function' ? reader.lastWalkPathWorld() : [];
                     if (!clientWalkLeftSource(me, clientPath)) {
-                        return false;
-                    }
-                    if (!clientFirstStepOnPackedPath(me, clientPath, tiles, pathIdx)) {
                         return false;
                     }
                     walkClickMark = mark;
