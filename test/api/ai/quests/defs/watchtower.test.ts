@@ -914,6 +914,36 @@ describe('the kit comes out of the bank in one trip', () => {
         expect(step.kind).not.toBe('withdraw');
     });
 
+    test('a purse a few coins short does not buy another bank trip', () => {
+        const gear = new Map(bankIds());
+        gear.delete(WT_ITEM.COINS.id);
+        const step = decide(started({
+            invIds: new Map([...gear, [WT_ITEM.COINS.id, 1977]]),
+            inv: new Map([['lobster', 8]])
+        }));
+        expect(step.kind).not.toBe('withdraw');
+    });
+
+    test('food eaten down does not buy another bank trip', () => {
+        const step = decide(started({
+            invIds: new Map(bankIds()),
+            inv: new Map([['lobster', 5]])
+        }));
+        expect(step.kind).not.toBe('withdraw');
+    });
+
+    test('a missing piece of gear still brings the purse and the food with it', () => {
+        const short = new Map(bankIds());
+        short.delete(WT_ITEM.ROPE.id);
+        short.set(WT_ITEM.COINS.id, 1977);
+        const step = decide(started({ invIds: short, inv: new Map([['lobster', 5]]) }));
+        expect(step.kind).toBe('withdraw');
+        const names = step.kind === 'withdraw' ? step.items.map(i => i.name) : [];
+        expect(names).toContain('Rope');
+        expect(names).toContain('Coins');
+        expect(names).toContain('Lobster');
+    });
+
     test('an unread bank is left alone, so a quest wanting nothing takes no trip', () => {
         expect(decide(started({ bankKnown: false })).kind).not.toBe('withdraw');
     });

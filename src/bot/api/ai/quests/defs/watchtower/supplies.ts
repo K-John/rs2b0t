@@ -196,6 +196,11 @@ export function questKit(snap: QuestSnapshot, foodWant: number): QuestStep | nul
             items.push({ name: item.name, id: item.id, qty: missing });
         }
     }
+    // Why: gear is what the trip is for, as a purse 23 coins down or a lobster eaten is not a reason to walk back to Yanille and the stage sourcers refill those.
+    // Why: topping a delta up each tick spent sixteen trips on one run and fed the no-progress watchdog until it parked the quest.
+    if (items.length === 0) {
+        return null;
+    }
     const coinsShort = KIT_COINS - held(snap, WT_ITEM.COINS.id);
     const bankedCoins = banked(snap, WT_ITEM.COINS.id);
     if (coinsShort > 0 && bankedCoins > 0) {
