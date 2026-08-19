@@ -682,6 +682,8 @@ export async function leaveShamanCave(log: (m: string) => void): Promise<boolean
     if (legendsArea(Game.tile()) !== 'shamanCaves') {
         return true;
     }
+    // Why: the two mouth locs sit at (2772,9342) and (2773,9342) with cave wall around them, and the op only lands from the tile below. `Reach` counts a couple of tiles short as arrived, and from (2774,9339) the server answers that it cannot be reached — which spends the prompt's whole retry budget without a word and strands the run underground.
+    await Traversal.walkResilient(LQ_TILE.CAVE_EXIT, { radius: 0, attempts: 3, timeoutMs: 60_000, log });
     const ok = await promptLoc(
         {
             name: LQ_LOC.CAVE_ENTRANCE,
