@@ -38,6 +38,12 @@ function locById(id: number, within = 10, op?: string): Loc | null {
 
 /** Walk the last tile through a gate the module has opened. */
 async function stepThrough(to: Tile, want: LegendsPocket, log: (m: string) => void, quiet = false): Promise<boolean> {
+    // Why: these gates teleport rather than swing, and the teleport lands a tick or two after the box is clicked away — `~mesbox` suspends the script, so `if_close`, the anim and `open_and_close_double_door2` all come after the dismissal.
+    // Why: walking first therefore drags the character back off the tile the script had put it on, and the crossing reads as a gate that would not open. A live run sat at (2809,9331) doing that six times a pass for eleven minutes, with the box saying "you see a lever which you pull on to open the door" — the success branch — every time.
+    await settleScene();
+    if (pocket() === want) {
+        return true;
+    }
     await DirectNavigator.walkTo(to, 0, 8000);
     await settleScene();
     if (pocket() === want) {
