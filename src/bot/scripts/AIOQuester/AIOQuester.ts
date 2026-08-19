@@ -9,9 +9,7 @@ import { Quests } from '../../api/ui/questlog/Quests.js';
 import { Skills } from '../../api/skills/Skills.js';
 import { Sustain } from '../../api/sustain/Sustain.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
-import { COIN_FLOAT, PROVISION_BANK, QuestEngine } from '../../api/ai/quests/engine/QuestEngine.js';
-import type Tile from '../../geometry/Tile.js';
-import { executeStep } from '../../api/ai/quests/exec/steps.js';
+import { QuestEngine } from '../../api/ai/quests/engine/QuestEngine.js';
 import { QUEST_DEFS, defById } from '../../api/ai/quests/defs/index.js';
 import { QuestFood } from '../../api/ai/quests/food.js';
 import { QuestLoadout } from '../../api/ai/quests/gear.js';
@@ -19,7 +17,6 @@ import { FOOD_OPTIONS } from '../../api/combat/food.js';
 import { foodOf } from '../../api/loadout/loadoutPlan.js';
 import { LOADOUT_SETTING, selectedLoadout } from '../../api/loadout/loadoutSetting.js';
 import type { QueueRow } from '../../api/ai/quests/engine/queue.js';
-import type { QuestModule } from '../../api/ai/quests/engine/types.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import { LEGENDS_REWARD_OPTIONS } from '../../api/ai/quests/defs/legends/config.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
@@ -170,7 +167,7 @@ export default class AIOQuester extends TaskBot {
 
         const queueNames = [...this.picked].map(id => defById(id)?.record.name ?? id);
         this.log(`AIOQuester — queue: ${queueNames.join(', ') || '(none)'}`);
-        this.add(new ContinueDialog(), new EatFood(this), new StartupWithdraw(this), new QuestEngine(this));
+        this.add(new ContinueDialog(), new EatFood(this), new QuestEngine(this));
     }
 
     override async onStop(): Promise<void> {
@@ -223,28 +220,6 @@ export default class AIOQuester extends TaskBot {
 
     override grindTargets(): string[] {
         return this.runningId ? defById(this.runningId)?.grind ?? [] : [];
-    }
-
-    /** Undefined when the first quest banks wherever it happens to be standing. */
-    firstQuestBank(): Tile | undefined {
-        const bank = QUEST_DEFS.find(d => this.picked.has(d.record.id))?.bank;
-        if (bank === 'nearest') {
-            return undefined;
-        }
-        return bank ?? PROVISION_BANK;
-    }
-
-    private firstIncompleteQuest(): QuestModule | undefined {
-        return QUEST_DEFS.find(d => this.picked.has(d.record.id) && Quests.status(d.record.name) !== 'complete');
-    }
-
-    firstIncompleteQuestOwnsInventory(): boolean {
-        return this.firstIncompleteQuest()?.ownsInventory ?? false;
-    }
-
-    /** The float the next quest declares; `COIN_FLOAT` when it declares none. */
-    firstIncompleteQuestCoinFloat(): number {
-        return this.firstIncompleteQuest()?.coinFloat ?? COIN_FLOAT;
     }
 
     pickedIds(): Set<string> {
@@ -398,37 +373,4 @@ class EatFood implements Task {
     constructor(private bot: AIOQuester) {}
     validate(): boolean { return this.bot.shouldEat(); }
     async execute(): Promise<void> { await this.bot.eatOnce(); }
-}
-
-class StartupWithdraw implements Task {
-    private done = false;
-    private tries = 0;
-    constructor(private bot: AIOQuester) {}
-    validate(): boolean { return !this.done; }
-    async execute(): Promise<void> {
-        if (this.bot.firstIncompleteQuestOwnsInventory()) {
-            this.bot.log('quest module owns its startup loadout — skipping generic coin withdrawal');
-            this.done = true;
-            return;
-        }
-        // Why: a quest that declares no float buys nothing, and the walk to a pinned bank it does not need can be a route that does not exist — from inside the Dwarf Cannon goblin cave it costs a minute and a half of proving so before the quest starts.
-        const float = this.bot.firstIncompleteQuestCoinFloat();
-        if (float <= 0) {
-            this.bot.log('quest declares no coin float — skipping generic coin withdrawal');
-            this.done = true;
-            return;
-        }
-        if (Inventory.count('Coins') >= float) {
-            this.bot.log(`already holding ${float}+ coins — skipping startup withdraw`);
-            this.done = true;
-            return;
-        }
-        this.bot.log(`withdrawing ${float} starting coins`);
-        const ok = await executeStep(
-            { kind: 'withdraw', items: [{ name: 'Coins', qty: float }], bank: this.bot.firstQuestBank(), leaveOpen: true },
-            [],
-            m => this.bot.log(`  ${m}`)
-        );
-        if (ok || ++this.tries >= 3) { this.done = true; }
-    }
 }

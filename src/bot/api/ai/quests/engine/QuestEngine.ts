@@ -16,7 +16,7 @@ import { QUESTS } from '../data/quests.js';
 import { QUEST_DEFS, defById } from '../defs/index.js';
 import { executeStep } from '../exec/steps.js';
 import type { BankInventorySnapshot, PlayerState, QuestEligibility, QuestRecord } from '../types.js';
-import { coinFloatWithdraw, depositPlan, floatWithdraw, planProvisioning } from './provisioning.js';
+import { coinFloatWithdraw, depositPlan, floatWithdraw, planProvisioning, shouldFreshenPack } from './provisioning.js';
 import { nextQuest, queueRows, type QueueRow } from './queue.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from './types.js';
 import { NO_PROGRESS_PARK, NO_PROGRESS_WARN, ProgressWatchdog, progressSignature } from './watchdog.js';
@@ -42,6 +42,9 @@ const WAIT_PARK = 15;
 
 /** Walks back to a bank to try before leaving the character where it finished. */
 const RETREAT_GIVE_UP = 4;
+
+/** Bank trips to try emptying the pack before a quest starts on whatever it is carrying. */
+const FRESH_GIVE_UP = 3;
 
 export const COIN_FLOAT = 1000;
 
@@ -106,6 +109,8 @@ export class QuestEngine implements Task {
     private readonly retreated = new Set<string>();
     private readonly retreatTries = new Map<string, number>();
     private readonly deposited = new Set<string>();
+    private readonly freshened = new Set<string>();
+    private readonly freshenTries = new Map<string, number>();
     private readonly blocked = new Map<string, string[]>();
     /** Modules that have already emitted {@link QuestModule.warnReadiness}. */
     private readonly readinessWarned = new Set<string>();
@@ -146,8 +151,8 @@ export class QuestEngine implements Task {
             return;
         }
 
-        // StartupWithdraw and bank-aware quest steps deliberately leave the bank open so this
-        // task can take an authoritative snapshot before the interface disappears.
+        // Bank-aware quest steps deliberately leave the bank open so this task can take an
+        // authoritative snapshot before the interface disappears.
         if (!skipEarly && Bank.isOpen()) {
             await Execution.delayUntil(() => Bank.loaded(), 3000);
             this.refreshBankCounts(true);
@@ -221,6 +226,10 @@ export class QuestEngine implements Task {
         const stage = progress ? progress.stage : await module.readStage?.();
         const snap = this.buildSnapshot(module, stage, progress);
 
+        if (await this.freshenPack(module, id, snap, rows)) {
+            return;
+        }
+
         if (module.ownsInventory) {
             // Some quests have one-way, bankless areas. Their stage oracle must run before any
             // generic attempt to bank spillover or provision items on the mainland.
@@ -240,6 +249,8 @@ export class QuestEngine implements Task {
             this.parkCounts.delete(id);
             this.provisioned.delete(id);
             this.deposited.delete(id);
+            this.freshened.delete(id);
+            this.freshenTries.delete(id);
             this.blocked.delete(id);
             this.resetWatchdog();
             this.runningId = null;
@@ -466,6 +477,33 @@ export class QuestEngine implements Task {
         return true;
     }
 
+    /** Bank the pack to nothing before a quest opens; true when the loop should yield after the trip. */
+    private async freshenPack(module: QuestModule, id: string, snap: QuestSnapshot, rows: QueueRow[]): Promise<boolean> {
+        const carried = Inventory.used();
+        if (!shouldFreshenPack(snap.journal, carried, this.freshened.has(id))) {
+            return false;
+        }
+        const tries = (this.freshenTries.get(id) ?? 0) + 1;
+        this.freshenTries.set(id, tries);
+        this.host.noteState(rows, id, 'banking the pack to nothing', this.noProgressCount, this.parked.size);
+        this.host.log(`${module.record.name} not started — banking ${carried} carried slot(s) so it provisions from empty (${tries}/${FRESH_GIVE_UP})`);
+        const emptied = await executeStep(
+            { kind: 'deposit', keep: [], bank: bankFor(module), leaveOpen: true },
+            module.hops ?? [],
+            m => this.host.log(`  ${m}`)
+        );
+        if (emptied || tries >= FRESH_GIVE_UP) {
+            this.freshened.add(id);
+        }
+        if (!emptied && tries >= FRESH_GIVE_UP) {
+            this.host.log(`${module.record.name}: no bank reachable after ${FRESH_GIVE_UP} tries — starting on the pack as it stands`);
+        }
+        await Execution.delayUntil(() => Bank.loaded(), 3000);
+        this.refreshBankCounts(true);
+        await Modals.closeIfOpen();
+        return true;
+    }
+
     // Why: `exit` comes first for the quests whose last step leaves them somewhere the navigator has no route out of.
     // Why: the bank walk itself is a `scanBank`, so it picks the nearest reachable bank like every other bank leg.
     // Why: it is bounded, as a bot standing safely on the wrong side of a broken route is a better outcome than one that never finishes its queue.
@@ -512,6 +550,8 @@ export class QuestEngine implements Task {
         this.parkCounts.delete(id);
         this.provisioned.delete(id);
         this.deposited.delete(id);
+        this.freshened.delete(id);
+        this.freshenTries.delete(id);
         this.retreated.delete(id);
         this.retreatTries.delete(id);
         this.waitKey = '';
