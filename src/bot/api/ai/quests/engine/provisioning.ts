@@ -1,4 +1,5 @@
 // docs/reference/quest-engine.md#provisioning
+import type { QuestStatus } from '../../../ui/questlog/Quests.js';
 import type { QuestItem } from '../types.js';
 
 interface ProvisionPlan {
@@ -37,6 +38,14 @@ export function planProvisioning(
         }
     }
     return plan;
+}
+
+/**
+ * Why: the bot starts carrying anything and the quest before this one leaves anything behind, so every quest provisions from empty.
+ * Why: only before the journal opens — a resumed quest can be standing past its last bank.
+ */
+export function shouldFreshenPack(journal: QuestStatus, usedSlots: number, alreadyFresh: boolean): boolean {
+    return journal === 'notStarted' && usedSlots > 0 && !alreadyFresh;
 }
 
 export function depositPlan(inv: Map<string, number>, keep: string[]): string[] {

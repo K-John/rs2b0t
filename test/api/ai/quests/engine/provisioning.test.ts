@@ -1,5 +1,5 @@
 import { expect, test, describe } from 'bun:test';
-import { coinFloatWithdraw, depositPlan, floatWithdraw, gpShort, planProvisioning } from '#/bot/api/ai/quests/engine/provisioning.js';
+import { coinFloatWithdraw, depositPlan, floatWithdraw, gpShort, planProvisioning, shouldFreshenPack } from '#/bot/api/ai/quests/engine/provisioning.js';
 import type { QuestItem } from '#/bot/api/ai/quests/types.js';
 
 const it = (name: string, qty: number, kind: 'mustHave' | 'acquirable'): QuestItem => ({ name, qty, kind });
@@ -107,5 +107,29 @@ describe('floatWithdraw (generalised, e.g. quest food)', () => {
         expect(floatWithdraw(new Map(), new Map([['trout', 3]]), 'Trout', 10)).toEqual({ name: 'Trout', qty: 3 });
         expect(floatWithdraw(new Map([['trout', 10]]), new Map([['trout', 50]]), 'Trout', 10)).toBeNull();
         expect(floatWithdraw(new Map(), new Map(), 'Trout', 10)).toBeNull();
+    });
+});
+
+describe('shouldFreshenPack', () => {
+    test('a not-started quest with anything in the pack starts by emptying it', () => {
+        expect(shouldFreshenPack('notStarted', 28, false)).toBe(true);
+        expect(shouldFreshenPack('notStarted', 1, false)).toBe(true);
+    });
+
+    test('an empty pack is already fresh', () => {
+        expect(shouldFreshenPack('notStarted', 0, false)).toBe(false);
+    });
+
+    test('runs once per quest', () => {
+        expect(shouldFreshenPack('notStarted', 28, true)).toBe(false);
+    });
+
+    test('a quest already underway is never emptied — it may be resumed past the last bank', () => {
+        expect(shouldFreshenPack('inProgress', 28, false)).toBe(false);
+    });
+
+    test('an unread journal waits rather than banking the pack blind', () => {
+        expect(shouldFreshenPack('unknown', 28, false)).toBe(false);
+        expect(shouldFreshenPack('complete', 28, false)).toBe(false);
     });
 });

@@ -89,8 +89,9 @@ Dwarf Cannon added seven, and the first three are engine behaviour rather than q
   `StartupWithdraw` ran a generic 1000gp withdrawal against the pinned bank before the
   first `decide()`, skipping only for `ownsInventory`. Resumed inside the goblin cave that
   is a route which does not exist, and it spent 84 seconds and three retries proving so
-  before the quest could start. It now honours the declared float, which also silences the
-  same waste in Dragon Slayer — the other module that declares `coinFloat: 0`.
+  before the quest could start. The task is gone: `QuestEngine.freshenPack` now empties the
+  pack and the engine's own provisioning refills it, and both are gated on the journal
+  reading `notStarted` — inside the cave it reads `inProgress`, so neither runs.
 
 The camp is also worth stating on its own: plain walking never enters it. It is a
 1294-tile compound whose perimeter is the railings themselves, and every route in

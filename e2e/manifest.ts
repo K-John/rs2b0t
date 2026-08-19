@@ -11,6 +11,15 @@ export const CASES: readonly Case[] = [
         documentedIn: 'docs/reference/quest-harness-recipes-4.md'
     },
     {
+        id: 'aio-fresh-pack-live',
+        harness: 'aio-fresh-pack-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        args: ['--quest', 'doric', '--junk', '28', '--minutes', '8'],
+        budgetMin: 10,
+        note: 'seeds 28 cow hides into the pack and proves the quest banks them before it provisions'
+    },
+    {
         id: 'aio-skip-quest-432-live',
         harness: 'aio-skip-quest-432-live.ts',
         covers: { scripts: ['AIOQuester'] },

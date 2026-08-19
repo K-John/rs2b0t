@@ -112,10 +112,16 @@ quest needs **before** it starts, bank-first:
 
 | Function | Job |
 |---|---|
+| `shouldFreshenPack(...)` | whether the quest opens by banking the pack to nothing |
 | `planProvisioning(...)` | what to withdraw, given the record's items and what is held |
 | `depositPlan(inv, keep)` | what to drop before starting |
 | `gpShort(snap, estGp)` | how much coin is missing for a purchase |
 | `floatWithdraw(...)`, `coinFloatWithdraw(...)` | withdrawing with headroom |
+
+Every quest opens on an empty pack: `QuestEngine.freshenPack` banks all 28 slots — coin float
+(`COIN_FLOAT`) and food included — while the journal reads `notStarted`, so the module's own
+withdrawal is the only thing that fills it. It never runs on a quest already underway, which can
+be resumed with no route back to the fixed bank (`PROVISION_BANK`). Both live in `QuestEngine.ts`.
 
 Two rules that are easy to get wrong:
 
@@ -123,9 +129,6 @@ Two rules that are easy to get wrong:
   provisioner does not carry coin, so every purchase step parks with "need gp".
 - Quest-internal consumables are not `record.items`. The record lists what the quest
   *requires*; things consumed along the way are the module's own business.
-
-The engine carries a coin float (`COIN_FLOAT`) and provisions from a fixed bank
-(`PROVISION_BANK`) — both in [`QuestEngine.ts`](../../src/bot/api/ai/quests/engine/QuestEngine.ts).
 
 ## The queue and the watchdog
 
