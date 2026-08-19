@@ -3,6 +3,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { ANTIPOISON_IDS, DUEL_RING_IDS, FC_BANK, FC_ID, FC_ITEM, FC_SHOP, PICKAXES } from './areas.js';
 import type Tile from '../../../../../geometry/Tile.js';
+import { bestBanked, bestHeld, packWeapon, wieldedWeapon } from '../../weapons.js';
 
 export interface FcItem {
     id: number;
@@ -75,16 +76,6 @@ export const BLAST_MINIMUM: readonly { item: FcItem; qty: number }[] = [
     { item: { id: FC_ID.DEATH_RUNE, name: FC_ITEM.DEATH_RUNE }, qty: 4 }
 ];
 
-/** Melee weapons worth wielding for the hellhounds and for finishing Chronozon. */
-export const WEAPONS: readonly FcItem[] = [
-    { id: 1333, name: 'Rune scimitar' },
-    { id: 1331, name: 'Adamant scimitar' },
-    { id: 1329, name: 'Mithril scimitar' },
-    { id: 1325, name: 'Steel scimitar' },
-    { id: 1327, name: 'Iron scimitar' },
-    { id: 1321, name: 'Bronze scimitar' }
-];
-
 export function held(snap: QuestSnapshot, id: number): number {
     return snap.invIds?.get(id) ?? 0;
 }
@@ -127,11 +118,11 @@ export function bestBankPickaxe(snap: QuestSnapshot): FcItem | null {
 }
 
 export function hasWeapon(snap: QuestSnapshot): boolean {
-    return WEAPONS.some(w => held(snap, w.id) > 0 || worn(snap, w.id));
+    return bestHeld(snap) !== null;
 }
 
 export function bestBankWeapon(snap: QuestSnapshot): FcItem | null {
-    return WEAPONS.find(w => banked(snap, w.id) > 0) ?? null;
+    return bestBanked(snap);
 }
 
 // Why: `hasWeapon` is happy with a scimitar in the pack, so the withdraw satisfies it and the equip step never fires — hence a separate check against `worn`.
@@ -139,10 +130,10 @@ export function bestBankWeapon(snap: QuestSnapshot): FcItem | null {
 
 /** Equip a melee weapon when one is held or banked, or null. */
 export function wieldWeapon(snap: QuestSnapshot, bank?: Tile): QuestStep | null {
-    if (WEAPONS.some(w => worn(snap, w.id))) {
+    if (wieldedWeapon(snap)) {
         return null;
     }
-    const inPack = WEAPONS.find(w => held(snap, w.id) > 0);
+    const inPack = packWeapon(snap);
     if (inPack) {
         return { kind: 'equip', item: inPack.name };
     }

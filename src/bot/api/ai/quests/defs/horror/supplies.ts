@@ -11,6 +11,7 @@ import { weaponOf } from '../../../../loadout/loadoutPlan.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { useOnLoc } from '../../exec/prompts.js';
 import { smithNails } from '../dragonslayer/supplies.js';
+import { liveBestWeapon } from '../../weapons.js';
 import {
     ARCHERY_SHOP, GENERAL_SHOP, HD_ID, HD_ITEM, HD_LOC, HD_TILE, RUNE_SHOP, SWORD_SHOP
 } from './areas.js';
@@ -341,14 +342,16 @@ export function dungeonKit(snap: QuestSnapshot, needLight: boolean): QuestStep |
 // Why: absent, unwieldable or blank, the fights fall back to magic only, which still wins — the melee form is prayed through instead of killed.
 let meleeGaveUp = false;
 
-const FALLBACK_WEAPON = 'Rune scimitar';
+
 
 /** Attempts before the weapon is written off — an unwieldable one never lands. */
 const WIELD_TRIES = 3;
 let wieldTries = 0;
 
 export function meleeWeaponName(): string | null {
-    const name = weaponOf(QuestLoadout.current, FALLBACK_WEAPON)?.trim();
+    // Why: no shop sells a rune scimitar, so naming one as the fallback asked for something the
+    // account may never own — the tier its Attack level reaches and it already carries is the answer.
+    const name = (weaponOf(QuestLoadout.current) ?? liveBestWeapon()?.name)?.trim();
     return name && name.length > 0 ? name : null;
 }
 

@@ -1,6 +1,7 @@
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { Skills } from '../../../../skills/Skills.js';
 import { EW_ITEM, PICKAXES, SEERS_BANK, type EwItem } from './areas.js';
+import { MELEE_WEAPONS, bestBanked, bestHeld, packWeapon, wieldedWeapon } from '../../weapons.js';
 
 export const COAL_NEED = 4;
 const THREAD_NEED = 1;
@@ -108,14 +109,7 @@ export function warnElementalWorkshopReadiness(): string | null {
 }
 
 /** Melee weapons usable for the Earth elemental (and for slashing the book). */
-export const WEAPONS: readonly EwItem[] = [
-    { id: 1333, name: 'Rune scimitar' },
-    { id: 1331, name: 'Adamant scimitar' },
-    { id: 1329, name: 'Mithril scimitar' },
-    { id: 1325, name: 'Steel scimitar' },
-    { id: 1323, name: 'Iron scimitar' },
-    { id: 1321, name: 'Bronze scimitar' }
-];
+
 
 export function held(snap: QuestSnapshot, id: number): number {
     return snap.invIds?.get(id) ?? 0;
@@ -167,7 +161,7 @@ export function hasHeldSlashTool(snap: QuestSnapshot): boolean {
     if (held(snap, EW_ITEM.KNIFE.id) > 0) {
         return true;
     }
-    if (WEAPONS.some(w => held(snap, w.id) > 0)) {
+    if (packWeapon(snap) !== null) {
         return true;
     }
     for (const name of snap.inv.keys()) {
@@ -186,7 +180,7 @@ export function hasSlashTool(snap: QuestSnapshot): boolean {
     if (hasHeldSlashTool(snap)) {
         return true;
     }
-    if (WEAPONS.some(w => snap.wornIds?.has(w.id) ?? false)) {
+    if (wieldedWeapon(snap) !== null) {
         return true;
     }
     for (const name of snap.worn) {
@@ -198,7 +192,7 @@ export function hasSlashTool(snap: QuestSnapshot): boolean {
 }
 
 export function hasWeapon(snap: QuestSnapshot): boolean {
-    if (WEAPONS.some(w => held(snap, w.id) > 0 || (snap.wornIds?.has(w.id) ?? false))) {
+    if (bestHeld(snap) !== null) {
         return true;
     }
     return [...snap.inv.keys(), ...snap.worn].some(isCombatWeaponName);
@@ -213,7 +207,7 @@ export function bestBankPickaxe(snap: QuestSnapshot): EwItem | null {
 }
 
 export function bestBankWeapon(snap: QuestSnapshot): EwItem | null {
-    return WEAPONS.find(w => banked(snap, w.id) > 0) ?? null;
+    return bestBanked(snap);
 }
 
 export function scanBank(): QuestStep {
@@ -244,8 +238,7 @@ function keepNamesForEntry(): string[] {
         'coal', 'bronze pickaxe', 'iron pickaxe', 'steel pickaxe', 'mithril pickaxe',
         'adamant pickaxe', 'rune pickaxe', 'elemental ore', 'elemental metal', 'elemental shield',
         'a stone bowl', 'coins', 'lobster', 'swordfish', 'salmon', 'trout',
-        'rune scimitar', 'adamant scimitar', 'mithril scimitar', 'steel scimitar',
-        'iron scimitar', 'bronze scimitar'
+        ...MELEE_WEAPONS.map(w => w.name.toLowerCase())
     ];
 }
 
@@ -418,7 +411,7 @@ function workshopKeepIds(snap: QuestSnapshot): number[] {
         EW_ITEM.HAMMER.id,
         EW_ITEM.COINS.id,
         ...PICKAXES.map(p => p.id),
-        ...WEAPONS.map(w => w.id)
+        ...MELEE_WEAPONS.map(w => w.id)
     ];
     void snap;
     return ids;

@@ -71,6 +71,26 @@ Doses join the float like food, drawn once. Declared only on the nine quests abo
 threaten the account. Lost City, Scorpion Catcher and Legends drive prayer inside their own fight
 loops and declare nothing here.
 
+## Weapons
+
+No quest names a weapon. [`quests/weapons.ts`](../../src/bot/api/ai/quests/weapons.ts) derives the
+table from `ITEM_DB`, so every one-handed melee type the item db knows is offered at every tier,
+and a quest asks only for "a weapon".
+
+| Tier | Attack | Also needs |
+|---|---|---|
+| Dragon | 60 | Lost City for the longsword and dagger, Hero's Quest for the battleaxe and mace |
+| Rune | 40 | |
+| Adamant | 30 | |
+| Mithril | 20 | |
+| Black | 10 | |
+| Steel | 5 | |
+| Iron, Bronze | 1 | |
+
+The level buys the tier; within a tier any type will do. `tier60.rs2` gates dragon melee on a quest
+as well as the level, so a level check alone withdraws a weapon the wield is refused for and the
+quest fights bare-handed. `snap.attack` carries the level, the way `snap.prayer` carries points.
+
 ## See also
 
 - [Quest engine](quest-engine.md)

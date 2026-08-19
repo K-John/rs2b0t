@@ -33,6 +33,7 @@ function snap(options: {
     freeSlots?: number;
     wornIds?: number[];
     dropFragments?: boolean;
+    attack?: number;
 } = {}): QuestSnapshot {
     const stage = options.stage ?? FC_STAGE.NOT_STARTED;
     // Fragments already granted at this stage are carried unless a test is
@@ -59,6 +60,8 @@ function snap(options: {
         bankIds: new Map(options.bankIds ?? []),
         bankKnown: options.bankKnown ?? true,
         tile: options.tile === undefined ? VARROCK : options.tile,
+        // Why: the quest arms itself from the bank, so a fixture with no Attack level can wield nothing.
+        attack: options.attack ?? 60,
         freeSlots: options.freeSlots ?? 20
     };
 }

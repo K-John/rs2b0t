@@ -676,6 +676,7 @@ export class QuestEngine implements Task {
             bankKnown: this.bankKnown,
             tile: Game.tile(),
             prayer: Skills.effective('prayer'),
+            attack: Skills.level('attack'),
             freeSlots: Inventory.free()
         };
     }

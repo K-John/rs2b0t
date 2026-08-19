@@ -3,6 +3,7 @@ import { Skills } from '../../../../skills/Skills.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { GEM_CUTS, GEM_ROCKS, LQ_BANK, LQ_ID, LQ_ITEM, LQ_SHOP, LQ_SKILLS, LQ_TILE } from './areas.js';
 import { mineGem, smeltGoldBar } from './gather.js';
+import { MELEE_WEAPONS, bestBanked, packWeapon, wieldedWeapon } from '../../weapons.js';
 
 export interface LqItem {
     id: number;
@@ -41,12 +42,6 @@ export const PRAYER_POTIONS: readonly LqItem[] = [
 ];
 
 /** Melee weapons worth wielding against the demon and the three guardians. */
-export const WEAPONS: readonly LqItem[] = [
-    { id: LQ_ID.RUNE_SCIMITAR, name: LQ_ITEM.RUNE_SCIMITAR },
-    { id: 1331, name: 'Adamant scimitar' },
-    { id: 1329, name: 'Mithril scimitar' }
-];
-
 // Why: rune chainbody rather than platebody — the platebody wants Dragon Slayer as well as Defence 40, and the refusal is a bare false with no message.
 export const ARMOUR: readonly LqItem[] = [
     { id: 1113, name: 'Rune chainbody' },
@@ -118,7 +113,7 @@ export const KEEP_IDS: readonly number[] = [
     ...GEM_ROCKS.map(g => g.id),
     ...GEM_CUTS.map(g => g.uncut),
     ...PICKAXES.map(p => p.id),
-    ...WEAPONS.map(w => w.id),
+    ...MELEE_WEAPONS.map(w => w.id),
     ...ARMOUR.map(a => a.id),
     ...PRAYER_POTIONS.map(p => p.id),
     LQ_ID.COINS
@@ -265,18 +260,26 @@ export function potionTopUp(snap: QuestSnapshot, want: number, bank?: Tile): Que
 
 /** Equip the best melee weapon and armour the bank can dress us in, or null. */
 export function dressForCombat(snap: QuestSnapshot, bank?: Tile): QuestStep | null {
-    for (const piece of [...WEAPONS.slice(0, 1), ...ARMOUR]) {
+    // Why: the weapon is whatever tier the Attack level reaches and the account owns, so it is resolved rather than named.
+    if (!wieldedWeapon(snap)) {
+        const inPack = packWeapon(snap);
+        if (inPack) {
+            return { kind: 'equip', item: inPack.name };
+        }
+        if (!snap.bankKnown) {
+            return scanBank(bank);
+        }
+        const fromTheBank = bestBanked(snap);
+        if (fromTheBank) {
+            return withdraw([{ name: fromTheBank.name, id: fromTheBank.id, qty: 1 }], bank);
+        }
+    }
+    for (const piece of ARMOUR) {
         if (worn(snap, piece.id)) {
             continue;
         }
         if (held(snap, piece.id) > 0) {
             return { kind: 'equip', item: piece.name };
-        }
-        if (piece.id === WEAPONS[0]!.id) {
-            const alternative = WEAPONS.find(w => worn(snap, w.id) || held(snap, w.id) > 0);
-            if (alternative) {
-                return worn(snap, alternative.id) ? null : { kind: 'equip', item: alternative.name };
-            }
         }
         if (!snap.bankKnown) {
             return scanBank(bank);
