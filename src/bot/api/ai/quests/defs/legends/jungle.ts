@@ -1,3 +1,4 @@
+import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
@@ -237,6 +238,9 @@ export async function getBullroarer(log: (m: string) => void): Promise<boolean> 
 
 const GUJUO_LEASH = 14;
 
+// Why: he spawns up to seven tiles off and walks in, so the wait covers the approach with room over rather than racing it.
+const GUJUO_APPROACH_MS = 6000;
+
 function findGujuo(): Npc | null {
     return Npcs.query().name(LQ_NPC.GUJUO).within(GUJUO_LEASH).nearest();
 }
@@ -304,10 +308,14 @@ export function talkGujuoStatus(
         if (!(await summonGujuo(log))) {
             return 'nodialog';
         }
-        const status = await Reach.npcDialog({ name: LQ_NPC.GUJUO, near: Game.tile() ?? LQ_TILE.BULLROARER_SPOT, log });
-        if (status !== 'done') {
-            log('Gujuo never opened a dialogue');
-            return 'nodialog';
+        // Why: the roarer leaves him in `opplayer2`, and `[ai_opplayer2,gujuo]` walks him over and opens `gujuo_start` on its own — the conversation is already coming. A Talk-to click sent into the middle of that approach sets the player walking too, so the pair of them move and neither talks, which is what "never opened a dialogue" was.
+        const spoke = (): boolean => ChatDialog.isOpen() || ChatDialog.canContinue();
+        if (!(await Execution.delayUntil(spoke, GUJUO_APPROACH_MS))) {
+            const status = await Reach.npcDialog({ name: LQ_NPC.GUJUO, near: Game.tile() ?? LQ_TILE.BULLROARER_SPOT, log });
+            if (status !== 'done') {
+                log('Gujuo never opened a dialogue');
+                return 'nodialog';
+            }
         }
         // Why: `gujuo_vessel` hands the sketch through `~objbox`, which renders in the MAIN modal and suspends the script — the `inv_add` behind it only runs once the box is clicked. `driveUntil` clicks the CHAT modal alone, so the box stood, the sketch never came, and a step whose goal is the sketch spent its whole budget waiting on a script it was holding shut.
         const ok = goal ? await driveBoxes(goal, ms, prefer, log) : await driveToEnd(prefer, log, ms, required);
