@@ -73,6 +73,38 @@ export function clientWalkLeftSource(
     return path.some(p => p.x !== src.x || p.z !== src.z);
 }
 
+function firstClientStep(
+    src: { x: number; z: number },
+    path: ReadonlyArray<{ x: number; z: number }>
+): { x: number; z: number } | null {
+    return path.find(p => p.x !== src.x || p.z !== src.z) ?? null;
+}
+
+/** Why: a dest through the tree makes tryMove step into the loc; packed hops go around first. */
+export function clientFirstStepOnPackedPath(
+    src: { x: number; z: number },
+    path: ReadonlyArray<{ x: number; z: number }> | null | undefined,
+    packed: ReadonlyArray<{ x: number; z: number }>,
+    pathIdx: number,
+    window = 8
+): boolean {
+    if (!path || packed.length === 0) {
+        return false;
+    }
+    const step = firstClientStep(src, path);
+    if (!step) {
+        return false;
+    }
+    const hi = Math.min(packed.length - 1, pathIdx + window);
+    for (let i = pathIdx + 1; i <= hi; i++) {
+        const hop = packed[i]!;
+        if (step.x === hop.x && step.z === hop.z) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export function starvedTerminalIndex(tiles: PathTileLike[], me: PathTileLike, isClickable: (t: PathTileLike) => boolean): number {
     const last = tiles.length - 1;
     if (last < 0) {
