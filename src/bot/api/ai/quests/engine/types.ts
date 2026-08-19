@@ -45,6 +45,9 @@ export interface QuestSnapshot {
     bankIds?: ReadonlyMap<number, number>;
     bankKnown?: boolean;
     tile?: WorldTile | null;
+    // Why: absent means the snapshot does not report it, and a step that needs prayer treats that as "not short" rather than guessing.
+    /** Current prayer points. */
+    prayer?: number;
     freeSlots?: number;
 }
 

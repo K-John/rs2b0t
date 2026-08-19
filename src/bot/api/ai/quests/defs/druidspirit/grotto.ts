@@ -1,4 +1,5 @@
 import { Execution } from '../../../../execution/Execution.js';
+import { Skills } from '../../../../skills/Skills.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
@@ -105,6 +106,30 @@ export async function blessSickle(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     return driveUntil(() => heldId(NS_ID.SICKLE_BLESSED) > 0, [], log);
+}
+
+// Why: `oploc1,druidic_spirit_grotto_naturealtar` tops the bar to `stat_base(prayer) + 2`, so one Pray-at is the whole trip and there is nothing to repeat.
+
+/** Top the prayer bar up at the grotto's Altar of nature. */
+export async function rechargePrayer(log: (m: string) => void): Promise<boolean> {
+    const full = Skills.level('prayer');
+    if (Skills.effective('prayer') >= full) {
+        return true;
+    }
+    if (!(await enterGrotto(log))) {
+        return false;
+    }
+    await settleScene();
+    const altar = Locs.query().name(NS_LOC.ALTAR).action('Pray-at').within(16).nearest();
+    if (!altar) {
+        log('no Altar of nature in the grotto to pray at');
+        return false;
+    }
+    const before = Skills.effective('prayer');
+    if (!(await altar.interact('Pray-at'))) {
+        return false;
+    }
+    return Execution.delayUntil(() => Skills.effective('prayer') > before, 6000);
 }
 
 /** The quest ends inside the pocket; the retreat to a bank has to start outside it. */

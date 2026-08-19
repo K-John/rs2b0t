@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import { NS_ID, NS_STAGE } from '#/bot/api/ai/quests/defs/druidspirit/areas.js';
+import { BLOOM_MAX_COST, NS_ID, NS_STAGE } from '#/bot/api/ai/quests/defs/druidspirit/areas.js';
 import { decide, druidspirit } from '#/bot/api/ai/quests/defs/druidspirit/index.js';
 import { NS_FLAG } from '#/bot/api/ai/quests/defs/druidspirit/journal.js';
 import { QUEST_DEFS } from '#/bot/api/ai/quests/defs/index.js';
@@ -18,6 +18,7 @@ function snap(options: {
     bankIds?: [number, number][];
     wornIds?: number[];
     tile?: QuestSnapshot['tile'];
+    prayer?: number;
 } = {}): QuestSnapshot {
     const stage = options.stage ?? NS_STAGE.NOT_STARTED;
     return {
@@ -34,6 +35,7 @@ function snap(options: {
         bankIds: new Map(options.bankIds ?? []),
         bankKnown: true,
         tile: options.tile ?? CAMP,
+        prayer: options.prayer,
         freeSlots: 20
     };
 }
@@ -161,6 +163,45 @@ describe('nature spirit decide', () => {
             stage: NS_STAGE.BLESSED_SICKLE,
             invIds: [[NS_ID.SICKLE_BLESSED, 1], [NS_ID.POUCH_EMPTY, 1]]
         }))).toBe('harvest natures bounty');
+    });
+
+    test('a bloom needs prayer, so a short bar goes to the altar of nature first', () => {
+        const kit: [number, number][] = [[NS_ID.SICKLE_BLESSED, 1], [NS_ID.POUCH_EMPTY, 1]];
+        for (const prayer of [0, 1, BLOOM_MAX_COST - 1]) {
+            expect(named(step({ stage: NS_STAGE.BLESSED_SICKLE, invIds: kit, prayer })))
+                .toBe('recharge at the altar of nature');
+        }
+    });
+
+    test('a bar that covers the dearest cast harvests instead of walking to the altar', () => {
+        const kit: [number, number][] = [[NS_ID.SICKLE_BLESSED, 1], [NS_ID.POUCH_EMPTY, 1]];
+        for (const prayer of [BLOOM_MAX_COST, 43]) {
+            expect(named(step({ stage: NS_STAGE.BLESSED_SICKLE, invIds: kit, prayer })))
+                .toBe('harvest natures bounty');
+        }
+    });
+
+    test('a snapshot that does not report prayer harvests as before', () => {
+        expect(named(step({
+            stage: NS_STAGE.BLESSED_SICKLE,
+            invIds: [[NS_ID.SICKLE_BLESSED, 1], [NS_ID.POUCH_EMPTY, 1]]
+        }))).toBe('harvest natures bounty');
+    });
+
+    test('a full pouch hunts rather than recharging — only a bloom costs prayer', () => {
+        expect(named(step({
+            stage: NS_STAGE.ADDED_POUCH,
+            invIds: [[NS_ID.SICKLE_BLESSED, 1], [NS_ID.POUCH, 6]],
+            prayer: 0
+        }))).toBe('kill a ghast');
+    });
+
+    test('three harvests fill the pouch on an empty bar — filling costs no prayer', () => {
+        expect(named(step({
+            stage: NS_STAGE.PICKED_SICKLE,
+            invIds: [[NS_ID.SICKLE_BLESSED, 1], [NS_ID.POUCH_EMPTY, 1], [NS_ID.PEAR, 3]],
+            prayer: 0
+        }))).toBe('fill the druid pouch');
     });
 
     test('a lost blessed sickle is re-dipped in the grotto', () => {
