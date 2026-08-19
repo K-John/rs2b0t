@@ -72,9 +72,8 @@ async function magnetLeg(log: (m: string) => void): Promise<boolean> {
         }
         return false;
     }
-    // Why: the cellar gate is a transport hop the walker opens and crosses itself, so the leg names
-    // the cupboard and lets it. Opening the gate by hand and waiting to be on the far side waits for
-    // a move nothing makes — on the gate's own tile that spun for four minutes and 26 attempts.
+    // Why: the cellar gate is a transport hop the walker opens and crosses itself, so the leg names the cupboard and lets it.
+    // Why: opening the gate by hand and waiting to be on the far side waits for a move nothing makes, and on the gate's own tile that spun for four minutes and 26 attempts.
     if (!(await Traversal.walkResilient(CUPBOARD_STAND, { radius: 2, attempts: 3, timeoutMs: 60_000, log }))) {
         return false;
     }
