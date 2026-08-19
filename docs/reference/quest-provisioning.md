@@ -51,8 +51,14 @@ Two rules that are easy to get wrong:
 ## Prayer
 
 A quest declaring `pray: { protect, potions }` holds that protection prayer through its fights.
-The AIO quester's `Sustain` hook drives it, and `Sustain.run()` is already called from every
-quest fight loop, so no module needs its own upkeep. One op per tick: food first, then prayer.
+One op per tick: food first, then prayer, because the server drops the rest. Quest fights come in
+three shapes and `prayerUpkeep()` is called from each:
+
+| Fight shape | Called from | Quests |
+|---|---|---|
+| a step that returns to the engine each pass | `QuestEngine` tick | Dragon Slayer, Witch's House |
+| a loop that already runs `Sustain` | the quester's `Sustain` hook | Fight Arena, Heroes' Quest, Horror from the Deep, Troll Stronghold |
+| a loop that owns the bot for minutes | the loop itself | Fremennik Trials, Underground Pass (via `driveUntil`), Vampire Slayer |
 
 | Situation | Action |
 |---|---|
@@ -61,10 +67,9 @@ quest fight loop, so no module needs its own upkeep. One op per tick: food first
 | the fight ends | drop it — held through the walk out it empties the flask |
 | Prayer below the prayer's level | log once, fight on food alone |
 
-Doses join the float like food, drawn once. Declared only where the fight threatens the account:
-Dragon Slayer, Fight Arena, Fremennik Trials, Grand Tree, Heroes' Quest, Horror from the Deep,
-Troll Stronghold, Underground Pass, Vampire Slayer, Witch's House. Lost City, Scorpion Catcher
-and Legends drive prayer inside their own fight loops and declare nothing here.
+Doses join the float like food, drawn once. Declared only on the nine quests above, whose fights
+threaten the account. Lost City, Scorpion Catcher and Legends drive prayer inside their own fight
+loops and declare nothing here.
 
 ## See also
 

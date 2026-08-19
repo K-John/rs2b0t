@@ -11,6 +11,7 @@ import { ChatDialog } from '../../../ui/dialogue/ChatDialog.js';
 import { Inventory } from '../../../inventory/Inventory.js';
 import { Locs, type Loc } from '../../../locs/Locs.js';
 import { pickPreferred } from './primitives.js';
+import { prayerUpkeep } from '../prayer.js';
 
 export function heldId(id: number): number {
     return Inventory.items().filter(item => item.id === id).reduce((sum, item) => sum + item.count, 0);
@@ -85,6 +86,7 @@ export async function driveUntil(
                 return expect();
             }
         }
+        await prayerUpkeep();
         await Execution.delayTicks(1);
     }
     return expect();

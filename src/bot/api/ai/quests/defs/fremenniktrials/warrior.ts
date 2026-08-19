@@ -10,6 +10,7 @@ import { attackable } from '../trollstronghold/combat.js';
 import { FT_LOC, FT_TILE, PEER, THORVALD, inBattleground } from './areas.js';
 import { PEER_BANK } from './seer.js';
 import { walkTo } from './supplies.js';
+import { prayerUpkeep } from '../../prayer.js';
 
 const KOSCHEI = 'Koschei the deathless';
 
@@ -113,6 +114,8 @@ async function fightKoschei(log: (m: string) => void): Promise<boolean> {
             if (await target.interact('Attack')) {
                 attacking = target.index;
             }
+        } else {
+            await prayerUpkeep();
         }
         await Execution.delayTicks(1);
     }
