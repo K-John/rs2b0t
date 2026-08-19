@@ -311,6 +311,11 @@ export function shouldBank(tickets: number, foodCount: number, bankAtTickets: nu
     return foodCount <= 0;
 }
 
+/** Slots the stall fill must leave empty so a new coin stack and the first ticket can land. */
+export function stealReserveSlots(coins: number, tickets: number): number {
+    return (coins <= 0 ? 1 : 0) + (tickets <= 0 ? 1 : 0);
+}
+
 /** Steal while the pack has room. Cake/bread/slice counts do not matter — they are unstackable mixed stall loot. */
 export function needsCakeSteal(
     selectedFood: number,

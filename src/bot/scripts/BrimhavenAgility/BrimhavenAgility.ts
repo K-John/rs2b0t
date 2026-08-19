@@ -42,6 +42,7 @@ import {
     GUARD_THIEVING_MIN,
     STEAL_THIEVING_MIN,
     needsCakeSteal,
+    stealReserveSlots,
     shouldLeaveForSteal,
     needsCoinsRestock,
     needsFoodSaleForBoat,
@@ -280,13 +281,12 @@ export default class BrimhavenAgility extends TaskBot {
     }
 
     needsCakesNow(): boolean {
-        const reserve = this.needsCoinsNow() && this.coinCount() === 0 ? 1 : 0;
         return needsCakeSteal(
             this.foodInPack(),
             this.cakesInPack(),
             this.stealRestock,
             this.needsCoinsNow(),
-            Inventory.free() - reserve
+            Inventory.free() - stealReserveSlots(this.coinCount(), this.ticketCount())
         );
     }
 
