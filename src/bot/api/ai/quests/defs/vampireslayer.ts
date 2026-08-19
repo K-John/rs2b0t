@@ -13,6 +13,7 @@ import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { talkThrough, type NpcStop } from '../exec/primitives.js';
 import { GARLIC, MORGAN_STAIRS_TOP, takeGarlic } from '../exec/garlic.js';
 import { FOOD_FLOAT, QuestFood } from '../food.js';
+import { prayerUpkeep } from '../prayer.js';
 
 export const VAMPIRE_SLAYER_STAGE = {
     NOT_STARTED: 0,
@@ -360,6 +361,7 @@ async function fightCount(log: (message: string) => void): Promise<boolean> {
     while (performance.now() < deadline) {
         if (Quests.status('Vampire Slayer') === 'complete') return true;
         if (Skills.hpFraction() < 0.6) await eatFood();
+        else await prayerUpkeep();
 
         count = liveCount();
         if (!count) {

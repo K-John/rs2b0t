@@ -20,7 +20,7 @@ import { coinFloatWithdraw, depositPlan, floatDrawPlan, planProvisioning, should
 import { nextQuest, queueRows, type QueueRow } from './queue.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from './types.js';
 import { NO_PROGRESS_PARK, NO_PROGRESS_WARN, ProgressWatchdog, progressSignature } from './watchdog.js';
-import { PRAYER_POTION } from '../prayer.js';
+import { PRAYER_POTION, prayerUpkeep } from '../prayer.js';
 import { FAIL_WARN, StepTracker, formatDuration, formatTile, invDelta } from './trace.js';
 import { GameMessages } from '../../../chatbox/gameMessages.js';
 /** What the engine needs from whatever script is driving it. */
@@ -230,6 +230,9 @@ export class QuestEngine implements Task {
         const progress = await module.readProgress?.();
         const stage = progress ? progress.stage : await module.readStage?.();
         const snap = this.buildSnapshot(module, stage, progress);
+
+        // Why: a fight shaped as a step returns here every pass, so this is the only place its prayer can be held.
+        await prayerUpkeep();
 
         if (await this.freshenPack(module, id, snap, rows)) {
             return;
