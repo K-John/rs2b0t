@@ -12,7 +12,7 @@ import { LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE, inOctagram } from './areas.j
 import { drinkPrayer } from './fight.js';
 import { enterJungle, leaveJungle, summonGujuo, talkGujuo } from './jungle.js';
 import { climbOutOfTrials, leaveOctagram } from './trials.js';
-import { driveToEnd, driveUntil, heldId, here, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { driveBoxes, driveToEnd, driveUntil, heldId, here, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 const CRAWL_ATTEMPTS = 6;
 
@@ -155,7 +155,7 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
             return false;
         }
         const offered = await offerTo(LQ_ID.GOLD_BOWL, gujuo, log);
-        const outcome = offered ? await driveBlessing(blessed, log) : 'quiet';
+        const outcome = offered ? await driveBlessing(blessed) : 'quiet';
         if (outcome === 'blessed') {
             return true;
         }
@@ -189,7 +189,7 @@ const BLESS_MISSED = /deep enough trance/;
 const BLESS_REFUSED = /too inexperienced/;
 
 /** Drive Gujuo's trance, ending the moment it blesses the bowl or the conversation closes without it. */
-async function driveBlessing(blessed: () => boolean, log: (m: string) => void): Promise<Trance> {
+async function driveBlessing(blessed: () => boolean): Promise<Trance> {
     let opened = false;
     let idle = 0;
     let missed = false;
@@ -209,7 +209,8 @@ async function driveBlessing(blessed: () => boolean, log: (m: string) => void): 
         idle++;
         return opened && idle >= BLESS_IDLE_TICKS;
     };
-    await driveUntil(ended, BLESS_PREFER, log, BLESS_MS);
+    // Why: `driveUntil` hands the chain to `driveChoice`, which clicks to the end without re-testing — so the box naming the miss was dismissed before anything read it, and every throw came back `quiet`. `driveBoxes` tests between clicks, which is the whole point of reading his words.
+    await driveBoxes(ended, BLESS_MS, BLESS_PREFER);
     if (blessed()) {
         return 'blessed';
     }
