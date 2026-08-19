@@ -4,6 +4,7 @@
 
 import type { WorldTile } from '../../../adapter/ClientAdapter.js';
 import { actions, reader } from '../../../adapter/ClientAdapter.js';
+import { Modals } from '../../../api/ui/widgets/Modals.js';
 import { Banking, isDisposableGatherJunk } from '../../../api/bank/Banking.js';
 import { Execution } from '../../../api/execution/Execution.js';
 import { Bank } from '../../../api/bank/Bank.js';
@@ -209,6 +210,9 @@ export async function handleSpecialCrossing(
                 } else {
                     await Execution.delayTicks(1);
                 }
+            } else if (reader.modals().main !== -1) {
+                // Why: Mosol Rei's `~mesbox("Mosol leads you into the village.")` sits between the choice and the `p_telejump`, and a box suspends the script until it is clicked — so waiting for the arrival it gates is waiting for a teleport that cannot run. Placed under `mapChoice` so a glidermap is still answered as a map rather than closed as a box.
+                await Modals.close();
             } else {
                 await Execution.delayTicks(1);
             }

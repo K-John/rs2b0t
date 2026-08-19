@@ -4,7 +4,7 @@ import { ChatDialog } from '#/bot/api/ui/dialogue/ChatDialog.js';
 import { Execution } from '#/bot/api/execution/Execution.js';
 import { Modals } from '#/bot/api/ui/widgets/Modals.js';
 import { Sustain } from '#/bot/api/sustain/Sustain.js';
-import { driveBoxes } from '#/bot/api/ai/quests/exec/prompts.js';
+import { clearBoxes, driveBoxes } from '#/bot/api/ai/quests/exec/prompts.js';
 import { stubProps } from '../../../../lib/stubSingletons.js';
 
 /** The five boxes `search_outer_ancient_gate` raises before its roll, then the result. */
@@ -54,4 +54,48 @@ test('a box that will not close yields instead of spinning', async () => {
     expect(got).toBe(false);
     expect(ticks).toBeGreaterThan(0);
     stuck();
+});
+
+// Why: the strength gate and the outer ancient gate render their chains as chat continues, and `driveChoice` runs a chain to its end without re-testing the goal — so the box carrying the result was clicked away before anything read it, and a crossing that had already succeeded waited out its whole budget.
+test('stops on the goal box when the chain renders as chat continues', async () => {
+    chain = [
+        'You ripple your muscles.',
+        'You brace yourself against the doors.',
+        'You start to force the doors open.',
+        'And you just manage to force the doors open slightly.'
+    ];
+    let continues = 0;
+    const asChat = [
+        stubProps(Modals, { isOpen: () => false }),
+        stubProps(ChatDialog, {
+            isOpen: () => chain.length > 0,
+            canContinue: () => chain.length > 0,
+            options: () => [],
+            continue: async (): Promise<boolean> => { continues++; chain.shift(); return true; }
+        })
+    ];
+    const got = await driveBoxes(() => /manage to force the doors open/.test(chain[0] ?? ''), 30_000);
+
+    expect(got).toBe(true);
+    expect(continues).toBe(3);
+    expect(chain[0]).toBe('And you just manage to force the doors open slightly.');
+    asChat.forEach(fn => fn());
+});
+
+// Why: a box holds the server script suspended until it is clicked, and closing main modals did nothing for one that rendered as a chat continue — the outer ancient gate's teleport runs after its box is dismissed, so the click that never came was the crossing that never happened.
+test('clearBoxes dismisses a chain that rendered as chat continues', async () => {
+    chain = ['You see a lever which you pull on to open the door.'];
+    let continues = 0;
+    const asChat = [
+        stubProps(Modals, { isOpen: () => false }),
+        stubProps(ChatDialog, {
+            canContinue: () => chain.length > 0,
+            continue: async (): Promise<boolean> => { continues++; chain.shift(); return true; }
+        })
+    ];
+    await clearBoxes();
+
+    expect(continues).toBe(1);
+    expect(chain).toHaveLength(0);
+    asChat.forEach(fn => fn());
 });

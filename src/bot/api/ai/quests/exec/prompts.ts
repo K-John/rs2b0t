@@ -102,14 +102,26 @@ export async function driveBoxes(expect: () => boolean, ms: number, prefer: stri
         if (expect()) {
             return true;
         }
-        // Why: both of these can answer at once without having changed anything — an option list `prefer` cannot match, or a modal root with no close button — so a bare retry would spin the loop flat out and starve the tick it is waiting for.
-        if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
-            if (!(await driveChoice(prefer, () => {}))) {
+        // Why: one click per pass, because `driveChoice` runs its own chain to the end without re-testing the goal — and when the goal is the text of the last box, that box has been clicked away before anything reads it. The strength gate's "you just manage to force the doors open" was drained unseen every time, so a crossing that had already succeeded waited out its whole budget and then tried again.
+        const opts = ChatDialog.options();
+        if (opts.length > 0) {
+            const pick = pickPreferred(opts, prefer);
+            // Why: an option list nothing matches cannot be advanced, but the goal may still land on its own, so this waits it out rather than spinning.
+            if (!pick) {
                 await Execution.delayTicks(1);
+                continue;
             }
+            await ChatDialog.chooseOption(pick);
+            await Execution.delayTicks(2);
+            continue;
+        }
+        if (ChatDialog.canContinue()) {
+            await ChatDialog.continue();
+            await Execution.delayTicks(1);
             continue;
         }
         if (Modals.isOpen()) {
+            // Why: a modal root with no close button answers without having changed anything, so a bare retry would starve the tick it is waiting for.
             if (!(await Modals.close())) {
                 await Execution.delayTicks(1);
             }
@@ -119,6 +131,26 @@ export async function driveBoxes(expect: () => boolean, ms: number, prefer: stri
         await Execution.delayTicks(1);
     }
     return expect();
+}
+
+// Why: `~mesbox` can land in either widget, and a box holds the server script suspended until it is clicked — so a page left standing is a script left unrun.
+
+/** Dismiss every message box currently standing, in whichever widget it rendered. */
+export async function clearBoxes(max = 8): Promise<void> {
+    for (let i = 0; i < max; i++) {
+        if (ChatDialog.canContinue()) {
+            await ChatDialog.continue();
+            await Execution.delayTicks(1);
+            continue;
+        }
+        if (Modals.isOpen()) {
+            if (!(await Modals.close())) {
+                return;
+            }
+            continue;
+        }
+        return;
+    }
 }
 
 export interface DoorCrossing {
@@ -255,7 +287,12 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
     if (status !== 'done') {
         return false;
     }
-    return driveBoxes(step.expect, step.expectMs ?? 20_000, step.prefer ?? []);
+    if (!(await driveBoxes(step.expect, step.expectMs ?? 20_000, step.prefer ?? []))) {
+        return false;
+    }
+    // Why: the goal can land mid-chain now that it is tested between clicks, and a page left standing would meet the next step as a stale modal.
+    await clearBoxes();
+    return true;
 }
 
 // Why: quest item chains run through `oplocu`, which no op-based step can express.
