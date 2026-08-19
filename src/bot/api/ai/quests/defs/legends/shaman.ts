@@ -4,6 +4,7 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
+import { Modals } from '../../../../ui/widgets/Modals.js';
 import { Skills } from '../../../../skills/Skills.js';
 import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
@@ -149,27 +150,67 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
             log('no Gujuo in range for the bowl');
             return false;
         }
-        await topUpPrayer(log);
+        if (!(await topUpPrayer(log))) {
+            log(`prayer at ${Skills.effective('prayer')} with nothing left to drink, and the trance refuses below ${BLESS_FLOOR}`);
+            return false;
+        }
         const offered = await offerTo(LQ_ID.GOLD_BOWL, gujuo, log);
-        if (offered && await driveUntil(blessed, BLESS_PREFER, log, 40_000)) {
+        if (offered && (await driveBlessing(blessed, log))) {
             return true;
         }
         // Why: a silent wait is the one failure that tells you nothing, and this one cost two live runs before it said a word.
         log(`bowl on Gujuo ${offered ? 'sent' : 'refused'} at ${gujuo.tile().x},${gujuo.tile().z}, chat "${modalText().slice(0, 60)}"`);
         await settleScene();
     }
-    log('Gujuo took the bowl four times and never blessed it');
+    log(`Gujuo took the bowl ${BLESS_ATTEMPTS} times and never blessed it`);
     return blessed();
 }
 
-const BLESS_ATTEMPTS = 4;
+// Why: the trance fails about three times in five at forty-two prayer — `value = 151` against a `rand(0..256)` — so four throws leave better than one run in ten unblessed, and every throw is now seconds rather than the better part of a minute.
+const BLESS_ATTEMPTS = 12;
 
-// Why: the trance rolls `stat_random(prayer, 80, 250)` and takes five points on every miss, so seventy misses its way under the script's own forty-two floor in six throws — and Gujuo then refuses outright, in a chain the driver has already closed.
+// Why: a miss ends the conversation outright. Gujuo offers a retry, but the five points it just took put the answer under his own forty-two gate, so "too inexperienced" closes the chain — and a wait watching for a blessing that is no longer coming polled a chat that had already gone for the whole forty seconds, four times over.
+const BLESS_MS = 40_000;
+
+/** How many idle ticks end the wait, so a gap between two boxes is not read as the end. */
+const BLESS_IDLE_TICKS = 5;
+
+/** Drive Gujuo's trance, ending the moment it blesses the bowl or the conversation closes without it. */
+async function driveBlessing(blessed: () => boolean, log: (m: string) => void): Promise<boolean> {
+    let opened = false;
+    let idle = 0;
+    const ended = (): boolean => {
+        if (blessed()) {
+            return true;
+        }
+        if (ChatDialog.isOpen() || ChatDialog.canContinue() || Modals.isOpen()) {
+            opened = true;
+            idle = 0;
+            return false;
+        }
+        idle++;
+        return opened && idle >= BLESS_IDLE_TICKS;
+    };
+    await driveUntil(ended, BLESS_PREFER, log, BLESS_MS);
+    return blessed();
+}
+
+// Why: the trance rolls `stat_random(prayer, 80, 250)` and takes five points on every miss, so a run of them walks under the script's own floor — and Gujuo then refuses outright, in a chain the driver has already closed.
 const BLESS_PRAYER = 50;
+
+/** The points Gujuo's own gate demands, below which he will not begin. */
+const BLESS_FLOOR = 42;
+
+// Why: the quest asks for prayer 42 and the bar cannot hold more than the level, so a fifty-point target is unreachable on the account the requirement describes — it drank a dose before every throw at a full bar, and emptied the flask on nothing.
+
+/** The points to hold before a throw, given what the prayer bar can hold. */
+export function blessPrayerFloor(base: number): number {
+    return Math.min(BLESS_PRAYER, Math.max(BLESS_FLOOR, base));
+}
 
 /** Put the prayer back above the trance's floor, so a run of misses cannot end the leg. */
 async function topUpPrayer(log: (m: string) => void): Promise<boolean> {
-    return Skills.effective('prayer') >= BLESS_PRAYER ? true : drinkPrayer(log);
+    return Skills.effective('prayer') >= blessPrayerFloor(Skills.level('prayer')) ? true : drinkPrayer(log);
 }
 
 const BOWL_ATTEMPTS = 6;

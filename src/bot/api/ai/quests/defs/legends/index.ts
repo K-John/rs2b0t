@@ -304,8 +304,11 @@ function potsFor(snap: QuestSnapshot, stage: number): number {
     if (foodFor(snap, stage) === FOOD.fight) {
         return FIGHT_POTS;
     }
-    return held(snap, LQ_ID.GOLD_BOWL) > 0 ? 1 : 0;
+    return held(snap, LQ_ID.GOLD_BOWL) > 0 ? BLESS_POTS : 0;
 }
+
+// Why: the trance takes five points on a miss and misses about three times in five, and a forty-two bar is one dose back to full — so the doses are the throws, and one potion buys four of them.
+const BLESS_POTS = 2;
 
 // Why: the shopping happens before Radimus is asked for the quest, because both counters are a sea crossing from everything the quest then does — and a list bought per leg walked Karamja to Yanille to Ardougne and back across the length of stage 8.
 
