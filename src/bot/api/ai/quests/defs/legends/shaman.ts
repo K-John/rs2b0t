@@ -134,7 +134,12 @@ export async function askGujuoForWater(log: (m: string) => void): Promise<boolea
     if (!(await speakToUngadulu(log))) {
         return false;
     }
-    return (await gujuoWaterTalk(log)) === 'goal';
+    // Why: the trip back is the half that fails, and returning its verdict bare left the one interesting failure of this step with nothing said about it at all.
+    const after = await gujuoWaterTalk(log);
+    if (after !== 'goal') {
+        log(`back from Ungadulu and Gujuo still ${after === 'nodialog' ? 'would not talk' : 'had no topic'}`);
+    }
+    return after === 'goal';
 }
 
 // Why: `gujuo_start` only opens with the bless offer when it notices the bowl, and every other list it can raise leads there through the vessel questions — the goodbyes are left out on purpose, as they end the conversation with the bowl still plain.

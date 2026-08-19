@@ -483,7 +483,9 @@ export { LEDGES };
 
 /** Climb, crawl and squeeze out of the cave complex onto open jungle. */
 export async function leaveCaves(log: (m: string) => void): Promise<boolean> {
-    if (legendsPocket(Game.tile()) === null && legendsArea(Game.tile()) !== 'viyeldiCaves') {
+    // Why: a shaman-cave tile carries no pocket and is not `viyeldiCaves`, so this read as already outside while standing underground — and the caller then walked for the mainland jungle mouth from a cave floor. The one line that would have fixed it is the last in this function, which the guard never let it reach.
+    const area = legendsArea(Game.tile());
+    if (legendsPocket(Game.tile()) === null && area !== 'viyeldiCaves' && area !== 'shamanCaves') {
         return true;
     }
     if (legendsArea(Game.tile()) === 'viyeldiCaves' && !(await climbLedges(log))) {
