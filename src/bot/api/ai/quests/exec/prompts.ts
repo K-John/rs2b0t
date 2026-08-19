@@ -3,6 +3,7 @@ import { reader } from '../../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../execution/Execution.js';
 import { GameMessages } from '../../../chatbox/gameMessages.js';
 import { Modals } from '../../../ui/widgets/Modals.js';
+import { Sustain } from '../../../sustain/Sustain.js';
 import { Reach } from '../../../walking/Reach.js';
 import type Tile from '../../../../geometry/Tile.js';
 import { Traversal } from '../../../walking/Traversal.js';
@@ -88,6 +89,38 @@ export async function driveUntil(
     return expect();
 }
 
+// Why: `driveChoice` only ever clicks the CHAT modal, and a loc script's `~mesbox` chain is the MAIN one — so a wait watching for what the chain says never lets the chain say it, and entering or leaving a place through a loc is the commonest shape in a quest.
+// Why: the goal is tested before each dismissal so the box carrying the answer can still be read, and it eats between boxes since `Sustain` is call-driven and a step standing at a door never asks.
+
+/**
+ * Drive a message-box chain to its goal, clicking each box away as it comes.
+ * @see docs/reference/quest-primitives.md
+ */
+export async function driveBoxes(expect: () => boolean, ms: number, prefer: string[] = []): Promise<boolean> {
+    const deadline = performance.now() + ms;
+    while (performance.now() < deadline) {
+        if (expect()) {
+            return true;
+        }
+        // Why: both of these can answer at once without having changed anything — an option list `prefer` cannot match, or a modal root with no close button — so a bare retry would spin the loop flat out and starve the tick it is waiting for.
+        if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
+            if (!(await driveChoice(prefer, () => {}))) {
+                await Execution.delayTicks(1);
+            }
+            continue;
+        }
+        if (Modals.isOpen()) {
+            if (!(await Modals.close())) {
+                await Execution.delayTicks(1);
+            }
+            continue;
+        }
+        await Sustain.run();
+        await Execution.delayTicks(1);
+    }
+    return expect();
+}
+
 export interface DoorCrossing {
     /** Exact loc id of the shut door. */
     id: number;
@@ -166,13 +199,12 @@ export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
         log(`${name.toLowerCase()} ${id} refused the ${op} click`);
         return false;
     }
-    // Why: the server runs the door's script a tick after the click lands, so a dialogue check taken
-    // straight off `interact` sees nothing and the challenge goes unanswered.
-    if (door.prefer) {
-        await Execution.delayUntil(() => isFar() || ChatDialog.isOpen() || ChatDialog.canContinue(), DIALOG_MS);
-        if (!isFar() && (ChatDialog.isOpen() || ChatDialog.canContinue())) {
-            await driveChoice([...door.prefer], log);
-        }
+    // Why: the server runs the door's script a tick after the click, so a check taken straight off `interact` sees nothing and the challenge goes unanswered — and a door that talks does it in either modal, the challenge in the chat and the flavour in a box.
+    // Why: a refusal ends the wait too, so a door that says no is not paid for in full.
+    const talked = (): boolean => ChatDialog.isOpen() || ChatDialog.canContinue() || Modals.isOpen();
+    await Execution.delayUntil(() => isFar() || talked() || GameMessages.since(said).length > 0, DIALOG_MS);
+    if (!isFar() && talked()) {
+        await driveBoxes(isFar, DIALOG_MS, [...(door.prefer ?? [])]);
     }
     await Execution.delayUntil(() => isFar() || GameMessages.since(said).length > 0, DOOR_MS);
     if (!isFar() && GameMessages.since(said).length > 0) {
@@ -215,14 +247,15 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
         near: step.near,
         within: step.within,
         id: step.id,
-        expect: () => step.expect() || ChatDialog.isOpen() || ChatDialog.canContinue(),
+        // Why: a box counts as the loc having answered. Without it `Reach` reads a talking loc as one that did nothing and re-sends the op to its cap.
+        expect: () => step.expect() || ChatDialog.isOpen() || ChatDialog.canContinue() || Modals.isOpen(),
         refused: step.refused,
         log
     });
     if (status !== 'done') {
         return false;
     }
-    return driveUntil(step.expect, step.prefer ?? [], log, step.expectMs ?? 20_000);
+    return driveBoxes(step.expect, step.expectMs ?? 20_000, step.prefer ?? []);
 }
 
 // Why: quest item chains run through `oplocu`, which no op-based step can express.

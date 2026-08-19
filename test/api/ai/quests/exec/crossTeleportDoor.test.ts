@@ -74,7 +74,8 @@ test('a refused door gives up as soon as the script answers', async () => {
     const crossed = await crossTeleportDoor({ id: DOOR_ID, stand: STAND, isFar: () => false, log: () => {} });
 
     expect(crossed).toBe(false);
-    expect(polls).toBe(1);
+    // Why: one poll for the box-or-refusal wait and one for the crossing, both cut short by the message — against a cap of three each.
+    expect(polls).toBeLessThanOrEqual(2);
 });
 
 test('a silent door still polls out its cap before giving up', async () => {

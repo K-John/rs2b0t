@@ -4,7 +4,7 @@ import { ChatDialog } from '#/bot/api/ui/dialogue/ChatDialog.js';
 import { Execution } from '#/bot/api/execution/Execution.js';
 import { Modals } from '#/bot/api/ui/widgets/Modals.js';
 import { Sustain } from '#/bot/api/sustain/Sustain.js';
-import { driveBoxes } from '#/bot/api/ai/quests/defs/legends/scene.js';
+import { driveBoxes } from '#/bot/api/ai/quests/exec/prompts.js';
 import { stubProps } from '../../../../lib/stubSingletons.js';
 
 /** The five boxes `search_outer_ancient_gate` raises before its roll, then the result. */
