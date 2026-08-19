@@ -3,11 +3,12 @@ import { gearOf } from '../../../../loadout/loadoutPlan.js';
 import { QuestLoadout } from '../../gear.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { UP_ITEM, UP_TILE, banked, carried, held, type UpassItem } from './areas.js';
+import { FOOD_FLOAT } from '../../food.js';
 
 /** Bronze arrows are what the fire arrow is built from — a stack covers every missed shot. */
 export const ARROW_TARGET = 50;
 // Why: the grid crossing and the orb corridor alone cost eight lobsters on the first clean run, and the traps below are timer-driven damage the module walks into rather than fights. The pass hands out food of its own — Koftik, the paladins and Nilhoof between them give a dozen — but those arrive as separate stacks that each take a slot, so the float is what has to cover the trapped stretches.
-export const FOOD_TARGET = 14;
+export const FOOD_TARGET = FOOD_FLOAT;
 
 export function scanBank(): QuestStep {
     return { kind: 'scanBank', bank: UP_TILE.ARDOUGNE_BANK };

@@ -14,6 +14,7 @@ import { gotoNpc, pickPreferred, talkThrough, type NpcStop } from '../exec/primi
 import { gpShort } from '../engine/provisioning.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { QUESTS } from '../data/quests.js';
+import { FOOD_FLOAT } from '../food.js';
 
 const EXCALIBUR = 'Excalibur';
 const UNLIT_CANDLE = 'Black candle';
@@ -728,7 +729,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 export const merlinscrystal: QuestModule = {
     record: QUESTS.find(r => r.id === 'arthur')!,
     bank: new Tile(2725, 3491, 0),
-    food: 15,
+    food: FOOD_FLOAT,
     gather: {
         'insect repellent': () => ({ kind: 'grabGround', item: 'Insect repellent', anchor: REPELLENT_SPAWN }),
         'bread': s => breadPlan(s),

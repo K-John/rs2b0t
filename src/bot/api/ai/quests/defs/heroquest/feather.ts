@@ -15,6 +15,7 @@ import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { HERO_ID, HERO_NAMED, HERO_NPC, HERO_SHOP, HERO_TILE, onEntrana } from './areas.js';
 import { kitStep, type Purchasable } from './shops.js';
 import { anywhere, bankedId, foodName, heldFood, heldId, wornId } from './state.js';
+import { FOOD_FLOAT } from '../../food.js';
 
 // Why: the Ice Queen is level 111 with 104 hitpoints, and the kit is Scavvo's on the Champions' Guild
 // upper floor. Each float clears the asking price of a shop below base stock, which buys at more.
@@ -24,7 +25,7 @@ const COMBAT_KIT: readonly Purchasable[] = [
     { id: 1303, name: 'Rune longsword', qty: 1, sources: [{ ...HERO_SHOP.SCAVVO, gp: 55_000 }] }
 ];
 
-const FOOD_TARGET = 12;
+const FOOD_TARGET = FOOD_FLOAT;
 const FIREBIRD_MS = 90_000;
 const ICE_QUEEN_TICKS = 600;
 const PLANK_TRIES = 6;

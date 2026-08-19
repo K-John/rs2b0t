@@ -15,7 +15,7 @@ import { Traversal } from '../../../walking/Traversal.js';
 import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { talkThrough, type NpcStop } from '../exec/primitives.js';
-import { QuestFood } from '../food.js';
+import { FOOD_FLOAT, QuestFood } from '../food.js';
 
 export const LOST_CITY_STAGE = {
     NOT_STARTED: 0,
@@ -63,7 +63,7 @@ async function readLostCityStage(): Promise<number | undefined> {
 const KNIFE = 'Knife';
 const BRANCH = 'Dramen branch';
 const STAFF = 'Dramen staff';
-export const LOST_CITY_FOOD_TARGET = 20;
+export const LOST_CITY_FOOD_TARGET = FOOD_FLOAT;
 export const LOST_CITY_STAFF_TARGET = 5;
 const AXES = ['Rune axe', 'Adamant axe', 'Mithril axe', 'Black axe', 'Steel axe', 'Iron axe', 'Bronze axe'];
 const DUNGEON_AXES = ['Iron axe', 'Bronze axe'];

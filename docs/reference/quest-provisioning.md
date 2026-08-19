@@ -33,7 +33,10 @@ the trade for a quester that can be started from anywhere.
 
 ## The food float
 
-A quest declaring `food: N` draws up to N once, and the float is then closed for that quest.
+`FOOD_FLOAT` (8) is what a quest carries unless it proves it needs more. Both the engine's
+`food: N` declarations and the modules that provision themselves start from it; a quest that
+raises it says why. A quest declaring `food: N` draws up to N once, and the float is then closed
+for that quest.
 Eating during the quest does not reopen it — the provisioning block re-runs every tick while a
 quest is still gathering, and topping the float up sent the bot back to the bank after every
 meal. A death reopens it, because the pack is gone.

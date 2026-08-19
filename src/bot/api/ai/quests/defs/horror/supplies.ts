@@ -5,7 +5,7 @@ import { Equipment } from '../../../../equipment/Equipment.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Skills } from '../../../../skills/Skills.js';
 import { Locs } from '../../../../locs/Locs.js';
-import { QuestFood } from '../../food.js';
+import { FOOD_FLOAT, QuestFood } from '../../food.js';
 import { QuestLoadout } from '../../gear.js';
 import { weaponOf } from '../../../../loadout/loadoutPlan.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
@@ -24,7 +24,7 @@ const SHOP_GP = 1_500;
 // Why: the dungeon load is fifteen slots before a single fish — coins, hammer, pickaxe, key, tinderbox, dagger, arrows, six rune stacks, tar and glass.
 // Why: the quest ends by pushing a casket into the pack, so the last slot is not ours to fill.
 // Why: ten sharks is still two hundred hitpoints, and the winning fight spent none of them.
-const FOOD_TARGET = 10;
+const FOOD_TARGET = FOOD_FLOAT;
 const FOOD_LOW = 4;
 /** What the errand legs carry: enough to survive a long walk, not a fight. */
 const TRAVEL_FOOD = 4;

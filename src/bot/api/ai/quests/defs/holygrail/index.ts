@@ -1,5 +1,5 @@
 import { QUESTS } from '../../data/quests.js';
-import { QuestFood } from '../../food.js';
+import { FOOD_FLOAT, QuestFood } from '../../food.js';
 import { gpShort } from '../../engine/provisioning.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { ARMOUR_KEEP, armourWanted } from './armour.js';
@@ -223,7 +223,7 @@ export const holygrail: QuestModule = {
     record: QUESTS.find(r => r.id === 'grail')!,
     // Why: the quest crosses Camelot, Entrana, Seers', Draynor, Karamja and the Goblin Village — no one bank is near enough to pin.
     bank: 'nearest',
-    food: 12,
+    food: FOOD_FLOAT,
     grind: ['Black Knight Titan'],
     tools: [
         ITEM.EXCALIBUR.toLowerCase(),

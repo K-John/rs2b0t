@@ -96,7 +96,7 @@ describe('goblindiplomacy goblin-mail survival', () => {
             bankKnown: true,
             bank: new Map([['trout', 19]])
         });
-        expect(step.kind === 'withdraw' && step.items).toEqual([{ name: 'Trout', qty: 19 }]);
+        expect(step.kind === 'withdraw' && step.items).toEqual([{ name: 'Trout', qty: GOBLIN_MAIL_FOOD_TARGET - 1 }]);
     });
 
     test('combines partial selected food with banked fallback food', () => {
@@ -106,7 +106,7 @@ describe('goblindiplomacy goblin-mail survival', () => {
             bankKnown: true,
             bank: new Map([['kebab', 14]])
         });
-        expect(step.kind === 'withdraw' && step.items).toEqual([{ name: 'Kebab', qty: 14 }]);
+        expect(step.kind === 'withdraw' && step.items).toEqual([{ name: 'Kebab', qty: GOBLIN_MAIL_FOOD_TARGET - 6 }]);
     });
 
     test('withdraws banked fallback Kebabs when the selected food is unavailable', () => {

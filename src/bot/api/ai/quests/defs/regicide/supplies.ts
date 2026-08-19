@@ -2,6 +2,7 @@ import Tile from '../../../../../geometry/Tile.js';
 import { gpShort } from '../../engine/provisioning.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { RG_ITEM, RG_TILE, banked, carried, type RegicideItem } from './areas.js';
+import { FOOD_FLOAT } from '../../food.js';
 
 // Why: Tirannwn has one shop and no bank, and the way back out is either the Arandar palisade or the Underground Pass walked end to end — so everything the forest consumes is bought and drawn in Ardougne, one leg's walk from the bank, before the quest ever leaves the mainland.
 
@@ -17,7 +18,7 @@ export const COAL_ROCKS = new Tile(2581, 3480, 0);
 export const ARDOUGNE_RANGE = new Tile(2648, 3298, 0);
 
 // Why: the float is sized by the bridge, not by the fights. `make_clotharrow` tests `inv_itemspace` for the cloth arrow BEFORE it deletes the damp cloth, and `light_firearrow` tests the same gate again, so the kit plus Koftik's cloth has to leave a slot spare or the run parks on "You don't have space to do that." Twelve was measured too tight live — the pass is walked twice and the second walk carries the bomb.
-export const FOOD_TARGET = 11;
+export const FOOD_TARGET = FOOD_FLOAT;
 /** Four balls of wool weave one strip of cloth, and the loom takes them in one go. */
 export const WOOL_TARGET = 4;
 /** Three ropes: the swing spends one per attempt, and the walk back in takes it a second time. */

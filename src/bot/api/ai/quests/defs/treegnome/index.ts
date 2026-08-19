@@ -6,6 +6,7 @@ import { TG_STAGE, readTreeGnomeProgress } from './journal.js';
 import { killTheWarlord } from './combat.js';
 import { fireBallista, leaveStronghold, takeTheOrb } from './stronghold.js';
 import { armForTheWarlord, chopLogs, scanBank, sourceAxe, topUpFood } from './supplies.js';
+import { FOOD_FLOAT } from '../../food.js';
 
 const BOLREN: NpcStop = {
     npc: TG_NPC.BOLREN,
@@ -120,7 +121,7 @@ function warnReadiness(): string | null {
 export const treegnome: QuestModule = {
     record: QUESTS.find(record => record.id === 'tree')!,
     bank: TG_TILE.BANK,
-    food: 18,
+    food: FOOD_FLOAT,
     tools: ['logs', 'axe', 'orb of protection', 'gnome amulet'],
     readProgress: readTreeGnomeProgress,
     exit: leaveStronghold,

@@ -3,7 +3,7 @@ import { Equipment } from '../../../../equipment/Equipment.js';
 import { gearOf } from '../../../../loadout/loadoutPlan.js';
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { QuestFood } from '../../food.js';
+import { FOOD_FLOAT, QuestFood } from '../../food.js';
 import { QuestLoadout } from '../../gear.js';
 import {
     CHARLIE,
@@ -214,7 +214,7 @@ export const grandtree: QuestModule = {
     record: QUESTS.find(r => r.id === 'grandtree')!,
     bank: 'nearest',
     hops: GT_HOPS,
-    food: 10,
+    food: FOOD_FLOAT,
     coinFloat: 2000,
     tools: [...GT_ITEMS],
     readStage: readGrandTreeStage,
