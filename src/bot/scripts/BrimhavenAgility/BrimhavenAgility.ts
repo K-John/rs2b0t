@@ -280,12 +280,13 @@ export default class BrimhavenAgility extends TaskBot {
     }
 
     needsCakesNow(): boolean {
+        const reserve = this.needsCoinsNow() && this.coinCount() === 0 ? 1 : 0;
         return needsCakeSteal(
             this.foodInPack(),
             this.cakesInPack(),
             this.stealRestock,
             this.needsCoinsNow(),
-            this.foodPerTrip
+            Inventory.free() - reserve
         );
     }
 
@@ -472,7 +473,6 @@ class StealFood implements Task {
         }
         this.bot.setStatus('stealing cakes at the Baker\'s stall');
         const result = await stealCakes({
-            fillTo: this.bot.cfg().foodPerTrip,
             abort: () => !this.bot.needsCakesNow(),
             shouldEat: () => shouldEat(this.bot.hp(), this.bot.edibleInPack()),
             setStatus: s => this.bot.setStatus(s),

@@ -352,17 +352,16 @@ describe('BrimhavenAgility banking & combat decisions', () => {
         expect(shouldBank(1000, 0, 1000, true)).toBe(true);
     });
 
-    test('steal restock fills to food-per-trip, not the first stolen cake', () => {
+    test('steal restock fills free inventory slots, not a cake count', () => {
         expect(STEAL_THIEVING_MIN).toBe(20);
         expect(GUARD_THIEVING_MIN).toBe(40);
-        expect(needsCakeSteal(0, 0, true, false, 25)).toBe(true);
-        expect(needsCakeSteal(0, 4, true, false, 25)).toBe(true);
-        expect(needsCakeSteal(0, 24, true, false, 25)).toBe(true);
-        expect(needsCakeSteal(0, 25, true, false, 25)).toBe(false);
-        expect(needsCakeSteal(3, 0, true, false, 25)).toBe(false);
-        expect(needsCakeSteal(0, 2, true, true, 25)).toBe(true);
-        expect(needsCakeSteal(0, 0, false, true, 25)).toBe(false);
-        expect(() => needsCakeSteal(0, 0, true, false, 0)).toThrow(/fillTo/);
+        expect(needsCakeSteal(0, 0, true, false, 20)).toBe(true);
+        expect(needsCakeSteal(0, 24, true, false, 0)).toBe(false);
+        expect(needsCakeSteal(0, 4, true, false, 6)).toBe(true);
+        expect(needsCakeSteal(3, 0, true, false, 20)).toBe(false);
+        expect(needsCakeSteal(0, 2, true, true, 5)).toBe(true);
+        expect(needsCakeSteal(0, 2, true, true, 0)).toBe(false);
+        expect(needsCakeSteal(0, 0, false, true, 20)).toBe(false);
     });
 
     test('steal restock does not freeze hops when the selected food is gone', () => {
