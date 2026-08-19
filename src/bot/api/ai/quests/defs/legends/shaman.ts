@@ -10,7 +10,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE, inOctagram } from './areas.js';
 import { drinkPrayer } from './fight.js';
-import { enterJungle, leaveJungle, summonGujuo, talkGujuo } from './jungle.js';
+import { enterJungle, leaveJungle, summonGujuo, talkGujuoStatus } from './jungle.js';
 import { climbOutOfTrials, leaveOctagram } from './trials.js';
 import { driveBoxes, driveToEnd, driveUntil, heldId, here, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
 
@@ -101,7 +101,7 @@ const GUJUO_WATER_PREFER = [
 
 // Why: the sketch is handed over by the same branch that sets the stage, so a sketch in the pack proves the stage moved without opening the journal.
 
-const gujuoWaterTalk = talkGujuo(
+const gujuoWaterTalk = talkGujuoStatus(
     GUJUO_WATER_PREFER,
     () => heldId(LQ_ID.GOLD_BOWL_SKETCH) > 0,
     120_000
@@ -110,16 +110,23 @@ const gujuoWaterTalk = talkGujuo(
 // Why: Gujuo only offers the pure-water topic once Ungadulu has been asked who he is, and that bit is `%legends_bits` — invisible from here.
 // Why: without it his menu is four topics that all dead-end, so a stage-7 resume that skipped a question would ask him for ever; the recovery is to go back and ask.
 
+// Why: the caves are the answer to a menu without the topic on it, and to nothing else. A shaman who never opened his mouth says nothing about the bit, and walking to Ungadulu on that reading set a bit that was already set, came back, failed to talk again, and went again — the loop a live run spent six minutes in, four attempts deep, reporting a cause it had not checked.
+
 /** Ask Gujuo where the pure water comes from, going back to Ungadulu if he cannot say. */
 export async function askGujuoForWater(log: (m: string) => void): Promise<boolean> {
-    if (await gujuoWaterTalk(log)) {
+    const first = await gujuoWaterTalk(log);
+    if (first === 'goal') {
         return true;
+    }
+    if (first === 'nodialog') {
+        log('Gujuo would not open a dialogue — trying him again rather than walking the caves for a bit he never spoke about');
+        return (await gujuoWaterTalk(log)) === 'goal';
     }
     log('Gujuo has no pure-water topic — Ungadulu has not been asked who he is');
     if (!(await speakToUngadulu(log))) {
         return false;
     }
-    return gujuoWaterTalk(log);
+    return (await gujuoWaterTalk(log)) === 'goal';
 }
 
 // Why: `gujuo_start` only opens with the bless offer when it notices the bowl, and every other list it can raise leads there through the vessel questions — the goodbyes are left out on purpose, as they end the conversation with the bowl still plain.

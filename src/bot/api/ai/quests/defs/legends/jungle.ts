@@ -280,18 +280,35 @@ export async function summonGujuo(log: (m: string) => void): Promise<boolean> {
 
 /** Summon Gujuo and drive his conversation, to a goal or to its own end. */
 export function talkGujuo(prefer: string[], goal?: () => boolean, ms = 90_000, required?: string): (log: (m: string) => void) => Promise<boolean> {
+    const talk = talkGujuoStatus(prefer, goal, ms, required);
+    return async log => (await talk(log)) === 'goal';
+}
+
+// Why: "he would not say it" and "he would not speak at all" are different failures with different answers, and a caller that cannot tell them apart treats a shaman who never opened his mouth as one whose dialogue was missing a topic — which sent a live run to the caves and back, for ever, to set a bit that was already set.
+
+/** Why a talk with Gujuo ended: the goal landed, he never opened a dialogue, or he talked without reaching it. */
+export type GujuoTalk = 'goal' | 'nodialog' | 'nogoal';
+
+/** Talk to Gujuo, reporting which of the three ways it ended. */
+export function talkGujuoStatus(
+    prefer: string[],
+    goal?: () => boolean,
+    ms = 90_000,
+    required?: string
+): (log: (m: string) => void) => Promise<GujuoTalk> {
     return async log => {
         if (goal?.()) {
-            return true;
+            return 'goal';
         }
         if (!(await summonGujuo(log))) {
-            return false;
+            return 'nodialog';
         }
         const status = await Reach.npcDialog({ name: LQ_NPC.GUJUO, near: Game.tile() ?? LQ_TILE.BULLROARER_SPOT, log });
         if (status !== 'done') {
             log('Gujuo never opened a dialogue');
-            return false;
+            return 'nodialog';
         }
-        return goal ? driveUntil(goal, prefer, log, ms) : driveToEnd(prefer, log, ms, required);
+        const ok = goal ? await driveUntil(goal, prefer, log, ms) : await driveToEnd(prefer, log, ms, required);
+        return ok ? 'goal' : 'nogoal';
     };
 }
