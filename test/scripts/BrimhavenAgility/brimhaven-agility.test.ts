@@ -40,6 +40,7 @@ import {
     shouldEat,
     shouldLeaveForSteal,
     needsCakeSteal,
+    stealReserveSlots,
     STEAL_THIEVING_MIN,
     GUARD_THIEVING_MIN,
     ticketInventoryGain,
@@ -362,6 +363,10 @@ describe('BrimhavenAgility banking & combat decisions', () => {
         expect(needsCakeSteal(0, 2, true, true, 5)).toBe(true);
         expect(needsCakeSteal(0, 2, true, true, 0)).toBe(false);
         expect(needsCakeSteal(0, 0, false, true, 20)).toBe(false);
+        expect(stealReserveSlots(0, 0)).toBe(2);
+        expect(stealReserveSlots(3, 0)).toBe(1);
+        expect(stealReserveSlots(0, 5)).toBe(1);
+        expect(stealReserveSlots(3, 5)).toBe(0);
     });
 
     test('steal restock does not freeze hops when the selected food is gone', () => {
