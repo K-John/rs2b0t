@@ -16,10 +16,11 @@ import { QUESTS } from '../data/quests.js';
 import { QUEST_DEFS, defById } from '../defs/index.js';
 import { executeStep } from '../exec/steps.js';
 import type { BankInventorySnapshot, PlayerState, QuestEligibility, QuestRecord } from '../types.js';
-import { coinFloatWithdraw, depositPlan, foodFloatPlan, planProvisioning, shouldFreshenPack } from './provisioning.js';
+import { coinFloatWithdraw, depositPlan, floatDrawPlan, planProvisioning, shouldFreshenPack } from './provisioning.js';
 import { nextQuest, queueRows, type QueueRow } from './queue.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from './types.js';
 import { NO_PROGRESS_PARK, NO_PROGRESS_WARN, ProgressWatchdog, progressSignature } from './watchdog.js';
+import { PRAYER_POTION } from '../prayer.js';
 import { FAIL_WARN, StepTracker, formatDuration, formatTile, invDelta } from './trace.js';
 import { GameMessages } from '../../../chatbox/gameMessages.js';
 /** What the engine needs from whatever script is driving it. */
@@ -114,6 +115,7 @@ export class QuestEngine implements Task {
     /** Cleared once the session's first quest has emptied its pack, or given up trying. */
     private sessionStart = true;
     private readonly foodDrawn = new Set<string>();
+    private readonly potionsDrawn = new Set<string>();
     private readonly blocked = new Map<string, string[]>();
     /** Modules that have already emitted {@link QuestModule.warnReadiness}. */
     private readonly readinessWarned = new Set<string>();
@@ -255,6 +257,7 @@ export class QuestEngine implements Task {
             this.freshened.delete(id);
             this.freshenTries.delete(id);
             this.foodDrawn.delete(id);
+            this.potionsDrawn.delete(id);
             this.blocked.delete(id);
             this.resetWatchdog();
             this.runningId = null;
@@ -297,7 +300,7 @@ export class QuestEngine implements Task {
             let foodFloat: { name: string; qty: number } | null = null;
             if (module.food && foodItem && this.bankKnown && foodReady) {
                 const key = foodItem.toLowerCase();
-                const foodPlan = foodFloatPlan(
+                const foodPlan = floatDrawPlan(
                     snap.inv.get(key) ?? 0,
                     this.lastBankCounts.get(key) ?? 0,
                     module.food,
@@ -309,7 +312,22 @@ export class QuestEngine implements Task {
                     foodFloat = { name: foodItem, qty: foodPlan.qty };
                 }
             }
-            const extras = [coinFloat, foodFloat].filter((w): w is { name: string; qty: number } => w !== null);
+            let potionFloat: { name: string; qty: number } | null = null;
+            if (module.pray?.potions && this.bankKnown) {
+                const key = PRAYER_POTION.toLowerCase();
+                const potionPlan = floatDrawPlan(
+                    snap.inv.get(key) ?? 0,
+                    this.lastBankCounts.get(key) ?? 0,
+                    module.pray.potions,
+                    this.potionsDrawn.has(id)
+                );
+                if (potionPlan.drawn) {
+                    this.potionsDrawn.add(id);
+                } else if (potionPlan.qty > 0) {
+                    potionFloat = { name: PRAYER_POTION, qty: potionPlan.qty };
+                }
+            }
+            const extras = [coinFloat, foodFloat, potionFloat].filter((w): w is { name: string; qty: number } => w !== null);
             if (plan.blocked.length > 0 && plan.withdraw.length === 0) {
                 this.host.log(`${module.record.name} short on items: ${plan.blocked.join(', ')} — parking`);
                 this.parkedReasons.set(id, plan.blocked.map(b => `missing: ${b}`));
@@ -486,6 +504,7 @@ export class QuestEngine implements Task {
         this.provisioned.delete(deadId);
         this.deposited.delete(deadId);
         this.foodDrawn.delete(deadId);
+        this.potionsDrawn.delete(deadId);
         this.resetWatchdog();
         this.stepSubLog.clear();
         this.lastStepLogged = '';
@@ -573,6 +592,7 @@ export class QuestEngine implements Task {
         this.freshened.delete(id);
         this.freshenTries.delete(id);
         this.foodDrawn.delete(id);
+        this.potionsDrawn.delete(id);
         this.retreated.delete(id);
         this.retreatTries.delete(id);
         this.waitKey = '';

@@ -1,5 +1,5 @@
 import { expect, test, describe } from 'bun:test';
-import { coinFloatWithdraw, depositPlan, floatWithdraw, gpShort, planProvisioning, foodFloatPlan, shouldFreshenPack } from '#/bot/api/ai/quests/engine/provisioning.js';
+import { coinFloatWithdraw, depositPlan, floatWithdraw, gpShort, planProvisioning, floatDrawPlan, shouldFreshenPack } from '#/bot/api/ai/quests/engine/provisioning.js';
 import type { QuestItem } from '#/bot/api/ai/quests/types.js';
 
 const it = (name: string, qty: number, kind: 'mustHave' | 'acquirable'): QuestItem => ({ name, qty, kind });
@@ -141,29 +141,29 @@ describe('shouldFreshenPack', () => {
     });
 });
 
-describe('foodFloatPlan', () => {
+describe('floatDrawPlan', () => {
     test('draws the whole float into an empty pack', () => {
-        expect(foodFloatPlan(0, 500, 8, false)).toEqual({ qty: 8, drawn: false });
+        expect(floatDrawPlan(0, 500, 8, false)).toEqual({ qty: 8, drawn: false });
     });
 
     test('tops up a partial pack on the first pass', () => {
-        expect(foodFloatPlan(3, 500, 8, false)).toEqual({ qty: 5, drawn: false });
+        expect(floatDrawPlan(3, 500, 8, false)).toEqual({ qty: 5, drawn: false });
     });
 
     test('a pack holding the float is drawn and never revisited', () => {
-        expect(foodFloatPlan(8, 500, 8, false)).toEqual({ qty: 0, drawn: true });
-        expect(foodFloatPlan(20, 500, 8, false)).toEqual({ qty: 0, drawn: true });
+        expect(floatDrawPlan(8, 500, 8, false)).toEqual({ qty: 0, drawn: true });
+        expect(floatDrawPlan(20, 500, 8, false)).toEqual({ qty: 0, drawn: true });
     });
 
     test('eating into a drawn float does not send the quest back to the bank', () => {
-        expect(foodFloatPlan(2, 500, 8, true)).toEqual({ qty: 0, drawn: true });
+        expect(floatDrawPlan(2, 500, 8, true)).toEqual({ qty: 0, drawn: true });
     });
 
     test('an empty bank draws nothing and stays undrawn, so a restock is still honoured', () => {
-        expect(foodFloatPlan(0, 0, 8, false)).toEqual({ qty: 0, drawn: false });
+        expect(floatDrawPlan(0, 0, 8, false)).toEqual({ qty: 0, drawn: false });
     });
 
     test('a short bank draws what it has', () => {
-        expect(foodFloatPlan(0, 3, 8, false)).toEqual({ qty: 3, drawn: false });
+        expect(floatDrawPlan(0, 3, 8, false)).toEqual({ qty: 3, drawn: false });
     });
 });

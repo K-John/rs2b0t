@@ -267,6 +267,7 @@ const FOOD = 24;
 
 export const fightarena: QuestModule = {
     record: QUESTS.find(r => r.id === 'arena')!,
+    pray: { protect: 'melee', potions: 2 },
     bank: FA_TILE.YANILLE_BANK,
     food: FOOD,
     grind: ['Khazard Ogre', 'Khazard Scorpion', 'Bouncer'],

@@ -78,6 +78,14 @@ export type QuestStep =
     | { kind: 'wait'; reason: string }
     | { kind: 'done' };
 
+export type ProtectionKind = 'melee' | 'magic' | 'missiles';
+
+export interface QuestPrayer {
+    protect: ProtectionKind;
+    /** Prayer potion doses drawn into the float alongside the food. */
+    potions?: number;
+}
+
 export interface QuestSustain {
     /** Food display names this quest can source and use for traversal upkeep. */
     foods: readonly string[];
@@ -112,6 +120,9 @@ export interface QuestModule {
     readProgress?: () => QuestProgress | undefined | Promise<QuestProgress | undefined>;
     /** Optional quest-specific survival policy applied while this module is active. */
     sustain?: QuestSustain;
+    // Why: declared only on the quests whose fights actually threaten the account — a level-2 goblin is not worth the points.
+    /** Protection prayer to hold through this quest's fights, and the doses it carries. */
+    pray?: QuestPrayer;
     // Why: set 0 when the module fetches coins at the point of sale, as the float is restored on every provisioning loop and a standing balance means a bank trip per purchase.
 
     /** Spending money to keep in the pack, default `COIN_FLOAT`. */

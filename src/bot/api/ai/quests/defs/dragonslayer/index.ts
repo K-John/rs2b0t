@@ -826,6 +826,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
 export const dragonslayer: QuestModule = {
     record: QUESTS.find(r => r.id === 'dragon')!,
+    pray: { protect: 'melee', potions: 2 },
     // Port Sarim, Falador, Varrock, the wilderness, Karamja: no one bank is near
     // enough to this quest to be worth walking back to.
     bank: 'nearest',

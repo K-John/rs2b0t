@@ -302,6 +302,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
 export const upass: QuestModule = {
     record: QUESTS.find(record => record.id === 'upass')!,
+    pray: { protect: 'melee', potions: 2 },
     bank: UP_TILE.ARDOUGNE_BANK,
     ownsInventory: true,
     readProgress: readUpassProgress,

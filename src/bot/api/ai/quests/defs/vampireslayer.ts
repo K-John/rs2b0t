@@ -472,6 +472,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
 export const vampireslayer: QuestModule = {
     record: QUESTS.find(record => record.id === 'vampire')!,
+    pray: { protect: 'melee', potions: 2 },
     bank: DRAYNOR_BANK,
     grind: ['Count Draynor'],
     tools: ['beer', 'garlic', 'hammer', 'stake', 'sword', 'kebab', 'coins'],

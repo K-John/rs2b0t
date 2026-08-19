@@ -80,6 +80,9 @@ const SKILLS = [
     'fishing', 'cooking', 'firemaking', 'woodcutting', 'runecraft', 'fletching'
 ];
 
+/** Doses per quest that declares `pray`, with headroom for the ten that do. */
+const PRAYER_POTIONS = 40;
+
 /** Worn for the queue's fights; Protect from Melee carries the rest at 70 Prayer. */
 const MELEE_KIT = [
     'Rune scimitar', 'Rune chainbody', 'Rune platelegs', 'Rune full helm', 'Rune kiteshield', 'Amulet of strength'
@@ -157,6 +160,7 @@ function bankSeed(picked: ReadonlySet<string>): BankSeedItem[] {
     return [
         resolve('Coins', args.coins),
         resolve(args.food, args.foodQty),
+        resolve('Prayer potion(4)', PRAYER_POTIONS),
         ...MELEE_KIT.map(name => resolve(name, 1)),
         // Why: doubled, as a quest that consumes one and then dies to a random event needs the spare.
         ...[...mustHave].sort().map(([name, qty]) => resolve(name, qty * 2))
