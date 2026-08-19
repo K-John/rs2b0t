@@ -1,7 +1,7 @@
 import Tile from '../../../../../geometry/Tile.js';
 
-// Why: a railing is a WALL_STRAIGHT loc, and `~open_and_close_door2` moves the player across its own edge — never around it. Which way is one test: `~check_axis_locactive` is true when the player shares the door's coordinate on the wall's axis, and the script then teleports them to the tile across the edge; false, and it teleports them onto the door's own tile. So the two tiles a railing can be used from are its own tile and the tile across from it, and nothing else. The perpendicular neighbours a ring search offers set `entering` false from the corridor and drop the player back where the door already stands, which opens nothing and reads as a crossing that did not move anyone.
-// Why: the pairs are the map's own angles run through `~door_open` — `^loc_west` 0 gives (-1,0), `^loc_north` 1 gives (0,1), `^loc_east` 2 gives (1,0), `^loc_south` 3 gives (0,-1) — and the collision pack agrees that each pair joins two pockets.
+// Why: a railing is a WALL_STRAIGHT loc, and `~open_and_close_door2` moves the player across its own edge, never around it. Which way is one test: `~check_axis_locactive` is true when the player shares the door's coordinate on the wall's axis, and the script then teleports them to the tile across the edge; false, and it teleports them onto the door's own tile. So the two tiles a railing can be used from are its own tile and the tile across from it, and nothing else. The perpendicular neighbours a ring search offers set `entering` false from the corridor and drop the player back where the door already stands, which opens nothing and reads as a crossing that did not move anyone.
+// Why: the pairs are the map's own angles run through `~door_open`: `^loc_west` 0 gives (-1,0), `^loc_north` 1 gives (0,1), `^loc_east` 2 gives (1,0), `^loc_south` 3 gives (0,-1). The collision pack agrees that each pair joins two pockets.
 
 const key = (tile: { x: number; z: number; level: number }): string => `${tile.x},${tile.z},${tile.level}`;
 
@@ -36,7 +36,7 @@ export function doorStands(at: Tile): readonly Tile[] {
     return across === null ? [] : [at, across];
 }
 
-// Why: nine of the ten slave cages open onto a dead end of seven to fourteen tiles. The mud at (2393,9650) is the only way south out of the cages, it sits in the cell behind (2393,9655) alone, and by distance no search can tell that cage from its nine neighbours — one run picked four wrong cells in a row and then sat in one with every other cage answering "I can't reach that!".
+// Why: nine of the ten slave cages open onto a dead end of seven to fourteen tiles. The mud at (2393,9650) is the only way south out of the cages, it sits in the cell behind (2393,9655) alone, and by distance no search can tell that cage from its nine neighbours. One run picked four wrong cells in a row and then sat in one with every other cage answering "I can't reach that!".
 /** The cage that leads to the mud, and the tile inside its cell the dig is worth walking to. */
 export const MUD_CAGE = new Tile(2393, 9655, 0);
 export const MUD_CELL = new Tile(2393, 9651, 0);

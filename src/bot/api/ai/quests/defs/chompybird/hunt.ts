@@ -86,7 +86,7 @@ export async function openChest(log: (m: string) => void): Promise<boolean> {
     return true;
 }
 
-// Why: the pool is a block of unwalkable floor, and `nearest()` picks a bubble in the middle of it that no tile is cardinally adjacent to — the op is then sent, accepted, and never lands.
+// Why: the pool is a block of unwalkable floor, and `nearest()` picks a bubble in the middle of it that no tile is cardinally adjacent to. The op is then sent, accepted, and never lands.
 
 /** Suck a full charge of swamp gas into the bellows. */
 async function fillBellows(log: (m: string) => void): Promise<boolean> {
@@ -148,7 +148,7 @@ async function inflateOne(pick: number, log: (m: string) => void): Promise<boole
 }
 
 // Why: a placed toad lasts about a hundred ticks and only one roll in six brings a chompy, so one toad per pool trip spends the run walking.
-// Why: three is the ceiling — inflating a fourth lets one of the others hop away.
+// Why: three is the ceiling, inflating a fourth lets one of the others hop away.
 
 /** Fill the pack with bait, up to the three the quest lets you carry. */
 export async function catchToad(log: (m: string) => void): Promise<boolean> {

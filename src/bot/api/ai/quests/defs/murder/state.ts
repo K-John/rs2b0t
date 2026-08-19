@@ -21,7 +21,7 @@ export function heldThread(snap: QuestSnapshot): number | null {
     return THREADS.find(id => held(snap, id) > 0) ?? null;
 }
 
-// Why: the print hunt walks the suspects in one fixed order and stops at the match, so every keepsake taken belongs to a suspect at or before the murderer — and the last one held is the murderer.
+// Why: the print hunt walks the suspects in one fixed order and stops at the match, so every keepsake taken belongs to a suspect at or before the murderer, and the last one held is the murderer.
 // Why: this survives a restart, which a counter of who has been cleared does not.
 
 /** Who the matched print convicts, or null while the keepsakes cannot say. */

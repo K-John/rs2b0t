@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Biohazard — stage-scoped harness
+## Biohazard, stage-scoped harness
 
 [`e2e/biohazard-234-live.ts`](../../e2e/biohazard-234-live.ts) drives the quest from a
 clean account, or one leg of it. `--stage N` writes `%biohazard`, hands over the items
@@ -44,7 +44,7 @@ Five details govern this harness:
   and relogs, because `update_questlist` only recolours the journal at login and the module
   is gated on the *journal*, not the varp.
 - **Stats are 70, not maxed.** `setstat` is a built-in cheat branch with no level-up
-  cascade, so it leaves the player undelayed — unlike `~maxme`, which swallows the next
+  cascade, so it leaves the player undelayed, unlike `~maxme`, which swallows the next
   typed command.
 - **Stages 5 to 7 start in West Ardougne** and stage 12 at the Rimmington chemist; every
   other stage starts at the Ardougne booth.
@@ -53,7 +53,7 @@ Five details govern this harness:
   over Omart's ladder before the gown leg. A run from stage 0 reads the bank on its first
   tick and never pays it.
 
-## Clock Tower — stage-scoped harness
+## Clock Tower, stage-scoped harness
 
 [`e2e/clock-tower-236-live.ts`](../../e2e/clock-tower-236-live.ts) drives the
 quest from a clean account, or one leg of it. `--stage N` counts **cogs already
@@ -77,7 +77,7 @@ Four details govern this harness:
 - **The two varps have to move together.** `%cogquest` bits 0-3 carry the step
   and `%cog_bits` carries which spindles are filled, so setting one alone leaves
   the journal and the world disagreeing. `--stage` writes both, in the module's
-  own fetch order — black, red, blue, white — and sets the cooled bit whenever
+  own fetch order of black, red, blue then white, and sets the cooled bit whenever
   black is already placed, or the bot pours a second bucket over a cold cog.
 - **Stats are maxed rather than 70.** Ogres stand over the red cog and stay
   passive only above 106 combat; at 70 they chew on the bot for the length of
@@ -88,11 +88,11 @@ Four details govern this harness:
   queue.** The engine serves one `public/bot`, and a concurrent session that
   deploys while this harness boots hands the run their branch instead.
 
-## Dwarf Cannon — stage-scoped harness
+## Dwarf Cannon, stage-scoped harness
 
 Dwarf Cannon needs no items and no prerequisite quests: the Commander issues the railings
 and the tool kit, Nulodion issues the notes and the mould, and every one has a re-issue
-branch. The bank seed is coins, food and a melee kit only — seeding anything the quest
+branch. The bank seed is coins, food and a melee kit only, seeding anything the quest
 hands out would hide a dialogue that never fired.
 
 [`e2e/dwarf-cannon-254-live.ts`](../../e2e/dwarf-cannon-254-live.ts) takes `--stage N`

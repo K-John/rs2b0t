@@ -57,7 +57,7 @@ const IKOV_TOOLS = [
 const WARRIOR_FOOD = 8;
 const WARRIOR_FOOD_FLOOR = 2;
 
-// Why: the lava bridge weighs the pack, and stackables are free — so the trim is about the non-stackables the surface legs leave behind, the yew shortbow (3lb) and the iron axe most of all.
+// Why: the lava bridge weighs the pack, and stackables are free, so the trim is about the non-stackables the surface legs leave behind, the yew shortbow (3lb) and the iron axe most of all.
 const BRIDGE_KEEP = ['coins', 'candle', 'tinderbox', 'knife', 'pendant', 'boots of lightness', 'ice arrows', 'lever', ...IKOV_FOODS];
 
 function held(snap: QuestSnapshot, id: number): number {
@@ -72,7 +72,7 @@ function bridgeTrimStep(snap: QuestSnapshot): QuestStep | null {
 /** Winelda's twenty roots are twenty slots; only coins, food and the pendant ride with them. */
 const ROOTS_KEEP = ['coins', 'pendant', 'limpwurt root', ...IKOV_FOODS];
 
-// Why: the farm's own food is what fills the pack, and keeping it leaves nineteen slots for a twenty-root withdraw that then retries for as long as the watchdog allows — the fight it was for is over by the time this runs.
+// Why: the farm's own food is what fills the pack, and keeping it leaves nineteen slots for a twenty-root withdraw that then retries for as long as the watchdog allows, the fight it was for is over by the time this runs.
 /** Nothing rides to Winelda but her roots and the pendant. */
 const FERRY_KEEP = ['coins', 'pendant', 'limpwurt root'];
 
@@ -121,7 +121,7 @@ function warKitStep(snap: QuestSnapshot): QuestStep | null {
     if (bow) {
         return bow;
     }
-    // Why: the ice-chest circuit is four minutes of hobgoblin-free but not damage-free dungeon and it eats the engine's one-shot float, so the bot reaches the Fire Warrior's door on an empty pack unless this leg refills it — and the walk from the door back is nothing beside dying at it.
+    // Why: the ice-chest circuit is four minutes of hobgoblin-free but not damage-free dungeon and it eats the engine's one-shot float, so the bot reaches the Fire Warrior's door on an empty pack unless this leg refills it, and the walk from the door back is nothing beside dying at it.
     const food = restockStep(snap, WARRIOR_FOOD, WARRIOR_FOOD_FLOOR);
     if (food) {
         return food;
@@ -137,7 +137,7 @@ function warKitStep(snap: QuestSnapshot): QuestStep | null {
     return { kind: 'withdraw', items: [{ name: IKOV_NAME.ICE_ARROWS, qty: Math.min(banked, ARROWS_WANTED) }] };
 }
 
-// Why: Lucien re-issues only when `obj_gettotal` reads zero, and that counts the bank — so a banked pendant is one he refuses to replace.
+// Why: Lucien re-issues only when `obj_gettotal` reads zero, and that counts the bank, so a banked pendant is one he refuses to replace.
 function haveFearPendant(snap: QuestSnapshot): boolean {
     return heldOrBanked(snap, IKOV_OBJ.PENDANT_LUCIEN) > 0 || snap.wornIds?.has(IKOV_OBJ.PENDANT_LUCIEN) === true;
 }
@@ -241,14 +241,14 @@ export function decide(snap: QuestSnapshot): QuestStep {
             if (kit) {
                 return kit;
             }
-            // Why: `fetchBoots` answers true for a leg of the descent rather than for the boots, so it owns a step of its own — chained straight into the gate check it runs that check from the boots room, which the ice-cavern half-plane covers.
+            // Why: `fetchBoots` answers true for a leg of the descent rather than for the boots, so it owns a step of its own, chained straight into the gate check it runs that check from the boots room, which the ice-cavern half-plane covers.
             const boots = bootsStep(snap);
             if (boots) {
                 return boots;
             }
             return { kind: 'custom', name: 'unlock the south gate', run: unlockSouthGate };
         }
-        // Why: past the lever the ice cavern needs no crossing, so this is the first leg that can wear anything — and nine level-61 ice spiders stand on the circuit.
+        // Why: past the lever the ice cavern needs no crossing, so this is the first leg that can wear anything, and nine level-61 ice spiders stand on the circuit.
         const armour = rangedArmourStep(snap);
         if (armour) {
             return armour;
@@ -275,7 +275,7 @@ export const ikov: QuestModule = {
     food: 6,
     grind: ['Hobgoblin', 'Fire Warrior of Lesarkus', 'Lucien'],
     tools: IKOV_TOOLS,
-    // Why: the ice cavern and the hobgoblin camp are both crowds and the bank may dress neither, so it eats at three quarters rather than at half — 0.55 left 38 hitpoints against three level-42 attackers and the bot died at twelve roots.
+    // Why: the ice cavern and the hobgoblin camp are both crowds and the bank may dress neither, so it eats at three quarters rather than at half, 0.55 left 38 hitpoints against three level-42 attackers and the bot died at twelve roots.
     sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.75 },
     readStage: readIkovStage,
     warnReadiness: sourcingShortfall,

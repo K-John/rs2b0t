@@ -166,7 +166,7 @@ class FletchDialog implements Task {
         if (picked) {
             usedMakeX = true;
         } else if (ChatDialog.isMakeMenu()) {
-            // No Make-X / count dialog failed — fall back to largest fixed qty once.
+            // No Make-X / count dialog failed, fall back to largest fixed qty once.
             this.bot.log(`Make-X failed for *${this.bot.productName()}* — falling back to fixed qty`);
             picked = await ChatDialog.make(match);
         }
@@ -176,7 +176,7 @@ class FletchDialog implements Task {
             return;
         }
 
-        // Do NOT treat "make menu still open" as production started — that thrashed Make-X
+        // Do NOT treat "make menu still open" as production started, that thrashed Make-X
         // every tick. Wait for the menu to leave and work to begin.
         const started = await Execution.delayUntil(
             () =>
@@ -199,7 +199,7 @@ class FletchDialog implements Task {
             if (ChatDialog.canContinue()) {
                 return;
             }
-            // Menu back = batch finished or interrupted — re-pick next tick if logs remain.
+            // Menu back = batch finished or interrupted, re-pick next tick if logs remain.
             if (ChatDialog.isMakeMenu()) {
                 return;
             }
@@ -295,7 +295,7 @@ class BankTrip implements Task {
             }
         } finally {
             // Leave the bank so knife/log item-on-item can run (#484). Multibox / renderer-off
-            // still needs the close packet — without it Fletch validates but never progresses.
+            // still needs the close packet, without it Fletch validates but never progresses.
             if (Bank.isOpen()) {
                 if (!(await Bank.close())) {
                     this.bot.log('could not close the bank after withdraw — will retry');

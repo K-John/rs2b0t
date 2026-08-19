@@ -19,7 +19,7 @@ export const FC_STAGE = {
 } as const;
 
 // Why: all three crest fragments render "Crest part", so every check goes through the id.
-// Why: the names are crossed over server-side — Caleb hands out `avan_crest` and Avan hands out `caleb_crest`.
+// Why: the names are crossed over server-side. Caleb hands out `avan_crest` and Avan hands out `caleb_crest`.
 // Why: the constants below are named for the brother who gives them, which is what `decide()` reasons about.
 export const FC_ID = {
     CREST_FROM_CALEB: 779,
@@ -105,7 +105,7 @@ export const FC_NPC = {
     GEM_TRADER: new Tile(3288, 3212, 0),
     /**
      * Avan's NPC renders as "Man" (`vislevel=hide`), and Al Kharid is full of
-     * them — he is only ever found by npc id 663.
+     * them. He is only ever found by npc id 663.
      */
     AVAN: new Tile(3295, 3285, 0),
     AVAN_NPC_ID: 663,
@@ -117,15 +117,15 @@ export const FC_NPC = {
 } as const;
 
 export const FC_SHOP = {
-    /** Aubury — air/water/earth/fire and death runes. */
+    /** Aubury, air/water/earth/fire and death runes. */
     AUBURY: { npc: 'Aubury', anchor: new Tile(3253, 3401, 0) },
-    /** Dommik — ring mould, necklace mould, chisel. */
+    /** Dommik, ring mould, necklace mould, chisel. */
     DOMMIK: { npc: 'Dommik', anchor: new Tile(3322, 3194, 0) },
     /** The only shop in the game holding a cut ruby, and it holds one. */
     GEM_MERCHANT: { npc: 'Gem merchant', anchor: new Tile(2669, 3303, 0) },
-    /** Jiminua's Jungle Store — the only antipoison on sale anywhere. */
+    /** Jiminua's Jungle Store, the only antipoison on sale anywhere. */
     JIMINUA: { npc: 'Jiminua', anchor: new Tile(2767, 3122, 0) },
-    /** Nurmof — pickaxes, and already on the way past Boot. */
+    /** Nurmof, pickaxes, and already on the way past Boot. */
     NURMOF: { npc: 'Nurmof', anchor: new Tile(2997, 9844, 0) }
 } as const;
 

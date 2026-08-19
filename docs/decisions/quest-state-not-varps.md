@@ -11,11 +11,11 @@
 | `cookquest`, `zanaris`, `waterfall_quest` | `scope=perm` only | **no** |
 | `elemental_workshop_bits` (id 299), watchtower bits | `scope=perm` only | **no** |
 | `prince_keystatus` | `scope=perm`, no transmit | **no** (docs: do not branch on it) |
-| `qp` | `transmit=yes` | **yes** — total points only |
-| Rare UI/progress (e.g. some TBWT / still vars) | `transmit=yes` | **yes** — exceptions, not the rule |
+| `qp` | `transmit=yes` | **yes**, total points only |
+| Rare UI/progress (e.g. some TBWT / still vars) | `transmit=yes` | **yes**, exceptions, not the rule |
 
-A non-transmitted index reads as **0**, which is indistinguishable from “never
-started.” Branching on it is not “cheating the journal” — it is reading silence.
+A non-transmitted index reads as **0**, which is indistinguishable from "never
+started." Branching on it is not "cheating the journal", it is reading silence.
 That is why the rule is absolute for normal quest progress: **never treat
 `reader.varp` as stage.**
 

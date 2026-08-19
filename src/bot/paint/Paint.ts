@@ -30,7 +30,7 @@ export interface PaintCell {
     weight?: number;
 }
 
-/** A `list` / `fill` entry — a bare string, or text carrying its own colour. */
+/** A `list` / `fill` entry, a bare string, or text carrying its own colour. */
 export type PaintLine = string | { text: string; color?: string };
 
 export interface PaintListOptions {
@@ -415,7 +415,7 @@ export class PaintFrame {
     }
 
     /**
-     * Prev / label / Next stepper — one click moves one option (no spam overshoot).
+     * Prev / label / Next stepper, one click moves one option (no spam overshoot).
      * Layout: `[◀] label: current [▶]`. Returns the newly selected option or null.
      */
     stepper(id: string, label: string, options: string[], current: string): string | null {
@@ -479,7 +479,7 @@ export class PaintFrame {
 }
 
 /**
- * Immediate-mode overlay HUD — tabs, buttons, bars — redrawn every frame from
+ * Immediate-mode overlay HUD of tabs, buttons and bars, redrawn every frame from
  * `onPaint`.
  * @see docs/reference/api-bots.md
  */

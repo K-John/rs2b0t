@@ -187,7 +187,7 @@ describe('LoadoutPanel', () => {
     test('from worn fills the slots from what the character has on', () => {
         const panel = openPanel();
         (panel.root.querySelector('[data-action=from-worn]') as HTMLButtonElement).click();
-        // No client attached, so nothing is worn — the point is it commits
+        // No client attached, so nothing is worn. The point is it commits
         // cleanly rather than throwing or wiping the loadout out of existence.
         expect(Loadouts.names()).toEqual(['loadout']);
         expect(Loadouts.all()[0]!.worn).toEqual({});

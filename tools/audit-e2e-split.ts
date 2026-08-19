@@ -55,7 +55,7 @@ function outboundInto(consumers: Map<string, string>, sources: Map<string, strin
 }
 
 /** The bidirectional import closure around `entry`: consumers, their ABI, minus ABI shared with offline code.
- *  `offlineTests` names consumers outside the scanned tree — a unit test proves its target runs without a browser. */
+ *  `offlineTests` names consumers outside the scanned tree, a unit test proves its target runs without a browser. */
 export function liveClosure(
     entry: string,
     sources: Map<string, string>,

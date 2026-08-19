@@ -31,7 +31,7 @@ async function clearMesbox(): Promise<void> {
 // Why: the two spots sit on opposite banks of one gap, so the walk between them is the `Cross` op the navigator already knows about.
 // Why: success is read off the plank count, as `oplocu` deletes the plank and the nails together and the refusals ("You need 4 steel nails", "already fixed this half") delete nothing.
 
-/** Repair both halves of the storm-broken bridge — a plank and four nails each. */
+/** Repair both halves of the storm-broken bridge, a plank and four nails each. */
 export async function repairBridge(log: (m: string) => void): Promise<boolean> {
     const spots: readonly [string, Tile][] = [['west', HD_TILE.BRIDGE_WEST], ['east', HD_TILE.BRIDGE_EAST]];
     for (const [side, stand] of spots) {
@@ -58,7 +58,7 @@ export async function repairBridge(log: (m: string) => void): Promise<boolean> {
         await clearMesbox();
         if (!built) {
             // Already-built halves refuse without consuming, which is the normal
-            // resume path — carry on to the other side rather than failing.
+            // resume path, carry on to the other side rather than failing.
             log(`the ${side} half took no plank (already built, or nails short)`);
         } else {
             log(`${side} half of the bridge built`);
@@ -69,7 +69,7 @@ export async function repairBridge(log: (m: string) => void): Promise<boolean> {
 
 /**
  * Walk through the lighthouse doorway. `oploc1` teleports the player into the
- * broken copy in mapsquare 38_71 — nothing walks between the two lighthouses.
+ * broken copy in mapsquare 38_71. Nothing walks between the two lighthouses.
  */
 export async function enterLighthouse(log: (m: string) => void): Promise<boolean> {
     if (inQuestLighthouse(Game.tile())) {

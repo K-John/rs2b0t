@@ -272,7 +272,7 @@ export const fightarena: QuestModule = {
     food: FOOD,
     grind: ['Khazard Ogre', 'Khazard Scorpion', 'Bouncer'],
     tools: ['khazard helmet', 'khazard armour', 'khazard cell keys', 'khali brew', 'coins', ...KIT_KEEP],
-    // Why: the kit is withdrawn and worn by decide(), so the engine's food float has to wait for it — 24 lobsters into an empty pack leave no room for five pieces of rune.
+    // Why: the kit is withdrawn and worn by decide(), so the engine's food float has to wait for it, 24 lobsters into an empty pack leave no room for five pieces of rune.
     foodReady: snap => disguised(snap) || kitWanted(snap).length === 0,
     readStage: readFightArenaStage,
     sustain: { foods: ['Lobster', 'Swordfish', 'Shark', 'Tuna'], eatBelowHp: 0.6 },

@@ -34,7 +34,7 @@ function templeWalk(dest: Tile, radius: number, log: (m: string) => void): Promi
     });
 }
 
-// Why: her teleport lands five ticks after the conversation closes, so a leg that acts the moment it returns is still standing on the ledge — where the shiny key is a McGrubor round trip away rather than seventy tiles.
+// Why: her teleport lands five ticks after the conversation closes, so a leg that acts the moment it returns is still standing on the ledge, where the shiny key is a McGrubor round trip away rather than seventy tiles.
 
 /** Wait out Winelda's ferry, and ask her again if it never came. */
 async function ensureAcrossTheLava(log: (m: string) => void): Promise<boolean> {

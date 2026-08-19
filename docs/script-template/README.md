@@ -8,7 +8,7 @@ URL. Forking rs2b0t is not required.
 ## Build it
 
 1. Copy this directory somewhere and rename it.
-2. Repoint the `@rs2b0t/api` dependency in `package.json` — it is a `file:` link to
+2. Repoint the `@rs2b0t/api` dependency in `package.json`. It is a `file:` link to
    `packages/rs2b0t-api/` and resolves only inside this repo.
 3. Edit `src/ExampleBot.ts`.
 4. Run `bun install`.
@@ -38,7 +38,7 @@ shim's.
 
 ## See also
 
-- [Write a bot](../how-to/write-a-bot.md) — the same example annotated
-- [Scripting API](../API.md) — the complete surface
-- [Running locally](../RUNNING.md) — getting a client up to load this into
+- [Write a bot](../how-to/write-a-bot.md), the same example annotated
+- [Scripting API](../API.md), the complete surface
+- [Running locally](../RUNNING.md), getting a client up to load this into
 - [Manual index](../README.md)

@@ -21,15 +21,15 @@ import { travelTo } from '../upass/pass.js';
 import { RG_LOC, RG_TILE, regicideArea } from './areas.js';
 import { climbOutOfPit, travelTirannwn } from './pockets.js';
 
-// Why: this leg is the Underground Pass walked a second time, with the quest already finished. Both of its hard gates are `%ibanmulti` bits that stay set — `cave_well` wants the four orb bits and `bloodwell_upass` the three badges and the horn — so what is left is the physical crossings, which is what upass's own pocket-crossing mover was built for. Nothing here re-solves the quest; it re-walks it.
-// Why: and the way out at the far end is Iban's own temple door. `open_iban_door` grows a branch at `%regicide_quest >= ^regicide_spoken_lathas` that teleports the player `loc + (-129, +64)` — the Well of Voyage room — instead of into the temple.
+// Why: this leg is the Underground Pass walked a second time, with the quest already finished. Both of its hard gates are `%ibanmulti` bits that stay set, `cave_well` wants the four orb bits and `bloodwell_upass` the three badges and the horn, so what is left is the physical crossings, which is what upass's own pocket-crossing mover was built for. Nothing here re-solves the quest; it re-walks it.
+// Why: and the way out at the far end is Iban's own temple door. `open_iban_door` grows a branch at `%regicide_quest >= ^regicide_spoken_lathas` that teleports the player `loc + (-129, +64)`, the Well of Voyage room, instead of into the temple.
 
-// Why: the way up out of the second cavern is the unicorn tunnel, not the cage. `upass_area_2_3_entrance` picks its landing by the door's own angle: the pair at z 9611 is angle 3 and `p_telejump`s to (2371,9666) in the first cavern, while the pair at z 9665 is angle 1 and goes the other way to the loose railings. Aiming at the cage instead arrives and then has nothing to do — `travelTo` reports "leg to (2375,9604) from (2375,9604)" and the step succeeds without moving until the watchdog parks it.
-// Why: and asking `travelTo` for a tile on the shelf does not work either, because `upass/route.ts` names neither pocket — `areaAt` answers null across the first cavern, so `crossOnce` returns "nowhere" and the free search walks the ledge column instead. The door is taken by hand, by its own tile.
+// Why: the way up out of the second cavern is the unicorn tunnel, not the cage. `upass_area_2_3_entrance` picks its landing by the door's own angle: the pair at z 9611 is angle 3 and `p_telejump`s to (2371,9666) in the first cavern, while the pair at z 9665 is angle 1 and goes the other way to the loose railings. Aiming at the cage instead arrives and then has nothing to do, `travelTo` reports "leg to (2375,9604) from (2375,9604)" and the step succeeds without moving until the watchdog parks it.
+// Why: and asking `travelTo` for a tile on the shelf does not work either, because `upass/route.ts` names neither pocket, `areaAt` answers null across the first cavern, so `crossOnce` returns "nowhere" and the free search walks the ledge column instead. The door is taken by hand, by its own tile.
 const UNICORN_TUNNEL_STAND = new Tile(2376, 9610, 0);
 const UNICORN_TUNNEL_DOORS: readonly Tile[] = [new Tile(2375, 9611, 0), new Tile(2376, 9611, 0)];
 
-// Why: the shelf and the orb corridor are disjoint pockets whose bounding boxes overlap — flooding the pack from the blood well gives 825 tiles over x 2369-2428, z 9666-9726, and from the well 613 over x 2380-2464, z 9664-9698, sharing not one tile. So no single coordinate test covers the overlap, but the two bands the corridor cannot reach do cover every tile this leg stands on: the tunnel lands at (2371,9666), west of the corridor's own west edge.
+// Why: the shelf and the orb corridor are disjoint pockets whose bounding boxes overlap, flooding the pack from the blood well gives 825 tiles over x 2369-2428, z 9666-9726, and from the well 613 over x 2380-2464, z 9664-9698, sharing not one tile. So no single coordinate test covers the overlap, but the two bands the corridor cannot reach do cover every tile this leg stands on: the tunnel lands at (2371,9666), west of the corridor's own west edge.
 export function onShelf(tile: { x: number; z: number } | null): boolean {
     return tile !== null && (tile.x <= 2379 || tile.z >= 9699);
 }
@@ -46,11 +46,11 @@ function heldId(id: number): number {
     return Inventory.items().filter(item => item.id === id).length;
 }
 
-// Why: the cage, the dig and the ledge come from `upass/railings.ts` rather than being walked at. `cave_well` drops this leg in the same corridor Underground Pass itself starts from, and that run already carries each crossing's stand, its loc's OWN tile and its landing. Aiming a mover at `UP_TILE.MUD_DIG` instead asked it to route to (2393,9650), which carries the loc — live it names no pocket, `crossOnce` answers "nowhere", and the free search walked the leg back up through both thieving railings for twenty-four hops while still pointed at the dig.
+// Why: the cage, the dig and the ledge come from `upass/railings.ts` rather than being walked at. `cave_well` drops this leg in the same corridor Underground Pass itself starts from, and that run already carries each crossing's stand, its loc's OWN tile and its landing. Aiming a mover at `UP_TILE.MUD_DIG` instead asked it to route to (2393,9650), which carries the loc, live it names no pocket, `crossOnce` answers "nowhere", and the free search walked the leg back up through both thieving railings for twenty-four hops while still pointed at the dig.
 
 /**
  * The bridge over the chasm, shot down with a lit arrow.
- * Why: `upass_bridge` leaves no permanent state — the crossing is `loc_change(old_bridge_animated, 8)` and a `p_teleport`, both temporary, and the lever that lowers it again stands on the WEST bank and only sends the player east. So a finished Underground Pass buys nothing here: every westbound walk builds the fire arrow again. Koftik hands over a fresh damp cloth whenever the pack holds none, and the shot spends the arrow whether or not the ranged roll lands.
+ * Why: `upass_bridge` leaves no permanent state. The crossing is `loc_change(old_bridge_animated, 8)` and a `p_teleport`, both temporary, and the lever that lowers it again stands on the WEST bank and only sends the player east. So a finished Underground Pass buys nothing here: every westbound walk builds the fire arrow again. Koftik hands over a fresh damp cloth whenever the pack holds none, and the shot spends the arrow whether or not the ranged roll lands.
  */
 async function crossBridge(log: (m: string) => void): Promise<boolean> {
     const staged = heldId(UP_ITEM.LIT_ARROW.id) + heldId(UP_ITEM.UNLIT_ARROW.id) + heldId(UP_ITEM.DAMP_CLOTH.id);
@@ -105,7 +105,7 @@ async function openVoyageDoor(log: (m: string) => void): Promise<boolean> {
 /** Down the Well of Voyage, which lands in the temple on the far side of the world. */
 async function climbVoyageWell(log: (m: string) => void): Promise<boolean> {
     if (!(await Traversal.walkResilient(RG_TILE.WELL_OF_VOYAGE, { radius: 2, attempts: 2, timeoutMs: 60_000, log }))) {
-        // Why: the well sits in a sealed room whose own door the pack blocks — the temple-door hop lands the player on its threshold, so a walk that finds no route means the door is still shut.
+        // Why: the well sits in a sealed room whose own door the pack blocks, the temple-door hop lands the player on its threshold, so a walk that finds no route means the door is still shut.
         const inner = Locs.query().name('Door').action('Open').within(8).nearest();
         if (!inner || !(await inner.interact('Open'))) {
             log('no way into the Well of Voyage room');
@@ -141,7 +141,7 @@ async function leaveVoyageTemple(log: (m: string) => void): Promise<boolean> {
 
 /**
  * Up the unicorn tunnel from the second cavern onto the paladins' shelf.
- * Why: by the door's own tile rather than `nearest()`. Four of these doors stand in the cavern and only the pair at z 9611 lands on the shelf — the others send the leg back to the loose railings, which is the way it came.
+ * Why: by the door's own tile rather than `nearest()`. Four of these doors stand in the cavern and only the pair at z 9611 lands on the shelf, the others send the leg back to the loose railings, which is the way it came.
  */
 async function climbUnicornTunnel(log: (m: string) => void): Promise<boolean> {
     if (!(await travelTo(UNICORN_TUNNEL_STAND, 1, log))) {
@@ -170,7 +170,7 @@ async function climbUnicornTunnel(log: (m: string) => void): Promise<boolean> {
 
 /**
  * One leg of the walk from the mainland to Isafdar. Called until `regicideArea` reads `tirannwn`.
- * Why: every leg is keyed on where the player already is rather than on a remembered step, because the pass teleports on failure — a pitfall, the well, Iban's door — and a remembered step would resume in the wrong pocket after any of them.
+ * Why: every leg is keyed on where the player already is rather than on a remembered step, because the pass teleports on failure, whether a pitfall, the well or Iban's door, and a remembered step would resume in the wrong pocket after any of them.
  */
 export async function enterTirannwn(log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
@@ -189,7 +189,7 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
             return crossToWest(log);
         case 'westardougne':
             return enterCave(log);
-        // Why: the first cavern is three places at once and only `pastGridTile` tells them apart. The bridge shelf and the orb corridor overlap on x — the shelf runs 2431-2464 and the corridor 2380-2466 — so an x test reads the shelf as the corridor, sends the leg at the temple doors on the paladins' shelf, and the walk to them has no route: forty minutes standing at (2464,9726).
+        // Why: the first cavern is three places at once and only `pastGridTile` tells them apart. The bridge shelf and the orb corridor overlap on x. The shelf runs 2431-2464 and the corridor 2380-2466, so an x test reads the shelf as the corridor, sends the leg at the temple doors on the paladins' shelf, and the walk to them has no route: forty minutes standing at (2464,9726).
         case 'area1':
             if (eastOfChasm(here)) {
                 return crossBridge(log);
@@ -199,7 +199,7 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
             }
             return onShelf(here) ? enterMainCavern(log) : climbWell(log);
         case 'area2':
-            // Why: the paladins' shelf is entered by one loc and one only. Flooding it lists three ops on its rim — the temple doors out, the blood well, and `upass_unicorn_door`, which `p_telejump`s to (2371,9666) from its south face. So the shelf is behind the second cavern, and a leg that walked at `PALADINS` instead asked for a tile in another pocket: the mover swept for anything that gained ground, picked a slave-cage door, and "the cage slams shut behind you" left the run in an eight-tile cell with no edge out.
+            // Why: the paladins' shelf is entered by one loc and one only. Flooding it lists three ops on its rim, the temple doors out, the blood well, and `upass_unicorn_door`, which `p_telejump`s to (2371,9666) from its south face. So the shelf is behind the second cavern, and a leg that walked at `PALADINS` instead asked for a tile in another pocket: the mover swept for anything that gained ground, picked a slave-cage door, and "the cage slams shut behind you" left the run in an eight-tile cell with no edge out.
             return outstandingCrossing(OUT_OF_CAGES) === null
                 ? climbUnicornTunnel(log)
                 : takeNextCrossing(log, OUT_OF_CAGES);
@@ -219,9 +219,9 @@ export async function enterTirannwn(log: (m: string) => void): Promise<boolean> 
     }
 }
 
-// Why: the palisade is one seam of the same graph the forest is routed by — `travelTirannwn` walks the crossings out to it and takes the gate itself, and degrades to a plain resilient walk once the player is on the Ardougne side of it. Walking straight at the gate instead reports "unreachable", because from any pocket in the forest that is what it is.
+// Why: the palisade is one seam of the same graph the forest is routed by, `travelTirannwn` walks the crossings out to it and takes the gate itself, and degrades to a plain resilient walk once the player is on the Ardougne side of it. Walking straight at the gate instead reports "unreachable", because from any pocket in the forest that is what it is.
 
-/** Out of Tirannwn through the Arandar palisade — free northbound at any stage. */
+/** Out of Tirannwn through the Arandar palisade, free northbound at any stage. */
 export function leaveTirannwn(dest: Tile, stage: number, log: (m: string) => void): Promise<boolean> {
     return travelTirannwn(dest, 3, stage, log);
 }

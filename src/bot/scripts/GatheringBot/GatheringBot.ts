@@ -256,7 +256,7 @@ export {
     shouldCooldownGatherTile
 } from './TargetPick.js';
 
-// Pure policy (also in GatheringBotLogic) — re-export for existing test/import paths.
+// Pure policy (also in GatheringBotLogic), re-export for existing test/import paths.
 export {
     fishingSessionBroken,
     gatheringCombatPolicy,
@@ -341,7 +341,7 @@ export default class GatheringBot extends TaskBot {
     private pairOp = '';
     private dropMatch = 'ore';
     private leash = 10;
-    /** Raw location setting — Auto skips mob flee (expert / may-die). */
+    /** Raw location setting, Auto skips mob flee (expert / may-die). */
     private locationSetting = 'None';
 
     private rockIds = new Set<number>();
@@ -407,7 +407,7 @@ export default class GatheringBot extends TaskBot {
     /** Farmer willows 6-tick cycle anchor (Game.tick at cycle start). */
     private farmerCycleStart = -1;
 
-    /** Off | Buy/repair — shop/repair/smith missing gather tools. */
+    /** Off | Buy/repair, shop/repair/smith missing gather tools. */
     private toolAcquire: ToolAcquireMode = 'off';
     /** Game tick when acquire backoff ends (not wall-clock). */
     private acquireBackoffUntilTick = 0;
@@ -498,7 +498,7 @@ export default class GatheringBot extends TaskBot {
                 this.settings.str('cookFishCustom', '')
             );
         } else if ('treeName' in this.settings.raw()) {
-            // Every tree uses "Chop down" — no per-script action setting.
+            // Every tree uses "Chop down", no per-script action setting.
             this.chopping = true;
             this.targetType = 'loc';
             this.target = this.settings.str('treeName', 'Tree');
@@ -524,7 +524,7 @@ export default class GatheringBot extends TaskBot {
         const here = Game.tile()!;
         const locSetting = this.settings.str('location', 'None');
         this.locationSetting = locSetting;
-        // Skill-branched location tables — Miner/WC must not resolve fishing piers.
+        // Skill-branched location tables, Miner/WC must not resolve fishing piers.
         if (this.fishing) {
             this.location = resolveFishingLocation(locSetting, here);
         } else if (this.mining()) {
@@ -620,7 +620,7 @@ export default class GatheringBot extends TaskBot {
             }
         }
 
-        // Tick manip (#160) — per-skill dropdown; forced Off under power mode.
+        // Tick manip (#160), per-skill dropdown; forced Off under power mode.
         {
             const skill = this.fishing ? 'fish' : this.mining() ? 'mine' : this.woodcutting() ? 'wc' : null;
             const rawLabel =
@@ -790,7 +790,7 @@ export default class GatheringBot extends TaskBot {
             }
         }
 
-        // #170 — bank junk so gather can start with a full pack of trash.
+        // #170, bank junk so gather can start with a full pack of trash.
         // Skip power drop-only, Cooker (raw pack to cook), Supplier (empty/feeder).
         const purgePackOnStart = this.settings.bool('purgePackOnStart', true);
         const deferDesertPurge = purgePackOnStart && this.desertCampRoute !== null;
@@ -917,7 +917,7 @@ export default class GatheringBot extends TaskBot {
             !muleSide &&
             (this.mining() ||
                 (!isAutoLocation(this.locationSetting) && !this.tickManip.allowCombat));
-        // Tannerfishing is a power-train (cook/eat on the pier) — drop haul, no bank loop.
+        // Tannerfishing is a power-train (cook/eat on the pier), drop haul, no bank loop.
         const tannerPower = this.tickManip.cookEatInterleave;
         // Cooker always runs cook tasks; gatherer/solo use cookOn when enabled.
         const cookTasks = cookOn || cooker;
@@ -978,7 +978,7 @@ export default class GatheringBot extends TaskBot {
         );
     }
 
-    /** Mark a recent combat kite — hold camp re-entry for `holdTicks` game ticks. */
+    /** Mark a recent combat kite, hold camp re-entry for `holdTicks` game ticks. */
     noteCombatFlee(holdTicks = 24): void {
         this.combatClearUntilTick = Math.max(
             this.combatClearUntilTick,
@@ -1044,13 +1044,13 @@ export default class GatheringBot extends TaskBot {
                 names.add(bow);
             }
         }
-        // Tannerfishing is power-train: cooked catch is eaten, not banked — no gearKeep names.
+        // Tannerfishing is power-train: cooked catch is eaten, not banked, no gearKeep names.
         if (this.toolAcquire === 'on') {
             names.add(COINS);
             names.add(BROKEN_PICKAXE);
             names.add(BROKEN_AXE);
             names.add(ACQUIRE_HAMMER);
-            // Smith materials must survive restock deposit — otherwise a Draynor
+            // Smith materials must survive restock deposit, otherwise a Draynor
             // camp bank dumps the Runite bar before executeSmithPlan can use it.
             for (const bar of Object.values(AXE_BAR_FOR)) {
                 names.add(bar);
@@ -1107,7 +1107,7 @@ export default class GatheringBot extends TaskBot {
         return this.toolAcquire === 'on' && Game.tick() >= this.acquireBackoffUntilTick;
     }
 
-    /** @see walkToToolVendor in api/acquisition/ToolAcquire — Nurmof surface hop included. */
+    /** @see walkToToolVendor in api/acquisition/ToolAcquire, Nurmof surface hop included. */
     async walkToToolVendor(vendor: ToolVendor, log: (m: string) => void = m => this.log(`  ${m}`)): Promise<boolean> {
         return walkToToolVendor(vendor, log);
     }
@@ -1166,7 +1166,7 @@ export default class GatheringBot extends TaskBot {
         }
         const surplus = surplusHeldToolNames(this.toolReqs, this.skillLevel, this.heldCount);
         if (surplus.length === 0 && extraKeep.length === 0) {
-            // Still may need to bank displaced non-tool gear after equip — handled separately.
+            // Still may need to bank displaced non-tool gear after equip, handled separately.
         }
         const keep = new Set<string>([
             ...bestHeldToolNames(this.toolReqs, this.skillLevel, this.heldCount).map(n => n.toLowerCase()),
@@ -1206,7 +1206,7 @@ export default class GatheringBot extends TaskBot {
             if (keep.has(key)) {
                 return false;
             }
-            // Only auto-deposit known tiered gather tools — never random loot here.
+            // Only auto-deposit known tiered gather tools, never random loot here.
             return this.toolReqs.some(
                 r => r.kind === 'tiered' && r.tiers.some(t => t.name.toLowerCase() === key)
             );
@@ -1215,7 +1215,7 @@ export default class GatheringBot extends TaskBot {
         await this.bankPace();
     }
 
-    // Why: wielding a tool can shove whatever was equipped — an old axe or pick, a weapon or shield — into the inventory, and it must be deposited so users do not lose gear mid-run.
+    // Why: wielding a tool can shove whatever was equipped, whether an old axe or pick, a weapon or a shield, into the inventory, and it must be deposited so users do not lose gear mid-run.
     // Why: prefer {@link prepareWornSurplusForDeposit} plus a deposit while the bank is already open, so the happy path never needs this recovery reopen.
 
     /** Re-opens the bank when needed and deposits gear displaced by a wield. */
@@ -1337,7 +1337,7 @@ export default class GatheringBot extends TaskBot {
         await Execution.delayTicks(1);
         if (await this.openScriptBank(log)) {
             await this.waitBankReady(log);
-            // Glance only — no withdraw; the double-take.
+            // Glance only, no withdraw; the double-take.
             await this.bankPace();
             if (Bank.isOpen() && !(await Bank.close())) {
                 log('bank: forgetful close did not dismiss the bank modal');
@@ -1794,7 +1794,7 @@ export default class GatheringBot extends TaskBot {
             p.row(this.fmtXpGained('firemaking'), this.hasTinderbox() ? 'Tinderbox: yes' : 'Tinderbox: missing');
             p.text(this.paintFullNote(), '#8a919a');
         } else {
-            // Setup — keep ≤4 content lines so the note clears paintControls in the chatbox dock.
+            // Setup, keep ≤4 content lines so the note clears paintControls in the chatbox dock.
             const loc = this.anchor
                 ? `${this.paintLocLabel()} (${this.anchor.x},${this.anchor.z})`
                 : this.paintLocLabel();
@@ -1915,7 +1915,7 @@ export default class GatheringBot extends TaskBot {
             if (inv >= g.restock) {
                 continue;
             }
-            // Bank may be closed — treat unknown bank as "maybe" when acquire is on,
+            // Bank may be closed, treat unknown bank as "maybe" when acquire is on,
             // or when we already know bank has stock (open/loaded).
             if (Bank.isOpen() || Bank.loaded()) {
                 if (Bank.count(g.name) > 0 || (this.toolAcquire === 'on' && inv + Bank.count(g.name) < g.restock)) {
@@ -2038,7 +2038,7 @@ export default class GatheringBot extends TaskBot {
 
     // Why: the server only sets %action_delay after a Make confirm (process_fletch_logs).
     // Why: the Make-X count dialog is a failure mode for tick manip, so this always uses Make-1.
-    // Why: product completion is incidental — gather is re-clicked on the next tick.
+    // Why: product completion is incidental, gather is re-clicked on the next tick.
 
     /** Arms the knife+log delay (+2 server). */
     async armKnifeDelay(): Promise<boolean> {
@@ -2059,7 +2059,7 @@ export default class GatheringBot extends TaskBot {
         if (ChatDialog.isMakeMenu()) {
             return this.confirmKnifeDelayMake();
         }
-        // No menu — use-on may have no-op'd; treat as failed arm.
+        // No menu, use-on may have no-op'd; treat as failed arm.
         return false;
     }
 
@@ -2156,7 +2156,7 @@ export default class GatheringBot extends TaskBot {
 
     /**
      * Tannerfishing: cook one raw on nearest Fire/Range (scene-local).
-     * Does not walk to a bank range — stays near the pier.
+     * Does not walk to a bank range, stays near the pier.
      */
     async tannerCookOne(): Promise<boolean> {
         if (!this.tickManip.cookEatInterleave) {
@@ -2411,7 +2411,7 @@ export default class GatheringBot extends TaskBot {
     }
 
     // Why: the skip uses the soft arrive disk ({@link HOME_ARRIVE_RADIUS}), not the full gather leash.
-    // Why: bank stands at named camps often sit inside the leash but far from resources — the Catherby bank is ~36 from the pier.
+    // Why: bank stands at named camps often sit inside the leash but far from resources, the Catherby bank is ~36 from the pier.
 
     /** Soft return toward the gather anchor after bank, shop or repair. */
     async walkHomeIfNeeded(
@@ -2516,7 +2516,7 @@ export default class GatheringBot extends TaskBot {
         if (!stand || !here) {
             return false;
         }
-        // Keep tight: Draynor willows are ~12 from the bank stand — must not count as "at bank".
+        // Keep tight: Draynor willows are ~12 from the bank stand, must not count as "at bank".
         return Tile.from(here).distanceTo(stand) <= radius;
     }
 
@@ -2529,7 +2529,7 @@ export default class GatheringBot extends TaskBot {
         return this.startupToolBankSyncPending && this.toolAcquire === 'on';
     }
 
-    // Why: the worse tier is deposited in the same bank open, and nothing is equipped here — the caller closes once then wields offline, so one upgrade never opens and closes the bank three times.
+    // Why: the worse tier is deposited in the same bank open, and nothing is equipped here. The caller closes once then wields offline, so one upgrade never opens and closes the bank three times.
     // Why: the bank must already be open and loaded.
     // Why: the returned names are what should be equipped after the bank closes.
 
@@ -2578,7 +2578,7 @@ export default class GatheringBot extends TaskBot {
         return { withdrew: true, toEquip: [...new Set(toEquip)] };
     }
 
-    // Why: a bank withdraw — steel in bank with bronze held — is preferred before shop or smith.
+    // Why: a bank withdraw, steel in bank with bronze held, is preferred before shop or smith.
     // Why: it runs as one bank session: withdraw, unequip surplus, deposit, optional coins, close once, equip.
     // Why: true means a bank or shop trip was attempted, whether it succeeded or failed with backoff.
 
@@ -2601,7 +2601,7 @@ export default class GatheringBot extends TaskBot {
         if (this.hasBrokenGatherTool()) {
             return false;
         }
-        // Missing gear is RestockGatherTool's job — except startup still opens bank once.
+        // Missing gear is RestockGatherTool's job, except startup still opens bank once.
         if (!this.hasGear() && !startup) {
             return false;
         }
@@ -2642,7 +2642,7 @@ export default class GatheringBot extends TaskBot {
                 await this.closeScriptBank(log);
             }
             if (toEquip.length > 0) {
-                // Surplus already banked in-session — do not reopen for displaced tools.
+                // Surplus already banked in-session, do not reopen for displaced tools.
                 await this.equipTools(toEquip, log, { bankDisplaced: false });
             }
             if (didWork || withdrewBetter) {
@@ -2659,7 +2659,7 @@ export default class GatheringBot extends TaskBot {
             upgrade: true
         });
         if (!plan || plan.kind === 'repair') {
-            // Nothing better in shop — cool down so we do not re-check every bank trip.
+            // Nothing better in shop, cool down so we do not re-check every bank trip.
             this.markAcquireBackoff(200);
             if (withdrewBetter) {
                 this.log('acquire: bank tool upgraded; no better shop tool right now');
@@ -2689,7 +2689,7 @@ export default class GatheringBot extends TaskBot {
             await this.equipTools(toEquip, log, { bankDisplaced: false });
         }
         this.log(`acquire: upgrade opportunity — ${plan.reason}`);
-        // Coins + surplus already handled — skip the second bank open in executeBuyPlan.
+        // Coins + surplus already handled, skip the second bank open in executeBuyPlan.
         const ok = await this.executeToolAcquirePlan(plan, log, {
             bankPrepared: plan.kind === 'buy'
         });
@@ -2890,7 +2890,7 @@ export default class GatheringBot extends TaskBot {
         opts: { bankDisplaced?: boolean } = {}
     ): Promise<boolean> {
         const attack = Skills.level('attack');
-        // Drop tools we cannot wield — backpack use is still valid for mining/wc.
+        // Drop tools we cannot wield, backpack use is still valid for mining/wc.
         const unique = [
             ...new Set(
                 names.filter(n => {
@@ -2916,7 +2916,7 @@ export default class GatheringBot extends TaskBot {
             }
             await Execution.delayTicks(1);
         }
-        // Make-X / shop / dialog can leave the main modal open — Wield ops fail until clear.
+        // Make-X / shop / dialog can leave the main modal open, Wield ops fail until clear.
         if (ChatDialog.isMainMakePanel() || ChatDialog.isOpen()) {
             await Execution.delayUntilTicks(() => !ChatDialog.isMainMakePanel() && !ChatDialog.isOpen(), 5);
             await Execution.delayTicks(1);
@@ -2925,7 +2925,7 @@ export default class GatheringBot extends TaskBot {
         await Game.openSideTab(3);
         await Execution.delayTicks(1);
 
-        // Snapshot worn gear before wield — equipping an axe/pick can shove the
+        // Snapshot worn gear before wield, equipping an axe/pick can shove the
         // previous weapon (or worse axe) into the inventory.
         const wornBefore = new Set(
             Equipment.items()
@@ -2945,7 +2945,7 @@ export default class GatheringBot extends TaskBot {
                 continue;
             }
             let equipped = await Equipment.equip(name);
-            // One immediate retry — first click often races smith/shop close.
+            // One immediate retry, first click often races smith/shop close.
             if (!equipped && Inventory.first(name) !== null && !Equipment.contains(name)) {
                 await Execution.delayTicks(1);
                 await Game.openSideTab(3);
@@ -3080,7 +3080,7 @@ export default class GatheringBot extends TaskBot {
         if (this.fishMethod?.gear.some(g => g.name.toLowerCase() === n)) {
             return false;
         }
-        // Keep intentional product (ore/raw) in bank mode — only drop true junk.
+        // Keep intentional product (ore/raw) in bank mode, only drop true junk.
         if (!this.powerMode && !this.burnEnabled() && this.isProduct(name)) {
             return false;
         }
@@ -3107,7 +3107,7 @@ export default class GatheringBot extends TaskBot {
         return this.location === null;
     }
 
-    /** Meet tile for mule handoff — camp spot when set, else run anchor. */
+    /** Meet tile for mule handoff, camp spot when set, else run anchor. */
     getMeetTile(): Tile {
         return this.location?.spot ?? this.getAnchor();
     }
@@ -3136,7 +3136,7 @@ export default class GatheringBot extends TaskBot {
         return muleSupplierActive(this.muleMode, this.mulePartners, this.powerMode);
     }
 
-    /** Bank mule / cooker / supplier — no Gather task. */
+    /** Bank mule / cooker / supplier, no Gather task. */
     isMuleNonGatherer(): boolean {
         return muleNonGathererActive(this.muleMode, this.mulePartners);
     }
@@ -3241,7 +3241,7 @@ export default class GatheringBot extends TaskBot {
     }
     /** @deprecated cooked/burnt now tracked via inventory.changed (raw→product). */
     recordCook(_n: number): void {
-        // no-op — kept so cook tasks still compile; counts come from inventory gains
+        // no-op, kept so cook tasks still compile; counts come from inventory gains
     }
 
     burntTotal(): number {
@@ -3333,7 +3333,7 @@ export default class GatheringBot extends TaskBot {
         if (isBurntFishName(name)) {
             return this.burntPolicy === 'bank';
         }
-        // Cooked fish only — do not call shouldDeposit (that routes cooked back here).
+        // Cooked fish only, do not call shouldDeposit (that routes cooked back here).
         return isCookedFishName(name);
     }
     shouldDepositRawCatch(name: string): boolean {

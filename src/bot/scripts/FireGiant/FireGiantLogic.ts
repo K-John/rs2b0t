@@ -10,7 +10,7 @@ export const WASHED_OUT = new Tile(2527, 3413, 0);
 
 // Why: 9892 sees two west giants, so it kills faster.
 // Why: a 2x2 footprint fits with its origin on 9892, so a giant can occasionally reach you there.
-// Why: 9893 is the melee-proof nook — live-verified at zero pull-offs and zero food eaten — but sees one giant.
+// Why: 9893 is the melee-proof nook, live-verified at zero pull-offs and zero food eaten, but sees one giant.
 // Why: hold 9892 and drop back to 9893 whenever a giant lands a hit.
 export const DEFAULT_SAFESPOT = new Tile(2568, 9892, 0);
 export const DEFAULT_SAFESPOT_FALLBACK = new Tile(2568, 9893, 0);
@@ -36,7 +36,7 @@ export function eastFirst(a: TargetLike, b: TargetLike): number {
     return b.x - a.x || a.distance - b.distance;
 }
 
-// Why: the chambers split cleanly on x — west spawns top out at 2568, east ones start at 2573.
+// Why: the chambers split cleanly on x, west spawns top out at 2568, east ones start at 2573.
 // Why: from the safespot the nearest east giant is closer than two of the three west ones, so targeting is gated on room, not range.
 // Why: an NPC's faceEntity clears between its attacks, so a giant another player is mid-fight with reads as free for a tick.
 // Why: treating "in combat but not with us" as taken closes that gap.
@@ -91,7 +91,7 @@ export function roomOf(t: PointLike | null): Room | null {
     return inBox(t, EAST_ROOM) ? 'east' : null;
 }
 
-// Why: the exit door sits on the dungeon entry tile and drops you on the ledge, where the barrel ("A wooden barrel, maybe a way off this rock.") washes you to 2527,3413 — 118 tiles from Ardougne West.
+// Why: the exit door sits on the dungeon entry tile and drops you on the ledge, where the barrel ("A wooden barrel, maybe a way off this rock.") washes you to 2527,3413, 118 tiles from Ardougne West.
 // Why: that walk-out needs no runes, no magic level and no quest, so a teleport only saves the walk back to the exit door.
 export const EXIT_DOOR = new Tile(2575, 9861, 0);
 export const EXIT_DOOR_LOC = 'Door';
@@ -106,7 +106,7 @@ export const LEDGE_OP = 'Open';
 export const AMULET = "Glarial's amulet";
 export const ROPE = 'Rope';
 
-// engine: inzone(0_39_54_14_20, 0_39_54_18_25) — the rope throw is refused outside it
+// engine: inzone(0_39_54_14_20, 0_39_54_18_25). The rope throw is refused outside it
 export const THROW_ZONE = { minX: 2510, maxX: 2514, minZ: 3476, maxZ: 3481 };
 
 // the rock is across water, so the op only lands from inside aplocu range; from the

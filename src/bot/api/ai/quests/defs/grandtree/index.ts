@@ -84,7 +84,7 @@ function wearAll(names: readonly string[]): QuestStep {
     });
 }
 
-// Why: the demon has 157 hitpoints and 152 defence, so what the pack is carrying sets how long the fight runs — and Family Crest's lesson is that preparation must stop at the door, or a decide() mid-fight walks the bot out to re-bank.
+// Why: the demon has 157 hitpoints and 152 defence, so what the pack is carrying sets how long the fight runs, and Family Crest's lesson is that preparation must stop at the door, or a decide() mid-fight walks the bot out to re-bank.
 
 /** Kit and food, resolved once and only while the trapdoor is still shut. */
 function demonKit(snap: QuestSnapshot): QuestStep | null {
@@ -117,7 +117,7 @@ function demonKit(snap: QuestSnapshot): QuestStep | null {
     return want.length > missing.length ? wearAll(want.filter(n => !unavailable.has(n.toLowerCase()))) : null;
 }
 
-// Why: the twigs are re-issued by the King whenever none is held, and one already lying on its pillar counts as neither held nor lost — so an empty pack at stage 120 is the only honest ask.
+// Why: the twigs are re-issued by the King whenever none is held, and one already lying on its pillar counts as neither held nor lost, so an empty pack at stage 120 is the only honest ask.
 
 /** The next twig to lay, or null when the pack holds none. */
 function nextTwig(snap: QuestSnapshot): number | null {
@@ -141,7 +141,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === undefined) { return { kind: 'wait', reason: 'The Grand Tree journal stage unavailable' }; }
 
     // Why: the twig legs live on Glough's pillar floor, a seven-tile pocket with no baked way off it, so the kit is bought on the ground before the first climb rather than beside the trapdoor.
-    // Why: a run that arrives up there still owing gear climbs back down for it — a bank step decided in the pocket has no route and burns its budget down to nothing proving so.
+    // Why: a run that arrives up there still owing gear climbs back down for it, a bank step decided in the pocket has no route and burns its budget down to nothing proving so.
     if ((stage === GT_STAGE.GIVEN_TWIGS || stage === GT_STAGE.UNLOCKED_TRAPDOOR) && !inCaves(snap.tile)) {
         const kit = demonKit(snap);
         if (kit) {
@@ -151,7 +151,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         }
     }
 
-    // Why: everything past the demon happens in the root caves, whose only mouth before the quest ends is Glough's trapdoor — so a death, or a run resumed on the surface, climbs back down before it can act.
+    // Why: everything past the demon happens in the root caves, whose only mouth before the quest ends is Glough's trapdoor, so a death, or a run resumed on the surface, climbs back down before it can act.
     if (stage >= GT_STAGE.DEFEATED_BLACK_DEMON && stage < GT_STAGE.COMPLETE && !inCaves(snap.tile)) {
         return custom('drop back into the root caves', descendTrapdoor);
     }

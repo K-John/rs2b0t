@@ -10,25 +10,25 @@ say.
   the conversation sets it; the swap does, and the swap is refused while Manni can see
   you. The firecracker in the drain pipe is not colour, it is the mechanism, and a module
   that models the contest as "talk, choose Yes" loses every time with no error to read.
-- **Thorvald's trial is passed by dying — on the fourth form only.** Koschei's first three
+- **Thorvald's trial is passed by dying, on the fourth form only.** Koschei's first three
   forms are ordinary melee and kill an unarmed character outright; only the fourth is wired
   to `viking_honour_death`, and it has 255 hitpoints and 255 defence against a strength of
   5, so it cannot be beaten and cannot miss forever. Read what the *loss* branch does, and
   read which npc id it is attached to.
 - **The protection prayer that carries the first three forms is also what times the fourth.**
   `playerhit_n_melee_viking` zeroes the damage while Protect from Melee holds, so the
-  exact-lethal blow the honourable death needs can only land once prayer has drained — which
+  exact-lethal blow the honourable death needs can only land once prayer has drained, which
   is when the fourth form is the one swinging. Turning the prayer off to "let him
   win" sooner kills the character outright on form three, at 70 stats, in the open.
   `defeat_viking_enemy3` drains the bar to nothing anyway when the fourth form spawns.
 - **The honourable death needs an exact roll, so leaving the fight is not the same as
   passing it.** `combat_viking_damage_player` calls `viking_honour_death` only when the
   damage lands on the character's last remaining hitpoint; an overkill is an ordinary death in Lumbridge
-  with the vote unspent. The pass teleports to Thorvald's loft, so that tile is the test —
+  with the vote unspent. The pass teleports to Thorvald's loft, so that tile is the test,
   a loop that reads "no longer in the battleground" as a win reports a Lumbridge respawn as
   a seventh vote.
 - **A shop's stock line is the difference between a source and a bank seed.** Three shops
-  list a raw shark and two of them list it at `0` — stock the shop only ever holds
+  list a raw shark and two of them list it at `0`, stock the shop only ever holds
   because a player sold one. Rufus in Canifis is the only entry with a baseline, and his
   door is Morytania's, which turns Fossegrimen's offering into a quest prerequisite the
   guide never mentions. Grep the `.inv` for a non-zero baseline, not for the item.
@@ -42,8 +42,8 @@ say.
   seven trials read not-started, and the bot walks back into work already paid for.
 - **The journal is the only place the seven sub-states are visible.** Nothing transmits
   `%viking_bits`, and the flower trade alone has thirteen positions. `readProgress` reads
-  them off the rendered page — `I now have the Navigator's vote` against
-  `The Navigator will vote for me if I can pass his trial` — and the eleven
+  them off the rendered page, `I now have the Navigator's vote` against
+  `The Navigator will vote for me if I can pass his trial`, and the eleven
   `The <role> is looking for …` lines name where the trade has got to.
 - **Two of the thirteen trade states render the same page.** `sigmund_started` and
   `sigmund_spoke_sailor` are indistinguishable in the journal, so the opening is one step
@@ -56,7 +56,7 @@ say.
   produces nothing fixes it; one that opens once does not.
 - **One councillor's menu changes when another councillor's trial opens.** Peer leads with
   "Ask about depositing your equipment" as soon as Thorvald's trial is live, and taking it
-  banks the pack without ever starting Peer's own trial — so the same preference list used
+  banks the pack without ever starting Peer's own trial, so the same preference list used
   for both loops forever. The opening and the banking need separate lists.
 - **A bartender is not always a shop.** The Forester's Arms serves beer through
   `@multi3` and has no `Trade` op at all, so `Shop.open` finds nothing and a `buy` step
@@ -66,18 +66,18 @@ say.
   continued, so a `Reach.locOp` whose oracle is the item waits out its window while the box
   sits there. `promptLoc` is the shape: reach, then drive whatever prompt came back.
 - **Blocked floor under a trapdoor is normal.** Both trapdoor tiles in Peer's puzzle house
-  are unwalkable in the collision pack — you arrive on them by teleport and step off — so
+  are unwalkable in the collision pack, you arrive on them by teleport and step off, so
   every stand is beside one, and the ops are clicked from a cardinal neighbour.
 - **The two halves of the puzzle house are separate pockets at ground level, and the
   mural belongs to the east one.** The riddle door opens into the west half, the ladder
   there climbs to the puzzle floor, and the mural that pays out the vase lid hangs on the
-  dividing wall facing east — reachable only back down the *other* trapdoor. A flood over
+  dividing wall facing east, reachable only back down the *other* trapdoor. A flood over
   the pack says which side a loc is on; the map picture does not, and a box guessed one
   tile short put the bot in the east room while the module thought it was outside.
 - **Both of Peer's doors belong in `SCRIPT_REFUSED`, and the bouncer's does not.** Door 1
   opens only to a solved lock and an empty pack, door 2 only to an `oplocu` with the key
   from inside; baked as edges the walker routes into a sealed pocket and repaths against a
-  locked door forever. The longhall's backstage door is the opposite case — it refuses
+  locked door forever. The longhall's backstage door is the opposite case. It refuses
   only the inward crossing, and the stage behind it is a dead end nothing routes through,
   so removing it would seal the bard in after his own performance.
 - **Swensen's maze is seven fixed portals, and every other portal scatters you.** The

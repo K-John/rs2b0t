@@ -27,7 +27,7 @@ test('every Global / MapPicker HTML colour setting uses the colour control', () 
         expect(typeof d.default).toBe('string');
         expect(String(d.default)).toMatch(/^#[0-9A-Fa-f]{3,8}$/);
         expect(resolveControl(d)).toBe('color');
-        // Guard against hex defaults that forgot color: true — already filtered.
+        // Guard against hex defaults that forgot color: true, already filtered.
         expect(key.length).toBeGreaterThan(0);
     }
     // Nav path paint colours must all opt in (regression vs freeform text fields).

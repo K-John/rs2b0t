@@ -104,7 +104,7 @@ function tiadecheCatchLeg(snap: QuestSnapshot, stage: number): QuestStep {
 }
 
 // Why: only a spear that is both stronger than bronze and Karambwan-poisoned satisfies Tamayu, and
-// the poison is a poorly cooked Karambwan ground with a pestle — his own gift is the first one of those.
+// the poison is a poorly cooked Karambwan ground with a pestle, his own gift is the first one of those.
 
 function karambwanSpear(snap: QuestSnapshot): QuestStep | null {
     if (heldId(snap, TB_ID.SPEAR_KP) > 0) {
@@ -246,7 +246,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         return custom("claim Timfraku's reward", claimReward);
     }
     // Why: Timfraku is across a 30gp ferry each way, so the pack is filled before the first
-    // crossing rather than after it — including the coin the crossing itself is priced in.
+    // crossing rather than after it, including the coin the crossing itself is priced in.
     const kit = prepare(snap);
     if (kit) {
         return kit;
@@ -289,7 +289,7 @@ function observe(snap: QuestSnapshot): string[] {
 
 export const tbwt: QuestModule = {
     record: QUESTS.find(record => record.id === 'tbwt')!,
-    // Why: Karamja has no bank until Shilo Village is complete, and this quest does not require it — Ardougne West is the nearest booth to the Brimhaven ferry.
+    // Why: Karamja has no bank until Shilo Village is complete, and this quest does not require it, Ardougne West is the nearest booth to the Brimhaven ferry.
     bank: TB_TILE.ARDOUGNE_BANK,
     ownsInventory: true,
     readProgress: readTbwtProgress,

@@ -2,7 +2,7 @@
 
 # Quest harness recipes (Fre)
 
-## The Fremennik Trials — stage-scoped harness
+## The Fremennik Trials, stage-scoped harness
 
 [`e2e/fremennik-trials-266-live.ts`](../../e2e/fremennik-trials-266-live.ts). Members
 content, so `:8890` only.
@@ -25,13 +25,13 @@ HEADED=1 bun e2e/fremennik-trials-266-live.ts --stage 0 --until 8 --minutes 180 
 
 `--stage` is a trial count, not a varp. `%viking` is one plus the vote total and each
 trial keeps its own bit range in `%viking_bits`, so seeding the votes alone describes a
-state the quest cannot reach — the journal shows three votes while every trial reads
+state the quest cannot reach, the journal shows three votes while every trial reads
 not-started, and the bot walks back into work it has already been paid for. The harness
 writes both, in the module's own order: reveller, bard, hunter, navigator, merchant,
 seer, warrior.
 
 The bank seed is coins, food, a rune melee kit and **one raw shark**. Everything else
-the quest needs has a source the bot walks to — the axe and knife spawn inside Rellekka,
+the quest needs has a source the bot walks to, the axe and knife spawn inside Rellekka,
 the tinderbox is Arhein's in Catherby, the beer is the Forester's Arms, the keg is Peter
 Potter's, and the stew vegetables grow at the town gate. The shark is the exception:
 Rufus in Canifis is the only shop in the game that restocks one, and his door is

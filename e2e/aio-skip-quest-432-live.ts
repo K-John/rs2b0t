@@ -1,4 +1,4 @@
-// Live proof for #432 — AIOQuester "Skip quest": [base].
+// Live proof for #432, AIOQuester "Skip quest": [base].
 
 //   bun e2e/aio-skip-quest-432-live.ts [http://127.0.0.1:8888]
 import type { Page } from 'playwright-core';
@@ -83,7 +83,7 @@ try {
 
     await mainlandAccount(page, base, username);
     await cheatQuiet(page, 'speed 300');
-    // Enough skills / empty pack — Rune Mysteries + Doric both start at the wizard / Doric.
+    // Enough skills / empty pack, Rune Mysteries + Doric both start at the wizard / Doric.
     await cheatQuiet(page, 'tele 0,48,54,22,18'); // near Lumbridge / wizard tower approach
     await teleTo(page, { x: 3104, z: 3162, level: 0 }, 10, 20_000).catch(() => undefined);
 
@@ -135,7 +135,7 @@ try {
                 console.log(`next running after skip: ${next.id}`);
                 break;
             }
-            // Only one quest left runnable and it finished / drained — also success if blocked stuck
+            // Only one quest left runnable and it finished / drained, also success if blocked stuck
             if (s.runner === 'stopped' && blocked?.status === 'BLOCKED') {
                 console.log('runner stopped with skipped quest blocked (no further READY quests)');
                 sawNextRunning = true; // queue may only have had the one READY

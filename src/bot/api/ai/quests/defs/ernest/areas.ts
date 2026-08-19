@@ -16,7 +16,7 @@ export const EC_ID = {
     FISH_FOOD: 272,
     POISON: 273,
     POISONED_FISH_FOOD: 274,
-    /** Displays as "Key" — a name shared with a dozen other objects. Match by id. */
+    /** Displays as "Key", a name shared with a dozen other objects. Match by id. */
     CLOSET_KEY: 275,
     RUBBER_TUBE: 276,
     OIL_CAN: 277,

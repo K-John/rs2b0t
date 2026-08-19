@@ -16,7 +16,7 @@ import { walkTo } from './isafdar.js';
 
 const GRIND_MS = 12_000;
 
-// Why: cardinal first, because `reachRectangle` takes a cardinal side and nothing else, and a ground-decor loc sits on a tile the pack calls blocked so the server cannot path onto it. The coal-tar seep is three `forcedecor` locs shoulder to shoulder and `nearest()` ranks a diagonal the same as the one due south — it picked the same unreachable one forty-five times, and the refusal never showed because the step only ever reported "no inventory change".
+// Why: cardinal first, because `reachRectangle` takes a cardinal side and nothing else, and a ground-decor loc sits on a tile the pack calls blocked so the server cannot path onto it. The coal-tar seep is three `forcedecor` locs shoulder to shoulder and `nearest()` ranks a diagonal the same as the one due south, it picked the same unreachable one forty-five times, and the refusal never showed because the step only ever reported "no inventory change".
 // @see docs/decisions/quest-pitfalls-30.md
 function reachableLoc(locIds: readonly number[]): Loc | null {
     const here = Game.tile();
@@ -69,7 +69,7 @@ export async function takeBarrel(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => heldId(RG_ITEM.BARREL.id) > before, 10_000);
 }
 
-/** A pot off the floor of the elf camp — the quicklime dust has to be stored in something. */
+/** A pot off the floor of the elf camp, the quicklime dust has to be stored in something. */
 export async function takePot(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(RG_TILE.POT_SPAWN, 4, RG_STAGE.SPOKEN_IORWERTH2, log))) {
         return false;
@@ -147,7 +147,7 @@ export function grindQuicklime(log: (m: string) => void): Promise<boolean> {
     return grind(RG_ITEM.QUICKLIME.id, RG_ITEM.QUICKLIME_DUST.id, log);
 }
 
-// Why: `regicide_heat_quicklime` is reached through the generic `use_furnace` switch, so any furnace does. The camp has one, but reaching it is six crossings deeper into the forest and six back — East Ardougne's is sixty tiles from the bank the run passes through anyway on its way to the still.
+// Why: `regicide_heat_quicklime` is reached through the generic `use_furnace` switch, so any furnace does. The camp has one, but reaching it is six crossings deeper into the forest and six back, East Ardougne's is sixty tiles from the bank the run passes through anyway on its way to the still.
 // Why: it costs 8 damage without gloves (`inv_totalcat(worn, armour_hands)`), which the food float covers.
 
 /** Limestone burned to quicklime at the East Ardougne furnace. */
@@ -181,8 +181,8 @@ function rabbitMeat(): GroundItem | null {
     return GroundItems.query().where(item => item.id === RG_ITEM.RAW_RABBIT.id).within(12).nearest();
 }
 
-// Why: the meat never enters the pack. `[ai_queue3,_rabbit]` is `obj_add(npc_coord, raw_rabbit, 1, …)` — it drops on the floor under the rabbit, gated on `npc_findhero`, so waiting for the pack to change is waiting for something that cannot happen. A minute of it ran thirty-nine times over thirty-eight minutes and the step never once said why.
-// Why: and one `Attack` click is not enough. The rabbit has `wanderrange=5` and five hitpoints, so it walks out of the interaction as often as it dies in it — the attack is renewed until the meat is on the ground.
+// Why: the meat never enters the pack. `[ai_queue3,_rabbit]` is `obj_add(npc_coord, raw_rabbit, 1, …)`. It drops on the floor under the rabbit, gated on `npc_findhero`, so waiting for the pack to change is waiting for something that cannot happen. A minute of it ran thirty-nine times over thirty-eight minutes and the step never once said why.
+// Why: and one `Attack` click is not enough. The rabbit has `wanderrange=5` and five hitpoints, so it walks out of the interaction as often as it dies in it. The attack is renewed until the meat is on the ground.
 
 /** A rabbit out of the forest, for the guard who cannot catch one himself. */
 export async function catchRabbit(log: (m: string) => void): Promise<boolean> {
@@ -246,14 +246,14 @@ export async function cookRabbit(log: (m: string) => void): Promise<boolean> {
     return useHeldOnLoc(RG_ITEM.RAW_RABBIT.id, [RANGE_LOC], () => heldId(RG_ITEM.COOKED_RABBIT.id) > before, log);
 }
 
-/** The plain `range` loc — the nearest one to the bank is a dozen tiles from it. */
+/** The plain `range` loc, the nearest one to the bank is a dozen tiles from it. */
 const RANGE_LOC = 2728;
 
 // The fractionalising still
 
 // Why: `%regicide_still_total` and `%regicide_still_settings` are the two varps in this quest with `transmit=yes`, so the still is the one part of it the bot can read directly. `%temp` is not among them, which is why the control law reads the heat needle rather than the temperature.
 
-// Why: resolved by the label the client puts in its own menu, not by the id in `interface.pack`. The packed ids are the server's, and pressing one the client does not agree with is silent — the first live run sent `com_130` six hundred times and the pressure valve never moved off bit 26.
+// Why: resolved by the label the client puts in its own menu, not by the id in `interface.pack`. The packed ids are the server's, and pressing one the client does not agree with is silent, the first live run sent `com_130` six hundred times and the pressure valve never moved off bit 26.
 const STILL_LABELS = {
     valveShut: 'Turn pressure valve down',
     valveOpen: 'Turn pressure valve up',
@@ -265,7 +265,7 @@ const STILL_LABELS = {
 
 type StillButton = keyof typeof STILL_LABELS;
 
-/** `regicide_still` — the interface the tar barrel opens. */
+/** `regicide_still`, the interface the tar barrel opens. */
 const STILL_ROOT = 4919;
 
 function stillButtonId(which: StillButton): number {
@@ -276,13 +276,13 @@ const VARP_STILL_TOTAL = 330;
 const VARP_STILL_SETTINGS = 331;
 /** `if_close` hands over the naphtha at this tally. */
 const STILL_TARGET = 26;
-// Why: the tar regulator at full flow is +2 pressure a tick and the valve one step open is -2, which is the only pairing that holds the gauge still — shut is +2 a tick and blows in six, wide open falls to zero and the regulator has to come back down.
+// Why: the tar regulator at full flow is +2 pressure a tick and the valve one step open is -2, which is the only pairing that holds the gauge still, shut is +2 a tick and blows in six, wide open falls to zero and the regulator has to come back down.
 const VALVE_HOLD = 1;
 const REGULATOR_FULL = 2;
 // Why: the needle climbs one step a tick while `%temp` is 51-79 and three while it is over 80, and passing bit 25 resets the tally to zero. Coal at six or below therefore peaks at nine, two clear of the ceiling, and the four-tick gap is what stops two lumps landing inside one softtimer period and stacking the jump.
 const COAL_BELOW = 6;
 const COAL_GAP_TICKS = 4;
-/** Green zone for the progress check — heat needle bits 19 to 24. */
+/** Green zone for the progress check, heat needle bits 19 to 24. */
 const HEAT_MIN = 6;
 const HEAT_MAX = 11;
 
@@ -387,7 +387,7 @@ export async function distilNaphtha(log: (m: string) => void): Promise<boolean> 
         await Execution.delayTicks(1);
     }
     const finished = readStill().total >= STILL_TARGET;
-    // Why: `[if_close,regicide_still]` is what swaps the empty barrel for the naphtha — the tally alone hands over nothing, so the run is only finished once the interface has been shut.
+    // Why: `[if_close,regicide_still]` is what swaps the empty barrel for the naphtha, the tally alone hands over nothing, so the run is only finished once the interface has been shut.
     if (!(await closeStill())) {
         log('the still interface would not close');
         return false;
@@ -403,7 +403,7 @@ async function closeStill(): Promise<boolean> {
     if (await Modals.close()) {
         return true;
     }
-    // Why: the generic close is a CLOSE_BUTTON menu action, and this root's own shut is `com_89` — `[if_button,regicide_still:com_89] if_close`.
+    // Why: the generic close is a CLOSE_BUTTON menu action, and this root's own shut is `com_89`, `[if_button,regicide_still:com_89] if_close`.
     const close = stillButtonId('close');
     if (close !== -1) {
         actions.ifButton(close);

@@ -85,7 +85,7 @@ const STAGE_START: Record<number, { x: number; z: number; level: number }> = {
     9: { x: 2562, z: 9737, level: 0 }
 };
 
-// Why: a stage seeds only what that stage produced — the spade, buckets, rope and
+// Why: a stage seeds only what that stage produced, the spade, buckets, rope and
 // cure ingredients are tools, and handing one over hides whether the bot can find it.
 const HANDED_OVER: Record<number, string[]> = {
     20: ['turnip_book'],
@@ -125,7 +125,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph compiles into navworker.js, a separate entrypoint, deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {

@@ -8,7 +8,7 @@ import Tile from '../geometry/Tile.js';
  */
 export interface GatheringLocation {
     name: string;
-    /** Home pin — bank return / soft arrive disk centre. */
+    /** Home pin, bank return / soft arrive disk centre. */
     spot: Tile;
     bankStand: Tile;
     verified: boolean;

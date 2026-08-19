@@ -19,7 +19,7 @@ interface ReachLocOpts {
     op: string;
     near: WorldTile;
     within?: number;
-    // Why: display names collide — four ordinary crates answer "Search" within six tiles of Wydin's grocery crate, and the nearest is rarely the one the quest means.
+    // Why: display names collide, four ordinary crates answer "Search" within six tiles of Wydin's grocery crate, and the nearest is rarely the one the quest means.
 
     /** Exact loc id, when the display name is shared with something else in range. */
     id?: number;
@@ -138,7 +138,7 @@ async function reachThroughDoors(
 ): Promise<ReachStatus> {
     for (let i = 0; i < REACH_DOOR_ATTEMPTS; i++) {
         // Why: the server only says "I can't reach that!" once its own path search dead-ends, which a target that keeps moving can postpone forever.
-        // Why: for those, probing the scene is cheap — a wrong probe falls through to the click below and costs nothing.
+        // Why: for those, probing the scene is cheap, a wrong probe falls through to the click below and costs nothing.
         if (probeUnreachable && !expect()) {
             const blocked = targetTile();
             const here = reader.worldTile();
@@ -157,7 +157,7 @@ async function reachThroughDoors(
                 expectMs
             );
             if (expect()) { return 'done'; }
-            // Why: the script has answered, and the answer was no — re-sending the identical click cannot change a gate it is keyed on, so the caller decides rather than the cap.
+            // Why: the script has answered, and the answer was no, re-sending the identical click cannot change a gate it is keyed on, so the caller decides rather than the cap.
             if (refused !== undefined && GameMessages.sawSince(mark, refused)) {
                 log(`reach: '${what}' refused the op — not retrying`);
                 return 'retry';

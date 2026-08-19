@@ -4,7 +4,7 @@ import { Quests } from '../../../../ui/questlog/Quests.js';
 import type { QuestProgress } from '../../engine/types.js';
 import { DIG_NAME } from './areas.js';
 
-/** `%itexamlevel`, which the client never sees as a varp — these come off the rendered journal. */
+/** `%itexamlevel`, which the client never sees as a varp, these come off the rendered journal. */
 export const DIG_STAGE = {
     NOT_STARTED: 0,
     STAMPING: 1,
@@ -18,7 +18,7 @@ export const DIG_STAGE = {
     COMPLETE: 9
 } as const;
 
-// Why: the leading space is load-bearing — the purple student's "She gave me an answer" contains the green and orange students' "he gave me an answer", and without a word boundary one answered errand reads as two.
+// Why: the leading space is load-bearing, the purple student's "She gave me an answer" contains the green and orange students' "he gave me an answer", and without a word boundary one answered errand reads as two.
 
 /** Colour tags become a space, so no needle may span a tag boundary. */
 function normalize(lines: readonly string[] | string): string {

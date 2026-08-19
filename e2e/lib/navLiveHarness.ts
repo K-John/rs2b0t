@@ -5,7 +5,7 @@ import type { Page } from 'playwright-core';
 import { setSettings } from './harness.js';
 import { cheatQuiet } from '../tutorial/harness.js';
 
-// ── pacing (shared — do not invent tighter loops in callers) ────────────────
+// ── pacing (shared, do not invent tighter loops in callers) ────────────────
 
 /** Outer mid-walk poll period (done/tile/stuck). Default 2s. */
 export const DEFAULT_WALK_POLL_MS = 2000;
@@ -24,7 +24,7 @@ export const DEFAULT_STOP_POLL_MS = 500;
 
 /**
  * Outer walk poll ms from env: `WALK_POLL_MS` or `WALK_POLL_S` (seconds).
- * Floor 500ms — sub-second fleet polls are unnecessary for nav research.
+ * Floor 500ms, sub-second fleet polls are unnecessary for nav research.
  */
 export function walkPollMsFromEnv(fallback = DEFAULT_WALK_POLL_MS): number {
     const rawS = process.env.WALK_POLL_S;
@@ -145,7 +145,7 @@ export function teleCmd(t: NavTile): string {
  * This is placement seed, not a product spell/jewellery teleport.
  */
 async function teleArriveExact(page: Page, spot: NavTile, maxDist: number): Promise<void> {
-    // ~5 × ~3s max wait — not 6×16×150ms evaluate storms.
+    // ~5 × ~3s max wait, not 6×16×150ms evaluate storms.
     for (let a = 0; a < 5; a++) {
         await cheatQuiet(page, teleCmd(spot));
         for (let p = 0; p < 8; p++) {
@@ -232,7 +232,7 @@ export async function teleArrive(page: Page, spot: NavTile, maxDist = 12): Promi
     await teleArriveExact(page, stand, maxDist);
 }
 
-// ── energy / HP sustain (cheap polls — multi-suite MacBook friendly) ────────
+// ── energy / HP sustain (cheap polls, multi-suite MacBook friendly) ────────
 
 /** Client energy 0–100. Prefer Game.energy(). */
 export async function readRunEnergy(page: Page): Promise<number> {
@@ -313,7 +313,7 @@ export async function maybeRefillEnergy(page: Page, lowAt = 25): Promise<boolean
 
 /**
  * Mid-walk HP top-up when effective ≤ lowAt.
- * Uses setstat (engine cheat) — not invuln; combat can still land between ticks.
+ * Uses setstat (engine cheat), not invuln; combat can still land between ticks.
  */
 export async function maybeRestoreHp(page: Page, lowAt = 40, level = 99): Promise<boolean> {
     if (lowAt <= 0) {
@@ -578,7 +578,7 @@ export async function dropInvMatching(page: Page, match: RegExp): Promise<number
         };
         const rx = new RegExp(pattern, 'i');
         let n = 0;
-        // Snapshot names first — Drop mutates the list mid-iteration.
+        // Snapshot names first, Drop mutates the list mid-iteration.
         const names = g.__rs2b0t.Inventory.items()
             .map(it => it.name)
             .filter((name): name is string => name !== null && rx.test(name));
@@ -801,7 +801,7 @@ export async function ensureJewellery(
         if (j.uncharged && (await invHas(page, j.uncharged))) {
             await dropInvMatching(page, j.uncharged);
         }
-        // Pack may still be full of other uncharged jewellery — free those too.
+        // Pack may still be full of other uncharged jewellery, free those too.
         if (await invIsFull(page)) {
             await dropUnchargedJewellery(page);
         }
@@ -862,7 +862,7 @@ export function parsePathCostFromLogs(logs: readonly string[]): number | null {
 
 /**
  * True when a leg failure means the multi-leg suite is no longer valid research
- * (wedged runner, kit seed death, tele placement failure) — not a product OD fail.
+ * (wedged runner, kit seed death, tele placement failure), not a product OD fail.
  */
 export function isHarnessDeathDetail(detail: string): boolean {
     return (
@@ -886,7 +886,7 @@ export function stuckAbortFromEnv(): StuckAbortOpts | undefined {
     };
 }
 
-/** HARNESS_SUITE_ABORT default on — kill travel suite on harness death. */
+/** HARNESS_SUITE_ABORT default on, kill travel suite on harness death. */
 export function harnessSuiteAbortFromEnv(): boolean {
     return envDefaultOn('HARNESS_SUITE_ABORT');
 }
@@ -974,7 +974,7 @@ export async function ensureRunnerStopped(
             try {
                 runner.stop(stopReason);
             } catch {
-                /* already stopping / reason edge — next poll still waits */
+                /* already stopping / reason edge, next poll still waits */
             }
         }
     }, reason);

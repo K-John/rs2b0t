@@ -7,7 +7,7 @@ export const DEATH_PLATEAU_QUEST = 'Death Plateau';
 
 /**
  * Equip-room track mirrors `%death_equiproom` constants from the server.
- * Map track is journal flags — the client never sees the map bitfield.
+ * Map track is journal flags, the client never sees the map bitfield.
  */
 export const DP_STAGE = {
     NOT_STARTED: 0,
@@ -117,7 +117,7 @@ function readMapFlags(text: string): Set<string> {
         flags.add(DP_FLAG.SUPPLIES);
     }
     // "Dunstan made me the Spiked boots" appears both after supplies and when
-    // only the boots are done — given_cert is the stronger cert-hand-in signal.
+    // only the boots are done, given_cert is the stronger cert-hand-in signal.
     if (
         text.includes('given dunstan the certificate')
         || text.includes('i have given dunstan the certificate')

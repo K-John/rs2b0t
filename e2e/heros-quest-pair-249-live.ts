@@ -1,5 +1,5 @@
 /** Live Hero's Quest pair harness (#249): two accounts on opposite gangs, cooperating to a completion.
- *  Why: the master thief armband cannot be earned alone — `grip_attack` refuses everyone but a Phoenix
+ *  Why: the master thief armband cannot be earned alone, `grip_attack` refuses everyone but a Phoenix
  *  member, `pete_treasuredoor` and the candlestick chest answer only to a Black Arm member with Grip's
  *  papers given, and `open_and_close_door` teleports the actor rather than opening, so the Phoenix bot
  *  crosses the side door only on the spare key its rival trades over.
@@ -73,7 +73,7 @@ function fail(msg: string): never {
 const QUEST = "Hero's Quest";
 const VARROCK_WEST_BANK = { x: 3185, z: 3440, level: 0 };
 // Why: the walk-and-shop half of this quest takes ten minutes a side and is proven on its own, so
-// `--stage grip` starts at the stage the two-bot dance begins with the kit already banked — the
+// `--stage grip` starts at the stage the two-bot dance begins with the kit already banked, the
 // crossing to Brimhaven is still walked.
 const GRIP_STAGE: Record<'phoenix' | 'blackarm', number> = { phoenix: 4, blackarm: 11 };
 const GRIP_SEED: Record<'phoenix' | 'blackarm', BankSeedItem[]> = {
@@ -86,7 +86,7 @@ const GRIP_SEED: Record<'phoenix' | 'blackarm', BankSeedItem[]> = {
     blackarm: []
 };
 
-// Why: coins and food only — every other quest item has a source the module walks to.
+// Why: coins and food only, every other quest item has a source the module walks to.
 // Why: the ice gloves are the one exception, and they are seeded because the Ice Queen's lair has no
 // entrance on this content: all eight ladders down sit on a plateau (x 2800-2861, z 3500-3521) whose
 // every boundary tile carries the map's BLOCK_MAP_SQUARE flag, and the three ladders back up are
@@ -104,7 +104,7 @@ const STATS = [
 ];
 
 // Why: the four prerequisites are another six hours of running quests that are not the one under test,
-// so they are set rather than earned — at the values `quest.constant` calls complete, because
+// so they are set rather than earned, at the values `quest.constant` calls complete, because
 // `~send_quest_progress` colours the list green only on `current >= complete`.
 const PREREQS: [string, number][] = [
     ['zanaris', 6],
@@ -126,11 +126,11 @@ async function setPrereqs(page: Page, gang: 'phoenix' | 'blackarm'): Promise<voi
         await cheatQuiet(page, `setvar ${name} ${value}`);
     }
     // Why: `has_hero_quest_requirements` accepts either gang complete, and every later branch reads
-    // the one that is — a bot with both set would be offered both sides of the quest.
+    // the one that is, a bot with both set would be offered both sides of the quest.
     await cheatQuiet(page, `setvar phoenixgang ${gang === 'phoenix' ? 10 : 0}`);
     await cheatQuiet(page, `setvar blackarmgang ${gang === 'blackarm' ? 4 : 0}`);
     // Why: the quest list is coloured by `~send_quest_progress` at login, and `readHeroQuestProgress`
-    // reads that colour first — a stage set after the relog leaves the journal reading notStarted.
+    // reads that colour first. A stage set after the relog leaves the journal reading notStarted.
     if (args.stage === 'grip') {
         await cheatQuiet(page, `setvar heroquest ${GRIP_STAGE[gang]}`);
     }
@@ -188,7 +188,7 @@ async function bringUp(page: Page, user: string, gang: 'phoenix' | 'blackarm', p
     const seed = args.stage === 'grip' ? [...BANK_SEED, ...GRIP_SEED[gang]] : BANK_SEED;
     await seedItemsToBank(page, seed, VARROCK_WEST_BANK);
     // Why: every stage starts at a booth, because `ownsInventory` makes the first step a bank read and
-    // Karamja has none — a bot dropped in Brimhaven waits out its budget on a booth that is not there.
+    // Karamja has none, a bot dropped in Brimhaven waits out its budget on a booth that is not there.
     if (!(await teleTo(page, VARROCK_WEST_BANK, 10, 25_000))) {
         await clearChatDialogs(page, 'pre-tele dialog(s)');
         if (!(await teleTo(page, VARROCK_WEST_BANK, 10, 25_000))) {

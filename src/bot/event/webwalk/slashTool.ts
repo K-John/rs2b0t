@@ -55,7 +55,7 @@ export function isSlashWebTransport(locName: string | undefined, action: string 
 
 /**
  * Server chat from general_use/scripts/web.rs2 `cut_web` / slash guards.
- * Live execute must key off these — random(2) fails need immediate retry.
+ * Live execute must key off these, random(2) fails need immediate retry.
  */
 export const WEB_SLASH_SUCCESS = /you slash the web apart/i;
 export const WEB_SLASH_FAIL = /you fail to cut through it/i;

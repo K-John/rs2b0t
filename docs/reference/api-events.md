@@ -5,7 +5,7 @@
 ## Events
 
 Subscribe with `this.on(...)` inside a bot (auto-removed on stop/crash) or the
-standalone `events.on(...)`. Callbacks fire mid-frame — set flags, do work in
+standalone `events.on(...)`. Callbacks fire mid-frame, set flags, do work in
 `loop()`.
 
 ```ts

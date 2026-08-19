@@ -82,7 +82,7 @@ describe('Tools kit', () => {
 
     test('toolRestockPlan withdraws better bank tier when worse is held', () => {
         const reqs = [axeReq(true), tinderboxReq()];
-        // Bronze equipped/held, steel + tinderbox in bank — must pull steel (and tinderbox if missing).
+        // Bronze equipped/held, steel + tinderbox in bank, must pull steel (and tinderbox if missing).
         const inv = (n: string) => (n === 'Bronze axe' ? 1 : 0);
         const plan = toolRestockPlan(reqs, lvl, inv, bank(['Steel axe', 'Bronze axe', TINDERBOX]));
         expect(plan.map(p => p.name)).toEqual(['Steel axe', TINDERBOX]);

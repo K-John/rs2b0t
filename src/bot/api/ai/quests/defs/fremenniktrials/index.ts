@@ -35,7 +35,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === FT_STAGE.NOT_STARTED) {
         return { kind: 'talk', stop: BRUNDT(['Do you have any quests?', 'Yes, I am interested.', 'I want to become a Fremennik!']) };
     }
-    // Why: the seventh vote is awarded by the honourable death, which leaves the character on a loft the walker has no edge off — Brundt is unreachable until that ladder is climbed.
+    // Why: the seventh vote is awarded by the honourable death, which leaves the character on a loft the walker has no edge off. Brundt is unreachable until that ladder is climbed.
     const loft = leaveLoftStep(snap);
     if (loft) {
         return loft;
@@ -44,7 +44,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         return { kind: 'talk', stop: BRUNDT(['Ask about becoming a Fremennik']) };
     }
 
-    // Why: this is the order the map wants — the longhall trials first, then the two east of town, then the maze, then the trade chain.
+    // Why: this is the order the map wants, the longhall trials first, then the two east of town, then the maze, then the trade chain.
     // Why: the seer and the warrior come last because both are walked with an empty pack, and Peer's spell is what empties it.
     const trial = revellerStep(snap)
         ?? bardStep(snap)

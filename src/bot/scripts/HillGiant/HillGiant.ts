@@ -27,7 +27,7 @@ import { LOADOUT_SETTING } from '../../api/loadout/loadoutSetting.js';
 
 const TARGET = 'Giant';
 
-// Why: the nav graph uses the Brass-key hut ladder + keyed door when the key is held, and the public trapdoor otherwise — no hard-coded route.
+// Why: the nav graph uses the Brass-key hut ladder + keyed door when the key is held, and the public trapdoor otherwise, no hard-coded route.
 const WEST_BANK = new Tile(3185, 3440, 0);
 const PIT_RADIUS = 14;
 
@@ -267,7 +267,7 @@ class Eat implements Task {
     }
 }
 
-/** Keeps the chosen weapon wielded — on the first trip and after a death. */
+/** Keeps the chosen weapon wielded, on the first trip and after a death. */
 class GearEquip implements Task {
     private fails = 0;
     constructor(private bot: HillGiant) {}
@@ -289,7 +289,7 @@ class GearEquip implements Task {
 }
 
 /**
- * com_mode is not persisted — re-assert the chosen melee style (Accurate/Aggressive/
+ * com_mode is not persisted, re-assert the chosen melee style (Accurate/Aggressive/
  * Controlled/Defensive) whenever the varp disagrees. Style clicks are legal mid-fight.
  */
 class SetAttackStyle implements Task {
@@ -441,7 +441,7 @@ class LootCorpse implements Task {
 }
 
 class Fight implements Task {
-    /** Engaged giant index — held across Eat/Loot yields so the kill is counted on despawn (#479). */
+    /** Engaged giant index, held across Eat/Loot yields so the kill is counted on despawn (#479). */
     private targetIdx: number | null = null;
 
     constructor(private bot: HillGiant) {}
@@ -485,7 +485,7 @@ class Fight implements Task {
             if (!(await giant.interact('Attack'))) {
                 return;
             }
-            // Arm tracking only after the click lands — never countKill here (#479).
+            // Arm tracking only after the click lands, never countKill here (#479).
             this.targetIdx = giant.index;
             await Execution.delayUntil(
                 () => Game.inCombat()
@@ -514,7 +514,7 @@ class Fight implements Task {
                 await Execution.delayTicks(2);
                 return;
             }
-            // Yield for food — keep targetIdx so the next Fight pass still counts the despawn.
+            // Yield for food, keep targetIdx so the next Fight pass still counts the despawn.
             if (this.bot.needEat()) {
                 return;
             }

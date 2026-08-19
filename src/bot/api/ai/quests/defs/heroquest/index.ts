@@ -61,10 +61,10 @@ export function inSealedPocket(snap: QuestSnapshot): boolean {
 }
 
 // Why: a bank, a shop or a booth is a walk the navigator plans, and from inside a sealed pocket every
-// such plan reads `unreachable` — the custom legs cross their own doors, these steps cannot.
+// such plan reads `unreachable`, the custom legs cross their own doors, these steps cannot.
 const NEEDS_STREET = new Set(['buy', 'withdraw', 'deposit', 'scanBank', 'mineRock']);
 
-// Why: `no path to (2793,3180,0): unreachable without 30x Coins` — the Ardougne ferry is 30 coins and
+// Why: `no path to (2793,3180,0): unreachable without 30x Coins`, the Ardougne ferry is 30 coins and
 // the legs between purchases carry none, so the quest holds a float at a low-water mark.
 const LOW_COINS = 200;
 const COIN_TOP_UP = 10_000;
@@ -80,7 +80,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === undefined) {
         return { kind: 'wait', reason: 'quest stage not readable' };
     }
-    // Why: `ownsInventory` skips the engine's provisioning, so nothing else ever opens a booth — and an
+    // Why: `ownsInventory` skips the engine's provisioning, so nothing else ever opens a booth, and an
     // armband or a feather banked by an earlier run stays invisible until one read happens.
     if (!snap.bankKnown) {
         return egress(snap, { kind: 'scanBank' });
@@ -100,7 +100,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     }
 
     const gang = heroGang();
-    // Why: the trades outrank the gang legs — the rival is standing at the rendezvous waiting, and every
+    // Why: the trades outrank the gang legs. The rival is standing at the rendezvous waiting, and every
     // other leg on this side of the quest is blocked until the key or the candlestick has moved.
     const handoff = decideHeroHandoff({
         gang,
@@ -138,7 +138,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 }
 
 // Why: a restart taken mid-leg can leave a bot standing in either Taverley pocket, and both of those
-// doors open from the inside without a key — the way out is never the way in.
+// doors open from the inside without a key, the way out is never the way in.
 function egress(snap: QuestSnapshot, step: QuestStep): QuestStep {
     if (!NEEDS_STREET.has(step.kind)) {
         return step;
@@ -174,7 +174,7 @@ export const heroquest: QuestModule = {
     sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.5 },
     readProgress: readHeroQuestProgress,
     // Why: Grip refuses a Black Arm attacker and only a Phoenix bot can shoot him, while the treasure
-    // door and the chest answer only to the Black Arm bot — neither half finishes alone.
+    // door and the chest answer only to the Black Arm bot, neither half finishes alone.
     warnReadiness: () => partnerConfigured()
         ? null
         : "Hero's Quest needs a rival-gang partner — the armband cannot be earned alone",

@@ -2,7 +2,7 @@ import { beforeEach, expect, test } from 'bun:test';
 import { Paint } from '#/bot/paint/Paint.js';
 import { paintState } from '#/bot/paint/paintLogic.js';
 
-// stub 2d context — the paint only measures text and fills rects
+// stub 2d context, the paint only measures text and fills rects
 function stubCtx(): CanvasRenderingContext2D {
     return {
         font: '',
@@ -24,7 +24,7 @@ beforeEach(() => {
     paintState.publishRegions = (r): void => { regions = r.map(x => ({ id: x.id, x: x.x, y: x.y, w: x.w, h: x.h })); publish(r); };
 });
 
-// mirrors NatureCrafter.onPaint's runner branch — the live gobank probe clicks this rect
+// mirrors NatureCrafter.onPaint's runner branch, the live gobank probe clicks this rect
 function runnerPaint(): void {
     const p = Paint.begin(stubCtx(), { dock: 'chatbox', accent: '#a0e6c8' });
     p.title('NatureCrafter — runner — delivering');

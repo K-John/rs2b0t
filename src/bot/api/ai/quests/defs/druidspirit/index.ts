@@ -45,7 +45,7 @@ function ritual(snap: QuestSnapshot): QuestStep {
     return custom('solve the ritual', solvePuzzle);
 }
 
-/** Bloom, fill, hunt — the loop the last four stages share. */
+/** Bloom, fill, hunt, the loop the last four stages share. */
 function ghastLoop(snap: QuestSnapshot): QuestStep {
     if (heldId(snap, NS_ID.SICKLE_BLESSED) === 0) {
         return heldId(snap, NS_ID.SICKLE) > 0
@@ -98,7 +98,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return outside(snap, custom('offer to help', askToHelp));
         case NS_STAGE.RECEIVED_SPELL:
             return outside(snap, { kind: 'talk', stop: DREZEL });
-        // Why: a held fungus is unambiguous evidence the pick landed, and the journal read trails it by a tick — branching on the page alone sent the bot back to Filliman for a scroll it no longer needed.
+        // Why: a held fungus is unambiguous evidence the pick landed, and the journal read trails it by a tick, branching on the page alone sent the bot back to Filliman for a scroll it no longer needed.
         case NS_STAGE.BLESSED:
         case NS_STAGE.CASTED_SPELL:
         case NS_STAGE.PICKED_FUNGI:

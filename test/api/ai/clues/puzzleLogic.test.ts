@@ -92,7 +92,7 @@ describe('solvePuzzle', () => {
     });
 
     // The engine shuffles by 101 legal moves from solved, so every board the
-    // bot can be handed is solvable — the solver must never give up on one.
+    // bot can be handed is solvable. The solver must never give up on one.
     test('solves 10,000 engine-style shuffles', () => {
         const rand = mulberry32(20260802);
         let worst = 0;

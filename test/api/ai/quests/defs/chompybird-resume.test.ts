@@ -7,7 +7,7 @@ import { decide } from '#/bot/api/ai/quests/defs/chompybird/index.js';
 import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
 // Why: the quest is killed and restarted from any point, so every reachable (stage, pack) pair has to
-// name a next move rather than a wait — a wait with nothing to resolve it parks the queue after fifteen ticks.
+// name a next move rather than a wait, a wait with nothing to resolve it parks the queue after fifteen ticks.
 
 const STAGES = [
     CB_STAGE.NOT_STARTED, CB_STAGE.STARTED, CB_STAGE.GIVEN_ARROWS, CB_STAGE.KIDS_PLAY_WITH_TOAD,

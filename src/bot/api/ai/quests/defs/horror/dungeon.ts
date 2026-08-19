@@ -32,7 +32,7 @@ function ladderAt(where: Tile) {
 }
 
 // Why: the load is one of each elemental rune, a stab or slash weapon and an arrow, all consumed.
-// Why: only the south face has slots — from the north the wall answers "You cannot see anything unusual about the wall from this side."
+// Why: only the south face has slots, from the north the wall answers "You cannot see anything unusual about the wall from this side."
 
 /** Load the strange wall; returns the slots it could not fill. */
 async function loadWall(log: (m: string) => void): Promise<string[] | null> {
@@ -51,7 +51,7 @@ async function loadWall(log: (m: string) => void): Promise<string[] | null> {
         const held = Inventory.first(slot.item);
         if (!held) {
             // Why: every slot consumes its item, so an item that is gone is almost always one already in the wall.
-            // Why: treating that as fatal wedges the quest — the dagger is spent, the pass stops at its slot, and the arrow behind it is never placed, so it is noted and the door judges.
+            // Why: treating that as fatal wedges the quest. The dagger is spent, the pass stops at its slot, and the arrow behind it is never placed, so it is noted and the door judges.
             missing.push(slot.item);
             continue;
         }

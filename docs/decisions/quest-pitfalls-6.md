@@ -7,11 +7,11 @@ Seven, and the first three are dialogue and NPC-lifetime facts rather than quest
 - **A topic that re-offers its own list loops until the driver gives up.** Every branch
   of Filliman's tree ends by re-printing the same four or five options, so a prefer list
   naming one picks it again on every pass and the conversation only ends when
-  `driveDialog` hits its iteration cap — 54 seconds a talk, five talks a quest. The fix
+  `driveDialog` hits its iteration cap, 54 seconds a talk, five talks a quest. The fix
   is a driver that takes the topic **once** and the goodbye from then on.
 - **An NPC that exists because you summoned it is gone a minute later.** Filliman is
   `npc_add`ed with a 100-tick life by `Enter` on the grotto door, so a step that merely
-  reads the scene fails on every pass once he despawns — and a failing step feeds no
+  reads the scene fails on every pass once he despawns, and a failing step feeds no
   watchdog, so the quest never parks. The summon also stands two tiles off the faith
   stone the ritual is judged on, so the order is summon, stand, then talk. Anything
   conjured by an op is re-conjured by that op, never waited for.

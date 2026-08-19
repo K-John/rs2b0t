@@ -89,8 +89,8 @@ const TEMPLE = { x: 3506, z: 3313, level: 0 };
 const PYRES = { x: 3506, z: 3276, level: 0 };
 
 /**
- * Coins and food only. Every other item the quest needs — the diary, the herbs,
- * the vials, the logs, the tinderbox and every building material — has a source
+ * Coins and food only. Every other item the quest needs, the diary, the herbs,
+ * the vials, the logs, the tinderbox and every building material, has a source
  * in the world, and banking one would hide whether the bot can find it.
  */
 const BANK_SEED: BankSeedItem[] = [
@@ -240,7 +240,7 @@ try {
     }
     console.log('prerequisites: The Restless Ghost + Priest in Peril + Nature Spirit set complete');
 
-    // Why: `~addxp` takes plain xp — it multiplies by ten to reach the engine's internal tenths — and the level-up cascade leaves the player delayed, so the levels go in before the relog rather than before a typed command that would be swallowed.
+    // Why: `~addxp` takes plain xp, it multiplies by ten to reach the engine's internal tenths, and the level-up cascade leaves the player delayed, so the levels go in before the relog rather than before a typed command that would be swallowed.
     const xp = xpFor(args.levels) + 100;
     for (const skill of SKILLS) {
         await cheatQuiet(page, `~addxp ${skill} ${xp}`, 250);

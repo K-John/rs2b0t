@@ -14,7 +14,7 @@ Requires repositories not published alongside this one.
   code 6 unless `LOCAL_RSAE` and `LOCAL_RSAN` are supplied to `deploy-local.sh`.
 - Cheats/debugprocs (staffModLevel 4 locally): `::tele 0,mx,mz,lx,lz`, `::~maxme`,
   `::~item <objname> <count>`, `::~bankitem`, `::~spawnloc <locname>`. `::~maxme`'s
-  level-up dialogs swallow the next typed command — do cheats on the clean post-relogin
+  level-up dialogs swallow the next typed command, do cheats on the clean post-relogin
   state, or clear dialogs first.
 - Local player saves: harnesses leave `*.sav` under the engine `data/players/main/`.
   Wipe harness junk with `bash tools/cleanup-test-accounts.sh` (dry-run default;
@@ -34,7 +34,7 @@ The single-instance client is served same-origin from the engine at
    (the wall), `bot.html`, and `bot/` assets. Because every page loads assets relatively
    (`./bot/…`), the subtree works under `/rs2b0t/` with no path rewrites. `bot.html` is
    staged under its own name as well as `index.html` because `DomSlotOps` resolves each
-   wall slot to `bot.html` relative to `baseURI` — without it the single client looks
+   wall slot to `bot.html` relative to `baseURI`, without it the single client looks
    healthy while every slot 404s.
 2. `~/code/rs2b2t` `ops/scripts/build.sh` derives the prod login modulus from the SSM key
    (authoritative; ADR-0016), runs `pack-rs2b0t.sh` with it, and guards that every page and
@@ -68,16 +68,16 @@ Override when the build tree has no `.git`: `RS2B0T_GIT_COMMIT=<sha>`
 (or `GITHUB_SHA`). Mark dirty with `RS2B0T_GIT_DIRTY=1`.
 
 Note: `botclient.js?v=…` is still a **content hash** of the file (cache-bust),
-not the git SHA — use `version.json` or the Build row for the commit.
+not the git SHA, use `version.json` or the Build row for the commit.
 
 Verify locally without touching prod: run `pack-rs2b0t.sh` with the **local** modulus
 against the local engine, then `bun e2e/hosted-proof-test.ts` (single client) and
-`bun e2e/hosted-wall-test.ts` (the wall — two accounts ingame, slot iframes resolving
+`bun e2e/hosted-wall-test.ts` (the wall, two accounts ingame, slot iframes resolving
 under `/rs2b0t/`, resource card honest). Neither uses a proxy. The `/rs2b0t/wall` rewrite
-itself is not reproducible locally — there is no Caddy — so it is a post-deploy check.
+itself is not reproducible locally. There is no Caddy, so it is a post-deploy check.
 
 The hosted wall runs every bot in one tab, so all of them hold full speed while that tab
-is visible — a strict improvement on one tab per account, where every tab but the front
+is visible, a strict improvement on one tab per account, where every tab but the front
 one is starved. It does **not** survive being backgrounded: the game loop is
 `setTimeout`-driven and Chrome clamps hidden tabs to 1/sec, so minimising the wall starves
 all of it. For unattended running use `bun run b0t`, whose Electron shell disables

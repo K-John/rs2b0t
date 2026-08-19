@@ -12,7 +12,7 @@ export interface HerbDef {
     name: string;
     /** Cleaned herb id. */
     id: number;
-    /** Unidentified (grimy) form — what sits in the inventory. */
+    /** Unidentified (grimy) form, what sits in the inventory. */
     unidId: number;
     /** Herblore level required to identify it. */
     level: number;

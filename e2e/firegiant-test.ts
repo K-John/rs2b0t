@@ -1,5 +1,5 @@
 // Live smoke for FireGiant: [base] [user] [budget-min] [style]. PASS on reaching the dungeon (z > 9000) and landing a kill.
-// Why: `~completequests` opens two blocking p_choice2 dialogs and completes nothing; varp 65 never reaches the client so the setvar needs a relog; `~item`/`~bankitem` guard on p_finduid and return silently while busy, and `~maxme` locks the player through a flood of level-ups — seed first, max last, verify.
+// Why: `~completequests` opens two blocking p_choice2 dialogs and completes nothing; varp 65 never reaches the client so the setvar needs a relog; `~item`/`~bankitem` guard on p_finduid and return silently while busy, and `~maxme` locks the player through a flood of level-ups, seed first, max last, verify.
 
 // Usage: bun e2e/firegiant-test.ts [base] [user] [budget-min] [style]
 
@@ -47,7 +47,7 @@ try {
     if (qs === 'notStarted') { fail('quest journal still reports notStarted after setvar + relog'); }
     console.log(`waterfall quest seeded (server=10, journal=${qs})`);
 
-    // Why: a pre-relog seed is rolled back, and ~item/~bankitem return silently while ~maxme's 23 stat_advance calls keep the player busy — seed everything first, max last.
+    // Why: a pre-relog seed is rolled back, and ~item/~bankitem return silently while ~maxme's 23 stat_advance calls keep the player busy, seed everything first, max last.
     const held = (n: string) => page.evaluate(x => (globalThis as never as R).__rs2b0t.Inventory.count(x), n);
 
     // Stackables go to the inventory, where the count is readable and the seed can be retried until it sticks.
@@ -93,7 +93,7 @@ try {
     console.log(`started FireGiant (${style}) — watching for the dungeon and a kill`);
 
     // the runner binds a log sink, so bot logs land in ctx.log and never reach
-    // the console — poll them or the smoke is blind to every failure
+    // the console, poll them or the smoke is blind to every failure
     const snap = () => page.evaluate(() => {
         const g = globalThis as never as R;
         return {

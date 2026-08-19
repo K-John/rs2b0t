@@ -1,6 +1,6 @@
-// Why: A* prunes an item-gated crossing when the player cannot pay for it, so the region behind it stops existing and the verdict is a bare "unreachable" — the same word a nav-data island produces.
+// Why: A* prunes an item-gated crossing when the player cannot pay for it, so the region behind it stops existing and the verdict is a bare "unreachable", the same word a nav-data island produces.
 // Why: the Kharidian desert has one baked entrance, the Shantay pass, so a bot with no pass reads as though the desert were not in the pack at all.
-// Why: re-probing with every gate item virtualized separates the two — if the route appears, the blocker is a shopping list rather than the graph.
+// Why: re-probing with every gate item virtualized separates the two, if the route appears, the blocker is a shopping list rather than the graph.
 
 import { missingItemsForPath, type MissingItem } from './bankPlan.js';
 import { SPECIAL_CROSSINGS } from './data/specialCrossings.js';

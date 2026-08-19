@@ -11,7 +11,7 @@ export const THIEVER_BANKING_OPTIONS = ['None', 'Auto'];
 
 /**
  * Combat ticks a failed pickpocket stun locks movement for (Ardy / Thiever).
- * Engine stun is 9 ticks — wait the full lock so the next click can path.
+ * Engine stun is 9 ticks, wait the full lock so the next click can path.
  */
 export const STUN_COMBAT_TICKS = 9;
 

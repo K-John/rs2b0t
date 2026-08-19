@@ -1,7 +1,7 @@
 import type { WorldTile } from '../../adapter/ClientAdapter.js';
 import Tile from '../../geometry/Tile.js';
 
-/** Course geometry — known-good wilderness agility course layout. */
+/** Course geometry, known-good wilderness agility course layout. */
 export const COURSE_OBSTACLES = ['obstacle pipe', 'ropeswing', 'stepping stone', 'log balance', 'rocks'] as const;
 export const COURSE_CENTRE = new Tile(2998, 3945, 0);
 /**
@@ -15,7 +15,7 @@ export const RIDGE_DOOR = new Tile(2998, 3917, 0);
  */
 export const RIDGE_APPROACH = new Tile(2998, 3916, 0);
 
-// Why: course membership is gate-based — same plane, strictly north of the Gate (z > 3931), within COURSE_X_RADIUS — not a Chebyshev blob.
+// Why: course membership is gate-based: same plane, strictly north of the Gate (z > 3931), within COURSE_X_RADIUS, rather than a Chebyshev blob.
 // Why: that keeps the wolf pit and ridge approach out, and pit-ladder exits in.
 // Why: a tight COURSE_RADIUS of 16 reads ladder exits as "away" and pathfinds out through the Gate or Door.
 
@@ -51,15 +51,15 @@ export const WRONG_SIDE = /^(?:you cannot do that from here|you can't? enter the
 
 /**
  * Immediate fail lines for course obstacles. Stepping-stone lava is included but
- * does not change scenes — it only knocks the player back.
+ * does not change scenes, it only knocks the player back.
  */
 export const PIT_FALL =
     /(?:you slip and fall into the pit below|you lose your footing and fall into the lava|you slip and fall onto the spikes below)/i;
 
-/** Ridge entry success — server: "You skillfully balance across the ridge..." */
+/** Ridge entry success, server: "You skillfully balance across the ridge..." */
 export const RIDGE_SUCCESS = /you skillfully balance across the ridge/i;
 
-/** Ridge entry failure — server: "You lose your footing and fall into the wolf pit." */
+/** Ridge entry failure, server: "You lose your footing and fall into the wolf pit." */
 export const RIDGE_FAIL = /you lose your footing and fall into the wolf pit/i;
 
 export type RidgeOutcome = 'success' | 'fail' | 'interrupted' | 'timeout';
@@ -157,7 +157,7 @@ export function onCourse(here: WorldTile, gate: WorldTile = GATE_TILE, xRadius: 
 }
 
 /**
- * Ridge approach through the Gate corridor — south of / on the Gate, near the path.
+ * Ridge approach through the Gate corridor, south of / on the Gate, near the path.
  * TravelToCourse must not yank the player out of this zone; EnterCourse owns it.
  */
 export function nearCourseEntry(
@@ -185,7 +185,7 @@ export function awayFromCourse(here: WorldTile): boolean {
 
 /**
  * Obstacle pit (ropeswing / log balance / pipe): server teleports the player to a
- * high world-z scene. Ridge wolf-pit fails stay in the same scene — do NOT use this.
+ * high world-z scene. Ridge wolf-pit fails stay in the same scene, do NOT use this.
  */
 export function inPit(here: WorldTile, courseCentre: WorldTile, zGap: number = PIT_Z_GAP): boolean {
     return here.level === courseCentre.level && here.z - courseCentre.z > zGap;

@@ -256,7 +256,7 @@ function sourceCombatFood(snap: QuestSnapshot): QuestStep | null {
 }
 
 /**
- * Top up toward `target` HP fraction before a fight. Keep this well below 1.0 —
+ * Top up toward `target` HP fraction before a fight. Keep this well below 1.0,
  * the old 0.9 target burned food for tiny heal scraps (#393).
  */
 async function restoreWithSelectedFood(target: number): Promise<void> {
@@ -292,7 +292,7 @@ async function waitOutCombat(timeoutMs: number, opts?: { protectMelee?: boolean 
     }
     const deadline = performance.now() + timeoutMs;
     while (Game.inCombat() && performance.now() < deadline) {
-        // Sustain respects AIO eatBelowHp (Lost City policy is 50% — not 90%).
+        // Sustain respects AIO eatBelowHp (Lost City policy is 50%, not 90%).
         await Sustain.run();
         if (opts?.protectMelee) {
             await sipPrayerIfNeeded();
@@ -454,7 +454,7 @@ async function defeatTreeSpirit(log: (m: string) => void): Promise<boolean> {
     if (!(await Execution.delayUntil(() => Game.inCombat() || !spirit!.valid(), 5000))) {
         return false;
     }
-    // Melee crush spirit — Protect from Melee + optional prayer pots when prayer ≥ 43.
+    // Melee crush spirit, Protect from Melee + optional prayer pots when prayer ≥ 43.
     await waitOutCombat(180_000, { protectMelee: true });
     // The next journal read verifies that this player, rather than another attacker, got credit.
     return true;

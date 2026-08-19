@@ -62,7 +62,7 @@ export const ChatDialog = {
 
     /**
      * Pick Make-1 for the product whose name contains `match` (or the first).
-     * Used by knife-delay tick manip — never Make-X / count dialog.
+     * Used by knife-delay tick manip, never Make-X / count dialog.
      */
     async makeOne(match?: string): Promise<boolean> {
         const products = reader.makeProducts();

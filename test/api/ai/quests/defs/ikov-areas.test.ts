@@ -73,7 +73,7 @@ describe('Temple of Ikov regions', () => {
         expect(inIceCavern(IKOV_TILE.SOUTH_GATE_SOUTH)).toBe(true);
     });
 
-    // Why: `inIceCavern` is the half-plane south and east of the temple, and the boots room sits inside it — a leg that treats "in the cavern" as "past the gate" reads the dark room as an unlocked gate.
+    // Why: `inIceCavern` is the half-plane south and east of the temple, and the boots room sits inside it, a leg that treats "in the cavern" as "past the gate" reads the dark room as an unlocked gate.
     test('the boots room is inside the ice cavern half-plane', () => {
         expect(inIceCavern(IKOV_TILE.BOOTS_SPAWN)).toBe(true);
         expect(inDarkRoom(IKOV_TILE.BOOTS_SPAWN)).toBe(true);

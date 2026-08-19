@@ -182,7 +182,7 @@ function report(now: Run, before: Run | null): string {
 const level = (arg('level') as Level | undefined) ?? 'quick';
 const only = (arg('only') ?? '').split(',').map(s => s.trim()).filter(Boolean);
 const engine = arg('engine');
-// Why: every harness is a headless browser against one world, so the ceiling is memory and world contention rather than cores — one at a time stays the default and the number is the caller's to raise.
+// Why: every harness is a headless browser against one world, so the ceiling is memory and world contention rather than cores, one at a time stays the default and the number is the caller's to raise.
 const jobs = Math.max(1, Number(arg('jobs') ?? 1) || 1);
 
 // Why: --list answers "what would run" without an engine, a deploy or a browser.
@@ -228,7 +228,7 @@ if (!has('gates-only')) {
             const { cases, why } = pick(level, only);
             console.log(`${cases.length} case(s) — ${why}${jobs > 1 ? `, ${jobs} at a time` : ''}`);
 
-            // Why: the deploy above is the one every harness shares, and each passes `--no-deploy`, so nothing rewrites `public/bot` underneath a run in flight — which is what made a pool safe to add.
+            // Why: the deploy above is the one every harness shares, and each passes `--no-deploy`, so nothing rewrites `public/bot` underneath a run in flight, which is what made a pool safe to add.
             // Why: each harness makes its own account, so the only thing they contend for is the world itself.
             let next = 0;
             let done = 0;
@@ -255,7 +255,7 @@ if (!has('gates-only')) {
     }
 }
 
-// Why: a pool finishes in whatever order the harnesses happen to end, so the report is put back into manifest order — the file is diffed between runs and a shuffled one reads as change that is not there.
+// Why: a pool finishes in whatever order the harnesses happen to end, so the report is put back into manifest order. The file is diffed between runs and a shuffled one reads as change that is not there.
 const ORDER = new Map(CASES.map((c, i) => [c.id, i]));
 now.results.sort((a, b) => {
     if (a.kind !== b.kind) {

@@ -11,7 +11,7 @@ import { cheatQuiet, getServerVarQuiet, mainlandAccount, relog } from './tutoria
 
 const args = process.argv.slice(2);
 const expectWizards = args.includes('--expect-wizards');
-// Why: the runner appends `--no-deploy` to every harness, and a filter that only knows `--expect-wizards` took it for the base URL — "cannot be parsed as a URL" the moment the suite ran end to end. `positionalArgs` drops every flag and honours `--base`.
+// Why: the runner appends `--no-deploy` to every harness, and a filter that only knows `--expect-wizards` took it for the base URL, "cannot be parsed as a URL" the moment the suite ran end to end. `positionalArgs` drops every flag and honours `--base`.
 const positional = positionalArgs(args, 'http://127.0.0.1:8990');
 const base = positional[0];
 const budgetMinutes = positional[1] === undefined ? 6 : Number(positional[1]);

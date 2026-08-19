@@ -31,7 +31,7 @@ export const MURDER_TILE = {
     GUARD: new Tile(2741, 3562, 0),
     /** North of the smashed window, beside the dagger on the study floor. */
     STUDY: new Tile(2747, 3578, 0),
-    /** South of the kitchen's north wall — z 3583 is the far side of it. */
+    /** South of the kitchen's north wall, z 3583 is the far side of it. */
     FLOUR_BARREL: new Tile(2735, 3581, 0),
     SACKS: new Tile(2732, 3581, 0),
     SALESMAN: new Tile(2737, 3491, 0),

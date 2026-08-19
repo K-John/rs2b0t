@@ -51,7 +51,7 @@ function teleportRunes(snap: QuestSnapshot): QuestStep | null {
     return Traversal.teleportsEnabled() ? runeKit(snap) : null;
 }
 
-// Why: every step banks before it shops, as the ordinary account already owns most of this — a hammer and eight steel nails are not exotic — and the detour collapses to nothing when they are in the bank.
+// Why: every step banks before it shops, as the ordinary account already owns most of this, a hammer and eight steel nails are not exotic, and the detour collapses to nothing when they are in the bank.
 // Why: hammer, nails and runes are three Varrock errands, and the planks are ground spawns at the Barbarian Outpost, which is the last stop before the lighthouse.
 
 /** Everything the bridge repair consumes, in the order the map wants it. */
@@ -81,13 +81,13 @@ function beforeTheDoor(snap: QuestSnapshot): QuestStep {
     if (!hasFlag(snap.progress, HD_FLAG.BRIDGE)) {
         return bridgeKit(snap) ?? custom('repair the bridge', repairBridge);
     }
-    // Why: a resume that starts past the bridge never enters `bridgeKit`, and would otherwise walk the ten-bar tour — the one leg hops pay for — with an empty pouch.
+    // Why: a resume that starts past the bridge never enters `bridgeKit`, and would otherwise walk the ten-bar tour, the one leg hops pay for, with an empty pouch.
     const runes = teleportRunes(snap);
     if (runes) {
         return runes;
     }
     if (heldId(snap, HD_ID.KEY) === 0) {
-        // Why: a banked card is the one state the guard cannot resolve — he answers "You need to take it with you", hands nothing over, and the tour reads as already finished when the gate is still shut.
+        // Why: a banked card is the one state the guard cannot resolve. He answers "You need to take it with you", hands nothing over, and the tour reads as already finished when the gate is still shut.
         if (heldId(snap, HD_ID.BARCRAWL_CARD) === 0 && bankedId(snap, HD_ID.BARCRAWL_CARD) > 0) {
             return {
                 kind: 'withdraw',
@@ -155,7 +155,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === undefined) {
         return { kind: 'wait', reason: 'quest stage not readable' };
     }
-    // Why: coin and food upkeep never runs inside a pocket a bank trip cannot start from — preparation stops at the door, or a mid-fight top-up walks the character back out of the cavern.
+    // Why: coin and food upkeep never runs inside a pocket a bank trip cannot start from, preparation stops at the door, or a mid-fight top-up walks the character back out of the cavern.
     if (!sealedArea(snap.tile)) {
         const float = kit(snap, foodWant(snap, stage));
         if (float) {
@@ -165,8 +165,8 @@ export function decide(snap: QuestSnapshot): QuestStep {
     switch (stage) {
         case HD_STAGE.NOT_STARTED:
             // Why: the bridge kit comes before the first word with Larrissa, as starting the quest first costs a crossing of the map for nothing.
-            // Why: she is at the lighthouse in the far north-west, the hammer, nails and runes all come from Varrock, and the planks from the outpost on the way back — so a bot that talks first walks Rellekka → lighthouse → Varrock → outpost → lighthouse instead of Varrock → outpost → lighthouse.
-            // Why: nothing here is quest-gated — the ore, the anvil, the shop and the plank spawns are all open before the journal has a single line in it.
+            // Why: she is at the lighthouse in the far north-west, the hammer, nails and runes all come from Varrock, and the planks from the outpost on the way back, so a bot that talks first walks Rellekka → lighthouse → Varrock → outpost → lighthouse instead of Varrock → outpost → lighthouse.
+            // Why: nothing here is quest-gated, the ore, the anvil, the shop and the plank spawns are all open before the journal has a single line in it.
             // Why: for an account that already owns the nails this branch is free, as every step of `bridgeKit` reads the bank first, so the common case is one walk to the lighthouse and straight into the bridge.
             return bridgeKit(snap) ?? { kind: 'talk', stop: LARRISSA };
         case HD_STAGE.STARTED:

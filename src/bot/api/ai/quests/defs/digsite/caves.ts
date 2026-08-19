@@ -32,7 +32,7 @@ const KEY_PREFER: readonly string[] = [
     'Please?'
 ];
 
-// Why: the rope on each winch is a `%itexam_bits` flag the client never sees, so the Operate click is the oracle — a shaft that swallows you was roped, and one that answers with a chat line was not.
+// Why: the rope on each winch is a `%itexam_bits` flag the client never sees, so the Operate click is the oracle, a shaft that swallows you was roped, and one that answers with a chat line was not.
 
 /** Operate a winch, tying a rope to its bucket first if the shaft answers instead of swallowing you. */
 export async function descendWinch(
@@ -216,7 +216,7 @@ export function barrelLeg(): QuestStep {
                 return false;
             }
             await settleScene();
-            // Why: the lid flag is a `%itexam_bits` bit, so the trowel goes on first every pass — a second lever is a no-op, a missing one leaves "It's not open!".
+            // Why: the lid flag is a `%itexam_bits` bit, so the trowel goes on first every pass, a second lever is a no-op, a missing one leaves "It's not open!".
             const trowel = Inventory.items().find(i => i.id === DIG_ID.TROWEL);
             const barrel = locByIds([DIG_LOC.BARREL], 6);
             if (!trowel || !barrel) {

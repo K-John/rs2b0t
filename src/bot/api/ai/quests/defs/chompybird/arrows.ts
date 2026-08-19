@@ -123,7 +123,7 @@ export function arrowStep(snap: QuestSnapshot): QuestStep | null {
             ? useOn(CB_NAME.CHISEL, CB_NAME.WOLF_BONES, CB_NAME.ARROWTIPS)
             : { kind: 'custom', name: 'kill a wolf for bones', run: killWolfForBones };
     }
-    // Why: flighting spends four feathers per shaft and caps at six arrows, so the shafts are banked up first — feathering three at a time wastes twelve of the twenty-five Fycie sells.
+    // Why: flighting spends four feathers per shaft and caps at six arrows, so the shafts are banked up first, feathering three at a time wastes twelve of the twenty-five Fycie sells.
     const batch = Math.min(6, remaining);
     if (shafts < batch) {
         return logs > 0

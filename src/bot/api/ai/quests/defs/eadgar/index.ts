@@ -48,7 +48,7 @@ function scarecrowNeed(snap: QuestSnapshot, stage: number): { logs: number; chic
     };
 }
 
-// Why: the food float only has to shrink while the grain and the chickens are still filling the pack — holding it down for the rest of stage 70 sends the character up the thrower gauntlet on four lobsters, which is what killed three live runs.
+// Why: the food float only has to shrink while the grain and the chickens are still filling the pack, holding it down for the rest of stage 70 sends the character up the thrower gauntlet on four lobsters, which is what killed three live runs.
 
 /** Pack slots the scarecrow still has to fill. */
 function scarecrowSlots(snap: QuestSnapshot, stage: number): number {
@@ -97,7 +97,7 @@ function parrotInHand(snap: QuestSnapshot): QuestStep | null {
     return { kind: 'talk', stop: EADGAR_TALK };
 }
 
-// Why: Burntmeat only takes the dummy out of the pack, and Eadgar keeps a spare — "You bumbling
+// Why: Burntmeat only takes the dummy out of the pack, and Eadgar keeps a spare, "You bumbling
 // imbecile!" hands over another one, so a lost fake man is a walk rather than a dead run.
 function fakeManInHand(snap: QuestSnapshot): QuestStep | null {
     if (held(snap, ER_ITEM.FAKE_MAN) > 0) {

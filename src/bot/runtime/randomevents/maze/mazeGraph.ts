@@ -114,7 +114,7 @@ export function doorPassable(door: DoorInfo, fromX: number, fromZ: number): bool
 const CARDINAL: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
 // Why: the shrine is 3×3 solid (content length/width=3), so only an open shared edge is a tile from which OPLOC Touch can succeed.
-// Why: the goal must not be manhattan-1 of the SW corner alone — south and west of SW are walls, which wrongly ends the route one door short of the chamber.
+// Why: the goal must not be manhattan-1 of the SW corner alone, south and west of SW are walls, which wrongly ends the route one door short of the chamber.
 
 /** True when (x,z) is outside the shrine footprint and shares an open (non-wall) edge with it. */
 function isShrineTouchStand(
@@ -172,7 +172,7 @@ export function solveRoute(g: MazeGraph, spawn: { x: number; z: number }, shrine
                 node = prev.get(key(px, pz)) ?? null;
             }
             // Standing on the west door tile is a valid touch stand, but the door
-            // edge into the 3×3 is never *crossed* by BFS — still must Open it.
+            // edge into the 3×3 is never *crossed* by BFS, still must Open it.
             for (const [dx, dz] of CARDINAL) {
                 const nx = cur.x + dx;
                 const nz = cur.z + dz;
@@ -193,7 +193,7 @@ export function solveRoute(g: MazeGraph, spawn: { x: number; z: number }, shrine
             const nx = cur.x + dx;
             const nz = cur.z + dz;
             if (nx < lo.x || nx > hi.x || nz < lo.z || nz > hi.z) { continue; }
-            // Shrine footprint is solid — do not path through it.
+            // Shrine footprint is solid, do not path through it.
             if (
                 nx >= shrine.x && nx < shrine.x + MAZE_SHRINE_SIZE &&
                 nz >= shrine.z && nz < shrine.z + MAZE_SHRINE_SIZE

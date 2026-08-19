@@ -551,7 +551,7 @@ function outfitCopies(snap: QuestSnapshot, outfit: readonly string[]): number {
 }
 
 function bankStep(items: { name: string; qty: number }[]): QuestStep {
-    // Nearest bank — mid-desert recovery must not walk to Draynor from Al Kharid.
+    // Nearest bank, mid-desert recovery must not walk to Draynor from Al Kharid.
     return { kind: 'withdraw', items };
 }
 
@@ -2250,7 +2250,7 @@ function stepLabel(step: QuestStep): string {
 
 /**
  * Copy-pasteable context for stuck Tourist Trap runs (engine logs these via observe).
- * Keep dense — operators paste the log into agents.
+ * Keep dense, operators paste the log into agents.
  */
 export function observeTouristTrap(snap: QuestSnapshot, step: QuestStep): readonly string[] {
     const area = touristTrapArea(snap.tile);

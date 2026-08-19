@@ -7,7 +7,7 @@ import { buildIdentityDefines, resolveBuildIdentity, writeVersionJson } from './
 
 const TARGET_NAME = process.env.TARGET ?? 'local';
 
-// Public login keys per target: 1024-bit RSA, exponent 65537 — upstream's 512-bit default was rotated out.
+// Public login keys per target: 1024-bit RSA, exponent 65537, upstream's 512-bit default was rotated out.
 // Why: local is the engine repo's committed private.pem public half; LOCAL_RSAE/LOCAL_RSAN override it against an unmodified upstream engine, and live's rotated modulus arrives as LIVE_RSAN at build time.
 const TARGET_RSA: Record<string, { rsae: string; rsan: string }> = {
     local: {

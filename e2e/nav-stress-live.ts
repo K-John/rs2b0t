@@ -288,7 +288,7 @@ try {
         };
         await route.continue({ headers });
     });
-    // Prefer Playwright default / HARNESS_VIEWPORT (1280×720) — not 1500×1000.
+    // Prefer Playwright default / HARNESS_VIEWPORT (1280×720), not 1500×1000.
     // Large viewports upscale bot.html's 765×503 stage and look huge vs GatheringBot.
     page = await context.newPage();
     page.on('console', msg => {
@@ -326,7 +326,7 @@ try {
         console.log(`\n══ ${id} ══`);
         try {
             await teleArrive(page, { x: 3222, z: 3218, level: 0 });
-            // Chicken pen is a short walk through a gate — good paint trail.
+            // Chicken pen is a short walk through a gate, good paint trail.
             const dest = { x: 3232, z: 3298, level: 0 };
             const r = await runWalk(page, {
                 dest,

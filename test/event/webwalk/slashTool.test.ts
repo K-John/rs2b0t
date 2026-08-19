@@ -63,7 +63,7 @@ describe('slashTool requires + bank plan', () => {
         const yes = worldStateFromData({ ...emptyWorldStateData(), canSlashWeb: true });
         expect(meetsRequires(req, yes).ok).toBe(true);
 
-        // Offline / unknown — fail open
+        // Offline / unknown, fail open
         const unknown = worldStateFromData(emptyWorldStateData());
         expect(meetsRequires(req, unknown).ok).toBe(true);
     });
@@ -94,7 +94,7 @@ describe('slashTool requires + bank plan', () => {
         empty.items = { Knife: 1 };
         expect(missingItemsForPath(path, empty)).toEqual([]);
 
-        // Blade counts as canSlashWeb — no Knife withdraw
+        // Blade counts as canSlashWeb, no Knife withdraw
         const blade = emptyWorldStateData();
         blade.canSlashWeb = true;
         blade.worn = { 'Iron scimitar': 1 };

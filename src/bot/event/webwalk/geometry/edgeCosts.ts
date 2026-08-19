@@ -1,12 +1,12 @@
 // Why: nav path costs are time, in run-tile units, and pathfinder A* (with bank planning) picks the lowest total cost.
 // Why: adjacent walk graph steps cost {@link TILE_STEP_COST} each, while non-walk actions are priced with {@link ticksToCost} so a teleport, glider or ship only wins when it saves travel time.
 // Why: on the Lost City engine (Player + PathingEntity), `MoveSpeed.WALK` takes 1 path step per game tick and `MoveSpeed.RUN` takes up to 2, since `processMovement` takes walkDir then runDir.
-// Why: run energy in `Player.updateEnergy` runs 0…10000 — `stepsTaken < 2` (idle or walk) recovers `((agility/6)|0) + 8`, `stepsTaken >= 2` (ran this tick) drains `(67 + 67*clamp(weightKg,0,64)/64)|0`.
+// Why: run energy in `Player.updateEnergy` runs 0…10000, `stepsTaken < 2` (idle or walk) recovers `((agility/6)|0) + 8`, `stepsTaken >= 2` (ran this tick) drains `(67 + 67*clamp(weightKg,0,64)/64)|0`.
 // Why: energy 0 toggles run off, and energy below 100 clears tempRun.
 // Why: the cost unit is one map tile at continuous run (2 tiles / tick), so wall-time ticks ≈ cost / {@link RUN_TILES_PER_TICK} while running.
 // Why: pure walk is half speed and therefore twice the cost per tile ({@link TILE_STEP_COST_WALK}).
 // Why: A* assumes run for step costs since bots enable run; full energy simulation along the route is future work, and the constants below use the server formulas for the recover/drain helpers and the tick→cost conversion.
-// Why: design @lulwut — calibrate action time and prefer cost over static span gates.
+// Why: design @lulwut, calibrate action time and prefer cost over static span gates.
 
 import type { TransportKind } from '../types.js';
 
@@ -97,7 +97,7 @@ export const DEFAULT_EDGE_COST: Readonly<Record<TransportKind, number>> = {
     dungeon: ticksToCost(4),
     /**
      * Ship / cart / glider: Talk-to + option + wait for sail/ride.
-     * (~18 ticks — was flat 10 and underpriced the coast walk).
+     * (~18 ticks, was flat 10 and underpriced the coast walk).
      */
     ship: ticksToCost(18),
     /** Board after docking. */

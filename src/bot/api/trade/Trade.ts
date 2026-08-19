@@ -4,7 +4,7 @@ import { Execution } from '../execution/Execution.js';
 import { Players } from '../players/Players.js';
 
 const TRADE_OP = 4; // OP_PLAYER4 = "Trade with" (login.rs2: set_player_op("Trade with", 4))
-const OFFER_INV = 3322; // tradeside:inv — your pack while trading; option4 = "Offer All"
+const OFFER_INV = 3322; // tradeside:inv, your pack while trading; option4 = "Offer All"
 const OFFER_ALL = 4;
 const OFFER_X = 5; // tradeside option5 = "Offer X" -> count dialog
 const ACCEPT_OFFER = 3420; // trademain:accept (first screen)

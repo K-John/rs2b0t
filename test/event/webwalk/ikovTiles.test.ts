@@ -57,7 +57,7 @@ const SEALED: [string, { x: number; z: number; level: number }][] = [
 ];
 
 describe.skipIf(!HAS_COLLISION_PACK)('Temple of Ikov stand tiles', () => {
-    // Why: a stand tile beside an unwalkable loc is the classic silent failure — the op is dropped with no refusal and no movement.
+    // Why: a stand tile beside an unwalkable loc is the classic silent failure. The op is dropped with no refusal and no movement.
     test('every named tile and anchor is walkable', () => {
         const blocked = STANDS
             .filter(([, t]) => !finder.walkable(t.x, t.z, t.level))

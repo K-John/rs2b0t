@@ -129,7 +129,7 @@ export const MINING_LOCATIONS: MiningLocation[] = [
         BANK.faladorEast,
         ['iron', 'coal', 'mithril'],
         'Requires Mining 60; underground guild seed'
-        // Inside guild door — no resident aggro; no combat rec.
+        // Inside guild door, no resident aggro; no combat rec.
     ),
     mine(
         'Crafting Guild',
@@ -247,7 +247,7 @@ export const MINING_LOCATIONS: MiningLocation[] = [
     ),
     mine(
         'Heroes Guild',
-        // Rune rocks ~2919,9917 / 2925,9909 — another +10 east of 2920 stand.
+        // Rune rocks ~2919,9917 / 2925,9909, another +10 east of 2920 stand.
         new Tile(2930, 9911, 0),
         BANK.seers,
         ['runite'],
@@ -256,7 +256,7 @@ export const MINING_LOCATIONS: MiningLocation[] = [
     mine(
         'South-east Ardougne Mine',
         // Monastery mine south of East Ardougne (~2621,3212). Members-only; ring of
-        // iron/coal around the sewer entrance. Seed unverified — needs live polish.
+        // iron/coal around the sewer entrance. Seed unverified, needs live polish.
         new Tile(2597, 3233, 0),
         BANK.ardougneEast,
         ['iron', 'coal'],

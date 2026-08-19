@@ -192,7 +192,7 @@ function compoundPlan(snap: QuestSnapshot, underground: boolean): QuestStep {
         return leaveCaveStep();
     }
 
-    // Why: the tinderbox counter is in Varrock and the vial counter is in Taverley, which is the same road — buying each at the step that needs it walks that road three times over.
+    // Why: the tinderbox counter is in Varrock and the vial counter is in Taverley, which is the same road, buying each at the step that needs it walks that road three times over.
     const tinderbox = tinderboxStep(snap);
     if (tinderbox) {
         return tinderbox;
@@ -352,7 +352,7 @@ export const digsite: QuestModule = {
     record: QUESTS.find(r => r.id === 'itexam')!,
     // Why: the quest sits between Varrock and the dig site, and the east booth is the only one either end walks past.
     bank: DIG_TILE.VARROCK_BANK,
-    // Why: nine of the ten items are acquired at the stage that needs them — stolen, panned, dug or mixed — which the engine's up-front provisioning cannot express.
+    // Why: nine of the ten items are acquired at the stage that needs them, whether stolen, panned, dug or mixed, which the engine's up-front provisioning cannot express.
     ownsInventory: true,
     tools: ['coins', 'trowel', 'specimen jar', 'specimen brush', 'panning tray', 'rope', 'vial', 'pestle and mortar', 'tinderbox', 'chisel'],
     // Literals, not QuestFood.name: this object is built at import, when the setting still holds its default.

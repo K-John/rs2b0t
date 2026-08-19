@@ -13,7 +13,7 @@ const args = positionalArgs(process.argv.slice(2), 'http://localhost:8890');
 const base = args[0];
 const user = process.env.BOT_USER ?? `mp${Date.now().toString(36).slice(-6)}`;
 const pass = process.env.BOT_PASS ?? 'test';
-/** Stand near Varrock west bank area — walkable mainland. */
+/** Stand near Varrock west bank area, walkable mainland. */
 const TELE = { x: 3185, z: 3436 };
 /** Target a short walk away (Varrock centre / fountain area-ish). */
 const WANT_MIN_DIST = 12;
@@ -56,7 +56,7 @@ try {
     await cheatQuiet(page, teleCmd, 3500);
     let from = await worldTile();
     if (!from) {
-        // Live servers may reject cheats — stay put and pick far on map.
+        // Live servers may reject cheats, stay put and pick far on map.
         from = await worldTile();
     }
     console.log('start tile', from);

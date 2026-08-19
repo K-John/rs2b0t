@@ -4,7 +4,7 @@ import { JP_STAGE, JUNGLE_POTION_QUEST } from '../../api/ai/quests/defs/junglepo
 export const IDENTIFY_LEVEL = 3;
 /** `oc_param(rogues_purse, identified_herb_exp)` / 10. */
 export const IDENTIFY_XP = 2.5;
-/** The wall is dead below `^junglepotion_get_rogues_purse` — started is not enough. */
+/** The wall is dead below `^junglepotion_get_rogues_purse`, started is not enough. */
 export const WALL_STAGE = JP_STAGE.GET_ROGUES_PURSE;
 
 export const IDENTIFY_OP = 'Identify';

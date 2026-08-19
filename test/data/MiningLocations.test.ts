@@ -171,7 +171,7 @@ describe('MINING_LOCATIONS table', () => {
         expect(rec('Wilderness Skeleton Mine')).toBe(45); // Skeleton 22
         expect(rec('Desert Mining Camp')).toBe(91); // Guard 45
         expect(rec('Desert Mining Camp Surface')).toBe(91); // Guard 45
-        // Inside guild — no resident aggro
+        // Inside guild, no resident aggro
         expect(rec('Mining Guild')).toBeUndefined();
         expect(rec('Rimmington Mine')).toBeUndefined();
         expect(rec('Southeast Varrock Mine')).toBeUndefined();

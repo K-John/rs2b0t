@@ -6,7 +6,7 @@ import TRANSPORTS from '#/bot/event/webwalk/data/transports.json';
 const MAGE = BANK_LOCATIONS.find(b => b.name === 'Mage Arena')!;
 const KEY = `rs2b0t:set:Global:${USE_MAGE_BANK}`;
 
-/** At the web/ladder entrance in deep Wilderness — Gundai is nearest by far. */
+/** At the web/ladder entrance in deep Wilderness. Gundai is nearest by far. */
 const DEEP_WILDERNESS = { x: 3091, z: 3958, level: 0 };
 
 function setSetting(on: boolean | null): void {
@@ -23,7 +23,7 @@ afterEach(() => setSetting(null));
 describe('Mage Arena bank gate', () => {
     test('sits where the ladder lands, approached from the ladder mouth', () => {
         // transports.json: magearena_ladder_to_cellar (3091,3958) -> (2542,4714).
-        // Not Kolodion's arena teleport — that is the minigame, not the bank.
+        // Not Kolodion's arena teleport. That is the minigame, not the bank.
         expect(MAGE.tile.x).toBe(2542);
         expect(MAGE.tile.z).toBe(4714);
         expect(MAGE.approach?.x).toBe(3091);

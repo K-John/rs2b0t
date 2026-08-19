@@ -70,7 +70,7 @@ export function parseDragonJournal(lines: readonly string[] | string): QuestProg
     return stage === undefined ? undefined : { stage, flags: readFlags(text) };
 }
 
-// Why: the journal modal does not always open — a leftover dialogue, a level change, a tick where the tab has not refreshed.
+// Why: the journal modal does not always open, a leftover dialogue, a level change, a tick where the tab has not refreshed.
 // Why: a failed read is no evidence the quest went backwards, so the last good one stands in until the next success.
 let lastGood: QuestProgress | undefined;
 

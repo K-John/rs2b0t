@@ -3,7 +3,7 @@ export interface ToolTier {
     name: string;
     /** Skill level required to *use* the tool (mining / woodcutting). */
     level: number;
-    // Why: mining gates on the metal tier — bronze/iron 1, steel 6, mithril 21, adamant 31, rune 41.
+    // Why: mining gates on the metal tier, bronze/iron 1, steel 6, mithril 21, adamant 31, rune 41.
     // Why: tools may still be used from the backpack without meeting this.
 
     /** Attack level required to wield the tool. */
@@ -41,7 +41,7 @@ export const PICKAXES: readonly ToolTier[] = [
     { name: 'Bronze pickaxe', level: 1, attackLevel: 1 }
 ];
 
-// Why: this era puts no woodcutting requirement on axes — Attack alone gates wielding them.
+// Why: this era puts no woodcutting requirement on axes, Attack alone gates wielding them.
 export const AXES: readonly ToolTier[] = [
     { name: 'Rune axe', level: 1, attackLevel: 40 },
     { name: 'Adamant axe', level: 1, attackLevel: 30 },
@@ -219,7 +219,7 @@ export function toolRestockPlan(
                 continue;
             }
             if (invCount(bestOwned) > 0) {
-                // Already holding the best we own — nothing to withdraw.
+                // Already holding the best we own, nothing to withdraw.
                 continue;
             }
             if (bankCount(bestOwned) <= 0) {

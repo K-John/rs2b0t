@@ -10,10 +10,10 @@ Thirty-one in all; the seven here are engine behaviour rather than quest facts.
   worn, a yew shortbow is 3lb, an iron axe is 5lb and a lobster is 350g. The first live
   crossing went into the lava carrying the axe and the bow it had fletched a minute earlier, which
   is why the module banks everything outside the crossing kit *before* it goes
-  underground — there is no booth past the ladder.
+  underground. There is no booth past the ladder.
 - **Only non-stackables weigh anything, and the client is told a truncated kilogram.**
   `calculateRunWeight` skips `type.stackable`, so coins and ice arrows are free, and
-  `UpdateRunWeight` sends `trunc(grams / 1000)` — a client reading 0 is anywhere from
+  `UpdateRunWeight` sends `trunc(grams / 1000)`, a client reading 0 is anywhere from
   -999g to +999g. The server tests grams, so the guard demands a client-visible
   *negative* rather than a non-positive.
 - **A use-on sent while a booth is still closing opens nothing.** The first knife-on-logs
@@ -27,12 +27,12 @@ Thirty-one in all; the seven here are engine behaviour rather than quest facts.
 - **A crossing with no op is still a crossing.** The bridge is a `mapzoneenter` timer
   plus `inzone`, so there is nothing to click: walking onto (2648–2650, 9828–9829)
   *is* the action, and the direction comes from a bit that toggles on every crossing
-  rather than from which bank you started on. Two consequences — the far side is the
+  rather than from which bank you started on. Two consequences, the far side is the
   only oracle, and every other walk in the dungeon has to exclude those six tiles or
   the pathfinder ferries the bot across in the middle of an unrelated leg.
 - **A `~slash_checker` reads the equipped weapon and nothing else.** The web sealing the
   boots alcove answers `Slash` with "Only a sharp blade can cut through this sticky
-  web" to a character holding a knife in the pack — the `oplocu` branch is the one that
+  web" to a character holding a knife in the pack, the `oplocu` branch is the one that
   names the knife explicitly, so cutting it is a use-on, not an op. It also succeeds one
   attempt in two, so the leg retries rather than reading one failure as a wall.
 - **Two stages can render one journal page, and the fix is idempotence rather than a

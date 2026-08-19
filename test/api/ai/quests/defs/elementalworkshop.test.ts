@@ -270,7 +270,7 @@ describe('Elemental Workshop decide()', () => {
     });
 
     test('before ENTERED, missing key re-slashes the book when a knife is held', () => {
-        // Journal can already be SLASHED while the key was lost before first entry —
+        // Journal can already be SLASHED while the key was lost before first entry,
         // re-cut the spine rather than hard-wait (Push only works after ENTERED).
         const step = decide(snap({
             stage: EW_STAGE.SLASHED,

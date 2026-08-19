@@ -154,7 +154,7 @@ describe('PathFinder avoidZones', () => {
         const finder = new PathFinder(fullyWalkablePack());
         const from = { x: 5, z: 10, level: 0 };
         const to = { x: 25, z: 10, level: 0 };
-        // Vertical strip at x=15, only z 5..15 — room to detour north/south.
+        // Vertical strip at x=15, only z 5..15, room to detour north/south.
         const wall = [{ minX: 15, maxX: 15, minZ: 5, maxZ: 15, level: 0 }];
         const free = finder.findPath(from, to);
         expect(free.ok).toBe(true);

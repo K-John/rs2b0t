@@ -1,4 +1,4 @@
-// Live proof — HillGiant with a Brass key banks at Varrock West (~3185,3440).
+// Live proof, HillGiant with a Brass key banks at Varrock West (~3185,3440).
 
 //   ENGINE_DIR=... sh tools/deploy-local.sh   # once
 //   bun e2e/hillgiant-bank-428-live.ts [http://localhost:8888]

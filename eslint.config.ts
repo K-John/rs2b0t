@@ -3,13 +3,13 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
-// Why: flat config replaces rule options rather than merging them, so a later `no-restricted-imports` block for a path repeals every earlier one — every fence below must carry CLIENT_INTERNALS.
+// Why: flat config replaces rule options rather than merging them, so a later `no-restricted-imports` block for a path repeals every earlier one, every fence below must carry CLIENT_INTERNALS.
 const CLIENT_INTERNALS = {
     group: ['\\#/client/*/*', '!\\#/client/io/ServerProt.js', '!\\#/client/io/ClientProt.js', '!\\#/client/dash3d/CollisionFlag.js', '!\\#/client/shell/MiniMenuAction.js', '!\\#/client/mapview/worldmapKeyNames.js'],
     message: 'Only src/bot/adapter/ may touch client internals.'
 };
 
-/** main.ts pulls in panel/ and the runtime — a leaf layer reaching it is a cycle. */
+/** main.ts pulls in panel/ and the runtime, a leaf layer reaching it is a cycle. */
 const APP_ENTRYPOINT = {
     group: ['**/main.js'],
     message: 'main.ts is the app entrypoint — a leaf layer must not import it.'
@@ -53,7 +53,7 @@ export default defineConfig([
     },
 
     // ---- rs2b0t fences ----
-    // Only adapter/ may name client internals; protocol const-enums are exempt — inlined, no runtime coupling.
+    // Only adapter/ may name client internals; protocol const-enums are exempt, inlined, no runtime coupling.
     {
         files: ['src/bot/**/*.ts'],
         ignores: ['src/bot/adapter/**', 'src/bot/runtime/BotClient.ts'],
@@ -149,7 +149,7 @@ export default defineConfig([
             ]
         }
     },
-    // geometry/ is the one value source data/ may name, so it must stay a leaf —
+    // geometry/ is the one value source data/ may name, so it must stay a leaf,
     // otherwise it launders anything into the "inert" layer.
     {
         files: ['src/bot/geometry/**/*.ts'],

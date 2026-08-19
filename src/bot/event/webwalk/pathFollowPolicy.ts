@@ -16,7 +16,7 @@ export const DEFAULT_PATH_DEVIATION_CHEBYSHEV = 10;
 /** The corridor-snap radius (`WalkExecutor.CORRIDOR`). */
 export const PATH_CORRIDOR = 3;
 
-// Why: a planned transport hop engages only this close to its approach tile — not the far landing, and not any nearby spirit tree.
+// Why: a planned transport hop engages only this close to its approach tile, not the far landing, and not any nearby spirit tree.
 // Why: this must be ≥ {@link PATH_CORRIDOR}, since `locateOnPath` snaps `pathIdx` onto the approach from up to `PATH_CORRIDOR` tiles away and the click selector never targets a tile at or before `pathIdx`.
 // Why: between the trigger and the corridor the walker would emit zero clicks and skip the hop, with only a `nearApproach` fallback saving the walk, so keeping the trigger at the arrival radius closes that band.
 export const DEFAULT_TRANSPORT_APPROACH_CHEBYSHEV = 4;
@@ -50,7 +50,7 @@ export function resolvePathFollowConfig(over?: PathFollowOverrides | null): Path
     return {
         stallTicks: Math.max(1, over?.stallTicks ?? gStall),
         deviationChebyshev: Math.max(1, over?.deviationChebyshev ?? gDev),
-        // Never below the corridor snap — see DEFAULT_TRANSPORT_APPROACH_CHEBYSHEV.
+        // Never below the corridor snap, see DEFAULT_TRANSPORT_APPROACH_CHEBYSHEV.
         transportApproachChebyshev: Math.max(
             PATH_CORRIDOR,
             over?.transportApproachChebyshev ?? DEFAULT_TRANSPORT_APPROACH_CHEBYSHEV

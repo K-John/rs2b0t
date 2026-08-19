@@ -1,5 +1,5 @@
 /**
- * Build WorldStateData from live client APIs (main thread only — not for NavWorker).
+ * Build WorldStateData from live client APIs (main thread only, not for NavWorker).
  */
 
 // eslint-disable-next-line no-restricted-imports -- TODO: route through ClientAdapter
@@ -18,7 +18,7 @@ import type { WorldStateData } from './worldStateData.js';
 import { worldStateFromData } from './worldStateData.js';
 import { wildernessLevelAt } from './wilderness.js';
 
-// Why: `%exit_essence_mine_coord` (varp 64) is server-only with no transmit=yes — see docs/local/varp-transmit-inventory.md — so reader.varp(64) is never trusted.
+// Why: `%exit_essence_mine_coord` (varp 64) is server-only with no transmit=yes, see docs/local/varp-transmit-inventory.md, so reader.varp(64) is never trusted.
 // Why: the source is EssenceSession, set when the bot completes a wizard entry hop, or a harness override on a cheat-tele into the mine.
 // Why: when unknown the field is omitted so requires fail open for pack and offline tools.
 // Why: the content default on the portal when null is Sedridor, and a live bot that entered via a wizard has the session set.
@@ -102,7 +102,7 @@ export function snapshotWorldStateData(): WorldStateData {
 
     return {
         // Client.memServer is set at boot from world config (members vs free world).
-        // Never hardcode true — free-world snapshots must fail members-gated edges.
+        // Never hardcode true, free-world snapshots must fail members-gated edges.
         members: Client.memServer === true,
         skills,
         quests,

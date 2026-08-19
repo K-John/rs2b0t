@@ -1,5 +1,5 @@
 /** Live Fishing Contest harness (#244): --stage N --until N --minutes N, base :8890.
- *  Why: `--stage` writes `%fishingcompo` and the two companion varps together — the contest stage and the fee/catch counter have to agree or Bonzo re-seats a contest the journal says is already under way — then relogs, since update_questlist only recolours the list at login.
+ *  Why: `--stage` writes `%fishingcompo` and the two companion varps together, the contest stage and the fee/catch counter have to agree or Bonzo re-seats a contest the journal says is already under way, then relogs, since update_questlist only recolours the list at login.
  *  Why: the bank holds coins and food alone, so the garlic, the spade, the rod and the worms are all sourced in the world; stats are max because the road crosses White Wolf Mountain.
  *  Why: it deploys its own copy of the client through `deployIsolatedClient`, so a neighbouring harness cannot decide mid-boot which branch this run exercises. */
 
@@ -74,9 +74,9 @@ const DRAYNOR_BANK = { x: 3093, z: 3243, level: 0 };
 const CATHERBY_BANK = { x: 2809, z: 3441, level: 0 };
 
 /**
- * Coins and food only. Every quest item has a source in the world — the clove in
+ * Coins and food only. Every quest item has a source in the world, the clove in
  * Draynor, the spade in Falador, the rod at Harry's and the worms in McGrubor's
- * Wood — and banking one would hide whether the bot can find it.
+ * Wood, and banking one would hide whether the bot can find it.
  */
 const BANK_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
@@ -112,7 +112,7 @@ function seedFor(stage: number): { vars: [string, number][]; items: [string, num
         vars.push(['hemenster_comp_stage', COMP_PAID]);
     }
     // Why: a character at this stage has paid the fee and is standing in the contest holding
-    // its kit — sourcing that kit is stage 0 and 1's job, and making this leg walk to Draynor
+    // its kit, sourcing that kit is stage 0 and 1's job, and making this leg walk to Draynor
     // for a clove buries the stash it exists to test under a fifteen-minute round trip.
     if (stage === 2) {
         items.push(['garlic', 1], ['fishing_rod', 1], ['red_vine_worm', 5]);
@@ -159,7 +159,7 @@ if (args.stage < 0 || args.stage > 4) {
     fail('--stage is the %fishingcompo value and runs 0 to 4');
 }
 
-// Why: this run gets its own copy of the client — all of `out/`, so the navworker and the collision pack travel with it — and a neighbouring harness deploying mid-boot cannot decide which branch this one exercises.
+// Why: this run gets its own copy of the client, meaning all of `out/`, so the navworker and the collision pack travel with it, and a neighbouring harness deploying mid-boot cannot decide which branch this one exercises.
 const client = args.deploy ? deployIsolatedClient(args.user) : null;
 const clientPage = client?.page ?? '/bot.html';
 // Why: a PASS leaves through `process.exit`, which skips `finally`, so the sweep hangs off the exit itself.
@@ -250,7 +250,7 @@ try {
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
-        // Why: a full run waits for the list to go green rather than the varp — the recolour and the QP award land a tick behind %fishingcompo.
+        // Why: a full run waits for the list to go green rather than the varp, the recolour and the QP award land a tick behind %fishingcompo.
         const done = args.until >= 5 ? last.status === 'complete' : stage >= args.until;
         if (done) {
             console.log(`PASS (fishingcompo=${stage}, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);

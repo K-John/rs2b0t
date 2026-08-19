@@ -212,7 +212,7 @@ describe('takenByAnother', () => {
     });
 });
 
-// The dungeon DOES have a walk-out — exit door to the ledge, then the barrel. It
+// The dungeon DOES have a walk-out, exit door to the ledge, then the barrel. It
 // needs no runes, magic level or quest, so it is the default.
 describe('EXIT_OPTIONS', () => {
     test('the free barrel walk-out is first and is the default', () => {

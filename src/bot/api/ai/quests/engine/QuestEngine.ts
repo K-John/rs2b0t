@@ -63,8 +63,8 @@ function bankFor(module: QuestModule): Tile | undefined {
  * content/pack/interface.pack (rev 274).
  */
 const INTERACTIVE_QUEST_MAIN: ReadonlySet<number> = new Set([
-    6675, // death_dice — Harold gambling (Death Plateau)
-    8119 // messagescroll_handwriting — combination after reading the IOU
+    6675, // death_dice, Harold gambling (Death Plateau)
+    8119 // messagescroll_handwriting, combination after reading the IOU
 ]);
 
 function isInteractiveQuestMainModal(mainId: number): boolean {
@@ -85,7 +85,7 @@ function describeStep(step: QuestStep): string {
         case 'equip': return `equip ${step.item}`;
         case 'scanBank': return 'check the bank';
         case 'withdraw': return `withdraw ${step.items.map(i => `${i.name}×${i.qty}`).join(', ')}`;
-        // Not always spillover from the previous quest any more — Family Crest
+        // Not always spillover from the previous quest any more, Family Crest
         // banks its coin float mid-quest before walking into the wilderness.
         case 'deposit': return `bank all but ${step.keep.length} kept item type(s)`;
         case 'mineRock': return `mine ${step.item}`;
@@ -298,7 +298,7 @@ export class QuestEngine implements Task {
             // Why: a quest that fetches coins at the point of sale wants no float, as this runs every loop while anything is outstanding and a standing balance is restored after every purchase.
             const coinFloat = coinFloatWithdraw(snap.inv, this.lastBankCounts, module.coinFloat ?? COIN_FLOAT);
             const foodItem = this.host.foodItem();
-            // Only withdraw food once the bank inventory is known — guessing a
+            // Only withdraw food once the bank inventory is known, guessing a
             // shortfall forces a failed booth trip and can scramble a full pack.
             const foodReady = module.foodReady?.(snap) ?? true;
             let foodFloat: { name: string; qty: number } | null = null;
@@ -344,7 +344,7 @@ export class QuestEngine implements Task {
             } else if (plan.withdraw.length > 0 || extras.length > 0) {
                 step = { kind: 'withdraw', items: [...plan.withdraw, ...extras], bank: bankFor(module) };
             } else if (plan.satisfied) {
-                // Why: holding the food back is not being provisioned — closing the block here would
+                // Why: holding the food back is not being provisioned, closing the block here would
                 // retire it for the run and the quest would fight on an empty stomach.
                 if (foodReady) {
                     this.provisioned.add(id);
@@ -376,7 +376,7 @@ export class QuestEngine implements Task {
         const stepLine = `${module.record.name}: ${stepDesc}`;
         const fresh = stepLine !== this.lastStepLogged;
         // Why: a leg that keeps re-deciding to the same step is the normal way this engine loops, so silence on the repeat is the default.
-        // Why: the heartbeat is what stops a long chain — mine, smelt, hammer, all called `smith 8 nails` — from looking like a hang.
+        // Why: the heartbeat is what stops a long chain of mine, smelt and hammer, all called `smith 8 nails`, from looking like a hang.
         const announce = verbose || fresh || this.tracker.beat(now);
         if (announce) {
             const context = `stage ${snap.stage ?? '?'} · ${formatTile(snap.tile)} · ${snap.freeSlots} free`;
@@ -687,7 +687,7 @@ export class QuestEngine implements Task {
         for (const name of skillNames) {
             skillLevels.set(name, Skills.level(name));
         }
-        // Why: what the account has finished is read from every known quest, not only the ones with a module. A prerequisite whose own quest has no module yet — Biohazard ahead of Underground Pass, Heroes' Quest ahead of Legends — would otherwise be unsatisfiable, and the quest it gates would report BLOCKED forever.
+        // Why: what the account has finished is read from every known quest, not only the ones with a module. A prerequisite whose own quest has no module yet, such as Biohazard ahead of Underground Pass or Heroes' Quest ahead of Legends, would otherwise be unsatisfiable, and the quest it gates would report BLOCKED forever.
         const completedQuests = new Set<string>();
         for (const r of QUESTS) {
             if (Quests.status(r.name) === 'complete') {

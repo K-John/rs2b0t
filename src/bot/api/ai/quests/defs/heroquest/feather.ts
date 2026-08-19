@@ -210,7 +210,7 @@ export async function takeFeather(log: (m: string) => void): Promise<boolean> {
 /** The feather chain: gloves from the Ice Queen, then a stripped trip to Entrana. */
 export function featherStep(snap: QuestSnapshot): QuestStep | null {
     // Why: the island has one way off it and no walkable route home, so a bot standing on it owes the
-    // ferry before anything else — including a finished feather.
+    // ferry before anything else, including a finished feather.
     if (onEntrana(snap.tile)) {
         if (anywhere(snap, HERO_ID.FEATHER) > 0) {
             return { kind: 'custom', name: 'sail back from Entrana', run: sailFromEntrana };

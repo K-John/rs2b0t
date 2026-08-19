@@ -27,9 +27,9 @@ export interface HandoffInput {
     gaveCert: boolean;
 }
 
-// Why: "I have not farmed my half yet" and "I gave my half away" are the same snapshot — no half, no certificate, joined — and the cupboard re-arms once the half leaves the pack, so nothing durable tells them apart.
+// Why: "I have not farmed my half yet" and "I gave my half away" are the same snapshot: no half, no certificate, joined. The cupboard re-arms once the half leaves the pack, so nothing durable tells them apart.
 // Why: a count rather than a flag, because a stockpile needs one half per two certificates and a flag stops the supplier after the first.
-// Why: session scope is enough — a restart farms another half, which is correct work rather than a wedge.
+// Why: session scope is enough, a restart farms another half, which is correct work rather than a wedge.
 export const ArravHandoffState = { halvesGiven: 0, gaveCert: false };
 
 /**
@@ -50,7 +50,7 @@ export function decideHandoff(input: HandoffInput): ArravHandoff | null {
         if (input.hasOwnHalf && input.hasOtherHalf) {
             return null;
         }
-        // Why: the count that matters is the pack — a stockpile sitting in the bank cannot be offered, and the withdraw that fixes that is the certificate step's job.
+        // Why: the count that matters is the pack, a stockpile sitting in the bank cannot be offered, and the withdraw that fixes that is the certificate step's job.
         if (!input.gaveCert && input.certsHeld >= 2 && input.certs >= target) {
             return 'give-cert';
         }
@@ -66,7 +66,7 @@ export function decideHandoff(input: HandoffInput): ArravHandoff | null {
     if (input.hasOwnHalf) {
         return 'give-half';
     }
-    // Why: each half the pair mints from buys two certificates, so the supplier keeps farming until the target is covered — and asking before the cupboard leg has ever run waits for a certificate only its own half can buy.
+    // Why: each half the pair mints from buys two certificates, so the supplier keeps farming until the target is covered, and asking before the cupboard leg has ever run waits for a certificate only its own half can buy.
     const covered = input.halvesGiven * 2 >= Math.max(1, input.certTarget);
     if (input.stage === SOA_STAGE.BLACKARM_JOINED && input.certs === 0 && covered) {
         return 'take-cert';

@@ -4,7 +4,7 @@ import { WT_ITEM, WT_TILE, type WatchtowerItem } from './areas.js';
 import { QuestFood } from '../../food.js';
 
 // Why: every shop here was read out of the engine's own configs rather than a guide.
-// Why: nobody in this game is called 'Shop keeper' — the shop belongs to a named NPC through param=owned_shop, and Shop.open() matches on the display name.
+// Why: nobody in this game is called 'Shop keeper', the shop belongs to a named NPC through param=owned_shop, and Shop.open() matches on the display name.
 export const ARDOUGNE_ADVENTURER = { npc: 'Aemad', anchor: new Tile(2613, 3294, 0) };
 export const MAGIC_GUILD = { npc: 'Magic Store owner', anchor: new Tile(2595, 3087, 1) };
 export const OGRE_HERBLORE = { npc: 'Ogre merchant', anchor: new Tile(2528, 3048, 0) };
@@ -121,7 +121,7 @@ export function sourcePestle(snap: QuestSnapshot): QuestStep | null {
     return source(snap, WT_ITEM.PESTLE, 1, OGRE_HERBLORE, PESTLE_PRICE);
 }
 
-// Why: the Rock of Dalgroth is the quest's only mining, and a rock does not respond without a pickaxe — no message, no refusal, so the step retries forever.
+// Why: the Rock of Dalgroth is the quest's only mining, and a rock does not respond without a pickaxe, no message, no refusal, so the step retries forever.
 // Why: Aemad stocks bronze, which is all a max-stats miner needs here.
 
 /** Source a pickaxe, or null when one is held. */

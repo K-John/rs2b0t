@@ -47,7 +47,7 @@ describe('black arm leg', () => {
             .toMatchObject({ kind: 'custom', name: 'ask Katrine to join the Black Arm Gang' });
     });
 
-    // Why: the regression — decide() preferred the hand-in the moment the crossbows landed, and the raid step was the only thing that ever tried to leave, so a failed crossing read "no path to Katrine: unreachable" forever.
+    // Why: the regression, decide() preferred the hand-in the moment the crossbows landed, and the raid step was the only thing that ever tried to leave, so a failed crossing read "no path to Katrine: unreachable" forever.
     test('crossbows held inside the store pocket leave before the hand-in', () => {
         const snap = at(SOA_STAGE.KATRINE_TASK, [], [[SOA_ID.CROSSBOW, 2]]);
         snap.tile = STORE_GROUND as QuestSnapshot['tile'];

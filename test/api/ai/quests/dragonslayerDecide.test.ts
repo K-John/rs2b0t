@@ -203,7 +203,7 @@ describe('Dragon Slayer decide()', () => {
 
     test('the secret passage is opened before Elvarg is fought', () => {
         // Ned's ship crash-lands on Crandor. With the wall still shut, dying to
-        // her ends the quest where it stands — there is no second crossing.
+        // her ends the quest where it stands. There is no second crossing.
         const landed = { x: 2851, z: 3235, level: 0 };
         const shut = decide(snapshot({
             progress: { stage: DRAGON_STAGE.SAILED_TO_CRANDOR, flags: new Set<string>() },

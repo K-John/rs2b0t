@@ -22,7 +22,7 @@ interface Route {
 }
 
 const ROUTES: Route[] = [
-    // Door / stair dense — the cases the stall ladder exists for. Endpoints from
+    // Door / stair dense, the cases the stall ladder exists for. Endpoints from
     // tools/nav/script-routes.hardest.json (hop-ranked).
     { name: 'varrock-bank-L1→camelot-tower-L2', from: { x: 3250, z: 3419, level: 1 }, to: { x: 2749, z: 3495, level: 2 }, radius: 4, budgetMs: 300_000 },
     { name: 'varrock-bank-L1→draynor-manor-L2', from: { x: 3250, z: 3419, level: 1 }, to: { x: 3106, z: 3368, level: 2 }, radius: 4, budgetMs: 240_000 },
@@ -53,7 +53,7 @@ const OUT = process.argv.includes('--out') ? process.argv[process.argv.indexOf('
 const ONLY = process.env.ROUTES ? new Set(process.env.ROUTES.split(',').map(Number)) : null;
 const SPEED = process.env.SPEED ? Number(process.env.SPEED) : null;
 const DEFAULT_BUDGET_MS = Number(process.env.BUDGET_MS ?? 180_000);
-/** Extra cheats to send after login, comma separated — e.g. CHEATS=~cq for every quest. */
+/** Extra cheats to send after login, comma separated, e.g. CHEATS=~cq for every quest. */
 const CHEATS = (process.env.CHEATS ?? '').split(',').map(c => c.trim()).filter(Boolean);
 
 type Abi = {

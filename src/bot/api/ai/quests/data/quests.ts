@@ -243,7 +243,7 @@ export const QUESTS: QuestRecord[] = [
     },
     {
         id: 'crest', name: 'Family Crest', questPoints: 1,
-        // Why: journal gates — Magic 59 is Fire Blast, the last of the four spells Chronozon has to be hit with.
+        // Why: journal gates, Magic 59 is Fire Blast, the last of the four spells Chronozon has to be hit with.
         // Why: crafting 40 is the perfect ruby necklace.
         requirements: { skills: [
             { skill: 'mining', level: 40 },
@@ -291,13 +291,13 @@ export const QUESTS: QuestRecord[] = [
         requirements: { minQuestPoints: 32 },
         items: [
             // Why: 1 is deliberate against the quest's 12k bill, since provisioning re-checks every mustHave each loop while anything is outstanding.
-            // Why: a coin requirement of any size then sends the bot back to the bank after every purchase — a Dwarven Mine round trip to collect one coin, in the run that found this.
+            // Why: a coin requirement of any size then sends the bot back to the bank after every purchase, a Dwarven Mine round trip to collect one coin, in the run that found this.
             // Why: the float covers the shopping, and the module withdraws Wormbrain's 10k and the ship's 2k when it needs them.
             { name: 'Coins', qty: 1, kind: 'mustHave' },
-            // Why: provisioning walks this list in order, so it is ordered as a geographic sweep — Port Sarim, Falador, Varrock, then the wilderness — or the bot crosses Asgarnia between each item.
+            // Why: provisioning walks this list in order, so it is ordered as a geographic sweep of Port Sarim, Falador, Varrock then the wilderness, or the bot crosses Asgarnia between each item.
             // Why: nails are deliberately absent, as six steel bars is eighteen slots of ore that will not fit behind the rest of the shopping.
             // Why: that nails leg runs from decide() once provisioning is done, late enough to bank the shopping first without the engine withdrawing it straight back.
-            // Why: melee kit is absent too — what the player fights in is their own business, and the quest takes the account as it finds it.
+            // Why: melee kit is absent too, what the player fights in is their own business, and the quest takes the account as it finds it.
             { name: 'Lobster pot', qty: 1, kind: 'acquirable' },   // Gerrant, Port Sarim
             { name: 'Hammer', qty: 1, kind: 'acquirable' },        // Falador general store
             { name: "Wizard's mind bomb", qty: 1, kind: 'acquirable' }, // Rising Sun, Falador
@@ -342,7 +342,7 @@ export const QUESTS: QuestRecord[] = [
     },
     {
         id: 'elemental_workshop', name: 'Elemental Workshop', questPoints: 1,
-        // Official skill gates only. Combat is not a server req but elementals hit hard —
+        // Official skill gates only. Combat is not a server req but elementals hit hard,
         // see EW_TESTED_COMBAT / warnReadiness in defs/elementalworkshop and docs/TESTING.md.
         requirements: { skills: [
             { skill: 'mining', level: 20 },
@@ -406,7 +406,7 @@ export const QUESTS: QuestRecord[] = [
         id: 'horror', name: 'Horror from the Deep', questPoints: 2,
         requirements: { skills: [{ skill: 'agility', level: 35 }] },
         items: [
-            // Why: all five have a source the module walks to — the plank spawns by the outpost, nails off the Dwarven Mine anvil, a 1gp hammer, the Lumbridge swamp tar patch and Catherby seaweed for the glass.
+            // Why: all five have a source the module walks to, the plank spawns by the outpost, nails off the Dwarven Mine anvil, a 1gp hammer, the Lumbridge swamp tar patch and Catherby seaweed for the glass.
             { name: 'Plank', qty: 2, kind: 'acquirable' },
             { name: 'Nails', qty: 8, kind: 'acquirable' },
             { name: 'Hammer', qty: 1, kind: 'acquirable' },
@@ -430,7 +430,7 @@ export const QUESTS: QuestRecord[] = [
     },
     {
         id: 'itgronigen', name: 'Observatory Quest', questPoints: 2,
-        // Why: the server gates nothing — `craft_telescope_disc` carries no level check — but the quest is listed at Crafting 10 and the eligibility view should say so.
+        // Why: the server gates nothing, `craft_telescope_disc` carries no level check, but the quest is listed at Crafting 10 and the eligibility view should say so.
         requirements: { skills: [{ skill: 'crafting', level: 10 }] },
         // Why: the professor takes the planks, the bar, the glass and the mould one stage at a time and deletes each as it lands, so a provisioning list would re-fetch items the quest has already spent.
         // Why: the module sources every one of them itself, bank first.
@@ -465,7 +465,7 @@ export const QUESTS: QuestRecord[] = [
         // Why: every entry is `acquirable` because eligibility runs before the bot has opened a booth, so its item snapshot is empty and any `mustHave` would block the quest at startup rather than after a bank scan.
         // Why: papyrus, charcoal, the machete, the knife, the rope, the runes and the gold bars all have a counter or a rock the module walks to; everything below has neither, so the module parks with the exact shortfall.
         // Why: no shop sells a rune axe (smithing 86), a lockpick (a rogue's pocket), an unpowered orb (a glassblower's pipe) or a cosmic rune outside the Mage Arena.
-        // Why: the seven gems are listed because no counter stocks opal, jade or red topaz, and the only rocks that drop them are the Shilo ones past Hajedy's cart — the module mines and cuts them when the bank is empty.
+        // Why: the seven gems are listed because no counter stocks opal, jade or red topaz, and the only rocks that drop them are the Shilo ones past Hajedy's cart, the module mines and cuts them when the bank is empty.
         items: [
             { name: 'Rune axe', qty: 1, kind: 'acquirable' },
             { name: 'Lockpick', qty: 1, kind: 'acquirable' },

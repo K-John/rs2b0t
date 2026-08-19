@@ -104,7 +104,7 @@ test('inPit: obstacle pits sit far above the course in world-z (not ridge wolf p
 test('ridge approach is south of the Door; corridor north of the Door is not approach', () => {
     expect(RIDGE_APPROACH.z).toBeLessThan(RIDGE_DOOR.z);
     expect(RIDGE_DOOR.z).toBe(3917);
-    // A tile north of the door (e.g. 3924) is not approach — walking there from
+    // A tile north of the door (e.g. 3924) is not approach, walking there from
     // the south makes the pathfinder Open the Door as a transport.
     expect(new Tile(2998, 3924, 0).z).toBeGreaterThan(RIDGE_DOOR.z);
 

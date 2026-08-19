@@ -13,7 +13,7 @@ engine facts rather than quest ones. Fifteen more came out of the runs themselve
   emits them as `[z, xFrom, xTo]` runs and the module asks which pocket a tile is in
   rather than which rectangle contains it.
 - **`huntall` iterates players, not npcs.** `~player_in_fire_octagram` looks like a guard
-  saying the flames refuse anyone while Ungadulu stands inside them — which would make the
+  saying the flames refuse anyone while Ungadulu stands inside them, which would make the
   quest unfinishable, since he never leaves. It is a multiplayer courtesy check: another
   *player* mid-cutscene inside the octagram is what it looks for. Read the op's handler
   before concluding a script contradicts itself.
@@ -27,11 +27,11 @@ engine facts rather than quest ones. Fifteen more came out of the runs themselve
   yields only to a *Search* with a lockpick; the inner one raises a brute-strength prompt
   and a roll. Both were baked into `doors.json`, so the pathfinder routed straight at them
   and the walker looped a tile short. They belong in `SCRIPT_REFUSED`, with the last tile a
-  `DirectNavigator` scene step — and removing them splits two more pockets, which is why
+  `DirectNavigator` scene step, and removing them splits two more pockets, which is why
   the pocket table is regenerated after the door bake rather than before it.
 - **The Kharazi Jungle is sealed by blocked ground with plants standing on it.** The jungle
   band is `blockwalk=no` scenery over map-blocked tiles, and `chop_jungle` teleports the
-  chopper two tiles towards whatever it fells — `map_blocked($dest)` is allowed only
+  chopper two tiles towards whatever it fells, `map_blocked($dest)` is allowed only
   where another jungle plant stands. Nothing walks in. `(2816,2940)` is the one
   mainland tile with an unbroken two-plant column south of it, and a diagonal chop lands on
   blocked ground and answers "This way is blocked off".
@@ -43,15 +43,15 @@ engine facts rather than quest ones. Fifteen more came out of the runs themselve
 - **Five loc stages in a row expire fifty-one ticks after they grow.** Sapling, adult,
   felled, trimmed and carved each `loc_change` back to a rotten twin on a timer, so
   planting, watering, felling, trimming, carving and lifting cannot be six `decide()`
-  ticks — a resume that arrives late finds a stump. They are one step whose oracle is the
+  ticks, a resume that arrives late finds a stump. They are one step whose oracle is the
   totem pole in the pack.
 - **Killing Viyeldi is a trap the content cannot spring.** Taking his hat summons him for a
   hundred ticks and immediately runs a conversation that ends in `npc_del`, so the dagger
   never reaches him. Ungadulu's Holy Force is the route the quest is built around, and it
-  costs a full climb back up the trials and down again — which the module has to be able to
+  costs a full climb back up the trials and down again, which the module has to be able to
   do anyway, since the sacred water has to come home the same way.
 - **A bank the map claims is not a bank the content built.** Shilo Village carries a bank
-  icon and a `BANK_LOCATIONS` entry, and has neither a booth nor a banker — so
+  icon and a `BANK_LOCATIONS` entry, and has neither a booth nor a banker, so
   `reachableBank`, which picks by walking cost, chose it from Karamja and the buy step sat
   at the icon answering "no 'Bank booth' in the scene" until the run was killed. A `buy`
   step now carries the booth its module named rather than letting the walk decide.
@@ -61,7 +61,7 @@ engine facts rather than quest ones. Fifteen more came out of the runs themselve
   a constant, and the gems and runes are consumed on the way in, which is what makes room
   for the Book of Binding on the way out.
 - **Chopping into the jungle boils the golden bowl dry.** `jungle_tree` empties every
-  filled state of the bowl — plain, pure, blessed, blessed-pure — before it looks at the
+  filled state of the bowl, plain, pure, blessed or blessed-pure, before it looks at the
   tree, and the only way back into the Kharazi Jungle is a chop. So the bank and both
   counters have to be visited *before* the pool rather than after it, and a run that ends
   up on the mainland holding water has already lost it. The module's last errand off the
@@ -69,7 +69,7 @@ engine facts rather than quest ones. Fifteen more came out of the runs themselve
 - **A kit that has been spent is not a kit that is missing.** The seven gems, the five wall
   runes, the lockpick and the orb are all consumed by the descent, so the checklist that
   bought them reads as "nothing in the pack, nothing in the bank" the moment the Book of
-  Binding lands — and sends the run back out of the caves for things no shop stocks. The
+  Binding lands, and sends the run back out of the caves for things no shop stocks. The
   one-time kit is asked for only while the book is still missing; the orb and its cast are
   a separate kit, because the magic gate eats one every time it is crossed downwards.
 - **Opening the Book of Binding drains nine tenths of your prayer.** `stat_sub(prayer, 0, 90)`
@@ -82,10 +82,10 @@ engine facts rather than quest ones. Fifteen more came out of the runs themselve
   whoever picked it, the three boulders drop back down behind whoever mined them, and the
   magic gate shatters the orb as it lets you through. Only the marked wall stays solved. So
   the lockpick, the pickaxe, the orb and its cast are a per-descent kit rather than a
-  one-time one — and asking for them from *below* the gate reads as "no orb" and turns a
+  one-time one, and asking for them from *below* the gate reads as "no orb" and turns a
   finished descent straight back round.
 - **The spirit's only polite goodbye deletes him.** Pushing the source boulder opens a
-  conversation, and "I have to be going..." ends in `npc_del` — so a leg that answers
+  conversation, and "I have to be going..." ends in `npc_del`, so a leg that answers
   politely and then reaches for the Holy Force finds nobody to cast it at. The rude
   answers, "I don't have the dagger." and "I haven't slayed Viyeldi yet.", close the chat
   and leave him standing. He spawns within three tiles of whoever pushed the boulder, so

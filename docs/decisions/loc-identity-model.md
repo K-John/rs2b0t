@@ -25,7 +25,7 @@ produce the change, the adapter sees the result.
 This client's `LocType` format has no varp/varbit transform table, so multi-state locs
 in this revision are explicit scene replacements, not the multiloc mechanism. If a later
 cache revision adds transforms, resolve them in the client/config layer and export the
-result — scripts must not decode cache transforms themselves, and `rawId` and
+result, scripts must not decode cache transforms themselves, and `rawId` and
 `effectiveId` would then be separate fields rather than a changed meaning for `id`.
 
 ## See also

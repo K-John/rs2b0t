@@ -28,8 +28,8 @@ interface Wanted {
     mould: boolean;
 }
 
-// Why: the professor only ever accepts the item his current stage names, so the hand-overs cannot be batched — but the errands can, and each one is opened as soon as its stage is in reach rather than when it is due.
-// Why: the order below is the map rather than the quest — sand by the reception, the pickaxe and the seam south-east, the planks and the seaweed north, then one furnace visit that smelts both bars on the way home.
+// Why: the professor only ever accepts the item his current stage names, so the hand-overs cannot be batched, but the errands can, and each one is opened as soon as its stage is in reach rather than when it is due.
+// Why: the order below is the map rather than the quest, sand by the reception, the pickaxe and the seam south-east, the planks and the seaweed north, then one furnace visit that smelts both bars on the way home.
 // Why: ordering it by the quest instead walks the length of the map three times, as the planks and the seaweed are two hundred tiles apart and everything else is south of both.
 
 /** The next errand this loop owes, or null when the pack is ready for the professor. */
@@ -119,7 +119,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     return talkProfessor;
 }
 
-// Why: the server gates nothing here — `craft_telescope_disc` has no level check — but the quest is listed at Crafting 10 and an account short of it is short of the rest of the trip too.
+// Why: the server gates nothing here, `craft_telescope_disc` has no level check, but the quest is listed at Crafting 10 and an account short of it is short of the rest of the trip too.
 const OBS_PROVEN_SKILLS = { crafting: 10, mining: 1, smithing: 1, cooking: 1 } as const;
 
 export function warnObservatoryReadiness(): string | null {

@@ -16,7 +16,7 @@ import { QuestFood } from '../../food.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 
 // Why: of the seven things on Dragon Slayer's shopping list, four are bought outright.
-// Why: the other three are sold nowhere in free-to-play — planks only lie on the ground, and the nearest pile outside Crandor (useless before the ship sails) is the Graveyard of Shadows.
+// Why: the other three are sold nowhere in free-to-play, planks only lie on the ground, and the nearest pile outside Crandor (useless before the ship sails) is the Graveyard of Shadows.
 // Why: nails are two to a steel bar at an anvil, and an unfired bowl is clay, water and a potter's wheel.
 
 export const SUPPLY = {
@@ -35,7 +35,7 @@ export const SUPPLY = {
 const SUPPLY_LOC = {
     FOUNTAIN: new Tile(2949, 3381, 0),
     // Why: clay comes from the Varrock mine, which is on the shopping sweep beside Thessalia, and iron and coal come from the Dwarven Mine.
-    // Why: those two anchors sit in the mine's dense southern seams — five iron and thirteen coal inside one radius — as the three-rock outcrop by the ladder cannot keep up with six bars' worth and leaves the leg waiting on respawns.
+    // Why: those two anchors sit in the mine's dense southern seams, five iron and thirteen coal inside one radius, as the three-rock outcrop by the ladder cannot keep up with six bars' worth and leaves the leg waiting on respawns.
     CLAY_ROCKS: new Tile(3181, 3373, 0),
     IRON_ROCKS: new Tile(3040, 9773, 0),
     COAL_ROCKS: new Tile(3042, 9760, 0),
@@ -114,7 +114,7 @@ async function buyMindBomb(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => Inventory.count("Wizard's mind bomb") > before, 5000);
 }
 
-// Why: this is a swing budget rather than a rock budget — the caller re-enters once per engine tick, so a timeout here throws away the current swing and starts another.
+// Why: this is a swing budget rather than a rock budget, the caller re-enters once per engine tick, so a timeout here throws away the current swing and starts another.
 // Why: it logs loudly when it fires, as a timeout shorter than the ore takes is an infinite loop that mines nothing and looks identical to a slow rock.
 const MINE_TIMEOUT_MS = 20_000;
 
@@ -127,7 +127,7 @@ async function mineFor(rockIds: readonly number[], item: string, want: number, a
         log('no pickaxe in the pack');
         return false;
     }
-    // Why: a full pack does not refuse the Mine — the rock never yields, which reads like a rock that is out of ore.
+    // Why: a full pack does not refuse the Mine, the rock never yields, which reads like a rock that is out of ore.
     if (Inventory.isFull()) {
         log(`pack is full — no room for ${item}`);
         return false;
@@ -208,7 +208,7 @@ async function ensurePickaxe(log: (m: string) => void): Promise<boolean> {
         await sceneLoaded();
         return false;
     }
-    // Every spawn was bare — they respawn, but Nurmof always has one.
+    // Every spawn was bare, they respawn, but Nurmof always has one.
     log('no pickaxe on the ground anywhere — buying one from Nurmof');
     if (!(await ensureCoins(200, log)) || !(await walk(SUPPLY.NURMOF.anchor, log, 2))) {
         return false;
@@ -241,7 +241,7 @@ async function makeUnfiredBowl(log: (m: string) => void): Promise<boolean> {
         if (!(await clay.useOn(wheel))) {
             return false;
         }
-        // skill_multi3 is if_openchat — a chat make menu, not the main skill
+        // skill_multi3 is if_openchat. A chat make menu, not the main skill
         // panel the anvil puts up. They are different interfaces entirely.
         if (!(await Execution.delayUntil(() => ChatDialog.isMakeMenu(), 6000))) {
             log('the wheel did not offer anything to make');
@@ -309,14 +309,14 @@ export async function smithNails(need: number, log: (m: string) => void): Promis
     }
     const bars = Math.ceil(need / 2);
     const ore = (): number => Inventory.count(SUPPLY_ITEM.IRON_ORE);
-    // Why: three of these earn their slot by what banking them would cost — the maze key is what decide() reads as "the briefing never happened", the map is what Ned is waiting for, and the shield cannot be fetched back once the ship has sailed.
+    // Why: three of these earn their slot by what banking them would cost, the maze key is what decide() reads as "the briefing never happened", the map is what Ned is waiting for, and the shield cannot be fetched back once the ship has sailed.
     const KEEP = ['coins', 'pickaxe', 'hammer', 'maze key', 'crandor map', 'map part', 'dragonfire shield',
         'iron ore', 'coal', 'steel bar', 'nails',
         'shark', 'lobster', 'swordfish', 'tuna', 'salmon', 'trout'];
     const coal = (): number => Inventory.count(SUPPLY_ITEM.COAL);
     const steel = (): number => Inventory.count(SUPPLY_ITEM.STEEL_BAR);
 
-    // Why: mining, then smelting the load, then hammering the load is the order that works; reversed, the leg smelts one bar, walks to the anvil for two nails, and walks back — six round trips across half of Asgarnia.
+    // Why: mining, then smelting the load, then hammering the load is the order that works; reversed, the leg smelts one bar, walks to the anvil for two nails, and walks back, six round trips across half of Asgarnia.
     if (steel() === 0 && (ore() < bars || coal() < bars * 2)) {
         // Why: six bars is eighteen slots of ore, and the rest of the quest's shopping is already bought by now, so it goes in the bank to make room and comes back out when the ship needs it.
         if (Inventory.items().some(i => i.name !== null && !KEEP.some(k => i.name!.toLowerCase().includes(k)))) {
@@ -347,7 +347,7 @@ export async function smithNails(need: number, log: (m: string) => void): Promis
             return false;
         }
         // Why: the furnace's own Smelt op is the one that opens the quantity panel.
-        // Why: an ore used on the furnace takes the oplocu branch instead, smelt_ore_single — one bar, no menu, and another walk in for the next.
+        // Why: an ore used on the furnace takes the oplocu branch instead, smelt_ore_single, one bar, no menu, and another walk in for the next.
         const smelter = Locs.query().name('Furnace').action('Smelt').within(5).nearest();
         const furnace = smelter ?? Locs.query().name('Furnace').within(5).nearest();
         if (!furnace) {
@@ -464,7 +464,7 @@ const SHOPPING_KEEP: readonly string[] = [
     'unfired bowl', 'silk', 'plank', 'jug', 'clay'
 ];
 
-// Why: a purchase into a full pack is not refused — `inv_add` drops the overflow at the player's feet and the coins are already gone.
+// Why: a purchase into a full pack is not refused, `inv_add` drops the overflow at the player's feet and the coins are already gone.
 // Why: the leg's own "did it arrive in the pack" check can then never pass, which is an unbounded loop that pays for a new item every lap.
 // Why: every acquisition here goes through this.
 

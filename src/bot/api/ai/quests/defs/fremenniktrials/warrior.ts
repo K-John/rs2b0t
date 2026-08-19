@@ -14,7 +14,7 @@ import { prayerUpkeep } from '../../prayer.js';
 
 const KOSCHEI = 'Koschei the deathless';
 
-// Why: Thorvald's test is bravery, not victory — `viking_honour_death` passes the trial on the blow that would have killed you.
+// Why: Thorvald's test is bravery, not victory, `viking_honour_death` passes the trial on the blow that would have killed you.
 // Why: Koschei's fourth form has 255 hitpoints and 255 defence against a strength of 5, so dying to him is the only outcome the fight has.
 
 /** Thorvald's trial: fight Koschei bare-handed until he wins. */
@@ -35,7 +35,7 @@ export function warriorStep(snap: QuestSnapshot): QuestStep | null {
     return { kind: 'custom', name: "climb down to Thorvald's battleground", run: enterBattleground };
 }
 
-// Why: the honourable death drops the character on Thorvald's loft, which the walker has no baked edge off — every route out reads unreachable until this ladder is climbed.
+// Why: the honourable death drops the character on Thorvald's loft, which the walker has no baked edge off, every route out reads unreachable until this ladder is climbed.
 
 /** Where `viking_honour_death` teleports the character, and the only exit that means the trial passed. */
 function onLoft(here: { x: number; z: number; level: number } | null | undefined): boolean {
@@ -68,9 +68,9 @@ const FIGHT_GUARD = 3000;
 const PROTECT_MELEE = 'protect from melee';
 export const PROTECT_MELEE_LEVEL = 43;
 
-// Why: only the fourth form is wired to `viking_honour_death` — the first three kill an unarmed character outright, and at 70 stats they did.
+// Why: only the fourth form is wired to `viking_honour_death`, the first three kill an unarmed character outright, and at 70 stats they did.
 // Why: Protect from Melee is what carries those three, and it does not cost the trial: `playerhit_n_melee_viking` zeroes the damage while it holds, so the exact-lethal blow lands once prayer has drained on the form that cannot kill you any other way.
-// Why: the shared `fight` helper is the wrong loop for the second half — it spends every damaged tick calling `Sustain` for food this trial forbids carrying, and stops swinging while it does.
+// Why: the shared `fight` helper is the wrong loop for the second half, it spends every damaged tick calling `Sustain` for food this trial forbids carrying, and stops swinging while it does.
 
 /** Beat Koschei's first three forms under prayer, then let the fourth win. */
 async function fightKoschei(log: (m: string) => void): Promise<boolean> {

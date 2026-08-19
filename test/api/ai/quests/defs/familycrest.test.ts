@@ -446,7 +446,7 @@ describe('Family Crest endgame', () => {
     ];
 
     test('the teleport kit does not count as a fighting rune stock', () => {
-        // The kit carries 30 fire — one cast of Fire Blast is 5, so the old
+        // The kit carries 30 fire, one cast of Fire Blast is 5, so the old
         // one-cast floor was satisfied and the fight went in unable to finish.
         const step = decide(snap({
             stage: FC_STAGE.CURED_JOHNATHON,
@@ -544,7 +544,7 @@ describe('Family Crest endgame', () => {
     });
 
     test('at stage 8 exactly it goes to Johnathon rather than asking Avan', () => {
-        // `crest_avan_piece` routes to `avan_where` — pure chat, no lost-fragment
+        // `crest_avan_piece` routes to `avan_where`, pure chat, no lost-fragment
         // branch. That only exists from stage 9, so asking here parks forever.
         expect(talkTarget(decide(snap({
             stage: FC_STAGE.AVAN_PIECE,
@@ -578,7 +578,7 @@ describe('Family Crest teleport kit', () => {
         [FC_ID.FIRE_RUNE, 500], [FC_ID.WATER_RUNE, 500]];
 
     test('nothing is fetched while nav teleports are off', () => {
-        // The Global defaults off, and the nav layer reads the same setting —
+        // The Global defaults off, and the nav layer reads the same setting,
         // fetching a kit it will never plan a hop with is a wasted bank trip.
         expect(teleportKitTopUp(snap({ stage: FC_STAGE.SPOKEN_DIMINTHEIS, bankIds: banked }))).toBeNull();
     });
@@ -597,7 +597,7 @@ describe('Family Crest teleport kit', () => {
     });
 
     test('spell runes are bought from Aubury when the bank has none', () => {
-        // Why: only law has to be banked — Aubury stocks the rest, twenty tiles from the booth this trip already visits.
+        // Why: only law has to be banked, Aubury stocks the rest, twenty tiles from the booth this trip already visits.
         const step = teleportKitPlan(snap({
             stage: FC_STAGE.SPOKEN_DIMINTHEIS,
             invIds: [[FC_ID.LAW_RUNE, 30]],
@@ -659,7 +659,7 @@ describe('Family Crest module wiring', () => {
 
     test('the safespot is the south end, out of the poison spiders roam', () => {
         // Two tiles clear of the demon's body, and eleven-plus from spider
-        // spawns that wander ten — the east alcove sits three inside it.
+        // spawns that wander ten, the east alcove sits three inside it.
         expect({ x: SAFESPOT.x, z: SAFESPOT.z, level: SAFESPOT.level })
             .toEqual({ x: 3089, z: 9932, level: 0 });
     });

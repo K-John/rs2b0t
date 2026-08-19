@@ -35,7 +35,7 @@ function hungry(): boolean {
     return max > 0 && Skills.effective('hitpoints') <= max - EAT_AT_MISSING;
 }
 
-// Why: `Sustain.run()` returns nothing whether it ate or found an empty pack, so a fight loop that yields to it on hunger alone spins out its guard doing nothing once the food is gone — which is how the first end-to-end run stood in front of the Fire Warrior for three minutes at 30 hitpoints.
+// Why: `Sustain.run()` returns nothing whether it ate or found an empty pack, so a fight loop that yields to it on hunger alone spins out its guard doing nothing once the food is gone, which is how the first end-to-end run stood in front of the Fire Warrior for three minutes at 30 hitpoints.
 function canEat(): boolean {
     return IKOV_FOODS.some(food => Inventory.contains(food));
 }
@@ -52,8 +52,8 @@ function wornArrows(): number {
         .reduce((sum, i) => sum + i.count, 0);
 }
 
-// Why: a sweep drops the recovered arrows into the pack, and one stack size is one obj id — so nocking is a separate act from holding them, and the count that decides whether a shot can go out is the quiver's.
-// Why: `iceArrowsHeld` adds the two together, which is the right question for "is the leg finished" and the wrong one for "can a shot go out" — reading it here left a pack full of swept arrows looking like a loaded bow.
+// Why: a sweep drops the recovered arrows into the pack, and one stack size is one obj id, so nocking is a separate act from holding them, and the count that decides whether a shot can go out is the quiver's.
+// Why: `iceArrowsHeld` adds the two together, which is the right question for "is the leg finished" and the wrong one for "can a shot go out", reading it here left a pack full of swept arrows looking like a loaded bow.
 
 /** What a fight should do next, given what is nocked and what is packed. */
 export type ArrowAction = 'shoot' | 'nock' | 'sweep' | 'spent';
@@ -146,7 +146,7 @@ function warrior(): Npc | null {
     return Npcs.query().where(n => n.id === IKOV_NPC.FIRE_WARRIOR).action('Attack').within(15).nearest();
 }
 
-// Why: opening the door below the stage does not open it — it summons the warrior on the near side and blasts you back a tile.
+// Why: opening the door below the stage does not open it, it summons the warrior on the near side and blasts you back a tile.
 async function summonWarrior(log: (m: string) => void): Promise<boolean> {
     if (warrior()) {
         return true;
@@ -266,7 +266,7 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
                 log(`ikov: the Fire Warrior is down after ${swings} shots`);
                 await drainDialogue();
                 await pickUpArrows(log);
-                // Why: the sweep leaves the recovered arrows in the pack, and the next leg reads the quiver — so what was picked up is nocked before the bow comes off.
+                // Why: the sweep leaves the recovered arrows in the pack, and the next leg reads the quiver, so what was picked up is nocked before the bow comes off.
                 await nockArrows();
                 await stowSpentBow(log);
                 return true;
@@ -281,7 +281,7 @@ export async function fightFireWarrior(log: (m: string) => void): Promise<boolea
         }
         missing = 0;
         // Why: 80% of every shot lands on the floor, so an empty quiver mid-fight is a sweep rather than a loss.
-        // Why: the quiver is the only count that matters here — `iceArrowsHeld` adds the pack, so a sweep that filled the pack read as armed and every Attack after it answered "There is no ammo left in your quiver" for the rest of the guard.
+        // Why: the quiver is the only count that matters here, `iceArrowsHeld` adds the pack, so a sweep that filled the pack read as armed and every Attack after it answered "There is no ammo left in your quiver" for the rest of the guard.
         const next = arrowAction(wornArrows(), Inventory.count(IKOV_NAME.ICE_ARROWS), !swept);
         if (next !== 'shoot') {
             if (next === 'spent') {

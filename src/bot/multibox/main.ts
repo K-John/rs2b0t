@@ -350,7 +350,7 @@ function boot(): void {
     }
 
     // Bind live status (name + running dot) onto the rail tiles, which DomSlotOps keeps in slot order, so snapshot[i] is tile[i].
-    // Why: tabs filter by visibility only — hidden tiles stay in the DOM, keeping that mapping intact.
+    // Why: tabs filter by visibility only, hidden tiles stay in the DOM, keeping that mapping intact.
     function renderRail(): void {
         tabBar.render(controller.tabs(), controller.activeTab());
         const snaps = controller.snapshot();

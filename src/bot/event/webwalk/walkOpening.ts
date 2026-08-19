@@ -35,7 +35,7 @@ export async function walkOpening(dest: Tile, radius: number, obstacles: string[
         if (here && dest.distanceTo(here) <= radius) {
             return true;
         }
-        // 90s per segment — 15s was too short for long bank legs (Rimmington→Fally).
+        // 90s per segment, 15s was too short for long bank legs (Rimmington→Fally).
         await Traversal.walkTo(dest, { radius, timeoutMs: 90_000, log: m => log?.(`  ${m}`) });
         const after = Game.tile();
         if (after && dest.distanceTo(after) <= radius) {
@@ -43,7 +43,7 @@ export async function walkOpening(dest: Tile, radius: number, obstacles: string[
         }
 
         // Why: barriers that still look toward the destination are preferred, so doors behind the player are not opened.
-        // Why: when none match — the Seers Sinclair Large door sits off the toward vector when stuck at the house Door — any openable obstacle in range is used instead, avoiding a soft-lock.
+        // Why: when none match, the Seers Sinclair Large door sits off the toward vector when stuck at the house Door, any openable obstacle in range is used instead, avoiding a soft-lock.
         // Why: `EntityQuery.where` mutates, so two independent chains are built.
         const openableInRange = (l: { name: string | null; actions: () => string[]; distance: () => number; tile: () => WorldTile }) =>
             isOpenableObstacle(l.name, l.actions(), obstacles)

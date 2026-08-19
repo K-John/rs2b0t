@@ -48,7 +48,7 @@ export function resolveBuildIdentity(now: () => Date = () => new Date()): BuildI
     }
 }
 
-/** Bun `define` map — string values become compile-time literals. */
+/** Bun `define` map, string values become compile-time literals. */
 export function buildIdentityDefines(identity: BuildIdentity): Record<string, string> {
     return {
         'process.env.BUILD_TIME': JSON.stringify(identity.builtAt),

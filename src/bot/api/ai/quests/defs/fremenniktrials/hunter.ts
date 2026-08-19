@@ -26,7 +26,7 @@ const DIRECTION: Record<string, { dx: number; dz: number }> = {
 /** Locates per hunt before the step gives the tick budget back. */
 const LOCATES = 20;
 
-// Why: `draugen_locate` compares the two coordinates axis by axis, so each bearing is the sign of dx and the sign of dz — two independent bisections, not one compass stride.
+// Why: `draugen_locate` compares the two coordinates axis by axis, so each bearing is the sign of dx and the sign of dz, two independent bisections, not one compass stride.
 // Why: `spawn_draugen_butterfly` rolls (2688,3572), (2720,3616), (2656,3616) or (2720,3680), each scattered up to twenty tiles by `map_findsquare`, and this box is their union.
 
 interface Box {
@@ -42,7 +42,7 @@ const ANCHORS: Box = { xlo: 2600, xhi: 2760, zlo: 3540, zhi: 3720 };
 /** Where an aim lands close enough that another walk tells the search nothing. */
 const SETTLED = 2;
 
-// Why: `viking_draugen_safe` is an npc and wanders, so a box that has closed on where it was reads as a contradiction — reopening around the character keeps the evidence, reopening wide is what finds it after a long drift.
+// Why: `viking_draugen_safe` is an npc and wanders, so a box that has closed on where it was reads as a contradiction, reopening around the character keeps the evidence, reopening wide is what finds it after a long drift.
 const LOCAL = 12;
 
 /** Sigli's trial: track the invisible Draugen with his talisman, then kill it. */

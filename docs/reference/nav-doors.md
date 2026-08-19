@@ -6,7 +6,7 @@ A door is a path edge whose two tiles are not otherwise connected. Crossing one 
 three separate problems, and conflating them is the classic bug:
 
 - **Opening is not crossing.** The leaf animating open does not mean the player moved
-  through it. The executor verifies the crossing itself — `isOnFarSide` compares
+  through it. The executor verifies the crossing itself, `isOnFarSide` compares
   distances to the near and far tiles rather than trusting the door's state.
 - **Arrival at a door is wall-aware.** Plain Chebyshev distance says the tile on the
   other side of a wall is adjacent. `crossingEligible` requires the landing to be
@@ -16,18 +16,18 @@ three separate problems, and conflating them is the classic bug:
   clicking the landing tile, or clicking it in the scene.
 
 Doors that are scripted to refuse entry from one side are **never** baked as
-bidirectional — a one-way door baked both ways lures paths into dead ends. Double
+bidirectional, a one-way door baked both ways lures paths into dead ends. Double
 doors are opened from the **exterior** stand; standing on a leaf wedges the crossing.
 
 **Already open:** if the hop's Open-target is gone and a Close leaf is nearby (or
-passage is free), the walker **skips Open waits** and continues — no multi-second
+passage is free), the walker **skips Open waits** and continues, no multi-second
 pause re-opening doors already swung open earlier on the route.
 
 A door that refuses from *both* sides is not a door at all, and `derive-doors` skips
 the type outright. `Open` in a loc's ops says nothing about whether the script honours
 it: McGrubor's Wood's front gate is locked from inside the wood and guarded by the
 Forester from outside, so the only way through the fence is the Loose Railing one
-`Squeeze-through` edge away — curated, because "Squeeze-through" is not an `Open`.
+`Squeeze-through` edge away, curated, because "Squeeze-through" is not an `Open`.
 
 ## Special crossings
 
@@ -46,7 +46,7 @@ and `pickChoice` matches a dialogue option case-insensitively by substring so sm
 wording differences do not break a route.
 
 Some barriers need a **permanent quest unlock** rather than a one-shot dialog at the
-gate. Mort Myre’s Ulizius gate is a hard mesbox while Nature Spirit is not started;
+gate. Mort Myre's Ulizius gate is a hard mesbox while Nature Spirit is not started;
 once started the gate opens with no dialog. Those crossings carry `unlockQuest`: if
 the quest is red, the executor walks to the NPC (`Drezel` in the Paterdomus mausoleum
 after Priest in Peril), drives the start dialogue, returns to the gate, then opens it.
@@ -64,17 +64,17 @@ A crossing can also gate on a **skill**, which is how Agility shortcuts are mode
   label: 'Coal trucks log balance' }
 ```
 
-`meetsSkill` checks it in the same two places `meetsRequirement` is checked — pruning
+`meetsSkill` checks it in the same two places `meetsRequirement` is checked, pruning
 in `resetAvoids`, refusing in `handleSpecialCrossing`. Pruning is the important half:
 without it a sub-20 account paths at a log it can never walk and wedges there, instead
 of taking the long way round. The coal trucks log cuts mine→Seers from cost 263 to
-156, and prunes back to 263 — still reachable — below the gate.
+156, and prunes back to 263, still reachable, below the gate.
 
 Note these entries are keyed at the edge's **`from` tile**, not the loc's own tile,
 because `PathFinder` records `transport.locX/locZ` as the edge origin. A two-way
 shortcut therefore needs two entries, one per direction.
 
-Ship crossings carry a `toTile`, because they teleport rather than step — the
+Ship crossings carry a `toTile`, because they teleport rather than step, the
 executor waits to land near that tile instead of watching for an adjacent move. A
 crossing the bot cannot afford should be avoided **during planning**; discovering it
 at the gate wastes the walk.

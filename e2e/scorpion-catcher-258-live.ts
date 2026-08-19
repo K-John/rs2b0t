@@ -1,6 +1,6 @@
 /** Live Scorpion Catcher harness (#258): --stage N --until N --minutes N, base :8890.
- *  Why: `--stage` seeds a cage obj rather than a counter — which scorpions are inside is the quest's state, and the varp carries only the seer's hints.
- *  Why: `--skip-barcrawl`, `--order` and `--antipoison` exist so the Taverley and monastery legs can be timed on their own — a cold run pays for the ten-bar crawl and a Musa Point ferry before it ever sees a scorpion. */
+ *  Why: `--stage` seeds a cage obj rather than a counter, which scorpions are inside is the quest's state, and the varp carries only the seer's hints.
+ *  Why: `--skip-barcrawl`, `--order` and `--antipoison` exist so the Taverley and monastery legs can be timed on their own. A cold run pays for the ten-bar crawl and a Musa Point ferry before it ever sees a scorpion. */
 
 //   HEADED=1 bun e2e/scorpion-catcher-258-live.ts --stage 0 --until 4 --minutes 180 --tick 200
 //   HEADED=1 bun e2e/scorpion-catcher-258-live.ts --stage 3 --until 2 --minutes 45 --tick 200
@@ -85,7 +85,7 @@ function fail(msg: string): never {
 const QUEST = 'Scorpion Catcher';
 const FALADOR_WEST_BANK = { x: 2946, z: 3369, level: 0 };
 
-/** Coins and food only — the cage comes from Thormac and both keys are earned in the dungeon. */
+/** Coins and food only. The cage comes from Thormac and both keys are earned in the dungeon. */
 const BANK_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
     { debugName: 'lobster', displayName: 'Lobster', qty: 60 }
@@ -154,7 +154,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph compiles into navworker.js, a separate entrypoint, deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {
@@ -216,7 +216,7 @@ try {
     if (args.dusty) {
         bankSeed.push({ debugName: 'dusty_key', displayName: 'Dusty key', qty: 1 });
     }
-    // Why: the Taverley leg buys its own antipoison in Musa Point, which is a ferry each way — a seeded dose keeps that off the clock when the leg itself is what is being timed.
+    // Why: the Taverley leg buys its own antipoison in Musa Point, which is a ferry each way, a seeded dose keeps that off the clock when the leg itself is what is being timed.
     if (args.antipoison) {
         bankSeed.push({ debugName: '3doseantipoison', displayName: 'Antipoison(3)', qty: 1 });
     }
@@ -263,7 +263,7 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without Scorpion Catcher in it spends the budget on somebody else's quest.
+        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch, and a queue without Scorpion Catcher in it spends the budget on somebody else's quest.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;

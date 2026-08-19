@@ -176,7 +176,7 @@ function anchor(): Tile {
     return usesSafespot() ? activeSafespot() : MELEE_TILE;
 }
 // Why: the forward spot trades safety for a second giant in view, so taking a hit there is expected rather than a fault.
-// Why: damage is the trigger — a giant walking past is harmless, and only a connecting hit means the tile has failed.
+// Why: damage is the trigger, a giant walking past is harmless, and only a connecting hit means the tile has failed.
 
 /** True when the forward safespot tier has to be given up. */
 function checkRetreat(bot: FireGiant): boolean {
@@ -283,7 +283,7 @@ async function eatOnce(bot: FireGiant): Promise<boolean> {
 async function quickReturnToSafespot(bot: FireGiant): Promise<boolean> {
     bot.setStatus('returning to the safespot');
     // a tier switch is a one-tile hop, so a long per-attempt window adds
-    // latency while something is hitting us — retry sooner instead
+    // latency while something is hitting us, retry sooner instead
     for (let i = 0; i < 4 && !atSafespot() && !EventSignal.pending(); i++) {
         DirectNavigator.walk(activeSafespot());
         if (await Execution.delayUntil(() => atSafespot(), 2000)) {
@@ -306,7 +306,7 @@ async function lootOnce(bot: FireGiant): Promise<boolean> {
     if (!(await drop.interact('Take'))) {
         return false;
     }
-    // Why: a stackable drop merges into an existing slot, so used() alone never moves for coins, runes or arrows — the bulk of this table — and each would burn the full timeout and report failure.
+    // Why: a stackable drop merges into an existing slot, so used() alone never moves for coins, runes or arrows, the bulk of this table, and each would burn the full timeout and report failure.
     const took = await Execution.delayUntil(
         () => Inventory.used() > usedBefore || Inventory.count(name) > countBefore,
         lootWaitMs(drop.distance())
@@ -690,7 +690,7 @@ async function withdrawStyleSupplies(bot: FireGiant): Promise<void> {
     if (STYLE === 'mage') {
         bot.setStatus('withdrawing runes');
         // Why: fire giants drop chaos runes, so looted runes let the trip outrun its cast budget and the spell fires until the scarcest rune runs dry.
-        // Why: when that rune is also the escape teleport's — Camelot burns air, as does most of the standard book — the bot ends up unable to leave.
+        // Why: when that rune is also the escape teleport's, as Camelot burns air like most of the standard book, the bot ends up unable to leave.
         // Why: runes stack, so a spare few hundred costs one slot.
         for (const { rune, count } of runeWithdrawList(SPELL, wieldedNames(), RUNES_WITHDRAW)) {
             const target = count + RUNE_BUFFER;

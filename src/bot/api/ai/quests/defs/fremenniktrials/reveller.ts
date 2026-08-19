@@ -14,7 +14,7 @@ const CONTEST_WON = /completed the Revellers' trial/i;
 
 const holding = (id: number): boolean => Inventory.countById(id) > 0;
 
-// Why: the contest is unwinnable straight — `viking_reveller_drinkcontest` only concedes when the `keg_lowalc` bit is set.
+// Why: the contest is unwinnable straight, `viking_reveller_drinkcontest` only concedes when the `keg_lowalc` bit is set.
 // Why: that bit is only set by swapping the kegs, and the swap is refused while Manni can see you, so the firecracker in the drain pipe is not optional.
 
 /** Manni's drinking contest: swap the keg for Peter Potter's alcohol-free brew behind a firecracker, then drink. */
@@ -37,7 +37,7 @@ export function revellerStep(snap: QuestSnapshot): QuestStep | null {
             ?? { kind: 'custom', name: 'buy a low alcohol keg (250gp)', run: buyLowAlcoholKeg };
     }
 
-    // Why: this order is the road — the keg and the beer are both bought in the Forester's Arms, then Catherby, then the workman on the bridge north of it, then Rellekka.
+    // Why: this order is the road, the keg and the beer are both bought in the Forester's Arms, then Catherby, then the workman on the bridge north of it, then Rellekka.
     const cracker = heldId(snap, FT_ID.FIRECRACKER) > 0 || heldId(snap, FT_ID.FIRECRACKER_LIT) > 0;
     if (!cracker && !snap.inv.has('beer')) {
         return gatherCoins(snap, BEER_PRICE)
@@ -68,7 +68,7 @@ function buyLowAlcoholKeg(log: (m: string) => void): Promise<boolean> {
     );
 }
 
-// Why: the Forester's Arms bartender is a dialogue, not a shop — `Shop.open` finds no Trade op on him.
+// Why: the Forester's Arms bartender is a dialogue, not a shop, `Shop.open` finds no Trade op on him.
 function buyBeer(log: (m: string) => void): Promise<boolean> {
     return talkUntil('Bartender', FT_TILE.FORESTERS_ARMS, ['Beer please.'], () => Inventory.count('Beer') > 0, log);
 }

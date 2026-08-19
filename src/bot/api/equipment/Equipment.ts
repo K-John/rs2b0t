@@ -23,7 +23,7 @@ export const Equipment = {
             return true;
         }
 
-        // Bank side-view swaps backpack ops to Deposit-* — close first so Wield is present.
+        // Bank side-view swaps backpack ops to Deposit-*, close first so Wield is present.
         if (Bank.isOpen()) {
             if (!(await Bank.close())) {
                 return false;

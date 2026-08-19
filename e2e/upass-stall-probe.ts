@@ -20,7 +20,7 @@ interface Args {
     tickMs: number;
     control: boolean;
     deploy: boolean;
-    /** Zero the grid digits so the trap can never fire — isolates a movement freeze from a trap fall. */
+    /** Zero the grid digits so the trap can never fire, isolates a movement freeze from a trap fall. */
     noTrap: boolean;
     from: { x: number; z: number; level: number };
 }
@@ -126,7 +126,7 @@ async function stalledCross(page: Page): Promise<boolean> {
     });
 }
 
-/** Same tiles, no modal — the control. */
+/** Same tiles, no modal, the control. */
 async function bareCross(page: Page): Promise<void> {
     await page.evaluate(async path => {
         const g = globalThis as never as {
@@ -242,7 +242,7 @@ try {
     if (!west) {
         fail(`the stalled walk did not reach the west side of the grid — ended at (${after.pos?.x},${after.pos?.z})`);
     }
-    // Why: a lost race costs one fall and one retry, so hp is reported rather than asserted — the control
+    // Why: a lost race costs one fall and one retry, so hp is reported rather than asserted, the control
     // above is what proves the trap is armed, and reaching the west side is what proves the stall carried it.
     const cost = before.hp - after.hp;
     console.log(cost > 0 ? `crossed after a lost race (${cost} hp)` : 'crossed on the first attempt, untouched');

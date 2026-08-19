@@ -22,7 +22,7 @@ const GUILDMASTER: NpcStop = {
     npc: 'Guild master', anchor: DS_NPC.GUILDMASTER, leash: 8,
     prefer: ['Do you know where I could get a Rune Plate mail body?']
 };
-/** Only the walk — the goal loop below decides what he is asked. */
+/** Only the walk, the goal loop below decides what he is asked. */
 const OZIACH: NpcStop = { npc: 'Oziach', anchor: DS_NPC.OZIACH, leash: 6, prefer: [] };
 
 const DUKE: NpcStop = {
@@ -52,7 +52,7 @@ const NED_ABOARD: NpcStop = {
 
 const ORACLE_DOOR_ITEMS = [DS_ID.MIND_BOMB, DS_ID.UNFIRED_BOWL, DS_ID.LOBSTER_POT, DS_ID.SILK];
 
-// Why: four branches move this quest on, each differently, at `oziach.rs2` lines 100/107/124/131/138 — the rune-plate chain sets %dragonquest = spoken_to_oziach, the first piece hands over melzarkey, the second sets %dragon_oracle, the third sets %dragon_goblin, and the antidragon shield sets %dragon_shield.
+// Why: four branches move this quest on, each differently, at `oziach.rs2` lines 100/107/124/131/138, the rune-plate chain sets %dragonquest = spoken_to_oziach, the first piece hands over melzarkey, the second sets %dragon_oracle, the third sets %dragon_goblin, and the antidragon shield sets %dragon_shield.
 // Why: none of those varps are readable from the client, and the quest journal that reflects them cannot be read while a dialogue is open.
 // Why: the goals are judged on what he says, which is distinctive per branch and arrives in the same tick as the varp.
 // Why: tracking which options were clicked instead looped, as his menus re-offer questions already answered and the first and second map piece trade places forever.
@@ -205,7 +205,7 @@ async function openOracleMagicDoor(log: (m: string) => void, wantEast: boolean):
 async function oracleChest(log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
     const pastDoor = here !== null && here.z >= 9800 && here.x >= 3051;
-    // #379: after the piece is looted, the room has no nav edge out — open the
+    // #379: after the piece is looted, the room has no nav edge out, open the
     // door west and only then return true so coinsShort/bank can run.
     if (heldById(DS_ID.MAP_ORACLE)) {
         if (pastDoor) {
@@ -345,8 +345,8 @@ const aboard = (t: { x: number; z: number; level: number } | null | undefined): 
     onDeck(t) || inShipHold(t);
 
 /**
- * The ship is not on the navigation graph — its gangplank and ladders are all
- * scripted teleports — so every leg that starts ashore has to walk off first.
+ * The ship is not on the navigation graph, its gangplank and ladders are all
+ * scripted teleports, so every leg that starts ashore has to walk off first.
  */
 async function leaveShip(log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
@@ -468,7 +468,7 @@ async function descendCrandor(log: (m: string) => void): Promise<boolean> {
 
 // Why: this is the only second crossing that exists, and Ned's ship crash-lands here.
 // Why: a death against Elvarg with the wall still shut leaves the quest at a stage it can never advance, as the lair is on an island with no boat.
-// Why: the spawn is angle 3, south (m44_150.jm2), so `check_axis_locactive` reads "entering" as z == 9600 — the Crandor row.
+// Why: the spawn is angle 3, south (m44_150.jm2), so `check_axis_locactive` reads "entering" as z == 9600, the Crandor row.
 // Why: that row is the side allowed to open it before the quest completes; from the Karamja row it answers "nothing interesting happens" until %dragon_wall is already set.
 // Why: opening it teleports the player through, which is why coming back is half of this leg.
 
@@ -558,7 +558,7 @@ async function killElvarg(log: (m: string) => void): Promise<boolean> {
 
 // Why: Crandor has no bank, and after the kill no boat either, as Ned's ship crash-landed getting here.
 // Why: a run that stopped here would leave the character standing in the lair of the thing it killed, on an island, until something wandered in.
-// Why: the gate always opens from the inside — both leaves are angle 0, so `check_axis_locactive` reads the lair's own column as "entering" and the lock only guards the way in.
+// Why: the gate always opens from the inside. Both leaves are angle 0, so `check_axis_locactive` reads the lair's own column as "entering" and the lock only guards the way in.
 // Why: the wall is the way home.
 
 /** Get off the island once Elvarg is dead. */
@@ -606,7 +606,7 @@ function where(snap: QuestSnapshot, id: number): 'carried' | 'worn' | 'banked' |
     return 'nowhere';
 }
 
-/** Inventory, worn or bank — the quest is resumable from any of the three. */
+/** Inventory, worn or bank. The quest is resumable from any of the three. */
 function anywhere(snap: QuestSnapshot, id: number): boolean {
     return (snap.invIds?.get(id) ?? 0) > 0
         || (snap.bankIds?.get(id) ?? 0) > 0
@@ -642,7 +642,7 @@ const ELVARG_FOOD = 18;
 const KARAMJA_FARE = 100;
 
 // Why: Crandor is one-way, so whatever is not aboard when the ship sails is an ocean away for the rest of the quest.
-// Why: `killElvarg` cannot fetch a shield out of a bank in Falador — it can only keep reporting it missing, on an island with no way back.
+// Why: `killElvarg` cannot fetch a shield out of a bank in Falador. It can only keep reporting it missing, on an island with no way back.
 
 /** The last preparation done ashore, or null when the pack is ready. */
 function gearUp(snap: QuestSnapshot): QuestStep | null {
@@ -692,7 +692,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return custom("walk out of Melzar's Maze", leaveMaze);
         }
         // Why: Oziach sets the three briefing flags and hands over the maze key across several dialogue branches, so this keeps returning until they are all set.
-        // Why: a banked or unseen-bank key must not thrash Oziach, as he will not re-issue it — scan and withdraw first, and treat only an absent key as nowhere (#379).
+        // Why: a banked or unseen-bank key must not thrash Oziach, as he will not re-issue it, scan and withdraw first, and treat only an absent key as nowhere (#379).
         const key = where(snap, DS_ID.MAZE_KEY);
         if (hasFlag(snap.progress, 'needs-briefing')) {
             return custom(`get the briefing from Oziach — ${describeJournal()} mazekey=${key}`, talkOziach);
@@ -710,7 +710,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return custom(`get the briefing from Oziach — ${describeJournal()} mazekey=${key}`, talkOziach);
         }
         // Why: the map comes first and in one pass, as each piece sits behind a one-way trip.
-        // Why: the errands in between — the Duke upstairs in Lumbridge, the anvil at the bottom of the Dwarven Mine — left the maze half-run and the route reading from the wrong dungeon.
+        // Why: the errands in between, the Duke upstairs in Lumbridge and the anvil at the bottom of the Dwarven Mine, left the maze half-run and the route reading from the wrong dungeon.
         const banked = bankedPieces(snap);
         if (banked.length > 0 && !heldById(DS_ID.MAP)) {
             return { kind: 'withdraw', items: banked };
@@ -752,7 +752,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === DRAGON_STAGE.BOUGHT_SHIP) {
         // Why: a hole takes one plank and four nails together, as lady_lumbridge.rs2 inv_dels both, so what is owed is four nails per plank still to be placed and never the twelve the hull costs.
         // Why: measured against the total, the first patched hole reads as eight missing nails and the bot walks back to the Dwarven Mine with the hull still open.
-        // Why: the pack is the ruler and the bank is not — once a plank is carried it is one hole's worth of work, and a spare left in the bank must not inflate the count back to a full hull.
+        // Why: the pack is the ruler and the bank is not, once a plank is carried it is one hole's worth of work, and a spare left in the bank must not inflate the count back to a full hull.
         const planksHeld = snap.invIds?.get(DS_ID.PLANK) ?? 0;
         const planksWanted = planksHeld > 0 ? planksHeld : SHIP_REPAIR.planks;
         const nailsNeeded = planksWanted * SHIP_REPAIR.nailsPerPlank;
@@ -831,7 +831,7 @@ export const dragonslayer: QuestModule = {
     // enough to this quest to be worth walking back to.
     bank: 'nearest',
     grind: ['Giant rat', 'Ghost', 'Skeleton', 'Zombie', 'Melzar the mad', 'Lesser demon', 'Elvarg'],
-    // Why: the nails leg is the tightest the pack ever gets — it keeps coins, pickaxe, hammer and the maze key, then mines eighteen slots of ore on top.
+    // Why: the nails leg is the tightest the pack ever gets. It keeps coins, pickaxe, hammer and the maze key, then mines eighteen slots of ore on top.
     // Why: six lunches made that twenty-eight, and at twenty-eight every pickup and every purchase fails silently.
     food: 3,
     tools: [

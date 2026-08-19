@@ -69,7 +69,7 @@ const COG_SPAWN: Record<Colour, Tile> = {
 };
 
 const POISON_SPAWN = new Tile(2564, 9662, 0);
-// Why: z 9660 and south of it is the cage itself — the lever corridor is the one row at z 9661.
+// Why: z 9660 and south of it is the cage itself, the lever corridor is the one row at z 9661.
 const LEVER_STAND = new Tile(2591, 9661, 0);
 const PEN_GATE_OUTSIDE = new Tile(2596, 9657, 0);
 const PEN_GATE_INSIDE = new Tile(2595, 9657, 0);
@@ -80,7 +80,7 @@ const WELL_STAND = new Tile(2611, 3254, 0);
 const BUCKET_SPAWN = new Tile(2616, 3255, 0);
 const BANK = new Tile(2655, 3283, 0);
 
-// Why: the cog rooms' own ladders are deliberately absent — `crossHops` picks the nearest stand by raw distance, and from the red cog the blue room's ladder is nearest and sealed, which loops the walker on "unreachable" forever.
+// Why: the cog rooms' own ladders are deliberately absent, `crossHops` picks the nearest stand by raw distance, and from the red cog the blue room's ladder is nearest and sealed, which loops the walker on "unreachable" forever.
 const HOPS: LadderHop[] = [
     { stand: CELLAR_TOP, locName: 'Ladder', op: 'Climb-down', arrive: CELLAR_FOOT },
     { stand: CELLAR_FOOT, locName: 'Ladder', op: 'Climb-up', arrive: CELLAR_TOP }
@@ -208,7 +208,7 @@ async function takeCog(colour: Colour, log: (m: string) => void): Promise<boolea
     return driveUntil(() => heldId(COG_OBJ[colour]) > 0, [], log, 8000);
 }
 
-// Why: the cog is red hot until it is cooled, and pouring is what spends the bucket — so try the Take first and let the refusal, not a guess, ask for the water.
+// Why: the cog is red hot until it is cooled, and pouring is what spends the bucket, so try the Take first and let the refusal, not a guess, ask for the water.
 async function takeBlackCog(log: (m: string) => void): Promise<boolean> {
     if (await takeCog('black', log)) {
         return true;
@@ -252,7 +252,7 @@ async function openPenGate(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => locById(LEVER_OPEN, 8) !== null, 6000);
 }
 
-// Why: the gate is not a baked edge — the lever opens it at runtime, so the last tile is a scene step the pathfinder never sees.
+// Why: the gate is not a baked edge. The lever opens it at runtime, so the last tile is a scene step the pathfinder never sees.
 async function enterPen(log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
     if (here && inPen(here)) {
@@ -273,7 +273,7 @@ async function enterPen(log: (m: string) => void): Promise<boolean> {
     return true;
 }
 
-// Why: the lever deletes the gate while it holds it open, so walking out comes first — the Open op, which `check_axis` grants only from the caged side, is for a gate that has already re-shut.
+// Why: the lever deletes the gate while it holds it open, so walking out comes first, the Open op, which `check_axis` grants only from the caged side, is for a gate that has already re-shut.
 async function leavePen(log: (m: string) => void): Promise<boolean> {
     const outside = (): boolean => {
         const t = Game.tile();
@@ -294,7 +294,7 @@ async function leavePen(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(outside, 6000);
 }
 
-// Why: the rats are ordinary map spawns on a 50-tick respawn, so counting them never answers "have they been poisoned" — the gate's own refusal is the only client-visible test.
+// Why: the rats are ordinary map spawns on a 50-tick respawn, so counting them never answers "have they been poisoned", the gate's own refusal is the only client-visible test.
 async function crossRatGate(log: (m: string) => void): Promise<boolean> {
     if (!(await Traversal.walkResilient(RAT_GATE_STAND, { radius: 0, attempts: 3, timeoutMs: 60_000, log }))) {
         return false;
@@ -451,7 +451,7 @@ function heldCog(snap: QuestSnapshot): Colour | null {
     return null;
 }
 
-// Why: one ground spawn is the only bucket near the tower and no Ardougne shop stocks one, so a taken spawn spins the step until it respawns — the bank goes first, and an unread bank is not an empty one.
+// Why: one ground spawn is the only bucket near the tower and no Ardougne shop stocks one, so a taken spawn spins the step until it respawns, the bank goes first, and an unread bank is not an empty one.
 export function gatherWater(snap: QuestSnapshot): QuestStep {
     if (!snap.inv.has(BUCKET.toLowerCase())) {
         if (snap.bankKnown !== true) {

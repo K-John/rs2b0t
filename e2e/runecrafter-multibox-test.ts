@@ -1,4 +1,4 @@
-// RuneCrafter multibox e2e: 1 Mule Recipient + N Runners (default 20) in one multibox wall page — the issue-#209 acceptance test at scale. Usage: [base] [budget-min] [num-runners] [rune].
+// RuneCrafter multibox e2e: 1 Mule Recipient + N Runners (default 20) in one multibox wall page, the issue-#209 acceptance test at scale. Usage: [base] [budget-min] [num-runners] [rune].
 // Why: phase 1 preps each account on a throwaway page (tutorial skip, maxme, seed, tele, logout) and server-side state persists, so STAMP=<tag> PREP=0 reuses them; phase 2 opens multibox.html, presets each box's settings, adds every account, waits for the staggered logins, then calls controller.startAll() and soaks.
 
 // Usage: bun e2e/runecrafter-multibox-test.ts [base] [budget-min] [num-runners] [rune]
@@ -75,7 +75,7 @@ function chebyshev(a: Tile, b: Tile): number {
 
 const TEMPLE_Z = 4000; // altar temples sit at z ~4800; the overworld is < 4000
 const TRADE_LOAD = 26; // RuneCrafter's fixed runner load: talisman + 26 essence, nothing else
-const ESSENCE_ID = 1436; // blankrune — the bank note shares the display name but can't be traded or crafted
+const ESSENCE_ID = 1436; // blankrune, the bank note shares the display name but can't be traded or crafted
 
 async function teleArrive(page: Page, spot: Tile, maxDist = 18): Promise<boolean> {
     const cmd = `tele ${spot.level},${spot.x >> 6},${spot.z >> 6},${spot.x & 63},${spot.z & 63}`;
@@ -171,7 +171,7 @@ async function prepAccount(browser: Browser, user: string, kind: 'recipient' | '
             if ((await countInvItem(page, 'rune essence')) === 0) throw new Error(`${user}: cert_blankrune seed did not land`);
         }
         // settings are per-box (= per-account) in the wall, but bot.html's plain
-        // namespace is what a solo relaunch would read — set both to be safe
+        // namespace is what a solo relaunch would read, set both to be safe
         await setSettings(page, 'RuneCrafter', kind === 'recipient'
             ? { rune: RUNE, mode: 'Mule Recipient', partner: '' }
             : { rune: RUNE, mode: 'Runner', partner: M_USER });
@@ -232,7 +232,7 @@ function sampleWall(page: Page): Promise<SlotSample[]> {
                 // the runtime's own bare 'stopping...' line would otherwise mask the script's reason
                 stopReason: msgs.filter(m => /Stopping\.|crashed|threw/i.test(m) && !/^stopping\.\.\.$/i.test(m)).slice(-1)[0] ?? '',
                 tail: msgs.slice(-10),
-                // Why: a runner's cycle is ~30s, so polling for a 26 → 0 pack transition aliases against the dashboard interval — count every delivery either side booked, which also makes a dribbled 1-2 essence trade visible.
+                // Why: a runner's cycle is ~30s, so polling for a 26 → 0 pack transition aliases against the dashboard interval, count every delivery either side booked, which also makes a dribbled 1-2 essence trade visible.
                 received: msgs.flatMap(m => { const hit = /(?:received|delivered) (\d+) essence/.exec(m); return hit ? [Number(hit[1])] : []; }),
                 // why a camper ever left its altar: pack junk, a random event, or the watchdog
                 excursions: msgs.filter(m => /not essence|random event|watchdog/i.test(m)).map(m => m.slice(0, 70))
@@ -290,7 +290,7 @@ try {
         }
     }, [[M_USER, ...R_USERS], M_USER, RUNE] as const);
 
-    // 21 SwiftShader clients can't boot at once — add in waves, renderers off, and
+    // 21 SwiftShader clients can't boot at once, add in waves, renderers off, and
     // let each wave reach the title loop before spawning the next
     const all = [M_USER, ...R_USERS];
     for (let i = 0; i < all.length; i += 4) {
@@ -326,7 +326,7 @@ try {
     console.log(`all ${ingameNow} slots ingame — starting every script`);
 
     // startSelectedScript no-ops on a box the panel still counts as active, so a slot that was
-    // mid-'stopping' when the wall started silently soaks doing nothing — retry until all run
+    // mid-'stopping' when the wall started silently soaks doing nothing, retry until all run
     for (let attempt = 1; attempt <= 6; attempt++) {
         await page.evaluate(() => (globalThis as never as Mbx).multibox.controller.startAll());
         await page.waitForTimeout(5000);

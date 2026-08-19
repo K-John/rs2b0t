@@ -54,7 +54,7 @@ function slashedWebAtPlacement(locX: number, locZ: number): boolean {
 
 /**
  * Web is passable: slashed leaf visible, or no Slash-target and can step the edge.
- * Prefer slashed-leaf — collision lags a tick after loc_change (blockwalk=no).
+ * Prefer slashed-leaf, collision lags a tick after loc_change (blockwalk=no).
  */
 function webPassageReady(
     transport: TransportInfo,
@@ -99,7 +99,7 @@ async function walkThroughWeb(
         log(`crossed '${transport.locName}' at (${transport.locX},${transport.locZ})`);
         return true;
     }
-    // Slashed / open but still not past — one more scene step.
+    // Slashed / open but still not past, one more scene step.
     DirectNavigator.walk(step);
     await Execution.delayTicks(2);
     if (isOnFarSide(reader.worldTile(), approach, step)) {
@@ -111,7 +111,7 @@ async function walkThroughWeb(
 
 type WebSlashAttempt = 'success' | 'fail' | 'no_blade' | 'cant_reach' | 'timeout';
 
-// Why: web.rs2 reports the outcome by chat — success is "You slash the web apart.", fail is "You fail to cut through it." (retry the same web), and no blade is "Only a sharp blade…".
+// Why: web.rs2 reports the outcome by chat, success is "You slash the web apart.", fail is "You fail to cut through it." (retry the same web), and no blade is "Only a sharp blade…".
 
 /** One Slash / use-on attempt on a bigweb. */
 async function attemptSlashWeb(
@@ -201,7 +201,7 @@ export function isOpenBarrierLeaf(name: string | null, ops: readonly (string | n
 /** Failed crossings at one placement before A* is told to avoid it this walk. */
 export const DOOR_AVOID_STRIKES = 2;
 
-// Why: `resetAvoids` throws the per-walk avoid list away on the next `walkTo`, so a door that cannot be crossed — a quest-locked gate, a leaf the server refuses — is replanned by the next `walkResilient` ladder pass and the walk loops forever.
+// Why: `resetAvoids` throws the per-walk avoid list away on the next `walkTo`, so a door that cannot be crossed, a quest-locked gate or a leaf the server refuses, is replanned by the next `walkResilient` ladder pass and the walk loops forever.
 // Why: strikes therefore count across walks, and a placement that has refused this many crossings is treated as shut for the session.
 export const DOOR_SESSION_STRIKES = 3;
 
@@ -234,7 +234,7 @@ export function noteFailedDoor(
 
 /**
  * Path-scoped stall recovery: only open doors that belong on the published route.
- * Street-front house doors sit *next* to the path corridor — proximity must not win.
+ * Street-front house doors sit *next* to the path corridor, proximity must not win.
  */
 interface PathDoorHint {
     tiles: readonly { x: number; z: number; level: number }[];
@@ -248,12 +248,12 @@ interface PathDoorHint {
     window?: number;
     /**
      * Planned door/gate hop placements (transport.locX/Z) ahead on the path.
-     * Highest priority — exact map placement we intend to cross.
+     * Highest priority, exact map placement we intend to cross.
      */
     hopDoors?: readonly { x: number; z: number }[];
 }
 
-// Why: with a path hint only doors whose placement is a path tile (or matches a planned hop) qualify — an off-path house or shop door is never opened for being nearer.
+// Why: with a path hint only doors whose placement is a path tile (or matches a planned hop) qualify, an off-path house or shop door is never opened for being nearer.
 // Why: without a path the nearest closed barrier wins, which is the walkResilient unstick case only.
 // Why: kept a pure helper so tests can pin the preference without a live scene.
 
@@ -326,7 +326,7 @@ export function pickNearbyDoorTile(
 export async function tryNearbyDoor(
     log: (msg: string) => void,
     path?: PathDoorHint | null,
-    /** Placements already given up on — never re-open one the route now avoids. */
+    /** Placements already given up on, never re-open one the route now avoids. */
     exclude?: ReadonlySet<string>
 ): Promise<boolean> {
     const me = reader.worldTile();
@@ -360,7 +360,7 @@ export async function tryNearbyDoor(
                 return t.x === pick.x && t.z === pick.z;
             }) ?? null);
     if (!door) {
-        // Path-scoped stall with only off-path doors nearby — repath, don't tour houses.
+        // Path-scoped stall with only off-path doors nearby, repath, don't tour houses.
         if (path && path.tiles.length > 0) {
             log('stalled with no path-corridor door to open — leaving door-hunt to repath');
         }
@@ -484,7 +484,7 @@ export async function crossMultiTileDoor(
             }
             return true;
         }
-        // No shut Open-target but passage still blocked — fall through to scene-step.
+        // No shut Open-target but passage still blocked, fall through to scene-step.
         log(`${transport.locName} open-loc missing but edge blocked — scene-stepping`);
     }
 
@@ -521,7 +521,7 @@ export async function crossMultiTileDoor(
         }
         if (shut) {
             const mark = GameMessages.mark();
-            // Stand on the approach tile before Open — CANT_REACH is common when
+            // Stand on the approach tile before Open. CANT_REACH is common when
             // the walker clicks a door from one tile too far (manor vestibule, guild).
             const p0 = reader.worldTile();
             if (
@@ -535,7 +535,7 @@ export async function crossMultiTileDoor(
                     return p !== null && p.x === approach.x && p.z === approach.z && p.level === approach.level;
                 }, APPROACH_WALK_MS);
             }
-            // Why: content web.rs2 decides a slash by chat — random(2) fail sends "You fail to cut through it.", which retries the same web now.
+            // Why: content web.rs2 decides a slash by chat, random(2) fail sends "You fail to cut through it.", which retries the same web now.
             // Why: on success the code waits for Slashed web or passage, walks through once and returns rather than continue-looping onto the neighbour web.
             if (isSlashWebTransport(transport.locName, transport.action)) {
                 const outcome = await attemptSlashWeb(shut, transport, mark, log);
@@ -549,7 +549,7 @@ export async function crossMultiTileDoor(
                 if (outcome === 'success') {
                     return walkThroughWeb(approach, step, transport, log, 'just slashed');
                 }
-                // timeout / unknown — retry same placement
+                // timeout / unknown, retry same placement
                 continue;
             }
 
@@ -576,7 +576,7 @@ export async function crossMultiTileDoor(
                 onQuestLock?.(transport.locX, transport.locZ);
                 return false;
             }
-            // Collision often lags a tick after Open — step through immediately.
+            // Collision often lags a tick after Open, step through immediately.
             await Execution.delayTicks(1);
             DirectNavigator.walk(step);
             await Execution.delayUntil(() => isOnFarSide(reader.worldTile(), approach, step), 4000);
@@ -598,7 +598,7 @@ export async function crossMultiTileDoor(
             await Execution.delayUntil(() => isOnFarSide(reader.worldTile(), approach, step), SCENE_STEP_MS);
         }
     }
-    // Timed out — check quest lock mesbox left open.
+    // Timed out, check quest lock mesbox left open.
     if (chatShowsQuestLock()) {
         log(`quest-locked '${transport.locName}' at (${transport.locX},${transport.locZ}) — blacklisting`);
         await dismissQuestLockDialogue();

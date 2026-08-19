@@ -8,7 +8,7 @@ as `DONE`, `READY`, or `BLOCKED` **with reasons**, combining
 levels, prerequisite quests) and [`ItemChecker`](../../src/bot/api/ai/quests/ItemChecker.ts)
 (inventory and bank).
 
-Items are `mustHave` or `acquirable` — the difference between "you cannot start this"
+Items are `mustHave` or `acquirable`, the difference between "you cannot start this"
 and "the bot will go and get it". `AIOQuester` consumes eligibility to choose what to run.
 
 ### Bot-proven floors (polish goal)
@@ -18,9 +18,9 @@ and "the bot will go and get it". `AIOQuester` consumes eligibility to choose wh
 
 **Polish iteration goal for every quest with non-required combat (or similar):**
 
-1. Green mid-quest loop (often max stats + ideal kit) — proves the script path.
+1. Green mid-quest loop (often max stats + ideal kit), proves the script path.
 2. Realistic bank-seed + **official skill mins**, then probe **bare-minimum** for
-   non-required stats (combat, etc.) via headed harness — lower until red, keep
+   non-required stats (combat, etc.) via headed harness, lower until red, keep
    the lowest green profile in module constants.
 3. Record failed floors too (so we do not re-probe known deaths forever).
 4. Later: **power-level tactics** (safespot / kite / skip-fight vs melee) chosen
@@ -28,7 +28,7 @@ and "the bot will go and get it". `AIOQuester` consumes eligibility to choose wh
 
 Optional `warnReadiness(): string | null` runs **once** when a quest becomes the
 active runner. Soft advisory if the account is below a proven floor (or if no
-low floor is proven yet) — not a queue block.
+low floor is proven yet), not a queue block.
 
 Elemental Workshop reference constants
 ([`supplies.ts`](../../src/bot/api/ai/quests/defs/elementalworkshop/supplies.ts)):

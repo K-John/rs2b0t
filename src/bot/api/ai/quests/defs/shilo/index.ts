@@ -217,7 +217,7 @@ function stageMiddle(snap: QuestSnapshot, area: ShiloArea): QuestStep {
 
 /**
  * The necklace and the key share a chisel and both are refused until their own bit
- * is set — the crumpled scroll for the beads, the searched door for the key.
+ * is set, the crumpled scroll for the beads, the searched door for the key.
  */
 function craftChain(snap: QuestSnapshot, area: ShiloArea, wantKey: boolean): QuestStep | null {
     // Why: past the carved doors the key is optional, as they stay unlocked and the tomb exit refuses to open for anyone still carrying it.

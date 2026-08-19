@@ -33,7 +33,7 @@ export function transportLocValid(transport: TransportInfo, level = 0): boolean 
     return locRefValid(ref, scene);
 }
 
-/** How far off a long hop may land. Short hops must be exact — see below. */
+/** How far off a long hop may land. Short hops must be exact, see below. */
 const LANDING_TOLERANCE = 3;
 
 export function matchesTransportLanding(
@@ -108,7 +108,7 @@ export function findTransportLoc(transport: TransportInfo): Loc | null {
         return null;
     }
     // Fallback: name+action near the recorded placement (scene lag / id drift after
-    // ship hops — gangplanks on Brimhaven deck after Barnaby).
+    // ship hops, gangplanks on Brimhaven deck after Barnaby).
     const nearName = Locs.query()
         .name(...names)
         .action(transport.action)
@@ -149,11 +149,11 @@ export function findTransportLoc(transport: TransportInfo): Loc | null {
             })
             .nearest();
         if (openLeaf) {
-            return null; // open — caller should walk through, not re-Open
+            return null; // open, caller should walk through, not re-Open
         }
     }
     // Web already slashed: content loc_change → bigweb_slashed ("Slashed web", no Slash).
-    // Exact placement only — dual webs share locId one tile apart.
+    // Exact placement only, dual webs share locId one tile apart.
     if (/^slash$/i.test(transport.action) && /web/i.test(transport.locName)) {
         const slashed = Locs.query()
             .name('Slashed web')
@@ -163,13 +163,13 @@ export function findTransportLoc(transport: TransportInfo): Loc | null {
             })
             .nearest();
         if (slashed) {
-            return null; // open — walk through after server collision catch-up
+            return null; // open, walk through after server collision catch-up
         }
     }
     return null;
 }
 
-// Why: a ship or teleport landing rebuilds the client scene, so the disembark loc is unqueryable for a few ticks and the first lookup misses — failing there repaths off a deck the walker is standing on.
+// Why: a ship or teleport landing rebuilds the client scene, so the disembark loc is unqueryable for a few ticks and the first lookup misses, failing there repaths off a deck the walker is standing on.
 
 /** Look for a transport loc, waiting out a scene rebuild before reporting it absent. */
 export async function awaitTransportLoc(

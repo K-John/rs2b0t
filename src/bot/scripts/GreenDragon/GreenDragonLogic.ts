@@ -36,7 +36,7 @@ interface LootFilter {
 }
 
 /**
- * Clues and burial bones ignore lootSet — unchecking a loot box must not
+ * Clues and burial bones ignore lootSet, unchecking a loot box must not
  * silently disable clue solving or leave the bones you asked to bury.
  */
 export function wantsGroundItem(item: { id: number; name: string | null }, f: LootFilter): boolean {
@@ -130,7 +130,7 @@ export interface SlotFreeingState {
 }
 
 // Why: eating wins whenever the heal is not wasted, and at full hp the food is dropped instead.
-// Why: the reserve is never dug into — below it the caller falls through to its bank run.
+// Why: the reserve is never dug into, below it the caller falls through to its bank run.
 
 /** Trades a food slot for a loot slot rather than walking to the bank. */
 export function slotFreeingAction(s: SlotFreeingState): SlotAction {

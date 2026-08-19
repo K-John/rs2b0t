@@ -1,5 +1,5 @@
-/** Derive Chronozon's safespots (Family Crest, #210) — the answer feeds `SAFESPOT` in defs/familycrest/chronozon.ts. BFS the placements a melee-only NPC of size N can slide between, take every tile they cover or border, and intersect the walkable remainder with the chamber's own connected component.
- *  Why: walkable is not reachable — the west passage at x=3082 looks like a perfect safespot and is a sealed island — and `exitMask` does not cross door edges, so seeding the flood outside the gates stops at them and only ever finds the north corridor, which is behind a gate that blocks the cast (three live casts from there never landed). */
+/** Derive Chronozon's safespots (Family Crest, #210), the answer feeds `SAFESPOT` in defs/familycrest/chronozon.ts. BFS the placements a melee-only NPC of size N can slide between, take every tile they cover or border, and intersect the walkable remainder with the chamber's own connected component.
+ *  Why: walkable is not reachable, the west passage at x=3082 looks like a perfect safespot and is a sealed island, and `exitMask` does not cross door edges, so seeding the flood outside the gates stops at them and only ever finds the north corridor, which is behind a gate that blocks the cast (three live casts from there never landed). */
 
 //   bun tools/nav/chronozon-safespot.ts
 import fs from 'node:fs';

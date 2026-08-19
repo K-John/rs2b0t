@@ -53,7 +53,7 @@ export interface QuestSnapshot {
     freeSlots?: number;
 }
 
-// Why: display names collide — "Broken shield", "Certificate", "Fishing spot" and "Gate" each name more than one thing — so a name lookup silently accepts the wrong object.
+// Why: display names collide: "Broken shield", "Certificate", "Fishing spot" and "Gate" each name more than one thing, so a name lookup silently accepts the wrong object.
 
 /** How many of an exact object id the pack holds. */
 export function heldId(snap: QuestSnapshot, id: number): number {
@@ -138,7 +138,7 @@ export interface QuestModule {
     warnReadiness?: () => string | null;
     /**
      * Extra log lines when this quest decides a step (or on death). Pilot for
-     * Tourist Trap observability — copy-pasteable context for stuck runs.
+     * Tourist Trap observability, copy-pasteable context for stuck runs.
      */
     observe?: (snap: QuestSnapshot, step: QuestStep) => readonly string[];
     decide(snap: QuestSnapshot): QuestStep;

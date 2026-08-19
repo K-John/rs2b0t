@@ -254,7 +254,7 @@ class EatFood implements Task {
         return Inventory.items().find(i => this.bot.isFood(i.name)) ?? null;
     }
     validate(): boolean {
-        // Higher priority than Steal — eats during stun when movement is locked.
+        // Higher priority than Steal, eats during stun when movement is locked.
         return this.bot.needEat() && this.food() !== null;
     }
     async execute(): Promise<void> {
@@ -387,7 +387,7 @@ class Loot implements Task {
         if (want.length === 0) {
             return null;
         }
-        // Adjacent only — walking the leash for coins wrecks pickpocket XP/hr.
+        // Adjacent only, walking the leash for coins wrecks pickpocket XP/hr.
         return GroundItems.query()
             .where(g => {
                 const n = g.name?.toLowerCase();
@@ -439,7 +439,7 @@ class Steal implements Task {
     }
 
     validate(): boolean {
-        // Own the stun wait so Loot cannot walk us off a guard — but yield when
+        // Own the stun wait so Loot cannot walk us off a guard, but yield when
         // HP is low so EatFood can use the locked ticks.
         if (this.bot.stunned() && this.bot.needEat()) {
             return false;

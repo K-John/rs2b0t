@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { UP_FLAG, UP_STAGE, parseUpassJournal } from '#/bot/api/ai/quests/defs/upass/journal.js';
 
 // Why: lines are verbatim from `upass_journal.rs2`, so the parser is tested against what the engine renders.
-// Why: the journal is additive — every stage keeps the earlier lines — so each case builds on the last.
+// Why: the journal is additive, every stage keeps the earlier lines, so each case builds on the last.
 const KOFTIK_DONE = '@str@King Lathas asked me to meet a tracker named Koftik. He|@str@can be found by a cave entrance in far West Ardougne.|';
 const MET_KOFTIK = '|@str@I have met Koftik. He fears these caves, but he agreed to|@str@help. He said to meet him at the bridge inside the cave.|';
 const AT_BRIDGE = '|@str@I have met Koftik at an underground river where there is a|@str@drawbridge. But it\'s held up by ropes and pulleys. Koftik|@str@found a damp cloth amongst the charred remains of some|@str@arrows.|';

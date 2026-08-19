@@ -160,7 +160,7 @@ const restoreTraversal = stubProps(Traversal, {
         return walkResult;
     }
 });
-// WalkExecutor — pin lastOutcome via the writable field (no module mock).
+// WalkExecutor, pin lastOutcome via the writable field (no module mock).
 const realLastOutcome = WalkExecutor.lastOutcome;
 afterAll(() => {
     restoreReader();
@@ -365,7 +365,7 @@ describe('Reach.locOp', () => {
         expect(r).toBe('retry');
     });
 
-    // Why: without a pattern to watch, a silent refusal costs REACH_DOOR_ATTEMPTS x expectMs — 8 x 12s of standing still on a loc whose script already said no.
+    // Why: without a pattern to watch, a silent refusal costs REACH_DOOR_ATTEMPTS x expectMs, 8 x 12s of standing still on a loc whose script already said no.
     test('a refusal message ends the op after one call instead of eight', async () => {
         sceneLoc = { name: 'Marked wall', ops: ['Use'], tile: { x: 6, z: 5, level: 0 }, interactResult: true };
         expectFlips = false;

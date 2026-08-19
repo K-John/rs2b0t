@@ -10,7 +10,7 @@ import { POISON_PROVED, readMurderProgress } from './journal.js';
 
 const BOX_MS = 6000;
 
-// Why: the walk to the anchor is a hint, not a gate — everyone here drifts five tiles off spawn, and `Reach` finds and chases whoever is in the scene when the anchor walk falls short.
+// Why: the walk to the anchor is a hint, not a gate, everyone here drifts five tiles off spawn, and `Reach` finds and chases whoever is in the scene when the anchor walk falls short.
 async function ask(stop: NpcStop, log: (m: string) => void): Promise<boolean> {
     await gotoNpc(stop, [], log);
     return talkThrough(stop.npc, stop.prefer, log);

@@ -14,7 +14,7 @@ that quest steps are built from:
 | `talkOp(actions)` / `pickPreferred(options, prefer)` | choosing an op or an option |
 | `isUnderground(t)` / `needsHop(here, anchor)` | whether a level change is required |
 
-[`exec/prompts.ts`](../../src/bot/api/ai/quests/exec/prompts.ts) covers the other half — the
+[`exec/prompts.ts`](../../src/bot/api/ai/quests/exec/prompts.ts) covers the other half, the
 world, rather than a conversation:
 
 | Primitive | What it handles |
@@ -24,7 +24,7 @@ world, rather than a conversation:
 | `driveChoice(prefer, log)` | `driveDialog` that abandons rather than guessing |
 | `locNear(name, op, within)` / `heldId(id)` / `settleScene()` | the small repeated lookups |
 
-`driveChoice` exists because loc prompts routinely put the refusal first — the
+`driveChoice` exists because loc prompts routinely put the refusal first, the
 gallows offers *"I don't think so, it might animate and attack me!"* as option one.
 Falling through to an unmatched option is worse than stopping.
 
@@ -40,7 +40,7 @@ const COOK: NpcStop = {
 };
 ```
 
-Server-driven dialogue chains must be *driven to completion* — stopping at the first
+Server-driven dialogue chains must be *driven to completion*, stopping at the first
 continue leaves the conversation half-finished and the quest un-advanced.
 
 `gotoNpc` is leash-limited by design. For an NPC that patrols, that is the wrong

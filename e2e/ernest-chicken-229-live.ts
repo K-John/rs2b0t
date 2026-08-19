@@ -135,7 +135,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph compiles into navworker.js, a separate entrypoint, deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {

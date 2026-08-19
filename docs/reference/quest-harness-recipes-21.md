@@ -2,7 +2,7 @@
 
 # Quest harness recipes (Fis)
 
-## Fishing Contest — stage-scoped harness
+## Fishing Contest, stage-scoped harness
 
 [`e2e/fishing-contest-244-live.ts`](../../e2e/fishing-contest-244-live.ts). Members
 content, so `:8890` only.
@@ -20,12 +20,12 @@ content, so `:8890` only.
 It deploys **its own copy of the client** through `deployIsolatedClient`: everything in
 `out/` lands in `public/bot/<user>/` and a generated `bot-<user>.html` points at it, so a
 neighbouring harness cannot decide mid-boot which branch this run exercises. The copy is
-swept on exit, and it carries `navworker.js` and `collision.lcnav.gz` — this quest walks
+swept on exit, and it carries `navworker.js` and `collision.lcnav.gz`, this quest walks
 from Draynor to Kandarin, so a client-only deploy would leave the navigator on old edges.
 
 `--stage` writes three varps rather than one. `%fishingcompo` is the contest stage,
 `%hemenster_comp_stage` counts the fee and the catches, and `%hemenster_pipe_stashed`
-records the clove — and Bonzo re-seats a contest whose fee counter disagrees with the
+records the clove, and Bonzo re-seats a contest whose fee counter disagrees with the
 stage, so a bare `setvar fishingcompo 3` describes a state the engine will not honour.
 Each is read back, and the seed relogs because `update_questlist` recolours the tab at
 login only.
@@ -45,7 +45,7 @@ What the legs proved, at `--tick 150` on `:8890`:
 | Leg | Result | What it covered |
 |---|---|---|
 | 0 → 5 | **PASS, 6 min** | the uncheated run: 16 steps, no parks, `QUEST COMPLETE` and 1 quest point |
-| 2 → 4 | PASS, 2 min | the gate, the garlic stash, three carp — zero failed steps |
+| 2 → 4 | PASS, 2 min | the gate, the garlic stash, three carp, zero failed steps |
 | 3 → 4 | PASS, 4 min | the rod at Harry's, the spade at Edmond's, the worm dig and three carp |
 
 Every leg is proved by an inventory delta rather than a log line: `garlic 0→1` at the

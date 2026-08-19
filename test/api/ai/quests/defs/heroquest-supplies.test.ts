@@ -53,7 +53,7 @@ describe('the Black Arm disguise', () => {
 });
 
 // Why: `World.restock` skips a null slot, so a shared shop that sells its last unit is a one-shot
-// source — the legs list both stockists and the buy leg falls through to the second.
+// source, the legs list both stockists and the buy leg falls through to the second.
 describe('the Black Arm platelegs', () => {
     test('the legs name both stockists', () => {
         const step = disguiseStep(snap({ wornIds: new Set([HERO_ID.BLACK_PLATEBODY]) }));

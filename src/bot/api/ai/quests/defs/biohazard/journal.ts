@@ -31,7 +31,7 @@ function normalize(lines: readonly string[] | string): string {
 }
 
 // Why: the journal appends rather than replaces, so every line from an earlier stage is still
-// on the page — the most advanced match wins and the order here is the order they are tested.
+// on the page, the most advanced match wins and the order here is the order they are tested.
 const STAGE_LINES: readonly [string, number][] = [
     ['quest complete!', BIO_STAGE.COMPLETE],
     ['i need to confront the', BIO_STAGE.REPORTED_ELENA],

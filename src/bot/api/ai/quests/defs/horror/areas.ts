@@ -76,7 +76,7 @@ export const HD_LOC = {
     STAIRS: 'Staircase',
     LADDER: 'Iron ladder',
     BOOKCASE: 'Bookcase',
-    /** The broken cog carries **no ops at all** — it is a use-on target only. */
+    /** The broken cog carries **no ops at all**. It is a use-on target only. */
     LIGHT: 'Lighting mechanism',
     WALL: 'Strange wall',
     SAND_PIT: 'Sand pit',
@@ -84,7 +84,7 @@ export const HD_LOC = {
     FURNACE: 'Furnace'
 } as const;
 
-// Why: the lighthouse exists twice — during the quest its interior is the broken copy in mapsquare 38_71.
+// Why: the lighthouse exists twice, during the quest its interior is the broken copy in mapsquare 38_71.
 // Why: repairing the light teleports the player by (+64,-960) into the live one in 39_56, and every staircase from there routes back into the copy.
 // Why: nothing walks between them, as the doorway and the stairs teleport.
 export const HD_TILE = {
@@ -109,7 +109,7 @@ export const HD_TILE = {
     REAL_STAIRS_L2: new Tile(2506, 3640, 2),
     REAL_LIGHTHOUSE_L0: new Tile(2509, 3637, 0),
 
-    /** Lighthouse basement — a pocket of mapsquare 39_72 at level 1. */
+    /** Lighthouse basement, a pocket of mapsquare 39_72 at level 1. */
     BASEMENT_LADDER: new Tile(2519, 4619, 1),
     /** South of the strange wall: the only side its slots can be loaded from. */
     WALL_SOUTH: new Tile(2515, 4626, 1),
@@ -135,7 +135,7 @@ export const HD_TILE = {
         new Tile(2556, 3573, 0)
     ],
 
-    /** Lumbridge swamp tar patch — the nearest spawns outside Morytania. */
+    /** Lumbridge swamp tar patch, the nearest spawns outside Morytania. */
     SWAMP_TAR: new Tile(3173, 3178, 0),
     // Why: Rellekka's north-east shore has nine seaweed spawns and is by a long way the nearest to the lighthouse.
     // Why: Catherby's beach spawns sit on an islet the walker cannot reach.
@@ -143,12 +143,12 @@ export const HD_TILE = {
     /** Yanille: the sand pit and a Range stand seven tiles apart. */
     SAND_PIT: new Tile(2541, 3103, 0),
     /**
-     * East of the Yanille range, which is `forceapproach=east` at angle 0 — so
+     * East of the Yanille range, which is `forceapproach=east` at angle 0, so
      * east is east here, and the west side answers nothing at all.
      */
     YANILLE_RANGE: new Tile(2550, 3099, 0),
     // Why: Rellekka's furnace is nearer to everything this quest does and refuses anyone who has not finished The Fremennik Trials, so this is East Ardougne's.
-    // Why: it is `forceapproach=east` placed at angle 2, so the only legal side is west in world space — the furnace itself spans (2601-2603,3310-3312).
+    // Why: it is `forceapproach=east` placed at angle 2, so the only legal side is west in world space, the furnace itself spans (2601-2603,3310-3312).
     FURNACE: new Tile(2600, 3310, 0),
 
     VARROCK_SWORDSHOP: new Tile(3203, 3395, 0),

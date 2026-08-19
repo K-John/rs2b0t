@@ -217,7 +217,7 @@ test('Miner nearest-bank flow carries Duel Arena chest access through', async ()
 });
 
 test('Shantay Pass open uses Shantay chest (not Bank booth)', async () => {
-    // Standing on the Shantay stand with no booth in scene — Tourist Trap buy-for-coins path.
+    // Standing on the Shantay stand with no booth in scene, Tourist Trap buy-for-coins path.
     (Locs as any).query = queryReturning([]);
     (Game as any).tile = () => ({ x: 3308, z: 3120, level: 0 });
     (Traversal as any).walkResilient = async () => true;

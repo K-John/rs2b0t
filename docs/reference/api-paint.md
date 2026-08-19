@@ -9,7 +9,7 @@ and the collapse flag, which live in `paintState` keyed by widget id.
 ```ts
 override onPaint(ctx: CanvasRenderingContext2D): void {
     const p = Paint.begin(ctx, { dock: 'chatbox', accent: '#c8a2ff' });
-    p.title(`MyBot — ${this.status}`);
+    p.title(`MyBot, ${this.status}`);
     const tab = p.tabs('mybot', ['Queue', 'Session']);
     ...
     p.end();
@@ -41,7 +41,7 @@ clicks and wheel notches land on widgets instead of the game behind them.
 
 ## Nothing draws outside the panel
 
-Every text widget clips to the panel — a long line ends in `…` rather than
+Every text widget clips to the panel, a long line ends in `…` rather than
 painting across the game view. `cells` clips each column into its own slot and
 leaves a character of gutter, so a clipped column never runs into the next.
 
@@ -59,7 +59,7 @@ p.wrap(this.stepDesc);
 
 ## Scrolling lists
 
-`list` and `fill` take `PaintLine[]` — bare strings, or `{ text, color }` for
+`list` and `fill` take `PaintLine[]`, bare strings, or `{ text, color }` for
 per-row colour. Both register a scroll region, so the wheel over the list moves
 it by `WHEEL_ROWS` and the canvas swallows the event instead of zooming the
 game. A list longer than its window draws a thumb on the right edge and a
@@ -80,7 +80,7 @@ onto the next quest after you have finished reading.
 Reserve whatever is drawn after it, or the buttons land on top of the last row.
 
 `footer` rides along with the scroll counter rather than costing a row of its
-own — `13–20 of 61 · QP 44 · done 12/61 · stuck 5`.
+own, `13–20 of 61 · QP 44 · done 12/61 · stuck 5`.
 
 ## Grids
 
@@ -102,5 +102,5 @@ which is why the paint scrolls rather than growing.
 
 ## See also
 
-- [Bots](api-bots.md) — the `onPaint` hook and the rest of the bot surface
-- [Compare path paint](../how-to/compare-path-paint.md) — the webwalk path overlay
+- [Bots](api-bots.md), the `onPaint` hook and the rest of the bot surface
+- [Compare path paint](../how-to/compare-path-paint.md), the webwalk path overlay

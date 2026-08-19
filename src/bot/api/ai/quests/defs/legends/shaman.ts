@@ -19,7 +19,7 @@ const CRAWL_ATTEMPTS = 6;
 /** The three mossy rocks that hide the shaman cave, by exact id. */
 const ROCK_IDS: readonly number[] = [LQ_LOC_ID.MOSSY_ROCK_1, LQ_LOC_ID.MOSSY_ROCK_2, LQ_LOC_ID.MOSSY_ROCK_3];
 
-// Why: the crawl rolls against agility twice — a hard gate at 50 and then `stat_random(agility, 125, 250)` — and a failed roll costs 5 hitpoints and leaves the player where they were.
+// Why: the crawl rolls against agility twice, a hard gate at 50 and then `stat_random(agility, 125, 250)`, and a failed roll costs 5 hitpoints and leaves the player where they were.
 
 /** Squeeze through the rocks in the north-west jungle into Ungadulu's cave. */
 export async function enterShamanCave(log: (m: string) => void): Promise<boolean> {
@@ -59,7 +59,7 @@ const UNGADULU_PREFER = ['Who are you?', 'Where do I get pure water from?'];
 
 /** Talk to Ungadulu through the flames until he has named the sacred water. */
 export async function speakToUngadulu(log: (m: string) => void): Promise<boolean> {
-    // Why: from inside the ring, Investigate raises "Leap out of the flaming octagram." and "Attract the shaman's attention." instead of his conversation — neither is a thing `UNGADULU_PREFER` can answer, so the drive abandons, the step fails and the engine sends the run straight back to Gujuo, over and over.
+    // Why: from inside the ring, Investigate raises "Leap out of the flaming octagram." and "Attract the shaman's attention." instead of his conversation, neither is a thing `UNGADULU_PREFER` can answer, so the drive abandons, the step fails and the engine sends the run straight back to Gujuo, over and over.
     if (inOctagram(Game.tile()) && !(await leaveOctagram(log))) {
         log('cannot get out of the octagram to talk to Ungadulu through the flames');
         return false;
@@ -84,7 +84,7 @@ export async function speakToUngadulu(log: (m: string) => void): Promise<boolean
         log('the fire wall raised nothing — is Ungadulu still in the octagram?');
         return false;
     }
-    // Why: "Who are you?" is what sets `asked_ungadulu_who`, and that bit is the reason for coming here — Gujuo's pure-water topic is gated on it.
+    // Why: "Who are you?" is what sets `asked_ungadulu_who`, and that bit is the reason for coming here, Gujuo's pure-water topic is gated on it.
     // Why: named as required because a chain of boxes with no options at all ends quietly and reads as a conversation that ran its course. `npc_find(coord, ungadulu_good, 10, 0)` failing gives that: two message boxes, no menu, and a `driveToEnd` that reports success having asked nothing.
     return driveToEnd(UNGADULU_PREFER, log, 60_000, 'Who are you?');
 }
@@ -107,10 +107,10 @@ const gujuoWaterTalk = talkGujuoStatus(
     120_000
 );
 
-// Why: Gujuo only offers the pure-water topic once Ungadulu has been asked who he is, and that bit is `%legends_bits` — invisible from here.
+// Why: Gujuo only offers the pure-water topic once Ungadulu has been asked who he is, and that bit is `%legends_bits`, invisible from here.
 // Why: without it his menu is four topics that all dead-end, so a stage-7 resume that skipped a question would ask him for ever; the recovery is to go back and ask.
 
-// Why: the caves are the answer to a menu without the topic on it, and to nothing else. A shaman who never opened his mouth says nothing about the bit, and walking to Ungadulu on that reading set a bit that was already set, came back, failed to talk again, and went again — the loop a live run spent six minutes in, four attempts deep, reporting a cause it had not checked.
+// Why: the caves are the answer to a menu without the topic on it, and to nothing else. A shaman who never opened his mouth says nothing about the bit, and walking to Ungadulu on that reading set a bit that was already set, came back, failed to talk again, and went again, the loop a live run spent six minutes in, four attempts deep, reporting a cause it had not checked.
 
 /** What a failed water talk calls for: the topic is there, he needs asking again, or the bit wants setting. */
 export function waterTalkAnswer(talk: GujuoTalk): 'done' | 'retry' | 'caves' {
@@ -142,7 +142,7 @@ export async function askGujuoForWater(log: (m: string) => void): Promise<boolea
     return after === 'goal';
 }
 
-// Why: `gujuo_start` only opens with the bless offer when it notices the bowl, and every other list it can raise leads there through the vessel questions — the goodbyes are left out on purpose, as they end the conversation with the bowl still plain.
+// Why: `gujuo_start` only opens with the bless offer when it notices the bowl, and every other list it can raise leads there through the vessel questions. The goodbyes are left out on purpose, as they end the conversation with the bowl still plain.
 const BLESS_PREFER = [
     "Yes, I'd like you to bless my gold bowl.",
     "Yes, I'd like to bless my gold bowl.",
@@ -163,7 +163,7 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
     if (!(await summonGujuo(log))) {
         return false;
     }
-    // Why: the use-on lands and the greeting sometimes never arrives, and one long wait on a chat that is not coming spends the budget learning nothing — so the offer is made again rather than waited on.
+    // Why: the use-on lands and the greeting sometimes never arrives, and one long wait on a chat that is not coming spends the budget learning nothing, so the offer is made again rather than waited on.
     for (let i = 0; i < BLESS_ATTEMPTS; i++) {
         const gujuo = Npcs.query().name(LQ_NPC.GUJUO).within(12).nearest();
         if (!gujuo) {
@@ -190,13 +190,13 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
     return blessed();
 }
 
-// Why: a devout account starts at the wrong end of the roll and only five points a miss walks it down — from ninety-nine it is eleven misses to the forty-two where the odds are best, and twelve throws still leave one run in fifteen unblessed. Twenty covers the walk with room over, and a throw is now seconds rather than the better part of a minute.
+// Why: a devout account starts at the wrong end of the roll and only five points a miss walks it down, from ninety-nine it is eleven misses to the forty-two where the odds are best, and twelve throws still leave one run in fifteen unblessed. Twenty covers the walk with room over, and a throw is now seconds rather than the better part of a minute.
 const BLESS_ATTEMPTS = 20;
 
-// Why: a miss ends the conversation outright. Gujuo offers a retry, but the five points it took put the answer under his own forty-two gate, so "too inexperienced" closes the chain — and a wait watching for a blessing that is no longer coming polled a chat that had already gone for all forty seconds, four times over.
+// Why: a miss ends the conversation outright. Gujuo offers a retry, but the five points it took put the answer under his own forty-two gate, so "too inexperienced" closes the chain, and a wait watching for a blessing that is no longer coming polled a chat that had already gone for all forty seconds, four times over.
 const BLESS_MS = 40_000;
 
-// Why: the trance closes its own dialogue and then chants — `if_close`, two `mes`, then six `p_delay(2)` carrying `npc_say`/`say`, which are overhead chat and open no widget. That is twelve ticks in which nothing is up and the throw has not resolved, so a shorter patience gives up mid-meditation, reports the trance quiet, and re-offers the bowl to a shaman still humming.
+// Why: the trance closes its own dialogue and then chants, `if_close`, two `mes`, then six `p_delay(2)` carrying `npc_say`/`say`, which are overhead chat and open no widget. That is twelve ticks in which nothing is up and the throw has not resolved, so a shorter patience gives up mid-meditation, reports the trance quiet, and re-offers the bowl to a shaman still humming.
 
 /** How many idle ticks end the wait, longer than the trance's own twelve of silence. */
 const BLESS_IDLE_TICKS = 20;
@@ -207,7 +207,7 @@ export type Trance = 'blessed' | 'refused' | 'missed' | 'quiet';
 /** He took the five points and the trance failed. */
 const BLESS_MISSED = /deep enough trance/;
 
-/** He would not begin — the server's prayer is under his gate, whatever the stat block says. */
+/** He would not begin, the server's prayer is under his gate, whatever the stat block says. */
 const BLESS_REFUSED = /too inexperienced/;
 
 /** Drive Gujuo's trance, ending the moment it blesses the bowl or the conversation closes without it. */
@@ -231,7 +231,7 @@ async function driveBlessing(blessed: () => boolean): Promise<Trance> {
         idle++;
         return opened && idle >= BLESS_IDLE_TICKS;
     };
-    // Why: `driveUntil` hands the chain to `driveChoice`, which clicks to the end without re-testing — so the box naming the miss was dismissed before anything read it, and every throw came back `quiet`. `driveBoxes` tests between clicks, which is the point of reading his words.
+    // Why: `driveUntil` hands the chain to `driveChoice`, which clicks to the end without re-testing, so the box naming the miss was dismissed before anything read it, and every throw came back `quiet`. `driveBoxes` tests between clicks, which is the point of reading his words.
     await driveBoxes(ended, BLESS_MS, BLESS_PREFER);
     if (blessed()) {
         return 'blessed';
@@ -242,7 +242,7 @@ async function driveBlessing(blessed: () => boolean): Promise<Trance> {
     return missed ? 'missed' : 'quiet';
 }
 
-// Why: the stat block lags the server by a tick or two, so a throw made straight after a miss reads a prayer bar that has not fallen yet — Gujuo refuses on his own gate and the throw is spent learning what the miss had already said. At forty-two that doubled every miss: eighteen throws to land nine rolls, against a budget of twenty.
+// Why: the stat block lags the server by a tick or two, so a throw made straight after a miss reads a prayer bar that has not fallen yet. Gujuo refuses on his own gate and the throw is spent learning what the miss had already said. At forty-two that doubled every miss: eighteen throws to land nine rolls, against a budget of twenty.
 // Why: a miss takes five, so they are counted rather than waited for, and his refusal is believed over the stat block outright.
 
 /** The points `gujuo_bless_bowl` takes on a miss. */
@@ -259,10 +259,10 @@ export function needsDose(outcome: Trance, points: number): boolean {
 /** The points Gujuo's own gate demands, below which he will not begin. */
 const BLESS_FLOOR = 42;
 
-// Why: `value = ⌊80·(99−n)/98⌋ + ⌊250·(n−1)/98⌋ + 1` against `rand(0..256)`, and true is the miss — so the roll rises about 1.73 for every point of prayer and the trance is likelier to fail the more devout you are. It misses three times in five at forty-two and ninety-eight times in a hundred at ninety-nine.
+// Why: `value = ⌊80·(99−n)/98⌋ + ⌊250·(n−1)/98⌋ + 1` against `rand(0..256)`, and true is the miss, so the roll rises about 1.73 for every point of prayer and the trance is likelier to fail the more devout you are. It misses three times in five at forty-two and ninety-eight times in a hundred at ninety-nine.
 // Why: that makes every dose above the gate a cost. Prayer is held as low as Gujuo will accept rather than as high as the bar goes, and the five points a miss takes walk the odds towards the player rather than away.
 
-/** The points to hold before a throw. The gate itself — the roll only worsens above it. */
+/** The points to hold before a throw. The gate itself, the roll only worsens above it. */
 export function blessPrayerFloor(): number {
     return BLESS_FLOOR;
 }
@@ -274,7 +274,7 @@ async function topUpPrayer(log: (m: string) => void): Promise<boolean> {
 
 const BOWL_ATTEMPTS = 6;
 
-// Why: the anvil carries no ops at all — the golden bowl is a gold bar *used on* it, which no op-based step can express.
+// Why: the anvil carries no ops at all, the golden bowl is a gold bar *used on* it, which no op-based step can express.
 // Why: a failed forge costs one bar and sometimes two, so the leg retries while bars remain.
 
 /** Hammer two gold bars into a golden bowl at the Tai Bwo Wannai anvil. */
@@ -358,7 +358,7 @@ export async function findPoolDried(log: (m: string) => void): Promise<boolean> 
     ) || dry();
 }
 
-// Why: the west wall is crossed by standing on its own tile — `~check_axis` compares the player's x with the wall's, so (2788,9325) is outside and the splash teleports us to (2789,9325).
+// Why: the west wall is crossed by standing on its own tile, `~check_axis` compares the player's x with the wall's, so (2788,9325) is outside and the splash teleports us to (2789,9325).
 // Why: the stand is taken at radius 0 first, as a diagonal section of the octagram two tiles away crosses on a different axis.
 
 /** Douse the flames with pure water and step into the octagram. */
@@ -390,12 +390,12 @@ export async function enterOctagram(log: (m: string) => void): Promise<boolean> 
             return true;
         }
     }
-    // Why: every chop through the dense band boils the bowl dry, blessed or not, and the octagram is reached through that band — so a bowl filled before the last crossing arrives empty and the splash above never runs.
+    // Why: every chop through the dense band boils the bowl dry, blessed or not, and the octagram is reached through that band, so a bowl filled before the last crossing arrives empty and the splash above never runs.
     if (heldId(LQ_ID.GOLD_BOWL_BLESSED_PURE) === 0) {
         log('no pure water in the bowl at the flames — the fill has to be the last thing before the cave, as crossing the band boils it off');
     }
     // Why: once the demon is dead Ungadulu's spell walks anyone through the flames on a plain Touch, which is the only way in for a leg that no longer carries water.
-    // Why: bounded, because before the demon is dead Touch cannot work at all, and `Reach` would otherwise spend eight attempts of its own budget proving it — which is a leg standing at the wall rather than going back for water.
+    // Why: bounded, because before the demon is dead Touch cannot work at all, and `Reach` would otherwise spend eight attempts of its own budget proving it, which is a leg standing at the wall rather than going back for water.
     const touched = await promptLoc(
         {
             name: LQ_LOC.FIRE_WALL,
@@ -483,9 +483,9 @@ export async function germinateSeeds(log: (m: string) => void): Promise<boolean>
             log(`pack holds ${bowl ? 'the pure bowl' : `bowls [${bowlsHeld()}]`} and ${seeds ? 'the seeds' : 'no seeds'}`);
             return false;
         }
-        // Why: `opheldu` runs the handler on the item clicked second and the bowl is the one that carries it, so the seeds go on the bowl — the script's own comment says the reverse is "nothing interesting happens", and that is what eleven attempts got.
+        // Why: `opheldu` runs the handler on the item clicked second and the bowl is the one that carries it, so the seeds go on the bowl, the script's own comment says the reverse is "nothing interesting happens", and that is what eleven attempts got.
         const sent = await seeds.useOn(bowl);
-        // Why: `~doubleobjbox` suspends the script until the box is answered, and the germinated seeds are added after it — so waiting for them without clearing the box waits for something the server is not going to do.
+        // Why: `~doubleobjbox` suspends the script until the box is answered, and the germinated seeds are added after it, so waiting for them without clearing the box waits for something the server is not going to do.
         if (sent && await driveUntil(done, [], log, 20_000)) {
             return true;
         }

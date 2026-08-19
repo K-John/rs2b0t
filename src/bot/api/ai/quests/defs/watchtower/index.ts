@@ -353,7 +353,7 @@ const CRYSTAL_RECOVERY: Readonly<Record<number, { name: string; run: (log: (m: s
 };
 
 function recoverCrystals(snap: QuestSnapshot): QuestStep | null {
-    // Nothing to recover once all four are carried — do not walk to the bank
+    // Nothing to recover once all four are carried, do not walk to the bank
     // merely to learn what is in it.
     const lost = CRYSTALS.find(crystal => held(snap, crystal.id) === 0);
     if (!lost) {

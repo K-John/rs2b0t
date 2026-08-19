@@ -1,4 +1,4 @@
-/** Live proof for #370 — the west Varrock sewer slashable web. Tele to the sewer bottom under the manhole (3237,9859), give a knife, then walkResilient to the dig stand (3160,9905), which must Slash bigweb_slashable @ (3210,9898). Nothing teleports past the web.
+/** Live proof for #370, the west Varrock sewer slashable web. Tele to the sewer bottom under the manhole (3237,9859), give a knife, then walkResilient to the dig stand (3160,9905), which must Slash bigweb_slashable @ (3210,9898). Nothing teleports past the web.
  *  Content: web.rs2 oploc1 uses ~slash_checker (a wielded slash weapon) while oplocu accepts a knife, so doorCrossing uses Knife useOn when present and Slash otherwise; the cut is 50%, and the walker retries in the multi-door loop. */
 
 //   ~/redeploy.sh && HEADED=1 bun e2e/varrock-sewer-web-370-live.ts
@@ -13,7 +13,7 @@ const { base } = parseArgs(process.argv.slice(2), {
 
 /**
  * Fixture start: north stand of the web (MAIN side). Must still Slash to reach
- * the closed west section — no tele past the rope/web.
+ * the closed west section, no tele past the rope/web.
  */
 const WEB_NORTH = { x: 3210, z: 9899, level: 0 };
 /** Walkable stand next to hard dig (3161,9905) in the closed west section. */

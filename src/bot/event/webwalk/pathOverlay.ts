@@ -1,6 +1,6 @@
 // Why: only the HTML #overlay sits on top of the 3D canvas, so the published path is approximated by projecting each tile's four corners with the same Client.overlayPos as entities, filling and stroking diamond quads, and clipping to the 3D game viewport (512×334 at 4,4) so chat and tabs stay clean.
 // Why: colours and hop text come from Global settings (see pathPaintTheme.ts).
-// Why: the paint is depth-less against models and always draws above people and locs — fixing that needs a Client paint hook.
+// Why: the paint is depth-less against models and always draws above people and locs, fixing that needs a Client paint hook.
 
 import { reader } from '../../adapter/ClientAdapter.js';
 import { Locs } from '../../api/locs/Locs.js';
@@ -16,7 +16,7 @@ import {
 import { remainingPathFromPlayer } from './geometry/pathExpand.js';
 import { Game } from '../../api/game/Game.js';
 
-/** areaGame surface blitted at (4,4) — see Client.overlayPos. */
+/** areaGame surface blitted at (4,4), see Client.overlayPos. */
 export const GAME_VIEW_CLIP = { x: 4, y: 4, w: 512, h: 334 } as const;
 
 /** Max tile quads to draw (far path is subsampled). Explore: denser for continuous look. */
@@ -513,7 +513,7 @@ export function paintNavPath(
             }
         }
 
-        // Object highlighter (always on when path paint is on) — actual loc model AABB
+        // Object highlighter (always on when path paint is on), actual loc model AABB
         paintNavLocHulls(ctx);
 
         if (theme.showText) {

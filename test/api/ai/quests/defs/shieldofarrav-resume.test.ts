@@ -104,7 +104,7 @@ describe('shield of arrav resumes from every reachable state', () => {
         expect((step as { reason: string }).reason).toContain('half');
     });
 
-    // Why: this is the one honest dead end — the crossbows sit behind a door only Straven's key opens, and joining Phoenix makes Katrine refuse you.
+    // Why: this is the one honest dead end. The crossbows sit behind a door only Straven's key opens, and joining Phoenix makes Katrine refuse you.
     test('a partnerless black arm bot on the crossbow task says why it is stuck', () => {
         ArravConfig.gang = 'blackarm';
         ArravConfig.partner = '';

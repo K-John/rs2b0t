@@ -147,7 +147,7 @@ async function walkToRidgeApproach(bot: WildyAgility, label: string, attempts = 
 
 // Why: the outcome is read from GameMessages (MESSAGE_GAME type-0 lines) plus XP.
 // Why: success is "You skillfully balance across the ridge...".
-// Why: failure is "You lose your footing and fall into the wolf pit." — the same scene, not the high-z obstacle pit that PitEscape handles.
+// Why: failure is "You lose your footing and fall into the wolf pit.", the same scene, not the high-z obstacle pit that PitEscape handles.
 // Why: only ridge.interact may cross the Door, so approach walks stay south of 3917.
 
 /** Crosses the wilderness ridge into the course. */
@@ -172,7 +172,7 @@ async function attemptRidgeCrossing(bot: WildyAgility, label: string): Promise<R
         return 'timeout';
     }
 
-    // Wolf pit is same-scene: settle on chat / XP / interrupt only — never z-gap inPit.
+    // Wolf pit is same-scene: settle on chat / XP / interrupt only, never z-gap inPit.
     await Execution.delayUntil(() => {
         if (EventSignal.pending()) {
             return true;
@@ -218,7 +218,7 @@ async function attemptRidgeCrossing(bot: WildyAgility, label: string): Promise<R
     }
 
     // Fail / timeout: recover to the south stand and let the next loop retry immediately.
-    // Do NOT walk north of the Door — that re-opens it via the pathfinder.
+    // Do NOT walk north of the Door, that re-opens it via the pathfinder.
     bot.log(
         outcome === 'fail'
             ? `${label}fell into the wolf pit — walking back to ridge approach`
@@ -278,7 +278,7 @@ export default class WildyAgility extends TaskBot {
         await ensureRetaliateOff(m => this.log(m));
 
         // Why: a startup below minFood banks before walking to the wilderness.
-        // Why: already on the course or in a pit skips it, since mid-session restock is death-only — there is no safe gate exit from the lap zone.
+        // Why: already on the course or in a pit skips it, since mid-session restock is death-only. There is no safe gate exit from the lap zone.
         const startingFood = foodCount();
         if (MIN_FOOD > 0 && startingFood < MIN_FOOD) {
             if (this.entered || inPit(here, COURSE_CENTRE, PIT_Z_GAP)) {
@@ -333,7 +333,7 @@ export default class WildyAgility extends TaskBot {
             }),
             new EatFood(this),
             // Obstacle pits only (high world-z). Ridge wolf-pit is same-scene and
-            // is recovered inside attemptRidgeCrossing — never via this task.
+            // is recovered inside attemptRidgeCrossing, never via this task.
             new PitEscape(this),
             new TravelToCourse(this),
             new EnterCourse(this),
@@ -442,7 +442,7 @@ export default class WildyAgility extends TaskBot {
     }
     markEscapedPit(): void {
         this.justEscapedPit = true;
-        // Escape/climb time is not "idle between obstacles" — stamp so gap
+        // Escape/climb time is not "idle between obstacles", stamp so gap
         // diagnostics and any residual timeout math start from recovery, not the fall.
         this.lastClearedTick = Game.tick();
     }
@@ -544,7 +544,7 @@ class PitEscape implements Task {
             return false;
         }
         const here = Game.tile();
-        // z-gap only — same-scene wolf pit must not enter this task.
+        // z-gap only, same-scene wolf pit must not enter this task.
         return here !== null && inPit(here, COURSE_CENTRE, PIT_Z_GAP);
     }
 
@@ -576,7 +576,7 @@ class PitEscape implements Task {
         const lt = ladder.tile();
         if (here && !nearTile(here, lt, 2)) {
             this.bot.setStatus('in the pit — heading to the ladder');
-            // Short enclosed walk — walkTo is enough; walkResilient is overkill.
+            // Short enclosed walk, walkTo is enough; walkResilient is overkill.
             await Traversal.walkTo(lt, { radius: 1 });
             if (this.bot.died) {
                 return;
@@ -608,7 +608,7 @@ class TravelToCourse implements Task {
     async execute(): Promise<void> {
         this.bot.markLeft();
         this.bot.setStatus('walking to the wilderness agility course');
-        // Approach south of the ridge Door — never north of it (pathfinder Opens Door).
+        // Approach south of the ridge Door, never north of it (pathfinder Opens Door).
         await Traversal.walkResilient(RIDGE_APPROACH, {
             radius: 2,
             attempts: 6,
@@ -626,7 +626,7 @@ class EnterCourse implements Task {
         if (here === null) {
             return false;
         }
-        // Once north of the Gate, never validate — the gate exits back south and
+        // Once north of the Gate, never validate, the gate exits back south and
         // clicking the ridge from inside derails the script.
         if (onCourse(here)) {
             return false;
@@ -701,7 +701,7 @@ class RunLap implements Task {
                 if (this.bot.died || EventSignal.pending() || ChatDialog.canContinue()) {
                     return;
                 }
-                // Still in a high-z pit (failed climb / re-fell) — let PitEscape own it.
+                // Still in a high-z pit (failed climb / re-fell), let PitEscape own it.
                 const here = Game.tile();
                 if (here !== null && inPit(here, COURSE_CENTRE, PIT_Z_GAP)) {
                     return;
@@ -750,7 +750,7 @@ class RunLap implements Task {
             return;
         }
 
-        // Soft diagnostic only — never delay the click for a gap after recovery walks.
+        // Soft diagnostic only, never delay the click for a gap after recovery walks.
         const gapTicks = Game.tick() - this.bot.lastClearedTick;
         if (!escapedPit && gapTicks > OBSTACLE_TIMEOUT_TICKS * 2) {
             this.bot.log(`gap ${gapTicks} ticks since last obstacle`);
@@ -809,7 +809,7 @@ class RunLap implements Task {
             }
             // Why: yielding lets EatFood run while skeletons near the rocks hit us.
             // Why: it waits a few ticks first, so residual damage does not abort the click.
-            // Why: it never yields on an empty inventory — EatFood will not validate, and aborting mid-obstacle leaves the bot on unpathable tiles such as the log or pipe.
+            // Why: it never yields on an empty inventory. EatFood will not validate, and aborting mid-obstacle leaves the bot on unpathable tiles such as the log or pipe.
             if (waitedTicks >= 3 && needEat()) {
                 lowHp = true;
                 settled = true;
@@ -851,7 +851,7 @@ class RunLap implements Task {
         if (reason === 'pit') {
             this.bot.log(`fell into the pit during '${this.bot.currentName()}' — escaping`);
             this.bot.setStatus('in the pit — escaping');
-            // Fall is a live outcome, not a stuck click — reset so recovery
+            // Fall is a live outcome, not a stuck click, reset so recovery
             // does not inherit a half-spent retry counter.
             this.stuck = 0;
             return;
@@ -875,13 +875,13 @@ class RunLap implements Task {
             }
             this.bot.lastClearedTick = Game.tick();
             this.bot.advance();
-            // Short humanized pause only — do not block on animation (combat/path
+            // Short humanized pause only, do not block on animation (combat/path
             // jitter can keep animating and previously hung the next lap silently).
             await Execution.delay(reactionMs());
             return;
         }
 
-        // low_hp: yield to EatFood without burning a retry — combat damage is not
+        // low_hp: yield to EatFood without burning a retry, combat damage is not
         // an obstacle failure. Only reached when foodCount() > 0 (see wait loop).
         if (reason === 'low_hp') {
             this.bot.log(

@@ -66,7 +66,7 @@ async function run(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-// Why: auto-retaliate is the hazard here rather than the damage — an ice warrior landing a hit makes the bot swing back, and the swing cancels the mine.
+// Why: auto-retaliate is the hazard here rather than the damage, an ice warrior landing a hit makes the bot swing back, and the swing cancels the mine.
 // Why: nothing in this trip wants a reflex, as it is one ore and out.
 
 /** Mine one blurite ore and leave. */

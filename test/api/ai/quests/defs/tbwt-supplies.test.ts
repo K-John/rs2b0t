@@ -91,7 +91,7 @@ describe('tbwt supplies', () => {
         expect(names({ spear: true })).not.toContain(TB_NAME.IRON_SPEAR);
     });
 
-    // Why: the paste is the poison, not the shaft — a pack that lost the spear still has to replace it.
+    // Why: the paste is the poison, not the shaft, a pack that lost the spear still has to replace it.
     test('paste alone does not count as a spear', () => {
         expect(names({ invIds: [[TB_ID.KARAMBWAN_POISON_PASTE, 1]] })).toContain(TB_NAME.IRON_SPEAR);
     });

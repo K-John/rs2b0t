@@ -44,7 +44,7 @@ class RunManagerImpl {
     }
 
     private onFrame(): void {
-        // being hit is urgent — don't sit out the throttle waiting to turn run on
+        // being hit is urgent, don't sit out the throttle waiting to turn run on
         const attacked = !Game.runEnabled() && Game.inCombat();
         const now = performance.now();
         if (now < this.nextCheckAt && !attacked) {

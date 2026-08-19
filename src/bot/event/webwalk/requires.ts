@@ -123,7 +123,7 @@ export function hasGatingRequires(requires: TransportRequires | undefined): bool
     );
 }
 
-// Why: this matches search policy — no gates means allowed, while gated without state fails closed, the same as PathFinder skipping gated edges when WorldState is omitted.
+// Why: this matches search policy, no gates means allowed, while gated without state fails closed, the same as PathFinder skipping gated edges when WorldState is omitted.
 
 /** Convenience predicate for PathFinder filters. */
 export function isEdgeAllowed(requires: TransportRequires | undefined, state: WorldState | undefined): boolean {

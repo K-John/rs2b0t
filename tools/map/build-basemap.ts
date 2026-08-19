@@ -213,7 +213,7 @@ function bakeTintRgba(
 
 type BakeResult = {
     terrain: Int32Array;
-    /** All Key icons on one transparent sheet (optional “everything” layer). */
+    /** All Key icons on one transparent sheet (optional "everything" layer). */
     keyRgba: Uint8Array;
     /** Per mapfunction type id → transparent sheet with only that Key type. */
     keyTypeRgba: Record<string, Uint8Array>;

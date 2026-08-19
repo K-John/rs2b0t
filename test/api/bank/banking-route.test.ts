@@ -104,7 +104,7 @@ describe('resolveBankOpenRoute', () => {
     });
 
     test('preset stand when stand is also local (same bank area)', () => {
-        // Already at Catherby and camp bank is Catherby — walk the stand is fine.
+        // Already at Catherby and camp bank is Catherby, walk the stand is fine.
         expect(
             resolveBankOpenRoute({
                 bankOpen: false,
@@ -130,7 +130,7 @@ describe('resolveBankOpenRoute', () => {
     });
 
     test('nearest-fallback when no stand and player is not already at a local bank', () => {
-        // Far from every known bank — open() will web-walk nearestBank.
+        // Far from every known bank, open() will web-walk nearestBank.
         expect(
             resolveBankOpenRoute({
                 bankOpen: false,

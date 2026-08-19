@@ -94,7 +94,7 @@ export function queueSummary(rows: readonly QueueRow[]): QueueSummary {
     };
 }
 
-// Why: the engine passes a null running id for a drained queue, a parked plan and a banking spillover, all of which happen inside one quest — so a plain inequality restarts the quest clock several times over without the quest having changed.
+// Why: the engine passes a null running id for a drained queue, a parked plan and a banking spillover, all of which happen inside one quest, so a plain inequality restarts the quest clock several times over without the quest having changed.
 
 /** Whether the per-quest clock restarts for this state update. */
 export function questClockRestarts(prevId: string | null, nextId: string | null): boolean {

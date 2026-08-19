@@ -344,7 +344,7 @@ class FightBack implements Task {
 class LootDrops implements Task {
     constructor(private bot: ArdyThiever) {}
     private find() {
-        // Adjacent only — walking for coins during/after stun wrecks pickpocket cadence.
+        // Adjacent only, walking for coins during/after stun wrecks pickpocket cadence.
         return GroundItems.query()
             .where(g => matchesAny(g.name, LOOT))
             .where(g => g.distance() <= 1 && g.tile().distanceTo(ANCHOR) <= LEASH + 4 && Reachability.canReach(g.tile()))

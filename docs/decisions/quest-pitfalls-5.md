@@ -9,16 +9,16 @@ Clock Tower added five, and the first three are engine and API facts rather than
   walk-isolated from every other cog; the rest of the dungeon is a different ladder half a town
   away. Declaring a sealed cog room's ladder as a hop makes it the nearest underground stand from
   most of the map, and the walker loops on `no path to (2572,9632,0): unreachable`. Only a ladder
-  every leg can reach belongs in `hops` — a sealed room climbs its own inside the leg that entered
+  every leg can reach belongs in `hops`, a sealed room climbs its own inside the leg that entered
   it.
 - **A gate that refuses its own op from the side you can stand on is not a door.** `ctratgatea`
   advertises `op1=Open`, and `~check_axis` grants it only when the player's x equals the gate's,
-  which is the caged side. It belongs in `SCRIPT_REFUSED` with the lever driving it — and once the
+  which is the caged side. It belongs in `SCRIPT_REFUSED` with the lever driving it, and once the
   baked edge is gone there is no path across, so the last tile is a `DirectNavigator` scene step
   and the server does the pathing with its live collision.
 - **`opobju` had no client route at all.** Use-on reached locs, npcs and held items; an obj lying
   on the floor answers a fourth trigger, and the red-hot black cog is cooled through that one and
-  nothing else. Read which trigger the handler is on before assuming the API can express it —
+  nothing else. Read which trigger the handler is on before assuming the API can express it,
   `InvItem.useOn` had to learn ground items for this quest to be possible.
 - **Counting the monsters never answers "did the poison land".** The cage rats are ordinary map
   spawns on `respawnrate=50`, so `npc_del` empties the pen for ten seconds and then it refills

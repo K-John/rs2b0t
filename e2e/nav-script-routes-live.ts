@@ -1,5 +1,5 @@
 /** Live walk stress over script-ripped high-traffic routes: HARD=1, TRANSPORT_HEAVY=1, SHIP_352=1, JEWELLERY_ONLY=1, LIMIT, BUDGET_S, PATH_PAINT, USE_TELEPORTS, ENERGY_REFILL_AT. Server tick drops to 300ms and is restored to 600 on exit; charged duel/glory/games neck are seeded at start and topped up each leg so OD paths may Rub.
- *  Why: `energy` alone is a no-op — the engine has no native energy cheat — so refills go through the content debugproc `~energy` (healenergy 10000 + run on), which needs p_finduid and retries while the player is mid protected script. */
+ *  Why: `energy` alone is a no-op. The engine has no native energy cheat, so refills go through the content debugproc `~energy` (healenergy 10000 + run on), which needs p_finduid and retries while the player is mid protected script. */
 
 //   ~/redeploy.sh
 //   HEADED=1 HARD=1 ENERGY_REFILL_AT=25 bun e2e/nav-script-routes-live.ts
@@ -78,7 +78,7 @@ const proof = createHarnessProof({ issue: 0, slug: 'nav-script-routes' });
 type Tile = NavTile;
 
 /**
- * Prefer mainland + f2p-ish walk hubs + bank/camp commutes — the paths scripts thrash. Full pack mesh stays in script-route-corpus.js.
+ * Prefer mainland + f2p-ish walk hubs + bank/camp commutes, the paths scripts thrash. Full pack mesh stays in script-route-corpus.js.
  */
 export function pickLiveRoutes(all: ScriptRoute[], limit: number): ScriptRoute[] {
     const score = (r: ScriptRoute): number => {
@@ -217,7 +217,7 @@ export function loadShip352Routes(limit = 2): ScriptRoute[] {
         {
             id: 'SHIP-352-ard-brim',
             from: { x: 2668, z: 3285, level: 0 },
-            // Ashore Brimhaven (past plank), not the deck tile — forces disembark hop.
+            // Ashore Brimhaven (past plank), not the deck tile, forces disembark hop.
             to: { x: 2779, z: 3218, level: 0 },
             note: 'Ardougne docks → Brimhaven shore (Barnaby Pay-fare + gangplank Cross) #352',
             source: 'issue-352'
@@ -349,7 +349,7 @@ function jewelleryUsedInLogs(logs: string[]): boolean {
 
 const all = USE_HARDEST || USE_TRANSPORT_HEAVY || USE_SHIP_352 ? [] : await loadSeedRoutes();
 /** Skip TH-ess-* so LIMIT counts ship / glider / spirit / cart / Entrana legs instead.
- *  Why: essence multiloc entry is a wizard Teleport into a random mine pad, not a fixed pathfinder OD — the expansion budget fails even with the tele catalog on. */
+ *  Why: essence multiloc entry is a wizard Teleport into a random mine pad, not a fixed pathfinder OD, the expansion budget fails even with the tele catalog on. */
 function loadTransportHeavyForLive(limit: number): TransportHeavyRoute[] {
     const raw = loadTransportHeavyRoutes(0); // full list
     const filtered = raw.filter(r => !r.essenceRoundtrip && !/^TH-ess-/i.test(r.id));
@@ -511,7 +511,7 @@ try {
             `${stamp()} jewellery Rub observed on ${jewelleryHops}/${routes.length} OD leg(s) (seeded at start; natural plan)`
         );
     }
-    // Optional synthetic isolation (clear inv + allowlist) — not the default path.
+    // Optional synthetic isolation (clear inv + allowlist), not the default path.
     if (process.env.JEWELLERY_ONLY === '1' || process.env.JEWELLERY_ONLY === 'true') {
         const jew = await runJewelleryLegs(page, BUDGET_MS);
         results.push(...jew);

@@ -1,4 +1,4 @@
-/** Live smoke for fix/random-event-handler-crash — a deltime=0 mid-maze teleport must not crash ScriptRunner: [base].
+/** Live smoke for fix/random-event-handler-crash, a deltime=0 mid-maze teleport must not crash ScriptRunner: [base].
  *  Repro path: running script → maze tele (scene rebuild, deltime briefly 0) → Supervisor/RandomEvents.detect → reader.npcs → combatShowing/deltimeNow. */
 
 //   ~/redeploy.sh
@@ -71,7 +71,7 @@ try {
     );
     push('IdlePulse script running');
 
-    // Maze mapzone — content [mapzone,0_45_71]; NW spawn tele used by random-events-live.
+    // Maze mapzone, content [mapzone,0_45_71]; NW spawn tele used by random-events-live.
     await cheatQuiet(page, 'tele 0,45,71,11,53', 4000);
     await page.waitForFunction(
         () => {

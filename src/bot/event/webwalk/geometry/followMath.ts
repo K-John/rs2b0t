@@ -74,7 +74,7 @@ export function starvedTerminalIndex(tiles: PathTileLike[], me: PathTileLike, is
     return isClickable(end) ? last : -1;
 }
 
-// Why: only the approach tile counts — proximity to the far landing, or to a nearby unrelated transport of the same type, must not snap the walker off the route.
+// Why: only the approach tile counts, proximity to the far landing, or to a nearby unrelated transport of the same type, must not snap the walker off the route.
 
 /** Whether to execute a planned hop on the published path. */
 export function crossingEligible(

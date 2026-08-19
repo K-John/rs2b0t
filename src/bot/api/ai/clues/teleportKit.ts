@@ -20,7 +20,7 @@ export interface TeleportKit {
 }
 
 /**
- * Whether the account could use this destination if it held the runes — magic level, members, quest unlocks.
+ * Whether the account could use this destination if it held the runes, magic level, members, quest unlocks.
  * Why: the runes and the pack space to hold them are excluded because stocking is what fills that gap, and checking it here would keep every kit permanently empty.
  */
 function castable(dest: TeleportDestination, state: WorldState): boolean {

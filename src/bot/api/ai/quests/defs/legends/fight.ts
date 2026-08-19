@@ -16,7 +16,7 @@ const PRAYER_OFF_ATTEMPTS = 3;
 /** Ticks between re-issuing Attack when the engine says we are already in combat. */
 const SWING_GAP = 5;
 
-// Why: prayer points equal the prayer level, so seventy is three and a half minutes of Protect from Melee and the three guardians outlast it — the dose goes in well before the prayer lapses rather than as it does.
+// Why: prayer points equal the prayer level, so seventy is three and a half minutes of Protect from Melee and the three guardians outlast it, the dose goes in well before the prayer lapses rather than as it does.
 /** Below this many prayer points, a dose goes in. */
 const PRAYER_FLOOR = 25;
 
@@ -27,7 +27,7 @@ const EAT_BELOW = 0.7;
 export interface FightPlan {
     /** Display name of the thing to hit. */
     npc: string;
-    /** True once the fight is over — a stage change, an item, a corpse. */
+    /** True once the fight is over, a stage change, an item, a corpse. */
     done: () => boolean;
     /** Overall budget. */
     ms?: number;
@@ -58,7 +58,7 @@ export async function drinkPrayer(log: (m: string) => void): Promise<boolean> {
     return true;
 }
 
-// Why: the server runs one op per tick and drops the rest, so a pass that eats, prays and swings loses two of the three — and the one it loses is the food.
+// Why: the server runs one op per tick and drops the rest, so a pass that eats, prays and swings loses two of the three, and the one it loses is the food.
 // Why: the order is eat, then top the prayer up, then swing, which is what kept hitpoints off the floor against a level-187 demon at 70s.
 
 /**
@@ -70,7 +70,7 @@ export async function fight(plan: FightPlan, log: (m: string) => void): Promise<
     const wantPray = plan.pray !== false && Prayer.known(PROTECT_MELEE) && Skills.level('prayer') >= 43;
     let lastTick = -1;
     let lastSwing = -99;
-    // Why: the loop spends its first ticks eating and swinging, and three aggressive guardians take a third of the bar in that time — so the prayer goes up before the first blow rather than after it.
+    // Why: the loop spends its first ticks eating and swinging, and three aggressive guardians take a third of the bar in that time, so the prayer goes up before the first blow rather than after it.
     if (wantPray && !Prayer.active(PROTECT_MELEE) && Prayer.available(PROTECT_MELEE)) {
         await Prayer.set(PROTECT_MELEE, true);
     }
@@ -112,7 +112,7 @@ export async function fight(plan: FightPlan, log: (m: string) => void): Promise<
             await Execution.delayTicks(1);
         }
     } finally {
-        // Why: the server runs one op per tick and drops the rest, and this toggle is sent on the tick the fight ended — the same tick the loop may have spent on a swing — so the one send most likely to be dropped is the one that switches the prayer back off.
+        // Why: the server runs one op per tick and drops the rest, and this toggle is sent on the tick the fight ended, the same tick the loop may have spent on a swing, so the one send most likely to be dropped is the one that switches the prayer back off.
         // Why: left on it drains through the walk out and empties the flask the next fight was carrying it for. `Prayer.set` returns false when the toggle does not land, and a single call threw that away.
         if (wantPray) {
             for (let i = 0; i < PRAYER_OFF_ATTEMPTS && Prayer.active(PROTECT_MELEE); i++) {

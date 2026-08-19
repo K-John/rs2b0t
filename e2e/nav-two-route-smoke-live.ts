@@ -50,7 +50,7 @@ const ROUTES: Route[] = [
         id: 'yanille-bank-dungeon-end',
         note: 'Yanille bank → chaos druid warrior field (web + stairs + ledge + walk in)',
         from: { x: 2612, z: 3092, level: 0 },
-        // Why: the ledge south stand is 2580,9512, so radius ≥10 lets walkTo "arrive" on the ledge — radius 3 forces walking into the warrior cluster.
+        // Why: the ledge south stand is 2580,9512, so radius ≥10 lets walkTo "arrive" on the ledge, radius 3 forces walking into the warrior cluster.
         to: { x: 2580, z: 9501, level: 0 },
         radius: 3,
         validate: ({ me, walkOk, dist, logs, hops }) => {
@@ -118,7 +118,7 @@ const ROUTES: Route[] = [
             // Why: journal colour is client-only and a setvar alone does not recolour until relog; ^tree_complete=9 makes the list reliably green, minStatus started still passes, and postquest Elkoy still offers "Yes please."
             await cheatQuiet(page, 'setvar treequest 9', 800);
             await relog(page, user);
-            // Relog drops Global settings — re-enable paint + camera like other smokes.
+            // Relog drops Global settings, re-enable paint + camera like other smokes.
             await applyNavPaintSettings(page, PAINT);
             await cheatQuiet(page, 'give knife 1', 600);
             // Confirm journal after relog (plan-time gate reads list colour).
@@ -290,7 +290,7 @@ try {
         await teleArrive(page, route.from);
         if (route.setup) {
             await route.setup(page, user);
-            // Relog can drop us elsewhere — re-arrive at leg start.
+            // Relog can drop us elsewhere, re-arrive at leg start.
             await teleArrive(page, route.from);
         }
         await cheatQuiet(page, '~energy', 400);

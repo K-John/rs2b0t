@@ -70,7 +70,7 @@ export const Shop = {
                 await Input.invButton(it.id, it.slot, it.comId, opIndex + 1);
             }
             await Execution.delayUntil(() => countHeld(name) !== before, 3000);
-            // the batch lands in one server tick — settle so the recount sees all of it
+            // the batch lands in one server tick, settle so the recount sees all of it
             await Execution.delayTicks(1);
             const got = countHeld(name) - before;
             if (got <= 0) {
@@ -83,8 +83,8 @@ export const Shop = {
         return bought;
     },
 
-    // Why: a shop can stock two objects that render the same name — Thessalia's two priest-gown
-    // halves are 426 and 428 — and buying by name takes the first slot twice.
+    // Why: a shop can stock two objects that render the same name, Thessalia's two priest-gown
+    // halves are 426 and 428, and buying by name takes the first slot twice.
 
     /** Buy by exact object id, for stock whose display name is shared. */
     async buyById(id: number, n: number): Promise<number> {
@@ -165,7 +165,7 @@ function heldById(id: number): number {
 }
 
 // The engine processes at most this many user-event packets per player tick
-// (ClientGameProtCategory USER_EVENT) — extra ops in a tick are dropped.
+// (ClientGameProtCategory USER_EVENT), extra ops in a tick are dropped.
 const USER_OPS_PER_TICK = 5;
 const BUY_STEPS = [10, 5, 1] as const;
 

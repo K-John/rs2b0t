@@ -8,7 +8,7 @@ import { DEFAULT_TRADE_RANGE, namesMatch } from './PartnerTrade.js';
 import { Traversal } from '../walking/Traversal.js';
 import type Tile from '../../geometry/Tile.js';
 
-// Why: partner accepts are not tied to this client's tick rate, so these are wall-clock — a harness at
+// Why: partner accepts are not tied to this client's tick rate, so these are wall-clock, a harness at
 // 300ms ticks makes seven ticks about 2.1s, too short for a mutual Trade.
 const MEET_MS = 90_000;
 const SCREEN_MS = 8_000;
@@ -88,7 +88,7 @@ export interface HandoffSpec {
     partner: string;
     /** Where both sides walk to meet. */
     rendezvous: Tile;
-    /** Object id being moved. Ids, never names — Key, Herb and Certificate each name several objects. */
+    /** Object id being moved. Ids, never names, Key, Herb and Certificate each name several objects. */
     id: number;
     /** Display name of that object, for the offer click. */
     name: string;
@@ -141,7 +141,7 @@ export async function runHandoff(spec: HandoffSpec): Promise<boolean> {
         return false;
     }
     // Why: a wait step would park the quest after fifteen identical passes, so the wait for a partner
-    // lives inside the leg — openTrade owns both the wait and the clicking.
+    // lives inside the leg, openTrade owns both the wait and the clicking.
 
     if (!Trade.active() && !(await openTrade(partner, log))) {
         return false;
@@ -194,13 +194,13 @@ export async function runHandoff(spec: HandoffSpec): Promise<boolean> {
             continue;
         }
 
-        // Why: the taker must not accept an empty offer — the giver may still be walking to the window.
+        // Why: the taker must not accept an empty offer. The giver may still be walking to the window.
         if (!giving && !Trade.theirOffer().some(o => o.id === id)) {
             await Execution.delayTicks(1);
             continue;
         }
 
-        // Why: one accept per screen — the engine sets pending on each click and opens the confirm on
+        // Why: one accept per screen. The engine sets pending on each click and opens the confirm on
         // the second player's, so hammering it adds nothing and the re-clicks race the handover.
         const clicked = await Trade.accept();
         log(`${label}: accept on ${screen} -> ${clicked}`);

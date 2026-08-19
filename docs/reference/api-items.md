@@ -39,7 +39,7 @@ the main bank component;
 `InvItem` actions are the visible `Deposit-*` component buttons, and `useOn`
 returns false until the bank is closed.
 
-`useOn` is "use X with Y" behind every processing skill — knife→logs,
+`useOn` is "use X with Y" behind every processing skill, knife→logs,
 raw fish→range, ess→altar. Returns false if a loc target is off-scene.
 
 ```ts
@@ -79,13 +79,13 @@ withdrawOp(ops, amount: 'all' | '10' | '1' | 'any'): string | null
 **Gotchas**
 
 - `isOpen` only means the bank component exists. After open (and after every
-  deposit) wait for `Bank.loaded()` before trusting `count()` / `items()` —
+  deposit) wait for `Bank.loaded()` before trusting `count()` / `items()`,
   until then counts read as 0.
 - `withdraw`/`deposit`/`count` match names in full (case-insensitive).
   `op` is the context-menu label; use `withdrawOp(item.ops, 'all')` rather than
   hard-coding `'Withdraw-All'`.
 - Prefer `countById` / `withdrawById` / `withdrawXById` when two objects share a display name.
-- Do **not** hand-roll walk + booth click in new scripts — use `Banking.open`.
+- Do **not** hand-roll walk + booth click in new scripts, use `Banking.open`.
 
 ```ts
 if (!(await Banking.open({ stand: bankTile }))) return;

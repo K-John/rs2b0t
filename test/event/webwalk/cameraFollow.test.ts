@@ -122,7 +122,7 @@ describe('lookAheadTile / pathFacingYaw', () => {
             { x: 3010, z: 3339, level: 0 },
             { x: 3015, z: 3339, level: 0 },
             { x: 3020, z: 3339, level: 0 },
-            { x: 3020, z: 9739, level: 0 } // landing — must not dominate yaw
+            { x: 3020, z: 9739, level: 0 } // landing, must not dominate yaw
         ];
         const y = pathFacingYaw(dungeonPath[0]!, dungeonPath, 0, 12);
         expect(y).not.toBeNull();

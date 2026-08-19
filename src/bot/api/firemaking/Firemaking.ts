@@ -174,7 +174,7 @@ export function runInDir(
     return n;
 }
 
-/** @deprecated prefer runInDir — kept for bank-strip callers that always run west. */
+/** @deprecated prefer runInDir, kept for bank-strip callers that always run west. */
 export function runWest(
     from: WorldTile,
     plot: FirePlot,

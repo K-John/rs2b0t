@@ -38,4 +38,4 @@ pure Lost City or 2004scape projects and is not maintained for those targets.
 ---
 
 Design specs and implementation plans are working notes, not part of this manual, and
-are not committed — see `.gitignore`.
+are not committed, see `.gitignore`.

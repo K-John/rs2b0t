@@ -5,7 +5,7 @@ import Tile from '../../geometry/Tile.js';
 import { opIndex, presentOps, type Interactable, type Locatable } from './Interactable.js';
 
 /**
- * A scenery object — door, tree, rock, booth, altar.
+ * A scenery object, door, tree, rock, booth, altar.
  * @see docs/reference/api-entities.md#entity-shapes
  */
 export class Loc implements Interactable, Locatable {

@@ -25,7 +25,7 @@ export interface PublishedPathTile {
     action?: string;
     /** Hop kind when known (door, ladder, teleport, …). */
     kind?: string;
-    /** Spell/jewellery tele id — no scenery hull for these. */
+    /** Spell/jewellery tele id, no scenery hull for these. */
     teleportId?: string;
 }
 

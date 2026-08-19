@@ -9,7 +9,7 @@ import { emptyWorldStateData } from '#/bot/event/webwalk/worldStateData.js';
 import type { WorldStateData } from '#/bot/event/webwalk/worldStateData.js';
 
 const PACK_PATH = path.join(process.cwd(), 'out/collision.lcnav.gz');
-/** Pack is gitignored — pack-dependent tests must skip, never silent-pass (#341). */
+/** Pack is gitignored, pack-dependent tests must skip, never silent-pass (#341). */
 const HAS_COLLISION_PACK = fs.existsSync(PACK_PATH);
 
 function loadPack(): PathFinder {

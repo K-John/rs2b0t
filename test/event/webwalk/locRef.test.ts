@@ -46,7 +46,7 @@ describe('LocRef placement identity', () => {
         const ref = locRefFromTransport(gate);
         expect(matchesLocRef(ref, loc(3198, 3312, 3235))).toBe(true);
         expect(matchesLocRef(ref, loc(3197, 3312, 3235))).toBe(false);
-        // 1 tile off is still near (slack 3) for closed id — pack stands drift.
+        // 1 tile off is still near (slack 3) for closed id, pack stands drift.
         expect(matchesLocRef(ref, loc(3198, 3312, 3234))).toBe(true);
         expect(matchesLocRef(ref, loc(3198, 3312, 3240))).toBe(false);
     });
@@ -87,7 +87,7 @@ describe('LocRef placement identity', () => {
         };
         const ref = locRefFromTransport(west);
         expect(ref.slack).toBe(0);
-        // Exact tile only — neighbour at 2570 must not match (was double-slash).
+        // Exact tile only, neighbour at 2570 must not match (was double-slash).
         expect(matchesLocRef(ref, loc(733, 2569, 3118))).toBe(true);
         expect(matchesLocRef(ref, loc(733, 2570, 3118))).toBe(false);
     });
@@ -101,7 +101,7 @@ describe('LocRef placement identity', () => {
             locId: 733
         };
         const ref = locRefFromTransport(web);
-        // No slashable form — only slashed leaf at placement.
+        // No slashable form, only slashed leaf at placement.
         expect(
             probeLocRef(ref, [snap(734, 2570, 3118, 'Slashed web', [])])
         ).toEqual({ status: 'openLeaf' });

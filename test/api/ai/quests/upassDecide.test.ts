@@ -25,7 +25,7 @@ const KIT: Stack[] = [
     [UP_ITEM.LOBSTER.id, 14]
 ];
 
-// Why: the melee kit is matched by name, not id — any scimitar or platebody will do — so a snapshot needs the name maps as well. It is worn by default, because a pack holding one unworn is a step of its own and a pack holding none parks at the cave mouth.
+// Why: the melee kit is matched by name, not id, any scimitar or platebody will do, so a snapshot needs the name maps as well. It is worn by default, because a pack holding one unworn is a step of its own and a pack holding none parks at the cave mouth.
 const WEAPON = 'rune scimitar';
 
 function snapshot(over: Partial<QuestSnapshot> & {
@@ -80,8 +80,8 @@ describe('Underground Pass decide()', () => {
         expect(reasonOf(step)).toContain('melee weapon');
     });
 
-    // Why: the journal prints the same two sentences at stage three and stage four and differs only in which is struck through, so the module reads three while the server is at four — and levered a boulder that was already spent, forever. The two stages are one leg, and the horn is what ends it.
-    // Why: and the crests, the well and the doors are one step after that, because the well eats the crests and the journal never says it did — a run killed three respawned paladins after feeding the first.
+    // Why: the journal prints the same two sentences at stage three and stage four and differs only in which is struck through, so the module reads three while the server is at four, and levered a boulder that was already spent, forever. The two stages are one leg, and the horn is what ends it.
+    // Why: and the crests, the well and the doors are one step after that, because the well eats the crests and the journal never says it did, a run killed three respawned paladins after feeding the first.
     test('the unicorn leg is keyed on the horn, not on the stage', () => {
         const inArea2 = { x: 2396, z: 9600, level: 0 };
         for (const stage of [UP_STAGE.ENTERED_SECOND_AREA, UP_STAGE.KILLED_UNICORN]) {
@@ -93,7 +93,7 @@ describe('Underground Pass decide()', () => {
     });
 
     // Why: the fire arrow puts the bow in the right hand and the scimitar in the pack, and nothing after
-    // the bridge took it back out — the paladins were being fought bare-handed.
+    // the bridge took it back out. The paladins were being fought bare-handed.
     test('the weapon goes back on before the paladins', () => {
         const step = decide(snapshot({
             stage: UP_STAGE.KILLED_UNICORN,
@@ -114,13 +114,13 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(step)).toContain('King Lathas');
     });
 
-    // Why: the started bit is not a stage — reading it as one sent the bot back to Lathas forever.
+    // Why: the started bit is not a stage, reading it as one sent the bot back to Lathas forever.
     test('started is a flag on stage zero and routes to Koftik, not back to Lathas', () => {
         const step = decide(snapshot({ carried: KIT, flags: [UP_FLAG.STARTED] }));
         expect(nameOf(step)).not.toContain('King Lathas');
     });
 
-    // Why: `no path to (2436,3315): unreachable` — the navigator has no edge into West Ardougne, so the
+    // Why: `no path to (2436,3315): unreachable`. The navigator has no edge into West Ardougne, so the
     // wall has to be crossed explicitly before anything inside it is reachable.
     test('Koftik is behind the wall, so the crossing comes first', () => {
         const step = decide(snapshot({ carried: KIT, flags: [UP_FLAG.STARTED] }));
@@ -178,7 +178,7 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(step)).toContain('stay rope');
     });
 
-    // Why: which orbs are already dark is not answerable from a snapshot — a burned orb has left the pack, and neither the trap nor the ground spawns hand over a second one. A per-site decide cycle therefore picks the same site forever, so the sweep is one step from end to end that keeps its own tally.
+    // Why: which orbs are already dark is not answerable from a snapshot, a burned orb has left the pack, and neither the trap nor the ground spawns hand over a second one. A per-site decide cycle therefore picks the same site forever, so the sweep is one step from end to end that keeps its own tally.
     test('past the grid, the orb phase is a single step whatever the pack holds', () => {
         const inside = { x: 2460, z: 9678, level: 0 };
         for (const carried of [[], [UP_ITEM.ORB1.id], [UP_ITEM.ORB1.id, UP_ITEM.ORB2.id, UP_ITEM.ORB3.id]]) {
@@ -195,7 +195,7 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(step)).toContain('grid');
     });
 
-    // Why: the bridge-and-rope shelf overlaps the orb corridor's bounding box on x 2431-2464 / z 9686-9731, and a plain box read the shelf as the corridor — one run drifted onto the rope shelf, declared the grid crossed and spent six minutes clicking at stepping stones on the far side of a seam.
+    // Why: the bridge-and-rope shelf overlaps the orb corridor's bounding box on x 2431-2464 / z 9686-9731, and a plain box read the shelf as the corridor. One run drifted onto the rope shelf, declared the grid crossed and spent six minutes clicking at stepping stones on the far side of a seam.
     test('the bridge and rope shelf is not mistaken for the corridor past the grid', () => {
         for (const tile of [
             { x: 2442, z: 9716, level: 0 },
@@ -226,7 +226,7 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(step)).toContain('pit of the damned');
     });
 
-    // Why: the temple throws the player into the second cavern, which has no walkable way back up — Koftik's
+    // Why: the temple throws the player into the second cavern, which has no walkable way back up, Koftik's
     // dialogue is the transport. Each step of the walk out is keyed on where the last one landed.
     test('the walk out is keyed on where the last step landed', () => {
         const legs: [{ x: number; z: number; level: number }, string][] = [
@@ -276,7 +276,7 @@ describe('Underground Pass decide()', () => {
         expect(nameOf(noAshes)).not.toContain('climb down');
     });
 
-    // Why: every value the journal can report is now routed, so this guards the shape of the fallback —
+    // Why: every value the journal can report is now routed, so this guards the shape of the fallback,
     // a stage the module does not know has to name itself and stop, not retry the last step it did know.
     test('a stage the module does not know waits with the stage named', () => {
         const step = decide(snapshot({ stage: -1, tile: AREA1 }));

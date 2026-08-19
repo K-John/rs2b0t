@@ -1,4 +1,4 @@
-// Why: the essence mine exit is a session multiloc transport — in `essence_mine.rs2` entry wizards set `%exit_essence_mine_coord`, and every `blankrunestone_exit_portal` placement telejumps to that varp rather than a per-placement fixed dest.
+// Why: the essence mine exit is a session multiloc transport, in `essence_mine.rs2` entry wizards set `%exit_essence_mine_coord`, and every `blankrunestone_exit_portal` placement telejumps to that varp rather than a per-placement fixed dest.
 // Why: the client varp pack id is 64.
 
 import type { TransportEdgeData } from './PathFinder.js';
@@ -7,7 +7,7 @@ import type { NavPoint } from './types.js';
 
 const parse = parseLcCoord;
 
-/** Surface return stands (runecraft.constant) — same as ESSENCE_RETURN in travelCatalog. */
+/** Surface return stands (runecraft.constant), same as ESSENCE_RETURN in travelCatalog. */
 export const ESSENCE_EXIT_RETURNS = {
     aubury: parse('0_50_53_53_9'),
     sedridor: parse('0_48_149_34_36'),
@@ -70,7 +70,7 @@ export function essenceReturnIdFromPacked(packed: number): EssenceReturnId | nul
             return row.id;
         }
     }
-    // map_findsquare can land 0–2 tiles off the constant — match by proximity
+    // map_findsquare can land 0–2 tiles off the constant, match by proximity
     const live = {
         level: (packed >> 28) & 0x3,
         x: (packed >> 14) & 0x3fff,
@@ -95,10 +95,10 @@ export function essenceReturnIdFromTile(tile: NavPoint): EssenceReturnId | null 
     return best;
 }
 
-// Why: in `blankrunestone_exit_portal` the destination is `%exit_essence_mine_coord`, set by the entry wizard, then `map_findsquare(..., 0, 2, lineofwalk)` — determined by session return, not by which of the four portal tiles is clicked.
+// Why: in `blankrunestone_exit_portal` the destination is `%exit_essence_mine_coord`, set by the entry wizard, then `map_findsquare(..., 0, 2, lineofwalk)`, determined by session return, not by which of the four portal tiles is clicked.
 // Why: that session is modelled via `requires.essenceExitReturn` plus PathFinder path-state (#377).
 // Why: these rows are not blacklisted, since the landing is fixed given the entry wizard (wizard tile ±2).
-// Why: entry into the mine stays blacklisted (#388) — random over 22 pads.
+// Why: entry into the mine stays blacklisted (#388), random over 22 pads.
 
 /** Plan-time edges: each portal placement × each known return. */
 export function essenceExitEdges(): TransportEdgeData[] {

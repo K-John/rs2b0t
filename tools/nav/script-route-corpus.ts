@@ -1,5 +1,5 @@
 /** Pack stress corpus ripped from in-tree script / nav data: BANK_LOCATIONS, WALK_DESTINATIONS, NAV_TARGETS and tools/nav/mainland-routes.json. --write, --hardest=25, --no-tele, --endpoint-radius=0, --corridor-grid=32.
- *  Why: paths dedupe three times — exact from→to at build time, an optional near-endpoint collapse for generator twins, and a post-A* journey-signature collapse on end map-square plus hop sequence; hardest ranking uses teleports by default (full runes, magic 99) to match live stress, and the preload is required since BankLocations pulls a little client surface. */
+ *  Why: paths dedupe three times, exact from→to at build time, an optional near-endpoint collapse for generator twins, and a post-A* journey-signature collapse on end map-square plus hop sequence; hardest ranking uses teleports by default (full runes, magic 99) to match live stress, and the preload is required since BankLocations pulls a little client surface. */
 
 //   bun --preload ./test/setup-dom.ts tools/nav/script-route-corpus.ts --write
 //   bun --preload ./test/setup-dom.ts tools/nav/script-route-corpus.ts --hardest=25
@@ -28,7 +28,7 @@ export interface ScriptRoute {
     source: string;
 }
 
-/** Pack metrics for ranking “hard” routes (no tele catalog — pure graph walk). */
+/** Pack metrics for ranking "hard" routes (no tele catalog, pure graph walk). */
 export interface RankedScriptRoute extends ScriptRoute {
     cost: number;
     expanded: number;
@@ -42,7 +42,7 @@ export interface RankedScriptRoute extends ScriptRoute {
 }
 
 export function difficultyScore(m: { cost: number; expanded: number; hops: number; cheb: number }): number {
-    // Cost dominates (tile + door/transport weights). Expansions capture “search thrash”.
+    // Cost dominates (tile + door/transport weights). Expansions capture "search thrash".
     return m.cost * 1000 + Math.min(m.expanded, 500_000) + m.hops * 10 + m.cheb;
 }
 
@@ -80,7 +80,7 @@ export function sameDirectedPath(a: ScriptRoute, b: ScriptRoute, radius: number)
 
 /**
  * Drop near-duplicate **endpoints** across sources (generator twins).
- * Does not know the actual walk corridor — see `pathCorridorSignature`.
+ * Does not know the actual walk corridor, see `pathCorridorSignature`.
  */
 export function dedupePaths(routes: ScriptRoute[], radius = 3): ScriptRoute[] {
     const sorted = [...routes].sort((a, b) => {
@@ -167,7 +167,7 @@ export function dedupeByCorridor<T extends ScriptRoute & { corridor: string; dif
     return kept;
 }
 
-/** Build the route list — pure, unit-testable. */
+/** Build the route list, pure, unit-testable. */
 export function buildScriptRoutes(opts?: { maxBankPairs?: number; pathDedupeRadius?: number }): ScriptRoute[] {
     const maxBankPairs = opts?.maxBankPairs ?? 24;
     /** Endpoint near-dedupe only; 0 = exact from→to only. Corridor dedupe is pack-time. */
@@ -198,7 +198,7 @@ export function buildScriptRoutes(opts?: { maxBankPairs?: number; pathDedupeRadi
         }
     }
 
-    // 2) WalkToBot hub mesh (small N — full directed pairs).
+    // 2) WalkToBot hub mesh (small N, full directed pairs).
     for (let i = 0; i < WALK_DESTINATIONS.length; i++) {
         for (let j = 0; j < WALK_DESTINATIONS.length; j++) {
             if (i === j) {
@@ -292,7 +292,7 @@ export function buildScriptRoutes(opts?: { maxBankPairs?: number; pathDedupeRadi
                 }
                 const a = stands[i]!;
                 const b = stands[j]!;
-                // Skip huge cross-map pairs within multi-bot labels — keep cheb ≤ 200
+                // Skip huge cross-map pairs within multi-bot labels, keep cheb ≤ 200
                 // or same bot short hops (camp↔bank).
                 const d = cheb(a.tile, b.tile);
                 if (d > 220 && !a.label.toLowerCase().includes('bank') && !b.label.toLowerCase().includes('bank')) {
@@ -313,7 +313,7 @@ export function buildScriptRoutes(opts?: { maxBankPairs?: number; pathDedupeRadi
     return pathDedupeRadius <= 0 ? routes : dedupePaths(routes, pathDedupeRadius);
 }
 
-// ── CLI (only when executed as a script — importable for unit tests) ─────
+// ── CLI (only when executed as a script, importable for unit tests) ─────
 const isMain =
     typeof import.meta !== 'undefined'
     && typeof Bun !== 'undefined'
@@ -387,7 +387,7 @@ if (isMain) {
     const t0 = performance.now();
 
     // Match live v2 / maxme stress: teles plus skill-gated guild doors open.
-    // Why: magic alone was wrong — Fishing Guild doors need fishing 68 (specialRequires), and missing skills default to 0, so A* fails closed and burns the expansion budget on script targets (BANK_* → Fishing Guild, ShopRunner feather stand).
+    // Why: magic alone was wrong, Fishing Guild doors need fishing 68 (specialRequires), and missing skills default to 0, so A* fails closed and burns the expansion budget on script targets (BANK_* → Fishing Guild, ShopRunner feather stand).
     const maxedSkills: Record<string, number> = {
         magic: 99,
         Magic: 99,

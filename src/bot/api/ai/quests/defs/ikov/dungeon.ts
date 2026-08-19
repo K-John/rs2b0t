@@ -34,7 +34,7 @@ const CHEST_ROUNDS = 3;
 /** What an empty chest answers with, and the only thing that separates it from a find in flight. */
 const CHEST_EMPTY = /search the chest, but find nothing/i;
 
-// Why: `%ikov_dungeon` is untransmitted and no journal line moves for the lever, so having stood in the ice cavern is the only evidence the client keeps that the south gate is unlocked — and that is what tells the crossing leg apart from the armoured one.
+// Why: `%ikov_dungeon` is untransmitted and no journal line moves for the lever, so having stood in the ice cavern is the only evidence the client keeps that the south gate is unlocked, and that is what tells the crossing leg apart from the armoured one.
 
 /** Set once a walk has put the bot past the south gate. */
 let southGateSeenOpen = false;
@@ -130,7 +130,7 @@ async function climbTrapLadder(log: (m: string) => void): Promise<boolean> {
     return out;
 }
 
-// Why: the crossing is a zone timer rather than a loc, so there is no op to send — stepping onto the bridge is the action, and the far side is the only oracle.
+// Why: the crossing is a zone timer rather than a loc, so there is no op to send, stepping onto the bridge is the action, and the far side is the only oracle.
 async function crossBridge(goWest: boolean, log: (m: string) => void): Promise<boolean> {
     const start = goWest ? IKOV_TILE.BRIDGE_EAST : IKOV_TILE.BRIDGE_WEST;
     const step = goWest ? IKOV_TILE.BRIDGE_ZONE_EAST : IKOV_TILE.BRIDGE_ZONE_WEST;
@@ -444,8 +444,8 @@ async function searchChest(chest: { loc: Tile; stand: Tile }, log: (m: string) =
     return found;
 }
 
-// Why: one chest holds the arrows and it is re-rolled after every find, so the search is a circuit rather than a chest — and returning on the first find would restart the circuit from the west every time.
-// Why: `~randomize_ice_arrow_chest` is a bare `random(6)` over all six coords, so the re-roll can land back on the chest that last paid out — and re-opening the one already underfoot costs a click where walking to the next costs the same odds plus ten tiles.
+// Why: one chest holds the arrows and it is re-rolled after every find, so the search is a circuit rather than a chest, and returning on the first find would restart the circuit from the west every time.
+// Why: `~randomize_ice_arrow_chest` is a bare `random(6)` over all six coords, so the re-roll can land back on the chest that last paid out, and re-opening the one already underfoot costs a click where walking to the next costs the same odds plus ten tiles.
 async function searchIceChests(log: (m: string) => void): Promise<boolean> {
     const before = Inventory.count(IKOV_NAME.ICE_ARROWS);
     const enough = (): boolean => Inventory.count(IKOV_NAME.ICE_ARROWS) >= ARROWS_WANTED;
@@ -502,7 +502,7 @@ function crossedIntoCavern(): boolean {
     return t !== null && pastSouthGate(t);
 }
 
-// Why: a stack of two to five arrows carries its own object id, and all five share one display name — so arrows are counted by name, never by id.
+// Why: a stack of two to five arrows carries its own object id, and all five share one display name, so arrows are counted by name, never by id.
 export function arrowsSecured(snap: QuestSnapshot): boolean {
     const key = IKOV_NAME.ICE_ARROWS.toLowerCase();
     if (snap.worn.has(key)) {
@@ -531,7 +531,7 @@ export async function unlockSouthGate(log: (m: string) => void): Promise<boolean
     if (!wearingBoots()) {
         await fetchBoots(log);
     }
-    // Why: `fetchBoots` answers true for a leg of progress rather than for the boots, and one of those legs ends standing in the dark room — which the ice-cavern half-plane covers, so a gate check sent from there reads unlocked without a walk.
+    // Why: `fetchBoots` answers true for a leg of progress rather than for the boots, and one of those legs ends standing in the dark room, which the ice-cavern half-plane covers, so a gate check sent from there reads unlocked without a walk.
     if (!wearingBoots()) {
         log('ikov: the boots are not on yet — the gate check waits for them');
         return false;
@@ -553,7 +553,7 @@ export async function unlockSouthGate(log: (m: string) => void): Promise<boolean
     return false;
 }
 
-// Why: the lava is behind the bot by the time this runs, so this is the first leg of the quest that can carry weight — and the ice spiders on the circuit are what the armour is for.
+// Why: the lava is behind the bot by the time this runs, so this is the first leg of the quest that can carry weight, and the ice spiders on the circuit are what the armour is for.
 
 /** The chest circuit, which crosses nothing and so runs in whatever armour the bank dressed. */
 export async function stockIceArrows(log: (m: string) => void): Promise<boolean> {

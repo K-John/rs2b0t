@@ -8,7 +8,7 @@ Sixteen, and the first one is a wall the quest cannot be finished through.
   only by eight `ladder_cellar_inside_down` locs, and every one of them stands on a White Wolf Mountain
   plateau (x 2800-2861, z 3500-3521) whose boundary carries the map's `BLOCK_MAP_SQUARE` flag on every side.
   Three `ladder_from_cellar` locs climb *out* of it onto walkable ground, so a flood from the lair
-  reaches 531 012 nodes and a flood from Varrock reaches 528 821 — the lair can reach the world and the
+  reaches 531 012 nodes and a flood from Varrock reaches 528 821. The lair can reach the world and the
   world cannot reach the lair. `GameMap.loadLands` blocks on the same flag the collision builder
   reads, so the engine agrees with the pack. `ice_gloves` drops from nothing else, which puts the
   Entranan firebird feather out of reach on this content. Diff the two floods before believing a
@@ -17,7 +17,7 @@ Sixteen, and the first one is a wall the quest cannot be finished through.
   `snipable_wall` (2637) at (2780,3198), beside a `castlearrowslit`. Nothing walks between the two
   pockets; the Phoenix bot shoots him through the wall from three tiles away while the Black Arm bot
   opens his drinks cabinet, which `npc_walk`s him onto that row. A quest whose kill has no melee route
-  is not a broken map — read the loc's `blockrange` before assuming a path is missing.
+  is not a broken map, read the loc's `blockrange` before assuming a path is missing.
 - **`~open_and_close_door` teleports the actor and re-shuts in three ticks.** No door in this engine can
   be held open for a partner. What crosses a party is a tradeable key, not an opened door: Grip's spare
   (`misc_key`) is tradeable and goes over, while his keyring (`grip_keys`) is not and is instead
@@ -30,7 +30,7 @@ Sixteen, and the first one is a wall the quest cannot be finished through.
   sit past `deepdungeondoor`, whose `oploc1` answers "This gate is locked" and whose `oplocu` wants the
   dusty key; the dusty key comes from Velrak, whose cell answers only to the jail key, which the Jailer
   drops for 100 ticks where every other drop lasts 200. Neither key is consumed. A leg that walks
-  straight at the spot loops on the locked gate forever — read the door's script before trusting a
+  straight at the spot loops on the locked gate forever, read the door's script before trusting a
   baked edge, and remember `~check_axis` reads the door's own tile as the outside.
 - **A pocket predicate can need a rectangle cover, not a rectangle.** The deep dungeon interleaves with
   the rest of Taverley's across x 2881-2923, so one box over the pair claims a thousand corridor tiles.
@@ -41,7 +41,7 @@ Sixteen, and the first one is a wall the quest cannot be finished through.
   it. `decide()` still owns an egress for both Taverley pockets, because a restart taken mid-leg can
   leave a bot standing in either.
 - **An item with no shop and no ground spawn is a drop table.** Harralander appears in no `.inv` in the
-  content and in no map OBJ section, so the only source is the chaos druid herb table — 46 in 128 for a
+  content and in no map OBJ section, so the only source is the chaos druid herb table, 46 in 128 for a
   herb, 14 in 128 of that table for this one, about 25 kills. Grep the shop configs and the map objs
   before designing a leg around buying something.
 - **`forceapproach` rotates with the placement angle.** Grip's cabinet is `east` at angle 3, which is
@@ -52,7 +52,7 @@ Sixteen, and the first one is a wall the quest cannot be finished through.
   the hideout and every crossing then reads as already done. A pocket predicate is a union of boxes as
   often as it is one.
 - **A door's two sides are named by its angle, not by the map.** `grubordoor` is a west wall, so its
-  sides are (2810,3170) and (2811,3170) — east and west of one tile, where the other four doors in this
+  sides are (2810,3170) and (2811,3170), east and west of one tile, where the other four doors in this
   quest are north and south of one. Derive the stands from the angle every time.
 - **An option tree can gate its own options.** `grip_chat_options` only offers "Anything I can do now?",
   which is what hands over the spare key, after "So what do my duties involve?" has been asked. A
@@ -62,7 +62,7 @@ Sixteen, and the first one is a wall the quest cannot be finished through.
   nothing can be clicked on. Three of them sit where the Ice Queen lair's one-way exits surface, which
   is what makes the sealed plateau look like it has entrances.
 - **A bought-out shop is a dead shop.** `World.restock` reads `inv.items[index]` and skips a null
-  slot, and a shared `allstock=no` shop that sells its last unit loses the slot — so Valaine's one
+  slot, and a shared `allstock=no` shop that sells its last unit loses the slot, so Valaine's one
   pair of black platelegs never came back, and the bot spent 188 attempts over four minutes buying
   from an empty shelf. A purchase needs a list of stockists, not a shop; the legs also come from
   Louie in Al Kharid. Only the black full helm is single-sourced, and that is a known fragility.
@@ -70,12 +70,12 @@ Sixteen, and the first one is a wall the quest cannot be finished through.
   whichever other pocket it is standing in first, and every leg that walks to a bank, a shop or a
   partner calls `returnToStreet()` before it plans. Without that, the Black Arm bot took Trobert's
   papers inside the hideout and then read `no path to (2774,3187,0): unreachable` at Garv's door
-  forever — the way in was fine and the way out was missing.
+  forever, the way in was fine and the way out was missing.
 - **A paid crossing is a pathfinding requirement, not a step.** `no path to (2793,3180,0):
   unreachable without 30x Coins` is the failure in full: the Ardougne ferry costs 30 coins and the
   planner refuses the route without them in the pack. A quest that buys things pays its own way in by
   accident and stalls the moment a leg between purchases needs the boat, so `ownsInventory` owes a
-  float of its own — topped up below a low-water mark, never restored to a target, or every shop
+  float of its own, topped up below a low-water mark, never restored to a target, or every shop
   costs a bank trip.
 
 ## See also

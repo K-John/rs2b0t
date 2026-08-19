@@ -40,7 +40,7 @@ export async function takeStoreroomKey(log: (m: string) => void): Promise<boolea
 }
 
 // Why: the door reads the key out of the pack, so a spent key is the only client-visible proof the
-// unlock landed — the stage varp itself is not transmitted.
+// unlock landed, the stage varp itself is not transmitted.
 
 /** Unlock the Storeroom Door from the corridor south of it. */
 export async function unlockStoreroom(log: (m: string) => void): Promise<boolean> {

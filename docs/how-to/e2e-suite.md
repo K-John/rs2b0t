@@ -30,7 +30,7 @@ Every level draws from [`e2e/manifest.ts`](../reference/e2e-manifest.md). Nothin
 
 `quick` runs nothing until a case is promoted to `vetted`, which needs a green run recorded in `provenAt`.
 
-`smart` reads each case's `covers`: a change under `src/bot/scripts/<X>/` selects the cases covering `<X>`, and a change under `src/bot/event/webwalk/` selects the cases covering `nav`. A change to shared code — `adapter/`, `runtime/`, `api/` or `package.json` — can reach anything, so it selects everything rather than pretending to be clever. The report states which rule fired.
+`smart` reads each case's `covers`: a change under `src/bot/scripts/<X>/` selects the cases covering `<X>`, and a change under `src/bot/event/webwalk/` selects the cases covering `nav`. A change to shared code, `adapter/`, `runtime/`, `api/` or `package.json`, can reach anything, so it selects everything rather than pretending to be clever. The report states which rule fired.
 
 `broken` and `manual` cases are in no level. Reach one with `--only`.
 
@@ -63,7 +63,7 @@ entry".
 
 | | |
 |---|---|
-| Engine | running, and matching what the harnesses expect — most default to `:8890` |
+| Engine | running, and matching what the harnesses expect, most default to `:8890` |
 | `ENGINE_DIR` | where deploy copies to; defaults to `~/code/rs2b2t-engine` |
 
 The deploy step rebuilds `out/botclient.js` with `TARGET=local`. A live wall serving that

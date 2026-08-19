@@ -12,7 +12,7 @@ export const DEFAULT_DISTANCE_BEFORE_TELEPORT = 0;
 
 // Why: teleports default on when policy is absent so catalog edges participate once added, and scripts wanting pure walk pass `{ useTeleports: false }`.
 
-/** Whether a transport kind is enabled by path policy — toggles only, not WorldState. */
+/** Whether a transport kind is enabled by path policy, toggles only, not WorldState. */
 export function kindAllowedByPolicy(kind: TransportKind, policy: PathPolicy | undefined): boolean {
     if (!policy) {
         return true;

@@ -12,7 +12,7 @@ function normalize(lines: readonly string[] | string): string {
         .toLowerCase();
 }
 
-// Why: chompybird_journal.rs2 appends, so every earlier stage's prose is still on the page — newest marker first, or an early line answers for a late stage.
+// Why: chompybird_journal.rs2 appends, so every earlier stage's prose is still on the page, newest marker first, or an early line answers for a late stage.
 // Why: 15/20, 30/35 and 40/45 render identically; the step each pair wants is the same one, and the bow in the pack separates 40 from 45 where it matters.
 const MARKERS: readonly [string, number][] = [
     ['quest complete!', CB_STAGE.COMPLETE],

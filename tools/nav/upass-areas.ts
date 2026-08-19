@@ -1,5 +1,5 @@
 /**
- * Derive the Underground Pass as areas and the one action each takes.  Why: the pass is not a search  problem. Every crossing in it is a scripted obstacle with a fixed stand and a fixed landing, read off  the map's own angles and the script's own arithmetic — so which pocket the character is in decides  what to do next, and nothing about distance or gain enters into it. This floods the collision pack,  names every pocket the pass is cut into, and emits the seam that joins each pair with the tile the op  is sent from.  bun tools/nav/upass-areas.ts [--stage 3]
+ * Derive the Underground Pass as areas and the one action each takes.  Why: the pass is not a search  problem. Every crossing in it is a scripted obstacle with a fixed stand and a fixed landing, read off  the map's own angles and the script's own arithmetic, so which pocket the character is in decides  what to do next, and nothing about distance or gain enters into it. This floods the collision pack,  names every pocket the pass is cut into, and emits the seam that joins each pair with the tile the op  is sent from.  bun tools/nav/upass-areas.ts [--stage 3]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -251,7 +251,7 @@ for (let i = 0; i + 1 < LANDMARKS.length; i++) {
     console.log(`  ${an} → ${bn}:\n    ${chain(a, b)}`);
 }
 
-// Why: the table the runtime reads, emitted rather than hand-copied — every tile in it came from the map and the script, and a re-derivation after a content change rewrites it.
+// Why: the table the runtime reads, emitted rather than hand-copied, every tile in it came from the map and the script, and a re-derivation after a content change rewrites it.
 if (args.includes('--emit')) {
     const seen = new Set<string>();
     const lines: string[] = [];

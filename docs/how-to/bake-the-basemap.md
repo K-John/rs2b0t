@@ -15,7 +15,7 @@ tints and the manifest. See [Baked assets](../reference/map-picker.md#baked-asse
 
 ## Rebuild from the picker
 
-Rebuild is rarely needed — deploy already bakes terrain, every Key type and the tints.
+Rebuild is rarely needed, deploy already bakes terrain, every Key type and the tints.
 Use it after a game update, or for experimental stamps such as labels and NPC dots.
 Everyday Key layers are a Settings toggle and are instant.
 

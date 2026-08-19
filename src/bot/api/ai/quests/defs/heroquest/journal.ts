@@ -34,7 +34,7 @@ function normalize(lines: readonly string[] | string): string {
     return body.length === 0 ? '' : ` ${body} `;
 }
 
-// Why: the page keeps every earlier line struck through, so this order is what separates the stages —
+// Why: the page keeps every earlier line struck through, so this order is what separates the stages,
 // each needle is that stage's own next-step line, which no later page repeats.
 const STAGES: readonly [string, number][] = [
     [' quest complete!', HERO_STAGE.COMPLETE],
@@ -60,7 +60,7 @@ const STAGES: readonly [string, number][] = [
 ];
 
 // Why: the three item lines are driven by `~obj_gettotal`, which counts the bank as well as the pack,
-// so they say the item exists somewhere — never that it is carried.
+// so they say the item exists somewhere, never that it is carried.
 const FLAGS: readonly [string, string][] = [
     [' firebird feather - i now have one', 'feather'],
     [' cooked lava eel - i now have one', 'eel'],

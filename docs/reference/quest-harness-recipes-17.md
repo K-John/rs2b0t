@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Big Chompy Bird Hunting — stage-scoped harness
+## Big Chompy Bird Hunting, stage-scoped harness
 
 [`e2e/chompy-bird-235-live.ts`](../../e2e/chompy-bird-235-live.ts) takes `--stage N`
 (`%chompybird`, 0 to 60 in fives) and relogs, since `update_questlist` only recolours the

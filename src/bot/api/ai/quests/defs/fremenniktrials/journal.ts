@@ -22,7 +22,7 @@ const ROLE: Record<Trial, string> = {
     bard: 'bard'
 };
 
-/** Where the flower trade has got to, newest step first — only one of these renders at a time. */
+/** Where the flower trade has got to, newest step first, only one of these renders at a time. */
 const MERCHANT_STEPS: readonly [string, string][] = [
     ['all askeladden wants is some money', 'thora'],
     ['the reveller is looking for a legendary cocktail', 'manni'],

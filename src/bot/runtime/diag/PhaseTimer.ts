@@ -53,7 +53,7 @@ export class PhaseTimer {
         private readonly wallClock: () => number = () => Date.now()
     ) {}
 
-    // Why: deliberately synchronous — wrapping an async body measured the span's wall time including every yield to other bots, measured 4-13x higher than the true cost.
+    // Why: deliberately synchronous, wrapping an async body measured the span's wall time including every yield to other bots, measured 4-13x higher than the true cost.
     // Why: only an uninterrupted synchronous run is main-thread occupancy.
     // Why: phases must not nest, since a nested span would be counted in both buckets.
 

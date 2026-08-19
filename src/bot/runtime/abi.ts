@@ -242,7 +242,7 @@ export function installAbi(): void {
         DirectNavigator,
         /** Client-side reachability probes, for a harness asking what this pocket can walk to. */
         Reachability,
-        /** Bot-side essence exit return (varp 64 is server-only — not on client wire). */
+        /** Bot-side essence exit return (varp 64 is server-only, not on client wire). */
         EssenceSession,
 
         Npcs,
@@ -435,7 +435,7 @@ export function installAbi(): void {
         isNavPathPaintEnabled,
         SettingsStore,
 
-        // Danger zones (pathfinder avoid) — idea @lolwut
+        // Danger zones (pathfinder avoid), idea @lolwut
         KNOWN_DANGER_ZONES,
         knownDangerZone,
         knownDangerZoneIds,

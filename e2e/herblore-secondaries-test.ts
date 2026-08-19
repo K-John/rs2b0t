@@ -1,4 +1,4 @@
-// Issue #430 — live HerbloreSecondaries proof: [base] [secondary-name].
+// Issue #430, live HerbloreSecondaries proof: [base] [secondary-name].
 // Seeds each secondary's site and asserts the bot loots, buys or grinds at least one unit.
 
 //   bun e2e/herblore-secondaries-test.ts [http://localhost:8888] [secondary-name]
@@ -49,7 +49,7 @@ const CASES: Case[] = [
     {
         key: 'choc',
         setting: 'Chocolate dust',
-        // Wydin @ 3014,3204 → m47_50 local 6,4 — seed pestle so grind can run immediately
+        // Wydin @ 3014,3204 → m47_50 local 6,4, seed pestle so grind can run immediately
         tele: '0,47,50,6,4',
         seed: ['~bankitem coins 10000', 'give coins 3000', 'give pestle_and_mortar 1'],
         product: 'Chocolate dust',
@@ -155,7 +155,7 @@ try {
             await cheatQuiet(page, 'give chocolate_bar 3', 1200);
             const has = await page.evaluate(() => (globalThis as never as Api).__rs2b0t.Inventory.contains('Pestle and mortar'));
             if (!has) {
-                // pack full of leftover loot — bank first at Draynor then re-seed
+                // pack full of leftover loot, bank first at Draynor then re-seed
                 await cheatQuiet(page, 'tele 0,48,50,29,43', 3000); // draynor bank
                 await cheatQuiet(page, 'give pestle_and_mortar 1', 1200);
                 await cheatQuiet(page, 'give chocolate_bar 5', 1200);

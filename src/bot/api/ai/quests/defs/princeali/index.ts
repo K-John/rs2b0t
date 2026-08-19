@@ -31,7 +31,7 @@ import { PURSE_FLOOR, PURSE_TOP, scanBank, sourceCoins } from './supplies.js';
 
 type Leg = (snap: QuestSnapshot) => QuestStep | null;
 
-// Why: read top to bottom this is the route — Al-Kharid, Lumbridge, Varrock, Rimmington and Port Sarim, Draynor, Lady Keli, Osman.
+// Why: read top to bottom this is the route, Al-Kharid, Lumbridge, Varrock, Rimmington and Port Sarim, Draynor, Lady Keli, Osman.
 // Why: each leg returns null once it is satisfied, so a resumed run rejoins the tour wherever it left off.
 const PREP: readonly Leg[] = [
     sourceBronzeBar,

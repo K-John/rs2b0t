@@ -193,7 +193,7 @@ export const Game = {
         return Input.castOnNpc(comId, npc.index);
     },
 
-    // Why: a spell aimed at scenery is `oploct`, which no op-based step can express — the Legends Quest magic gate is opened by charging an orb at it and nothing else.
+    // Why: a spell aimed at scenery is `oploct`, which no op-based step can express, the Legends Quest magic gate is opened by charging an orb at it and nothing else.
 
     /** Cast a targeted spell at a piece of scenery. */
     async castOnLoc(spell: string, loc: Loc): Promise<boolean> {

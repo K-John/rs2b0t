@@ -19,8 +19,8 @@ export interface Purchasable {
     sources: readonly ShopSource[];
 }
 
-// Why: `World.restock` skips a null slot, so a shared shop that sells its last unit never gets it back
-// — two stockists is what makes an `allstock=no` item dependable.
+// Why: `World.restock` skips a null slot, so a shared shop that sells its last unit never gets it back,
+// two stockists is what makes an `allstock=no` item dependable.
 
 /** Buy from the first stockist that still has one. */
 export async function buyFromAny(item: Purchasable, log: (m: string) => void): Promise<boolean> {
@@ -45,7 +45,7 @@ export async function buyFromAny(item: Purchasable, log: (m: string) => void): P
     return false;
 }
 
-/** Wear it, withdraw it, or buy it — in that order. */
+/** Wear it, withdraw it, or buy it, in that order. */
 export function purchaseStep(snap: QuestSnapshot, item: Purchasable): QuestStep | null {
     if (wornId(snap, item.id)) {
         return null;

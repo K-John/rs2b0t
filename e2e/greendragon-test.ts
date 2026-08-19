@@ -1,5 +1,5 @@
-// Live GreenDragon proof: [base]. Case 1 — a hard clue on the ground with a pack full of lobsters: spend food for the slot, take the clue by obj id, hand to SolveClue, leave the wilderness, open a bank.
-// Case 2 — clues off and teleported off the field: the bot walks itself back. Proven on a short hop rather than a full trail, which is slow and flakes on the known nav-island destinations.
+// Live GreenDragon proof: [base]. Case 1, a hard clue on the ground with a pack full of lobsters: spend food for the slot, take the clue by obj id, hand to SolveClue, leave the wilderness, open a bank.
+// Case 2, clues off and teleported off the field: the bot walks itself back. Proven on a short hop rather than a full trail, which is slow and flakes on the known nav-island destinations.
 
 //   bun e2e/greendragon-test.ts [http://localhost:8888]
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs, setSettings } from './lib/harness.js';
@@ -17,7 +17,7 @@ const FIELD_RADIUS = 22;
 
 const LOBSTER = 379;
 // bank_f2p maxes out lobster/swordfish, and a max-int bank stack REFUSES further
-// deposits — so the trail-prep case seeds a food that cheat does not stock.
+// deposits, so the trail-prep case seeds a food that cheat does not stock.
 const TUNA = 361;
 const SCIMITAR = 1333;
 const SHIELD = 1540;
@@ -86,7 +86,7 @@ async function dump(page: Page, label: string, tailCount = 20): Promise<void> {
     }
 }
 
-/** ::give, then confirm the item landed — only some debugnames work. */
+/** ::give, then confirm the item landed, only some debugnames work. */
 async function give(page: Page, debugName: string, id: number, count: number): Promise<void> {
     const before = (await invIds(page)).filter(i => i === id).length;
     await cheatQuiet(page, `give ${debugName} ${count}`, 1200);
@@ -135,7 +135,7 @@ async function itemOp(page: Page, id: number, op: string): Promise<void> {
 }
 
 
-/** Wield/Wear and CONFIRM it landed — a single send flakes under engine load. */
+/** Wield/Wear and CONFIRM it landed, a single send flakes under engine load. */
 async function equip(page: Page, id: number, op: string, wornName: string): Promise<void> {
     for (let attempt = 0; attempt < 4; attempt++) {
         if (await page.evaluate(n => (globalThis as never as Api).__rs2b0t.Equipment.contains(n), wornName)) {
@@ -324,7 +324,7 @@ async function caseRegainControl(page: Page, user: string): Promise<void> {
     await prepare(page, user, ANCHOR);
     await setSettings(page, 'GreenDragon', { solveClues: false, logDetail: 'Verbose' });
 
-    // Gear first, bulk food after — fewer inventory updates in flight between
+    // Gear first, bulk food after, fewer inventory updates in flight between
     // the two equips, which is where a stale snapshot loses the shield.
     await give(page, 'rune_scimitar', SCIMITAR, 1);
     await give(page, 'antidragonbreathshield', SHIELD, 1);
@@ -385,7 +385,7 @@ async function caseBuryBones(page: Page, user: string): Promise<void> {
     await equip(page, SCIMITAR, 'Wield', 'Rune scimitar');
     await equip(page, SHIELD, 'Wear', 'Dragonfire shield');
 
-    // One bone in the pack, one on the ground — proves burying AND the forced pickup.
+    // One bone in the pack, one on the ground, proves burying AND the forced pickup.
     await give(page, 'dragon_bones', DRAGON_BONES, 2);
     await itemOp(page, DRAGON_BONES, 'Drop');
     const dropped = await page
@@ -401,7 +401,7 @@ async function caseBuryBones(page: Page, user: string): Promise<void> {
     await startBot(page);
     console.log('GreenDragon started (bury on)');
 
-    // 1. buries what it is holding — Prayer xp is the proof, not the slot count
+    // 1. buries what it is holding, Prayer xp is the proof, not the slot count
     const gainedXp = await page
         .waitForFunction(before => (globalThis as never as Api).__rs2b0t.Skills.xp('prayer') > before, prayerBefore, { timeout: 120_000 })
         .then(() => true)
@@ -488,7 +488,7 @@ async function caseFleeAndRecover(page: Page, user: string): Promise<void> {
         return { hp: g.Skills.effective('hitpoints'), food: g.Inventory.count('Lobster') };
     });
     console.log(`PASS 1/2 — banked, withdrew ${heal.food} Lobster and healed to ${heal.hp}hp`);
-    // Why: hp reaches full mid-loop a beat before the line that reports it, so the heal is waited for rather than sampled — and it must come from the bank run, not the Eat task after the walk home began at panic hp.
+    // Why: hp reaches full mid-loop a beat before the line that reports it, so the heal is waited for rather than sampled, and it must come from the bank run, not the Eat task after the walk home began at panic hp.
     const healedAtBank = await page
         .waitForFunction(
             () => ((globalThis as never as Api).rs2b0t.runner.ctx?.log ?? []).some(l => /healed to (9[0-9]|100)% hp/.test(l.msg)),

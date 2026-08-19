@@ -82,7 +82,7 @@ function carriedId(id: number): number {
 
 /**
  * The engine's `buy` step falls back to a bank trip when short of coin, and there
- * is no bank on Karamja — so the purse is filled at Ardougne before crossing.
+ * is no bank on Karamja, so the purse is filled at Ardougne before crossing.
  */
 export function sourceCoins(snap: QuestSnapshot, want: number): QuestStep | null {
     if (held(snap, SV_ITEM.COINS.id) >= want) {
@@ -121,7 +121,7 @@ export function sourceFood(snap: QuestSnapshot, want: number): QuestStep | null 
 
 /**
  * Only a lit candle, lit black candle or lit torch satisfies the fissure, and the
- * shop sells the candle unlit — so the tinderbox rides along and lights it.
+ * shop sells the candle unlit, so the tinderbox rides along and lights it.
  */
 export function sourceLitCandle(snap: QuestSnapshot, need: readonly ShiloItem[] = []): QuestStep | null {
     if (held(snap, SV_ITEM.LIT_CANDLE.id) > 0) {

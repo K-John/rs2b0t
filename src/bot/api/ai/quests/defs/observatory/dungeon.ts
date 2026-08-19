@@ -18,7 +18,7 @@ function locById(id: number, within = 6): Loc | null {
     return Locs.query().where(l => l.id === id).within(within).nearest();
 }
 
-// Why: the dome is a walled pocket of the surface — nothing walks into it, and its own ladder only goes down.
+// Why: the dome is a walled pocket of the surface. Nothing walks into it, and its own ladder only goes down.
 export function inDome(t: { x: number; z: number; level: number }): boolean {
     return t.level === 0 && t.x >= 2430 && t.x <= 2450 && t.z >= 3150 && t.z <= 3170;
 }
@@ -29,7 +29,7 @@ export function inKeep(t: { x: number; z: number }): boolean {
 }
 
 // Why: `obs_dungeonladderdown` is a `p_telejump` behind two lines of the assistant warning about the goblins, which is why the derived graph marks the edge "behind a runtime guard" and disables it.
-// Why: the climb has to drive that dialogue, so it is the module's leg rather than a `LadderHop` — `hopLadder` clicks and waits, and the wait outlives the conversation.
+// Why: the climb has to drive that dialogue, so it is the module's leg rather than a `LadderHop`, `hopLadder` clicks and waits, and the wait outlives the conversation.
 
 /** Climb the reception ladder into the cavern, answering the assistant on the way. */
 export async function descend(log: (m: string) => void): Promise<boolean> {
@@ -68,7 +68,7 @@ async function ascendToReception(log: (m: string) => void): Promise<boolean> {
     return walk(OBS_TILE.PROFESSOR, log, 2);
 }
 
-// Why: `loc_2197` is the only one of the cavern's eight chests that holds a key — six of the others are `shutdungeonchest`, whose Search spawns a poisonous spider, so nothing here is looked up by the name they all share.
+// Why: `loc_2197` is the only one of the cavern's eight chests that holds a key, six of the others are `shutdungeonchest`, whose Search spawns a poisonous spider, so nothing here is looked up by the name they all share.
 // Why: it is `forceapproach=north` placed at angle 2, which rotates the legal side to the south.
 
 /** Open and search the keep-key chest. */
@@ -128,7 +128,7 @@ async function clearGuard(log: (m: string) => void): Promise<boolean> {
     }, log);
 }
 
-// Why: the gate does not swing — `@open_keep_gate` teleports the player one tile across it and re-adds the loc three ticks later, which is why the crossing is checked by the tile rather than by the loc.
+// Why: the gate does not swing, `@open_keep_gate` teleports the player one tile across it and re-adds the loc three ticks later, which is why the crossing is checked by the tile rather than by the loc.
 // Why: from the north it refuses with "The gate is locked." until `%itkeepgatelock` is set, and the key is what sets it; from the south it always opens, and the key is never needed again.
 
 /** Cross the keep gate southwards. False when it is still locked and the pack holds no key. */
@@ -163,7 +163,7 @@ export async function enterKeep(log: (m: string) => void): Promise<boolean> {
         const t = Game.tile();
         return t !== null && inKeep(t);
     }, [], log, 8000);
-    // Why: "The gate is locked." is a chat line rather than a refusal the click reports, so the tile is the only test — and it is the one that says whether the key is needed at all.
+    // Why: "The gate is locked." is a chat line rather than a refusal the click reports, so the tile is the only test, and it is the one that says whether the key is needed at all.
     if (!crossed && !key) {
         log('observatory: the keep gate is locked — fetching the keep key');
         await fetchKeepKey(log);
@@ -269,7 +269,7 @@ export async function useTelescope(log: (m: string) => void): Promise<boolean> {
     }
     // Why: the professor's "Well done, well done!!" is a chat that has to be driven before `if_openmain(telescope)` puts the star chart up.
     await driveUntil(() => Modals.isOpen(), [], log, 20_000);
-    // Why: `canAccess()` is `!delayed && !containsModalInterface()`, and the constellation conversation is an engine queue — it cannot run while the chart the click opened is still on screen, so the queue sits there and the leg waits out its own success.
+    // Why: `canAccess()` is `!delayed && !containsModalInterface()`, and the constellation conversation is an engine queue. It cannot run while the chart the click opened is still on screen, so the queue sits there and the leg waits out its own success.
     if (Modals.isOpen()) {
         log('observatory: closing the star chart so the constellation conversation can run');
         await Modals.close();

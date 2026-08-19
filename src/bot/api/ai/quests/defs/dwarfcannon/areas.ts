@@ -1,7 +1,7 @@
 import Tile from '../../../../../geometry/Tile.js';
 import type { LadderHop, NpcStop } from '../../exec/primitives.js';
 
-/** Falador West — the nearest bank to both ends of this quest. */
+/** Falador West, the nearest bank to both ends of this quest. */
 export const FALADOR_WEST_BANK = new Tile(2946, 3369, 0);
 
 export const MC_TILE = {
@@ -20,7 +20,7 @@ export const MC_TILE = {
     NULODION: new Tile(3011, 3453, 0)
 } as const;
 
-/** Server loc ids — six broken railings, twenty-four intact ones and both cannon locs all render the same names. */
+/** Server loc ids, six broken railings, twenty-four intact ones and both cannon locs all render the same names. */
 export const MC_LOC = {
     CRATE: 1,
     CAVE: 2,
@@ -52,7 +52,7 @@ export const RAILINGS: readonly { id: number; at: Tile }[] = [
 /** The repair menu's four damaged components, in the order the module tries them. */
 export const CANNON_PARTS: readonly string[] = ['Pipe', 'Barrel', 'Axle', 'Shaft'];
 
-// Why: one stop covers every Commander conversation, as the three accept lines never share a page and `driveDialog` otherwise takes the last option — which at stage 5 is the refusal.
+// Why: one stop covers every Commander conversation, as the three accept lines never share a page and `driveDialog` otherwise takes the last option, which at stage 5 is the refusal.
 
 export const COMMANDER: NpcStop = {
     npc: 'Dwarf Commander',

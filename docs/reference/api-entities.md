@@ -52,7 +52,7 @@ class GroundItem { name; id; count; /* + Locatable + Interactable */ }
 class Player { name; inCombat; /* + Locatable, actions() */ }
 ```
 
-> **Note:** `interact()` sends the action in place — it does **not** walk the
+> **Note:** `interact()` sends the action in place. It does **not** walk the
 > player to a distant target. Walk first (see [Movement](api-movement.md)); the client
 > paths within the loaded scene.
 

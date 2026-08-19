@@ -1,5 +1,5 @@
 // Live RoguesPurse run: --base --minutes --at mainland --fare 100 --speed 100 --bank-coins --die-after 60 --stage 0 --no-maxme.
-// Why: herbs/tick is the metric that matters — it is immune to `::speed`, and 1.0 is the pipelined ceiling (one search + identify + drop per game tick).
+// Why: herbs/tick is the metric that matters. It is immune to `::speed`, and 1.0 is the pipelined ceiling (one search + identify + drop per game tick).
 
 //   bun e2e/roguespurse-test.ts --base http://localhost:8888 --minutes 4
 //   bun e2e/roguespurse-test.ts --at mainland --fare 100 --minutes 25 --speed 100
@@ -11,7 +11,7 @@ import { cheatQuiet, mainlandAccount, relog, startScript } from './tutorial/harn
 const UNID_ID = 1533;
 const PURSE_ID = 1534;
 const IDENTIFY_XP = 2.5;
-// ::tele takes level,squareX,squareZ,localX,localZ — i.e. x>>6, x&63.
+// ::tele takes level,squareX,squareZ,localX,localZ, i.e. x>>6, x&63.
 /** The wall stand (2850, 9477): grinds with no walking at all. */
 const WALL_TELE = '0,44,148,34,5';
 /** The surface pothole stand (2823, 3119): exercises the cave entry + the in-cave walk. */
@@ -122,14 +122,14 @@ try {
     const first = await read();
     const deadline = Date.now() + minutes * 60_000;
     // `::~death` is ~damage_self(999): respawns at Lumbridge and drops all but 1 of each of the
-    // three priciest items, so the pack comes back with a single coin — not a payable fare.
+    // three priciest items, so the pack comes back with a single coin, not a payable fare.
     const dieAfter = opt('--die-after') ? Number(opt('--die-after')) * 1000 : null;
     const dieAt = dieAfter === null ? null : Date.now() + dieAfter;
     let killed = false;
-    /** Seen out of the caves after the kill — the only proof `~death` landed. */
+    /** Seen out of the caves after the kill, the only proof `~death` landed. */
     let deathSeen = false;
     let recovered = false;
-    /** Herblore xp at the moment of death — xp past this proves the walk back worked. */
+    /** Herblore xp at the moment of death, xp past this proves the walk back worked. */
     let killedXp: number | null = null;
     let lastLogTime = 0;
     let last = first;

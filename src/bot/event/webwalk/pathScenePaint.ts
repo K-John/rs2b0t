@@ -1,5 +1,5 @@
 // Why: the scene's own projection (`projectAreaGame`) is reused so tiles line up with the ground under the current camera, fixing the HTML-overlay "few tiles off" drift.
-// Why: painting still lands after the model composite — a z-buffered draw would need a World inject.
+// Why: painting still lands after the model composite, a z-buffered draw would need a World inject.
 
 // eslint-disable-next-line no-restricted-imports -- TODO: route through ClientAdapter
 import type { Client } from '#/client/shell/Client.js';

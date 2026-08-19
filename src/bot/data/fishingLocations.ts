@@ -75,7 +75,7 @@ export const FISHING_LOCATIONS: FishingLocation[] = (
         },
         {
             name: 'Fishing Guild',
-            // Dock walkway — previous 2603,3417 was unpathable dock-center over water.
+            // Dock walkway, previous 2603,3417 was unpathable dock-center over water.
             spot: new Tile(2604, 3420, 0),
             bankStand: BANK.fishingGuild,
             boothName: 'Bank booth',
@@ -100,7 +100,7 @@ export const FISHING_LOCATIONS: FishingLocation[] = (
         },
         {
             name: 'Seers (fly fishing)',
-            // Pathable shore stand (2716,3532) — do not offset into the river.
+            // Pathable shore stand (2716,3532), do not offset into the river.
             spot: new Tile(2716, 3532, 0),
             bankStand: BANK.seers,
             boothName: 'Bank booth',

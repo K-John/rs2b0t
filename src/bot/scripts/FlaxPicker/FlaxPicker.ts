@@ -205,7 +205,7 @@ export default class FlaxPicker extends TaskBot {
             const pocket = this.pocketTiles(POCKET_CAP);
             if (pocket.length >= POCKET_CAP) { this.log('carved back out to open ground'); return; }
             const walls = this.boundaryFlax(pocket);
-            if (walls.length === 0) { return; } // walled by map, not flax — nothing to carve
+            if (walls.length === 0) { return; } // walled by map, not flax, nothing to carve
             if (Inventory.isFull()) { await this.dropFlax(CARVE_DROP); }
             const target = walls.sort((a, b) => a.tile().distanceTo(this.fieldGate) - b.tile().distanceTo(this.fieldGate))[0];
             const t = target.tile();
@@ -298,7 +298,7 @@ class StartupReset implements Task {
     validate(): boolean { return this.bot.startupPending; }
     async execute(): Promise<void> {
         this.bot.startupPending = false;
-        if (Inventory.used() === 0) { return; } // already clean — go straight to the field
+        if (Inventory.used() === 0) { return; } // already clean, go straight to the field
         this.bot.log('startup: emptying the pack at the bank before picking');
         await this.bot.bankRun();
     }
@@ -338,7 +338,7 @@ class GoToField implements Task {
     async execute(): Promise<void> {
         const here = Game.tile();
         if (here && this.bot.fieldCentre().distanceTo(here) <= FIELD_ARRIVE) {
-            await Execution.delayTicks(2); // at the centre — flax respawning, wait it out
+            await Execution.delayTicks(2); // at the centre, flax respawning, wait it out
             return;
         }
         this.bot.setStatus('travelling to the flax field');

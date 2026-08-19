@@ -50,7 +50,7 @@ export const TRANSPORT_QUEST_SEEDS: readonly QuestVarSeed[] = [
         varp: 'zombiequeen',
         complete: 15,
         // Cart Brimhaven→Shilo checks %zombiequeen >= complete; prereq jungle potion
-        // is content-side for quest start only — complete shilo is enough for cart.
+        // is content-side for quest start only, complete shilo is enough for cart.
         usedBy: ['shilo_cart (Brimhaven→Shilo Hajedy)']
     },
     {
@@ -82,7 +82,7 @@ export const TRANSPORT_QUEST_SEEDS: readonly QuestVarSeed[] = [
     },
     {
         journal: "Eadgar's Ruse",
-        // content: %eadgar_quest (not %eadgar) — quests.rs2 / teleport.rs2
+        // content: %eadgar_quest (not %eadgar), quests.rs2 / teleport.rs2
         varp: 'eadgar_quest',
         complete: 110,
         usedBy: ['spell: Trollheim teleport']

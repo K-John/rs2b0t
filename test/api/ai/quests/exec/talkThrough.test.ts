@@ -39,7 +39,7 @@ const restoreReach = stubProps(Reachability, {
     canReach: (t: TileLike) =>
         npcReachable || !(sceneNpc !== null && t.x === sceneNpc.tile.x && t.z === sceneNpc.tile.z)
 });
-// WalkExecutor instance — only pin lastOutcome so facade tests stay intact.
+// WalkExecutor instance, only pin lastOutcome so facade tests stay intact.
 const realLastOutcome = WalkExecutor.lastOutcome;
 WalkExecutor.lastOutcome = 'arrived';
 
@@ -161,7 +161,7 @@ beforeEach(() => {
 describe('talkThrough door handling', () => {
     test('an NPC walled off with no server verdict is still reached by opening the door', async () => {
         // The live case: Fred wanders into his bedroom, the interior door re-shuts,
-        // and the server stays silent — only the scene knows he is unreachable.
+        // and the server stays silent, only the scene knows he is unreachable.
         npcReachable = false;
         sceneDoor = { name: 'Door', ops: ['Open'], tile: { x: 1, z: 0, level: 0 }, distance: 1 };
 

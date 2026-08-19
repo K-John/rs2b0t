@@ -159,7 +159,7 @@ export default class CoalTrucks extends LoopingBot {
         await Execution.delayTicks(1);
     }
 
-    /** The one pickaxe worth keeping — a spare or an unusable tier is junk and gets banked. */
+    /** The one pickaxe worth keeping, a spare or an unusable tier is junk and gets banked. */
     private heldPickaxe(): string | null {
         const held = [...Equipment.items(), ...Inventory.items()].map(i => i.name ?? '');
         return bestPickaxe(Skills.level('mining'), name => held.some(n => n.toLowerCase() === name.toLowerCase()));
@@ -203,7 +203,7 @@ export default class CoalTrucks extends LoopingBot {
             return;
         }
         // Why: a rock yields one coal and depletes, so this returns on the gain and lets the next loop pick a live rock.
-        // Why: waiting out the stall on a spent rock costs the 20s — measured 1 coal / 20s, against ~1 coal / 2s once this returns early.
+        // Why: waiting out the stall on a spent rock costs the 20s, measured 1 coal / 20s, against ~1 coal / 2s once this returns early.
         // Why: a swing that stops is the other way out, since a stolen rock or a manual click ends it with no coal and no gain condition fires.
         // Why: two stages, because the swing has not begun yet and a bare `!animating` would be true at once and re-click forever.
         const view = (): MineView => ({

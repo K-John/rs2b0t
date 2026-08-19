@@ -73,7 +73,7 @@ export class InvItem {
         if (!local) {
             return false;
         }
-        // Why: an obj lying on the floor answers `opobju`, which no loc or npc use-on reaches — Clock Tower's red-hot cog is cooled this way and nothing else.
+        // Why: an obj lying on the floor answers `opobju`, which no loc or npc use-on reaches, Clock Tower's red-hot cog is cooled this way and nothing else.
         if (target instanceof GroundItem) {
             return driver.useItemOnObj(this.snap.id, this.snap.slot, this.snap.comId, target.snap.id, local.lx, local.lz);
         }

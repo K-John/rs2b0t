@@ -56,7 +56,7 @@ const fire = (n: number) => ({ name: 'Fire rune', count: n, consumed: true as co
 const water = (n: number) => ({ name: 'Water rune', count: n, consumed: true as const });
 const earth = (n: number) => ({ name: 'Earth rune', count: n, consumed: true as const });
 
-/** Standard spellbook — magic_spells.dbrow + teleport.rs2 */
+/** Standard spellbook, magic_spells.dbrow + teleport.rs2 */
 export const SPELL_TELEPORTS: readonly TeleportDestination[] = [
     {
         teleportId: 'varrock',
@@ -148,7 +148,7 @@ export const SPELL_TELEPORTS: readonly TeleportDestination[] = [
 ];
 
 /**
- * Jewellery — Server-implemented destinations only.
+ * Jewellery, Server-implemented destinations only.
  * Duel ring / games neck are single-dest on this content pack.
  */
 export const JEWELLERY_TELEPORTS: readonly TeleportDestination[] = [

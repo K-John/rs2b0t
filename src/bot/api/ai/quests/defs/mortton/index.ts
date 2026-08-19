@@ -145,7 +145,7 @@ function gearLeg(snap: QuestSnapshot): QuestStep | null {
 }
 
 // Why: both counters live behind Razmire's cured face, so anything missing is bought before the leg that needs it rather than found missing halfway through.
-// Why: the olive oil waits until the rebuild has spent the eleven slots of plank, brick and paste — bought alongside them it has nowhere to land.
+// Why: the olive oil waits until the rebuild has spent the eleven slots of plank, brick and paste, bought alongside them it has nowhere to land.
 
 /** The next shopping trip at Razmire's counters, or null when the pack is stocked. */
 function shopLeg(snap: QuestSnapshot, want: { building: boolean; oil: boolean }): QuestStep | null {
@@ -166,7 +166,7 @@ function shopLeg(snap: QuestSnapshot, want: { building: boolean; oil: boolean })
 
 // Why: the flame has to be alight before either use-on will answer, and sanctifying a vial of serum costs no dose while buying the endgame conversation a villager who never reverts.
 
-// Why: the lit altar is `loc_change(templefire_altar, 99)` as well, so the oil — the use-on that moves the stage — goes in first and the optional serum takes what is left of the flame.
+// Why: the lit altar is `loc_change(templefire_altar, 99)` as well, so the oil, the use-on that moves the stage, goes in first and the optional serum takes what is left of the flame.
 
 /** Light the altar, sanctify the oil, and bank a permanent serum against the last conversation. */
 async function altarLeg(log: (m: string) => void): Promise<boolean> {
@@ -254,7 +254,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
                 return custom('hunt a Loar Shade', huntShade);
             }
             const wantHammer = held(snap, SM_ID.HAMMER) === 0;
-            // Why: the hammer is bought first — it is one slot, and buying it after eleven slots of material would not fit.
+            // Why: the hammer is bought first. It is one slot, and buying it after eleven slots of material would not fit.
             const orders = [
                 ...(wantHammer ? [generalOrder({ hammer: true, oil: false })] : []),
                 buildersOrder(setsThatFit((snap.freeSlots ?? 0) - (wantHammer ? 1 : 0)))
@@ -281,7 +281,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             if (shop) {
                 return shop;
             }
-            // Why: the stage says oil was sanctified once, not that any is left — a lost vial goes back to the flame rather than parking on the log.
+            // Why: the stage says oil was sanctified once, not that any is left, a lost vial goes back to the flame rather than parking on the log.
             if (held(snap, SM_ID.PYRE_LOGS) === 0 && sacredDoses(snap) < DOSES_PER_PYRE_LOG) {
                 return custom('sanctify more oil in the flame', altarLeg);
             }

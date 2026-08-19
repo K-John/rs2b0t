@@ -50,7 +50,7 @@ function druid(): Npc | null {
 }
 
 // Why: nothing sells harralander and it has no ground spawn, so the only source is the chaos druid herb
-// table — 46 in 128 for a herb, and 14 in 128 of that table for this one.
+// table, 46 in 128 for a herb, and 14 in 128 of that table for this one.
 
 /** Kill chaos druids in the Taverley dungeon until one drops an unidentified harralander. */
 export async function farmHarralander(log: (m: string) => void): Promise<boolean> {
@@ -70,7 +70,7 @@ export async function farmHarralander(log: (m: string) => void): Promise<boolean
             log('herb farm: yielding to a random event');
             return false;
         }
-        // Why: the herb is the work — every other drop is left where it falls.
+        // Why: the herb is the work, every other drop is left where it falls.
         const herb = GroundItems.query().where(g => g.id === HERO_ID.UNID_HARRALANDER).within(8).nearest();
         if (herb) {
             if (await herb.interact('Take')) {
@@ -103,7 +103,7 @@ export async function farmHarralander(log: (m: string) => void): Promise<boolean
 }
 
 // Why: `jail_doors.rs2` answers Open with "This <name> is locked" outside and opens only for an oplocu
-// with the right key — jail key for Velrak's cell, dusty key for the deep dungeon, neither consumed.
+// with the right key, jail key for Velrak's cell, dusty key for the deep dungeon, neither consumed.
 
 /** Kill the Jailer and take the jail key he drops. */
 export async function killJailer(log: (m: string) => void): Promise<boolean> {
@@ -220,7 +220,7 @@ async function fishInside(log: (m: string) => void): Promise<boolean> {
 // Why: the Taverley range sits in a pocket the baked graph has no door into, so Catherby's is the
 // nearest cooking surface the walker can reach from the dungeon ladder.
 
-/** Cook the eel on the Catherby range — level 53, and it never burns. */
+/** Cook the eel on the Catherby range, level 53, and it never burns. */
 export async function cookLavaEel(log: (m: string) => void): Promise<boolean> {
     if (Inventory.countById(HERO_ID.LAVA_EEL) > 0) {
         return true;
@@ -241,14 +241,14 @@ export async function cookLavaEel(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: the slime lands between a `~mesbox` and a `~chatnpc`, and a chat-only driver stalls on that
-// modal — the count in the pack is the only oracle that sees past it.
+// modal, the count in the pack is the only oracle that sees past it.
 
 /** Gerrant hands the slime over once, and only while none of slime, oil or oiled rod exists anywhere. */
 export function askGerrantForSlime(log: (m: string) => void): Promise<boolean> {
     return talkUntil(GERRANT, GERRANT.prefer, () => Inventory.countById(HERO_ID.SLIME) > 0, log, 60_000);
 }
 
-/** Jailer, jail key, Velrak, dusty key — null once the deep dungeon can be opened. */
+/** Jailer, jail key, Velrak, dusty key, null once the deep dungeon can be opened. */
 function keyStep(snap: QuestSnapshot): QuestStep | null {
     if (heldId(snap, HERO_ID.DUSTY_KEY) > 0) {
         return null;

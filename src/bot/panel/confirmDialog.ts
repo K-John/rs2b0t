@@ -1,6 +1,6 @@
 /**
  * In-app confirm dialog (replaces window.confirm for bot UI).
- * Optional “don’t ask again” checkbox above Yes / No.
+ * Optional "don't ask again" checkbox above Yes / No.
  */
 import { el } from './dom.js';
 

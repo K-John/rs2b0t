@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { HD_STAGE } from '#/bot/api/ai/quests/defs/horror/areas.js';
 import { HD_FLAG, parseHorrorJournal } from '#/bot/api/ai/quests/defs/horror/journal.js';
 
-/** Every page here is verbatim from a live client — see `e2e/horror-journal-dump.ts`. */
+/** Every page here is verbatim from a live client, see `e2e/horror-journal-dump.ts`. */
 const NOT_STARTED = [
     'Close Window',
     '@dre@Horror from the Deep',
@@ -105,7 +105,7 @@ describe('Horror from the Deep journal', () => {
     test('reads the lighthouse stage', () => {
         const progress = parseHorrorJournal(INSIDE_LIGHTHOUSE);
         expect(progress?.stage).toBe(HD_STAGE.ENTERED_LIGHTHOUSE);
-        // The bridge line is gone by now, folded into one struck-out summary —
+        // The bridge line is gone by now, folded into one struck-out summary,
         // re-asserting it is what stops later stages reading it as unbuilt.
         expect(progress?.flags.has(HD_FLAG.BRIDGE)).toBe(true);
     });

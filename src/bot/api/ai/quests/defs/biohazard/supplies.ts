@@ -23,7 +23,7 @@ export function withdraw(items: { name: string; id: number; qty: number }[]): Qu
 }
 
 // Why: the cupboard, the crate and the chemist all gate their re-issue on `obj_gettotal`, which
-// counts the bank — so a banked copy has to come out rather than be fetched again.
+// counts the bank, so a banked copy has to come out rather than be fetched again.
 
 /** Withdraw a quest item the bank is holding, or null when it is not banked. */
 export function reclaim(snap: QuestSnapshot, item: BioItem, qty = 1): QuestStep | null {

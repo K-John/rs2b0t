@@ -1,7 +1,7 @@
 /** Live Tribal Totem harness (#262): --stage N --until N --minutes N, base :8890.
  *  Why: `--stage` is `%totemquest` itself (0 not started … 4 teleported inside, 5 complete), because every stage of this quest is one server varp and the journal renders straight off it; it relogs after a jump since update_questlist only recolours the list at login.
- *  Why: `--combo` sets bit 0 of `%handelmort_traps_disabled` to skip the KURT lock, and the stairs trap bit is deliberately never seeded — a run that does not Investigate them falls into the Ardougne sewers, which is the thing worth proving.
- *  Why: stats are 70 across the board rather than max, and the bank holds coins and lobsters alone — the label, the totem and the ferry fare all have to be sourced by the bot. */
+ *  Why: `--combo` sets bit 0 of `%handelmort_traps_disabled` to skip the KURT lock, and the stairs trap bit is deliberately never seeded, a run that does not Investigate them falls into the Ardougne sewers, which is the thing worth proving.
+ *  Why: stats are 70 across the board rather than max, and the bank holds coins and lobsters alone, the label, the totem and the ferry fare all have to be sourced by the bot. */
 
 //   HEADED=1 bun e2e/tribal-totem-262-live.ts --stage 0 --until 5 --minutes 60 --tick 200
 //   HEADED=1 bun e2e/tribal-totem-262-live.ts --stage 4 --until 5 --minutes 20 --tick 200
@@ -132,7 +132,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges, and this quest ships a new one for the mansion door. */
+ *  Why: the transport graph compiles into navworker.js, a separate entrypoint, deploying only botclient.js leaves the navigator on the old edges, and this quest ships a new one for the mansion door. */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {
@@ -199,7 +199,7 @@ try {
         await clearChatDialogs(page, 'post-relog dialog(s)');
     }
 
-    // Why: nothing walks into the mansion, so a stage-4 resume has to start inside it — every earlier stage starts at the bank the module provisions from.
+    // Why: nothing walks into the mansion, so a stage-4 resume has to start inside it, every earlier stage starts at the bank the module provisions from.
     const start = args.stage >= 4 ? MANSION_LANDING : ARDOUGNE_BANK;
     if (!(await teleTo(page, start, 10, 25_000))) {
         await clearChatDialogs(page, 'pre-tele dialog(s)');
@@ -220,7 +220,7 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without Tribal Totem in it spends the budget on somebody else's quest.
+        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch, and a queue without Tribal Totem in it spends the budget on somebody else's quest.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;
@@ -243,7 +243,7 @@ try {
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
-        // Why: a full run waits for the list to go green rather than the varp — the recolour and the QP award land a tick behind %totemquest.
+        // Why: a full run waits for the list to go green rather than the varp, the recolour and the QP award land a tick behind %totemquest.
         const done = args.until >= 5 ? last.status === 'complete' : totemquest >= args.until;
         if (done) {
             console.log(`PASS (totemquest=${totemquest}/5, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);

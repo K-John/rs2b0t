@@ -30,23 +30,23 @@ export const SCORPION_NPC: Record<ScorpionKey, number> = { a: 385, b: 386, c: 38
 export const SC_ID = {
     DUSTY_KEY: 1590,
     JAIL_KEY: 1591,
-    /** `scorpionwall` — the Taverley secret door, "Old wall" / Search. */
+    /** `scorpionwall`, the Taverley secret door, "Old wall" / Search. */
     SECRET_WALL: 2117,
-    /** `deepdungeondoor` — "Gate" / Open, dusty key only. */
+    /** `deepdungeondoor`, "Gate" / Open, dusty key only. */
     DEEP_GATE: 2623,
-    /** `dungeonjail` — "Door" / Open, jail key only. */
+    /** `dungeonjail`, "Door" / Open, jail key only. */
     JAIL_DOOR: 2631,
-    /** `monasteryladder` — "Ladder" / Climb-up, order members only. */
+    /** `monasteryladder`, "Ladder" / Climb-up, order members only. */
     MONASTERY_LADDER: 2641
 } as const;
 
 export const SC_ITEM = { DUSTY_KEY: 'Dusty key', JAIL_KEY: 'Jail key', ANTIPOISON: 'Antipoison(3)' } as const;
 
 // Why: eight `poisonspider` spawns sit between (2850,9799) and (2876,9806) with `wanderrange=10`, which covers the coffin corridor and the wall the secret room is behind.
-// Why: `poison_severity=27` is 6 damage every 18 seconds for eight minutes, and `%poison` is `scope=perm` with no transmit — so the only reading of it is the chat line it opens with.
+// Why: `poison_severity=27` is 6 damage every 18 seconds for eight minutes, and `%poison` is `scope=perm` with no transmit, so the only reading of it is the chat line it opens with.
 // Why: the Karamja general store is the one shop in the content that stocks the cure, so the leg pays a 30gp ferry each way for it.
 
-/** Every dose, newest first — a drink turns (3) into (2) and leaves the rest in the pack. */
+/** Every dose, newest first, a drink turns (3) into (2) and leaves the rest in the pack. */
 export const ANTIPOISON_DOSES: readonly string[] = ['Antipoison(3)', 'Antipoison(2)', 'Antipoison(1)'];
 
 /** `generalshop7` in Musa Point, the only `3doseantipoison` stock on the map. */
@@ -69,7 +69,7 @@ const CAGE_CONTENTS: ReadonlyMap<number, readonly ScorpionKey[]> = new Map([
 /** Every cage obj id, so a pack or bank scan can find whichever one the run is carrying. */
 export const EVERY_CAGE: readonly number[] = [...CAGE_CONTENTS.keys()];
 
-// Why: the catch order is the walk — the outpost is next door to the Seers, Taverley is on the way back east, and the monastery is the last stop before the tower.
+// Why: the catch order is the walk. The outpost is next door to the Seers, Taverley is on the way back east, and the monastery is the last stop before the tower.
 
 /** The order the module catches them in. */
 export const EVERY_SCORPION: readonly ScorpionKey[] = ['b', 'a', 'c'];

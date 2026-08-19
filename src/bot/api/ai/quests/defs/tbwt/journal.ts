@@ -26,7 +26,7 @@ function normalize(lines: readonly string[] | string): string {
 
 const LABELS = ['tiadeche', 'tinsay', 'tamayu', 'lubufu'] as const;
 
-// Why: every brother's block is appended to the same page in a fixed order, and "Nothing of interest." is the intro line for three of them — so a marker is only meaningful inside its own section.
+// Why: every brother's block is appended to the same page in a fixed order, and "Nothing of interest." is the intro line for three of them, so a marker is only meaningful inside its own section.
 
 /** The slice of the page between one brother's heading and the next. */
 function section(text: string, label: string): string {
@@ -121,7 +121,7 @@ export function resetTbwtProgressCache(): void {
     lastGood = undefined;
 }
 
-// Why: the journal is only opened during the brothers phase — before it the two varps say everything, and afterwards the quest is one talk from done.
+// Why: the journal is only opened during the brothers phase, before it the two varps say everything, and afterwards the quest is one talk from done.
 
 export async function readTbwtProgress(): Promise<QuestProgress | undefined> {
     const status = Quests.status(TBWT_QUEST);

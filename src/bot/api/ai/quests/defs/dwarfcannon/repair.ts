@@ -20,7 +20,7 @@ export async function walkTo(tile: Tile, radius: number, log: (m: string) => voi
     return Traversal.walkResilient(tile, { ...WALK, radius, log });
 }
 
-// Why: nothing in the scene tells a fixed railing from a broken one — the content sets a `%mcannonmulti` bit and leaves the loc alone — so the message is the only oracle.
+// Why: nothing in the scene tells a fixed railing from a broken one. The content sets a `%mcannonmulti` bit and leaves the loc alone, so the message is the only oracle.
 
 const RAILING_DONE = /already fixed this railing|replace the railing with no problems/i;
 // Why: `stat_random` can refuse below max Crafting, and the refusal costs a few hitpoints rather than the railing, so the attempt is worth repeating.
@@ -70,7 +70,7 @@ export async function fixRailings(log: (m: string) => void): Promise<boolean> {
     return true;
 }
 
-// Why: the tower is not an underground crossing, so `crossHops` never fires for it — `needsHop` is a z >= 5000 test.
+// Why: the tower is not an underground crossing, so `crossHops` never fires for it, `needsHop` is a z >= 5000 test.
 // Why: the landing is the player's own tile one level up, as `~climb_ladder` passes `movecoord(coord(), 0, 1, 0)`, and the tile directly above each ladder loc is blocked by the ladder.
 
 /** Climb one ladder from a stand beside it and wait for the level to change. */
@@ -139,7 +139,7 @@ export function inCave(tile: { z: number } | null | undefined): boolean {
     return tile ? isUnderground(tile) : false;
 }
 
-// Why: no transports edge carries either telejump, so findPath reports the cave unreachable from outside and the mainland unreachable from inside — the module's own hops are the only crossing.
+// Why: no transports edge carries either telejump, so findPath reports the cave unreachable from outside and the mainland unreachable from inside, the module's own hops are the only crossing.
 
 /**
  * Enter the goblin cave, free Gilob's son from the crate, and leave by the mud pile.
@@ -165,15 +165,15 @@ export async function rescueChild(rescued: boolean, log: (m: string) => void): P
         return false;
     }
     // The crate spawns the youngster and opens his dialogue in one script, and the
-    // stage is set by its last line — leaving it undrained loses the rescue.
+    // stage is set by its last line, leaving it undrained loses the rescue.
     await Execution.delayTicks(2);
     await talkThrough(DWARF_CHILD.npc, DWARF_CHILD.prefer, log);
     return true;
 }
 
-// Why: only `mes` lines reach GameMessages, and the "working order" line that ends this leg is a `~chatplayer` dialogue — so the stage reaching 8 is the terminal oracle, read by the next decide() rather than watched for here.
+// Why: only `mes` lines reach GameMessages, and the "working order" line that ends this leg is a `~chatplayer` dialogue, so the stage reaching 8 is the terminal oracle, read by the next decide() rather than watched for here.
 
-// Why: `oploc1` falls to its else branch, and this line, only when %mcannon is neither 6 nor 7 — so it is the one client-visible proof that the repair leg is over.
+// Why: `oploc1` falls to its else branch, and this line, only when %mcannon is neither 6 nor 7, so it is the one client-visible proof that the repair leg is over.
 const CANNON_DONE = /strange dwarf contraption/i;
 const CANNON_FIXED = /manage to fix it/i;
 const CANNON_ALREADY = /already fixed this part/i;
@@ -193,7 +193,7 @@ export function cannonOutcome(text: string): PartOutcome {
     return OUTCOMES.find(([pattern]) => pattern.test(text))?.[1] ?? 'retry';
 }
 
-// Why: the repair menu offers all five components on every Inspect, whatever is already done, so a preference list re-picks its first entry forever — the Pipe is fixed once and every later pass answers "You've already fixed this part of the cannon."
+// Why: the repair menu offers all five components on every Inspect, whatever is already done, so a preference list re-picks its first entry forever. The Pipe is fixed once and every later pass answers "You've already fixed this part of the cannon."
 
 /** Inspect once and answer for one named component; `null` drives no menu. */
 async function inspectFor(part: string | null, log: (m: string) => void): Promise<PartOutcome> {

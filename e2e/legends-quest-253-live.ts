@@ -1,5 +1,5 @@
 /** Live Legends Quest harness (#253): --stage N --until N --minutes N --kit. Members-only, so the :8890 world.
- *  Why: `--stage` sets `%legendsquest` and relogs — `update_questlist` only recolours the tab at login, and the module reads the tab rather than the varp.
+ *  Why: `--stage` sets `%legendsquest` and relogs, `update_questlist` only recolours the tab at login, and the module reads the tab rather than the varp.
  *  Why: Heroes' Quest and Underground Pass have no module yet, so their varps are cheated complete along with the other three the Legends guard checks. */
 
 //   HEADED=1 bun e2e/legends-quest-253-live.ts --stage 0 --minutes 180          # full run
@@ -32,7 +32,7 @@ interface Args {
     tickMs: number;
     /** Seed the gems, gold bars and papyrus the module would otherwise mine and buy. */
     kit: boolean;
-    // Why: `bitsFor` hands a stage jump the `%legends_bits` a continuous run would have set, which for stage 7 includes `asked_ungadulu_who` — the one bit that makes Gujuo offer the pure-water topic first time. A leg run with it set never exercises the recovery in `askGujuoForWater`.
+    // Why: `bitsFor` hands a stage jump the `%legends_bits` a continuous run would have set, which for stage 7 includes `asked_ungadulu_who`, the one bit that makes Gujuo offer the pure-water topic first time. A leg run with it set never exercises the recovery in `askGujuoForWater`.
 
     /** Prayer to seed, apart from the rest. Gujuo's trance is hardest on a devout account. */
     prayer: number;
@@ -104,7 +104,7 @@ const PREREQ_QUESTS: readonly [string, number][] = [
 
 /** Nothing in the game sells any of these, plus the float, the food and the melee kit.
  *  Why: the seven gems have no counter and the rocks that drop them sit behind Vigroy's cart, so they are bank items like the other four. */
-// Why: a death drops everything but three items, and the descent consumables are the ones a resumed run cannot buy — so the bank holds enough of them to survive one.
+// Why: a death drops everything but three items, and the descent consumables are the ones a resumed run cannot buy, so the bank holds enough of them to survive one.
 const BANK_SEED: BankSeedItem[] = [
     { debugName: 'rune_axe', displayName: 'Rune axe', qty: 3 },
     { debugName: 'lockpick', displayName: 'Lockpick', qty: 4 },
@@ -157,7 +157,7 @@ const STAGE_START: Record<number, { x: number; z: number; level: number }> = {
     70: ARDOUGNE_BANK
 };
 
-// Why: a stage jump describes a state the quest reached, and half that state is in the pack — the notes, the bowl, the seeds, the totem.
+// Why: a stage jump describes a state the quest reached, and half that state is in the pack, the notes, the bowl, the seeds, the totem.
 // Why: seeding past a hand-over without the item it produced describes a state the quest can never be in, and the module then repeats a leg it cannot finish.
 
 /** What the pack must hold for a `--stage` jump to describe a reachable state. */
@@ -179,7 +179,7 @@ const STAGE_GIVE: readonly { from: number; to: number; items: readonly [string, 
     { from: 45, to: 45, items: [['thkaramjamapcomp', 1], ['thtotempolegift', 1]] }
 ];
 
-// Why: half of what a stage means lives in `%legends_bits` rather than in items — which questions Ungadulu answered, whether the potion was drunk, whether the rope is on the winch.
+// Why: half of what a stage means lives in `%legends_bits` rather than in items, which questions Ungadulu answered, whether the potion was drunk, whether the rope is on the winch.
 // Why: a jump that leaves them clear describes a state the quest can never be in, and the module then asks Gujuo for a topic he will never offer.
 const BIT_ENTERED_CAVERN = 1 << 3;
 const BIT_ASKED_WHERE = 1 << 4;
@@ -278,7 +278,7 @@ try {
         await cheatQuiet(page, `setstat ${stat} ${stat === 'prayer' ? args.prayer : STAT_LEVEL}`);
     }
     await clearChatDialogs(page, 'level dialog(s)');
-    // Why: Gujuo's trance climbs about 1.73 for every point of prayer and true is the miss, so the blessing is hardest on a devout account — a fixed seventy tests neither the forty-two the quest asks for nor the ninety-nine that misses ninety-eight times in a hundred.
+    // Why: Gujuo's trance climbs about 1.73 for every point of prayer and true is the miss, so the blessing is hardest on a devout account, a fixed seventy tests neither the forty-two the quest asks for nor the ninety-nine that misses ninety-eight times in a hundred.
     console.log(`stats: every skill at ${STAT_LEVEL}, prayer at ${args.prayer}`);
 
     const seed = args.kit ? [...BANK_SEED, ...KIT_SEED] : BANK_SEED;
@@ -306,7 +306,7 @@ try {
     await relog(page, args.user);
     await clearChatDialogs(page, 'post-relog dialog(s)');
 
-    // Why: `update_questlist` runs at login and recomputes `%qp` from the quest varps, so a total set before the relog is thrown away — the seven cheated quests are worth eleven points between them.
+    // Why: `update_questlist` runs at login and recomputes `%qp` from the quest varps, so a total set before the relog is thrown away, the seven cheated quests are worth eleven points between them.
     await cheatQuiet(page, 'setvar qp 107');
 
     const qp = await getServerVarQuiet(page, 'qp');
@@ -359,7 +359,7 @@ try {
         );
         for (const l of last.logs) {
             if (l.time > lastLogTime) {
-                // Why: a leg watches `%legendsquest`, and a stage can move on a step that failed — `gujuo_pure_water` sets stage 8 before the branch that hands over the sketch, so a run printed PASS having failed the same step four times and come away without the item the next stage needs. The tally is not a verdict; it is the number that made that run look green.
+                // Why: a leg watches `%legendsquest`, and a stage can move on a step that failed, `gujuo_pure_water` sets stage 8 before the branch that hands over the sketch, so a run printed PASS having failed the same step four times and come away without the item the next stage needs. The tally is not a verdict; it is the number that made that run look green.
                 if (l.msg.includes('→ FAILED in ')) {
                     stepFails += 1;
                 }

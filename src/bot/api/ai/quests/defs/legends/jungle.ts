@@ -17,7 +17,7 @@ const CHOP_ATTEMPTS = 14;
 const CHOP_MS = 180_000;
 
 // Why: every plant felled on the way through the band leaves its logs in a pack that has no slot to spare, and the reed at the pool is what fails for want of one.
-// Why: the crossing and the last swing's `inv_add` land in the same tick, so a pack read straight off the loop is one or two logs out of date — those survived every crossing and are what fills the pack over a run.
+// Why: the crossing and the last swing's `inv_add` land in the same tick, so a pack read straight off the loop is one or two logs out of date, those survived every crossing and are what fills the pack over a run.
 
 const isLogs = (name: string | null | undefined): boolean => (name ?? '').toLowerCase().endsWith('logs');
 
@@ -232,7 +232,7 @@ export async function getBullroarer(log: (m: string) => void): Promise<boolean> 
     if (!(await offerTo(LQ_ID.MAP_COMPLETE, forester, log))) {
         return false;
     }
-    // Why: the forester hands the roarer through `~objbox`, and the `inv_add` behind it only runs once the box is clicked — a chat-only driver waits out its budget holding the script shut.
+    // Why: the forester hands the roarer through `~objbox`, and the `inv_add` behind it only runs once the box is clicked, a chat-only driver waits out its budget holding the script shut.
     return driveBoxes(() => heldId(LQ_ID.BULLROARER) > 0, 60_000, FORESTER_PREFER, log);
 }
 
@@ -281,7 +281,7 @@ export async function summonGujuo(log: (m: string) => void): Promise<boolean> {
 
 // Why: Gujuo starts the conversation himself once summoned (`ai_opplayer2`), so opening one is a race the driver has to tolerate.
 
-// Why: half his conversations end themselves — he says goodbye and `npc_del`s — so those have no goal to wait on and `driveUntil` would burn its budget after the chat had closed.
+// Why: half his conversations end themselves, he says goodbye and `npc_del`s, so those have no goal to wait on and `driveUntil` would burn its budget after the chat had closed.
 
 /** Summon Gujuo and drive his conversation, to a goal or to its own end. */
 export function talkGujuo(prefer: string[], goal?: () => boolean, ms = 90_000, required?: string): (log: (m: string) => void) => Promise<boolean> {
@@ -289,7 +289,7 @@ export function talkGujuo(prefer: string[], goal?: () => boolean, ms = 90_000, r
     return async log => (await talk(log)) === 'goal';
 }
 
-// Why: "he would not say it" and "he would not speak at all" are different failures with different answers, and a caller that cannot tell them apart treats a shaman who never opened his mouth as one whose dialogue was missing a topic — which sent a live run to the caves and back, for ever, to set a bit that was already set.
+// Why: "he would not say it" and "he would not speak at all" are different failures with different answers, and a caller that cannot tell them apart treats a shaman who never opened his mouth as one whose dialogue was missing a topic, which sent a live run to the caves and back, for ever, to set a bit that was already set.
 
 /** Why a talk with Gujuo ended: the goal landed, he never opened a dialogue, or he talked without reaching it. */
 export type GujuoTalk = 'goal' | 'nodialog' | 'nogoal';
@@ -305,12 +305,12 @@ export function talkGujuoStatus(
         if (goal?.()) {
             return 'goal';
         }
-        // Why: not reaching him and reaching a shaman who says nothing both call for the same answer — try again where we stand — but they are not the same failure, and reporting them in one word is how "Gujuo would not talk" came to mean "the climb out of the caves ran out of road".
+        // Why: not reaching him and reaching a shaman who says nothing both call for the same answer, try again where we stand, but they are not the same failure, and reporting them in one word is how "Gujuo would not talk" came to mean "the climb out of the caves ran out of road".
         if (!(await summonGujuo(log))) {
             log('never got to Gujuo — the walk in or the summon failed, not the talk');
             return 'nodialog';
         }
-        // Why: the roarer leaves him in `opplayer2`, and `[ai_opplayer2,gujuo]` walks him over and opens `gujuo_start` on its own — the conversation is already coming. A Talk-to click sent into the middle of that approach sets the player walking too, so the pair of them move and neither talks, which is what "never opened a dialogue" was.
+        // Why: the roarer leaves him in `opplayer2`, and `[ai_opplayer2,gujuo]` walks him over and opens `gujuo_start` on its own. The conversation is already coming. A Talk-to click sent into the middle of that approach sets the player walking too, so the pair of them move and neither talks, which is what "never opened a dialogue" was.
         const spoke = (): boolean => ChatDialog.isOpen() || ChatDialog.canContinue();
         if (!(await Execution.delayUntil(spoke, GUJUO_APPROACH_MS))) {
             const status = await Reach.npcDialog({ name: LQ_NPC.GUJUO, near: Game.tile() ?? LQ_TILE.BULLROARER_SPOT, log });
@@ -319,7 +319,7 @@ export function talkGujuoStatus(
                 return 'nodialog';
             }
         }
-        // Why: `gujuo_vessel` hands the sketch through `~objbox`, which renders in the MAIN modal and suspends the script — the `inv_add` behind it only runs once the box is clicked. `driveUntil` clicks the CHAT modal alone, so the box stood, the sketch never came, and a step whose goal is the sketch spent its budget waiting on a script it was holding shut.
+        // Why: `gujuo_vessel` hands the sketch through `~objbox`, which renders in the MAIN modal and suspends the script, the `inv_add` behind it only runs once the box is clicked. `driveUntil` clicks the CHAT modal alone, so the box stood, the sketch never came, and a step whose goal is the sketch spent its budget waiting on a script it was holding shut.
         const ok = goal ? await driveBoxes(goal, ms, prefer, log) : await driveToEnd(prefer, log, ms, required);
         return ok ? 'goal' : 'nogoal';
     };

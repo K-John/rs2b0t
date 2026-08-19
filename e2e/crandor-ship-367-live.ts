@@ -1,4 +1,4 @@
-// Live proof for #367 — Crandor after Dragon Slayer, through the secret wall.
+// Live proof for #367, Crandor after Dragon Slayer, through the secret wall.
 // Why: Lady Lumbridge is one-shot mid-quest, so post-complete access is Karamja volcano → dragonsecretdoor → climbing rope; nothing teleports onto the Crandor surface.
 
 //   ~/redeploy.sh && HEADED=1 bun e2e/crandor-ship-367-live.ts

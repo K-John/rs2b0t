@@ -30,7 +30,7 @@ function recorder(): { ctx: CanvasRenderingContext2D; drawn: Drawn[] } {
     return { ctx: ctx as unknown as CanvasRenderingContext2D, drawn };
 }
 
-/** Body text only — the title bar and the collapse toggle paint outside the content flow. */
+/** Body text only, the title bar and the collapse toggle paint outside the content flow. */
 const body = (drawn: Drawn[]): Drawn[] => drawn.filter(d => d.y > PANEL.y + 20);
 
 const right = (d: Drawn): number => d.x + d.text.length * CHAR_W;

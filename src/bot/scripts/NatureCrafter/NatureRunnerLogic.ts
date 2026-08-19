@@ -14,7 +14,7 @@ export interface RuneType {
     talisman: string;
     rune: string;
     level: number;
-    ruins: Tile; // the Mysterious ruins — altar entrance for the master, trade spot for both
+    ruins: Tile; // the Mysterious ruins, altar entrance for the master, trade spot for both
     runnerBank: Tile;
     masterBank: Tile;
     // set when the bank is too far to carry unnoted: the runner banks a NOTE and un-notes here.
@@ -70,7 +70,7 @@ export function offerCount(unnoted: number): number {
 }
 
 // Short route only. A trade window moves at most TRADE_CAP, so anything carried beyond it
-// buys the master a second altar round trip for the remainder — cap it however big withdrawEss is.
+// buys the master a second altar round trip for the remainder, cap it however big withdrawEss is.
 export function shortRouteWithdraw(perSetting: number, banked: number, room: number): number {
     const want = perSetting > 0 ? Math.min(perSetting, TRADE_CAP) : TRADE_CAP;
     return Math.max(0, Math.min(want, banked, room > 0 ? room : TRADE_CAP));

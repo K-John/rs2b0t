@@ -13,7 +13,7 @@ export { BROKEN_PICKAXE, HAMMER };
 export const COINS = 'Coins';
 
 /**
- * Broken axe — not always present on every private build, but when it is we
+ * Broken axe, not always present on every private build, but when it is we
  * prefer Bob repair over buying another.
  */
 export const BROKEN_AXE = 'Broken axe';
@@ -78,14 +78,14 @@ export interface ShopOffer {
     vendor: ToolVendor;
 }
 
-/** Bob — Lumbridge axes (bronze–steel) + bronze pick. */
+/** Bob, Lumbridge axes (bronze–steel) + bronze pick. */
 export const BOB_VENDOR: ToolVendor = {
     keeper: 'Bob',
     stand: new Tile(3231, 3203, 0),
     bankStand: new Tile(3093, 3243, 0) // Draynor
 };
 
-/** Nurmof — dwarven mine pickaxes (bronze–rune). */
+/** Nurmof, dwarven mine pickaxes (bronze–rune). */
 export const NURMOF_VENDOR: ToolVendor = {
     keeper: 'Nurmof',
     stand: new Tile(2997, 9844, 0),
@@ -95,14 +95,14 @@ export const NURMOF_VENDOR: ToolVendor = {
     hopAction: 'Climb-down'
 };
 
-/** Gerrant — Port Sarim fishing (feathers, fly rod, bait, tools). */
+/** Gerrant, Port Sarim fishing (feathers, fly rod, bait, tools). */
 export const GERRANT_VENDOR: ToolVendor = {
     keeper: 'Gerrant',
     stand: new Tile(3013, 3224, 0),
     bankStand: new Tile(3092, 3243, 0) // Draynor
 };
 
-/** Harry — Catherby fishing (bait, tools, big net; no feathers/fly rod). */
+/** Harry, Catherby fishing (bait, tools, big net; no feathers/fly rod). */
 export const HARRY_VENDOR: ToolVendor = {
     keeper: 'Harry',
     stand: new Tile(2833, 3443, 0),
@@ -482,7 +482,7 @@ export function withBaitTarget(
 }
 
 export interface PlanFishingGearOpts {
-    /** Player / spot tile — picks Harry vs Gerrant by proximity. */
+    /** Player / spot tile, picks Harry vs Gerrant by proximity. */
     near?: FishingVendorNear | null;
     /** Buy/restock target for bait & feathers when the method needs them. */
     baitQty?: number;
@@ -646,7 +646,7 @@ export function shopableMissingFishingGear(
 
 /**
  * Whether Nurmof (or another underground vendor) needs an explicit surface hop
- * before the stand walk. Pure geography — used by {@link walkToToolVendor}.
+ * before the stand walk. Pure geography, used by {@link walkToToolVendor}.
  */
 function needsToolVendorSurfaceHop(
     vendor: ToolVendor,
@@ -672,7 +672,7 @@ export async function walkToToolVendor(
     log: (m: string) => void = () => {}
 ): Promise<boolean> {
     let here = Game.tile();
-    // Already underground (Nurmof stand plane) — skip surface hop.
+    // Already underground (Nurmof stand plane), skip surface hop.
     if (here && vendor.stand.z > 9000 && here.z > 9000) {
         return Traversal.walkResilient(vendor.stand, { radius: 4, timeoutMs: 120_000, log });
     }
@@ -682,7 +682,7 @@ export async function walkToToolVendor(
             return false;
         }
         here = Game.tile();
-        // Walk may have pathfind-looped underground already — go straight to stand.
+        // Walk may have pathfind-looped underground already, go straight to stand.
         if (here && here.z > 9000) {
             log('acquire: already underground after hop walk — skipping trapdoor');
             return Traversal.walkResilient(vendor.stand, { radius: 4, timeoutMs: 120_000, log });
@@ -704,7 +704,7 @@ export async function walkToToolVendor(
                 trap.actions().includes(vendor.hopAction)
                     ? vendor.hopAction
                     : (trap.actions().find(a => /climb-down|enter|open/i.test(a)) ?? vendor.hopAction);
-            // Two tries — first interact can miss after a long surface approach.
+            // Two tries, first interact can miss after a long surface approach.
             for (let tryHop = 0; tryHop < 2; tryHop++) {
                 log(`acquire: ${op} ${trap.name ?? vendor.hopLoc}${tryHop > 0 ? ' (retry)' : ''}`);
                 await trap.interact(op);

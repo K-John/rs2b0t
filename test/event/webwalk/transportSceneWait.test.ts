@@ -4,7 +4,7 @@ import { awaitTransportLoc } from '#/bot/event/webwalk/exec/transportLoc.js';
 import type { Loc } from '#/bot/api/locs/Locs.js';
 import type { TransportInfo } from '#/bot/event/webwalk/PathFinder.js';
 
-/** Brimhaven disembark plank — absent from the scene for the first ticks after the ship telejump. */
+/** Brimhaven disembark plank, absent from the scene for the first ticks after the ship telejump. */
 const PLANK: TransportInfo = {
     locName: 'Gangplank',
     action: 'Cross',

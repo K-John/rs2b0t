@@ -8,10 +8,10 @@ import { heldId, wear } from './gear.js';
 import { locById, talkAt, walkTo } from './travel.js';
 
 // Why: the first option hands the chemist the plague sample and he confiscates it, and the
-// touch-paper-for-the-sample line does the same — only the Guidor errand keeps it.
+// touch-paper-for-the-sample line does the same, only the Guidor errand keeps it.
 const CHEMIST_PREFER = ["It's ok, I'm Elena's friend.", 'for a guy called Guidor'];
 // Why: the third page comes after the stage has already moved, so a run that abandons it still
-// finishes the quest — and reports the leg failed, which is a lie the next leg has to walk back.
+// finishes the quest, and reports the leg failed, which is a lie the next leg has to walk back.
 const GUIDOR_PREFER = [
     "I've come to ask your assistance in stopping a plague.",
     "I've been sent by your old pupil Elena.",
@@ -29,7 +29,7 @@ interface Errand {
 }
 
 // Why: Hops drinks anything but the broline, Chancy sells anything but the honey, and DeVinci
-// paints with anything but the ethenea — a wrong pairing destroys that vial.
+// paints with anything but the ethenea, a wrong pairing destroys that vial.
 export const ERRANDS: readonly Errand[] = [
     { npc: BIO_NPC.HOPS, vial: BIO_ITEM.SULPHURIC_BROLINE, give: 'vial of sulphuric broline', stand: BIO_TILE.HOPS },
     { npc: BIO_NPC.DEVINCI, vial: BIO_ITEM.ETHENEA, give: 'vial of ethenea', stand: BIO_TILE.DEVINCI },
@@ -127,7 +127,7 @@ export async function visitGuidor(log: (m: string) => void): Promise<boolean> {
     return driveUntil(() => heldId(BIO_ITEM.PLAGUE_SAMPLE.id) === 0, [], log, 15_000);
 }
 
-// Why: between given_distillator and found_secret the guard stops everyone within two tiles of the gate for a two-page search, and the walker's own door crossing has no answer for either page — so this leg drives the gate itself rather than leaving it to a route.
+// Why: between given_distillator and found_secret the guard stops everyone within two tiles of the gate for a two-page search, and the walker's own door crossing has no answer for either page, so this leg drives the gate itself rather than leaving it to a route.
 
 /** Open the Varrock east gate and sit out the guard's search, in whichever direction. */
 async function passVarrockGate(log: (m: string) => void): Promise<boolean> {

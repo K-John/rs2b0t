@@ -211,7 +211,7 @@ function invert(move: ChainMove): ChainMove {
 
 /**
  * How far into CHAIN this process has got. The only way to know which moves need
- * undoing — the lever bits are unreadable, and nothing but the ladder resets them.
+ * undoing, the lever bits are unreadable, and nothing but the ladder resets them.
  */
 let executed = 0;
 
@@ -309,7 +309,7 @@ async function leaveAlcove(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-/** Out of the basement and out of the alcove — two pockets, one exit each. */
+/** Out of the basement and out of the alcove, two pockets, one exit each. */
 export async function leaveManorBasement(log: (m: string) => void): Promise<boolean> {
     if (!(await leaveBasement(log))) {
         return false;

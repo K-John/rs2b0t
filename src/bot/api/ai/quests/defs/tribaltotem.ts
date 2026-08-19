@@ -56,7 +56,7 @@ const RPDT: NpcStop = {
     prefer: ['So, when are you going to deliver this crate?']
 };
 
-// Why: the crates are ordinary walking distance from the Ardougne bank, so only the mansion leg needs Cromperty's block — this is also where it lands before the parcel is delivered.
+// Why: the crates are ordinary walking distance from the Ardougne bank, so only the mansion leg needs Cromperty's block. This is also where it lands before the parcel is delivered.
 /** The R.P.D.T. depot's crate room. */
 const DEPOT_STAND = new Tile(2649, 3271, 0);
 const COMBO_STAND = new Tile(2635, 3323, 0);
@@ -65,7 +65,7 @@ const STAIRS_STAND = new Tile(2631, 3325, 0);
 const CHEST_STAND = new Tile(2638, 3323, 1);
 const BANK = new Tile(2655, 3283, 0);
 
-// Why: the mansion is a sealed component — the inner door opens only outward and the way in is Cromperty's block, so a resume outside it has to be teleported back rather than walked.
+// Why: the mansion is a sealed component, the inner door opens only outward and the way in is Cromperty's block, so a resume outside it has to be teleported back rather than walked.
 /** Boxes covering everything the inner door seals, excluding the porch and the two garden alcoves. */
 const MANSION_BOXES: readonly { level: number; x0: number; x1: number; z0: number; z1: number }[] = [
     { level: 0, x0: 2627, x1: 2643, z0: 3322, z1: 3325 },

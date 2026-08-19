@@ -5,7 +5,7 @@
 Twelve, and only the first three are quest facts.
 
 - **A shop that opens once shapes the item plan.** Bugs sells the knife and chisel,
-  and Fycie the feathers, at `^chompybird_started` alone — one stage out of thirteen. Both
+  and Fycie the feathers, at `^chompybird_started` alone, one stage out of thirteen. Both
   counters are shut for every later stage and for every resume past it, so an established
   account's own pair is the source the module leans on and the ogre children are the
   fallback rather than the plan.
@@ -26,13 +26,13 @@ Twelve, and only the first three are quest facts.
   "the mask is non-zero".
 - **`openDialogue` does not walk.** It searches the npc list, which only holds what is
   within about fifteen tiles. Rantz is fifteen tiles from the bait clearing, so every talk
-  issued from there failed in a millisecond with "no 'Rantz' nearby" — and passed on the
+  issued from there failed in a millisecond with "no 'Rantz' nearby", and passed on the
   attempt where he happened to have wandered closer. Walk to the anchor, then talk.
 - **`~objbox` and `~doubleobjbox` suspend the script on a main modal.** Bugs shows the
   knife and chisel that way, and Rantz answers half his stages with one. `ChatDialog` reads
   the chat modal alone, so `driveDialog` stops at the first box and waits out its timeout
   while the conversation sits there. The driver has to click the main modal's continue
-  button — `reader.mainModalButtonNearText('Click here to continue')` — as well as the chat's.
+  button, `reader.mainModalButtonNearText('Click here to continue')`, as well as the chat's.
 - **A menu that re-offers itself needs one-shot preferences.** `toadies_questions` is a
   five-option `p_choice5` that recurses after every answer, and only option one moves the
   quest to stage 15. A plain preference list picks option one forever. Spend a preference
@@ -46,17 +46,17 @@ Twelve, and only the first three are quest facts.
   out its window beside the pool.
 - **A leg that spends coins needs the purse drawn before it talks.** Past the loan Rantz
   sells the replacement bow for 500-550 coins and answers an empty purse with "come back
-  when you have" — a refusal that reads like a dropped click. A resume at stage 45
+  when you have", a refusal that reads like a dropped click. A resume at stage 45
   retried the talk 122 times over ten minutes, because a failing custom step feeds no
   watchdog and so never parks itself.
 - **A consumable floor is not one.** Three ogre arrows is a fight that runs dry with the
   bird still alive; the step then waited out its window and reported failure on a chompy
   it had been hitting. Set the floor at what the fight spends, and pick the spent ammunition
-  back up — `ranged_dropammo_npc` leaves it at the target's feet.
+  back up, `ranged_dropammo_npc` leaves it at the target's feet.
 - **Six locs can share one display name and only one carry the trigger.** The ogre
   spit-roast has an empty, a cooking, a cooked, a ruined and two chicken variants, all
   called "Ogre spit-roast"; `chompybird_spitroast_empty` is the only one with an `oplocu`.
-  The cabbage patch is the opposite problem — it carries no `name=` at all, so the client
+  The cabbage patch is the opposite problem. It carries no `name=` at all, so the client
   menu reads null and a name query finds nothing. Both are matched by loc id.
 
 ## See also

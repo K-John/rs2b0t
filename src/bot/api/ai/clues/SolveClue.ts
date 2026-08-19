@@ -46,7 +46,7 @@ function heldClueScrollId(): number | null {
     return it ? it.id : null;
 }
 
-/** Hard riddle drawers on Entrana (issue #368) — boat refuses weapons/armour. */
+/** Hard riddle drawers on Entrana (issue #368), boat refuses weapons/armour. */
 function isEntranaClueCoord(c: { x: number; z: number; level: number } | undefined): boolean {
     if (!c || c.level !== 0) {
         return false;
@@ -79,7 +79,7 @@ export interface SolveClueHost {
 export class SolveClue implements Task {
     private bankedThisSolve = false;
 
-    /** One restock trip per dry spell — cleared as soon as food is held again. */
+    /** One restock trip per dry spell, cleared as soon as food is held again. */
     private triedFoodRestock = false;
 
     private abandonedClueId: number | null = null;
@@ -129,7 +129,7 @@ export class SolveClue implements Task {
         // Why: a guardian's hit lands in the same tick as the heal, so hp can end below where it started and an hp-only check waits out its full budget.
         // Why: Sustain.running is set for the duration of that wait, blanking every other pump while damage is heaviest.
         // Why: measured 3s of no bites at 8/70 hp with seven lobsters in the pack; at three seconds the four-tick blackout took a guardian from 45 hp to 2.
-        // Why: two ticks, not five — a bite that lands confirms on the next tick, and one the server dropped must be re-sent.
+        // Why: two ticks, not five, a bite that lands confirms on the next tick, and one the server dropped must be re-sent.
         const landed = await Execution.delayUntilTicks(
             () => held().length < food.length || Skills.effective('hitpoints') > hp,
             EAT_CONFIRM_TICKS
@@ -150,7 +150,7 @@ export class SolveClue implements Task {
     }
 
     /**
-     * Why: a trail banks once at the start, so a long one runs dry and walks the rest of the way — often through the Wilderness — with nothing to eat.
+     * Why: a trail banks once at the start, so a long one runs dry and walks the rest of the way, often through the Wilderness, with nothing to eat.
      * Why: `Sustain` is pumped on every walk pass but an empty pack has no bite to take, so upkeep alone cannot cover a long trail.
      * Why: bounded to one restock trip per dry spell, so an empty bank cannot put the bot in a bank-walk loop.
      */
@@ -277,7 +277,7 @@ export class SolveClue implements Task {
         const entranaStrip = heldClueNeedsEntranaStrip();
         if (entranaStrip) {
             this.host.log('[clue] Entrana destination — banking weapons/armour (monk search)');
-            // Unequip before bank open — side-view swaps inventory ops to Deposit-*.
+            // Unequip before bank open, side-view swaps inventory ops to Deposit-*.
             for (const worn of Equipment.items()) {
                 const n = worn.name ?? '';
                 if (n !== '' && ENTRANA_RESTRICTED_GEAR_RE.test(n)) {
@@ -304,7 +304,7 @@ export class SolveClue implements Task {
         const coordItems = new Set(['sextant', 'watch', 'chart']);
         const rowItems = scrollId !== null ? (CLUE_DB[scrollId]?.items ?? []) : [];
         const rowItemNames = new Set(rowItems.map(n => n.toLowerCase()));
-        // Why: one snapshot per bank stop — a spell this account cannot cast must not reserve a pack slot.
+        // Why: one snapshot per bank stop, a spell this account cannot cast must not reserve a pack slot.
         const kit = teleportKitFor(snapshotWorldState());
         const keepTeleports = this.host.useTeleports?.() ?? true;
         // Southbound Shantay Pass is baked but consumes a pass (#371). Keep/withdraw
@@ -422,9 +422,9 @@ export class SolveClue implements Task {
     }
 
     /**
-     * Why: only spells this account can cast are stocked — a hard casket needs six free slots, so runes for an unlearned spell are dead weight.
+     * Why: only spells this account can cast are stocked, a hard casket needs six free slots, so runes for an unlearned spell are dead weight.
      * Why: jewellery is kept when already carried but never fetched, since charges make the names inexact.
-     * Why: a missing rune is not fatal — the router walks instead.
+     * Why: a missing rune is not fatal. The router walks instead.
      */
     private async stockTeleports(kit: TeleportKit): Promise<void> {
         if (!(this.host.useTeleports?.() ?? true)) {
@@ -447,7 +447,7 @@ export class SolveClue implements Task {
 
     /**
      * Top up prayer at an altar before a hard trail starts, since any of its legs can be a guarded dig.
-     * Why: low prayer never blocks a trail — the fight runs without a protection prayer.
+     * Why: low prayer never blocks a trail. The fight runs without a protection prayer.
      */
     private async topUpPrayer(scrollId: number | null): Promise<void> {
         const hardTrail = scrollId !== null && (CLUE_DB[scrollId]?.obj.includes('_hard_') ?? false);

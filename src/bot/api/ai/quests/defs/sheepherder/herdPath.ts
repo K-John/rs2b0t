@@ -19,7 +19,7 @@ export interface HerdDir {
     dz: number;
 }
 
-/** North, east, south, west — `coord_direction` returns nothing else. */
+/** North, east, south, west, `coord_direction` returns nothing else. */
 export const HERD_DIRS: readonly HerdDir[] = [
     { dx: 0, dz: 1 },
     { dx: 1, dz: 0 },
@@ -32,7 +32,7 @@ const MARGIN = 24;
 
 const key = (x: number, z: number): number => x * 100_000 + z;
 
-// Why: `prod_sheep` walks the sheep one tile along `coord_direction(player, sheep)`, which is cardinal and points away from the player — so a push is legal only where the opposite tile is standable.
+// Why: `prod_sheep` walks the sheep one tile along `coord_direction(player, sheep)`, which is cardinal and points away from the player, so a push is legal only where the opposite tile is standable.
 // Why: that tile also has to be able to step onto the sheep, or the Prod op cannot reach it from there; the fence east of the second sheep's field is walkable on both sides and passable on neither.
 
 /** Whether a sheep on (x,z) can be pushed one tile in `dir`. */
@@ -47,7 +47,7 @@ export function inBox(box: HerdBox, x: number, z: number): boolean {
     return x >= box.x0 && x <= box.x1 && z >= box.z0 && z <= box.z1;
 }
 
-// Why: a walkable tile with no standable side is a trap — a wandering sheep can walk in and no prod can move it out again, and the engine frees it only by teleporting it home 500 ticks later.
+// Why: a walkable tile with no standable side is a trap, a wandering sheep can walk in and no prod can move it out again, and the engine frees it only by teleporting it home 500 ticks later.
 
 /** Whether no push at all can be issued at (x,z). */
 export function pinned(grid: HerdGrid, x: number, z: number): boolean {
@@ -147,7 +147,7 @@ export function herdPlan(grid: HerdGrid, sheep: { x: number; z: number }, goal: 
     };
 }
 
-// Why: the two maps have to be read as one number, because picking whichever map holds the sheep's own tile swaps potentials as it wanders on and off the clear network — and two potentials pushed a sheep eleven tiles east and back for 250 pushes.
+// Why: the two maps have to be read as one number, because picking whichever map holds the sheep's own tile swaps potentials as it wanders on and off the clear network, and two potentials pushed a sheep eleven tiles east and back for 250 pushes.
 
 /** How much worse any route off the clear network is, in pushes. */
 const OFF_NETWORK = 1000;

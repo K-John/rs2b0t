@@ -213,7 +213,7 @@ describe('Tribal Totem decide', () => {
         expect(customName(step)).toBe('take the totem from the mansion chest');
     });
 
-    // Why: nothing walks into the mansion — the inner door only opens outward, so a resume outside it has to be teleported back in.
+    // Why: nothing walks into the mansion, the inner door only opens outward, so a resume outside it has to be teleported back in.
     test('rides Cromperty back in when the teleported stage finds the bot outside', () => {
         const outside = snap({ stage: TOTEM_STAGE.TELEPORTED, combo: true, tile: { x: 2655, z: 3283, level: 0 } });
 

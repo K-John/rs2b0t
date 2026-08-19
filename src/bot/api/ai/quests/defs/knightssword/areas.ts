@@ -121,5 +121,5 @@ export const THURGO: NpcStop = {
 
 export const WYDIN = { npc: 'Wydin', anchor: KS_TILE.WYDIN };
 
-/** Varrock's, not Falador's — the bucket is wanted on the Reldo leg. */
+/** Varrock's, not Falador's. The bucket is wanted on the Reldo leg. */
 export const GENERAL_STORE = { npc: 'Shop keeper', anchor: KS_TILE.GENERAL_STORE };

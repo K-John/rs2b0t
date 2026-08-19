@@ -1,4 +1,4 @@
-// Issue #313 — live VialFiller proof against a local engine: [base].
+// Issue #313, live VialFiller proof against a local engine: [base].
 // Seeds a pack of empty vials at the Falador West bank, runs the script, and requires Vials of water to come back from the fountain.
 
 //   bun e2e/vialfiller-test.ts [http://localhost:8888]

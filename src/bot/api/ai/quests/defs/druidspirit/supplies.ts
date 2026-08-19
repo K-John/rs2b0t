@@ -87,7 +87,7 @@ async function smeltSilver(log: (m: string) => void): Promise<boolean> {
     );
 }
 
-// Why: the furnace's `Smelt` op opens the ore-to-bar menu alone — silver craft is an `oplocu`, so the bar is used on the furnace and no op expresses it.
+// Why: the furnace's `Smelt` op opens the ore-to-bar menu alone, silver craft is an `oplocu`, so the bar is used on the furnace and no op expresses it.
 // Why: casting the sickle is a members-only option and this world is members everywhere (`Environment.node.members`), so the Al Kharid furnace serves.
 // Why: the option only appears while the mould is held, so a missing mould reads as "no Silver sickle in the menu" rather than as a refusal.
 
@@ -148,7 +148,7 @@ export function sickleStep(snap: QuestSnapshot, miningLevel?: number): QuestStep
     if (bankedId(snap, NS_ID.SILVER_ORE) > 0) {
         return withdraw(NS_NAME.SILVER_ORE, NS_ID.SILVER_ORE);
     }
-    // Why: mining without a pickaxe raises no refusal at all — the rock does not answer — so the tool is sourced before the rocks are walked to.
+    // Why: mining without a pickaxe raises no refusal at all. The rock does not answer, so the tool is sourced before the rocks are walked to.
     return pickaxe(snap, miningLevel ?? Skills.level('mining'))
         ?? { kind: 'mineRock', rock: 'Silver', item: NS_NAME.SILVER_ORE, qty: 1, anchor: NS_TILE.SILVER_ROCKS };
 }

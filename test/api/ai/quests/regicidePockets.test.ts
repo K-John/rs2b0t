@@ -7,7 +7,7 @@ import { REGICIDE_POCKETS, REGICIDE_SEAMS } from '#/bot/api/ai/quests/defs/regic
 import { RG_STAGE } from '#/bot/api/ai/quests/defs/regicide/journal.js';
 import { onShelf } from '#/bot/api/ai/quests/defs/regicide/pass.js';
 
-// Why: the seam table is generated from the collision pack by `tools/nav/regicide-pockets.ts`, so these are the assertions that catch a regeneration that silently lost a crossing — a lost seam is not a compile error, it is a leg that walks into a wall thirty minutes into a run.
+// Why: the seam table is generated from the collision pack by `tools/nav/regicide-pockets.ts`, so these are the assertions that catch a regeneration that silently lost a crossing, a lost seam is not a compile error, it is a leg that walks into a wall thirty minutes into a run.
 
 const at = (t: { x: number; z: number }) => ({ x: t.x, z: t.z, level: 0 });
 
@@ -94,7 +94,7 @@ describe('planRoute', () => {
         expect(planRoute('elf-camp', 'old-camp', early)).not.toBeNull();
     });
 
-    // Why: `_regicide_cross_over` answers "You can see no way to get past this" below stage 8, and the camp is behind four of them — a route that used one early would park the run at a crossing that refuses.
+    // Why: `_regicide_cross_over` answers "You can see no way to get past this" below stage 8, and the camp is behind four of them, a route that used one early would park the run at a crossing that refuses.
     test("Tyras's camp is unreachable until the tracker has explained the woodland", () => {
         expect(planRoute('elf-camp', 'tyras-camp', FOREST_STAGE - 1)).toBeNull();
         expect(planRoute('elf-camp', 'tyras-camp', FOREST_STAGE)).not.toBeNull();
@@ -126,7 +126,7 @@ describe('planRoute', () => {
     });
 });
 
-// Why: the chasm is derived, not eyeballed — flooding the collision pack from the cave landing (2494,9716) and from the bridge's west foot (2442,9716) gives two tile sets sharing no tile, and these cases pin the line between them. Tiles from both floods' extremes, plus the grid approach a bare x test misreads.
+// Why: the chasm is derived, not eyeballed, flooding the collision pack from the cave landing (2494,9716) and from the bridge's west foot (2442,9716) gives two tile sets sharing no tile, and these cases pin the line between them. Tiles from both floods' extremes, plus the grid approach a bare x test misreads.
 describe('the Underground Pass chasm', () => {
     const CASES: [string, { x: number; z: number }, boolean][] = [
         ['the cave landing', { x: 2494, z: 9716 }, true],
@@ -150,7 +150,7 @@ describe('the Underground Pass chasm', () => {
     });
 });
 
-// Why: the shelf and the orb corridor are the two halves of the first cavern and they share no tile, but their bounding boxes overlap — so the split is the two bands the corridor cannot reach, and these cases pin both edges of it. A regenerated collision pack that moved either boundary would otherwise send the leg back down the well from the shelf, forever.
+// Why: the shelf and the orb corridor are the two halves of the first cavern and they share no tile, but their bounding boxes overlap, so the split is the two bands the corridor cannot reach, and these cases pin both edges of it. A regenerated collision pack that moved either boundary would otherwise send the leg back down the well from the shelf, forever.
 describe('the paladins shelf against the orb corridor', () => {
     const CASES: [string, { x: number; z: number }, boolean][] = [
         ['the unicorn tunnel landing', { x: 2371, z: 9666 }, true],

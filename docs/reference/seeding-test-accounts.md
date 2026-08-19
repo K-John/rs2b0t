@@ -9,19 +9,19 @@ Server debug cheats are fair game.
 
 | Goal | How (local Server) |
 |---|---|
-| Item in **inventory** | engine `give bronze_pickaxe 1` (prefer) or content `~item bronze_pickaxe 1` (needs `p_finduid` — silent no-op after long walks) |
+| Item in **inventory** | engine `give bronze_pickaxe 1` (prefer) or content `~item bronze_pickaxe 1` (needs `p_finduid`, silent no-op after long walks) |
 | Jewellery in live OD | `nav-script-routes-live` seeds charged duel/glory/games at **start** (+ top-up each leg) so HARD paths may Rub; use `JEWELLERY_ONLY=1` for isolation legs |
 | Item seed after long walks | Prefer engine **`give`** over `~item` (`~item` needs `p_finduid` and silent-no-ops when busy) |
 | Item in **bank** | engine `givebank bronze_pickaxe 1` (or content `~bankitem bronze_pickaxe 1`) |
 | Wipe pack | `~clearinv` / `clearinv inv` |
 | Wipe bank | `~clearbank` |
-| Bulk max bank | `~bank_f2p` (no dialog) — blunt fixture, not a realistic low-level kit |
+| Bulk max bank | `~bank_f2p` (no dialog), blunt fixture, not a realistic low-level kit |
 | Stats | `advancestat mining 20` (then clear level-up dialogs) or `statsCsv=max` |
 | Tick rate | `speed 300` (2×) in cheats |
 
 **Bank seed path** (`seedItemsToBank` in [`e2e/tutorial/harness.ts`](../../e2e/tutorial/harness.ts)):
 
-1. `givebank <obj> <qty>` for each item (engine `ClientCheatHandler` — no busy-guard).
+1. `givebank <obj> <qty>` for each item (engine `ClientCheatHandler`, no busy-guard).
 2. If verify fails, retry with `~bankitem` (content debugproc; needs `p_finduid`).
 3. Tele next to a booth, open it once, assert `Bank.count(displayName)`.
 

@@ -150,7 +150,7 @@ export function searchTarget(
 }
 
 // Why: this result is returned as the step's own success, so a condition that holds without work being available loops the step at ~20ms and parks the quest on eight identical snapshots.
-// Why: being in combat is such a condition — an imp that `pickImp` refuses can hold the flag indefinitely — so it is deliberately not part of this.
+// Why: being in combat is such a condition, an imp that `pickImp` refuses can hold the flag indefinitely, so it is deliberately not part of this.
 
 /** Whether the idle wait found something for the next tick to act on. */
 export function idleProgress(target: unknown | null, eventPending: boolean): boolean {
@@ -330,7 +330,7 @@ async function killImp(imp: Npc, log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-// Why: walking the ring is the respawn wait — the volcano blocks the middle, so standing still watches one arc of it and the far spawns are never seen.
+// Why: walking the ring is the respawn wait, the volcano blocks the middle, so standing still watches one arc of it and the far spawns are never seen.
 async function searchForImps(census: ImpCensus, log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
     const neighbours = census.scene === 0

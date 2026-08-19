@@ -17,7 +17,7 @@ import { depositAllExcept, depositMatcher } from './bankRules.js';
 import { walkOpening } from '../../event/webwalk/walkOpening.js';
 
 /**
- * Snap radius for "I'm already at a bank" — booth underfoot or local stand.
+ * Snap radius for "I'm already at a bank", booth underfoot or local stand.
  * Why: wider than a single booth tile so starting next to Draynor still counts when the script's camp bank is Edgeville (Barb fly restock).
  */
 export const NEARBY_BANK_RADIUS = 14;
@@ -143,7 +143,7 @@ export interface OpenBankOpts {
 export type BankOpenRoute = 'already-open' | 'scene-booth' | 'local-bank' | 'preset-stand' | 'nearest-fallback';
 
 /**
- * Pure routing for {@link Banking.open} — unit-tested without the client.
+ * Pure routing for {@link Banking.open}, unit-tested without the client.
  * Nearby scene booth or local known bank beats a distant camp/vendor stand.
  */
 export function resolveBankOpenRoute(input: {
@@ -169,11 +169,11 @@ export function resolveBankOpenRoute(input: {
         const localD = bankDistance(here, input.nearest.tile);
         if (localD <= radius) {
             const stand = input.stand;
-            // Already at/near a bank that isn't the preset — use it (Draynor vs Edgeville).
+            // Already at/near a bank that isn't the preset, use it (Draynor vs Edgeville).
             if (!stand || bankDistance(here, stand) > radius) {
                 return 'local-bank';
             }
-            // Preset stand is also local (same bank area) — still fine to walk the stand.
+            // Preset stand is also local (same bank area), still fine to walk the stand.
         }
     }
     if (input.stand) {
@@ -189,7 +189,7 @@ function asTile(t: WorldTile): Tile {
 export const Banking = {
     /**
      * Open a bank for script work (deposit, withdraw, restock).
-     * Why: this neither deposits nor returns — callers own the bank session.
+     * Why: this neither deposits nor returns, callers own the bank session.
      */
     async open(opts: OpenBankOpts = {}): Promise<boolean> {
         const boothName = opts.boothName ?? 'Bank booth';
@@ -285,7 +285,7 @@ export const Banking = {
         await opts.afterDeposit?.();
         await Execution.delayTicks(1);
         if (opts.returnTo) {
-            // Soft arrive — no need to stand on the exact return pin.
+            // Soft arrive, no need to stand on the exact return pin.
             await Traversal.walkResilient(asTile(opts.returnTo), { radius: 6, timeoutMs: 120_000, log });
         }
         return true;
@@ -308,7 +308,7 @@ export async function bankPace(log?: (m: string) => void): Promise<void> {
 }
 
 /**
- * Wait for bank item list after open. Counts stay 0 until loaded — without a
+ * Wait for bank item list after open. Counts stay 0 until loaded, without a
  * human pause this looks like an instant open→scan→close.
  */
 export async function waitBankReady(log?: (m: string) => void): Promise<boolean> {

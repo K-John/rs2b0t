@@ -10,7 +10,7 @@ are about deriving it rather than reading it.
   pack cuts six suspects to two before a single print is lifted. Taking the thread
   first is what makes every later leg short.
 - **A loop whose cursor no client state can hold belongs inside one step.** Which
-  suspects the print has already cleared is unreadable — a mismatch destroys the print
+  suspects the print has already cleared is unreadable, a mismatch destroys the print
   and hands the keepsake back, which is the state a suspect is in before being
   tested. Keeping the hunt in one `custom` step makes the cursor local, and a
   restart costs one pot of flour rather than looping on the first suspect forever.
@@ -26,7 +26,7 @@ are about deriving it rather than reading it.
   the journal is re-read after each suspect rather than branched on before them.
 - **`~mesbox` is a chat modal, and what follows it is blocked until it is dismissed.**
   A mismatched print is deleted on the far side of `p_pausebutton`, so "the print is
-  gone" is not readable until the box has been driven shut — the wait has to drive, not
+  gone" is not readable until the box has been driven shut. The wait has to drive, not
   poll.
 - **A ground obj whose Take is scripted is a renewable spawn with a bank gate.**
   `[opobj3,murderweapon]` adds a copy and leaves the spawn where it lies, and refuses
@@ -41,7 +41,7 @@ are about deriving it rather than reading it.
   runs `closeIn` and reports `retry` having clicked nothing, so a `promptLoc` that
   returns false is often only the approach. A step that visits four locs in a row and
   gives up on the first false restarts its own loop at the first suspect, walks back
-  down for her, and never reaches the second — which reads as a `decide()` bug and is a
+  down for her, and never reaches the second, which reads as a `decide()` bug and is a
   missing retry.
 - **Every named suspect renders a first name, and the guard renders `Guard`.** Two
   `murderguard` spawns stand at the mansion and nothing else called Guard is within

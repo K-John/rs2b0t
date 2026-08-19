@@ -1,7 +1,7 @@
 /** Live Grand Tree harness (#247): --stage N --until N --minutes N, base :8890.
- *  Why: `%grandtree` is the state machine and nothing else is, so `--stage` writes it and relogs — `update_questlist` only recolours the list at login, and the module reads that colour before it reads the journal.
+ *  Why: `%grandtree` is the state machine and nothing else is, so `--stage` writes it and relogs, `update_questlist` only recolours the list at login, and the module reads that colour before it reads the journal.
  *  Why: stats are 70 across the board rather than max, because the quest ends on a level-172 Black Demon and the point is to prove a 70 account can hold Protect from Melee through it.
- *  Why: the bank holds coins, lobsters and a rune melee kit — every quest item has a source in the world, and seeding one would hide whether the bot can find it. */
+ *  Why: the bank holds coins, lobsters and a rune melee kit, every quest item has a source in the world, and seeding one would hide whether the bot can find it. */
 
 //   HEADED=1 bun e2e/grand-tree-247-live.ts --stage 0 --until 160 --minutes 90 --tick 300
 //   HEADED=1 bun e2e/grand-tree-247-live.ts --stage 130 --until 140 --minutes 25 --tick 300
@@ -86,7 +86,7 @@ const KARAMJA_CRASH = { x: 2917, z: 3058, level: 0 };
 /** `%grandtree` values the module branches on, and the only ones `--stage` accepts. */
 const STAGES = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150];
 
-// Why: past the glider the quest is in the Karamja jungle, and past the trapdoor it is under the tree — starting a leg on the wrong continent spends its budget walking.
+// Why: past the glider the quest is in the Karamja jungle, and past the trapdoor it is under the tree, starting a leg on the wrong continent spends its budget walking.
 function startTile(stage: number): { x: number; z: number; level: number } {
     if (stage === 80 || stage === 90) {
         return stage === 80 ? STRONGHOLD_BANK : KARAMJA_CRASH;
@@ -97,12 +97,12 @@ function startTile(stage: number): { x: number; z: number; level: number } {
 // Why: no bank on Karamja answers a path without the 30gp ferry fare, so a `--stage 90` jump
 // lands with an empty pack, cannot provision, and walks the jungle on no food until it dies.
 // Why: a run that reached stage 90 by playing arrives carrying both, so the jump hands them over.
-// Why: this is the engine's float, not a quest item — nothing the quest has to find is seeded.
+// Why: this is the engine's float, not a quest item, nothing the quest has to find is seeded.
 const KARAMJA_PACK = ['give coins 2000', 'give lobster 10'];
 
 /**
- * Coins, lobsters and a rune melee kit. Every quest item — the bark sample, the
- * scroll, the journal, the lumber order, Anita's key, the twigs and the rock —
+ * Coins, lobsters and a rune melee kit. Every quest item, the bark sample, the
+ * scroll, the journal, the lumber order, Anita's key, the twigs and the rock,
  * is handed over or found in the world, so none of them is seeded.
  */
 const BANK_SEED: BankSeedItem[] = [
@@ -163,7 +163,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph compiles into navworker.js, a separate entrypoint, deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {
@@ -224,7 +224,7 @@ try {
         }
         console.log(`${QUEST_ID}=${read}`);
         // Why: `%daconia_rock_root` is rolled by the King's stage-140 dialogue, so a jump straight
-        // to 150 leaves it 0 — which no root in `daconia_coords` answers, and the sweep never ends.
+        // to 150 leaves it 0, which no root in `daconia_coords` answers, and the sweep never ends.
         if (args.stage === 150) {
             await cheatQuiet(page, `setvar daconia_rock_root ${args.root}`);
             const rolled = await getServerVarQuiet(page, 'daconia_rock_root');
@@ -237,7 +237,7 @@ try {
         await clearChatDialogs(page, 'post-relog dialog(s)');
     }
 
-    // Gear is declared, never inferred — the demon fight wears whatever this says.
+    // Gear is declared, never inferred, the demon fight wears whatever this says.
     await page.evaluate(() => {
         const g = globalThis as never as { __rs2b0t: { Loadouts: { save(l: unknown[]): void } } };
         g.__rs2b0t.Loadouts.save([{
@@ -282,7 +282,7 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without this quest in it spends the budget on somebody else's.
+        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch, and a queue without this quest in it spends the budget on somebody else's.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;

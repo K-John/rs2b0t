@@ -42,7 +42,7 @@ export const COMBAT_FOODS = [
     'Bread'
 ] as const;
 
-/** Falador West — Burthorpe has no bank on this content. */
+/** Falador West. Burthorpe has no bank on this content. */
 export const FALADOR_WEST_BANK = new Tile(2946, 3369, 0);
 
 export const TILE = {
@@ -125,7 +125,7 @@ export const DUNSTAN_FINISH: NpcStop = {
     prefer: ['Nothing, thanks.']
 };
 
-// Why: Tenzing's post-quest shop is a dialogue rather than a shop interface, and it loops — after every purchase he asks "Was there anything else?" and re-offers the same five options.
+// Why: Tenzing's post-quest shop is a dialogue rather than a shop interface, and it loops, after every purchase he asks "Was there anything else?" and re-offers the same five options.
 // Why: a plain preference list matches "Can I buy some Climbing boots?" again and buys until the pack is full, so the exit is driven off what he said rather than off the options.
 export const TENZING_BOOTS: NpcStop = {
     npc: 'Tenzing',

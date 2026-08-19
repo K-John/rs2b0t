@@ -30,7 +30,7 @@ describe('resolveFishingLocation', () => {
     });
 
     test('Auto freeform on other level even when xz matches a camp', () => {
-        // sameMapSquare requires level match — level 1 at Draynor coords is freeform.
+        // sameMapSquare requires level match, level 1 at Draynor coords is freeform.
         expect(resolveFishingLocation('Auto', new Tile(3086, 3231, 1))).toBeNull();
     });
 

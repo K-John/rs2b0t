@@ -8,7 +8,7 @@ import { MURDER_LOC, MURDER_OBJ, MURDER_TILE, type LocStop, type Suspect } from 
 const LIFT_MS = 8000;
 
 // Why: `Reach.locOp` walks when the loc is out of scene and reports `retry` without ever clicking it, so a first call from anywhere else in the mansion is the approach and the second is the op.
-// Why: one leg here visits four locs, and a step that gives up on the walk restarts the hunt at the first suspect — which never gets past the second.
+// Why: one leg here visits four locs, and a step that gives up on the walk restarts the hunt at the first suspect, which never gets past the second.
 const LOC_TRIES = 3;
 
 async function reachLoc(step: LocPrompt, log: (m: string) => void): Promise<boolean> {
@@ -174,7 +174,7 @@ async function testSuspect(suspect: Suspect, log: (m: string) => void): Promise<
     return compare(suspect.print, log);
 }
 
-// Why: the loop cursor is local, so a restart re-tests a suspect it had already cleared — one pot of flour and one sheet of flypaper, against a cleared-set that no client-visible state could hold.
+// Why: the loop cursor is local, so a restart re-tests a suspect it had already cleared, one pot of flour and one sheet of flypaper, against a cleared-set that no client-visible state could hold.
 
 /** Lift the murderer's print off the dagger and match it, suspect by suspect. */
 export async function takePrints(order: readonly Suspect[], log: (m: string) => void): Promise<boolean> {

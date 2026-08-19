@@ -1,4 +1,4 @@
-// Why: these are gaps in the nav data, not the clue database — the solver abandons cleanly and baking the crossing makes the clue work with no solver edit.
+// Why: these are gaps in the nav data, not the clue database, the solver abandons cleanly and baking the crossing makes the clue work with no solver edit.
 // Why: not consulted by the solver, so a pack fix takes effect on its own.
 // Why: the audit allowlists these and the live harnesses use them to tell a known gap apart from a regression.
 // Why: the section markers below read NO QUEST (crossing exists, needs baking), QUEST (assumes the named quest complete, then needs baking), KIT (needs an item or skill, not a quest), DEFECT (the pack or a generator is wrong).
@@ -18,7 +18,7 @@ export const PACK_UNREACHABLE: Record<number, string> = {
     3546: "Gu'Tanoth ledge: chasm Jump-From baked — need 25 Agility + 20gp; hill access may need Watch Tower",
     3522: 'West Ardougne: baked sewer pipe path — requires Plague City complete and Gas mask worn',
     // Why: death_climbingrocks_top (3722) / _bottom (3723) sit at (2880..2881, 3594..3595) on the Death Plateau, ~80 tiles south of these digs and not on the route (#365, Content @ 088ca5e).
-    // Why: the crossings bordering these digs are in quest_troll.rs2 — troll_mountain_shortcut_climbingrocks1/2 (3803/3804) @ (2885,3683+3684) and (2887..2888,3661), Agility 15 only, no quest and no boots.
+    // Why: the crossings bordering these digs are in quest_troll.rs2, troll_mountain_shortcut_climbingrocks1/2 (3803/3804) @ (2885,3683+3684) and (2887..2888,3661), Agility 15 only, no quest and no boots.
     // Why: troll_climbingrocks (3748) @ (2910,3686+3687) needs Agility 15 AND %troll_quest >= ^troll_started (Troll Stronghold started, not Death Plateau); Climbing boots are demanded only when coordz(coord) = 3611, the far southern approach.
     // Why: 3526 / 3528 are absent because the Troll Stronghold route (#264) baked stile, the three secret-way rock climbs, the troll pass and the stronghold, joining Trollheim to the mainland graph at the cost of Agility 15 and worn Climbing boots for the (2856,3612) ascent.
     // Why: the two mountain shortcut rocks named above stayed unbaked because both their endpoints already sit inside that component.

@@ -16,7 +16,7 @@ import {
 } from './areas.js';
 
 // Why: every door here is script-gated and absent from the baked graph, so the module owns both
-// directions of each one — a crossing removed from the navigator seals whatever it guards.
+// directions of each one, a crossing removed from the navigator seals whatever it guards.
 
 function log2(log: (m: string) => void, mark: number, what: string): void {
     for (const line of GameMessages.since(mark)) {
@@ -33,7 +33,7 @@ export async function enterBrimhavenHq(log: (m: string) => void): Promise<boolea
         return true;
     }
     // Why: every pocket in this quest is sealed in the baked graph, so a bot standing in one of the
-    // others has no route to this door at all — the walk reads `unreachable` and never starts.
+    // others has no route to this door at all. The walk reads `unreachable` and never starts.
     if (!(await returnToStreet(log))) {
         return false;
     }
@@ -79,7 +79,7 @@ export async function enterMansion(log: (m: string) => void): Promise<boolean> {
         return crossTreasureDoorOut(log);
     }
     // Why: Garv's door is out of the baked graph, so from the hideout or the kitchen there is no route
-    // to it — the pocket has to be left before the walk can even be planned.
+    // to it. The pocket has to be left before the walk can even be planned.
     if (!(await returnToStreet(log))) {
         return false;
     }
@@ -200,7 +200,7 @@ export async function returnToStreet(log: (m: string) => void): Promise<boolean>
 }
 
 // Why: `[oploc1,pete_sidedoor]` only opens for someone already standing on the door's own row, which
-// is the side room — from the yard it answers "This door is locked" and yields only to the key.
+// is the side room, from the yard it answers "This door is locked" and yields only to the key.
 
 /** Into the five-tile side room, which needs Grip's spare key from a Black Arm partner. */
 export async function crossSideDoorIn(log: (m: string) => void): Promise<boolean> {

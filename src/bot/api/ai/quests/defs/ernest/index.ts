@@ -8,7 +8,7 @@ import { heldId, kit } from './supplies.js';
 
 const talk = (stop: typeof VERONICA): QuestStep => ({ kind: 'talk', stop });
 
-// Why: the tube and the oil can are both inside the manor and the basement is entered from the same floor, so only the gauge leg goes outside — one exit and one re-entry for the quest.
+// Why: the tube and the oil can are both inside the manor and the basement is entered from the same floor, so only the gauge leg goes outside, one exit and one re-entry for the quest.
 
 /** The next of tube, oil can, gauge that is still outstanding. */
 function parts(snap: QuestSnapshot): QuestStep {

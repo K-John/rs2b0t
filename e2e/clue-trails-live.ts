@@ -20,7 +20,7 @@ const TRAILS = Number(process.env.TRAILS ?? 20);
 const TRAIL_BUDGET_MS = Number(process.env.TRAIL_BUDGET_MS ?? 900_000);
 const POLL_MS = 1000;
 
-/** Edgeville — a bank to start beside. */
+/** Edgeville, a bank to start beside. */
 const START = { x: 3094, z: 3493, level: 0 } as const;
 const SCIMITAR = 1333;
 const SPADE = 952;
@@ -38,7 +38,7 @@ const LEVEL = 70;
 const SEED_BATCHES = 6;
 const SEED_COINS = 50_000;
 /** Spell-teleport runes (Air x5, Fire/Law/Earth/Water x2 per cast at TELEPORT_CASTS=4); without them the prep withdraws nothing and every leg walks.
- *  Why: jewellery is absent — the trail keeps a glory/ring it already carries but never withdraws one. */
+ *  Why: jewellery is absent. The trail keeps a glory/ring it already carries but never withdraws one. */
 const SEED_RUNES: [string, number][] = [
     ['airrune', 1000],
     ['firerune', 500],
@@ -47,7 +47,7 @@ const SEED_RUNES: [string, number][] = [
     ['waterrune', 500]
 ];
 
-/** SEED=<clueId> pins every round to one clue — for reproducing a single stall. */
+/** SEED=<clueId> pins every round to one clue, for reproducing a single stall. */
 const SEED_ONLY = Number(process.env.SEED ?? 0);
 /** How long to let the solver walk back and bank the casket before the next trail. */
 const BANK_WAIT_MS = Number(process.env.BANK_WAIT_MS ?? 180_000);
@@ -68,7 +68,7 @@ interface Round {
     seconds: number;
     legs: number;
     deathsDuring: number;
-    /** Where it gave up — a stuck round is only diagnosable with a tile. */
+    /** Where it gave up, a stuck round is only diagnosable with a tile. */
     endedAt: { x: number; z: number; level: number } | null;
 }
 
@@ -213,7 +213,7 @@ async function seedBank(page: Page): Promise<BankRow[] | null> {
         law: (globalThis as never as Api).__rs2b0t.Bank.count('Law rune'),
         air: (globalThis as never as Api).__rs2b0t.Bank.count('Air rune')
     }));
-    // Baseline taken here, where the bank is provably open — the per-trail poll
+    // Baseline taken here, where the bank is provably open, the per-trail poll
     // only catches a bank stop by luck, and a missed baseline means no loot line.
     const baseline = await bankRows(page);
     await page.evaluate(() => {
@@ -231,7 +231,7 @@ async function seedBank(page: Page): Promise<BankRow[] | null> {
     return baseline;
 }
 
-/** Open the bank deliberately and read it — the poll misses a two-tick modal. */
+/** Open the bank deliberately and read it, the poll misses a two-tick modal. */
 async function snapshotBank(page: Page): Promise<BankRow[] | null> {
     await page.evaluate(() => (globalThis as never as Api).rs2b0t.runner.stop('harness: closing snapshot'));
     await page.waitForTimeout(1200);

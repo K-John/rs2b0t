@@ -67,14 +67,14 @@ beforeEach(() => {
     GameMessages.reset();
 });
 
-// Why: `open_and_close_door` prints nothing on a crossing, so a message instead of the teleport is the script refusing — without watching for it the crossing polls out its full cap.
+// Why: `open_and_close_door` prints nothing on a crossing, so a message instead of the teleport is the script refusing, without watching for it the crossing polls out its full cap.
 test('a refused door gives up as soon as the script answers', async () => {
     refusal = 'This door is securely locked.';
 
     const crossed = await crossTeleportDoor({ id: DOOR_ID, stand: STAND, isFar: () => false, log: () => {} });
 
     expect(crossed).toBe(false);
-    // Why: one poll for the box-or-refusal wait and one for the crossing, both cut short by the message — against a cap of three each.
+    // Why: one poll for the box-or-refusal wait and one for the crossing, both cut short by the message, against a cap of three each.
     expect(polls).toBeLessThanOrEqual(2);
 });
 

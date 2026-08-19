@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Hazeel Cult — stage-scoped harness
+## Hazeel Cult, stage-scoped harness
 
 [`e2e/hazeel-cult-248-live.ts`](../../e2e/hazeel-cult-248-live.ts). Members content, so
 `:8890` only.
@@ -25,7 +25,7 @@ HEADED=1 bun e2e/hazeel-cult-248-live.ts --stage 7 --until 9 --minutes 15 --tick
 | `--food NAME` | Lobster | the AIO Quester's food setting |
 | `--no-deploy` | off | skip the build and copy |
 
-`--stage` takes 0, 2, 3, 4, 6, 7 or 9 — the raw `%hazeelcultquest`, which has no 1 and no
+`--stage` takes 0, 2, 3, 4, 6, 7 or 9, the raw `%hazeelcultquest`, which has no 1 and no
 8, and whose 5 is the cult side's poison. Every seed pins `%hazeelcult_side` to the
 Carnillean side, because each branch past Clivet reads that rather than the stage.
 
@@ -39,7 +39,7 @@ What the legs proved, at `--tick 200` on `:8890` with 70s across the board:
 | 0 → 2 | PASS, 1 min | Ceril's two choices, the journal parse, the mansion doors |
 | 2 → 4 | PASS, 1 min | the cave-mouth hop, Clivet's refusal chain, the side lock |
 | 4 → 6 | PASS, 2 min | five valves in one leg, the raft, Alomone, the drop |
-| 6 → 7 | PASS, 3 min | the ride out of the pocket, the stairs, the hand-over — `carnillean armour 1→0, coins 1000→1005` |
+| 6 → 7 | PASS, 3 min | the ride out of the pocket, the stairs, the hand-over, `carnillean armour 1→0, coins 1000→1005` |
 | 7 → 9 | PASS, 2 min | the cupboard, the accusation, `QUEST COMPLETE`, 1 quest point, `coins 1000→3000` |
 | 0 → 9 | PASS, 4 min | the uncheated run: 8 steps, no parks, nothing seeded but coins and lobsters |
 
@@ -49,14 +49,14 @@ engine re-decide from the surface.
 
 Two legs cost an extra engine pass each, both for the same reason: `Reach.locOp` walks or
 acts, never both in one call. The valve tour and the cupboard each retry inside their own
-leg rather than handing the retry back to the engine — see
+leg rather than handing the retry back to the engine, see
 [Hazeel Cult's pitfalls](../decisions/quest-pitfalls-12.md).
 
-## Holy Grail — stage-scoped harness
+## Holy Grail, stage-scoped harness
 
 [`e2e/holy-grail-246-live.ts`](../../e2e/holy-grail-246-live.ts) drives the quest from a
 clean account or from any point inside it. `--stage N` takes the values
-`quest_grail.constant` uses — 0, 2, 3, 4, 7, 8, 9 — writes `%grail`, and relogs, because
+`quest_grail.constant` uses, meaning 0, 2, 3, 4, 7, 8 and 9, writes `%grail` and relogs, because
 `update_questlist` only recolours the list at login.
 
 ```sh
@@ -81,7 +81,7 @@ Three things govern this harness:
   attacks for 12 damage.
 
 Measured at `--tick 200`, no parks: **26 minutes** from a clean account to quest complete.
-Per leg — stage 0 to 3 **5 min**, 3 to 4 **4 min**, 4 to 8 **14 min**, 8 to complete
+Per leg, stage 0 to 3 **5 min**, 3 to 4 **4 min**, 4 to 8 **14 min**, 8 to complete
 **8 min**. The thirteen pitfalls the live runs paid for are in
 [Holy Grail's pitfalls](../decisions/quest-pitfalls-16.md).
 

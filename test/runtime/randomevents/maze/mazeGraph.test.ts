@@ -107,7 +107,7 @@ describe('solveRoute (synthetic 1-D corridor)', () => {
 describe('solveRoute on real map', () => {
     const g = buildMaze(parseJm2Locs(readFileSync(MAP, 'utf8')));
     const routes = MAZE_SPAWNS.map(s => solveRoute(g, s));
-    /** West chamber door into the 3×3 shrine — south of SW is walled. */
+    /** West chamber door into the 3×3 shrine, south of SW is walled. */
     const CHAMBER_DOOR = { x: 2910, z: 4576 };
     test('every spawn yields a non-empty route ending at the chamber door', () => {
         for (const r of routes) {

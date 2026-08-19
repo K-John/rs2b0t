@@ -38,7 +38,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     }
 
     switch (stage) {
-        // Why: the garlic is in Draynor and the spade in Falador, both on the road to the tunnel — fetching them after the dwarf hands the pass over is the same walk twice.
+        // Why: the garlic is in Draynor and the spade in Falador, both on the road to the tunnel, fetching them after the dwarf hands the pass over is the same walk twice.
         case FC_STAGE.NOT_STARTED:
             return sourceGarlic(snap)
                 ?? sourceSpade(snap)
@@ -52,7 +52,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
                 ?? sourceFee(snap))
                 ?? { kind: 'custom', name: 'pay Bonzo the contest entry fee', run: payEntryFee };
 
-        // Why: the willow spot yields sardines whatever the bait, so this stage never fishes — it stashes the garlic, or unwinds a round that already did.
+        // Why: the willow spot yields sardines whatever the bait, so this stage never fishes, it stashes the garlic, or unwinds a round that already did.
         case FC_STAGE.IN_COMP:
             if (heldId(snap, FC_ID.GARLIC) > 0) {
                 return { kind: 'custom', name: 'stash the garlic in the wall pipe', run: stashGarlic };
@@ -63,7 +63,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return outside(snap, sourcePass(snap) ?? sourceGarlic(snap))
                 ?? { kind: 'wait', reason: 'the willow spot cannot win and there is no garlic to move the stranger' };
 
-        // Why: the pass is checked here too — a death or a teleport out of the fence leaves a paid-up contest that Morris will not let the bot back into.
+        // Why: the pass is checked here too, a death or a teleport out of the fence leaves a paid-up contest that Morris will not let the bot back into.
         case FC_STAGE.GARLIC_COMP:
             return outside(snap, sourcePass(snap) ?? sourceRod(snap) ?? sourceWorms(snap, 1))
                 ?? { kind: 'custom', name: 'fish the contest beside the pipes', run: fishAtPipes };

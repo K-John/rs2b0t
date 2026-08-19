@@ -100,10 +100,10 @@ function fail(msg: string): never {
 
 const QUEST = 'Troll Stronghold';
 const FALADOR_BANK: Tile = { x: 2946, z: 3369, level: 0 };
-/** quest.constant ^death_complete — Troll Stronghold's only quest prerequisite. */
+/** quest.constant ^death_complete, Troll Stronghold's only quest prerequisite. */
 const DEATH_PLATEAU_COMPLETE = 80;
 /** %death_map bits 0-3 (^death_scouted_area), which completing Death Plateau leaves set.
- *  Why: Tenzing's front door reads these rather than the stage varp — with the stage complete and the map bits clear, `death_sherpa_door` only ever knocks and the boots are unreachable. */
+ *  Why: Tenzing's front door reads these rather than the stage varp, with the stage complete and the map bits clear, `death_sherpa_door` only ever knocks and the boots are unreachable. */
 const DEATH_PLATEAU_MAP = 8;
 
 /** Every skill the quest or the fights touch.
@@ -249,7 +249,7 @@ try {
 
     if (args.lowPrayer) {
         // Empties the prayer bar so the sip path is exercised rather than
-        // skipped — a 70-prayer character never dips under half in one fight.
+        // skipped, a 70-prayer character never dips under half in one fight.
         await cheatQuiet(page, '~1pray');
         console.log('prayer drained to 1 (--lowprayer)');
     }
@@ -278,7 +278,7 @@ try {
         console.log('nav path paint: on');
     }
 
-    // Gear is declared, never inferred — the quest wears whatever this says.
+    // Gear is declared, never inferred, the quest wears whatever this says.
     await page.evaluate(() => {
         const g = globalThis as never as { __rs2b0t: { Loadouts: { save(l: unknown[]): void } } };
         g.__rs2b0t.Loadouts.save([{

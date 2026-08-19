@@ -225,7 +225,7 @@ try {
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
-        // Why: a full run waits for the list to go green rather than the varp — the recolour and the QP award land a tick behind %treequest.
+        // Why: a full run waits for the list to go green rather than the varp, the recolour and the QP award land a tick behind %treequest.
         const done = args.until >= COMPLETE ? last.status === 'complete' : stage >= args.until;
         if (done) {
             console.log(`PASS (treequest=${stage}, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);

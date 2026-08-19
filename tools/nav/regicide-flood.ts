@@ -81,7 +81,7 @@ for (const square of loadMapsquares(ENGINE)) {
         if (!name.startsWith('regicide_') || /grass|tree|rock[0-9]|flower|mushroom|twig|swamp_|blue_|corpse|skull|bone|tent|standard|bridge_|spearwall|guiderope|crystal_lamp|roottree|hollowlog/.test(name)) {
             return;
         }
-        // Why: a seam is only interesting when this pocket can stand next to it — and these are 3x2 locs, so the tile the crossing is launched from is up to two off the origin on both axes.
+        // Why: a seam is only interesting when this pocket can stand next to it, and these are 3x2 locs, so the tile the crossing is launched from is up to two off the origin on both axes.
         let touching = false;
         for (let dx = -2; dx <= 3 && !touching; dx++) {
             for (let dz = -2; dz <= 3 && !touching; dz++) {

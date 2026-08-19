@@ -1,7 +1,7 @@
 import { actions, reader } from '../../../adapter/ClientAdapter.js';
 import { Execution } from '../../execution/Execution.js';
 
-// Why: `actions.closeModal()` only sends the close — it is a CLOSE_BUTTON menu action, and the modal stays in `reader.modals().main` until the server answers a tick or more later.
+// Why: `actions.closeModal()` only sends the close. It is a CLOSE_BUTTON menu action, and the modal stays in `reader.modals().main` until the server answers a tick or more later.
 // Why: code that closes and reads on with no wait sees the modal still up, and so does every other task in the loop, so the next one to poll "is a modal open?" fires a second close that lands a tick later on whatever modal is open by then.
 // Why: that is how a journal read's stale close shuts a scroll a later step had opened.
 // Why: the task loop is cooperative, so a closer that awaits its own close yields with the modal gone and nobody else has a reason to close anything.
@@ -20,7 +20,7 @@ export const Modals = {
 
     /**
      * Close the open main modal and wait for it to go away.
-     * Why: true when nothing was open or the modal cleared, and false when it is still up after {@link CLOSE_TIMEOUT_MS} — a failure worth logging rather than a timing artefact.
+     * Why: true when nothing was open or the modal cleared, and false when it is still up after {@link CLOSE_TIMEOUT_MS}, a failure worth logging rather than a timing artefact.
      */
     async close(): Promise<boolean> {
         const before = reader.modals().main;

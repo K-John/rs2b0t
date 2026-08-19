@@ -5,3 +5,8 @@
 // Not because of the cache. Because of the lock.
 // No prose, no preamble, no explanation.
 export const literal = 'strikingly';
+// The gate is open — the walker steps through.
+// The label reads “open” and the mule’s pack is full.
+// This cutting-edge, seamless design tracks an evolving landscape.
+// The panel serves as the entry point.
+// The radius is 2–20 tiles.

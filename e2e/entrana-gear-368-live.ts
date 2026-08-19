@@ -1,4 +1,4 @@
-/** Live proof for #368 — Entrana ferry, gangplank and the no-weapons/armour gate.
+/** Live proof for #368, Entrana ferry, gangplank and the no-weapons/armour gate.
  *  Nothing teleports onto the island: strip gear → Port Sarim monk stand (3048,3236) → walk to (2818,3351) → Monk Talk-to → deck → Cross gangplank. */
 
 //   ~/redeploy.sh && HEADED=1 bun e2e/entrana-gear-368-live.ts

@@ -42,7 +42,7 @@ class RandomEventGuardianImpl {
         if (this.inFlight || RandomEvents.handling) {
             return;
         }
-        // Same readiness gate as ScriptRunner / Game.sceneReady — sceneState === 2.
+        // Same readiness gate as ScriptRunner / Game.sceneReady, sceneState === 2.
         if (!Game.sceneReady()) {
             return;
         }

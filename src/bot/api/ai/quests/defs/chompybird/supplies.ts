@@ -70,7 +70,7 @@ export function makeSpace(snap: QuestSnapshot, slots: number): QuestStep | null 
 
 // Why: `ownsInventory` retires the engine's provisioning, so coins, food and the axe are this module's own bank trip.
 
-/** Coins, food and — when `wantAxe` — an axe. Null once the pack is dressed. */
+/** Coins, food and, when `wantAxe`, an axe. Null once the pack is dressed. */
 export function loadoutStep(snap: QuestSnapshot, wantAxe = true): QuestStep | null {
     if (!snap.bankKnown) {
         return scanBank();

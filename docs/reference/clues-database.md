@@ -5,7 +5,7 @@
 ## The clue database
 
 [`data/cluedb.ts`](../../src/bot/api/ai/clues/data/cluedb.ts) is **generated** from the content
-pack by [`tools/clues/gen-cluedb.ts`](../../tools/clues/gen-cluedb.ts) — do not edit it
+pack by [`tools/clues/gen-cluedb.ts`](../../tools/clues/gen-cluedb.ts), do not edit it
 by hand:
 
 ```sh
@@ -52,7 +52,7 @@ from `bookcases.rs2`).
 | Type | Count | What the solver does |
 |---|---|---|
 | `search` | 68 | walk to the coordinate and search the named object |
-| `dig` | 71 | walk to the coordinate and dig — needs a spade |
+| `dig` | 71 | walk to the coordinate and dig, needs a spade |
 | `talk` | 47 | find the named NPC and talk to them |
 
 A trail step is either a `ClueRow` or the terminal `open-casket`:
@@ -61,8 +61,8 @@ A trail step is either a `ClueRow` or the terminal `open-casket`:
 export type ClueStep = ClueRow | { type: 'open-casket'; casketObj: string; casketId: number };
 ```
 
-`identifyStep` derives the current step from the ids the player is holding, so — like
-[a quest's `decide()`](../reference/quest-engine.md#quest-state) — the solver is restartable and holds
+`identifyStep` derives the current step from the ids the player is holding, so, like
+[a quest's `decide()`](../reference/quest-engine.md#quest-state). The solver is restartable and holds
 no hidden position.
 
 **Talk steps must chase.** The NPC may patrol a building, so talk steps ride
