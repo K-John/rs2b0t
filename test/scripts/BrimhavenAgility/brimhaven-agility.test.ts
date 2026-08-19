@@ -38,6 +38,7 @@ import {
     restockShortfall,
     shouldBank,
     shouldEat,
+    shouldLeaveForSteal,
     needsCakeSteal,
     STEAL_THIEVING_MIN,
     GUARD_THIEVING_MIN,
@@ -344,21 +345,32 @@ describe('BrimhavenAgility banking & combat decisions', () => {
     });
 
     test('banks when out of food or ticket threshold hit', () => {
-        expect(shouldBank(0, 0, 1000)).toBe(true);
-        expect(shouldBank(1000, 5, 1000)).toBe(true);
-        expect(shouldBank(999, 5, 1000)).toBe(false);
+        expect(shouldBank(0, 0, 1000, false)).toBe(true);
+        expect(shouldBank(1000, 5, 1000, false)).toBe(true);
+        expect(shouldBank(999, 5, 1000, false)).toBe(false);
         expect(shouldBank(0, 0, 1000, true)).toBe(false);
         expect(shouldBank(1000, 0, 1000, true)).toBe(true);
     });
 
-    test('steal restock wants cakes when the pack is empty or a guard run needs a buffer', () => {
+    test('steal restock fills to food-per-trip, not the first stolen cake', () => {
         expect(STEAL_THIEVING_MIN).toBe(20);
         expect(GUARD_THIEVING_MIN).toBe(40);
-        expect(needsCakeSteal(0, 0, true, false)).toBe(true);
-        expect(needsCakeSteal(3, 0, true, false)).toBe(false);
-        expect(needsCakeSteal(0, 8, true, false)).toBe(false);
-        expect(needsCakeSteal(0, 2, true, true)).toBe(true);
-        expect(needsCakeSteal(0, 0, false, true)).toBe(false);
+        expect(needsCakeSteal(0, 0, true, false, 25)).toBe(true);
+        expect(needsCakeSteal(0, 4, true, false, 25)).toBe(true);
+        expect(needsCakeSteal(0, 24, true, false, 25)).toBe(true);
+        expect(needsCakeSteal(0, 25, true, false, 25)).toBe(false);
+        expect(needsCakeSteal(3, 0, true, false, 25)).toBe(false);
+        expect(needsCakeSteal(0, 2, true, true, 25)).toBe(true);
+        expect(needsCakeSteal(0, 0, false, true, 25)).toBe(false);
+        expect(() => needsCakeSteal(0, 0, true, false, 0)).toThrow(/fillTo/);
+    });
+
+    test('steal restock does not freeze hops when the selected food is gone', () => {
+        expect(shouldBank(0, 0, 1000, true)).toBe(false);
+        expect(shouldLeaveForSteal(true, true, 4, false)).toBe(false);
+        expect(shouldLeaveForSteal(true, true, 0, false)).toBe(true);
+        expect(shouldLeaveForSteal(true, true, 4, true)).toBe(true);
+        expect(shouldLeaveForSteal(true, false, 0, false)).toBe(false);
     });
 
     test('eats only below 5 HP with food in pack', () => {
