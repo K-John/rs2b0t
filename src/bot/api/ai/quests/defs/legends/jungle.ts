@@ -305,7 +305,9 @@ export function talkGujuoStatus(
         if (goal?.()) {
             return 'goal';
         }
+        // Why: not reaching him and reaching a shaman who says nothing both call for the same answer — try again where we stand — but they are not the same failure, and reporting them in one word is how "Gujuo would not talk" came to mean "the climb out of the caves ran out of road".
         if (!(await summonGujuo(log))) {
+            log('never got to Gujuo — the walk in or the summon failed, not the talk');
             return 'nodialog';
         }
         // Why: the roarer leaves him in `opplayer2`, and `[ai_opplayer2,gujuo]` walks him over and opens `gujuo_start` on its own — the conversation is already coming. A Talk-to click sent into the middle of that approach sets the player walking too, so the pair of them move and neither talks, which is what "never opened a dialogue" was.
