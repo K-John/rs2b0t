@@ -1,0 +1,52 @@
+<!-- Assembling a quest's pack: what to withdraw, when the pack is emptied, and the coin and food floats. -->
+
+# Quest provisioning
+
+[`engine/provisioning.ts`](../../src/bot/api/ai/quests/engine/provisioning.ts) assembles what a
+quest needs **before** it starts, bank-first:
+
+| Function | Job |
+|---|---|
+| `shouldFreshenPack(...)` | whether the quest opens by banking the pack to nothing |
+| `planProvisioning(...)` | what to withdraw, given the record's items and what is held |
+| `depositPlan(inv, keep)` | what to drop before starting |
+| `gpShort(snap, estGp)` | how much coin is missing for a purchase |
+| `floatWithdraw(...)`, `coinFloatWithdraw(...)` | withdrawing with headroom |
+| `foodFloatPlan(...)` | how much food to draw, and whether the float is closed |
+
+## An empty pack per quest
+
+`QuestEngine.freshenPack` banks all 28 slots — coin float (`COIN_FLOAT`) and food included — so
+the quest's own withdrawal is the only thing that fills it. Both constants live in
+`QuestEngine.ts`, and the fixed bank is `PROVISION_BANK`.
+
+| When | Empties the pack |
+|---|---|
+| the session's first quest | always, whatever its journal reads |
+| any later quest, journal `notStarted` | yes |
+| any later quest, already underway | no — it can be resumed with no route back to a bank |
+| pack already empty | no |
+
+Three failed bank trips and the quest starts on the pack as it stands rather than deadlocking.
+The session's first quest is the one case that can pay that cost inside a bankless area, which is
+the trade for a quester that can be started from anywhere.
+
+## The food float
+
+A quest declaring `food: N` draws up to N once, and the float is then closed for that quest.
+Eating during the quest does not reopen it — the provisioning block re-runs every tick while a
+quest is still gathering, and topping the float up sent the bot back to the bank after every
+meal. A death reopens it, because the pack is gone.
+
+Two rules that are easy to get wrong:
+
+- **A quest that buys anything must keep `coins` in its `tools`.** Omit it and the
+  provisioner does not carry coin, so every purchase step parks with "need gp".
+- Quest-internal consumables are not `record.items`. The record lists what the quest
+  *requires*; things consumed along the way are the module's own business.
+
+## See also
+
+- [Quest engine](quest-engine.md)
+- [Quest eligibility](quest-eligibility.md)
+- [Add a quest](../how-to/add-a-quest.md)

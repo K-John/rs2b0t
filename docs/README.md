@@ -24,7 +24,7 @@ pure Lost City or 2004scape projects and is not maintained for those targets.
 | [Scripting API](API.md) | the surface, split by subsystem; start with [write a bot](how-to/write-a-bot.md) |
 | [World-walking](NAV.md) | [pack](reference/nav-pack.md), [pathfinding](reference/nav-pathfinding.md), [doors](reference/nav-doors.md), [teleports](reference/nav-teleports.md), [walker](reference/nav-walker.md) |
 | [Map tile picker](MAP-PICKER.md) | Pick on Map: display modes, then [reference](reference/map-picker.md) and [baking](how-to/bake-the-basemap.md) |
-| [Quests](QUESTS.md) | [engine](reference/quest-engine.md), [primitives](reference/quest-primitives.md), [eligibility](reference/quest-eligibility.md), [adding one](how-to/add-a-quest.md) |
+| [Quests](QUESTS.md) | [engine](reference/quest-engine.md), [provisioning](reference/quest-provisioning.md), [primitives](reference/quest-primitives.md), [eligibility](reference/quest-eligibility.md), [adding one](how-to/add-a-quest.md) |
 | [Clue scrolls](CLUES.md) | [database](reference/clues-database.md), [mechanics](reference/clues-mechanics.md), [host yielding](decisions/clue-host-yielding.md), [tracing a failure](how-to/trace-a-clue-failure.md) |
 | [MultiBox](MULTIBOX.md) | the wall, then [reference](reference/multibox.md), [telemetry honesty](decisions/multibox-telemetry-honesty.md) and [diagnosis](how-to/diagnose-multibox.md) |
 | [Bundled scripts](SCRIPTS.md) | catalog of the shipped bots and their settings (generated) |
