@@ -389,7 +389,7 @@ describe('Legends Quest decide', () => {
     test('book plus water opens it on Ungadulu', () => {
         const step = decide(kitted({
             stage: LQ_STAGE.FILLED_BOWL,
-            invIds: [LQ_ID.GOLD_BOWL_BLESSED_PURE, LQ_ID.BOOK_OF_BINDING]
+            invIds: [LQ_ID.GOLD_BOWL_BLESSED_PURE, LQ_ID.BOOK_OF_BINDING, PRAYER_POTIONS[0]!.id]
         }));
         expect(name(step)).toBe('custom:open the Book of Binding on Ungadulu');
     });
@@ -556,6 +556,17 @@ describe('Legends Quest decide', () => {
         });
         const step = decide({ ...done, freeSlots: 1 });
         expect(name(step)).toBe('custom:drop what the quest has finished with');
+    });
+
+    // Why: `stageBowl` fetches the fight kit while the bowl is empty, so a run arriving here with it already filled never went through that — and the octagram is in the caves, where `choose` never reaches its upkeep.
+    test('a filled bowl and no flask goes for the flask before the book', () => {
+        const dry = kitted({
+            stage: LQ_STAGE.FILLED_BOWL,
+            invIds: [LQ_ID.GOLD_BOWL_BLESSED_PURE, LQ_ID.BOOK_OF_BINDING],
+            bankIds: [PRAYER_POTIONS[0]!.id, PRAYER_POTIONS[0]!.id, PRAYER_POTIONS[0]!.id],
+            bank: ['Prayer potion(4)', 'Coins']
+        });
+        expect(name(decide(dry))).not.toBe('custom:open the Book of Binding on Ungadulu');
     });
 
     // Why: `stat_sub(prayer, 0, 90)` runs as the book opens, and `potionTopUp` answers null when the bank is empty — which walked a filled bowl and an empty prayer book into the demon and said nothing.

@@ -448,6 +448,15 @@ function stageBook(snap: QuestSnapshot): QuestStep {
     if (held(snap, LQ_ID.GOLD_BOWL_BLESSED_PURE) === 0) {
         return stageBowl(snap);
     }
+    // Why: `stageBowl` fetches the fight kit while the bowl is still empty, which is the one moment a bank trip is free — but a run that arrives here with the bowl already filled never went through it, and `choose` only reaches its upkeep on the mainland while this is decided in the caves. Opening the book runs `stat_sub(prayer, 0, 90)`, so that is a level-187 demon met on a tenth of a prayer bar with nothing to drink.
+    // Why: the trip boils the bowl, and that is the right trade — `stageBowl` refills it on the way back, and a flask is worth a refill against this fight.
+    const fightKit = offIsland(snap, upkeep(snap, FOOD.fight, FIGHT_POTS));
+    if (fightKit) {
+        return fightKit;
+    }
+    if (potsHeld(snap) === 0 && potsBanked(snap) === 0) {
+        return { kind: 'wait', reason: 'no prayer potion in the pack or the bank, and opening the book drains nine tenths of the prayer bar before the demon lands a blow' };
+    }
     return step('open the Book of Binding on Ungadulu', summonAndFight);
 }
 
