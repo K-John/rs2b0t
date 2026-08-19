@@ -119,3 +119,23 @@ test('an option list nothing matches gives up at once, and says what it saw', as
     expect(said[0]).toContain('mumbled');
     asChat.forEach(fn => fn());
 });
+
+// Why: a satisfied goal owns the screen. Tribal Totem's combination lock asks for `Modals.main() === DOOR_UI`, so a clear after success shut the very panel the caller had waited for, and the dials were set on a dead modal for forty minutes.
+test('a prompt whose goal is an open panel leaves it open', async () => {
+    let panel = -1;
+    const opened = (): boolean => panel === 42;
+    const asPanel = [
+        stubProps(Modals, {
+            isOpen: () => panel !== -1,
+            main: () => panel,
+            close: async (): Promise<boolean> => { panel = -1; return true; }
+        }),
+        stubProps(ChatDialog, { isOpen: () => false, canContinue: () => false, options: () => [] })
+    ];
+    panel = 42;
+    const got = await driveBoxes(opened, 5000);
+
+    expect(got).toBe(true);
+    expect(panel).toBe(42);
+    asPanel.forEach(fn => fn());
+});

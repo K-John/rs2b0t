@@ -302,9 +302,11 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
     if (!answered) {
         log(`prompt: '${step.op}' on '${step.name}' was sent and the goal never came`);
     }
-    // Why: the goal can land mid-chain now that it is tested between clicks, and a page left standing would meet the next step as a stale modal.
-    // Why: cleared on the way out either way, because a prompt that failed is exactly the one whose next step is a retry, and a retry that cannot click is a step that never recovers.
-    await clearBoxes();
+    // Why: a satisfied goal owns the screen and this must not touch it — Tribal Totem's combination lock asks for `Modals.main() === DOOR_UI`, so clearing after a success shut the very panel the caller had just waited for, and the dials were set on a dead modal for forty minutes.
+    // Why: a failure is cleared, because that is the one whose next step is a retry, and a retry that cannot click is a step that never recovers.
+    if (!answered) {
+        await clearBoxes();
+    }
     return answered;
 }
 
