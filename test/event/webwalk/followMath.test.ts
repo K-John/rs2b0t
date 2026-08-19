@@ -4,6 +4,8 @@ import {
     crossingEligible,
     locateOnPath,
     minChebyshevToPath,
+    clientFirstStepOnPackedPath,
+    clientWalkLeftSource,
     selectClientWalkTarget,
     selectClickTarget,
     shouldApproachClosedBarrier,
@@ -84,6 +86,43 @@ describe('selectClientWalkTarget', () => {
         });
         expect(tried).not.toContain(5);
         expect(tried[0]).toBe(4);
+    });
+});
+
+describe('clientWalkLeftSource', () => {
+    test('rejects tryNearest no-op onto the standing tile', () => {
+        expect(clientWalkLeftSource({ x: 2944, z: 3911 }, [{ x: 2944, z: 3911 }])).toBe(false);
+        expect(clientWalkLeftSource({ x: 2944, z: 3911 }, [])).toBe(false);
+        expect(clientWalkLeftSource({ x: 2944, z: 3911 }, null)).toBe(false);
+    });
+    test('accepts a path that actually leaves src', () => {
+        expect(
+            clientWalkLeftSource({ x: 2944, z: 3911 }, [
+                { x: 2944, z: 3911 },
+                { x: 2945, z: 3910 }
+            ])
+        ).toBe(true);
+    });
+});
+
+describe('clientFirstStepOnPackedPath', () => {
+    const packed = [t(2944, 3911), t(2945, 3910), t(2944, 3909), t(2945, 3908)];
+    const src = { x: 2944, z: 3911 };
+
+    test('accepts a first step onto the south packed hop', () => {
+        expect(
+            clientFirstStepOnPackedPath(src, [src, { x: 2945, z: 3910 }], packed, 0)
+        ).toBe(true);
+    });
+    test('rejects a first step east into the tree', () => {
+        expect(
+            clientFirstStepOnPackedPath(src, [src, { x: 2945, z: 3911 }], packed, 0)
+        ).toBe(false);
+    });
+    test('rejects a dest-through-tree path that never touches the packed south hops', () => {
+        expect(
+            clientFirstStepOnPackedPath(src, [src, { x: 2952, z: 3924 }], packed, 0)
+        ).toBe(false);
     });
 });
 

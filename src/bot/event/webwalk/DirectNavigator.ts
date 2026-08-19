@@ -4,6 +4,7 @@ import { Execution } from '../../api/execution/Execution.js';
 import { Reachability } from './geometry/Reachability.js';
 import { Input } from '../../input/Input.js';
 import { isArrived } from './geometry/arrival.js';
+import { clientWalkLeftSource } from './geometry/followMath.js';
 
 export const DirectNavigator = {
     walk(dest: WorldTile): boolean | Promise<boolean> {
@@ -21,8 +22,10 @@ export const DirectNavigator = {
         if (!local) {
             return false;
         }
-
-        return Input.walk(local.lx, local.lz);
+        if (!Input.walk(local.lx, local.lz)) {
+            return false;
+        }
+        return clientWalkLeftSource(me, reader.lastWalkPathWorld());
     },
 
     async walkTo(dest: WorldTile, radius: number = 2, timeoutMs: number = 45000): Promise<boolean> {

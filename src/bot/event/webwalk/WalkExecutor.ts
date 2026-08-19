@@ -18,6 +18,8 @@ import { DirectNavigator } from './DirectNavigator.js';
 import type { TransportInfo, Waypoint } from './PathFinder.js';
 import {
     chebyshev,
+    clientFirstStepOnPackedPath,
+    clientWalkLeftSource,
     crossingEligible,
     locateOnPath,
     minChebyshevToPath,
@@ -43,6 +45,7 @@ import { PathPublish, formatHopLabel } from './pathPublish.js';
 import { PathCameraFollow, pathFacingYaw } from './cameraFollow.js';
 import { resolveDangerZones, type DangerZoneRect } from './data/dangerZones.js';
 import { expandWaypoints as expandWaypointsDense, localBfsPath } from './geometry/pathExpand.js';
+import { closestReachableToward } from './geometry/localReach.js';
 import { DEFAULT_DISTANCE_BEFORE_TELEPORT } from './policy.js';
 import { SettingsStore } from '../../runtime/Settings.js';
 import {
@@ -429,6 +432,20 @@ class WalkExecutorImpl {
         } catch {
             // Paint must never abort a walk.
         }
+    }
+
+    /** Scene-reachable stand closest to `aim` — the tile client collision can walk. */
+    private closestLiveWalkTile(me: WorldTile, aim: WorldTile): WorldTile | null {
+        const from = reader.toLocal(me.x, me.z);
+        const to = reader.toLocal(aim.x, aim.z);
+        if (!from || !to) {
+            return null;
+        }
+        const live = closestReachableToward((lx, lz) => reader.collisionFlags(lx, lz), from, to);
+        if (!live) {
+            return null;
+        }
+        return { x: me.x + (live.lx - from.lx), z: me.z + (live.lz - from.lz), level: me.level };
     }
 
     private publishPath(tiles: PathStep[], pathIdx: number, clickIdx: number): void {
@@ -1117,8 +1134,7 @@ class WalkExecutorImpl {
             if (needClick) {
                 const limit = nextCrossingIdx !== -1 ? nextCrossingIdx - 1 : tiles.length - 1;
                 const steps = TARGET_STEPS + Math.floor(Math.random() * (2 * TARGET_JITTER + 1)) - TARGET_JITTER;
-                const tryWalkAt = (i: number): boolean => {
-                    const t = tiles[i]!;
+                const tryWalkTile = (t: WorldTile): boolean => {
                     if (t.x === me.x && t.z === me.z) {
                         return false;
                     }
@@ -1127,14 +1143,23 @@ class WalkExecutorImpl {
                         return false;
                     }
                     const mark = GameMessages.mark();
-                    const ok = Input.walk(local.lx, local.lz);
-                    if (ok) {
-                        walkClickMark = mark;
-                        walkClickAt = { x: me.x, z: me.z, level: me.level };
-                        this.publishClientWalkSegment(me, t);
+                    if (!Input.walk(local.lx, local.lz)) {
+                        return false;
                     }
-                    return ok;
+                    const clientPath =
+                        typeof reader.lastWalkPathWorld === 'function' ? reader.lastWalkPathWorld() : [];
+                    if (!clientWalkLeftSource(me, clientPath)) {
+                        return false;
+                    }
+                    if (!clientFirstStepOnPackedPath(me, clientPath, tiles, pathIdx)) {
+                        return false;
+                    }
+                    walkClickMark = mark;
+                    walkClickAt = { x: me.x, z: me.z, level: me.level };
+                    this.publishClientWalkSegment(me, t);
+                    return true;
                 };
+                const tryWalkAt = (i: number): boolean => tryWalkTile(tiles[i]!);
                 let chosen = selectClientWalkTarget(tiles, pathIdx, steps, limit, me.level, clickable, tryWalkAt);
                 if (chosen === -1) {
                     const starve = starvedTerminalIndex(tiles, me, clickable);
@@ -1144,6 +1169,14 @@ class WalkExecutorImpl {
                         && tryWalkAt(starve)
                     ) {
                         chosen = starve;
+                    }
+                }
+                if (chosen === -1) {
+                    const aim = tiles[Math.min(pathIdx + 1, tiles.length - 1)]!;
+                    const live = this.closestLiveWalkTile(me, aim);
+                    if (live && tryWalkTile(live)) {
+                        log(`pack walk click no-op — live dest (${live.x},${live.z})`);
+                        chosen = pathIdx;
                     }
                 }
                 if (chosen !== -1) {

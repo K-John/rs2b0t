@@ -298,12 +298,10 @@ export function coinsToWithdraw(alreadyPaid: boolean, coinsInPack: number): numb
 
 export const STEAL_THIEVING_MIN = 20;
 export const GUARD_THIEVING_MIN = 40;
-/** Cakes to steal when the selected food is gone — enough to eat through a guard restock. */
-export const CAKE_STEAL_FILL = 12;
 /** Minimum cakes to keep before pickpocketing guards. */
 export const CAKE_GUARD_BUFFER = 4;
 
-export function shouldBank(tickets: number, foodCount: number, bankAtTickets: number, stealRestock = false): boolean {
+export function shouldBank(tickets: number, foodCount: number, bankAtTickets: number, stealRestock: boolean): boolean {
     if (tickets >= bankAtTickets) {
         return true;
     }
@@ -313,20 +311,34 @@ export function shouldBank(tickets: number, foodCount: number, bankAtTickets: nu
     return foodCount <= 0;
 }
 
-/** Steal cakes when the pack has no selected food and no stall food, or when a guard restock needs a HP buffer. */
+/** Slots the stall fill must leave empty so a new coin stack and the first ticket can land. */
+export function stealReserveSlots(coins: number, tickets: number): number {
+    return (coins <= 0 ? 1 : 0) + (tickets <= 0 ? 1 : 0);
+}
+
+/** Steal while the pack has room. Cake/bread/slice counts do not matter — they are unstackable mixed stall loot. */
 export function needsCakeSteal(
     selectedFood: number,
     cakes: number,
     stealRestock: boolean,
-    needCoins: boolean
+    needCoins: boolean,
+    freeSlots: number
 ): boolean {
     if (!stealRestock) {
         return false;
     }
-    if (selectedFood <= 0 && cakes <= 0) {
+    if (freeSlots <= 0) {
+        return false;
+    }
+    if (selectedFood <= 0) {
         return true;
     }
     return needCoins && cakes < CAKE_GUARD_BUFFER;
+}
+
+/** Leave the arena only when steal restock has nothing left to eat, or coins for the next trip are gone. */
+export function shouldLeaveForSteal(stealRestock: boolean, inArena: boolean, edible: number, needCoins: boolean): boolean {
+    return stealRestock && inArena && (edible <= 0 || needCoins);
 }
 
 /** Inventory fields used to distinguish a live stack gain from a removal. */

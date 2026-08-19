@@ -113,3 +113,50 @@ export function canReachLocal(flags: FlagsAt, from: LocalPoint, to: LocalPoint, 
     }
     return false;
 }
+
+const cheb = (a: LocalPoint, b: LocalPoint): number => Math.max(Math.abs(a.lx - b.lx), Math.abs(a.lz - b.lz));
+
+/** Why: pack dests behind a loc fail tryMove; this is the live stand closest to that dest. */
+export function closestReachableToward(
+    flags: FlagsAt,
+    from: LocalPoint,
+    to: LocalPoint,
+    maxSteps = DEFAULT_MAX_STEPS
+): LocalPoint | null {
+    if (flags(from.lx, from.lz) === null) {
+        return null;
+    }
+    const key = (lx: number, lz: number): number => lx * 256 + lz;
+    const seen = new Set<number>([key(from.lx, from.lz)]);
+    const queue: LocalPoint[] = [from];
+    let best: LocalPoint = from;
+    let bestD = cheb(from, to);
+    let expansions = 0;
+    while (queue.length > 0) {
+        const cur = queue.shift()!;
+        const d = cheb(cur, to);
+        if (d < bestD || (d === bestD && (cur.lx !== from.lx || cur.lz !== from.lz) && best.lx === from.lx && best.lz === from.lz)) {
+            best = cur;
+            bestD = d;
+        }
+        if (d === 0) {
+            break;
+        }
+        if (++expansions > maxSteps) {
+            break;
+        }
+        for (const [dx, dz] of DIRS) {
+            const nx = cur.lx + dx;
+            const nz = cur.lz + dz;
+            const k = key(nx, nz);
+            if (!seen.has(k) && canStepLocal(flags, cur.lx, cur.lz, dx, dz)) {
+                seen.add(k);
+                queue.push({ lx: nx, lz: nz });
+            }
+        }
+    }
+    if (best.lx === from.lx && best.lz === from.lz) {
+        return null;
+    }
+    return best;
+}
