@@ -55,7 +55,7 @@ function flag(snap: QuestSnapshot, name: string): boolean {
 }
 
 // Why: the pack has to have room before it crosses. `[if_close,regicide_still]` adds the naphtha BEFORE it deletes the empty barrel, so a full pack loses the distillation outright, and the forest hands over a barrel, a pot, a lump of sulphur and a rock of limestone with nowhere to put any of them.
-// Why: gated on there being something to deposit, not on the count alone. The kit is twenty slots of its own — eleven Sharks, four balls of wool, three ropes, a pestle and a pickaxe — so a bare "fewer than N free" test asks for room the quest can never have, and the step banks nothing and repeats until the watchdog parks the run.
+// Why: gated on there being something to deposit, not on the count alone. The kit is twenty slots of its own, holding eleven Sharks, four balls of wool, three ropes, a pestle and a pickaxe, so a bare "fewer than N free" test asks for room the quest can never have, and the step banks nothing and repeats until the watchdog parks the run.
 const SLOTS_NEEDED = 6;
 
 /** Everything Tirannwn consumes, drawn and worn while a bank is still reachable. */
@@ -67,14 +67,14 @@ function outfit(snap: QuestSnapshot, area: RegicideArea): QuestStep | null {
     if (junk && (snap.freeSlots ?? SLOTS_NEEDED) < SLOTS_NEEDED) {
         return { kind: 'deposit', keep: [RG_ITEM.SHARK.name], keepIds: KEEP_IDS, bank: RG_TILE.ARDOUGNE_BANK };
     }
-    // Why: the armour goes on before the kit comes out. The kit is 24 of the pack's 28 slots — four wool, three ropes and eleven sharks among them — and `wearGear` draws the set five pieces at a time, so sourcing first leaves three free slots and the withdraw never fits. Worn armour costs no slot at all.
+    // Why: the armour goes on before the kit comes out. The kit is 24 of the pack's 28 slots, four wool, three ropes and eleven sharks among them, and `wearGear` draws the set five pieces at a time, so sourcing first leaves three free slots and the withdraw never fits. Worn armour costs no slot at all.
     return wearGear(snap) ?? sourceKit(snap);
 }
 
-// Why: past the Arandar palisade there is one shop and no bank, and the way back in is the Underground Pass walked end to end — so a pack short of the kit stops on the mainland and says what is missing rather than crossing and parking at a loom it has no wool for.
+// Why: past the Arandar palisade there is one shop and no bank, and the way back in is the Underground Pass walked end to end, so a pack short of the kit stops on the mainland and says what is missing rather than crossing and parking at a loom it has no wool for.
 function readyForTirannwn(snap: QuestSnapshot, kit: readonly Supply[]): QuestStep | null {
     const missing = kitShortfall(snap, kit);
-    // Why: the forest is fought through — two of Tyras's soldiers, the elf warriors that patrol the camp and a grizzly bear on the road to the loom — and there is nothing to fight them with past the gate.
+    // Why: the forest is fought through against two of Tyras's soldiers, the elf warriors that patrol the camp and a grizzly bear on the road to the loom, and there is nothing to fight them with past the gate.
     if (!meleeCarried(snap)) {
         missing.push('a melee weapon (the soldiers and the elf warriors), have none');
     }
@@ -84,7 +84,7 @@ function readyForTirannwn(snap: QuestSnapshot, kit: readonly Supply[]): QuestSte
 // Why: the fire arrow is built inside the pass with Koftik's damp cloth in hand, and `make_clotharrow` tests `inv_itemspace` BEFORE it deletes the cloth. Two spare slots is the cloth and the arrow it becomes; a pack that crosses full reads "You don't have space to do that." at the bridge with no bank within an hour's walk.
 const FIRE_ARROW_SLOTS = 3;
 
-// Why: the walk back is planned, not sourced. `sourceKit` only ever adds, so a pack that finished the still crossed carrying five leftover coal and eleven food and had no room for the fire arrow — the leftovers have to be banked on the way past, which a kit list cannot say and a plan can.
+// Why: the walk back is planned, not sourced. `sourceKit` only ever adds, so a pack that finished the still crossed carrying five leftover coal and eleven food and had no room for the fire arrow. The leftovers have to be banked on the way past, which a kit list cannot say and a plan can.
 const returnRun = (): PackPlan => ({
     what: 'the walk back through the pass',
     allow: [],
@@ -143,9 +143,9 @@ function rabbitDone(snap: QuestSnapshot): boolean {
     return held(snap, RG_ITEM.RAW_RABBIT) > 0 || held(snap, RG_ITEM.COOKED_RABBIT) > 0;
 }
 
-// Why: every raw ingredient is inside Tirannwn and the still that turns tar into naphtha is in Rimmington, so the gathering is finished in one pass through the forest before the palisade is opened — the way back in is the Underground Pass, and nobody wants to walk it twice for a forgotten ball of wool.
+// Why: every raw ingredient is inside Tirannwn and the still that turns tar into naphtha is in Rimmington, so the gathering is finished in one pass through the forest before the palisade is opened, the way back in is the Underground Pass, and nobody wants to walk it twice for a forgotten ball of wool.
 
-// Why: ordered by where each thing is rather than by the recipe — the loom, the barrel and the pot are all in the elf camp, the tar and the sulphur are both in the old camp's swamp, and the quarry sits on the way out to the palisade. What the forest cannot finish is left for the mainland leg.
+// Why: ordered by where each thing is rather than by the recipe, the loom, the barrel and the pot are all in the elf camp, the tar and the sulphur are both in the old camp's swamp, and the quarry sits on the way out to the palisade. What the forest cannot finish is left for the mainland leg.
 
 /** True once the quarry is close enough that the generic mining step can walk the rest itself. */
 function nearQuarry(tile: QuestSnapshot['tile']): boolean {
@@ -175,7 +175,7 @@ function gatherLeg(snap: QuestSnapshot): QuestStep | null {
             : custom('grind the sulphur to dust', grindSulphur);
     }
     if (!quicklimeDone(snap) && held(snap, RG_ITEM.QUICKLIME) === 0 && held(snap, RG_ITEM.LIMESTONE) === 0) {
-        // Why: the quarry is on the ARANDAR side of the palisade, and `regicideArea` still calls that Tirannwn — so the gathering leg owns it, but the walk to it crosses a seam. A bare `mineRock` anchors a plain `walkResilient`, which from any pocket inside the forest answers "no path to (2323,3269): unreachable" and mines nothing, thirty-four times over fifteen minutes.
+        // Why: the quarry is on the ARANDAR side of the palisade, and `regicideArea` still calls that Tirannwn, so the gathering leg owns it, but the walk to it crosses a seam. A bare `mineRock` anchors a plain `walkResilient`, which from any pocket inside the forest answers "no path to (2323,3269): unreachable" and mines nothing, thirty-four times over fifteen minutes.
         return nearQuarry(snap.tile)
             ? { kind: 'mineRock', rock: 'Limestone', item: RG_ITEM.LIMESTONE.name, qty: 1, anchor: RG_TILE.QUARRY }
             : custom('cross out to the Arandar quarry', log => leaveTirannwn(RG_TILE.QUARRY, snap.stage ?? RG_STAGE.SPOKEN_IORWERTH2, log));
@@ -184,8 +184,8 @@ function gatherLeg(snap: QuestSnapshot): QuestStep | null {
 }
 
 
-// Why: the coal run carries the chain, the two tools that build it and a short food float — and nothing else. Coal does not stack, so the twelve the still burns want twelve slots free before the first swing at the rock; the kit is twenty-four slots and leaves four.
-// Why: the room asked for is what is LEFT to mine, not the full float. Coal accumulates in the pack, so a plan that keeps asking for twelve free once six are already held parks a leg that was one swing from finishing — which is how this read live: "needs 12 free slot(s) and the pack has 11" with six coal in hand.
+// Why: the coal run carries the chain, the two tools that build it and a short food float, and nothing else. Coal does not stack, so the twelve the still burns want twelve slots free before the first swing at the rock; the kit is twenty-four slots and leaves four.
+// Why: the room asked for is what is LEFT to mine, not the full float. Coal accumulates in the pack, so a plan that keeps asking for twelve free once six are already held parks a leg that was one swing from finishing, which is how this read live: "needs 12 free slot(s) and the pack has 11" with six coal in hand.
 const coalRun = (snap: QuestSnapshot): PackPlan => ({
     what: 'the coal run',
     allow: [
@@ -229,7 +229,7 @@ function bombLeg(snap: QuestSnapshot, area: RegicideArea): QuestStep {
         if (area !== 'tirannwn') {
             return crossIn(snap);
         }
-        // Why: `regicide_cross_over3` clears `^regicide_given_rabbit` whenever it is taken inside mapsquare 34_49, and the walk from the Isafdar entry to the catapult takes that crossing — so the rabbit is handed over after arriving beside the catapult, never before setting out.
+        // Why: `regicide_cross_over3` clears `^regicide_given_rabbit` whenever it is taken inside mapsquare 34_49, and the walk from the Isafdar entry to the catapult takes that crossing, so the rabbit is handed over after arriving beside the catapult, never before setting out.
         return held(snap, RG_ITEM.COOKED_RABBIT) > 0
             ? custom('give the cooked rabbit to the catapult guard', feedLazyGuard)
             : custom('fire the barrel bomb over the trees', fireCatapult);
@@ -248,7 +248,7 @@ function bombLeg(snap: QuestSnapshot, area: RegicideArea): QuestStep {
 }
 
 function stageStep(snap: QuestSnapshot, area: RegicideArea, stage: number): QuestStep {
-    // Why: armour in the pack is five slots the bomb needs and a soldier fought in what the walk left on, so anything wearable goes on wherever it is found — the forest has no bank to shed it into either.
+    // Why: armour in the pack is five slots the bomb needs and a soldier fought in what the walk left on, so anything wearable goes on wherever it is found. The forest has no bank to shed it into either.
     const gear = drawGear(snap);
     if (gear) {
         return gear;
@@ -323,16 +323,16 @@ export const regicide: QuestModule = {
     bank: RG_TILE.ARDOUGNE_BANK,
     ownsInventory: true,
     readProgress: readRegicideProgress,
-    // Why: the forest's traps are timer damage taken while crossing a chokepoint rather than a fight — a failed pitfall jump is a flat 15 and the tripwires poison — so the eat threshold is high rather than the usual half.
+    // Why: the forest's traps are timer damage taken while crossing a chokepoint rather than a fight, a failed pitfall jump is a flat 15 and the tripwires poison, so the eat threshold is high rather than the usual half.
     sustain: { foods: [RG_ITEM.SHARK.name], eatBelowHp: 0.7 },
     warnReadiness: () =>
         `Regicide needs Underground Pass complete, Agility 56 and Crafting 10, and burns about ${COAL_TARGET} coal at the still.`,
-    // Why: a failed step used to print `no inventory change` and nothing else, and that one line hid a ground-decor refusal for forty-five minutes and a missing letter across two legs. What a parked leg needs to say is where it is, what it is carrying that the step is keyed on, and what the server last said — the refusal is almost always already in the chat.
+    // Why: a failed step used to print `no inventory change` and nothing else, and that one line hid a ground-decor refusal for forty-five minutes and a missing letter across two legs. What a parked leg needs to say is where it is, what it is carrying that the step is keyed on, and what the server last said. The refusal is almost always already in the chat.
     // Why: three lines, joined. The live harness surfaces a bounded number of log lines per poll, so a diagnostic that prints one line per item arrives as the last line and reads as silence.
     observe: (snap, step) => {
         const at = snap.tile;
         const pocket = at && at.level === 0 ? pocketAt(at) : null;
-        // Why: hand-labelled, because the five barrel states all begin with the word "Barrel" and a name-derived key printed `barrel=0 barrel=0 barrel=0` five times over — the one line that says where along the chain the bomb is, saying nothing.
+        // Why: hand-labelled, because the five barrel states all begin with the word "Barrel" and a name-derived key printed `barrel=0 barrel=0 barrel=0` five times over, the one line that says where along the chain the bomb is, saying nothing.
         const kit = (label: string, item: RegicideItem): string => `${label}=${held(snap, item)}`;
         const said = GameMessages.recent(3).map(m => m.text).join(' / ');
         return [

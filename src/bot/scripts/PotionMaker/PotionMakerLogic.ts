@@ -1,6 +1,6 @@
 // Pure data and decisions for the PotionMaker script.
 
-// Why: a batch is made bank-standing — clean herb plus vial of water gives an "Unfinished potion", then a secondary plus that gives the finished potion.
+// Why: a batch is made bank-standing, clean herb plus vial of water gives an "Unfinished potion", then a secondary plus that gives the finished potion.
 // Why: every herb's unfinished potion renders with the same display name, so the make step is detected by numeric id, never by name.
 
 /** What the bot withdraws to pair with the herb in the first step. */
@@ -14,9 +14,9 @@ export const CUSTOM = 'Custom';
 
 export interface HerbDef {
     key: string;
-    /** Cleaned herb name — descriptive, matches the settings UI and in-game. */
+    /** Cleaned herb name, descriptive, matches the settings UI and in-game. */
     name: string;
-    /** Cleaned herb id — what the bot withdraws. */
+    /** Cleaned herb id, what the bot withdraws. */
     id: number;
     /** Unfinished potion id produced from this herb + a vial of water. */
     unfId: number;
@@ -41,7 +41,7 @@ export const HERBS: readonly HerbDef[] = [
 
 export interface SecondaryDef {
     key: string;
-    /** In-game secondary name — unique and descriptive. */
+    /** In-game secondary name, unique and descriptive. */
     name: string;
     id: number;
 }
@@ -61,7 +61,7 @@ export const SECONDARIES: readonly SecondaryDef[] = [
 export const HERB_OPTIONS = HERBS.map(h => h.name);
 export const SECONDARY_OPTIONS = SECONDARIES.map(s => s.name);
 
-/** Find a herb by clean name (exact, then substring, then key) — case-insensitive. */
+/** Find a herb by clean name (exact, then substring, then key), case-insensitive. */
 export function herbByName(name: string): HerbDef | null {
     const wanted = name.trim().toLowerCase();
     if (!wanted) {
@@ -75,7 +75,7 @@ export function herbByName(name: string): HerbDef | null {
     );
 }
 
-/** Find a secondary by in-game name (exact, then substring) — case-insensitive. */
+/** Find a secondary by in-game name (exact, then substring), case-insensitive. */
 export function secondaryByName(name: string): SecondaryDef | null {
     const wanted = name.trim().toLowerCase();
     if (!wanted) {

@@ -244,7 +244,7 @@ function sourceAntipoison(snap: QuestSnapshot, want: number): QuestStep | null {
             return step;
         }
     }
-    // Jiminua is a Karamja round trip — worth it for the dose the quest cannot
+    // Jiminua is a Karamja round trip, worth it for the dose the quest cannot
     // proceed without, not for a spare.
     if (heldAntipoison(snap) === 0) {
         return { kind: 'buy', item: 'Antipoison(3)', qty: ANTIPOISON_CARRY, shop: SHOP.JIMINUA, estGp: ANTIPOISON_GP };
@@ -253,7 +253,7 @@ function sourceAntipoison(snap: QuestSnapshot, want: number): QuestStep | null {
 }
 
 // Why: this is fetched at stage 8, before the walk to the Jolly Boar Inn, as Varrock East and Aubury both sit on that walk.
-// Why: sourcing each piece where it is first needed meant three separate trips back to Varrock — one for the dose that cures him, one for the blast runes, one for the spare dose.
+// Why: sourcing each piece where it is first needed meant three separate trips back to Varrock, one for the dose that cures him, one for the blast runes, one for the spare dose.
 
 /** Everything the Johnathon-to-Chronozon run needs, in one visit. */
 function endgameLoadout(snap: QuestSnapshot): QuestStep | null {
@@ -336,7 +336,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         return { kind: 'talk', stop: DIMINTHEIS_START };
     }
 
-    // Why: one bank trip, before the first long leg, and only when the operator has nav teleports on — A* will not plan a hop the live inventory cannot pay for, and nothing else in this quest ever carries a law rune.
+    // Why: one bank trip, before the first long leg, and only when the operator has nav teleports on, A* will not plan a hop the live inventory cannot pay for, and nothing else in this quest ever carries a law rune.
     // Why: it is skipped while Chronozon is still standing, as the wilderness deposit banks the kit on purpose and re-fetching it here walked thirty law runes and a ring of dueling straight back into the fight they were banked to avoid.
     // Why: the walk home afterwards is the price, and it is one leg.
     const fightPending = stage === FC_STAGE.CURED_JOHNATHON
@@ -412,7 +412,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
         if (supply < outstanding) {
             // Why: nothing in the mine can be fetched from inside it and the walk back out costs the lever chain, so everything is sourced before entering.
-            // Why: the bank is pinned to Ardougne rather than left to "nearest" because the next stop is Witchaven — from Boot, Falador is the closer booth but the Falador-then-Witchaven walk is about 90 tiles longer.
+            // Why: the bank is pinned to Ardougne rather than left to "nearest" because the next stop is Witchaven, from Boot, Falador is the closer booth but the Falador-then-Witchaven walk is about 90 tiles longer.
             // Why: an unread bank is no evidence of an empty one, as deciding "buy from Nurmof" before the first scan sends the bot across the map for a pickaxe that was in the bank all along.
             if (!snap.bankKnown && (!hasPickaxe(snap) || !hasWeapon(snap) || heldFood(snap) === 0)) {
                 return { kind: 'scanBank', bank: LEG_BANK.mine };
@@ -436,7 +436,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return custom('climb down into the perfect-gold mine', enterGoldMine);
         }
 
-        // Why: everything left after the mine — the moulds, the rubies, the furnace and Avan himself — is in Al Kharid, so the moulds and rubies are sourced before the smelt to keep it to one trip.
+        // Why: everything left after the mine, meaning the moulds, the rubies, the furnace and Avan himself, is in Al Kharid, so the moulds and rubies are sourced before the smelt to keep it to one trip.
         // Why: coins come first, as a `buy` step withdraws its own `estGp` threshold, so buying the ring mould leaves the pack a few coins under it and the next purchase walks back to the bank.
         // Why: one float covers the leg.
         const legCoins = coinTopUp(snap, 50_000, LEG_BANK.gold);
@@ -456,7 +456,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
                 return step;
             }
         }
-        // Why: rubies are the one thing this quest cannot reliably buy — the Ardougne gem merchant restocks a single cut ruby every 60k ticks and no other shop stocks one.
+        // Why: rubies are the one thing this quest cannot reliably buy, the Ardougne gem merchant restocks a single cut ruby every 60k ticks and no other shop stocks one.
         // Why: the shop is tried once and the shortfall reported plainly, rather than looping on a stall the watchdog would report as "no progress".
         const rubyShort = outstanding - held(snap, FC_ID.RUBY);
         if (rubyShort > 0) {
@@ -499,7 +499,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
     // --- Chronozon ---
     if (stage === FC_STAGE.CURED_JOHNATHON) {
-        // Why: everything below is preparation and preparation re-runs every tick, which inside the lair is a trap — eating three sharks or drinking a dose drops the pack under a threshold and the bot walks out mid-fight to top up.
+        // Why: everything below is preparation and preparation re-runs every tick, which inside the lair is a trap, eating three sharks or drinking a dose drops the pack under a threshold and the bot walks out mid-fight to top up.
         // Why: once through the gates, the fight owns what it is carrying.
         if (inChronozonLair(snap.tile)) {
             return custom('kill Chronozon with the four blasts', fightChronozon);

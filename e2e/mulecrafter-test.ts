@@ -1,4 +1,4 @@
-// MuleCrafter e2e: 1 crafter + N mules (default 1) for a 10 min soak on Air runes — the bank→ruins→bank loop, trading at the ruins, and dry-signalling at the bank.
+// MuleCrafter e2e: 1 crafter + N mules (default 1) for a 10 min soak on Air runes, the bank→ruins→bank loop, trading at the ruins, and dry-signalling at the bank.
 // Usage: bun e2e/mulecrafter-test.ts [base] [budget-min] [num-mules] [rune: "Air rune" (default) or "Mind rune"]
 
 import type { Page } from 'playwright-core';
@@ -219,7 +219,7 @@ async function setupAccount(page: Page, user: string, mode: 'Crafter' | 'Mule', 
     await maxAccountAndClearDialogs(page);
     await clearInv(page);
     await seedItem(page, route.talisman, route.talisman.replace(/_/g, ' '), 1);
-    // Keyboard ::give for cert_blankrune — requires keyboard path to stack properly.
+    // Keyboard ::give for cert_blankrune, requires keyboard path to stack properly.
     await type(page, '::give cert_blankrune 1000');
     await setSettings(page, 'MuleCrafter', { rune: RUNE, mode, partner });
     const arrived = await teleArrive(page, FALLY_EAST);

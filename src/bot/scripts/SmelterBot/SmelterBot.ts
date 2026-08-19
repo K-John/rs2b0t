@@ -111,7 +111,7 @@ export default class SmelterBot extends TaskBot {
 class BankTrip implements Task {
     constructor(private bot: SmelterBot) {}
     // anything the pack cannot make a bar from means go and restock, not an
-    // empty primary ore — iron without coal is equally unsmeltable
+    // empty primary ore, iron without coal is equally unsmeltable
     validate(): boolean { return !this.bot.canSmelt(); }
     async execute(): Promise<void> {
         this.bot.setStatus('banking');
@@ -122,7 +122,7 @@ class BankTrip implements Task {
         }
         await Bank.depositInventory();
 
-        // Why: two empties look identical through Bank.count — the list refills asynchronously after a deposit, and the window can be closed outright when the run toggle clicks a controls-tab component and the server shuts the modal to serve it.
+        // Why: two empties look identical through Bank.count, the list refills asynchronously after a deposit, and the window can be closed outright when the run toggle clicks a controls-tab component and the server shuts the modal to serve it.
         // Why: either way every ore reads 0, which produced "'Coal' vanished from the bank mid-trip" (#117).
         // Why: ore does not vanish, so the window must be open and filled before anything it says is believed, and the log names which check failed.
         if (!(await Execution.delayUntil(() => Bank.isOpen() && Bank.loaded(), 5000))) {

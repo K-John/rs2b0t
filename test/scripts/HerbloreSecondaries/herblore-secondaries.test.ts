@@ -96,7 +96,7 @@ describe('HerbloreSecondaries decisions', () => {
         expect(keepOnDeposit(c, 'Lobster')).toContain('Chocolate bar');
         expect(keepOnDeposit(c, 'Lobster')).not.toContain(c.name);
 
-        // Toad legs + swamp toads are the loot — keeping them caused bank open/close spam.
+        // Toad legs + swamp toads are the loot, keeping them caused bank open/close spam.
         const t = secondaryById('toads_legs');
         const keep = keepOnDeposit(t, 'Lobster');
         expect(keep).not.toContain(t.name);

@@ -76,12 +76,12 @@ export function outstandingSupplies(snap: QuestSnapshot): Supply[] {
     if (tinsay < TB_TINSAY.COMPLETE) {
         out.push(TINDERBOX);
     }
-    // The sandwich consumes it, and the stage only advances when Tinsay eats — so a made sandwich retires the need.
+    // The sandwich consumes it, and the stage only advances when Tinsay eats, so a made sandwich retires the need.
     if (tinsay < TB_TINSAY.GIVEN_SANDWICH && heldId(snap, TB_ID.SANDWICH) === 0) {
         out.push(SEAWEED);
     }
     if (tamayu < TB_TAMAYU.COMPLETE) {
-        // Why: the paste is half the spear, not the spear — a pack holding paste and no shaft still needs one.
+        // Why: the paste is half the spear, not the spear, a pack holding paste and no shaft still needs one.
         const spearDone = hasFlag(snap.progress, TB_FLAG.SPEAR) || heldId(snap, TB_ID.SPEAR_KP) > 0;
         if (!spearDone) {
             out.push(IRON_SPEAR);
@@ -119,7 +119,7 @@ function wearAll(names: readonly string[]): QuestStep {
 }
 
 // Why: `buy` walks back to a bank whenever the pack holds less than `estGp`, so the estimate stays
-// under the float this module already carries — none of these three costs more than a hundred.
+// under the float this module already carries, none of these three costs more than a hundred.
 const buyAtJiminua = (item: string, qty: number): QuestStep => ({
     kind: 'buy',
     item,
@@ -210,7 +210,7 @@ export function prepare(snap: QuestSnapshot): QuestStep | null {
     return shopped ? buyAtJiminua(shopped.name, shopped.qty) : null;
 }
 
-/** Advisory floors — none of these is a server gate on the quest journal itself. */
+/** Advisory floors, none of these is a server gate on the quest journal itself. */
 export const TB_PROVEN = {
     /** The profile a headed run has finished on, end to end. */
     skills: 70,

@@ -1,4 +1,4 @@
-// Why: the path-scoped bank planner pathfinds as if bank items were held, inspects only items required by transports on the chosen route, and withdraws only those — never speculative tele runes.
+// Why: the path-scoped bank planner pathfinds as if bank items were held, inspects only items required by transports on the chosen route, and withdraws only those, never speculative tele runes.
 
 import type { Waypoint } from './PathFinder.js';
 import type { WorldStateData } from './worldStateData.js';
@@ -61,12 +61,12 @@ export function itemsRequiredByWaypoints(waypoints: Waypoint[]): Record<string, 
                     bump(it.name, it.count);
                 }
             }
-            // Why: plan time requires the ring or glory in inventory — PathFinder scans state.items via inventoryNameMatchesJewellery.
+            // Why: plan time requires the ring or glory in inventory, PathFinder scans state.items via inventoryNameMatchesJewellery.
             // Why: jewellery is never withdrawn path-scoped here, only runes and tolls.
             // Why: there is no bank cache of jewellery for routing unless a caller passes bankItemCounts and PathFinder is given a virtualized state.
             continue;
         }
-        // Why: door and special-crossing tolls are keyed at the approach stand, which is often not the loc tile — the Shantay pass stand is (3304,3118) while its loc is (3302,3116).
+        // Why: door and special-crossing tolls are keyed at the approach stand, which is often not the loc tile, the Shantay pass stand is (3304,3118) while its loc is (3302,3116).
         // Why: resolving the same way the executor does keeps the toll visible; otherwise the region behind it reads as unreachable rather than unpaid.
         const prev = waypoints[i - 1] ?? wp;
         const sc = specialCrossingForTransport(
@@ -78,7 +78,7 @@ export function itemsRequiredByWaypoints(waypoints: Waypoint[]): Record<string, 
             bump(sc.requires.item, sc.requires.count);
         }
         // Slash webs: bank plan withdraws plain Knife when no slash tool held.
-        // (Wielded blades also work at execute — no withdraw needed if canSlashWeb.)
+        // (Wielded blades also work at execute, no withdraw needed if canSlashWeb.)
         if (isSlashWebTransport(t.locName, t.action)) {
             bump(WEB_SLASH_KNIFE_NAME, 1);
         }
@@ -106,7 +106,7 @@ export function missingItemsForPath(waypoints: Waypoint[], state: WorldStateData
 
 /**
  * Decide whether a bank leg is cheaper than walking direct.
- * Pure — callers supply path costs from the pathfinder.
+ * Pure, callers supply path costs from the pathfinder.
  */
 export function planBankLeg(input: BankPlanInput): BankPlan {
     if (input.directHasTeleport) {

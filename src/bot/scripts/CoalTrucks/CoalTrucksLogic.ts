@@ -17,7 +17,7 @@ export const TRUCK_LEASH = 4;
 export const MINE_AREA = 20;
 
 // Why: a 120 truck drains in 4 full packs plus a ~12 remainder, and that last 102-tile round trip for 12 coal is poor value.
-// Why: the remainder is not lost — it stays in the truck and the miner tops it up next cycle.
+// Why: the remainder is not lost, it stays in the truck and the miner tops it up next cycle.
 // Why: measured per cycle, 4 pulls banks 135 over 720 tiles and 5 pulls banks 147 over 822.
 
 /** Pulls per haul before heading back. */
@@ -47,7 +47,7 @@ export interface MineView {
     gained: boolean;
     packFull: boolean;
     animating: boolean;
-    /** Random event pending or a dialog open — either way, stop mining and yield. */
+    /** Random event pending or a dialog open, either way, stop mining and yield. */
     interrupted: boolean;
 }
 
@@ -125,14 +125,14 @@ export function truckEmptyAfterRemove(result: RemoveResult): boolean {
 }
 
 export function decide(view: WorldView): Action {
-    // Mining without a pickaxe fails silently — no message, no xp — so this outranks
+    // Mining without a pickaxe fails silently with no message and no xp, so this outranks
     // every phase. The bank is the only place to fix it.
     if (!view.hasPickaxe) {
         return { kind: 'bank' };
     }
 
     // Why: the truck is capped when the run starts, so the carried pack cannot go into it.
-    // Why: banking on the way in beats touching the truck first and doubling back — mine->bank is 156, mine->truck->bank is 196.
+    // Why: banking on the way in beats touching the truck first and doubling back, mine->bank is 156, mine->truck->bank is 196.
     if (view.phase === 'run') {
         return view.coalHeld > 0 ? { kind: 'bank' } : { kind: 'travel-to-seers' };
     }

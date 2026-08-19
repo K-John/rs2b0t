@@ -23,7 +23,7 @@ const ANCHOR = KILL_ANCHORS[CLUE_ID];
 const FOOD_ID = 379;
 
 // player_combat.rs2 refuses op2 in single-way combat while we are still flagged
-// from another fight — routine at a spawn ringed by aggressive bandits.
+// from another fight, routine at a spawn ringed by aggressive bandits.
 const REFUSAL = "I'm already under attack!";
 
 interface FakeEntity {
@@ -93,7 +93,7 @@ const restoreChat = stubProps(ChatDialog, {
 });
 const restoreExec = stubProps(Execution, {
     delayUntil: async (fn: () => boolean): Promise<boolean> => fn(),
-    // The hunt waits on the tick, so the fake world has to move on the tick too —
+    // The hunt waits on the tick, so the fake world has to move on the tick too,
     // otherwise a wait for something that never arrives burns its budget in full.
     delayTicks: async (): Promise<void> => {
         ticks++;

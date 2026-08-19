@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Tree Gnome Village — stage-scoped harness
+## Tree Gnome Village, stage-scoped harness
 
 [`e2e/treegnome-263-live.ts`](../../e2e/treegnome-263-live.ts) drives the quest from a
 clean account or from any point inside it. `--stage N` sets `%treequest`, hands over the
@@ -40,7 +40,7 @@ Four details govern this harness:
 
 What the live runs paid for is in [Tree Gnome Village's pitfalls](../decisions/quest-pitfalls-17.md).
 
-## Tribal Totem — stage-scoped harness
+## Tribal Totem, stage-scoped harness
 
 [`e2e/tribal-totem-262-live.ts`](../../e2e/tribal-totem-262-live.ts) drives the quest from a
 clean account, or one leg of it. `--stage N` is `%totemquest` itself and relogs.
@@ -63,7 +63,7 @@ Measured at `--tick 200` on 70 stats, no parks:
 Four details govern this harness:
 
 - **`--stage` is the varp, and 4 starts inside the mansion.** Nothing walks into Handelmort
-  Mansion — its one ground-floor door opens outward only — so a stage-4 seed teleports to
+  Mansion, its one ground-floor door opens outward only, so a stage-4 seed teleports to
   Cromperty's landing tile at (2638,3321) rather than the bank every earlier stage starts at.
 - **The stairs trap bit is never seeded.** `--combo` sets bit 0 of
   `%handelmort_traps_disabled` to skip the four dials, and bit 21 is deliberately left clear:

@@ -18,7 +18,7 @@ const FOOD_FORMS: Record<string, string[]> = {
 
 /**
  * HP restored by one Eat/Drink of the named food (or a partial form of it).
- * Multi-bite foods list the per-bite heal — cake slice is 4, not 12.
+ * Multi-bite foods list the per-bite heal, cake slice is 4, not 12.
  */
 const FOOD_HEAL: Record<string, number> = {
     shrimps: 3,
@@ -60,7 +60,7 @@ const FOOD_HEAL: Record<string, number> = {
     'half an apple pie': 7
 };
 
-/** Always eat at or below this HP when food remains — issue #465 floor. */
+/** Always eat at or below this HP when food remains, issue #465 floor. */
 export const MIN_EAT_HP = 5;
 
 /** Used only when the food name is unknown. */

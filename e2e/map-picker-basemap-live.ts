@@ -133,7 +133,7 @@ try {
         fail('Rebuild map button hidden while showBasemap=true');
     }
 
-    // Settings modal opens (help text lives on each control — no intro banner)
+    // Settings modal opens (help text lives on each control, no intro banner)
     await settingsBtn.click();
     await page.locator('.rs2b0t-modal-backdrop .rs2b0t-modal-title').filter({ hasText: /Map picker/i }).waitFor({
         state: 'visible',

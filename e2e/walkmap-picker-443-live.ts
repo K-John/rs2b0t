@@ -1,4 +1,4 @@
-/** Live smoke for the walkable map picker (#443) through Playwright clicks: [base]. Deploy first — it needs botclient.js and collision.lcnav.gz on the engine.
+/** Live smoke for the walkable map picker (#443) through Playwright clicks: [base]. Deploy first. It needs botclient.js and collision.lcnav.gz on the engine.
  *  Writes out/issue443-walkable-map-picker-proof.json and screenshots/issue443-walkable-map-picker-success.png. */
 
 //   HEADED=1 bun e2e/walkmap-picker-443-live.ts [http://localhost:8890]

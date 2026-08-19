@@ -2,7 +2,7 @@
 import { Equipment } from '../../../../equipment/Equipment.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 
-// Why: nine level-61 ice spiders sit on the chest circuit and the hobgoblin camp is three level-42 attackers at once, both of them `crush_style` — and this quest sources no armour of its own, so the bank is the only wardrobe there is.
+// Why: nine level-61 ice spiders sit on the chest circuit and the hobgoblin camp is three level-42 attackers at once, both of them `crush_style`, and this quest sources no armour of its own, so the bank is the only wardrobe there is.
 // Why: the feet carry the boots of lightness and the right hand carries the bow the Fire Warrior demands, so neither slot is the armour's to fill.
 
 /** Ranged armour the bank might already hold, best first within each slot. */
@@ -15,7 +15,7 @@ const RANGED_SLOTS: readonly (readonly string[])[] = [
 
 const MELEE_TIERS = ['Rune', 'Adamant', 'Mithril', 'Black', 'Steel', 'Iron', 'Bronze'] as const;
 
-// Why: a hobgoblin carries 1 stab defence and 1 slash defence, so tier beats shape and the fastest weapon of the best tier wins — a scimitar ahead of the longsword of the same metal.
+// Why: a hobgoblin carries 1 stab defence and 1 slash defence, so tier beats shape and the fastest weapon of the best tier wins, a scimitar ahead of the longsword of the same metal.
 const MELEE_KINDS = ['scimitar', 'longsword', 'sword', 'battleaxe', 'mace', 'warhammer'] as const;
 
 /** Melee weapons the bank might hold, best first. */
@@ -94,7 +94,7 @@ export function rangedArmourStep(snap: QuestSnapshot): QuestStep | null {
     };
 }
 
-// Why: the crossing kit leaves the bot bare-handed and the roots farm is a crowd of level-42s, so the weapon is picked the same way the armour is — the best the bank already holds, with the axe the yew was cut with as the floor.
+// Why: the crossing kit leaves the bot bare-handed and the roots farm is a crowd of level-42s, so the weapon is picked the same way the armour is, the best the bank already holds, with the axe the yew was cut with as the floor.
 
 /** The best melee weapon the bank holds, or null when it holds none the server has not refused. */
 function bestMeleeWeapon(snap: QuestSnapshot): string | null {

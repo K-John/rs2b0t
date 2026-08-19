@@ -41,7 +41,7 @@ function normalize(lines: readonly string[] | string): string {
         .toLowerCase();
 }
 
-// Why: the journal is strictly additive — every stage keeps the earlier lines and appends its own — so the deepest matching line wins and the list is ordered from the end of the quest backwards.
+// Why: the journal is strictly additive, every stage keeps the earlier lines and appends its own, so the deepest matching line wins and the list is ordered from the end of the quest backwards.
 const STAGE_LINES: readonly [string, number][] = [
     ['quest complete!', RG_STAGE.COMPLETE],
     ['when returning home i met an elf', RG_STAGE.SPOKEN_ARIANWYN],
@@ -60,7 +60,7 @@ const STAGE_LINES: readonly [string, number][] = [
     ['asked me to re-enter the underground', RG_STAGE.SPOKEN_LATHAS],
     ['a courier has given me a message', RG_STAGE.RECEIVED_MESSAGE],
     ['will send word when i can start', RG_STAGE.NOT_STARTED],
-    // Why: Underground Pass opens its own scroll with "I can start this quest by speaking to King Lathas" as well, and only the castle names this one — a looser needle reads any quest's scroll as Regicide's.
+    // Why: Underground Pass opens its own scroll with "I can start this quest by speaking to King Lathas" as well, and only the castle names this one, a looser needle reads any quest's scroll as Regicide's.
     ['king lathas in ardougne castle', RG_STAGE.NOT_STARTED]
 ];
 

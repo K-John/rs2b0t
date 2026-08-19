@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 
 import { waterTalkAnswer } from '#/bot/api/ai/quests/defs/legends/shaman.js';
 
-// Why: the caves set `asked_ungadulu_where`, which is what `gujuo_pure_water` gates on — so they are the answer to a menu without the topic on it, and the only such answer.
+// Why: the caves set `asked_ungadulu_where`, which is what `gujuo_pure_water` gates on, so they are the answer to a menu without the topic on it, and the only such answer.
 test('a menu without the topic sends the run to Ungadulu', () => {
     expect(waterTalkAnswer('nogoal')).toBe('caves');
 });

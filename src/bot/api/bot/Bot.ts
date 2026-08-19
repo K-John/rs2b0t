@@ -38,7 +38,7 @@ export function resolveLoopCadence(loopDelayMs: number, override?: LoopCadence |
  * @see docs/reference/api-bots.md
  */
 export abstract class AbstractBot {
-    // Why: prefer {@link loopCadence} — `600` here is read as one server tick (see {@link resolveLoopCadence}).
+    // Why: prefer {@link loopCadence}, `600` here is read as one server tick (see {@link resolveLoopCadence}).
     // Why: pass an explicit `loopCadence: { kind: 'time', ms }` when wall-clock 600 ms is what is wanted.
 
     /** Legacy wall-clock-ish pacing between `loop()` calls. */
@@ -128,7 +128,7 @@ export abstract class TaskBot extends LoopingBot {
     }
 
     async loop(): Promise<number | void> {
-        // Mid-zone rebuilds leave ingame=true while sceneState is 0/1 — tasks that
+        // Mid-zone rebuilds leave ingame=true while sceneState is 0/1, tasks that
         // still validate would thrash soft-failed injects (#445).
         if (!Game.sceneReady()) {
             const now = performance.now();

@@ -150,7 +150,7 @@ try {
     await maxmeAndClearDialogs(pageM);
     await clearChatDialogs(pageM);
     await cheatQuiet(pageM, '~clearinv');
-    // Mule holds nothing — empty pack to receive iron.
+    // Mule holds nothing, empty pack to receive iron.
     await teleArrive(pageM, MEET);
     await setMiner(pageM, {
         rocks: 'Iron',

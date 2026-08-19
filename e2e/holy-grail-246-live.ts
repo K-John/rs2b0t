@@ -1,6 +1,6 @@
 /** Live Holy Grail harness (#246): --stage N --until N --minutes N, base :8890.
  *  Why: `--stage` writes `%grail` and relogs, since `update_questlist` only recolours the list at login and the module reads the list before the journal.
- *  Why: the bank holds coins, food and a melee kit and nothing else — Excalibur is bought back from the Lady of the Lake, the napkin comes from Galahad and the whistles from Draynor Manor, so a pass proves the bot can find all three.
+ *  Why: the bank holds coins, food and a melee kit and nothing else. Excalibur is bought back from the Lady of the Lake, the napkin comes from Galahad and the whistles from Draynor Manor, so a pass proves the bot can find all three.
  *  Why: stages from 8 up seed the napkin, as neither Galahad branch hands out a replacement once Percival is the errand. */
 
 //   HEADED=1 bun e2e/holy-grail-246-live.ts --stage 0 --until 10 --minutes 120 --tick 200
@@ -72,7 +72,7 @@ function fail(msg: string): never {
 }
 
 const QUEST = 'Holy Grail';
-/** `^arthur_complete` — Merlin's Crystal, the quest's only prerequisite. */
+/** `^arthur_complete`, Merlin's Crystal, the quest's only prerequisite. */
 const ARTHUR_COMPLETE = 7;
 /** `%grail` values from quest_grail.constant; 1, 5 and 6 are unused. */
 const STAGES = [0, 2, 3, 4, 7, 8, 9, 10];
@@ -155,7 +155,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph compiles into navworker.js, a separate entrypoint, deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {
@@ -245,7 +245,7 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without Holy Grail in it spends the budget on somebody else's quest.
+        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch, and a queue without Holy Grail in it spends the budget on somebody else's quest.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;
@@ -265,7 +265,7 @@ try {
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
-        // Why: a full run waits for the list to go green as well — the recolour and the QP award land a tick behind %grail.
+        // Why: a full run waits for the list to go green as well, the recolour and the QP award land a tick behind %grail.
         const done = args.until >= 10 ? last.status === 'complete' : grail >= args.until;
         if (done) {
             console.log(`PASS (%grail=${grail}, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);

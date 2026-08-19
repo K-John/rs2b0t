@@ -156,7 +156,7 @@ async function closeJournal(): Promise<void> {
 }
 
 // Why: Troll Stronghold can be finished without ever opening Mad Eadgar's cell, and an unfreed Eadgar leaves the Cave Entrance dropping the character into an empty room with nobody to talk to.
-// Why: the completed Troll Stronghold journal still records it — "I've rescued Godric and Mad Eadgar."
+// Why: the completed Troll Stronghold journal still records it, "I've rescued Godric and Mad Eadgar."
 // Why: it is read once and cached, as every read opens and closes the quest-list modal.
 let freedCache: boolean | undefined;
 

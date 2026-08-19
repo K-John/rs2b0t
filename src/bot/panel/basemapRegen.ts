@@ -209,7 +209,7 @@ async function regenerateBasemapOnce(prefs: BasemapBakePrefs): Promise<Regenerat
     MapView.shouldDrawFreemap = prefs.freemap;
 
     // Resolve when maininit finishes. MapView's constructor calls run(); we override
-    // run() so it only runs maininit once — never enters GameShell's frame while-loop.
+    // run() so it only runs maininit once, never enters GameShell's frame while-loop.
     let resolveReady!: () => void;
     let rejectReady!: (e: unknown) => void;
     const ready = new Promise<void>((resolve, reject) => {
@@ -324,7 +324,7 @@ async function regenerateBasemapOnce(prefs: BasemapBakePrefs): Promise<Regenerat
             manifest.sizeTiles = { ...DEFAULT_MAP_SIZE };
         }
 
-        // Do not call GameShell.shutdown() — it would tear down the live client's canvas handlers.
+        // Do not call GameShell.shutdown(). It would tear down the live client's canvas handlers.
         // LiveBakeMapView.run() never installs those listeners (only maininit).
         return { manifest, image };
     } finally {

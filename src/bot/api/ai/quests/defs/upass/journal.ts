@@ -4,7 +4,7 @@ import { Quests } from '../../../../ui/questlog/Quests.js';
 import type { QuestProgress } from '../../engine/types.js';
 
 // Why: these are the `%upass` values themselves, so `--stage N` in the harness and the number the module
-// decides on are the same scale. "Started" is not a stage — it is bit 11 of `%ibanmulti`, carried as a flag.
+// decides on are the same scale. "Started" is not a stage. It is bit 11 of `%ibanmulti`, carried as a flag.
 export const UP_STAGE = {
     NOT_STARTED: 0,
     SPOKEN_KOFTIK: 1,
@@ -21,7 +21,7 @@ export const UP_STAGE = {
 
 /** Journal-visible sub-progress the stage number cannot carry. */
 export const UP_FLAG = {
-    /** King Lathas has sent the player to Koftik — bit 11, not a stage. */
+    /** King Lathas has sent the player to Koftik, bit 11, not a stage. */
     STARTED: 'started',
     /** Koftik has handed over the damp cloth, or an arrow is already part-made. */
     ARROW_PARTS: 'arrowParts',
@@ -45,7 +45,7 @@ function normalize(lines: readonly string[] | string): string {
         .toLowerCase();
 }
 
-// Why: the journal is strictly additive — every stage keeps the earlier lines and appends its own — so the
+// Why: the journal is strictly additive, every stage keeps the earlier lines and appends its own, so the
 // deepest matching line wins and the list is ordered from the end of the quest backwards.
 const STAGE_LINES: readonly [string, number][] = [
     ['quest complete!', UP_STAGE.COMPLETE],
@@ -93,7 +93,7 @@ export function parseUpassJournal(lines: readonly string[] | string): QuestProgr
         }
     }
     // Why: the journal only prints "confronted" progress as the doll lines, so a complete doll at
-    // FOUND_DOLL and CONFRONTED_IBAN read identically — the module resolves the rest from the pack.
+    // FOUND_DOLL and CONFRONTED_IBAN read identically, the module resolves the rest from the pack.
     return { stage: hit[1], flags };
 }
 

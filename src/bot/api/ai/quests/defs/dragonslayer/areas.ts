@@ -47,7 +47,7 @@ export const DS_LOC = {
     // Why: both sides click this tile, as a wall has no second loc on its far side.
     // Why: the angle is what makes this row the one `check_axis_locactive` counts as "entering".
     CRANDOR_SECRET_DOOR: new Tile(2836, 9600, 0),
-    // Why: this is a stand and not a loc — the wall is still the tile above.
+    // Why: this is a stand and not a loc. The wall is still the tile above.
     // Why: opening from here works only once it has been opened from the Crandor side, which is what sets %dragon_wall.
     SECRET_WALL_KARAMJA_STAND: new Tile(2836, 9599, 0),
     ELVARG_GATE: new Tile(2847, 9636, 0),

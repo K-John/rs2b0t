@@ -23,7 +23,7 @@ function grottoSpirit(): { name: string } | null {
     return null;
 }
 
-// Why: the grotto is a pocket the walker has no route into — `Enter` teleports the character, and past the ritual stage that is all the op does.
+// Why: the grotto is a pocket the walker has no route into, `Enter` teleports the character, and past the ritual stage that is all the op does.
 
 export async function enterGrotto(log: (m: string) => void): Promise<boolean> {
     if (inside()) {

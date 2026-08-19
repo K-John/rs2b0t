@@ -22,7 +22,7 @@ export const ROCK_TYPES: Record<string, number[]> = {
 export const QUEST_ROCK_TYPES: Record<string, number[]> = {
     Blurite: [2110],
     // Why: `limestone_rock1/2/3` in `mine.dbrow` name their locs as `loc_4027`-`loc_4029`, which have no
-    // debugname of their own — the quarries are the Arandar pass and Silvarea.
+    // debugname of their own. The quarries are the Arandar pass and Silvarea.
     Limestone: [4027, 4028, 4029]
 };
 

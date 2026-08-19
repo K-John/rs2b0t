@@ -109,7 +109,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (inStronghold(snap.tile)) {
         return chestBusiness(snap, stage) ? TAKE_ORB : LEAVE;
     }
-    // Why: the kit comes out on the opening bank trip — armed at the first fight instead, the bot walks the battlefield back to Ardougne for it.
+    // Why: the kit comes out on the opening bank trip, armed at the first fight instead, the bot walks the battlefield back to Ardougne for it.
     return armForTheWarlord(snap) ?? stageStep(snap, stage);
 }
 

@@ -1,6 +1,6 @@
 /** Live Underground Pass harness (#265): --stage N --until N --minutes N, base :8890.
  *  Why: `%upass` and `%ibanmulti` are both `scope=perm` with no `transmit`, so the bot reads its own stage
- *  off the journal — the harness seeds the varps and relogs, because `~update_questlist` only recolours the
+ *  off the journal, the harness seeds the varps and relogs, because `~update_questlist` only recolours the
  *  list at login. Biohazard is seeded complete: it gates the cave mouth and King Lathas, and has no module yet.
  *  Why: stats are 70 across the board and the bank holds coins and Lobsters alone, so the bow, arrows,
  *  tinderbox and bucket are all sourced by the module rather than handed to it. */
@@ -76,15 +76,15 @@ function fail(msg: string): never {
 const QUEST = 'Underground Pass';
 const ARDOUGNE_BANK = { x: 2655, z: 3283, level: 0 };
 const BIOHAZARD_COMPLETE = 16;
-/** Plague City — its sewer is the only way through the Ardougne wall, and it gates Biohazard anyway. */
+/** Plague City, its sewer is the only way through the Ardougne wall, and it gates Biohazard anyway. */
 const PLAGUE_CITY_COMPLETE = 29;
-/** Bit 11 of `%ibanmulti` — King Lathas has sent the player to Koftik. */
+/** Bit 11 of `%ibanmulti`, King Lathas has sent the player to Koftik. */
 const UPASS_STARTED_BIT = 1 << 11;
-/** Bit 9 — the cat is at Kardia's door and she is busy with it, which is what unlocks her door. */
+/** Bit 9. The cat is at Kardia's door and she is busy with it, which is what unlocks her door. */
 const UPASS_DROPPED_CAT_BIT = 1 << 9;
 
 // Why: `%ibanmulti` carries sub-progress the stage number cannot, and a seeded stage that skips a bit is
-// not the state the quest would ever be in. Reaching stage 7 means the cat was delivered — without that bit
+// not the state the quest would ever be in. Reaching stage 7 means the cat was delivered, without that bit
 // her door answers "Get away... Far away from here!" and takes a quarter of the character's hitpoints
 // instead of opening, and the doll is on the wrong side of it.
 function ibanmultiFor(stage: number): number {
@@ -94,7 +94,7 @@ function ibanmultiFor(stage: number): number {
 /**
  * Coins, food, and the kit the module draws from the bank.
  * Why: the bow, arrows, tinderbox, spade, bucket and rope are shop stock the module does not yet buy for
- * itself, and the melee kit is whatever an established account would already own — seeded here, and called out as a
+ * itself, and the melee kit is whatever an established account would already own, seeded here, and called out as a
  * gap rather than hidden. A pack short of any of them stops at the cave mouth and says which.
  */
 const BANK_SEED: BankSeedItem[] = [
@@ -106,7 +106,7 @@ const BANK_SEED: BankSeedItem[] = [
     { debugName: 'spade', displayName: 'Spade', qty: 1 },
     { debugName: 'bucket_empty', displayName: 'Bucket', qty: 1 },
     { debugName: 'rope', displayName: 'Rope', qty: 3 },
-    // Why: the pass is fought through — three paladins at level 62, three demons and Kalrag — and the module
+    // Why: the pass is fought through against three paladins at level 62, three demons and Kalrag, and the module
     // wears the best tier the bank holds. Rune is what a 70-defence account would take, in chain and med helm
     // rather than plate and full helm, because those two want Dragon Slayer and this account has not done it.
     { debugName: 'rune_scimitar', displayName: 'Rune scimitar', qty: 1 },
@@ -124,19 +124,19 @@ const STATS = [
 
 /** Where each seeded stage drops the account, so a leg starts at its own obstacle.
  *  Why: keyed by the `%upass` value itself, and every one of these is the tile that stage's own script
- *  leaves the player on — the pass is sealed pockets, so a tele to the wrong side of a seam is unrecoverable. */
+ *  leaves the player on. The pass is sealed pockets, so a tele to the wrong side of a seam is unrecoverable. */
 const STAGE_TELE: Record<number, { x: number; z: number; level: number }> = {
     0: ARDOUGNE_BANK,
     1: { x: 2436, z: 3315, level: 0 },
     2: { x: 2442, z: 9716, level: 0 },
     3: { x: 2423, z: 9660, level: 0 },
     // Why: the crushed cage is a 4x3 loc and (2371,9603) is its own origin, so a tele there lands inside the
-    // footprint — this is the walkable tile the boulder's telejump leaves the player able to reach.
+    // footprint. This is the walkable tile the boulder's telejump leaves the player able to reach.
     4: { x: 2375, z: 9604, level: 0 },
     5: { x: 2173, z: 4725, level: 1 },
     6: { x: 2315, z: 9806, level: 0 },
     // Why: (2157,4564) is the chest's own tile and the pack calls it blocked. This is where leg four
-    // ends — shut in Kardia's house, which is the state stage seven has to start from.
+    // ends, shut in Kardia's house, which is the state stage seven has to start from.
     7: { x: 2156, z: 4566, level: 1 },
     8: { x: 2144, z: 4647, level: 1 },
     9: { x: 2482, z: 9607, level: 0 },
@@ -144,7 +144,7 @@ const STAGE_TELE: Record<number, { x: number; z: number; level: number }> = {
 };
 
 // Why: the pass is one-way and has no bank in it, so a leg seeded past the cave mouth cannot go back for
-// the kit the module would otherwise withdraw — an inside-the-pass stage is handed its pack directly.
+// the kit the module would otherwise withdraw, an inside-the-pass stage is handed its pack directly.
 const PACK_SEED: { debugName: string; qty: number }[] = [
     { debugName: 'shortbow', qty: 1 },
     { debugName: 'bronze_arrow', qty: 50 },
@@ -163,7 +163,7 @@ const PACK_SEED: { debugName: string; qty: number }[] = [
 // Why: some things in the pass are handed over by a script that only runs once, so a leg seeded past it
 // starts without them. The doll comes out of Kardia's chest and nothing else gives another.
 // Why: and stage four needs the horn. `%upass` 3 and 4 print the same journal page, so the module reads
-// the pass by what it is carrying — with no horn and no badge it cannot tell "unicorn still alive" from
+// the pass by what it is carrying, with no horn and no badge it cannot tell "unicorn still alive" from
 // "unicorn killed and the horn already spent", and a stage-four start goes back for a railing it used.
 const STAGE_PACK: Record<number, string[]> = {
     4: ['cave_unicorn_horn'],
@@ -228,7 +228,7 @@ if (args.stage < 0 || args.stage > 10) {
 
 // Why: `public/bot` is shared, so another session's deploy landing inside this run's boot window would
 // hand it their branch. The isolated client also refuses to start without the collision pack, which is
-// what a fresh worktree is missing — the navigator dies on boot and every walk degrades in silence to the
+// what a fresh worktree is missing, the navigator dies on boot and every walk degrades in silence to the
 // scene stepper, presenting as a per-destination "unreachable" rather than a missing artefact.
 const client = args.deploy ? deployIsolatedClient(args.user) : null;
 const clientPage = client?.page ?? '/bot.html';
@@ -260,7 +260,7 @@ try {
     await seedItemsToBank(page, BANK_SEED, ARDOUGNE_BANK);
 
     // Why: Biohazard gates both King Lathas's Underground Pass branch and the cave mouth itself, and it has
-    // no module yet — seeding it complete is what makes this quest reachable at all.
+    // no module yet, seeding it complete is what makes this quest reachable at all.
     // Why: Plague City is seeded with it. Its dug tunnel is the only way through the Ardougne wall, and the
     // live chain reaches this quest through it, so an unfinished garden is a harness artefact, not a case.
     await cheatQuiet(page, `setvar elenaquest ${PLAGUE_CITY_COMPLETE}`);
@@ -314,7 +314,7 @@ try {
     }
 
     // Why: stage ONE, not two. `STAGE_TELE[1]` is the cave mouth at (2436,3315), which is inside West
-    // Ardougne and already past the bank — so a stage-1 start cannot draw the kit and `readyToDescend`
+    // Ardougne and already past the bank, so a stage-1 start cannot draw the kit and `readyToDescend`
     // parks the queue on an empty pack, which reads as a broken leg rather than a fixture that never
     // handed it anything. Only stage 0 begins where a bank is reachable.
     if (args.stage >= 1) {
@@ -333,7 +333,7 @@ try {
     while (Date.now() < deadline) {
         const last = await snapshot(page);
         // Why: the engine serves one bundle to everyone, so a session that redeploys inside this run's boot
-        // window hands it their branch — and a queue without this quest spends the budget on somebody else's.
+        // window hands it their branch, and a queue without this quest spends the budget on somebody else's.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;

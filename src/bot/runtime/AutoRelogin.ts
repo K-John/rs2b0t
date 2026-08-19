@@ -28,7 +28,7 @@ class AutoReloginImpl {
     private coordination: LoginCoordination | null = null;
 
     enable(autoLogin = false): void {
-        // Notify UI even when already enabled — Multibox / URL may arm after the panel paints (#215).
+        // Notify UI even when already enabled, Multibox / URL may arm after the panel paints (#215).
         if (autoLogin && !this.autoLogin) {
             this.setAutoLogin(true);
         }
@@ -43,7 +43,7 @@ class AutoReloginImpl {
         const was = this.autoLogin;
         this.autoLogin = on;
         // Title checkbox off stops title-only reconnects. A running/paused script
-        // still reconnects via scriptActive() — do not clear that mid-flight (#215).
+        // still reconnects via scriptActive(), do not clear that mid-flight (#215).
         if (!on && !this.scriptActive()) {
             this.clearReconnect();
         }

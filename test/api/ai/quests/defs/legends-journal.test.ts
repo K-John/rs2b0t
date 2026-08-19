@@ -291,7 +291,7 @@ const STAGES: readonly number[] = [
 ];
 
 describe('parseLegendsJournal', () => {
-    // Why: stages 35 and 40 render the same body — the "replaced the evil totem" line is gated on 45 — so 40 is expected to read back as 35 and `decide()` splits the pair by what is carried.
+    // Why: stages 35 and 40 render the same body, the "replaced the evil totem" line is gated on 45, so 40 is expected to read back as 35 and `decide()` splits the pair by what is carried.
     const SAME_BODY: Record<number, number> = { [LQ_STAGE.REPLACED_TOTEM]: LQ_STAGE.DEFEATED_NEZI_FINAL };
 
     for (const stage of STAGES) {

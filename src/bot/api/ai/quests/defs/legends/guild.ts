@@ -26,14 +26,14 @@ const GUARD_PREFER = [
     "Yes, I'd like to talk to Grand Vizier Erkle",
     'Can I go on the quest?',
     'What is this place?',
-    // Why: last, so it is only taken when none of the ways in are on offer — and then it makes the guard read the missing quests into the log rather than leaving the refusal unexplained.
+    // Why: last, so it is only taken when none of the ways in are on offer, and then it makes the guard read the missing quests into the log rather than leaving the refusal unexplained.
     'Which quests do I need to complete?'
 ];
 
-// Why: `legends_guard_eligible` answers a short quest list with a `multi2` the entry options are not in, and a short quest-point total with a `chatnpc` and no menu at all — the conversation ends there. Either way the drive returns with the gate shut, the step fails, and the engine sends the run back to the same guard for as long as it is left running.
+// Why: `legends_guard_eligible` answers a short quest list with a `multi2` the entry options are not in, and a short quest-point total with a `chatnpc` and no menu at all. The conversation ends there. Either way the drive returns with the gate shut, the step fails, and the engine sends the run back to the same guard for as long as it is left running.
 const GUARD_REFUSED = /complete more quests|107 quest points|quest point/i;
 
-// Why: `legends_guard_start` only has a conversation before the quest starts. From stage one on he nods you past and says nothing at all, so `Reach.npcDialog` waits out its budget on a chat that is never coming — which is what parked a run carrying the gilded totem back to Radimus, five times over.
+// Why: `legends_guard_start` only has a conversation before the quest starts. From stage one on he nods you past and says nothing at all, so `Reach.npcDialog` waits out its budget on a chat that is never coming, which is what parked a run carrying the gilded totem back to Radimus, five times over.
 // Why: from then on the gate is the way in. `open_legends_gate` looks for a guard within fourteen tiles, has him nod, and swings the doors for anyone past `legends_not_started`.
 
 /** The gate line; north of it is the guild side. */
@@ -80,7 +80,7 @@ export async function enterGuild(log: (m: string) => void): Promise<boolean> {
     if (Quests.status(LEGENDS_QUEST) !== 'notStarted') {
         return walkThroughGate(log);
     }
-    // Why: the guard patrols, so the leash-limited `gotoNpc` loses him — `Reach` searches the scene and lets the server chase.
+    // Why: the guard patrols, so the leash-limited `gotoNpc` loses him, `Reach` searches the scene and lets the server chase.
     const status = await Reach.npcDialog({ name: LQ_NPC.GUARD, near: LQ_TILE.GUARD, log });
     if (status !== 'done') {
         log('the Legends guard never opened a dialogue');
@@ -238,7 +238,7 @@ export async function enterMainHall(log: (m: string) => void): Promise<boolean> 
     return ok;
 }
 
-// Why: one conversation walks all four sessions — each choice re-offers the menu until the fourth, which queues the completion.
+// Why: one conversation walks all four sessions, each choice re-offers the menu until the fourth, which queues the completion.
 // Why: the four menus are `p_choice4` pages of three skills and a link to the next, so reaching a skill off page one means taking the link until its page is up.
 // Why: every page carries one link and no more, so listing all four costs nothing and the chosen skill coming first is what makes the walk stop when it arrives.
 

@@ -275,7 +275,7 @@ class EdgevilleMonkeyBars extends TaskBot {
             }
         });
 
-        // Check inventory on startup — if no food is present, BankAndRestock will run first
+        // Check inventory on startup, if no food is present, BankAndRestock will run first
         // (validate returns true when no food on surface for any restock mode).
         const foodName = scriptFood(this.settings, FALLBACK_FOOD).toLowerCase();
         const hasFood = Inventory.items().some(i => i.name?.toLowerCase().includes(foodName));
@@ -380,7 +380,7 @@ class BankAndRestock implements Task {
         const fc = foodCount(scriptFood(this.bot.settings, FALLBACK_FOOD));
         const min = this.bot.settings.num('minFood', 1);
         if (fc < min && (Game.tile()?.z ?? 0) < UNDERGROUND_Z) {
-            // Below minimum food on the surface — bank before heading into the dungeon (works for both restock modes).
+            // Below minimum food on the surface, bank before heading into the dungeon (works for both restock modes).
             return true;
         }
         return needsFoodRestock(this.bot);
@@ -454,7 +454,7 @@ class NavigateToMonkeyBars implements Task {
         if ((here.z ?? 0) < UNDERGROUND_Z) {
             return true; // still on the surface
         }
-        // already next to interactable bars — stay put
+        // already next to interactable bars, stay put
         if (findMonkeyBars(this.bot)) {
             return false;
         }
@@ -582,7 +582,7 @@ class RepeatMonkeyBars implements Task {
             return;
         }
 
-        // Spam mode: no wait for completion — loop back and click again immediately.
+        // Spam mode: no wait for completion, loop back and click again immediately.
         // Swing is counted on the next loop when the XP for this click lands.
     }
 }

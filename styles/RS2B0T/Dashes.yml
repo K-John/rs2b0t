@@ -1,0 +1,5 @@
+extends: existence
+message: "Dash '%s' reads as an AI tell. End the sentence or use a comma."
+level: error
+raw:
+  - '—|\s–\s'

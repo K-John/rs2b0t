@@ -1,9 +1,9 @@
 /** Live Hero's Quest solo-item harness (#249): one account, the armband already earned, driving the
- *  two chains a bot does alone — the lava eel and the Entranan firebird feather — and the hand-in.
+ *  two chains a bot does alone, the lava eel and the Entranan firebird feather, and the hand-in.
  *  Why: the armband is the only half of this quest that needs two accounts, so proving the rest costs
  *  one browser and no rendezvous.
  *  Why: the ice gloves are seeded. Every ladder into the Ice Queen's lair stands on a White Wolf
- *  Mountain plateau the map flags seal, and she is the only source — see quest-pitfalls-35. */
+ *  Mountain plateau the map flags seal, and she is the only source, see quest-pitfalls-35. */
 
 //   HEADED=1 bun e2e/heros-quest-items-249-live.ts --tick 300 --minutes 60
 //   HEADED=1 bun e2e/heros-quest-items-249-live.ts --skip-eel --minutes 30
@@ -151,12 +151,12 @@ try {
     await mainlandAccount(page, args.base, args.user, client.page);
     await cheatQuiet(page, `speed ${args.tickMs}`);
     await setStats(page, args.stats);
-    // Why: the values `quest.constant` calls complete — `~send_quest_progress` colours the list
+    // Why: the values `quest.constant` calls complete, `~send_quest_progress` colours the list
     // green only on `current >= complete`.
     for (const [name, value] of [['zanaris', 6], ['dragonquest', 10], ['arthur', 7], ['blackarmgang', 4]] as const) {
         await cheatQuiet(page, `setvar ${name} ${value}`);
     }
-    // Why: 13 is `hero_blackarm_obtained_armband` — the armband earned, the two solo items still owed.
+    // Why: 13 is `hero_blackarm_obtained_armband`, the armband earned, the two solo items still owed.
     await cheatQuiet(page, 'setvar heroquest 13');
     // Why: the quest list is coloured by `~send_quest_progress` at login, so a varp set mid-session
     // leaves the prerequisites reading red and the eligibility gate blocks the quest before it starts.

@@ -110,7 +110,7 @@ export async function executeRepairPlan(
         await host.bankPace();
         await host.prepareWornSurplusForDeposit(log, acquireKeepNames(plan, host.gearKeepNamesList()));
         await host.depositSurplusGatherTools(log, acquireKeepNames(plan, host.gearKeepNamesList()));
-        // Nurmof repairs cost gp — do not walk without the float when withdraw fails.
+        // Nurmof repairs cost gp, do not walk without the float when withdraw fails.
         if (!(await host.withdrawCoinsFor(1000, log))) {
             if (Inventory.count(COINS) < 1) {
                 log('acquire: no repair float in pack after bank — abort (will buy if affordable)');
@@ -281,7 +281,7 @@ export async function executeBuyPlans(
             log(`equip: skip ${plan.name} (need Attack ${toolAttackLevel(plan.name)})`);
         }
     }
-    // Close shop before Wield — pack ops are Sell-* while the shop main modal is open.
+    // Close shop before Wield, pack ops are Sell-* while the shop main modal is open.
     await Shop.close();
     await Execution.delayUntilTicks(() => !Shop.isOpen(), 5);
     await Execution.delayTicks(1);
@@ -384,7 +384,7 @@ export async function executeSmithPlan(
     }
     await Execution.delayUntilTicks(() => ChatDialog.isMainMakePanel() || ChatDialog.canContinue(), 10);
     if (ChatDialog.isMainMakePanel()) {
-        // Prefer exact product name first — bare 'Axe' matches Battleaxe via includes().
+        // Prefer exact product name first, bare 'Axe' matches Battleaxe via includes().
         if (!(await ChatDialog.makeFromPanelMax(plan.name))) {
             await ChatDialog.makeFromPanelMax('Axe');
         }

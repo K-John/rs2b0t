@@ -67,7 +67,7 @@ function inWest(area: BioArea, step: QuestStep): QuestStep {
     return area === 'west' || area === 'hq' || area === 'hqUpstairs' ? step : TO_WEST;
 }
 
-// Why: the meal and the priest suit's float come out here rather than at the wall — Jerico's house is nine tiles from the Ardougne booth, and the watchtower where the next stage ends is sixty.
+// Why: the meal and the priest suit's float come out here rather than at the wall, Jerico's house is nine tiles from the Ardougne booth, and the watchtower where the next stage ends is sixty.
 /** The distraction leg: seed from Jerico's cupboard, birds from behind his house, then the tower. */
 function distractionStep(snap: QuestSnapshot, area: BioArea): QuestStep {
     const kit = sourceFood(snap) ?? sourceCoins(snap, PRIEST_SUIT_GP, false);
@@ -97,7 +97,7 @@ function distillatorStep(snap: QuestSnapshot, area: BioArea): QuestStep {
         return inWest(area, custom("search the nurse's cupboard for a doctors' gown", takeDoctorGown));
     }
     // Why: the cupboard hands nothing over while one is banked, so the banked copy is the only one
-    // this stage will ever have — and West Ardougne has no booth to draw it from.
+    // this stage will ever have, and West Ardougne has no booth to draw it from.
     if (held(snap, BIO_ITEM.DOCTOR_GOWN) === 0 && !worn(snap, BIO_ITEM.DOCTOR_GOWN)) {
         const gown = reclaim(snap, BIO_ITEM.DOCTOR_GOWN);
         return gown ? onMainland(area, gown) : { kind: 'wait', reason: "the doctors' gown is nowhere the bot can reach" };
@@ -120,7 +120,7 @@ function returnDistillatorStep(snap: QuestSnapshot, area: BioArea): QuestStep {
 }
 
 // Why: an errand boy taking a vial and Elena's own vials being lost look identical from the pack,
-// so the reissue is never offered here — only the sample, which no errand boy is ever given.
+// so the reissue is never offered here, only the sample, which no errand boy is ever given.
 
 /** Draw whatever Elena already handed over out of the bank, and replace a lost sample. */
 function reagentStep(snap: QuestSnapshot, area: BioArea): QuestStep | null {
@@ -157,7 +157,7 @@ function outside(name: string, errand: (log: (m: string) => void) => Promise<boo
     return custom(name, async log => (await leaveQuarter(log)) && errand(log));
 }
 
-// Why: nothing in the quarter touches a bank — the nearest booth is on the far side of the gate,
+// Why: nothing in the quarter touches a bank, the nearest booth is on the far side of the gate,
 // and a vial carried back through it is confiscated, which is a wedge rather than a recovery.
 function inQuarterStep(snap: QuestSnapshot): QuestStep {
     if (owned(snap, BIO_ITEM.TOUCH_PAPER) === 0) {
@@ -167,7 +167,7 @@ function inQuarterStep(snap: QuestSnapshot): QuestStep {
         return outside('ask Elena to replace the sample she gave me', askElenaForReplacements);
     }
     if (VIALS.some(vial => held(snap, vial) === 0)) {
-        // Why: a boy who drank, sold or painted his vial gives nothing back and only Elena reissues one — the walk out loses whatever is still carried to the gate guard, which is what makes her hand over a full set rather than the remainder.
+        // Why: a boy who drank, sold or painted his vial gives nothing back and only Elena reissues one, the walk out loses whatever is still carried to the gate guard, which is what makes her hand over a full set rather than the remainder.
         return snap.noProgress >= COLLECT_GIVE_UP
             ? outside('ask Elena to replace the vials the errand boys ruined', askElenaForReplacements)
             : custom('collect the vials at the Dancing Donkey', collectFromErrandBoys);
@@ -198,7 +198,7 @@ function stageStep(snap: QuestSnapshot, area: BioArea, stage: number): QuestStep
         case BIO_STAGE.RELEASED_PIGEONS:
             return TO_WEST;
         // Why: the apples are a free respawning spawn a few tiles from the cauldron, so this leg
-        // never consults the bank — which is what keeps a fresh start in West Ardougne moving.
+        // never consults the bank, which is what keeps a fresh start in West Ardougne moving.
         case BIO_STAGE.CLIMBED_LADDER:
             if (held(snap, BIO_ITEM.ROTTEN_APPLES) === 0) {
                 return inWest(area, custom('take the rotten apples in West Ardougne', takeRottenApples));
@@ -237,7 +237,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === undefined) {
         return { kind: 'wait', reason: 'Biohazard journal stage unavailable' };
     }
-    // Why: `ownsInventory` skips the engine's provisioning, so nothing else ever opens a booth and a gown, vial or key sitting in the bank stays invisible until this module reads one — but past the wall the navigator answers "unreachable" for every booth in the game, so the read waits for the mainland.
+    // Why: `ownsInventory` skips the engine's provisioning, so nothing else ever opens a booth and a gown, vial or key sitting in the bank stays invisible until this module reads one, but past the wall the navigator answers "unreachable" for every booth in the game, so the read waits for the mainland.
     if (!snap.bankKnown) {
         if (area === 'mainland') {
             return scanBank();

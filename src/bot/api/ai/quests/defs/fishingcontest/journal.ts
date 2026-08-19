@@ -7,7 +7,7 @@ import { FC_NAME } from './areas.js';
 export const FC_STAGE = {
     NOT_STARTED: 0,
     STARTED: 1,
-    /** Entered, fishing the willow-tree spot — sardines, which lose. */
+    /** Entered, fishing the willow-tree spot, sardines, which lose. */
     IN_COMP: 2,
     /** The garlic has driven the stranger off the pipes; that spot is the bot's. */
     GARLIC_COMP: 3,
@@ -43,7 +43,7 @@ export function parseFishingContestJournal(lines: readonly string[] | string): n
     return STAGES.find(([needle]) => text.includes(needle))?.[1];
 }
 
-// Why: no last-good cache here — losing the contest walks the stage back to `started`, so a stale read would send the bot to fish a spot it no longer owns.
+// Why: no last-good cache here, losing the contest walks the stage back to `started`, so a stale read would send the bot to fish a spot it no longer owns.
 
 export async function readFishingContestStage(): Promise<number | undefined> {
     const status = Quests.status(FC_NAME);

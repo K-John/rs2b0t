@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Nature Spirit — stage-scoped harness
+## Nature Spirit, stage-scoped harness
 
 [`e2e/naturespirit-239-live.ts`](../../e2e/naturespirit-239-live.ts), members-only,
 so `:8890`:
@@ -20,14 +20,14 @@ HEADED=1 bun e2e/naturespirit-239-live.ts --stage 85 --until 110 --minutes 30 --
 Three things it does beyond the Horror shape:
 
 - **Sets both prerequisites.** Eligibility reads the quest-list colour, so
-  `prieststart` and `priestperil` are set and the run relogs — `update_questlist`
+  `prieststart` and `priestperil` are set and the run relogs, `update_questlist`
   only recolours at login. `priestperil` goes to 61, not 60: the Salve barrier the
   route depends on is `^priestperil_access_holy_barrier`.
 - **Gives the pack what the stage implies.** A mid-quest start hands over the
-  ghostspeak amulet, and from stage 75 the blessed sickle and a druid pouch — both
+  ghostspeak amulet, and from stage 75 the blessed sickle and a druid pouch, both
   come from Filliman, so a run seeded past him otherwise describes an unreachable
   state. Stage 0 gets none of it, which is what makes the end-to-end run the proof.
-- **`--stocked` banks a mould and a silver bar** — ordinary clutter on an
+- **`--stocked` banks a mould and a silver bar**, ordinary clutter on an
   established account, and the only way to reach the cast without the Al Kharid
   round trip. Leave it off for anything claiming the quest works.
 
@@ -35,11 +35,11 @@ The bank holds coins and food alone by default. Nothing seeds a pickaxe: mining
 without one raises no refusal at all, so a seeded run would pass while the quest
 could not mine.
 
-Measured end to end at `--tick 200`: **19 minutes, 37 steps, no parks** — walking,
+Measured end to end at `--tick 200`: **19 minutes, 37 steps, no parks**, walking,
 with no teleports. Roughly half of that is the Mort Myre ↔ Al Kharid round trip the
 silver sickle costs.
 
-## Observatory Quest — stage-scoped harness
+## Observatory Quest, stage-scoped harness
 
 [`e2e/observatory-252-live.ts`](../../e2e/observatory-252-live.ts), members-only, so
 `:8890`. `--stage` is the raw `%itgronigen` value and the run relogs after seeding it,
@@ -62,14 +62,14 @@ Three things worth knowing before reading a result:
 - **`--stats` is 70, not 99.** The only fight is the level-42 goblin guard on the keep
   gate. `setstat` is used rather than `~maxme`, which leaves the player delayed through its
   level-up cascade and swallows the next typed command.
-- **`--stocked` banks three planks, a bronze bar and molten glass** — ordinary clutter on
+- **`--stocked` banks three planks, a bronze bar and molten glass**, ordinary clutter on
   an established account, and the only way to reach the lens without the full loop. Leave
   it off for anything claiming the quest works.
 
 The bank holds coins and food alone by default. Nothing seeds a pickaxe: mining without
 one raises no refusal at all, so a seeded run would pass while the quest could not mine.
 
-Measured end to end at `--tick 200`: **14 minutes, 27 steps, no parks** — walking, with no
+Measured end to end at `--tick 200`: **14 minutes, 27 steps, no parks**, walking, with no
 teleports, from a bank holding coins and food alone. The stage jumps run **0 → 1 in 1
 minute**, **1 → 4 in 11 minutes** (the outing plus four hand-overs) and **6 → 7 in 2
 minutes**.

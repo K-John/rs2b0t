@@ -34,7 +34,7 @@ a single ambiguous edge.
 
 ## Design rules
 
-1. Content first — cite the `.rs2` and its constants.
+1. Content first, cite the `.rs2` and its constants.
 2. Gate at plan time with `TransportRequires` (members, quest, skill, coins).
 3. Multi-dest hubs get one edge per destination.
 4. Fail closed without WorldState on requires-gated edges.

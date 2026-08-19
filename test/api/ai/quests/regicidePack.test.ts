@@ -74,7 +74,7 @@ describe('regicide pack planning', () => {
         expect(managePack(snap, PLAN)).toBeNull();
     });
 
-    // Why: shed, draw, done — three cycles and no fourth, because a plan that never settles is a bank trip every tick.
+    // Why: shed, draw, done, three cycles and no fourth, because a plan that never settles is a bank trip every tick.
     test('shedding a surplus and drawing it back settles', () => {
         let carried: [number, number][] = [[RG_ITEM.SPADE.id, 1], [RG_ITEM.SHARK.id, 11], [RG_ITEM.BARREL_TAR.id, 1]];
         const banked: [number, number][] = [[RG_ITEM.SHARK.id, 40]];
@@ -105,7 +105,7 @@ describe('regicide pack planning', () => {
     });
 });
 
-// Why: a plan is a whitelist, so anything it forgets to name is banked. All of this can be had again — Iorwerth reissues the scroll, the messenger's timer re-arms — but the cheapest replacement is the pass walked end to end, so it is kept unless a plan names it.
+// Why: a plan is a whitelist, so anything it forgets to name is banked. All of this can be had again, since Iorwerth reissues the scroll and the messenger's timer re-arms, but the cheapest replacement is the pass walked end to end, so it is kept unless a plan names it.
 describe('what a plan keeps without being asked', () => {
     const BARE: PackPlan = { what: 'a plan that names nothing', allow: [] };
 

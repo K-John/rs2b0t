@@ -146,7 +146,7 @@ export function currentLoginStatsReady(
 
 /**
  * Object/NPC vertical extent for hulls. RS model space: minY = max(-vertexY)
- * (height above origin) — same as ClientNpc.height. maxY is below-origin only.
+ * (height above origin), same as ClientNpc.height. maxY is below-origin only.
  */
 export function locHullHeight(
     model: { minY: number; maxY: number } | null | undefined,
@@ -430,7 +430,7 @@ export const reader = {
 
     /**
      * Orbit camera yaw 0–2047 (client-only; TS-private on Client, plain property at runtime).
-     * Used by optional nav path-facing — no server/LC dependency.
+     * Used by optional nav path-facing, no server/LC dependency.
      */
     cameraYaw(): number {
         const c = raw as (RawClient & { orbitCameraYaw?: number }) | null;
@@ -721,7 +721,7 @@ export const reader = {
                     }
                 }
                 const model = resolveLocModelExtents(modelSrc);
-                // resizey is a % scale (128 = 100%), not a height — never use it as topH.
+                // resizey is a % scale (128 = 100%), not a height, never use it as topH.
                 topH = locHullHeight(model, 128);
                 if (
                     !usedSceneFootprint &&
@@ -1294,11 +1294,11 @@ export const reader = {
     },
 
     tradeSidePack(): InvItemSnapshot[] {
-        return readInvComponent(3322, () => IfType.list[3322]?.iop ?? []); // tradeside:inv — your pack while trading
+        return readInvComponent(3322, () => IfType.list[3322]?.iop ?? []); // tradeside:inv, your pack while trading
     },
 
     tradePartner(): string | null {
-        return IfType.list[3417]?.text ?? null; // trademain:otherplayer — "Trading With: <name>"
+        return IfType.list[3417]?.text ?? null; // trademain:otherplayer, "Trading With: <name>"
     },
 
     closeButtonComId(rootComId: number): number {
@@ -1547,7 +1547,7 @@ export const actions = {
     },
 
     /**
-     * Set orbit camera yaw (0–2047). Client-side only — flags the periodic
+     * Set orbit camera yaw (0–2047). Client-side only, flags the periodic
      * camera report packet when available. Does not touch LC/engine code.
      */
     setCameraYaw(yaw: number): boolean {

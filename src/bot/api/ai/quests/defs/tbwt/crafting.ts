@@ -88,7 +88,7 @@ export function fishKarambwanji(want: number): (log: Log) => Promise<boolean> {
 }
 
 // Why: a raw Karambwan burns three times in ten, and the shoal is a hundred and sixty tiles from
-// the Holy Lake the bait comes from — a spare caught on this visit is cheaper than a second round trip.
+// the Holy Lake the bait comes from, a spare caught on this visit is cheaper than a second round trip.
 
 /** Lower the loaded vessel at Lubufu's spot until `want` Karambwan come up, or the bait runs out. */
 export function fishKarambwan(want = 2): (log: Log) => Promise<boolean> {
@@ -296,7 +296,7 @@ export async function burnJogreBones(log: Log): Promise<boolean> {
         return false;
     }
     // Why: a tile that already carries a loc refuses with a chat line and nothing else, so the
-    // refusal is read rather than waited out — a minute and a half per attempt otherwise.
+    // refusal is read rather than waited out, a minute and a half per attempt otherwise.
     if (await Execution.delayUntil(() => GameMessages.sawSince(mark, CANT_LIGHT), 3000)) {
         const here = Game.tile();
         log(`cannot light a fire at (${here?.x},${here?.z}) — stepping aside`);

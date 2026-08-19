@@ -15,7 +15,7 @@ function normalize(lines: readonly string[] | string): string {
         .toLowerCase();
 }
 
-// Why: which scorpions are caught is not read here — the journal counts only the cages in the pack, while the cage obj id says it for a banked cage too.
+// Why: which scorpions are caught is not read here. The journal counts only the cages in the pack, while the cage obj id says it for a banked cage too.
 
 /**
  * `%scorpcatcher` from the journal page.

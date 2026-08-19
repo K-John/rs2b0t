@@ -48,7 +48,7 @@ describe('Anchor helpers', () => {
     });
 
     test('soft return defaults: slack 6 / arrive disk 8 (createReturnToAnchorTask)', () => {
-        // Humans re-enter the camp disk — beyondLeash with slack 6, arrive ≤ 8.
+        // Humans re-enter the camp disk, beyondLeash with slack 6, arrive ≤ 8.
         const h = host(0, 0, 10);
         expect(beyondLeash(h, new Tile(16, 0, 0), 6)).toBe(false); // 16 <= 10+6
         expect(beyondLeash(h, new Tile(17, 0, 0), 6)).toBe(true);
@@ -69,7 +69,7 @@ describe('Anchor helpers', () => {
         const task = createReturnToAnchorTask(h, opts);
         expect(typeof task.validate).toBe('function');
         expect(typeof task.execute).toBe('function');
-        // Without a live Game.tile(), beyondLeash is false — task stays idle.
+        // Without a live Game.tile(), beyondLeash is false, task stays idle.
         withNoPlayerTile(() => {
             expect(task.validate()).toBe(false);
         });

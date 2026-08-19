@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Sea Slug — stage-scoped harness
+## Sea Slug, stage-scoped harness
 
 [`e2e/sea-slug-259-live.ts`](../../e2e/sea-slug-259-live.ts) drives the quest from a
 clean account or from any point inside it. `--stage N` writes `%seaslugquest`
@@ -23,7 +23,7 @@ counter, and the torch, the damp sticks and the broken glass all have sources on
 platform.
 
 Measured at `--tick 200`, no parks: **5 minutes** from a clean account to quest
-complete. Per leg — stages 3 to 6 in 2 minutes, stage 6 to complete in 3.
+complete. Per leg, stages 3 to 6 in 2 minutes, stage 6 to complete in 3.
 
 Four details govern this harness:
 
@@ -33,14 +33,14 @@ Four details govern this harness:
 - **Stages 7-10 are seeded with an unlit torch.** Bailey replaces a lost torch on
   stages 7-9 and has no line at all on stage 10, so a torchless seed there can neither
   climb the ladder nor ask for a replacement.
-- **Stats are 70 rather than maxed.** Nothing on this quest fights — every sea slug
-  and fisherman is `vislevel=hide` — and the only damage in it is the 4 for climbing
+- **Stats are 70 rather than maxed.** Nothing on this quest fights, every sea slug
+  and fisherman is `vislevel=hide`, and the only damage in it is the 4 for climbing
   the ladder without a lit torch.
 - **It fails in the first minute if the loaded bundle has no Sea Slug in its queue.**
   The engine serves one `public/bot`, and a concurrent session that deploys while this
   harness boots hands the run their branch instead.
 
-## Shades of Mort'ton — stage-scoped harness
+## Shades of Mort'ton, stage-scoped harness
 
 [`e2e/mortton-255-live.ts`](../../e2e/mortton-255-live.ts), members-only, so `:8890`:
 
@@ -60,7 +60,7 @@ Five things it does that the Nature Spirit shape does not:
 
 - **Levels, not `~maxme`.** `--levels 70` (the default) walks every skill up with
   `~addxp`, because the temple's build rolls and its resource bands are all
-  `stat_random(crafting, …)` — a maxed account rebuilds it on numbers the module
+  `stat_random(crafting, …)`, a maxed account rebuilds it on numbers the module
   is not claiming. `~addxp` takes **plain xp**, not the engine's internal tenths,
   even though the `stat_advance` it wraps takes tenths.
 - **Sets three prerequisites.** Priest in Peril walls Morytania off, and the
@@ -70,7 +70,7 @@ Five things it does that the Nature Spirit shape does not:
   in one pack before he takes any; two from 45, because he has taken his and
   Ulsquire his, and only the pyre and its retry are left to feed.
 - **Prints the three flamtaer meters on every poll** (`temple=repaired%/pool%/sanctity%`).
-  They are the only transmitted varps this quest has — `%morttonquest` is not one —
+  They are the only transmitted varps this quest has, `%morttonquest` is not one,
   and they are what the temple leg reads.
 - **`--stocked` gives a mid-quest start the approach pack.** Coins, food, a
   tinderbox, two ashes, the pyre log and the melee kit, which is what the Varrock
@@ -82,13 +82,13 @@ are ground spawns beside them, the water is the Mort'ton sink, the logs are the
 two spawns beside the Varrock east bank, the tinderbox is the Varrock general
 store, and every building material is Razmire's.
 
-Measured end to end at `--tick 200`: **9 minutes, 38 steps, no parks** — walking,
+Measured end to end at `--tick 200`: **9 minutes, 38 steps, no parks**, walking,
 with no teleports, from a clean account. Two steps failed and recovered on their
 own: the swamp crossing outran its 90-second walk budget once (and paid two
 lobsters to the ghasts), and the first strike at the altar spent its budget
 climbing sanctity from a cold start.
 
-The temple is world state, and its walls hold for 9000 ticks — so a leg run soon
+The temple is world state, and its walls hold for 9000 ticks, so a leg run soon
 after another leg finds it already rebuilt, and one run later finds the shades
 have knocked it back down. Both are states the module has to handle, and both
 turn up on their own if the legs are run back to back.

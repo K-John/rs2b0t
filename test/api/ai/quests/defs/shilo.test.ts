@@ -599,7 +599,7 @@ describe('shilo module', () => {
 describe('shilo decide — recovery', () => {
     test('past the carved doors it never re-cuts a lost bone key', () => {
         // The doors stay unlocked, and the tomb exit refuses to open for anyone
-        // still carrying the key — so a replacement would be a wasted trip.
+        // still carrying the key, so a replacement would be a wasted trip.
         const step = decide(snapshot({
             progress: progress(SV_STAGE.UNLOCKED_RASH_TOMB),
             invIds: carrying([SV_ITEM.CHISEL.id, 1]),
@@ -694,8 +694,8 @@ describe('inDolmenRoom', () => {
 
 describe('shilo eligibility', () => {
     test('Shilo Village is blocked until Jungle Potion is complete', () => {
-        // The engine enforces this twice — Mosol Rei will not hand over the belt and
-        // Trufitus will not take it — so the queue must not offer Shilo first.
+        // The engine enforces this twice, Mosol Rei will not hand over the belt and
+        // Trufitus will not take it, so the queue must not offer Shilo first.
         const maxed = new Map(['crafting', 'agility', 'smithing', 'mining'].map(s => [s, 99]));
         const player = { questPoints: 20, skillLevels: maxed, completedQuests: new Set<string>() };
         const items = { counts: new Map<string, number>() };

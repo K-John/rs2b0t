@@ -1,4 +1,4 @@
-// Why: content sets `%exit_essence_mine_coord` (pack id 64) on wizard entry, but that varp has no `transmit=yes` — see docs/local/varp-transmit-inventory.md.
+// Why: content sets `%exit_essence_mine_coord` (pack id 64) on wizard entry, but that varp has no `transmit=yes`, see docs/local/varp-transmit-inventory.md.
 // Why: the dest is mirrored bot-side when an entry hop is taken (specialCrossing or catalog edge) and fed into WorldState.essenceExitReturn for plan filters.
 
 import type { EssenceReturnId } from './essenceExit.js';
@@ -97,7 +97,7 @@ export const EssenceSession = {
         harnessOverride = undefined;
     },
 
-    /** Logout / new character — drop remembered return. */
+    /** Logout / new character, drop remembered return. */
     clear(): void {
         sessionReturn = undefined;
         harnessOverride = undefined;

@@ -62,7 +62,7 @@ export async function talkAt(
     return talkStrict(npc, prefer, log);
 }
 
-// Why: Omart's answer is five `if_close`/`mes`/`p_delay` beats before the choice that crosses, and every one leaves the chat modal shut — which `talkStrict` reads as the end of the conversation and returns on, so the choice belongs to the arrival poll rather than to the talk.
+// Why: Omart's answer is five `if_close`/`mes`/`p_delay` beats before the choice that crosses, and every one leaves the chat modal shut, which `talkStrict` reads as the end of the conversation and returns on, so the choice belongs to the arrival poll rather than to the talk.
 /** Omart's rope ladder. Only offered between released_pigeons and found_distillator. */
 async function climbWithOmart(log: (m: string) => void): Promise<boolean> {
     await talkAt(BIO_NPC.OMART, BIO_TILE.OMART, OMART_CROSS, log);
@@ -75,7 +75,7 @@ async function climbWithKilron(log: (m: string) => void): Promise<boolean> {
     return arrive(a => a === 'mainland', KILRON_CROSS, log);
 }
 
-// Why: the headquarters door answers Open with "In you go doc." and only opens once that box is clicked through, which is the frame the walker's own door crossing gives up on — and both its faces stand in a corridor the mourners wander, where one on the stand tile makes the client's path search fail every click, so `Reach.locOp` owns the approach and operates the door from either side of its edge.
+// Why: the headquarters door answers Open with "In you go doc." and only opens once that box is clicked through, which is the frame the walker's own door crossing gives up on, and both its faces stand in a corridor the mourners wander, where one on the stand tile makes the client's path search fail every click, so `Reach.locOp` owns the approach and operates the door from either side of its edge.
 async function crossHqDoor(near: Tile, want: (a: BioArea) => boolean, log: (m: string) => void): Promise<boolean> {
     return promptLoc({
         name: 'Door',

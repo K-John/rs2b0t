@@ -1,6 +1,6 @@
 /** Live Clock Tower harness (#236): --stage N --until N --minutes N, base :8890.
  *  Why: `--stage` counts cogs already on their spindles rather than the raw varp, because `%cogquest` and `%cog_bits` have to move together or the journal and the world disagree; it relogs since update_questlist only recolours the list at login.
- *  Why: stats are max — ogres stand over the red cog and turn aggressive under 106 combat — and the bank holds coins and food alone, so the bucket, the water and the poison are all sourced in the world. */
+ *  Why: stats are max, ogres stand over the red cog and turn aggressive under 106 combat, and the bank holds coins and food alone, so the bucket, the water and the poison are all sourced in the world. */
 
 //   HEADED=1 bun e2e/clock-tower-236-live.ts --stage 0 --until 5 --minutes 60 --tick 200
 //   HEADED=1 bun e2e/clock-tower-236-live.ts --stage 3 --until 4 --minutes 25 --tick 200
@@ -145,7 +145,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph compiles into navworker.js, a separate entrypoint, deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {
@@ -232,7 +232,7 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without Clock Tower in it spends the budget on somebody else's quest.
+        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch, and a queue without Clock Tower in it spends the budget on somebody else's quest.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;
@@ -254,7 +254,7 @@ try {
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
-        // Why: a full run waits for the list to go green rather than the varp — the recolour and the QP award land a tick behind %cogquest.
+        // Why: a full run waits for the list to go green rather than the varp, the recolour and the QP award land a tick behind %cogquest.
         const done = args.until >= 5 ? last.status === 'complete' : placed >= args.until;
         if (done) {
             console.log(`PASS (placed=${placed}/4, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);

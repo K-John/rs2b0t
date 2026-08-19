@@ -19,7 +19,7 @@ import type { WorldTile } from '#/bot/adapter/ClientAdapter.js';
 
 const at = (x: number, z: number, level = 0): WorldTile => ({ x, z, level } as WorldTile);
 
-// Why: every box is a flood of the collision pack — the Brimhaven mansion is six sealed pockets and a
+// Why: every box is a flood of the collision pack, the Brimhaven mansion is six sealed pockets and a
 // distance test calls the two sides of one wall the same place.
 const POCKETS = [
     { name: 'kitchen', test: inKitchen, seed: at(2789, 3191), size: 26 },
@@ -55,7 +55,7 @@ describe("hero's quest Brimhaven pockets", () => {
         expect(inYard(at(2781, 3197))).toBe(false);
     });
 
-    // Why: `snipable_wall` at (2780,3198) carries blockrange=no — the slit is the only line onto Grip.
+    // Why: `snipable_wall` at (2780,3198) carries blockrange=no. The slit is the only line onto Grip.
     test('the arrow slit is in the side room and the lure tile is in the mansion', () => {
         expect(inSideRoom(HERO_TILE.ARROW_SLIT)).toBe(true);
         expect(inMansion(HERO_TILE.GRIP_LURE as unknown as WorldTile)).toBe(true);

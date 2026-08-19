@@ -1,4 +1,4 @@
-// Issue #429 — live BrimhavenAgility proof: [base].
+// Issue #429, live BrimhavenAgility proof: [base].
 
 //   bun e2e/brimhaven-agility-test.ts [http://localhost:8888]
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs, setSettings } from './lib/harness.js';
@@ -106,7 +106,7 @@ try {
     if (!entered) fail('never entered the Brimhaven Agility Arena');
     console.log('PASS 1/3 — entered the arena');
 
-    // 2. Paid bit set (or already was) — varp 309 bit 1
+    // 2. Paid bit set (or already was), varp 309 bit 1
     const paid = await page.evaluate(() => ((globalThis as never as Api).rs2b0t.reader.varp(309) >> 1) & 1);
     if (!paid) {
         // allow a bit more time if still paying

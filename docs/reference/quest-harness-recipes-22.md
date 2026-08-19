@@ -2,10 +2,10 @@
 
 # Quest harness recipes (Ea)
 
-## Eadgar's Ruse — harness recipes
+## Eadgar's Ruse, harness recipes
 
 [`e2e/eadgar-ruse-241-live.ts`](../../e2e/eadgar-ruse-241-live.ts), base `:8890`.
-The bank gets coins, food, a rune kit and **one ranarr weed** — no 2004 shop sells a
+The bank gets coins, food, a rune kit and **one ranarr weed**, no 2004 shop sells a
 ranarr or a ranarr potion (unf), and everything else the quest wants (the boots, the
 knife, the pineapple, the vodka, the axe, the pestle, the tinderbox, the logs, the
 chickens, the grain) has to be sourced by the run.

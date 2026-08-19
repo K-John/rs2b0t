@@ -1,5 +1,5 @@
 /** Live Shield of Arrav pair harness (#232): two accounts, one per gang, trading their way to a completion.
- *  Why: the quest cannot be finished alone — the crossbows sit behind a door only Straven's key opens, joining Phoenix makes Katrine refuse you, and the curator wants both halves in one pack. This is the only run that turns the journal green.
+ *  Why: the quest cannot be finished alone. The crossbows sit behind a door only Straven's key opens, joining Phoenix makes Katrine refuse you, and the curator wants both halves in one pack. This is the only run that turns the journal green.
  *  Why: one browser context per account, because settings live in sessionStorage keyed `rs2b0t:set:<Script>:<key>` and a shared context would cross-contaminate the two bots. */
 
 //   HEADED=1 bun e2e/shield-of-arrav-pair-232-live.ts --certs 2 --tick 300 --minutes 90
@@ -68,7 +68,7 @@ function fail(msg: string): never {
 const QUEST = 'Shield of Arrav';
 const VARROCK_WEST_BANK = { x: 3185, z: 3440, level: 0 };
 
-/** Coins and food only — every quest item has a source in the world. */
+/** Coins and food only, every quest item has a source in the world. */
 const BANK_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
     { debugName: 'lobster', displayName: 'Lobster', qty: 40 }

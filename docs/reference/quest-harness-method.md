@@ -17,11 +17,11 @@ What every quest harness does, independent of which quest it drives.
 ## Facts a harness is built on
 
 - **`::death` is a clean kill** (`~damage_self(999)`): respawn is Lumbridge `(3221,3218)`,
-  and `move_priciest_item_on_hero_to_death` keeps *one* of each of the three priciest items
-  — so a coin stack comes back as a single coin. Use it to drive death recovery through a death
+  and `move_priciest_item_on_hero_to_death` keeps *one* of each of the three priciest items,
+  so a coin stack comes back as a single coin. Use it to drive death recovery through a death
   rather than seeding a post-death pose.
 - **A stage test seeds only what that stage produces, never its tools.** See
-  [Quests](../how-to/add-a-quest.md) — every Watch Tower stage-10 test handed the bot
+  [Quests](../how-to/add-a-quest.md), every Watch Tower stage-10 test handed the bot
   a pickaxe, so all of them passed while the quest could not mine.
   [`e2e/shilo-solo-test.ts`](../../e2e/shilo-solo-test.ts) is the current worked
   example: `--stage`/`--bits` jump the quest varps, `--tele` drops the account beside

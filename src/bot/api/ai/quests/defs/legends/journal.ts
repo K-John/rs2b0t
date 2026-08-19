@@ -4,7 +4,7 @@ import { Quests } from '../../../../ui/questlog/Quests.js';
 import type { QuestProgress } from '../../engine/types.js';
 import { LEGENDS_QUEST, LQ_STAGE } from './areas.js';
 
-// Why: the journal is cumulative — every entry keeps the earlier history — so the newest line present names the stage.
+// Why: the journal is cumulative, every entry keeps the earlier history, so the newest line present names the stage.
 // Why: stages 35 and 40 render identically, as the "I replaced the evil totem" line is gated on 45 and nothing else separates them; `decide()` splits that pair by what is carried.
 
 function normalize(lines: readonly string[] | string): string {
@@ -67,7 +67,7 @@ const FLAG_LINES: readonly [string, string][] = [
     ['i told ungadulu about the spirit', 'told-ungadulu']
 ];
 
-// Why: this is the one sub-progress the stage number cannot carry — the three
+// Why: this is the one sub-progress the stage number cannot carry, the three
 // crystal sections all live in `%legends_bits`, which never reaches the client.
 function crystalsPlaced(text: string): number {
     if (text.includes("i've place some crystal chunks in a lava furnace")) {
@@ -96,7 +96,7 @@ export function parseLegendsJournal(lines: readonly string[] | string): QuestPro
     return hit ? { stage: hit[1], flags: readFlags(text) } : undefined;
 }
 
-// Why: a read taken while a message box is up comes back empty, and this quest raises one for nearly every action it takes — mapping, mining, jumping, climbing.
+// Why: a read taken while a message box is up comes back empty, and this quest raises one for nearly every action it takes, mapping, mining, jumping, climbing.
 // Why: the stage only ever moves forward, so the last one read is a sound floor to act on where `wait` would stall the leg.
 let lastRead: QuestProgress | undefined;
 

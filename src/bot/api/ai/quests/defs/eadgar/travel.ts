@@ -9,7 +9,7 @@ const THROWER_RANGE = 11;
 
 const throwerNear = (): boolean => Npcs.query().name(THROWER).within(THROWER_RANGE).nearest() !== null;
 
-// Why: five thrower trolls stand across the only way onto Trollheim and open on sight, and nothing in a walk fights back — the crossing is chip damage that Protect from Missiles refuses.
+// Why: five thrower trolls stand across the only way onto Trollheim and open on sight, and nothing in a walk fights back. The crossing is chip damage that Protect from Missiles refuses.
 // Why: this quest crosses it a dozen times, and three live runs died to it carrying the thin food float the scarecrow leg leaves room for.
 // Why: the prayer follows the threat rather than the map, so it is up only while something is shooting and the bar is still full for the next crossing.
 

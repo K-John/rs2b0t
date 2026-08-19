@@ -29,7 +29,7 @@ interface CookingSurface {
 
 /**
  * Auto-curated Range loc SW tiles from the Server map pack (debugname=range); the stand tile defaults to one step south, and forceapproach=east ranges still path.
- * Why: regenerated via the tools/nav map probe — do not hand-edit coords without a re-scan.
+ * Why: regenerated via the tools/nav map probe, do not hand-edit coords without a re-scan.
  */
 export const COOKING_RANGE_LOCS: readonly { x: number; z: number; level: number }[] = [
     { x: 2445, z: 3188, level: 0 },
@@ -183,7 +183,7 @@ export const FISH_CAMP_COOK_PLANS: Readonly<Record<string, FishCampCookPlan>> = 
             label: 'Sinclair mansion range (Large-door approach)',
             notes: 'approach→open Large door→east-of-range stand'
         },
-        // Town range SW of Seers bank — interior of the house (south of range is street).
+        // Town range SW of Seers bank, interior of the house (south of range is street).
         // Door@2713,3483 from the bank; stand north of the range (inside).
         bank: {
             approach: new Tile(2713, 3484, 0),

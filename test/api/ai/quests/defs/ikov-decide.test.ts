@@ -77,7 +77,7 @@ describe('Temple of Ikov decide', () => {
         expect(step.kind).toBe('talk');
     });
 
-    // Why: `obj_gettotal` counts the bank, so Lucien refuses to replace a pendant sitting in a booth — it has to be withdrawn instead.
+    // Why: `obj_gettotal` counts the bank, so Lucien refuses to replace a pendant sitting in a booth. It has to be withdrawn instead.
     test('a banked pendant is withdrawn rather than begged for', () => {
         const step = decide(snap(IKOV_STAGE.STARTED, { bank: KIT }));
         expect(step.kind).toBe('withdraw');
@@ -286,7 +286,7 @@ describe('Temple of Ikov decide', () => {
         expect(step.kind === 'buy' && step.shop.npc).toBe('Aemad');
     });
 
-    // Why: the engine's food float is provisioned once, and this grind outlasts it — the last live run starved at the camp and dropped the kit on the floor.
+    // Why: the engine's food float is provisioned once, and this grind outlasts it, the last live run starved at the camp and dropped the kit on the floor.
     test('an empty larder is restocked before the farm', () => {
         const step = decide(snap(IKOV_STAGE.SPOKEN_WINELDA, {
             inv: [[IKOV_OBJ.PENDANT_LUCIEN, 1]],

@@ -128,7 +128,7 @@ export async function mirrorLeg(log: (m: string) => void): Promise<boolean> {
     if (!target || !mirror) {
         return false;
     }
-    // Why: the mirror is never deleted — the spirit hands it back — so the dialogue completing is the only oracle this leg has.
+    // Why: the mirror is never deleted. The spirit hands it back, so the dialogue completing is the only oracle this leg has.
     if (!(await mirror.useOn(target))) {
         return false;
     }
@@ -184,9 +184,9 @@ export function pickable(within = 10): { name: string; op: string } | null {
     return null;
 }
 
-// Why: the bloom affects the eight tiles around the caster and not the caster's own, and every bloomable is blockwalk=no — so standing on one is the way to miss it.
+// Why: the bloom affects the eight tiles around the caster and not the caster's own, and every bloomable is blockwalk=no, so standing on one is the way to miss it.
 
-// Why: every bloomable is inside Mort Myre, and the blessing that precedes this leg happens in the mausoleum — a scene query from there sees no swamp at all.
+// Why: every bloomable is inside Mort Myre, and the blessing that precedes this leg happens in the mausoleum, a scene query from there sees no swamp at all.
 
 /** Stand next to something bloomable, never on it. */
 export async function standBeside(log: (m: string) => void, names: readonly string[] = BLOOMABLE): Promise<boolean> {
@@ -240,7 +240,7 @@ async function pickHarvest(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => Inventory.used() > before, 8000);
 }
 
-// Why: a bloomed loc reverts 25 ticks after it grows, so casting and picking cannot be two decide ticks — a resume that finds neither a fungus nor a bloom has to do both in one step.
+// Why: a bloomed loc reverts 25 ticks after it grows, so casting and picking cannot be two decide ticks, a resume that finds neither a fungus nor a bloom has to do both in one step.
 
 /** Cast the paper scroll beside a rotting log and take the fungus it grows. */
 export async function bloomWithScroll(log: (m: string) => void): Promise<boolean> {
@@ -288,7 +288,7 @@ async function useOnStone(itemId: number, at: Tile, expect: () => boolean, log: 
     return driveUntil(expect, ['Ok, thanks.', 'Ok thanks.'], log);
 }
 
-// Why: each stone consumes what it is given, so a fed stone must never be re-fed — the journal flags say which are done.
+// Why: each stone consumes what it is given, so a fed stone must never be re-fed, the journal flags say which are done.
 
 /** Feed the fungus to the nature stone and the spent scroll to the spirit stone. */
 export async function feedStones(flags: ReadonlySet<string>, log: (m: string) => void): Promise<boolean> {
@@ -307,9 +307,9 @@ export async function feedStones(flags: ReadonlySet<string>, log: (m: string) =>
     return useOnStone(scroll, NS_TILE.SPIRIT_STONE, () => heldId(scroll) === 0, log);
 }
 
-// Why: the ritual is judged on the player's own tile — `coord = 0_53_52_48_7` — so the faith stone is stood on rather than used.
+// Why: the ritual is judged on the player's own tile, `coord = 0_53_52_48_7`, so the faith stone is stood on rather than used.
 
-// Why: the summon is `Enter` on the grotto door, two tiles off the faith stone, so the spirit is called up first and the stone taken second — the other order puts the puzzle option on screen from the wrong tile.
+// Why: the summon is `Enter` on the grotto door, two tiles off the faith stone, so the spirit is called up first and the stone taken second, the other order puts the puzzle option on screen from the wrong tile.
 
 /** Stand on the faith stone and tell the spirit the puzzle is solved. */
 export async function solvePuzzle(log: (m: string) => void): Promise<boolean> {

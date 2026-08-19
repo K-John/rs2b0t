@@ -112,7 +112,7 @@ try {
     const runnerState = (): Promise<string> => page.evaluate(() => (globalThis as never as RunnerGlobal).rs2b0t.runner.state);
     const logLength = (): Promise<number> => page.evaluate(() => (globalThis as never as RunnerGlobal).rs2b0t.runner.ctx?.log.length ?? 0);
 
-    // Any looping script is fine — used to exercise start/pause/resume/stop + paint.
+    // Any looping script is fine, used to exercise start/pause/resume/stop + paint.
     await startFromLibrary(page, 'Magic', 'AIO Teleport');
     await page.getByRole('button', { name: 'Start' }).click();
 

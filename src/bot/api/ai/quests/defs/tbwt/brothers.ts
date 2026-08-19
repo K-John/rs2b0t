@@ -45,7 +45,7 @@ export function claimReward(log: Log): Promise<boolean> {
     return talkFully(TIMFRAKU_REWARD.npc, TIMFRAKU_REWARD.anchor, TIMFRAKU_REWARD.prefer, log, LONG_GAP);
 }
 
-/** Talk, sit out the brush-off queue, talk again — idempotent from either state. */
+/** Talk, sit out the brush-off queue, talk again, idempotent from either state. */
 export async function meetLubufu(log: Log): Promise<boolean> {
     if (!(await talkFully(TB_NPC.LUBUFU, TB_TILE.LUBUFU, LUBUFU_MEET, log))) {
         return false;
@@ -121,7 +121,7 @@ export function meetTamayu(log: Log): Promise<boolean> {
     return talkFully(TB_NPC.TAMAYU, TB_TILE.TAMAYU, [], log, LONG_GAP);
 }
 
-// Why: the hunt is a scripted cutscene — the player is teleported into an instance for six camera
+// Why: the hunt is a scripted cutscene. The player is teleported into an instance for six camera
 // moves with nothing on the chat interface, then teleported back beside Tamayu for his verdict.
 
 /** Follow Tamayu on a hunt. With four doses and a poisoned spear given, this is the kill. */

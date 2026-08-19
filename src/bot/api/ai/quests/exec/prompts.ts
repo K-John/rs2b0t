@@ -31,7 +31,7 @@ export async function settleScene(): Promise<void> {
     await Execution.delayTicks(2);
 }
 
-// Why: loc prompts routinely put the refusal first — "I don't think so, it might animate and attack me!" — so falling through to an unmatched option is worse than stopping.
+// Why: loc prompts routinely put the refusal first, as in "I don't think so, it might animate and attack me!", so falling through to an unmatched option is worse than stopping.
 
 /**
  * Like `driveDialog`, but abandons rather than guessing.
@@ -64,7 +64,7 @@ export async function driveChoice(prefer: string[], log: (m: string) => void): P
 }
 
 // Why: a scripted chain leaves gaps where nothing is open yet, and `driveChoice` alone returns at the first of them, leaving the rest of the chain unrun.
-// Why: the goal is tested between chains and not between clicks, because `driveChoice` runs a chain to its end — so a goal matching one box's text never sees it, and the wait spends its budget on a chain that already said the thing. `GameMessages.sawSince` is durable and safe to want here; transient `modalText` wants `driveBoxes` instead.
+// Why: the goal is tested between chains and not between clicks, because `driveChoice` runs a chain to its end, so a goal matching one box's text never sees it, and the wait spends its budget on a chain that already said the thing. `GameMessages.sawSince` is durable and safe to want here; transient `modalText` wants `driveBoxes` instead.
 
 /**
  * Keep answering prompts until the goal lands.
@@ -92,7 +92,7 @@ export async function driveUntil(
     return expect();
 }
 
-// Why: `driveChoice` only ever clicks the CHAT modal, and a loc script's `~mesbox` chain is the MAIN one — so a wait watching for what the chain says never lets the chain say it, and entering or leaving a place through a loc is the commonest shape in a quest.
+// Why: `driveChoice` only ever clicks the CHAT modal, and a loc script's `~mesbox` chain is the MAIN one, so a wait watching for what the chain says never lets the chain say it, and entering or leaving a place through a loc is the commonest shape in a quest.
 // Why: the goal is tested before each dismissal so the box carrying the answer can still be read, and it eats between boxes since `Sustain` is call-driven and a step standing at a door never asks.
 
 /**
@@ -110,11 +110,11 @@ export async function driveBoxes(
         if (expect()) {
             return true;
         }
-        // Why: one click per pass, because `driveChoice` runs its own chain to the end without re-testing the goal — and when the goal is the text of the last box, that box has been clicked away before anything reads it. The strength gate's "manage to force the doors open" was drained unseen every time, so a crossing that had already succeeded waited out its budget and then tried again.
+        // Why: one click per pass, because `driveChoice` runs its own chain to the end without re-testing the goal, and when the goal is the text of the last box, that box has been clicked away before anything reads it. The strength gate's "manage to force the doors open" was drained unseen every time, so a crossing that had already succeeded waited out its budget and then tried again.
         const opts = ChatDialog.options();
         if (opts.length > 0) {
             const pick = pickPreferred(opts, prefer);
-            // Why: a list nothing matches is a chain that cannot move, and waiting on one spends the budget to learn what the first look already knew — Gujuo's four dead-end topics cost two minutes of silence each time, and left nothing for the walk that would have fixed them.
+            // Why: a list nothing matches is a chain that cannot move, and waiting on one spends the budget to learn what the first look already knew, Gujuo's four dead-end topics cost two minutes of silence each time, and left nothing for the walk that would have fixed them.
             // Why: said out loud, because the option list is the one piece of evidence that names what the script wanted and the module did not offer.
             if (!pick) {
                 log(`no preferred option in [${opts.join(' | ')}]`);
@@ -144,7 +144,7 @@ export async function driveBoxes(
     return expect();
 }
 
-// Why: `~mesbox` can land in either widget, and a box holds the server script suspended until it is clicked — so a page left standing is a script left unrun.
+// Why: `~mesbox` can land in either widget, and a box holds the server script suspended until it is clicked, so a page left standing is a script left unrun.
 
 /** Dismiss every message box currently standing, in whichever widget it rendered. */
 export async function clearBoxes(max = 8): Promise<void> {
@@ -169,7 +169,7 @@ export interface DoorCrossing {
     id: number;
     /** The tile to click it from, on the side being left. */
     stand: Tile;
-    /** True once the character stands past the door — a component test, never a distance one. */
+    /** True once the character stands past the door, a component test, never a distance one. */
     isFar: () => boolean;
     /** Options to take when the door raises a dialogue instead of opening. */
     prefer?: readonly string[];
@@ -185,16 +185,16 @@ export interface DoorCrossing {
     log: (m: string) => void;
 }
 
-// Why: `open_and_close_door` teleports in the same script run as the click, with at most one `p_delay(1)` between its two teleports — so a crossing that is going to land has landed within a couple of ticks, and a longer cap only buys standing still on a door that refused.
+// Why: `open_and_close_door` teleports in the same script run as the click, with at most one `p_delay(1)` between its two teleports, so a crossing that is going to land has landed within a couple of ticks, and a longer cap only buys standing still on a door that refused.
 const DOOR_MS = 3_000;
 // Why: the server runs the door's script a tick after the click, so the dialogue check needs a window.
 const DIALOG_MS = 2_000;
-// Why: a quest door can be a kingdom away — the Brimhaven crossings are reached from Varrock by ferry,
+// Why: a quest door can be a kingdom away, the Brimhaven crossings are reached from Varrock by ferry,
 // and a two-minute budget times out mid-ocean and reports the door as missing.
 const DOOR_WALK_MS = 300_000;
 
 // Why: `~open_and_close_door` teleports the actor through and re-shuts in three ticks, so the far side
-// is the only proof a crossing landed — and no door can ever be held open for a partner.
+// is the only proof a crossing landed, and no door can ever be held open for a partner.
 
 /**
  * Cross a quest door that teleports rather than opening.
@@ -205,8 +205,8 @@ export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
     if (isFar()) {
         return true;
     }
-    // Why: a `~mesbox` left over from the door's own challenge — "You hear the door being unbarred from
-    // inside." — swallows the next Open click with no refusal to say why.
+    // Why: a `~mesbox` left over from the door's own challenge, "You hear the door being unbarred from
+    // inside.", swallows the next Open click with no refusal to say why.
     if (reader.modals().main !== -1) {
         await Modals.close();
     }
@@ -217,14 +217,14 @@ export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
     const op = door.op ?? 'Open';
     const name = door.name ?? 'Door';
     // Why: `~door_open` swings the loc onto a different tile and id, so the shut id is not what stands
-    // there after anyone has opened it — and a sealed pocket has one door, so the actioned neighbour is it.
+    // there after anyone has opened it, and a sealed pocket has one door, so the actioned neighbour is it.
     const loc = Locs.query().action(op).within(4).where(l => l.id === id).nearest()
         ?? Locs.query().action(op).within(2).where(l => l.name === name).nearest();
     if (!loc) {
         log(`no ${name.toLowerCase()} ${id} offering '${op}' within four tiles of (${stand.x},${stand.z})`);
         return false;
     }
-    // Why: the door prints nothing on a crossing — `open_and_close_door` is two teleports, a `loc_change` and a synth — so a game message arriving instead of the crossing is the script saying no, whatever the wording. Marked before the click, as the refusal is often the click's own answer.
+    // Why: the door prints nothing on a crossing, since `open_and_close_door` is two teleports, a `loc_change` and a synth, so a game message arriving instead of the crossing is the script saying no, whatever the wording. Marked before the click, as the refusal is often the click's own answer.
     const said = GameMessages.mark();
     // Why: a key door's `oploc1` answers "This <name> is locked" and only its `oplocu` opens, so the
     // crossing is a use-item on the leaf rather than a click on its op.
@@ -242,7 +242,7 @@ export async function crossTeleportDoor(door: DoorCrossing): Promise<boolean> {
         log(`${name.toLowerCase()} ${id} refused the ${op} click`);
         return false;
     }
-    // Why: the server runs the door's script a tick after the click, so a check taken straight off `interact` sees nothing and the challenge goes unanswered — and a door that talks does it in either modal, the challenge in the chat and the flavour in a box.
+    // Why: the server runs the door's script a tick after the click, so a check taken straight off `interact` sees nothing and the challenge goes unanswered, and a door that talks does it in either modal, the challenge in the chat and the flavour in a box.
     // Why: a refusal ends the wait too, so a door that says no is not paid for in full.
     const talked = (): boolean => ChatDialog.isOpen() || ChatDialog.canContinue() || Modals.isOpen();
     await Execution.delayUntil(() => isFar() || talked() || GameMessages.since(said).length > 0, DIALOG_MS);
@@ -296,7 +296,7 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
         log
     });
     if (status !== 'done') {
-        // Why: the two ways this fails want opposite answers — one is a loc that could not be clicked, the other a click that landed and led nowhere — and telling them apart from the outside was guesswork every time it mattered.
+        // Why: the two ways this fails want opposite answers: one is a loc that could not be clicked, the other a click that landed and led nowhere. Telling them apart from the outside was guesswork every time it mattered.
         log(`prompt: '${step.op}' on '${step.name}' never reached the loc (${status})`);
         return false;
     }
@@ -304,7 +304,7 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
     if (!answered) {
         log(`prompt: '${step.op}' on '${step.name}' was sent and the goal never came`);
     }
-    // Why: a satisfied goal owns the screen and this must not touch it — Tribal Totem's combination lock asks for `Modals.main() === DOOR_UI`, so clearing after a success shut the panel the caller had been waiting for, and the dials were set on a dead modal for forty minutes.
+    // Why: a satisfied goal owns the screen and this must not touch it, Tribal Totem's combination lock asks for `Modals.main() === DOOR_UI`, so clearing after a success shut the panel the caller had been waiting for, and the dials were set on a dead modal for forty minutes.
     // Why: a failure is cleared, because that is the one whose next step is a retry, and a retry that cannot click is a step that never recovers.
     if (!answered) {
         await clearBoxes();

@@ -25,7 +25,7 @@ const stage = opt('--stage');
 const bits = opt('--bits');
 const give = opt('--give') ?? '';
 const purse = opt('--purse') ?? '';
-// "0,mx,mz,lx,lz" — drop the account next to the leg under test instead of
+// "0,mx,mz,lx,lz", drop the account next to the leg under test instead of
 // walking it from Lumbridge every run.
 const tele = opt('--tele');
 const gear = which === 'shilo' && !flag('--no-gear');
@@ -40,7 +40,7 @@ const minutes = Number(opt('--minutes') ?? 30);
 // The issue asks for 2x ticks; 300ms is half of the engine's 600.
 const speed = opt('--speed') ?? '300';
 // Shilo is gated on Jungle Potion, which is gated on Druidic Ritual; a solo run cheats past both rather than replaying forty minutes of prerequisite.
-// Why: `start_junglepotion` tests `%druidquest = ^druid_complete` for equality, so it must be 4 — a higher value reads as "requirements not met" and the quest silently refuses to start.
+// Why: `start_junglepotion` tests `%druidquest = ^druid_complete` for equality, so it must be 4, a higher value reads as "requirements not met" and the quest silently refuses to start.
 const prereqs = flag('--no-prereqs') ? [] : which === 'shilo' ? ['junglepotion 12', 'druidquest 4'] : ['druidquest 4'];
 
 interface SoloSnapshot {
@@ -126,7 +126,7 @@ try {
             if (!ok) {
                 fail(`could not seed ${item}`);
             }
-            // Why: Equipment.equip() awaits Execution.delayUntil, which needs a running script context and throws from page.evaluate — the direct driver's held-op is synchronous.
+            // Why: Equipment.equip() awaits Execution.delayUntil, which needs a running script context and throws from page.evaluate, the direct driver's held-op is synchronous.
             await page.evaluate(x => {
                 const inv = (globalThis as never as {
                     __rs2b0t: { Inventory: { first(n: string): { actions(): string[]; interact(a: string): unknown } | null } };

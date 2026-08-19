@@ -138,7 +138,7 @@ describe('decide — topping the pack up on a capped truck', () => {
     test('keeps mining once the truck is capped but the pack is not', () => {
         expect(decide(view({ truckFull: true, coalHeld: 17 }))).toEqual({ kind: 'mine' });
     });
-    // Why: the truck is capped, so a carried pack can only go to the bank — routing via the truck stand costs 196 tiles against 156.
+    // Why: the truck is capped, so a carried pack can only go to the bank, routing via the truck stand costs 196 tiles against 156.
     test('heads for the bank, not the truck, once both are full', () => {
         expect(decide(view({ truckFull: true, packFull: true, coalHeld: 27 }))).toEqual({ kind: 'bank' });
     });

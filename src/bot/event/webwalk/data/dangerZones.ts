@@ -1,5 +1,5 @@
-// Why: scripts, and later Global settings, mark axis-aligned rects the walker must not enter — e.g. White Wolf Mountain for low-level accounts.
-// Why: idea credit @lolwut — configurable danger zones for the pathfinder.
+// Why: scripts, and later Global settings, mark axis-aligned rects the walker must not enter, e.g. White Wolf Mountain for low-level accounts.
+// Why: idea credit @lolwut, configurable danger zones for the pathfinder.
 
 export interface DangerZoneRect {
     minX: number;
@@ -67,7 +67,7 @@ export const KNOWN_DANGER_ZONES: readonly KnownDangerZone[] = [
         help:
             'Four level-26 jail guards aggressively hunt players around the jail compound. '
             + 'Avoid as transit for combat 50 and below, but permit quest destinations inside.',
-        // Why: guard spawns are expanded to their maximum interaction tether — maxrange 12 plus the engine's one-tile op allowance.
+        // Why: guard spawns are expanded to their maximum interaction tether, maxrange 12 plus the engine's one-tile op allowance.
         // Why: the rectangles overlap on purpose, since fencing restricts movement but does not block line of sight.
         rects: [
             { minX: 3096, maxX: 3122, minZ: 3224, maxZ: 3250, level: 0 },

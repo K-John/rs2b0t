@@ -1,5 +1,5 @@
 /**
- * Which collapsed bridges join which level-1 platforms, and the chain between two of them.  Why: the platforms are a graph of pockets joined by twenty identical bridges, and a runtime search over  it wanders — four crossings in thirty-five minutes, none of them toward the target. The graph is static,  so it is solved here once and the answer is baked into the module.  bun tools/nav/upass-platform-route.ts
+ * Which collapsed bridges join which level-1 platforms, and the chain between two of them.  Why: the platforms are a graph of pockets joined by twenty identical bridges, and a runtime search over  it wanders, four crossings in thirty-five minutes, none of them toward the target. The graph is static,  so it is solved here once and the answer is baked into the module.  bun tools/nav/upass-platform-route.ts
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -82,7 +82,7 @@ const idOf = (t: NavPoint): number | null => {
 console.log(`${bridges.length} bridges on the platforms`);
 const edges: { bridge: NavPoint; sides: { tile: NavPoint; pocket: number }[] }[] = [];
 for (const b of bridges) {
-    // Why: these bridges span a chasm — the far landing is three or four tiles out, not adjacent — so a
+    // Why: these bridges span a chasm, with the far landing three or four tiles out rather than adjacent, so a
     // cardinal-neighbour probe only ever finds the near side and every bridge reads as joining one pocket.
     const sides: { tile: NavPoint; pocket: number }[] = [];
     const ring: [number, number][] = [];

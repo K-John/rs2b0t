@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Underground Pass — stage-scoped harness
+## Underground Pass, stage-scoped harness
 
 [`e2e/upass-265-live.ts`](../../e2e/upass-265-live.ts) drives the quest from a clean
 account or from any stage inside it.
@@ -25,18 +25,18 @@ Five things govern this harness:
   sub-progress the stage number cannot, and skipping a bit builds a state the game never
   produces. Stage 7 is the sharp one: reaching it means the cat was delivered, and without
   bit 9 Kardia's door answers "Get away... Far away from here!" and takes a quarter of the
-  character's hitpoints rather than opening — with the doll's owner sealed on the wrong
+  character's hitpoints rather than opening, with the doll's owner sealed on the wrong
   side of it. `ibanmultiFor(stage)` is where that mapping lives.
 - **`--stage` writes `%upass` and teleports.** Both varps are `scope=perm` with no
   `transmit`, so the stage is set by cheat and the module reads its own progress out of the
-  journal text. Bit 11 — "Lathas has sent you" — is seeded at every stage, because Koftik
+  journal text. Bit 11, "Lathas has sent you", is seeded at every stage, because Koftik
   refuses entry to a quest the journal says is under way without it.
 - **Past stage 2 there is no bank.** The pass is one-way, so `seedPack` hands an
   inside-the-pass start its kit directly rather than letting the module withdraw one.
 - **Some things are handed over once.** `STAGE_PACK` adds what a seeded stage skipped:
   the doll of Iban at stages 7 and 8, because Kardia's chest is the only thing that makes
   one and it will not make a second.
-- **Stage 3 cannot be told from stage 4 by the journal**, and 7 cannot be told from 8 —
+- **Stage 3 cannot be told from stage 4 by the journal**, and 7 cannot be told from 8,
   each pair prints the same page. The legs are cut at stages the journal can see, which is
   why there is no `--until 4` and no `--until 8`.
 
@@ -71,7 +71,7 @@ bun tools/nav/upass-platform-route.ts   # which collapsed bridge joins which lev
 ```
 
 `upass-platform-route.ts` emits the `PLATFORM_LINKS` table as source. It exists because a
-runtime search over twenty identical bridges wandered — four crossings in thirty-five
+runtime search over twenty identical bridges wandered, four crossings in thirty-five
 minutes, none of them toward the target.
 
 ## See also

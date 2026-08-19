@@ -17,7 +17,7 @@ if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
 const finder = new PathFinder(bytes);
 finder.addEdges(doorsJson as DoorEdgeData[], transportsJson as never, stairsJson);
 
-// Why: the mourner headquarters is a sealed pocket — its door is SCRIPT_REFUSED, so the
+// Why: the mourner headquarters is a sealed pocket, its door is SCRIPT_REFUSED, so the
 // building and its first floor form their own region that only the quest's own crossing enters.
 const SEEDS: [string, NavPoint][] = [
     ['ardougne', { x: 2616, z: 3332, level: 0 }],

@@ -102,7 +102,7 @@ export class TabBar {
                 const rect = chip.getBoundingClientRect();
                 chip.classList.add(ev.clientX < rect.left + rect.width / 2 ? 'mbx-tabdrop-before' : 'mbx-tabdrop-after');
             } else if (dt.types.includes('text/plain')) {
-                // a bot tile drag — dropping it here files the bot into this tab
+                // a bot tile drag, dropping it here files the bot into this tab
                 ev.preventDefault();
                 dt.dropEffect = 'move';
                 chip.classList.add('mbx-tabdrop-into');

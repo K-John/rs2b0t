@@ -38,7 +38,7 @@ walking that ground:
 | Crossing | Loc | Why it is curated |
 |---|---|---|
 | Troll storeroom staircase | 3788 / 3789 at 2852,10061 | The stair deriver reads `case <coord> : p_telejump(...)` and these stairs are written `switch_int(loc_angle)`, so the storeroom half of the stronghold's bottom floor had no way in |
-| Mad Eadgar's cave | 3759 / 3760 | Gated on Troll Stronghold complete — an unfreed Eadgar leaves the entrance landing on an empty level 0 |
+| Mad Eadgar's cave | 3759 / 3760 | Gated on Troll Stronghold complete, an unfreed Eadgar leaves the entrance landing on an empty level 0 |
 | Ardougne farm stile | 993 at 2638,3350 | The wheat field is a sealed 228-tile pocket without it |
 
 ## Plane notes
@@ -54,7 +54,7 @@ walking that ground:
 
 | Family | Execute |
 |---|---|
-| Doors / gates | `doorCrossing` — approach tile, Open, step through; quest-lock blacklist |
+| Doors / gates | `doorCrossing`, approach tile, Open, step through; quest-lock blacklist |
 | Ships / gangplanks | specialCrossing NPC Pay-fare plus `toTile` match; the Customs reverse must not steal the gangplank |
 | Glider | Talk-to Gnome pilot, then a glidermap destination click (`mapChoice`) |
 | Spirit trees | Loc Talk-to, dialog line matched by the hop's `toTile` |
@@ -74,7 +74,7 @@ Entrana restricted gear is gated at both plan and execute time.
 
 With Global **Show nav path** on, path tiles paint into `areaGame` after the 3D world
 (`pathScenePaint.ts`). Object hulls appear only for live scenery the executor would
-click (`liveTransportLoc` plus `reader.locBox`) — never for teleports, NPC-only hops, or
+click (`liveTransportLoc` plus `reader.locBox`), never for teleports, NPC-only hops, or
 locs missing from the loaded scene, which would draw a fake cube on the player's stand
 tile.
 
@@ -110,7 +110,7 @@ Aliases such as `Watchtower` → `Watch Tower` resolve in `worldStateData` /
 
 | Item | Status |
 |---|---|
-| Shantay pass northbound | Won't for free pathing — item gate; the desert exit is the OD fix |
+| Shantay pass northbound | Won't for free pathing, item gate; the desert exit is the OD fix |
 | Horror / Watchtower multi-dest ladders | Blocked until a single destination is proven |
 | Zanaris / Lost City | Quest path, outside the generic travel catalog |
 

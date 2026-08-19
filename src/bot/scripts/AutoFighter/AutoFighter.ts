@@ -235,7 +235,7 @@ export default class AutoFighter extends TaskBot {
             SettingsStore.save('AutoFighter', 'meleeStyle', split.legacyMigrated);
             this.log(`migrated legacy combatStyle='${rawCombatStyle.trim()}' → meleeStyle='${split.legacyMigrated}'`);
         } else if (tryParseCombatStyle(rawCombatStyle) !== null) {
-            // storage still has a training-style value but meleeStyle already set — rewrite combatStyle only
+            // storage still has a training-style value but meleeStyle already set, rewrite combatStyle only
             SettingsStore.save('AutoFighter', 'combatStyle', 'melee');
         }
         SPELL = this.settings.str('spell', 'Fire Strike');
@@ -653,7 +653,7 @@ class SetAttackStyle implements Task {
     }
     validate(): boolean {
         // Why: com_mode is not persisted, so it is re-asserted whenever it disagrees.
-        // Why: style clicks are legal mid-fight, so this does not gate on !inCombat — continuous combat starves an out-of-combat-only assert after DCs or failed first clicks.
+        // Why: style clicks are legal mid-fight, so this does not gate on !inCombat, continuous combat starves an out-of-combat-only assert after DCs or failed first clicks.
         return STYLE !== 'mage' && !this.selected() && Date.now() >= this.retryAt;
     }
     async execute(): Promise<void> {

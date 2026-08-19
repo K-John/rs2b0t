@@ -9,7 +9,7 @@ import { HARNESS_VIEWPORT, boot, bringUpOffIsland, cheatQuiet, fail, launchBrows
 const { base } = parseArgs(process.argv.slice(2), { base: 'http://localhost:8888' });
 const user = process.env.USER_NAME ?? `guard${Date.now() % 100000}`;
 
-/** trail_clue_hard_sextant012 — digs at (3055,3696), guarded by a Zamorak Wizard. */
+/** trail_clue_hard_sextant012, digs at (3055,3696), guarded by a Zamorak Wizard. */
 const CLUE_ID = 2745;
 const CLUE_OBJ = 'trail_clue_hard_sextant012';
 const DIG = { x: 3055, z: 3696, level: 0 } as const;
@@ -24,7 +24,7 @@ const TRIO: [string, number, string][] = [
     ['trail_chart', 2576, 'Chart']
 ];
 /**
- * PlayerStatMap minus prayer — this build has no slayer, and STAT18/19 are
+ * PlayerStatMap minus prayer, this build has no slayer, and STAT18/19 are
  * disabled placeholders, so ::setstat rejects anything outside this set.
  */
 const STATS = [
@@ -57,7 +57,7 @@ type Api = {
 const logLines = (page: Page): Promise<string[]> =>
     page.evaluate(() => ((globalThis as never as Api).rs2b0t.runner.ctx?.log ?? []).map(l => l.msg));
 
-/** 0 means the stat array was mid-update, not a corpse — deaths are read from chat. */
+/** 0 means the stat array was mid-update, not a corpse, deaths are read from chat. */
 const hp = (page: Page): Promise<number> =>
     page.evaluate(() => (globalThis as never as Api).__rs2b0t.Skills.effective('hitpoints'));
 
@@ -286,7 +286,7 @@ async function main(): Promise<void> {
         if (!engaged) {
             fail('never engaged the guardian — the dig did not spawn it');
         }
-        // Why: the fight resolves in ~6s with huge swings, so a 1Hz poll misses the trough — a bite at all means shouldEatToUseFood fired, and only a run with no bite lets the sampled hp decide.
+        // Why: the fight resolves in ~6s with huge swings, so a 1Hz poll misses the trough, a bite at all means shouldEatToUseFood fired, and only a run with no bite lets the sampled hp decide.
         const LOBSTER_HEAL = 12;
         if (ate.length === 0) {
             if (minHp > LEVEL - LOBSTER_HEAL) {

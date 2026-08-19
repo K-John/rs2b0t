@@ -8,7 +8,7 @@ import { WOODCUTTING_LOCATION_OPTIONS } from '../../data/woodcuttingLocations.js
 // Why: skill mode is selected by the presence of `treeName`, `burnMode` and `fireSpot` in the settings schema (see GatheringBot.onStart).
 // Why: this class is the dedicated script entry, so Woodcutting stays separate from the Miner and Fisher registry presets that also use GatheringBot.
 
-/** Woodcutter — GatheringBot preset for trees plus optional chop-then-burn. */
+/** Woodcutter, GatheringBot preset for trees plus optional chop-then-burn. */
 export const WOODCUTTER_SETTINGS: SettingsSchema = {
     treeName: {
         type: 'string',

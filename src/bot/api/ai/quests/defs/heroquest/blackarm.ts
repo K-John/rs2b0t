@@ -83,7 +83,7 @@ export async function talkToTrobert(log: (m: string) => void): Promise<boolean> 
 }
 
 // Why: the first talk takes the papers and only then opens the option tree, so one leg covers both
-// the introduction and the key — and Grip re-issues the spare whenever `~obj_gettotal` reads zero.
+// the introduction and the key, and Grip re-issues the spare whenever `~obj_gettotal` reads zero.
 
 /** Report for duty, then ask for a job, which is what hands over the spare key. */
 export async function askGripForKey(log: (m: string) => void): Promise<boolean> {
@@ -101,7 +101,7 @@ function keyringOnFloor(): GroundItem | null {
 }
 
 // Why: the rival's shot needs Grip on the arrow slit's own row and nothing else, so this is the same
-// test the snipe uses — anywhere else on the way there is not a lure that helps.
+// test the snipe uses, anywhere else on the way there is not a lure that helps.
 function gripOnTheRow(): boolean {
     const grip = Npcs.query().where(n => n.id === HERO_NPC.GRIP).nearest();
     const tile = grip?.tile();
@@ -160,7 +160,7 @@ export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<
             await Execution.delayUntil(() => keyringOnFloor() !== null || !gripOnTheRow(), LURE_HOLD_MS);
             continue;
         }
-        // Why: the cabinet is two locs — `gripcbshut` becomes `gripcbopen` for 500 ticks — and both run
+        // Why: the cabinet is two locs, `gripcbshut` becomes `gripcbopen` for 500 ticks, and both run
         // `summon_grip`, one under Open and one under Search.
         const cupboard = Locs.query()
             .where(l => l.id === HERO_LOC.CABINET_OPEN || l.id === HERO_LOC.CABINET_SHUT)
@@ -173,7 +173,7 @@ export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<
         const op = cupboard.id === HERO_LOC.CABINET_OPEN ? 'Search' : 'Open';
         const clicked = await cupboard.interact(op);
         // Why: `summon_grip` does nothing at all unless a pirate guard is within four tiles of the
-        // player — no dialogue, no walk, no refusal — so the guard is worth naming when nothing happens.
+        // player, with no dialogue, no walk and no refusal, so the guard is worth naming when nothing happens.
         const guard = Npcs.query().where(n => n.id === HERO_NPC.PIRATE_GUARD).within(4).nearest();
         const asked = await Execution.delayUntil(
             () => ChatDialog.isOpen() || ChatDialog.canContinue() || gripOnTheRow(),
@@ -199,7 +199,7 @@ export async function lureGripAndTakeKeyring(log: (m: string) => void): Promise<
         return true;
     }
     // Why: a rival that never turned up may have died holding the spare key, and Grip will only issue
-    // another once this bot is empty-handed — so a run of fruitless lures re-opens the fetch.
+    // another once this bot is empty-handed, so a run of fruitless lures re-opens the fetch.
     HeroHandoffState.lureFailures++;
     log(`no keyring after ${lures} lures — the rival may not be at the arrow slit yet`);
     return false;
@@ -263,7 +263,7 @@ export function blackarmArmbandStep(snap: QuestSnapshot, stage: number): QuestSt
             };
 
         case HERO_STAGE.BLACKARM_SPOKEN: {
-            // Why: the disguise is bought in Varrock, where Katrine already stands — buying it after
+            // Why: the disguise is bought in Varrock, where Katrine already stands, buying it after
             // the crossing costs a return ferry and a walk across two kingdoms.
             const piece = disguiseOwned(snap) ? null : disguiseStep(snap);
             if (piece) {

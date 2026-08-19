@@ -195,7 +195,7 @@ class Clean implements Task {
         if (ok) {
             this.bot.countClean(this.bot.cleanCount() - beforeClean);
         } else if (this.bot.takeRefusal()) {
-            // Why: the engine refused every click made — level drift in the table, or a non-members world.
+            // Why: the engine refused every click made, level drift in the table, or a non-members world.
             // Why: the herbs clicked are denied, not a re-derived level guess.
             for (const herb of clickedHerbs) {
                 this.bot.deny(herb);
@@ -250,7 +250,7 @@ class BankTrip implements Task {
         const maxBankTime = 15_000;
 
         while (Date.now() - startMs < maxBankTime) {
-            // Try to withdraw herbs first — this fails quickly if bank not loaded.
+            // Try to withdraw herbs first. This fails quickly if bank not loaded.
             let gotAny = false;
             for (const herb of this.bot.targets()) {
                 if (Inventory.isFull()) {
@@ -271,7 +271,7 @@ class BankTrip implements Task {
                 }
             }
 
-            // If we got herbs, we're done banking — no need to deposit clean herbs
+            // If we got herbs, we're done banking, no need to deposit clean herbs
             // this cycle (they'll be deposited next trip if needed).
             if (gotAny) {
                 this.bot.log('got herbs, closing bank');

@@ -54,7 +54,7 @@ export const LQ_SKILLS = {
     prayer: 42
 } as const;
 
-// Why: display names collide all over this quest — three "Crystal" chunks, two golden bowls per fill state, "Rocks" for both the cave mouth and every ore vein — so every check goes through the id.
+// Why: display names collide all over this quest, with three "Crystal" chunks, two golden bowls per fill state and "Rocks" for both the cave mouth and every ore vein, so every check goes through the id.
 export const LQ_ID = {
     COINS: 995,
 
@@ -148,7 +148,7 @@ export const LQ_ID = {
     SWAMP_ROCK: 594
 } as const;
 
-// Why: both Radimus notes render the same name, both Yommi seed states render the same name, and five golden-bowl states share "Golden bowl" — every lookup that matters goes through `LQ_ID`.
+// Why: both Radimus notes render the same name, both Yommi seed states render the same name, and five golden-bowl states share "Golden bowl", every lookup that matters goes through `LQ_ID`.
 /** Display names as the client renders them. */
 export const LQ_ITEM = {
     COINS: 'Coins',
@@ -217,7 +217,7 @@ export const LQ_ITEM = {
     TUNA: 'Tuna'
 } as const;
 
-// Why: an NPC's display name comes from the `.npc` config, never from a guide — every walkthrough calls him Sir Radimus Erkle and the server calls him Radimus Erkle.
+// Why: an NPC's display name comes from the `.npc` config, never from a guide, every walkthrough calls him Sir Radimus Erkle and the server calls him Radimus Erkle.
 export const LQ_NPC = {
     GUARD: 'Legends Guard',
     RADIMUS: 'Radimus Erkle',
@@ -280,7 +280,7 @@ export const LQ_LOC_ID = {
     GUILD_GATE_R: 2392,
     LOCKPICK_GATE_L: 2912,
     LOCKPICK_GATE_R: 2913,
-    // Why: `next_loc_stage` swings each leaf to `inac_lglockpickgatebottom*`, which is a model and nothing else — no name and no ops. A query for the shut id then finds nothing, which is indistinguishable from the gate being out of the scene unless the open ids are known too.
+    // Why: `next_loc_stage` swings each leaf to `inac_lglockpickgatebottom*`, which is a model and nothing else, no name and no ops. A query for the shut id then finds nothing, which is indistinguishable from the gate being out of the scene unless the open ids are known too.
     LOCKPICK_GATE_L_OPEN: 2914,
     LOCKPICK_GATE_R_OPEN: 2915,
     STRENGTH_GATE_L: 2922,
@@ -326,19 +326,19 @@ export const LQ_LOC_ID = {
     YOMMI_TOTEM: 2954
 } as const;
 
-// Why: Shilo Village is Karamja's only bank and it has no booth — the teller is an npc with a Bank op, which is why a booth-only open read it as an icon with nothing behind it. It is eighteen tiles off Hajedy's cart and the village is gated on the Shilo Village quest, which Legends' own quest-point gate has long since passed.
+// Why: Shilo Village is Karamja's only bank and it has no booth. The teller is an npc with a Bank op, which is why a booth-only open read it as an icon with nothing behind it. It is eighteen tiles off Hajedy's cart and the village is gated on the Shilo Village quest, which Legends' own quest-point gate has long since passed.
 export const LQ_BANK = {
     ARDOUGNE: new Tile(2616, 3332, 0),
     YANILLE: new Tile(2612, 3092, 0),
-    /** Shilo Village's teller — no booth, an npc with a Bank op, eighteen tiles off Hajedy's cart. */
+    /** Shilo Village's teller, no booth, an npc with a Bank op, eighteen tiles off Hajedy's cart. */
     SHILO: new Tile(2852, 2954, 0)
 } as const;
 
 // Why: Obli's counter in Shilo Village stocks the same list and is thirty tiles from the gem rocks, but Jiminua's is the one Tai Bwo Wannai leg already passes.
 export const LQ_SHOP = {
-    /** Jiminua's Jungle Store, Tai Bwo Wannai — papyrus, charcoal, machete, knife, rope, vials, chisel, hammer, pickaxe. */
+    /** Jiminua's Jungle Store, Tai Bwo Wannai, papyrus, charcoal, machete, knife, rope, vials, chisel, hammer, pickaxe. */
     JIMINUA: { npc: 'Jiminua', anchor: new Tile(2767, 3122, 0) },
-    /** Magic Guild Store, Yanille first floor — the only soul-rune counter in the game. */
+    /** Magic Guild Store, Yanille first floor, the only soul-rune counter in the game. */
     MAGIC_GUILD: { npc: 'Magic Store owner', anchor: new Tile(2595, 3087, 1) }
 } as const;
 
@@ -426,7 +426,7 @@ export const LQ_TILE = {
     GOLD_ROCKS: new Tile(2733, 3225, 0),
     /** East Ardougne's furnace: the nearest one the walker can reach from Karamja. */
     FURNACE: new Tile(2601, 3310, 0),
-    /** Tai Bwo Wannai's anvil — the golden bowl is a gold bar used on one. */
+    /** Tai Bwo Wannai's anvil, the golden bowl is a gold bar used on one. */
     ANVIL: new Tile(2790, 3102, 0),
 
     SNAKE_WEED: new Tile(2761, 3015, 0),
@@ -490,7 +490,7 @@ export const FERTILE_SOILS: readonly Tile[] = [
     new Tile(2911, 2905, 0)
 ];
 
-// Why: each of these complexes is a chain of sealed pockets joined only by scripted crossings, and their component bounding boxes overlap — the trials corridor runs straight over the gem room's box, and every Viyeldi descent ledge sits inside the main cave's.
+// Why: each of these complexes is a chain of sealed pockets joined only by scripted crossings, and their component bounding boxes overlap, the trials corridor runs straight over the gem room's box, and every Viyeldi descent ledge sits inside the main cave's.
 // Why: `decide()` therefore branches on the complex, and each crossing inside one is a custom step that probes the scene for the loc it needs.
 
 /** The z of the last open jungle tile and of the first open mainland tile north of the band. */
@@ -520,14 +520,14 @@ export function legendsArea(tile: QuestSnapshot['tile']): LegendsArea {
         return 'unknown';
     }
     // The Kharazi Jungle: the southern strip of Karamja, sealed behind the dense band.
-    // Why: the band's own three rows count as jungle, so a chop that lands halfway through it never has a mainland step decided against it — there is no walkable path out of a band tile in either direction.
+    // Why: the band's own three rows count as jungle, so a chop that lands halfway through it never has a mainland step decided against it. There is no walkable path out of a band tile in either direction.
     if (x >= 2757 && x <= 3006 && z >= 2882 && z < JUNGLE_BAND.north) {
         return 'jungle';
     }
     return 'mainland';
 }
 
-// Why: transcribed from `legends_fire_wall_correct` — the octagram is three overlapping rectangles rather than a square, and the fourth row the content lists is an acknowledged server bug that the checks disagree about.
+// Why: transcribed from `legends_fire_wall_correct`. The octagram is three overlapping rectangles rather than a square, and the fourth row the content lists is an acknowledged server bug that the checks disagree about.
 
 /** Inside Ungadulu's flaming octagram. */
 export function inOctagram(tile: QuestSnapshot['tile']): boolean {

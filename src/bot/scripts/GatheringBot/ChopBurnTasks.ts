@@ -27,7 +27,7 @@ import {
     type FirePlot
 } from '../../api/firemaking/Firemaking.js';
 
-/** Same face-target filter as GatheringBot.FleeCombat — sticky combatCycle is ignored. */
+/** Same face-target filter as GatheringBot.FleeCombat, sticky combatCycle is ignored. */
 function hostileFaceTarget(): boolean {
     return (
         Npcs.query()

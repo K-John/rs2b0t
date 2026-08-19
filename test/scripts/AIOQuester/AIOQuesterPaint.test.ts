@@ -133,7 +133,7 @@ describe('queueSummary', () => {
     });
 });
 
-// Why: the engine passes a null running id for a drained queue, a parked plan and a banking spillover — all of which happen inside one quest, so a plain inequality restarts the clock without the quest having changed.
+// Why: the engine passes a null running id for a drained queue, a parked plan and a banking spillover, all of which happen inside one quest, so a plain inequality restarts the clock without the quest having changed.
 describe('questClockRestarts', () => {
     test('restarts when the queue moves to a different quest', () => {
         expect(questClockRestarts('shilo', 'legends')).toBe(true);

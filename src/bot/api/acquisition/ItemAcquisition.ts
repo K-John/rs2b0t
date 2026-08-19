@@ -23,7 +23,7 @@ export function hasAll(needs: ItemNeed[]): boolean {
 }
 
 /**
- * Acquires the first unmet need — a shop trip or a ground pickup.
+ * Acquires the first unmet need, a shop trip or a ground pickup.
  * @see docs/reference/api-items.md#item-acquisition
  */
 export class AcquireTask implements Task {

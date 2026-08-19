@@ -1,4 +1,4 @@
-/** Live proof for #364 — Gu'Tanoth ledges. Case A (default): dig 3546 via the chasm Jump-From, tele jump stand (2531,3026) → dig (2542,3031).
+/** Live proof for #364, Gu'Tanoth ledges. Case A (default): dig 3546 via the chasm Jump-From, tele jump stand (2531,3026) → dig (2542,3031).
  *  Case B (CASE=toban): dig 3548 via the Toban cave, tele cave mouth (2499,2988) → dig (2581,3030). */
 
 //   CASE=toban HEADED=1 bun e2e/gutanoth-ledges-364-live.ts

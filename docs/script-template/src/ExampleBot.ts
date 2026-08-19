@@ -17,7 +17,7 @@ class BoneBurier extends LoopingBot {
             }
         });
         // inventory.changed carries the slot's NEW state: an emptied slot is
-        // id -1 (previousId was the bones) — that's a completed burial here
+        // id -1 (previousId was the bones), that's a completed burial here
         this.on('inventory.changed', e => {
             if (e.id === -1 && e.previousId !== -1) {
                 this.buried++;

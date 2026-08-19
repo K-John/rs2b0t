@@ -1,4 +1,4 @@
-// Live proof #374 — Miner at Fight Arena prefers nearest iron (not a far rock).
+// Live proof #374, Miner at Fight Arena prefers nearest iron (not a far rock).
 //
 //   bun e2e/fight-arena-iron-374-live.ts [http://localhost:8890]
 import { boot, bringUpOffIsland, cheatQuiet, fail, launchBrowser, login, positionalArgs } from './lib/harness.js';
@@ -94,7 +94,7 @@ try {
             continue;
         }
         if (snap.ore > lastOre) {
-            // Got ore — should be next to a rock (nearestD ≤ 1 typically)
+            // Got ore, should be next to a rock (nearestD ≤ 1 typically)
             samples.push({ ore: snap.ore, meD: snap.nearestD, nearestD: snap.nearestD, me: snap.me });
             console.log(`ore+ → ${snap.ore} at ${JSON.stringify(snap.me)} nearestIronD=${snap.nearestD}`);
             lastOre = snap.ore;

@@ -81,7 +81,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
     const prod = armed(snap);
     if (prod) { return prod; }
-    // Why: the feed is untradeable and never consumed, so one is enough — and Halgrive hands out another whenever the pack has none.
+    // Why: the feed is untradeable and never consumed, so one is enough, and Halgrive hands out another whenever the pack has none.
     if (held(snap, FEED_OBJ) === 0) { return { kind: 'talk', stop: HALGRIVE }; }
 
     return custom(`herd and kill sheep ${n}`, log => penAndKill(n, log));

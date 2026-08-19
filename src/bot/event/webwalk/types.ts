@@ -74,7 +74,7 @@ export interface TransportRequires {
     /** Essence mine exit: usable only when the path's session return matches this id. */
     essenceExitReturn?: string;
     // Why: a wizard entry sets the server's `%exit_essence_mine_coord`, so PathFinder treats the path's session return as this id after the hop.
-    // Why: not a gate — meetsRequires and hasGatingRequires ignore it.
+    // Why: not a gate, meetsRequires and hasGatingRequires ignore it.
 
     /** Essence mine entry: the session return id this hop establishes. */
     essenceEntrySetsReturn?: string;
@@ -106,7 +106,7 @@ interface TransportDebug {
 }
 
 // Why: compiled from doors, stairs and transports (and later one transportGraph artifact); rows carrying disabledReason are audit-only.
-// Why: for teleports `from` is a placeholder and often ignored — the search attaches the edge from the player node when policy allows.
+// Why: for teleports `from` is a placeholder and often ignored, the search attaches the edge from the player node when policy allows.
 // Why: `landing.toTile` or `to` is the arrival stand (e.g. Varrock square).
 
 /** Unified non-walk edge. */
@@ -130,7 +130,7 @@ export interface TransportEdge {
 
 /**
  * Cheap snapshot used to filter edges at search time.
- * Built from reader / Skills / Quests / Inventory — never from client internals.
+ * Built from reader / Skills / Quests / Inventory, never from client internals.
  */
 export interface WorldState {
     members: boolean;
@@ -154,7 +154,7 @@ export interface WorldState {
     essenceExitReturn?: string;
 }
 
-// Why: teleport policy is first-class here — few destinations, high value.
+// Why: teleport policy is first-class here, few destinations, high value.
 
 /** Planner preferences (2004-sized toggles). */
 export interface PathPolicy {

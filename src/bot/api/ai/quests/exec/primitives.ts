@@ -252,7 +252,7 @@ export async function talkThrough(npcName: string, prefer: string[], log: (m: st
     return driveDialog(prefer, log, gapMs);
 }
 
-// Why: guessing is harmful wherever the unmatched option bites — several ogres offer "I have come to kill you" as the alternative.
+// Why: guessing is harmful wherever the unmatched option bites, several ogres offer "I have come to kill you" as the alternative.
 
 /**
  * Like `talkThrough`, but abandons the dialogue instead of guessing when no preferred option matches.

@@ -50,7 +50,7 @@ export function findForwardRecoveryIndex(
 }
 
 // Why: `recover` clicks further along the published path, `combat` holds course for a fight rather than a nav problem, and `escalate` opens a route door, dismisses a quest lock, or declares blocked/repath.
-// Why: the search window for {@link findForwardRecoveryIndex} is capped at the tile before the next hop, so `recoverIdx === -1` happens when and only when the walk has already reached that hop's approach — the door/stair case that most needs the escalation ladder.
+// Why: the search window for {@link findForwardRecoveryIndex} is capped at the tile before the next hop, so `recoverIdx === -1` happens when and only when the walk has already reached that hop's approach, the door/stair case that most needs the escalation ladder.
 // Why: repathing there replans the same route and burns the repath budget until the walk reports failure, which `walkResilient` then escalates to unreachable.
 type StallPhase = 'recover' | 'combat' | 'escalate';
 

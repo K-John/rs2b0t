@@ -169,7 +169,7 @@ class Eat implements Task {
             heal: foodHealAmount(food),
             foodCount: this.bot.foodInPack(),
             freeSlots: Inventory.free(),
-            // Eating for a slot only pays off where there is loot to pick up —
+            // Eating for a slot only pays off where there is loot to pick up,
             // same gate as Loot, or a bot at the bank would burn its stack.
             collecting:
                 (def.mode === 'loot' || def.mode === 'loot_process')

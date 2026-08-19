@@ -218,7 +218,7 @@ describe('BrimhavenAgility pathfinding', () => {
     });
 
     test('unreachable when every connecting edge is gated', () => {
-        // from 1 to 6 only via spikes (20) — at level 1, still reachable via longer routes?
+        // from 1 to 6 only via spikes (20), at level 1, still reachable via longer routes?
         // 1→0→5→6 uses pillar + plank (both level 1)
         const path = pathPlatforms(1, 6, 1);
         expect(path).not.toBeNull();
@@ -469,7 +469,7 @@ describe('BrimhavenAgility location helpers', () => {
         expect(inArenaPit(2802, 9590, 3)).toBe(false);
         expect(onArenaPlatform(3)).toBe(true);
         expect(onArenaPlatform(0)).toBe(false);
-        // pit tiles still snap by x/z — callers must gate with onArenaPlatform
+        // pit tiles still snap by x/z, callers must gate with onArenaPlatform
         expect(platformAt(2802, 9590)).toBe(24);
     });
 });
@@ -532,7 +532,7 @@ describe('BrimhavenAgility restock verification', () => {
         const broke = restockShortfall({ ...base, foodInPack: 25, coins: 100 });
         expect(broke).toContain('coins');
         expect(broke).toContain('260');
-        // Entrance already paid — only the two boat fares are needed.
+        // Entrance already paid, only the two boat fares are needed.
         expect(restockShortfall({ ...base, foodInPack: 25, coins: 60, alreadyPaid: true })).toBeNull();
     });
 });

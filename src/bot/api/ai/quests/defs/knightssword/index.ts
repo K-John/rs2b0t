@@ -107,7 +107,7 @@ export const decide = (snap: QuestSnapshot): QuestStep => decideAt(snap, Skills.
 
 export const knightssword: QuestModule = {
     record: QUESTS.find(r => r.id === 'squire')!,
-    // Four towns, and bank contents are global — pinning one booth buys nothing
+    // Four towns, and bank contents are global, pinning one booth buys nothing
     // and costs a kingdom-crossing on every leg that touches it.
     bank: 'nearest',
     // `coins` is not optional for a quest that buys anything: without it the

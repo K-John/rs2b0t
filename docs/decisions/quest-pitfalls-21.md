@@ -24,7 +24,7 @@ mentions.
   of the room it is in.** Velrak has no `wanderrange`, so he drifts five tiles inside a cell
   whose internal walls make five tiles a walk; the shared talk primitive read that as
   unreachable, opened the cell door and left. Inside a sealed pocket, scene-step to the NPC
-  and send the op — no door-opening fallback belongs there.
+  and send the op, no door-opening fallback belongs there.
 - **Two regions can share a bounding box and still be sealed from each other.** The corridor
   down from the Taverley ladder runs x 2881-2887 through the same z band as the deep half,
   separated by two tiles of solid rock at x 2888. A box test for "west of the dusty-key gate"
@@ -40,7 +40,7 @@ mentions.
   loc to find.
 - **A refused climb is a mesbox the walker reads as a quest lock.** `oploc1,monasteryladder`
   turns away anyone outside the order, and the navigator blacklists a door that answers like
-  that for the rest of the session — which would strand the third scorpion for good. Ask
+  that for the rest of the session, which would strand the third scorpion for good. Ask
   Abbot Langley first, every pass; the redundant conversation costs two seconds and the
   blacklist costs the quest.
 - **A modal the client has closed is one the server still has open.** The barcrawl card's
@@ -48,14 +48,14 @@ mentions.
   the close it sends, the server clears it a tick or more later, and an `opheld` that
   arrives in between is dropped with no refusal. `drinkAt` had always survived it by
   reading three times; every other caller read once, called the card unreadable and failed
-  a quest step — once per bar, ten bars. A send that can be dropped needs its own retry,
+  a quest step, once per bar, ten bars. A send that can be dropped needs its own retry,
   not a caller who happens to have one.
 - **A conversation that shuts its own chat box is not a conversation that ended.** The seer
   runs `if_close`, then three `mes` lines a `p_delay(3)` apart, and only then reopens with
   the hint that moves the varp. The shared driver gives a shut dialogue 1.5 seconds before
   calling it over, so it reported success with nothing granted and the leg re-walked to
   Seers' Village on every retry. A stop whose script has gaps longer than that needs its own
-  driver and its own oracle — here, the seer's closing line.
+  driver and its own oracle, here, the seer's closing line.
 - **Tile distance counts through walls.** Skipping the approach walk because the scorpion was
   "already adjacent" queued a use-on against a walk the server could not make, and the leg
   sat silent until its timeout ran out. Walk to it anyway: the walker opens the door the raw
@@ -72,11 +72,11 @@ mentions.
   crossing, which already knows which side of it the run is standing on.
 - **`%poison` is not on the wire.** It is `scope=perm` with no transmit, so "am I poisoned"
   has no varp answer. The `"You have been poisoned!"` line `poison_player` opens with is the
-  only reading there is, and it fires once on the transition out of zero — a mark taken
+  only reading there is, and it fires once on the transition out of zero, a mark taken
   before the leg and a `sawSince` after it is the oracle.
 - **A cure drunk in reach of the thing that poisons is a cure taken back.** Antipoison sets
   `%poison = min(%poison,-5)`, and the poison timer counts a negative back up one per fire at
-  30 ticks a fire — 90 seconds of immunity, not a permanent one. The eight poison spiders in
+  30 ticks a fire, 90 seconds of immunity, not a permanent one. The eight poison spiders in
   the coffin corridor have `wanderrange=10`, which covers both sides of the wall crossing and
   most of the walk back east, so the dose only sticks once the dusty-key gate is shut.
 - **One shop on the map sells the cure.** `3doseantipoison` is stocked by `generalshop7` in

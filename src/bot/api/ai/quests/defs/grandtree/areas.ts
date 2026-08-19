@@ -203,7 +203,7 @@ export const FOREMAN: NpcStop = {
     prefer: ['Sadly his wife is no longer with us!', 'He loves worm holes.', 'Anita.']
 };
 
-// Why: `%femi_help` is 0 until the gate's box-lifting conversation sets it, and both 0 and 2 ride free — only the 1 branch charges, which is what the pay option answers.
+// Why: `%femi_help` is 0 until the gate's box-lifting conversation sets it, and both 0 and 2 ride free, only the 1 branch charges, which is what the pay option answers.
 export const FEMI: NpcStop = {
     npc: 'Femi',
     anchor: GT_TILE.femi,
@@ -218,7 +218,7 @@ export const PILOT: NpcStop = {
     prefer: ['Take me to Karamja please!']
 };
 
-// Why: `grandtree_trapdoorunder` only opens once the quest is complete, so the caves have one ungated mouth and no other and it is one-way — the way in is Glough's trapdoor, which the module drives itself.
+// Why: `grandtree_trapdoorunder` only opens once the quest is complete, so the caves have one ungated mouth and no other and it is one-way, the way in is Glough's trapdoor, which the module drives itself.
 export const GT_HOPS: LadderHop[] = [
     { stand: GT_TILE.caveLadder, locName: 'Ladder', op: 'Climb-up', arrive: new Tile(2463, 3497, 0) }
 ];

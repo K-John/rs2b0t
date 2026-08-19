@@ -65,7 +65,7 @@ describe('dedupePaths (endpoints only)', () => {
 
 describe('pathCorridorSignature / dedupeByCorridor', () => {
     test('tele vs pure-walk into the same end square stay distinct', () => {
-        // Seers tele-in vs Ardougne pure-walk into Grand Tree bank — different hops.
+        // Seers tele-in vs Ardougne pure-walk into Grand Tree bank, different hops.
         const seersTele = [
             { x: 2716, z: 3473, level: 1 },
             { x: 2662, z: 3305, level: 0 },

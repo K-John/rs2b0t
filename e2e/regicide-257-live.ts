@@ -1,11 +1,11 @@
 /** Live Regicide harness (#257): --stage N --until N --minutes N, base :8890.
  *  Why: `%regicide_quest` and `%regicide_bits` are both `scope=perm` with no `transmit`, so the bot reads its
- *  own stage off the journal — the harness seeds the varp and relogs, because `~update_questlist` only
+ *  own stage off the journal, the harness seeds the varp and relogs, because `~update_questlist` only
  *  recolours the list at login.
  *  Why: Underground Pass is seeded complete varp AND bits. The bits matter as much as the stage: `cave_well`
  *  only descends with all four orb bits set and the temple doors only open with the three badges and the
  *  horn thrown, and this quest walks back through both of them to reach the Well of Voyage.
- *  Why: stats are 70 across the board and the bank holds coins, Sharks and armour alone — the wool, the
+ *  Why: stats are 70 across the board and the bank holds coins, Sharks and armour alone, the wool, the
  *  pickaxe and the pestle are bought by the module, and every quest item is sourced in the world. */
 
 //   HEADED=1 bun e2e/regicide-257-live.ts --stage 0 --until 2 --minutes 25 --tick 150
@@ -37,16 +37,16 @@ interface Args {
     stats: number;
     tele: boolean;
     deploy: boolean;
-    /** `--give obj:qty,obj:qty` — extra pack items, for starting a leg mid-chain. */
+    /** `--give obj:qty,obj:qty`, extra pack items, for starting a leg mid-chain. */
     give: { debugName: string; qty: number }[];
-    /** `--start x,z,level` — overrides the stage's own start tile. */
+    /** `--start x,z,level`, overrides the stage's own start tile. */
     start: { x: number; z: number; level: number } | null;
-    // Why: the bomb is a dozen steps that move no varp at all — the stage only advances when the catapult
+    // Why: the bomb is a dozen steps that move no varp at all, the stage only advances when the catapult
     // fires. An obj id is what a leg in the middle of the chain can be judged on.
 
-    /** `--until-obj <id>` — pass as soon as this obj id is in the pack. */
+    /** `--until-obj <id>`, pass as soon as this obj id is in the pack. */
     untilObj: number | null;
-    /** `--no-pack` — skip the standing kit, for a leg that brings its own with `--give`. */
+    /** `--no-pack`, skip the standing kit, for a leg that brings its own with `--give`. */
     pack: boolean;
 }
 
@@ -117,13 +117,13 @@ const PLAGUE_CITY_COMPLETE = 29;
 const UPASS_COMPLETE = 10;
 // Why: bits 0-21 of `%ibanmulti`, which is every orb burned, every badge and the horn thrown into the blood
 // well, and the doll finished. The pass is walked again on the way in, and those bits are what keep its two
-// hard gates — `cave_well` and the temple doors — open for an account that has already finished it.
+// hard gates, `cave_well` and the temple doors, open for an account that has already finished it.
 const IBANMULTI_ALL = (1 << 22) - 1;
 
 const BANK_SEED: BankSeedItem[] = [
     { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
     { debugName: 'shark', displayName: 'Shark', qty: 40 },
-    // Why: rune chain and med helm rather than plate and full helm — those two want Dragon Slayer, which
+    // Why: rune chain and med helm rather than plate and full helm, those two want Dragon Slayer, which
     // this account has not done, and `Equipment.equip` refuses them silently.
     // Why: no shop this side of the map stocks a spade, and the pass has one way out of the slave cages.
     { debugName: 'spade', displayName: 'Spade', qty: 1 },
@@ -162,10 +162,10 @@ const STAGE_TELE: Record<number, { x: number; z: number; level: number }> = {
     15: ARDOUGNE_BANK
 };
 
-// Why: Tirannwn has one shop and no bank, and the way back out is the Arandar palisade — a stage seeded
+// Why: Tirannwn has one shop and no bank, and the way back out is the Arandar palisade, a stage seeded
 // inside the forest cannot walk back for the kit the module would otherwise buy in Ardougne.
 // Why: armour first, and the seed sized to the pack. `give` into a full pack is silent, so the old
-// order — food before armour, thirty slots into twenty-eight — dropped the med helm and the kiteshield on
+// order, food before armour and thirty slots into twenty-eight, dropped the med helm and the kiteshield on
 // every seeded run from stage 3 to 13, and the level-110 halberdier was fought two pieces down with nothing
 // in the log to say so.
 const PACK_SEED: { debugName: string; qty: number; slots: number }[] = [
@@ -180,7 +180,7 @@ const PACK_SEED: { debugName: string; qty: number; slots: number }[] = [
     // Why: the rope swing onto the grid shelf is the pass's one item-use seam, and a stage seeded inside
     // Tirannwn still needs them for the walk back in with the bomb.
     { debugName: 'rope', qty: 3, slots: 3 },
-    // Why: the chasm before it is shot down with a fire arrow, and `upass_bridge` keeps no state — a seeded
+    // Why: the chasm before it is shot down with a fire arrow, and `upass_bridge` keeps no state, a seeded
     // start still builds the arrow on every westbound walk.
     { debugName: 'shortbow', qty: 1, slots: 1 },
     { debugName: 'bronze_arrow', qty: 50, slots: 1 },
@@ -193,7 +193,7 @@ const PACK_SEED: { debugName: string; qty: number; slots: number }[] = [
 
 // Why: stages 13 and 14 carry Iorwerth's letter and nothing else does. `[zone,0_40_51_24_32]` only queues
 // Arianwyn while `inv_total(inv, regicide_iorwerth_message) > 0`, and stage 14 hands that same scroll to King
-// Lathas — so a seeded leg without it walks the Ardougne road forever and parks. One shark pays for the slot.
+// Lathas, so a seeded leg without it walks the Ardougne road forever and parks. One shark pays for the slot.
 const LETTER_FROM_STAGE = 13;
 
 function packSeedFor(stage: number): { debugName: string; qty: number; slots: number }[] {
@@ -269,7 +269,7 @@ if (args.stage < 0 || args.stage > 15) {
 
 // Why: `public/bot` is shared, so another session's deploy landing inside this run's boot window would hand
 // it their branch. The isolated client also refuses to start without the collision pack, which is what a
-// fresh worktree is missing — and this quest derives its route table from that pack.
+// fresh worktree is missing, and this quest derives its route table from that pack.
 const client = args.deploy ? deployIsolatedClient(args.user) : null;
 const clientPage = client?.page ?? '/bot.html';
 process.on('exit', () => client?.cleanup());
@@ -316,7 +316,7 @@ try {
         console.log(`regicide_quest=${read}`);
     }
     // Why: the King's messenger is armed by `start_king_messenger_timer` at LOGIN, and a stage seeded past
-    // him needs the quest list recoloured — so the relog serves both.
+    // him needs the quest list recoloured, so the relog serves both.
     await relog(page, args.user);
     await clearChatDialogs(page, 'post-relog dialog(s)');
 
@@ -348,14 +348,14 @@ try {
     }
 
     // Why: from stage 2, not stage 3. Stage 2 is the walk through the Underground Pass, and its leg starts at
-    // the Ardougne bank where `outfit` would otherwise buy the kit first — seven minutes of Taverley and
+    // the Ardougne bank where `outfit` would otherwise buy the kit first, seven minutes of Taverley and
     // Catherby before the leg reaches the thing it is testing. Stages 0 and 1 already prove the shopping.
-    // Why: 14 is the last that still needs a pack — it walks to King Lathas with Iorwerth's letter.
+    // Why: 14 is the last that still needs a pack. It walks to King Lathas with Iorwerth's letter.
     if (args.pack && args.stage >= 2 && args.stage <= 14) {
         await seedPack(page, args.stage);
     }
     // Why: the bomb is a dozen steps in three regions, so a leg part-way along it has to be handed the
-    // pack that leg starts from — there is no varp that records how far the chemistry has got.
+    // pack that leg starts from. There is no varp that records how far the chemistry has got.
     if (args.give.length > 0) {
         for (const { debugName, qty } of args.give) {
             await cheatQuiet(page, `give ${debugName} ${qty}`);
@@ -371,7 +371,7 @@ try {
 
     const deadline = Date.now() + args.minutes * 60_000;
     // Why: keyed on the line, not on its timestamp. The ring stamps milliseconds, and `time > lastLogTime`
-    // drops every line after the first whenever a step logs a burst inside one tick — which is what a
+    // drops every line after the first whenever a step logs a burst inside one tick, which is what a
     // diagnostic is. The quest module's own `observe` writes three lines and only the first ever reached this
     // log, so a parked leg looked like it had one thing to say when it had three.
     const printed = new Set<string>();

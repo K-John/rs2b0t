@@ -216,7 +216,7 @@ export default class BrimhavenAgility extends TaskBot {
             this.pendingHint = -1;
             return;
         }
-        // Hint tiles can snap to a neighbour for one read — require two matches.
+        // Hint tiles can snap to a neighbour for one read, require two matches.
         if (hint !== this.pendingHint) {
             this.pendingHint = hint;
             return;
@@ -311,7 +311,7 @@ export default class BrimhavenAgility extends TaskBot {
         return Inventory.count('Coins');
     }
 
-    // Why: dart/saw traps roll `stat(agility)` (current) and 100% fail below the gate — base level would keep walking them after drain.
+    // Why: dart/saw traps roll `stat(agility)` (current) and 100% fail below the gate, base level would keep walking them after drain.
     agility(): number {
         return Skills.effective('agility');
     }
@@ -335,7 +335,7 @@ export default class BrimhavenAgility extends TaskBot {
 
     platform(): number {
         const t = this.here();
-        // Only snap to pillars on the live platform plane — the fall pit shares
+        // Only snap to pillars on the live platform plane, the fall pit shares
         // x/z with pillars but has no Rope swing / ledge locs (stuck loop).
         if (!t || !onArenaPlatform(t.level) || !inArena(t.x, t.z)) {
             return -1;
@@ -585,7 +585,7 @@ class BankTrip implements Task {
         }
         const here = this.bot.here();
         const atBrim = here !== null && onBrimhavenSurface(here.x, here.z, here.level);
-        // Do not top up food to foodPerTrip while already on Brimhaven — that
+        // Do not top up food to foodPerTrip while already on Brimhaven, that
         // alone would ship you back to Ardy after eating a single lobster.
         const needFood =
             this.bot.foodInPack() <= 0 ||
@@ -688,7 +688,7 @@ class EnterArena implements Task {
         if (this.bot.needsCakesNow() || (this.bot.cfg().stealRestock && this.bot.needsCoinsNow())) {
             return false;
         }
-        // On Brimhaven the outbound boat is already paid — only need return + entrance.
+        // On Brimhaven the outbound boat is already paid, only need return + entrance.
         if (this.bot.edibleInPack() < 1 || needsCoinsRestock(this.bot.coinCount(), this.bot.paid(), true)) {
             return false;
         }
@@ -966,13 +966,13 @@ async function leaveArena(bot: BrimhavenAgility): Promise<void> {
             await Execution.delayUntil(() => !bot.inPitNow() && !Game.animating(), 6000);
         }
     }
-    // exit ladder at local 53,54-ish — ladderup near SE of map
+    // exit ladder at local 53,54-ish, ladderup near SE of map
     const exit = Locs.query().name('Ladder').action('Climb-up').within(40).nearest()
         ?? Locs.query().name('Ladder').within(40).where(l => l.actions().some(a => /climb-up/i.test(a))).nearest();
     if (!exit) {
         // path toward platform 4 / SE where the exit ladder sits after climb dest 53,54
         const here = bot.platform();
-        // ladder up is near platform area 20/SE — walk graph toward platform 4 then search
+        // ladder up is near platform area 20/SE, walk graph toward platform 4 then search
         if (here >= 0) {
             const hop = nextHop(here, 4, bot.agility()) ?? nextHop(here, 14, bot.agility());
             if (hop !== null) {
@@ -1063,14 +1063,14 @@ async function waitObstacleSettled(bot: BrimhavenAgility, from: number, to: numb
             idleTicks = 0;
         }
         // Soft fail / stuck mid-trap: after a live leave, a few idle ticks without
-        // arriving means bounce or stall — retry now (not a 8–12s hang).
+        // arriving means bounce or stall, retry now (not a 8–12s hang).
         if (leftStart && idleTicks >= 3) {
             bot.log(
                 `  settled failed (stalled after leave) platform ${platform} distStart=${distFromStart} (from ${from}, want ${to})`
             );
             return;
         }
-        // Click/walk never took — retry without sitting out the full timeout.
+        // Click/walk never took, retry without sitting out the full timeout.
         if (!leftStart && platform === from && idleTicks >= 6) {
             bot.log(`  settled failed (never left start) platform ${platform} (from ${from}, want ${to})`);
             return;
@@ -1119,7 +1119,7 @@ async function crossEdge(bot: BrimhavenAgility, edge: ArenaEdge, from: number, t
         return;
     }
     // Why: staging happens on the source side before every interaction.
-    // Why: platform membership is not enough — recovery ladders and ticket dispensers can separate the player from the obstacle's usable side while both tiles belong to one island.
+    // Why: platform membership is not enough, recovery ladders and ticket dispensers can separate the player from the obstacle's usable side while both tiles belong to one island.
     const lt = loc.tile();
     const approach = edgeApproachCandidates(from, to, lt)
         .map(t => new Tile(t.x, t.z, lt.level))
@@ -1138,7 +1138,7 @@ async function crossEdge(bot: BrimhavenAgility, edge: ArenaEdge, from: number, t
 
     bot.log(`  ${op} ${edge.locName} @ ${lt.x},${lt.z}`);
     // Click immediately (even mid residual anim). Re-click while still on start
-    // until the obstacle engages — no long dead wait after rope/pillar/monkey.
+    // until the obstacle engages, no long dead wait after rope/pillar/monkey.
     for (let attempt = 0; attempt < 5; attempt++) {
         if (bot.inPitNow() || bot.platform() === to) {
             break;

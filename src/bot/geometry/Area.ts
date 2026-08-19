@@ -2,7 +2,7 @@ import type { WorldTile } from '../adapter/ClientAdapter.js';
 import Tile from './Tile.js';
 
 /**
- * A region of the map — rectangular or circular.
+ * A region of the map, rectangular or circular.
  * @see docs/reference/api-game.md#world-primitives
  */
 export abstract class Area {

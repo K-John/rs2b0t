@@ -7,14 +7,14 @@ cost either a read of the content scripts or a live run.
 
 - **A quest whose start is across a toll buys its kit first.** `decide()`
   originally answered stage 0 with "talk to Timfraku", and the navigator replied
-  `unreachable without 30x Coins` — the bot stood at the Ardougne booth it had walked
+  `unreachable without 30x Coins`, the bot stood at the Ardougne booth it had walked
   straight past. Provisioning runs before the pre-start branch, not after it, wherever
   the first NPC is behind a fare.
 - **Two of this quest's six varps are on the wire.** `tbwt_main` and `tbwt_tiadeche`
   carry `transmit=yes`; `tbwt_tinsay`, `tbwt_tamayu`, `tbwt_lubufu` and `tbwt_flags`
   do not. That is the exception [the varp decision](quest-state-not-varps.md) names, so
   the module reads the first two with `reader.varp` and opens the journal only for the
-  rest — and only while `tbwt_main` is in the brothers phase.
+  rest, and only while `tbwt_main` is in the brothers phase.
 - **"Nothing of interest." is three different brothers' opening line.** The journal
   appends each brother's block under its own `Tiadeche:` / `Tinsay:` / `Tamayu:` /
   `Lubufu:` heading, so a marker is only meaningful inside its own slice of the page.
@@ -41,7 +41,7 @@ cost either a read of the content scripts or a live run.
   `walktrigger` clears the timer, so nothing may move until the fire catches.
 - **A tile that will not take a fire says so once and then says nothing.** `area_allow_loc_add`
   refuses with a single chat line, and the bones are already on the floor by then, so the step
-  reads the refusal, steps aside, and picks them back up — waiting the ninety seconds out
+  reads the refusal, steps aside, and picks them back up, waiting the ninety seconds out
   instead cost a minute and a half of a live run for nothing.
 - **Three of this quest's objects share a display name with two others each.**
   "Karambwan vessel" is the empty one and the baited one, "Karamjan rum" is the bottle,
@@ -63,7 +63,7 @@ cost either a read of the content scripts or a live run.
   third. The step asks until the vessel is in the pack rather than until a stage moves.
 - **The bait count is not on the page either.** Every stage from 5 to 24 renders "I
   need to give Lubufu 20 Karambwanji", so the module cannot know how many he already
-  holds. It fishes a pack-full, hands the lot over, and reads the page again — he
+  holds. It fishes a pack-full, hands the lot over, and reads the page again, he
   counts them in himself and keeps only what he still wants, so the leftovers stay in
   the pack and go on to bait the vessel and grind into Tinsay's marinade.
 - **Every one of these five NPCs wanders, and the first Talk-to after a long walk

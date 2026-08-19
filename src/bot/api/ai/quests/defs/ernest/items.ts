@@ -34,7 +34,7 @@ async function takeSpawn(id: number, name: string, at: Tile, log: (m: string) =>
 
 /**
  * Dig the compost heap. `op1=Search` answers "I'm not looking through that with
- * my hands!" — the key is an oplocu with a spade, re-issued whenever none is held.
+ * my hands!". The key is an oplocu with a spade, re-issued whenever none is held.
  */
 async function digClosetKey(log: (m: string) => void): Promise<boolean> {
     if (held(EC_ID.CLOSET_KEY) > 0) {
@@ -59,7 +59,7 @@ export function inCloset(tile: { x: number; z: number; level: number } | null | 
         && tile!.z >= CLOSET_BOX.minZ && tile!.z <= CLOSET_BOX.maxZ;
 }
 
-// Why: the closet is a sealed ten-tile room — `open_and_close_door2` shuts the door behind whoever crosses it and `op1=Open` answers "The door is locked".
+// Why: the closet is a sealed ten-tile room, `open_and_close_door2` shuts the door behind whoever crosses it and `op1=Open` answers "The door is locked".
 // Why: the key is therefore the only way in and the only way back out, and it is never consumed.
 
 /** Cross the closet door in the named direction. */
@@ -213,7 +213,7 @@ export async function fetchPressureGauge(log: (m: string) => void): Promise<bool
         await searchFountain(log);
     }
     // The gauge can land a tick after the op returns, so read it on a wait
-    // rather than instantaneously — otherwise a leg that worked reports failure.
+    // rather than instantaneously, otherwise a leg that worked reports failure.
     await Execution.delayUntil(() => held(EC_ID.PRESSURE_GAUGE) > 0, 5000);
     return held(EC_ID.PRESSURE_GAUGE) > 0;
 }

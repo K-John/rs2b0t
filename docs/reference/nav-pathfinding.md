@@ -15,7 +15,7 @@ const path = await Navigator.findPath(from, to, { avoidDoors, timeoutMs, maxExpa
 Scripts can ban axis-aligned map rects from A\* so low-level accounts do not walk
 wolf packs (idea **@lolwut**). Known ids live in
 [`dangerZones.ts`](../../src/bot/event/webwalk/data/dangerZones.ts); pass them on any walk
-(`walkTo` or `walkResilient` — resilient forwards them on every baked repath):
+(`walkTo` or `walkResilient`, resilient forwards them on every baked repath):
 
 ```ts
 await Traversal.walkResilient(dest, {
@@ -60,7 +60,7 @@ A `Waypoint` may carry a `TransportInfo`, which is how a door, stair, or ship
 crossing is represented mid-path. `avoidDoors` lets a caller re-path around a barrier
 that has refused to open.
 
-[`DirectNavigator`](../../src/bot/event/webwalk/DirectNavigator.ts) is the script-facing wrapper —
+[`DirectNavigator`](../../src/bot/event/webwalk/DirectNavigator.ts) is the script-facing wrapper,
 see [Movement](../reference/api-movement.md).
 
 ## Following a path
@@ -74,7 +74,7 @@ pass it:
 4. re-paths when the world disagrees with the plan.
 
 The pure geometry is split into [`followMath.ts`](../../src/bot/event/webwalk/geometry/followMath.ts) so it
-can be unit-tested without a client — [`test/event/webwalk/followMath.test.ts`](../../test/event/webwalk/followMath.test.ts)
+can be unit-tested without a client, [`test/event/webwalk/followMath.test.ts`](../../test/event/webwalk/followMath.test.ts)
 is the executable specification of the rules below.
 
 ## See also

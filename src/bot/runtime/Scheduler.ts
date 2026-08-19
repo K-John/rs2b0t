@@ -74,7 +74,7 @@ class SchedulerImpl {
         this.lastPumpAt = now;
         const tick = BotHost.tickCount;
 
-        // Host-level waits (no script) — always pump so guardian/maze can sleep.
+        // Host-level waits (no script), always pump so guardian/maze can sleep.
         if (this.hostWaiters.length > 0) {
             if (gap > FRAME_GAP_MS) {
                 this.shiftWaiters(this.hostWaiters, gap - NOMINAL_FRAME_MS);

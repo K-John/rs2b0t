@@ -81,7 +81,7 @@ describe('log balance special crossings', () => {
     });
 
     test('every skill-gated crossing has a matching transport edge to prune', () => {
-        // Include curated travel (Yanille ledge, etc.) — same set as PathFinder.
+        // Include curated travel (Yanille ledge, etc.), same set as PathFinder.
         const graph = allTransportRows();
         const gated = SPECIAL_CROSSINGS.filter(sc => sc.requiresSkill);
         expect(gated.length).toBeGreaterThan(0);

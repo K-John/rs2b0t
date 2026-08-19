@@ -1,6 +1,6 @@
 /**
  * Pure data and decisions for the GemCutter script.
- * Matches gems by numeric id — every uncut gem has a distinct id.
+ * Matches gems by numeric id, every uncut gem has a distinct id.
  */
 
 export const CHISEL_ID = 1755;

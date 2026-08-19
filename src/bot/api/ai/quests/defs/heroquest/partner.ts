@@ -12,7 +12,7 @@ export interface HeroHandoffInput {
     stage: number;
     /** Grip's spare key in the pack. */
     hasKey: boolean;
-    /** Candlesticks in the pack — the chest hands the Black Arm bot two. */
+    /** Candlesticks in the pack. The chest hands the Black Arm bot two. */
     candlesticks: number;
     partnerConfigured: boolean;
     /** False while this side still owes itself a purchase or a withdrawal before it can use the trade. */
@@ -22,7 +22,7 @@ export interface HeroHandoffInput {
 // Why: Grip re-issues the spare whenever `~obj_gettotal(misc_key)` reads zero, so the flag stops a bot
 // trading keys forever and the lure counter re-opens it for a rival that died holding one.
 
-// Why: session scope is enough — a restart fetches one more key, which is correct work.
+// Why: session scope is enough, a restart fetches one more key, which is correct work.
 export const HeroHandoffState = { gaveKey: false, lureFailures: 0 };
 
 /** How many fruitless lures it takes before the Black Arm bot fetches the rival another key. */
@@ -39,7 +39,7 @@ export function shouldFetchKey(state: { gaveKey: boolean; lureFailures: number }
 }
 
 // Why: `open_and_close_door` teleports the actor and re-shuts in three ticks, so the door opens for
-// nobody else — the tradeable spare key goes over and the untradeable keyring comes off the floor.
+// nobody else, the tradeable spare key goes over and the untradeable keyring comes off the floor.
 
 /** Who owes whom, from the snapshot alone. */
 export function decideHeroHandoff(input: HeroHandoffInput): HeroHandoff | null {
@@ -61,7 +61,7 @@ export function decideHeroHandoff(input: HeroHandoffInput): HeroHandoff | null {
         return null;
     }
     // Why: the key is only useful with a bow already worn, and the walk to fetch one afterwards starts
-    // in Brimhaven — where the nearest bank is Ardougne, across a fare each way.
+    // in Brimhaven, where the nearest bank is Ardougne, across a fare each way.
     if (input.stage === HERO_STAGE.PHOENIX_CHARLIE && !input.hasKey && input.ready) {
         return 'take-key';
     }

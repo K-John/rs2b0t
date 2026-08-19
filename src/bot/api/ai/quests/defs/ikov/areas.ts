@@ -93,7 +93,7 @@ export const IKOV_FOODS = ['lobster', 'swordfish', 'tuna'];
 
 /** Roots Winelda wants, and the ferry across the lava is the only way past her. */
 export const ROOTS_WANTED = 20;
-// Why: he has 59 hitpoints, four shots in five land recoverable on the floor, and the leg sweeps them mid-fight — so this is a comfortable floor rather than a stockpile, and one chest circuit clears it.
+// Why: he has 59 hitpoints, four shots in five land recoverable on the floor, and the leg sweeps them mid-fight, so this is a comfortable floor rather than a stockpile, and one chest circuit clears it.
 
 /** Ice arrows held before the Fire Warrior is engaged. */
 export const ARROWS_WANTED = 20;
@@ -118,7 +118,7 @@ export const IKOV_TILE = {
     // Why: `spinningwheel` is `forceapproach=south` placed at angle 3, so the only legal side is east in world space.
     SPINNING_WHEEL: new Tile(2712, 3471, 1),
     SPINNING_WHEEL_STAIRS: new Tile(2714, 3472, 0),
-    // Why: ten of the fourteen surface hobgoblins stand on the peninsula west of the Crafting Guild at (2939,3282), against six on the Ardougne coast — and Falador West is a shorter bank run than Ardougne's.
+    // Why: ten of the fourteen surface hobgoblins stand on the peninsula west of the Crafting Guild at (2939,3282), against six on the Ardougne coast, and Falador West is a shorter bank run than Ardougne's.
     HOBGOBLINS: new Tile(2911, 3284, 0),
     /** Clear of the camp's aggro, on the road north to the Falador West booth. */
     HOBGOBLIN_RETREAT: new Tile(2933, 3323, 0),
@@ -162,7 +162,7 @@ export const IKOV_TILE = {
     MCGRUBOR_SURFACE: new Tile(2659, 3493, 0)
 } as const;
 
-// Why: `ikov_chestclosed` is `forceapproach=north` and each placement rotates that clockwise, so the stand is the only side an Open lands from — anywhere else the op is dropped in silence.
+// Why: `ikov_chestclosed` is `forceapproach=north` and each placement rotates that clockwise, so the stand is the only side an Open lands from, anywhere else the op is dropped in silence.
 
 /** The six ice-arrow chests; one of them holds arrows, and which one is re-rolled after every find. */
 export const ICE_CHESTS: readonly { loc: Tile; stand: Tile }[] = [
@@ -225,7 +225,7 @@ export function inIceCavern(t: { x: number; z: number }): boolean {
     return t.z <= 9802 || t.x >= 2688;
 }
 
-// Why: `inIceCavern` is a half-plane rather than a box, and the boots room sits inside it — so "south or east of the temple" is not the same question as "through the south gate", and only this one may stand in for the gate.
+// Why: `inIceCavern` is a half-plane rather than a box, and the boots room sits inside it, so "south or east of the temple" is not the same question as "through the south gate", and only this one may stand in for the gate.
 
 /** Through the south gate, which the boots room is not however far south it lies. */
 export function pastSouthGate(t: { x: number; z: number }): boolean {
@@ -243,7 +243,7 @@ export function onWineldaLedge(t: { x: number; z: number }): boolean {
     return t.x >= 2643 && t.x <= 2658 && t.z >= 9871 && t.z <= 9879;
 }
 
-// Why: the far side of the lava wraps around the Fire Warrior's room and Winelda's ledge, so no rectangle separates them — only the temple behind the wall is boxable, and the corridor at z 9893 is the one row where both sides have tiles.
+// Why: the far side of the lava wraps around the Fire Warrior's room and Winelda's ledge, so no rectangle separates them, only the temple behind the wall is boxable, and the corridor at z 9893 is the one row where both sides have tiles.
 
 /** The guardians' temple, behind the secret wall. */
 export function inGuardianTemple(t: { x: number; z: number }): boolean {

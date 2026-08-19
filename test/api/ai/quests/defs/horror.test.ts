@@ -88,8 +88,8 @@ describe('Horror from the Deep decide()', () => {
     });
 
     test('talks to Larrissa the moment the kit is in hand', () => {
-        // The ordinary account already owns this — every step of the kit reads
-        // the bank first — so the common case is one walk to the lighthouse.
+        // The ordinary account already owns this, every step of the kit reads
+        // the bank first, so the common case is one walk to the lighthouse.
         const stocked = step({
             invIds: [[HD_ID.HAMMER, 1], [HD_ID.NAILS, NAILS_NEEDED], [HD_ID.PLANK, PLANKS_NEEDED]]
         });
@@ -284,7 +284,7 @@ describe('Horror from the Deep — teleport kit', () => {
 
     test('walks rather than detouring when the bank has no law', () => {
         // Only the Magic Guild (66 magic) and the Mage Arena stock it, so an
-        // empty bank is the ordinary case — and the answer is the walk.
+        // empty bank is the ordinary case, and the answer is the walk.
         expect(lawIn(runeKit(snap({ bankIds: [[HD_ID.LAW_RUNE, 0]] }), true))).toBe(false);
     });
 

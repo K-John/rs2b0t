@@ -47,14 +47,14 @@ export const SOA_TILE = {
     /** North of the chest, the side `forceapproach=north` leaves legal at angle 0. */
     CHEST_STAND: new Tile(3235, 9762, 0),
     STORE_DOOR: new Tile(3251, 3386, 0),
-    /** Inside the store, beside the door — the only tile the outward Open can be clicked from. */
+    /** Inside the store, beside the door, the only tile the outward Open can be clicked from. */
     STORE_DOOR_INNER: new Tile(3251, 3384, 0),
     STORE_LADDER: new Tile(3252, 3385, 0),
     STORE_LADDER_TOP: new Tile(3251, 3384, 1),
     CROSSBOW_WEST: new Tile(3243, 3383, 1),
     CROSSBOW_EAST: new Tile(3245, 3385, 1),
     STREET_DOOR: new Tile(3190, 3384, 0),
-    /** Katrine's side of the gang door — the side an unjoined character is stuck on. */
+    /** Katrine's side of the gang door, the side an unjoined character is stuck on. */
     BLACKARM_DOOR: new Tile(3185, 3387, 0),
     /** The stairs side, past the gang door. */
     BLACKARM_DOOR_INNER: new Tile(3185, 3389, 0),
@@ -135,7 +135,7 @@ export const ROALD: NpcStop = {
     prefer: []
 };
 
-// Why: `needsHop` compares z against 6400, so a LadderHop can only express a surface-to-underground move — the two upper floors are climbed inside their own legs.
+// Why: `needsHop` compares z against 6400, so a LadderHop can only express a surface-to-underground move, the two upper floors are climbed inside their own legs.
 export const HQ_HOP_DOWN: LadderHop = {
     stand: SOA_TILE.CELLAR_LADDER,
     locName: 'Ladder',
@@ -156,7 +156,7 @@ function within(t: WorldTile | null | undefined, x0: number, x1: number, z0: num
     return !!t && t.level === level && t.x >= x0 && t.x <= x1 && t.z >= z0 && t.z <= z1;
 }
 
-/** The hideout is an underground band nothing walks into — the cellar ladder is the only way in or out. */
+/** The hideout is an underground band nothing walks into, the cellar ladder is the only way in or out. */
 export function inPhoenixHq(t: WorldTile | null | undefined): boolean {
     return within(t, 3225, 3260, 9750, 9795, 0);
 }

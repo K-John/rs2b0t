@@ -94,7 +94,7 @@ export async function talkVillager(
         }
         log(`${cured} did not answer — falling back to a dose of serum`);
     }
-    // Why: the sanctified vial is spent first — its dose sets the villager's permanent bit, so it buys every later visit as well as this one.
+    // Why: the sanctified vial is spent first, its dose sets the villager's permanent bit, so it buys every later visit as well as this one.
     const vialId = permSerumVialId() ?? serumVialId();
     if (vialId === null) {
         log(`no serum 207 in the pack to use on ${cured}`);
@@ -141,7 +141,7 @@ export async function takeDiary(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: the quest only starts once the reader reaches page 25, so the book has to be paged all the way through rather than merely opened.
-// Why: `[opheld1,serum_book]` puts an `~objbox` in front of the book, and `~objbox` ends in `p_pausebutton` — the script sits on that chat box until it is clicked, so the book opens after the continue rather than after the Read.
+// Why: `[opheld1,serum_book]` puts an `~objbox` in front of the book, and `~objbox` ends in `p_pausebutton`. The script sits on that chat box until it is clicked, so the book opens after the continue rather than after the Read.
 
 /** Read the diary to its last page. */
 export async function readDiary(log: (m: string) => void): Promise<boolean> {
@@ -257,7 +257,7 @@ async function combine(a: number, b: number, product: number, what: string, log:
 export const mixUnfinished = (log: (m: string) => void): Promise<boolean> =>
     combine(SM_ID.TARROMIN, SM_ID.VIAL_WATER, SM_ID.TARROMIN_UNF, 'unfinished potion', log);
 
-/** Ashes into the unfinished potion — serum 207, and the stage that follows it. */
+/** Ashes into the unfinished potion, serum 207, and the stage that follows it. */
 export const mixSerum = (log: (m: string) => void): Promise<boolean> =>
     combine(SM_ID.ASHES, SM_ID.TARROMIN_UNF, SM_ID.SERUM3, 'serum 207', log);
 
@@ -303,7 +303,7 @@ async function fillOrder(order: ShopOrder, log: (m: string) => void): Promise<bo
     return true;
 }
 
-// Why: Razmire's two counters are `opnpc3` and `opnpc4` rather than a plain Trade, and neither op exists while he is afflicted — the dialogue's store menu is the way in that a fresh dose buys.
+// Why: Razmire's two counters are `opnpc3` and `opnpc4` rather than a plain Trade, and neither op exists while he is afflicted, the dialogue's store menu is the way in that a fresh dose buys.
 
 /** Open one of Razmire's counters, curing him first if his ops have gone, and buy the order out. */
 export function shopAtRazmire(order: ShopOrder): (log: (m: string) => void) => Promise<boolean> {

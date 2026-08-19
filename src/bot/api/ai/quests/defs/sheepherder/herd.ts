@@ -11,7 +11,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import { GATE_ZONE, PEN, SHEEP_SPAWN, inBox, sheepName, type SheepIndex } from './areas.js';
 import { HERD_DIRS, herdCost, herdDirections, herdPlan, type HerdDir, type HerdGrid } from './herdPath.js';
 
-// Why: the shortest route is 31 pushes and the longest 58, and drift near a sheep's own spawn roughly triples the count — 90 pushes for the 31-tile leg, live.
+// Why: the shortest route is 31 pushes and the longest 58, and drift near a sheep's own spawn roughly triples the count, 90 pushes for the 31-tile leg, live.
 
 /** Pushes one leg may spend before it hands the budget back to the engine. */
 const PROD_BUDGET = 260;
@@ -33,7 +33,7 @@ const APPROACH_RAY = 3;
 /** Off-axis landings before the leg stops trusting the server to take the last step. */
 const STRAY_LIMIT = 6;
 
-// Why: the strip along the enclosure's south-east corner — (2610,3351), (2612,3349), (2610,3348) — is walkable, on the way home, and has no standable side at all, so the wait here is a brief one and the leg then goes for another copy.
+// Why: the strip along the enclosure's south-east corner, (2610,3351), (2612,3349) and (2610,3348), is walkable, on the way home, and has no standable side at all, so the wait here is a brief one and the leg then goes for another copy.
 
 /** Ticks to give a trapped sheep to wander clear, and how many such waits a leg allows. */
 const PINNED_WAIT = 3;
@@ -51,7 +51,7 @@ function copies(n: SheepIndex): Npc[] {
     return Npcs.query().name(sheepName(n)).results();
 }
 
-// Why: three copies of every sheep share one quest bit and one display name, and the herded one is only ever a tile or two from where it was last seen — so the lock is its last tile, not its client slot, which churns when the scene rebuilds.
+// Why: three copies of every sheep share one quest bit and one display name, and the herded one is only ever a tile or two from where it was last seen, so the lock is its last tile, not its client slot, which churns when the scene rebuilds.
 
 /** The copy still standing where the herd left it. */
 function nearLast(n: SheepIndex, last: { x: number; z: number }): Npc | null {
@@ -71,7 +71,7 @@ function routeCost(npc: Npc): number | undefined {
     return herdCost(herdPlan(SCENE_GRID, t, GATE_ZONE), t.x, t.z);
 }
 
-// Why: a sheep sitting in a trap has no route at all, and the other two copies of its type carry the same quest bit — so the leg fetches one of those rather than waiting out a 500-tick teleport.
+// Why: a sheep sitting in a trap has no route at all, and the other two copies of its type carry the same quest bit, so the leg fetches one of those rather than waiting out a 500-tick teleport.
 
 /** The copy with the shortest push route home, ignoring any that no push can move. */
 function pickSheep(n: SheepIndex): Npc | null {
@@ -131,10 +131,10 @@ export async function clearRefusal(): Promise<boolean> {
     return seen;
 }
 
-// Why: the two gate tiles are baked door edges, and a world-walk that has to finish on one spends its budget opening the gate rather than arriving — a stalled follow cost 66 seconds live, and the sheep wandered home inside it.
+// Why: the two gate tiles are baked door edges, and a world-walk that has to finish on one spends its budget opening the gate rather than arriving, a stalled follow cost 66 seconds live, and the sheep wandered home inside it.
 // Why: the follow is always inside the loaded scene, so the client's own pathfinder is the right tool and the world-walker is for the opening approach alone.
 
-// Why: the Prod op walks the character to an adjacent tile itself, so standing anywhere on the line behind the sheep leaves the server to take the last step — which halves the cycle, and every tick saved is a tick the sheep is not in wander mode.
+// Why: the Prod op walks the character to an adjacent tile itself, so standing anywhere on the line behind the sheep leaves the server to take the last step, which halves the cycle, and every tick saved is a tick the sheep is not in wander mode.
 
 /** Whether a Prod issued from here will be run from the tile the push needs. */
 function behindSheep(me: { x: number; z: number; level: number } | null, sheep: Tile, dir: HerdDir): boolean {
@@ -244,7 +244,7 @@ export async function herdToPen(n: SheepIndex, log: (m: string) => void): Promis
             log(`sheepherder: ${sheepName(n)} at (${tile.x},${tile.z}) after ${push} push(es), herder at (${me?.x},${me?.z})`);
         }
         const dirs = inBox(GATE_ZONE, tile) ? anyStand(tile) : herdDirections(SCENE_GRID, tile, GATE_ZONE);
-        // Why: a sheep that wandered onto a tile with no standable side — the strip north of the enclosure's south fence is one — is pinned rather than lost, so the leg waits it out instead of throwing the pushes away.
+        // Why: a sheep that wandered onto a tile with no standable side, the strip north of the enclosure's south fence is one, is pinned rather than lost, so the leg waits it out instead of throwing the pushes away.
         if (dirs.length === 0) {
             if (++pinned > PINNED_LIMIT) {
                 log(`sheepherder: ${sheepName(n)} stayed pinned at (${tile.x},${tile.z})`);
@@ -272,8 +272,8 @@ export async function herdToPen(n: SheepIndex, log: (m: string) => void): Promis
             continue;
         }
         const outcome = await pushOnce(n, now, dir, log);
-        // Why: a landing off the push axis is usually the sheep's own wander step, so the count is a streak — six in a row says the server is approaching from a side of its own choosing, and one good push says it is not.
-        // Why: it has to reset, because walking every stand doubles the cycle, which doubles the time the sheep spends walking home, which strays it again — one unlucky run cost twenty minutes on one sheep.
+        // Why: a landing off the push axis is usually the sheep's own wander step, so the count is a streak, six in a row says the server is approaching from a side of its own choosing, and one good push says it is not.
+        // Why: it has to reset, because walking every stand doubles the cycle, which doubles the time the sheep spends walking home, which strays it again, one unlucky run cost twenty minutes on one sheep.
         strayed = outcome === 'wanted' ? 0 : strayed + 1;
         if (strayed === STRAY_LIMIT) {
             log(`sheepherder: ${sheepName(n)} kept landing off the push axis — walking the stand until one lands`);

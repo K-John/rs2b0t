@@ -72,7 +72,7 @@ function keyOf(t: { x: number; z: number }): string {
     return `${t.x},${t.z}`;
 }
 
-/** First kite step away from a mob (named camps only — Auto skips FleeCombat). */
+/** First kite step away from a mob (named camps only, Auto skips FleeCombat). */
 const FLEE_STEP = 12;
 /** Second kite if still stuck after the first walk. */
 const FLEE_STEP_HARD = 20;
@@ -185,7 +185,7 @@ export class TannerfishSustain implements Task {
         ) {
             return false;
         }
-        // Need an oven to cook — if pack is full and none in scene, let DropProduct run.
+        // Need an oven to cook, if pack is full and none in scene, let DropProduct run.
         if (!this.nearestOven()) {
             return false;
         }
@@ -339,13 +339,13 @@ export class FleeCombat implements Task {
         step: number
     ): Tile {
         if (!attacker) {
-            // No face target — east first (Lava Maze spiders / wildy approach), then south.
+            // No face target, east first (Lava Maze spiders / wildy approach), then south.
             return new Tile(here.x + step, here.z, here.level);
         }
         const at = attacker.tile();
         let dx = here.x - at.x;
         let dz = here.z - at.z;
-        // Stacked on the attacker or zero vector — default east (named wildy camps).
+        // Stacked on the attacker or zero vector, default east (named wildy camps).
         if (dx === 0 && dz === 0) {
             dx = 1;
             dz = 0;
@@ -396,7 +396,7 @@ export class FleeCombat implements Task {
         await Traversal.walkTo(dest, { radius: 2, timeoutMs: 16_000 });
         await Execution.delayUntilTicks(() => !Game.inCombat(), 17);
         if (Game.inCombat()) {
-            // Still stuck — longer kite away from whoever is on us.
+            // Still stuck, longer kite away from whoever is on us.
             const still = Game.tile();
             const againAtk = this.attacker();
             if (still && againAtk) {
@@ -806,7 +806,7 @@ export class DropProduct implements Task {
 
 async function dropAll(bot: GatheringBot): Promise<void> {
     bot.setStatus('dropping');
-    // Tannerfishing keeps cooked catch as food — products() is raw-only for Fisher.
+    // Tannerfishing keeps cooked catch as food, products() is raw-only for Fisher.
     for (let guard = 0; guard < 30; guard++) {
         const item = bot.products()[0];
         if (!item) {
@@ -820,7 +820,7 @@ async function dropAll(bot: GatheringBot): Promise<void> {
             const logs = Inventory.items().filter(i => isFletchableLogName(i.name));
             const total = logs.reduce((s, i) => s + Math.max(1, i.count), 0);
             if (total <= 1) {
-                // Only the delay log left among products — stop.
+                // Only the delay log left among products, stop.
                 const other = bot.products().find(i => !isFletchableLogName(i.name));
                 if (!other) {
                     break;
@@ -890,7 +890,7 @@ export class BankCatch implements Task {
         if (this.bot.bankCatchBlockedByCook() || this.bot.bankCatchBlockedByBurn()) {
             return false;
         }
-        // Partner modes: hand off / cooker / supplier — not BankCatch.
+        // Partner modes: hand off / cooker / supplier, not BankCatch.
         if (
             this.bot.isMuleGatherer()
             || this.bot.isMuleReceiver()
@@ -1037,7 +1037,7 @@ export class BankCatch implements Task {
         if (routePlan && !(await this.bot.desertCampWithdrawSuppliesAtOpenBank(routePlan))) {
             return;
         }
-        // Opportunistic tool upgrade while already banking — never yank mid-chop.
+        // Opportunistic tool upgrade while already banking, never yank mid-chop.
         if (await this.bot.tryUpgradeGatherToolAtBank(log)) {
             return;
         }
@@ -1070,7 +1070,7 @@ export class FishCookDialog implements Task {
 
         const raw = this.bot.lastRawFish();
         const hint = raw?.name ?? undefined;
-        // This revision has no Make-X — pick the highest fixed qty button (often 1).
+        // This revision has no Make-X, pick the highest fixed qty button (often 1).
         if (!(await ChatDialog.make(hint))) {
             await ChatDialog.make();
         }
@@ -1187,7 +1187,7 @@ export class FishCookLoad implements Task {
         }
 
         // This revision has no Make-X: each useOn (+ optional make-menu qty button)
-        // cooks one fish. All waits are tick-based — re-useOn mid-anim cancels the cook.
+        // cooks one fish. All waits are tick-based, re-useOn mid-anim cancels the cook.
         let wallRecoveries = 0;
         // After finishing a fish in this execute(), next click skips the in-flight probe.
         let skipInFlightProbe = false;
@@ -1200,7 +1200,7 @@ export class FishCookLoad implements Task {
                 return;
             }
 
-            // Re-entry after make-menu: cook may already be animating — drain on ticks.
+            // Re-entry after make-menu: cook may already be animating, drain on ticks.
             if (!skipInFlightProbe) {
                 const idleRaw = this.bot.cookableRawCount();
                 const idleXp = Skills.xp('cooking');
@@ -1321,7 +1321,7 @@ export class FishCookLoad implements Task {
                 continue;
             }
 
-            // Direct cook (no menu) — wait this fish out on ticks, then next click.
+            // Direct cook (no menu), wait this fish out on ticks, then next click.
             wallRecoveries = 0;
             for (
                 let t = 0;
@@ -1771,14 +1771,14 @@ export class RestockFishingGear implements Task {
                 const ok = await this.bot.executeFishingGearShopCart(preCart, log, {
                     bankPrepared: true
                 });
-                // Always leave the shop toward camp after any successful buy —
+                // Always leave the shop toward camp after any successful buy,
                 // partial carts used to soft-lock on Gerrant's tile.
                 if (ok) {
                     this.bot.setStatus('restock: returning to camp');
                     await this.bot.walkHomeIfNeeded(log);
                     return;
                 }
-                // Shop failed — fall through to bank path for a normal retry.
+                // Shop failed, fall through to bank path for a normal retry.
             }
         }
 
@@ -1811,7 +1811,7 @@ export class RestockFishingGear implements Task {
             const still = this.bot.missingGearNames();
             if (still.length > 0) {
                 if (this.bot.toolAcquireEnabled() && this.bot.acquireReady()) {
-                    // Same-vendor cart (rod + feathers at Gerrant) — one bank fund + one shop.
+                    // Same-vendor cart (rod + feathers at Gerrant), one bank fund + one shop.
                     const cart = fishingGearShopCart(
                         method,
                         this.bot.acquireWorldWithBank(),
@@ -1829,7 +1829,7 @@ export class RestockFishingGear implements Task {
                             bankPrepared: invFunded
                         });
                         if (ok) {
-                            // Full or partial cart — leave the shop toward camp either way.
+                            // Full or partial cart, leave the shop toward camp either way.
                             this.bot.setStatus('restock: returning to camp');
                             await this.bot.walkHomeIfNeeded(log);
                             return;
@@ -1960,7 +1960,7 @@ export class RestockGatherTool implements Task {
                 : `restock: missing ${label}`
         );
         const log = (m: string) => this.bot.log(`  ${m}`);
-        // Why: with hammer and bar — or shop GP, or a broken tool — already in the pack, the camp-bank hop is skipped.
+        // Why: when hammer and bar, or shop GP, or a broken tool is already in the pack, the camp-bank hop is skipped.
         // Why: the suite seeds materials at Varrock West, so walking Draynor first burns the budget before the anvil walk starts.
         if (this.bot.toolAcquireEnabled() && this.bot.acquireReady() && missing.length > 0) {
             const preBuy = planGatherToolAcquire(this.bot.toolReqsList(), this.bot.acquireWorldWithBank(), {
@@ -1973,7 +1973,7 @@ export class RestockGatherTool implements Task {
                     await this.bot.walkHomeIfNeeded(log);
                     return;
                 }
-                // Why: a path or random-event failure with coins or smith materials still held must not thrash the camp bank — buy-pick mid-random-event spends minutes on "no Bank booth".
+                // Why: a path or random-event failure with coins or smith materials still held must not thrash the camp bank, buy-pick mid-random-event spends minutes on "no Bank booth".
                 // Why: acquire backoff stays off, so the next Restock tick retries preBuy.
                 this.bot.log(
                     `restock: ${preBuy.kind} failed with materials still held — retry without bank`
@@ -2036,7 +2036,7 @@ export class RestockGatherTool implements Task {
                     });
                     if (buy) {
                         // After deposit-except-gear, smith bars/hammer (or shop GP)
-                        // stay in pack when gearKeep includes them — hand off prepared.
+                        // stay in pack when gearKeep includes them, hand off prepared.
                         const bankPrepared = this.bot.acquireMaterialsHeld(buy);
                         if (Bank.isOpen()) {
                             await this.bot.closeScriptBank(log, { allowForgetful: false });
@@ -2141,7 +2141,7 @@ export class RestockGatherTool implements Task {
     }
 }
 
-// Why: the one-shot startup walks to the bank once to withdraw a better banked tier — steel while bronze is equipped — even under chop-then-burn, which has no BankCatch.
+// Why: the one-shot startup walks to the bank once to withdraw a better banked tier, steel while bronze is equipped, even under chop-then-burn, which has no BankCatch.
 // Why: ongoing upgrades only run when already at or near the script bank, or with the bank UI open.
 // Why: it never walks to the bank solely for a shop upgrade mid-run, which reads as a hang on cold start and yanks players off trees.
 // Why: BankCatch also calls tryUpgradeGatherToolAtBank after deposits.
@@ -2176,7 +2176,7 @@ export class UpgradeGatherTool implements Task {
         if (!this.bot.hasGear()) {
             return false;
         }
-        // Bank-side only after startup — do not open bank from the tree line for shop upgrades.
+        // Bank-side only after startup, do not open bank from the tree line for shop upgrades.
         return this.bot.nearScriptBank();
     }
 
@@ -2194,7 +2194,7 @@ export class Gather implements Task {
 
     /**
      * Distance origin for ranking fishing spots (prefer nearest to player).
-     * Game.tile() is a plain WorldTile — wrap with Tile.from for distanceTo.
+     * Game.tile() is a plain WorldTile, wrap with Tile.from for distanceTo.
      */
     private fishSpotOrigin(): Tile {
         const freeformFish = this.bot.isNpc() && this.bot.isFreeformCamp();
@@ -2233,7 +2233,7 @@ export class Gather implements Task {
         if (spotWithinGatherRange(origin.distanceTo(spotTile), hunt)) {
             return true;
         }
-        // Spot still near the freeform start pin — walk the river even if far from the player.
+        // Spot still near the freeform start pin, walk the river even if far from the player.
         return spotWithinGatherRange(this.bot.getAnchor().distanceTo(spotTile), hunt);
     }
 
@@ -2266,7 +2266,7 @@ export class Gather implements Task {
     }
 
     validate(): boolean {
-        // Combat only blocks AFK gather — retaliate tick-manip keeps gathering.
+        // Combat only blocks AFK gather, retaliate tick-manip keeps gathering.
         if (Inventory.isFull() || EventSignal.pending()) {
             return false;
         }
@@ -2294,7 +2294,7 @@ export class Gather implements Task {
             return true;
         }
         if (this.bot.isNpc()) {
-            // Freeform fish measures spots from the player — still yield past the start-tile
+            // Freeform fish measures spots from the player, still yield past the start-tile
             // leash so ReturnToAnchor bounds wander (don't chase the river).
             if (this.bot.isFreeformCamp() && beyondLeash(this.bot, Game.tile(), 4)) {
                 return false;
@@ -2308,7 +2308,7 @@ export class Gather implements Task {
             return !beyondLeash(this.bot, Game.tile(), 4);
         }
         // Why: loc gather stays active near the anchor, so it logs "no trees/rocks" instead of idling silently.
-        // Why: it yields past leash plus slack so ReturnToAnchor can pull the bot back — the Draynor bank is only ~12 from the willows.
+        // Why: it yields past leash plus slack so ReturnToAnchor can pull the bot back, the Draynor bank is only ~12 from the willows.
         if (this.findRock() !== null) {
             return true;
         }
@@ -2431,13 +2431,13 @@ export class Gather implements Task {
                     return false;
                 }
             }
-            // Do not wait for fletch product — reclick on the next game tick.
+            // Do not wait for fletch product, reclick on the next game tick.
             await Execution.delayUntilTicks(() => Game.tick() >= this.bot.lastGatherRollTick() + 1, 2);
             await reclick();
             return true;
         }
 
-        // Farmer 6t is driven by executeFarmerWillow — only stamp the roll here.
+        // Farmer 6t is driven by executeFarmerWillow, only stamp the roll here.
         if (profile.farmerWillowCycle) {
             return false;
         }
@@ -2532,7 +2532,7 @@ export class Gather implements Task {
                 return;
             }
             // Scene-local query found nothing. Soft-home only when clearly off-camp
-            // (bank square / long wander) — not the tight 8-tile disk (hunt thrash).
+            // (bank square / long wander), not the tight 8-tile disk (hunt thrash).
             const here = Game.tile();
             const anchor = this.bot.getAnchor();
             if (
@@ -2559,7 +2559,7 @@ export class Gather implements Task {
         if (here0 && Tile.from(here0).distanceTo(spotTile) > 2) {
             this.bot.setStatus(`fish: walking to spot @ ${spotTile}`);
             await Traversal.walkTo(spotTile, { radius: 1, timeoutMs: 20_000 });
-            // Re-resolve after walk — hop may have moved.
+            // Re-resolve after walk, hop may have moved.
             const again = this.findFishSpot();
             if (!again) {
                 this.activeFishIndex = null;
@@ -2658,7 +2658,7 @@ export class Gather implements Task {
     }
 
     private async executeMine(): Promise<void> {
-        // Farmer willows 6-tick machine (#160) — dedicated phase loop.
+        // Farmer willows 6-tick machine (#160), dedicated phase loop.
         if (this.bot.tickManipProfile().farmerWillowCycle) {
             await this.executeFarmerWillow();
             return;
@@ -2666,7 +2666,7 @@ export class Gather implements Task {
 
         const target = this.findRock();
         if (!target) {
-            // Keep-alive when near anchor with no matching loc — surface why we idle.
+            // Keep-alive when near anchor with no matching loc, surface why we idle.
             if (Game.animating()) {
                 this.bot.setStatus(`${this.bot.actionName()}: finishing`);
                 await Execution.delayUntilTicks(
@@ -2682,7 +2682,7 @@ export class Gather implements Task {
                 return;
             }
             // Same post-bank / off-camp miss as fishing: soft-home only when clearly
-            // off-camp — not the tight 8-tile disk (hunt thrash on freeform).
+            // off-camp, not the tight 8-tile disk (hunt thrash on freeform).
             const here = Game.tile();
             const anchor = this.bot.getAnchor();
             if (
@@ -2717,7 +2717,7 @@ export class Gather implements Task {
             return;
         }
         const key = keyOf(tile);
-        // Track whether this session produced ore/logs — successful deplete must not
+        // Track whether this session produced ore/logs, successful deplete must not
         // soft-cooldown the tile (iron respawn ~6t < old 8t cooldown → far path thrash).
         let gotProduct = false;
 
@@ -2743,7 +2743,7 @@ export class Gather implements Task {
                 if (ChatDialog.canContinue()) {
                     this.bot.reject(key);
                 } else if (shouldCooldownGatherTile(false, this.findRock() !== null)) {
-                    // Failed click with other targets available — brief skip only.
+                    // Failed click with other targets available, brief skip only.
                     this.bot.cooldown(key);
                 }
                 return;
@@ -2779,7 +2779,7 @@ export class Gather implements Task {
             }
             if (!Game.animating()) {
                 // Why: an empty rock or a stump already drops out of findRock, so a natural end needs no soft cooldown.
-                // Why: iron respawns faster than an 8-tick tile skip — nearby ore is back up while the bot paths across the mine.
+                // Why: iron respawns faster than an 8-tick tile skip, nearby ore is back up while the bot paths across the mine.
                 return;
             }
         }
@@ -2831,7 +2831,7 @@ export class Gather implements Task {
                 await Execution.delayTicks(1);
                 return;
             }
-            // Brief wait for anim/log; do not AFK the full cut — t5 will process.
+            // Brief wait for anim/log; do not AFK the full cut, t5 will process.
             await Execution.delayUntilTicks(
                 () =>
                     Inventory.used() > before
@@ -2894,7 +2894,7 @@ export class Gather implements Task {
             // Drop one product log (prefer fletch leftovers / shafts stay).
             const dropped = await this.bot.dropOneProductLog();
             if (!dropped) {
-                // Nothing to drop — still advance the cycle clock.
+                // Nothing to drop, still advance the cycle clock.
                 this.bot.log('farmer: drop-log with empty product slot');
             }
             // Next cycle starts on the following tick.

@@ -11,7 +11,7 @@ import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
 const VARROCK = { x: 3210, z: 3490, level: 0 };
 
-// Why: the quest keeps a coin float for the 30gp ferry, so every snapshot carries one — a test that
+// Why: the quest keeps a coin float for the 30gp ferry, so every snapshot carries one, a test that
 // leaves the pack empty gets the withdrawal rather than the branch it is asking about.
 function snap(over: Partial<QuestSnapshot> = {}): QuestSnapshot {
     const stage = over.stage ?? HERO_STAGE.STARTED;
@@ -52,7 +52,7 @@ afterEach(() => {
     resetHeroGangCache();
 });
 
-// Why: `no path to (2793,3180,0): unreachable without 30x Coins` is the failure in full — the Ardougne
+// Why: `no path to (2793,3180,0): unreachable without 30x Coins` is the failure in full, the Ardougne
 // ferry is 30 coins and the pathfinder refuses the route without them in the pack.
 describe("hero's quest coin float", () => {
     test('an empty pack withdraws before anything else', () => {
@@ -240,7 +240,7 @@ describe("hero's quest gang branches", () => {
 });
 
 // Why: every Brimhaven pocket is sealed in the baked graph, so a shop or bank walk planned from inside
-// one reads `unreachable` before it takes a step — the module owes the way out first.
+// one reads `unreachable` before it takes a step, the module owes the way out first.
 describe("hero's quest sealed pockets", () => {
     const MANSION = { x: 2774, z: 3192, level: 0 } as QuestSnapshot['tile'];
 

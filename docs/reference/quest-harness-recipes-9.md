@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Tai Bwo Wannai Trio — brother-scoped harness
+## Tai Bwo Wannai Trio, brother-scoped harness
 
 [`e2e/tbwt-261-live.ts`](../../e2e/tbwt-261-live.ts) drives the quest from a clean
 account, or one brother's leg of it. Six varps are seeded together, then a relog.
@@ -23,15 +23,15 @@ is strong enough, bit 7 that it is poisoned and bit 8 that the poison is Karambw
 
 | `--flags` | State |
 |---|---|
-| `32` | four doses drunk, no spear given — the seed for testing the spear chain |
-| `480` | four doses and an Iron spear(kp) — what the killing hunt needs |
+| `32` | four doses drunk, no spear given, the seed for testing the spear chain |
+| `480` | four doses and an Iron spear(kp), what the killing hunt needs |
 
 A Tinsay-only run wants `--tamayu 4`: Tamayu is the only NPC on the island who will
 skin a monkey, and he does it only once his own hunt is over.
 
 `--packed` hands the kit straight to the pack. It is for iterating on one leg: a
 mid-quest seed lands on Karamja, and without it the first four minutes of every leg
-test are the ferry to Ardougne and back. The end-to-end run never takes it — sourcing
+test are the ferry to Ardougne and back. The end-to-end run never takes it, sourcing
 the kit is part of what that run proves.
 
 Four details govern this harness:
@@ -54,7 +54,7 @@ Four details govern this harness:
 
 What the live runs paid for is in [Tai Bwo Wannai Trio's pitfalls](../decisions/quest-pitfalls-14.md).
 
-## Temple of Ikov — stage-scoped harness
+## Temple of Ikov, stage-scoped harness
 
 [`e2e/temple-of-ikov-250-live.ts`](../../e2e/temple-of-ikov-250-live.ts), members-only,
 so `:8890`. The end-to-end command is vetted: uncheated `--until 100` finished in 39
@@ -73,24 +73,24 @@ HEADED=1 bun e2e/temple-of-ikov-250-live.ts --stage 60 --kit guardian --until 10
 
 `--stage N` sets `%ikov` and relogs. `--lever` sets bit 0 of `%ikov_dungeon`, the
 permanent unlock the south gate reads, so a stage test can skip the lava bridge.
-`--until 100` asserts the journal is green rather than a varp value — the Armadyl
+`--until 100` asserts the journal is green rather than a varp value, the Armadyl
 ending leaves `%ikov` at 80, not 100.
 
 `--kit` is the seeding dial, and every step up it is a claim the run no longer makes:
 
 | Kit | Adds | What it stops proving |
 |---|---|---|
-| `none` | — | nothing; the default |
+| `none` | - | nothing; the default |
 | `dungeon` | pendant, candle, tinderbox, knife | the Catherby shops and the Seers knife spawn |
 | `warrior` | + yew shortbow, 40 ice arrows, boots of lightness | the fletching chain, the ice chests, the webbed alcove |
 | `roots` | + 20 limpwurt roots | the hobgoblin farm |
-| `guardian` | + shiny key | Winelda's ferry — the key is what walks a seeded stage-60 run in through McGrubor's Wood |
+| `guardian` | + shiny key | Winelda's ferry. The key is what walks a seeded stage-60 run in through McGrubor's Wood |
 
 The bank holds two million coins, three hundred lobsters, a set of studded leather and a
 rune scimitar at every kit. Nothing else is seeded by default: the axe, the knife, the flax, the yew logs,
 the bow string, the candle, the arrows, the boots and the roots each have a source the bot
 walks to, and seeding one hides whether it can find it. The armour and the weapon are the
-exception, because the quest sources neither — the module wears the best ranged pieces and
+exception, because the quest sources neither, the module wears the best ranged pieces and
 wields the best melee weapon the bank already holds, so an unseeded bank proves only that
 it copes in boots with the yew axe.
 
@@ -100,13 +100,13 @@ Six facts govern this harness:
   gates; woodcutting 60, fletching 65 and crafting 10 are what the yew shortbow costs,
   and the module warns rather than blocks below them.
 - **The lava bridge fails at any non-negative weight.** The boots are -10lb worn, so
-  the leg that crosses carries the candle, the pendant and food and nothing else — the
+  the leg that crosses carries the candle, the pendant and food and nothing else, the
   bow is 3lb and never goes near it.
 - **The armour goes on after the lever, never before it.** A studded body is 12lb, so the
   crossing leg fetches the boots and the lever alone and climbs out; the chest circuit is a
   second descent through the south gate, which needs no bridge. `--lever` does not skip
   that first descent: the module has no client-visible read on `%ikov_dungeon`, so it still
-  walks to the gate to learn it is open — what the flag saves is the lava crossing behind it.
+  walks to the gate to learn it is open, what the flag saves is the lava crossing behind it.
 - **The Fire Warrior refuses anything but ranged with ice arrows in the quiver.** A run
   that reaches him without both stands there swinging and never lands a hit.
 - **A seeded stage never walked the sourcing leg.** A run started at 50 has no axe

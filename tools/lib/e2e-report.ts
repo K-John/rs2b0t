@@ -1,4 +1,4 @@
-// docs/how-to/e2e-suite.md — report helpers for tools/e2e.ts
+// docs/how-to/e2e-suite.md, report helpers for tools/e2e.ts
 const ERROR_RE = /\berror\b|\bFAIL\b|\bfailed\b|✗|Cannot\b|not found/i;
 /** Stack frames and runtime banners follow the live message; they are never the message. */
 const NOISE_RE = /^\s*at\s|^Bun v\d|^\s*log:\s|coreBundle\.js/;

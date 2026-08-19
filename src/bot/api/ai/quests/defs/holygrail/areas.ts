@@ -4,7 +4,7 @@ import type { NpcStop } from '../../exec/primitives.js';
 
 export const GRAIL_NAME = 'Holy Grail';
 
-// Why: names, not ids — every one of these is unique in the object table, and the quest never sees a collision.
+// Why: names, not ids, every one of these is unique in the object table, and the quest never sees a collision.
 export const ITEM = {
     NAPKIN: 'Holy table napkin',
     WHISTLE: 'Magic whistle',
@@ -14,7 +14,7 @@ export const ITEM = {
     COINS: 'Coins'
 } as const;
 
-/** merlin2, not the `merlin` that Merlin's Crystal frees — both render as "Merlin". */
+/** merlin2, not the `merlin` that Merlin's Crystal frees, both render as "Merlin". */
 export const MERLIN_ID = 213;
 export const TITAN_ID = 221;
 /** `whistledoor`; Draynor Manor's top floor has a second, ordinary Door two tiles away. */
@@ -24,7 +24,7 @@ export const GRAIL_TILE = {
     /** Merlin's workshop, past the door the oploc spawns him behind. */
     MERLIN_WORKSHOP: new Tile(2767, 3500, 1),
     DRAYNOR_BANK: new Tile(3093, 3243, 0),
-    // Why: the whistles land on furniture, so their own tile takes no step — only the tile due west of it does, and only a cardinal neighbour counts as adjacent.
+    // Why: the whistles land on furniture, so their own tile takes no step, only the tile due west of it does, and only a cardinal neighbour counts as adjacent.
 
     /** West of where `whistledoor` drops the whistles, on Draynor Manor's top floor. */
     WHISTLE_STAND: new Tile(3106, 3359, 2),
@@ -126,7 +126,7 @@ function within(t: WorldTile | null | undefined, x0: number, x1: number, z0: num
     return !!t && t.x >= x0 && t.x <= x1 && t.z >= z0 && t.z <= z1;
 }
 
-/** The blighted Realm of the Fisher King — mapsquare 43×73, every level. */
+/** The blighted Realm of the Fisher King, mapsquare 43×73, every level. */
 export function inBlightedRealm(t: WorldTile | null | undefined): boolean {
     return within(t, 2752, 2815, 4672, 4735);
 }
@@ -140,7 +140,7 @@ export function inFisherRealm(t: WorldTile | null | undefined): boolean {
     return inBlightedRealm(t) || inRenewedRealm(t);
 }
 
-// Why: the barricades and the blocked column at x 2791 split the blighted realm in two, and the titan's tile is the only join — so which side we are on decides whether there is a fight left to have.
+// Why: the barricades and the blocked column at x 2791 split the blighted realm in two, and the titan's tile is the only join, so which side we are on decides whether there is a fight left to have.
 // Why: a rectangle cannot express it, as the pocket's west edge steps east as z falls; these bands sit in the gap between the two components on every row.
 
 /** True on the whistle's landing side of the titan, where the crossing is still unpaid. */
@@ -156,7 +156,7 @@ export function eastOfTitan(t: WorldTile | null | undefined): boolean {
     return t.x >= 2800;
 }
 
-// Why: the castle's floor plan interleaves with the ground outside it, so no rectangle separates them — but the outside has no upper floor at all.
+// Why: the castle's floor plan interleaves with the ground outside it, so no rectangle separates them, but the outside has no upper floor at all.
 
 /** True on a Grail castle floor above the ground, which only the bell reaches. */
 export function inCastleUpstairs(t: WorldTile | null | undefined): boolean {

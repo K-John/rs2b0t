@@ -56,7 +56,7 @@ test('a box that will not close yields instead of spinning', async () => {
     stuck();
 });
 
-// Why: the strength gate and the outer ancient gate render their chains as chat continues, and `driveChoice` runs a chain to its end without re-testing the goal — so the box carrying the result was clicked away before anything read it, and a crossing that had already succeeded waited out its budget.
+// Why: the strength gate and the outer ancient gate render their chains as chat continues, and `driveChoice` runs a chain to its end without re-testing the goal, so the box carrying the result was clicked away before anything read it, and a crossing that had already succeeded waited out its budget.
 test('stops on the goal box when the chain renders as chat continues', async () => {
     chain = [
         'You ripple your muscles.',
@@ -82,7 +82,7 @@ test('stops on the goal box when the chain renders as chat continues', async () 
     asChat.forEach(fn => fn());
 });
 
-// Why: a box holds the server script suspended until it is clicked, and closing main modals did nothing for one that rendered as a chat continue — the outer ancient gate's teleport runs after its box is dismissed, so the click that never came was the crossing that never happened.
+// Why: a box holds the server script suspended until it is clicked, and closing main modals did nothing for one that rendered as a chat continue, the outer ancient gate's teleport runs after its box is dismissed, so the click that never came was the crossing that never happened.
 test('clearBoxes dismisses a chain that rendered as chat continues', async () => {
     chain = ['You see a lever which you pull on to open the door.'];
     let continues = 0;
@@ -100,7 +100,7 @@ test('clearBoxes dismisses a chain that rendered as chat continues', async () =>
     asChat.forEach(fn => fn());
 });
 
-// Why: a list nothing matches is a chain that cannot move, and waiting on one spends the budget to learn what the first look already knew — Gujuo's four dead-end topics cost two minutes of silence each time, and left nothing for the walk that would have fixed them.
+// Why: a list nothing matches is a chain that cannot move, and waiting on one spends the budget to learn what the first look already knew, Gujuo's four dead-end topics cost two minutes of silence each time, and left nothing for the walk that would have fixed them.
 test('an option list nothing matches gives up at once, and says what it saw', async () => {
     chain = [];
     const said: string[] = [];

@@ -658,7 +658,7 @@ export default class ChaosDruidKiller extends TaskBot {
             return this.ascendToSurface();
         }
         if (this.locationName === 'Yanille Dungeon') {
-            // Surfacing on purpose — without this the dungeon→surface jump reads
+            // Surfacing on purpose, without this the dungeon→surface jump reads
             // as a missed death (chaosDruidRespawned).
             this.tripPrepared = false;
             this.setStatus('leaving the Yanille dungeon');

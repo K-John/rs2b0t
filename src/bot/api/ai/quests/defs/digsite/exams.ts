@@ -8,7 +8,7 @@ import { driveUntilHeld, locByIdAction, talkToNpcId, useOnNpcId, walkTo } from '
 import { DIG_STAGE } from './journal.js';
 
 // Why: the exam presents the correct answer only for the questions whose student has been helped, so one list holds all nine and `pickPreferred` finds whichever is on screen.
-// Why: the wrong-answer variants are deliberately absent — a doomed exam falls through to the driver's last-option fallback and fails, which costs nothing.
+// Why: the wrong-answer variants are deliberately absent, a doomed exam falls through to the driver's last-option fallback and fails, which costs nothing.
 
 /** Every option the Examiner ever offers that this quest wants taken. */
 export const EXAMINER_PREFER: readonly string[] = [

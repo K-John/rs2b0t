@@ -20,7 +20,7 @@ describe('matchesTransportLoc', () => {
     test('an ID-defined transport requires the id and near placement (slack 3)', () => {
         expect(matchesTransportLoc(gate, loc(3198, 3312, 3235))).toBe(true);
         expect(matchesTransportLoc(gate, loc(3197, 3312, 3234))).toBe(false);
-        // 1 tile off still matches — pack stands / gangplanks drift.
+        // 1 tile off still matches, pack stands / gangplanks drift.
         expect(matchesTransportLoc(gate, loc(3198, 3312, 3234))).toBe(true);
         expect(matchesTransportLoc(gate, loc(3198, 3312, 3240))).toBe(false);
     });

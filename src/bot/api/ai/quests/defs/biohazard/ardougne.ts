@@ -96,7 +96,7 @@ export async function feedTheTower(log: (m: string) => void): Promise<boolean> {
     return true;
 }
 
-// Why: `opheld1,pigeons` only fires inside 2559..2565 x 3299..3307 — outside it the cage answers
+// Why: `opheld1,pigeons` only fires inside 2559..2565 x 3299..3307, outside it the cage answers
 // "The pigeons don't want to leave" and the stage never moves.
 export async function releasePigeons(log: (m: string) => void): Promise<boolean> {
     if (!inPigeonZone(Game.tile()) && !(await walkTo(BIO_TILE.WATCHTOWER, 1, log))) {

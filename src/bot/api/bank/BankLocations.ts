@@ -8,7 +8,7 @@ import Tile from '../../geometry/Tile.js';
 export interface BankRequirement {
     skill?: { name: string; level: number };
     quest?: string;
-    // Why: some banks have a hazardous approach rather than a hazardous bank — Gundai's cellar is reached by slashing into ~level 55 Wilderness, so an Ardougne script must never pick it up by being a few tiles closer.
+    // Why: some banks have a hazardous approach rather than a hazardous bank, Gundai's cellar is reached by slashing into ~level 55 Wilderness, so an Ardougne script must never pick it up by being a few tiles closer.
     // Why: off by default, so a Wilderness bot opts in.
 
     /** A Global setting that must be true before this bank is offered at all. */
@@ -26,7 +26,7 @@ export interface BankObjectAccess {
 
 /**
  * A bank opened by talking to someone rather than by clicking a booth.
- * Why: Gundai in the Mage Arena is the only one — `[opnpc1,magearena_banker]` chats, offers two choices, and only then runs `@openbank`.
+ * Why: Gundai in the Mage Arena is the only one, `[opnpc1,magearena_banker]` chats, offers two choices, and only then runs `@openbank`.
  */
 export interface BankNpcAccess {
     name: string;
@@ -46,7 +46,7 @@ export interface BankLocation {
     access?: BankObjectAccess;
     npcAccess?: BankNpcAccess;
     // Why: callers still walk to `tile`, since the nav graph knows how to get there.
-    // Why: ranking is straight-line, so a bank in its own map region reads as absurdly far — Gundai's cellar sits at z=4714 and scores ~800 tiles from the ladder it is reached by, which would keep it from ever being chosen.
+    // Why: ranking is straight-line, so a bank in its own map region reads as absurdly far, Gundai's cellar sits at z=4714 and scores ~800 tiles from the ladder it is reached by, which would keep it from ever being chosen.
 
     /** Where the surface route to this bank starts, for distance ranking only. */
     approach?: Tile;
@@ -74,8 +74,8 @@ export const BANK_LOCATIONS: BankLocation[] = [
     { name: 'Ardougne West', tile: new Tile(2616, 3332, 0) },
     { name: 'Ardougne East', tile: new Tile(2655, 3283, 0) },
     { name: 'Canifis', tile: new Tile(3512, 3480, 0), requires: { quest: 'Priest in Peril' } },
-    // Why: Shilo has no booth at all — `bank_store_icon` is the only bank loc in the mapsquare and the teller is `shilobanker` (npc 499), whose `op3=Bank` runs `@openbank` outright. Without npcAccess the booth query finds nothing, the walk lands and the bank never opens, which is what made this look like an icon with nothing behind it.
-    // Why: the quest gate is the village, not the teller — every tile of it is behind Vigroy's cart, and `shiloCartEdges` refuses the Brimhaven crossing until Shilo Village is complete.
+    // Why: Shilo has no booth at all, `bank_store_icon` is the only bank loc in the mapsquare and the teller is `shilobanker` (npc 499), whose `op3=Bank` runs `@openbank` outright. Without npcAccess the booth query finds nothing, the walk lands and the bank never opens, which is what made this look like an icon with nothing behind it.
+    // Why: the quest gate is the village, not the teller, every tile of it is behind Vigroy's cart, and `shiloCartEdges` refuses the Brimhaven crossing until Shilo Village is complete.
     {
         name: 'Shilo Village',
         tile: new Tile(2852, 2954, 0),
@@ -89,7 +89,7 @@ export const BANK_LOCATIONS: BankLocation[] = [
         tile: new Tile(3308, 3120, 0),
         access: { name: 'Shantay chest', op: 'Open' }
     },
-    // Why: this is Gundai's cellar where magearena_ladder_to_cellar lands, reached by slashing the two bigweb_slashable webs along z=3957 and climbing down at (3091,3958) — all three baked as edges, and nothing to do with Kolodion's arena teleport.
+    // Why: this is Gundai's cellar where magearena_ladder_to_cellar lands, reached by slashing the two bigweb_slashable webs along z=3957 and climbing down at (3091,3958), all three baked as edges, and nothing to do with Kolodion's arena teleport.
     // Why: still gated, because that is ~level 55 Wilderness and the webs need a wielded slash weapon, so it must not win on distance for a script working elsewhere.
     {
         name: 'Mage Arena',
@@ -114,13 +114,13 @@ export const BANK_LOCATIONS: BankLocation[] = [
 
 export { bankDistance };
 
-/** The tile a bank is walked to — its approach when it has one. */
+/** The tile a bank is walked to, its approach when it has one. */
 export function approachOf(bank: BankLocation): Tile {
     return bank.approach ?? bank.tile;
 }
 
 // Why: ranked on x/z across planes, because stair edges are baked into the nav graph and a bank one floor down is a walk like any other.
-// Why: matching planes instead made the Grand Tree — the one bank off level 0 — the sole candidate for anyone standing upstairs anywhere in the world.
+// Why: matching planes instead made the Grand Tree, the one bank off level 0, the sole candidate for anyone standing upstairs anywhere in the world.
 // Why: straight-line order is a shortlist that cannot see a toll gate or a fare, so a caller needing the bank it can walk to should probe these in order rather than take the head.
 
 /** Every bank this account can use, nearest first by straight line. */

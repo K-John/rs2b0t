@@ -3,7 +3,7 @@
 # Run the live wall
 
 The multibox rail reports bot count, CPU, RAM, and bot traffic. What those readings
-mean — and the rule that no missing metric is ever replaced by a guess or a zero —
+mean, and the rule that no missing metric is ever replaced by a guess or a zero,
 is documented in [MultiBox](../reference/multibox.md#resource-telemetry).
 
 ```bash

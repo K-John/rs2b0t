@@ -409,7 +409,7 @@ async function bankEarlyEssence(log: (m: string) => void): Promise<boolean> {
 
 async function essenceLeg(log: (m: string) => void): Promise<boolean> {
     if (journalComplete()) {
-        // Why: the journal reads complete at %priestperil 60, but the Salve barrier wants 61 — @drezel_access_holy_barrier, which only fires once Drezel has no dagger to hand back.
+        // Why: the journal reads complete at %priestperil 60, but the Salve barrier wants 61, @drezel_access_holy_barrier, which only fires once Drezel has no dagger to hand back.
         // Why: the loop therefore talks until he stops reclaiming, which is once when the dagger is already held and twice when it is in the bank.
         for (let i = 0; i < 2; i++) {
             log('priestperil: post-quest Drezel talk (Salve barrier access)');

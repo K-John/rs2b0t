@@ -9,7 +9,7 @@ describe('Temple of Ikov arrow supply', () => {
     });
 
     // Why: the bug this replaced. A sweep puts the recovered arrows in the pack, and a count that
-    // Why: added the pack to the quiver read that as armed — every Attack after it answered
+    // Why: added the pack to the quiver read that as armed, every Attack after it answered
     // Why: "There is no ammo left in your quiver" for the rest of the 900-tick guard.
     test('an empty quiver over a full pack nocks rather than shooting', () => {
         expect(arrowAction(0, 12, true)).toBe('nock');
@@ -20,7 +20,7 @@ describe('Temple of Ikov arrow supply', () => {
         expect(arrowAction(0, 0, true)).toBe('sweep');
     });
 
-    // Why: 80% of every shot is recoverable, but a sweep that found nothing will find nothing again — a second one is the fight ending, not another circuit.
+    // Why: 80% of every shot is recoverable, but a sweep that found nothing will find nothing again, a second one is the fight ending, not another circuit.
     test('a sweep that already ran is the end of the fight', () => {
         expect(arrowAction(0, 0, false)).toBe('spent');
     });

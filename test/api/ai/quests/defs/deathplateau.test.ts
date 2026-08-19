@@ -361,7 +361,7 @@ describe('decide', () => {
     });
 
     test('smithy done, full pack → make space before Denulth cert', () => {
-        // 28 junk slots — freeSlots 0 forces a bank deposit before Denulth grants the cert
+        // 28 junk slots, freeSlots 0 forces a bank deposit before Denulth grants the cert
         // (full inv would drop Certificate on the floor).
         const junk = Array.from({ length: 28 }, (_, i) => `junk${i}`);
         const step = decide(snap({

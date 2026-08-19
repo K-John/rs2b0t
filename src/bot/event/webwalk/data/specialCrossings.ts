@@ -55,7 +55,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
     { x: 3268, z: 3227, level: 0, locName: 'Gate', action: 'Open', requires: { item: 'Coins', count: 10 }, dialogue: { choose: ['Yes, ok.'] }, label: 'Al Kharid toll gate' },
     { x: 3268, z: 3228, level: 0, locName: 'Gate', action: 'Open', requires: { item: 'Coins', count: 10 }, dialogue: { choose: ['Yes, ok.'] }, label: 'Al Kharid toll gate' },
 
-    // Plague City (#366) — East Ardougne garden mud → sewer → pipe → West Ardougne manhole.
+    // Plague City (#366), East Ardougne garden mud → sewer → pipe → West Ardougne manhole.
     // Complete quest: dig soft mud (spade), climb mud pile out; pipe needs Gas mask worn.
     {
         x: 2566,
@@ -103,7 +103,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
     // Why: the Gu'Tanoth chasm (#364 dig 3546) is two separate Jump-From rocks, one per side.
     // Why: in quest_itwatchtower.rs2, verified against maps/m39_47.jm2, tanothjump1 (loc 2830) @ (2530,3026) south needs Agility 25 and then ogre_guard4 within 8 tiles demands 20gp; p_teleport(0_39_47_34_21) = (2530,3029).
     // Why: tanothjump2 (loc 2831) @ (2531,3029) north has no skill, no toll and no dialogue; p_teleport(0_39_47_35_18) = (2531,3026), and the return is ungated (#398).
-    // Why: x/z here is the stand tile, not the loc — both rocks are shape 10 and block walking, so the stand is the adjacent tile and it must equal the transport edge's `from` or the skill-gated-crossing invariant cannot prune the edge.
+    // Why: x/z here is the stand tile, not the loc, both rocks are shape 10 and block walking, so the stand is the adjacent tile and it must equal the transport edge's `from` or the skill-gated-crossing invariant cannot prune the edge.
     // Why: each landing is the opposite rock's stand, so the pair is a closed round trip.
     {
         x: 2531,
@@ -128,7 +128,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         arrivalRadius: 2,
         label: "Gu'Tanoth chasm jump out (#364)"
     },
-    // Toban camp (#364 dig 3548) — cave enter / ladder leave.
+    // Toban camp (#364 dig 3548), cave enter / ladder leave.
     {
         x: 2499,
         z: 2988,
@@ -152,7 +152,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
 
     { x: 2568, z: 9893, level: 0, locName: 'Door', action: 'Open', useItem: { id: 298, name: 'A key' }, label: 'Baxtorian keyed door' },
 
-    // Why: edgeville_dungeon.rs2 brasskeydoor answers Open with "The door is locked" — the key has to be used on it (oplocu), in both directions, and the unlock walks you through.
+    // Why: edgeville_dungeon.rs2 brasskeydoor answers Open with "The door is locked". The key has to be used on it (oplocu), in both directions, and the unlock walks you through.
     // Why: without a key the graph must route around the hut (#421, #423).
     { x: 3115, z: 3450, level: 0, locName: 'Door', action: 'Open', useItem: { id: 983, name: 'Brass key' }, requires: { item: 'Brass key', count: 1 }, label: 'Hill giant hut brass key door' },
 
@@ -160,7 +160,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
     // Why: keyed rather than removed, because pruning it without the key is what stops the pathfinder walking a keyless bot into McGrubor's Wood for a door it cannot open.
     { x: 2657, z: 3496, level: 0, locName: 'Door', action: 'Open', requires: { item: 'Shiny key', count: 1 }, label: 'Temple of Ikov shiny key door (#250)' },
 
-    // Why: the Baxtorian Falls approach (#369 / #320) uses the same stands as FireGiantLogic — Board Log raft @ ~2510,3493 → crash mound 2512,3481.
+    // Why: the Baxtorian Falls approach (#369 / #320) uses the same stands as FireGiantLogic, Board Log raft @ ~2510,3493 → crash mound 2512,3481.
     // Why: walk south to the throw stand 2512,3477, inside THROW_ZONE z 3476–3481.
     // Why: Rope on Rock @ 2512,3468 → PastRock (~2513,3468, r≤3).
     // Why: walk south to 2512,3466 then Rope on Dead tree → ledge 2511,3463.
@@ -213,7 +213,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Port Sarim->Musa ship'
     },
     // Customs officer is ONE npc type; content branches on coordx(npc_coord) < 2815
-    // (customs_officer.rs2). Key each reverse ship by pier stand + toTile — never type alone (#404).
+    // (customs_officer.rs2). Key each reverse ship by pier stand + toTile, never type alone (#404).
     {
         x: 2955,
         z: 3146,
@@ -255,12 +255,12 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
     { x: 2461, z: 3382, level: 0, locName: 'Gate', action: 'Open', dialogue: { choose: ['OK then'] }, reopenAfterDialogue: true, label: 'Gnome Stronghold gate (Femi boxes)' },
 
     // Why: `[oploc1,_shipyard_gate]` sends anyone standing west of the gate with a shipyard worker in earshot into the Ka-Lu-Min challenge, and a wrong syllable makes him attack.
-    // Why: the four answers are one list because each page offers only its own — "Glough sent me.", then Ka, Lu, Min.
+    // Why: the four answers are one list because each page offers only its own, "Glough sent me.", then Ka, Lu, Min.
     // Why: the gate opens by `p_teleport`, never by staying open, so the crossing lands on the far tile rather than a walk-through.
     { x: 2945, z: 3041, level: 0, locName: 'Gate', action: 'Open', dialogue: { choose: ['Glough sent me.', 'Ka.', 'Lu.', 'Min.'] }, reopenAfterDialogue: true, label: 'Karamja shipyard gate (Ka-Lu-Min)' },
     { x: 2945, z: 3042, level: 0, locName: 'Gate', action: 'Open', dialogue: { choose: ['Glough sent me.', 'Ka.', 'Lu.', 'Min.'] }, reopenAfterDialogue: true, label: 'Karamja shipyard gate (Ka-Lu-Min)' },
 
-    // Why: shantay_pass.rs2 is one loc whose direction comes from coordz versus the loc — southbound (player north of the loc) consumes a pass and shows a disclaimer, northbound is free.
+    // Why: shantay_pass.rs2 is one loc whose direction comes from coordz versus the loc, southbound (player north of the loc) consumes a pass and shows a disclaimer, northbound is free.
     // Why: transports.json already carries dual directed edges, so only south needs a specialCrossing for the plan-time item and dialog (#403 / #371).
     {
         x: 3304,
@@ -523,7 +523,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Elkoy → maze entrance (maze shortcut out)'
     },
 
-    // Why: Mosol Rei is an NPC, and a transport edge resolves its target through `Locs.query` alone — so naming him on the edge asked the scene for a loc that does not exist and the hop reported him missing while he stood in front of the player.
+    // Why: Mosol Rei is an NPC, and a transport edge resolves its target through `Locs.query` alone, so naming him on the edge asked the scene for a loc that does not exist and the hop reported him missing while he stood in front of the player.
     // Why: `p_telejump(0_44_46_50_8)` lands at (2866,2952), and the jungle side is only leavable on foot through the two gates and the cart.
     {
         x: 2883,
@@ -538,8 +538,8 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Mosol Rei → Shilo Village (jungle gate in)'
     },
 
-    // Island ropeswings (shortcuts.rs2) — outer swings need agility 10; execute re-check.
-    // Do not gate tree_ropeswing2 (2705,3205) — softlock prevention in content.
+    // Island ropeswings (shortcuts.rs2), outer swings need agility 10; execute re-check.
+    // Do not gate tree_ropeswing2 (2705,3205), softlock prevention in content.
     {
         x: 2709,
         z: 3209,
@@ -559,7 +559,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Ogre island ropeswing'
     },
 
-    // Entrana ferry — content: areas/area_port_sarim|entrana/monk_of_entrana.rs2 (Talk-to, members, weapon strip).
+    // Entrana ferry, content: areas/area_port_sarim|entrana/monk_of_entrana.rs2 (Talk-to, members, weapon strip).
     {
         x: 3048,
         z: 3236,
@@ -583,7 +583,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Entrana → Port Sarim'
     },
 
-    // Shilo ↔ Brimhaven cart — vigroy.rs2 / hajedy.rs2 (fare 10–200 coins).
+    // Shilo ↔ Brimhaven cart, vigroy.rs2 / hajedy.rs2 (fare 10–200 coins).
     {
         x: 2834,
         z: 2954,
@@ -609,7 +609,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Brimhaven → Shilo cart'
     },
 
-    // Essence mine entry — right-click Teleport after Rune Mysteries (content runecraft.constant stands).
+    // Essence mine entry, right-click Teleport after Rune Mysteries (content runecraft.constant stands).
     {
         x: 3253,
         z: 3401,
@@ -671,7 +671,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Brimstail → essence mine'
     },
 
-    // Spirit trees — one crossing per destination (dialog option); multi-dest match uses toTile.
+    // Spirit trees, one crossing per destination (dialog option); multi-dest match uses toTile.
     // Stronghold tree (Grand Tree complete): village / varrock forest / khazard battlefield.
     {
         x: 2461,
@@ -884,7 +884,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         // Why: prayer_guild.rs2 [oploc1,monasteryladder] needs %prayer_guild, and the only way to set it is to climb within 5 tiles of Abbot Langley (3059,3484) and ask to join.
         // Why: the first climb only opens that conversation, so the hop is re-attempted.
         // Why: the west ladder (3046,3483) is 13 tiles from him and never offers it.
-        // Why: no requiresSkill here — STATE_AWARE_ACTIVATIONS already prunes this edge below Prayer 31, and duplicating the gate would claim a skill-gated crossing whose edge is not in the graph until that state is met.
+        // Why: no requiresSkill here, STATE_AWARE_ACTIVATIONS already prunes this edge below Prayer 31, and duplicating the gate would claim a skill-gated crossing whose edge is not in the graph until that state is met.
         x: 3057,
         z: 3484,
         level: 0,
@@ -907,7 +907,7 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Deep wilderness → Ardougne lever'
     },
 
-    // Why: Ernest the Chicken (#229) needs Draynor Manor's secret door — the bookcase refuses anyone west of it (coordx < loc coordx) and teleports the searcher one tile west.
+    // Why: Ernest the Chicken (#229) needs Draynor Manor's secret door. The bookcase refuses anyone west of it (coordx < loc coordx) and teleports the searcher one tile west.
     // Why: the lever inside teleports back east through the same wall and reverts after four ticks, so it is re-pullable.
     // Why: without these two entries the two puzzle_ladder transport edges are orphaned and nothing can reach the alcove.
     {
@@ -953,7 +953,7 @@ function toTileMatches(sc: SpecialCrossing, step: { x: number; z: number; level:
     return sc.toTile.x === step.x && sc.toTile.z === step.z && (sc.toTile.level === undefined || sc.toTile.level === step.level);
 }
 
-// Why: both approach and destination levels are tried — ships and similar are stored from L0 → to L1 while SPECIAL_CROSSINGS are keyed at the stand/boarding level, often 1, so matching on either alone misses them.
+// Why: both approach and destination levels are tried, ships and similar are stored from L0 → to L1 while SPECIAL_CROSSINGS are keyed at the stand/boarding level, often 1, so matching on either alone misses them.
 // Why: a candidate carrying `toTile` must match the hop destination, or a reverse ship (Customs on the Brimhaven deck) steals a gangplank hop that lands on the same pier tile at a different level.
 
 /** Resolve a special crossing for a path transport hop. */
@@ -968,7 +968,7 @@ export function specialCrossingForTransport(
     }
 
     // Why: the order below is which tile of the hop a crossing is keyed at, best first.
-    // Why: a two-sided obstacle registers one crossing per bank and both match the same hop — one as the tile being left, one as the tile being reached.
+    // Why: a two-sided obstacle registers one crossing per bank and both match the same hop, one as the tile being left, one as the tile being reached.
     // Why: the executor resolves the loc within Chebyshev 3 of the crossing's stand, so the far bank's entry aims the op at the opposite end of the obstacle, across the water; only the bank under our feet is usable.
     const ORIGIN_APPROACH = 0;
     const ORIGIN_LOC = 1;
@@ -1027,7 +1027,7 @@ export function specialCrossingForTransport(
         if (destOk.length > 0) {
             candidates = destOk;
         } else if (candidates.some(sc => sc.toTile !== undefined)) {
-            // Only mismatched landings — do not steal a gangplank/loc hop.
+            // Only mismatched landings, do not steal a gangplank/loc hop.
             return null;
         }
     }

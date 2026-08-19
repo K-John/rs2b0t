@@ -1,4 +1,4 @@
-/** Live proof #597 — BrimhavenAgility ignores Swarm on arena platforms and keeps doing obstacles.
+/** Live proof #597, BrimhavenAgility ignores Swarm on arena platforms and keeps doing obstacles.
  *  Spawn Swarm on a 5x5 platform, start the script, and assert no evade intercept plus hop progress. */
 
 //   ENGINE_DIR=.../engine sh tools/deploy-local.sh
@@ -9,7 +9,7 @@ const args = positionalArgs(process.argv.slice(2), 'http://localhost:8888');
 const base = args[0];
 const user = args[1] ?? `bs${Date.now().toString(36).slice(-5)}`;
 
-// Platform 19 — ticket grid, one hop south of the SE ladder landing.
+// Platform 19, ticket grid, one hop south of the SE ladder landing.
 const PLATFORM = { x: 2805, z: 9579, level: 3 };
 
 interface Api {

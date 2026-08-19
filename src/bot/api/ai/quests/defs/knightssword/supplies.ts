@@ -91,7 +91,7 @@ async function mixDough(log: (m: string) => void): Promise<boolean> {
     );
 }
 
-// Why: the Range carries no ops at all — cooking is `[oplocu,_cooking_oven]`, a use-on, the same shape as filling the bucket.
+// Why: the Range carries no ops at all, cooking is `[oplocu,_cooking_oven]`, a use-on, the same shape as filling the bucket.
 // Why: a fire will not do, as cooking_generic_redberry_pie answers "You need a proper oven to cook that."
 
 /** Bake the redberry pie on a range. */
@@ -181,7 +181,7 @@ export function pie(snap: QuestSnapshot): QuestStep {
     return { kind: 'custom', name: 'mix pastry dough', run: mixDough };
 }
 
-// Why: smelting.rs2 loses half of every batch — "The ore is too impure and you fail to refine it."
+// Why: smelting.rs2 loses half of every batch, "The ore is too impure and you fail to refine it."
 // Why: eight ore leaves a 9-in-256 chance of not clearing two bars, and a short batch is a no-op as the loop re-derives from the bar count.
 export const ORE_PER_TRIP = 8;
 
@@ -232,8 +232,8 @@ async function smeltIron(log: (m: string) => void): Promise<boolean> {
 }
 
 /**
- * Nothing sells iron bars — Drogo's Mining Emporium stocks zero and the only
- * ground spawn is deep in the Wilderness — so they are smelted.
+ * Nothing sells iron bars, Drogo's Mining Emporium stocks zero and the only
+ * ground spawn is deep in the Wilderness, so they are smelted.
  */
 export function ironBarsAt(snap: QuestSnapshot, miningLevel: number): QuestStep {
     const held = heldId(snap, KS_ID.IRON_BAR);

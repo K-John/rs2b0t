@@ -1,5 +1,5 @@
 /** Build ~10 transport-heavy OD pairs from curated 2004 travel plus known hubs, pack-probe them with full WorldState, and write a live-friendly JSON list: --write --n=12 --explain.
- *  Output: tools/nav/transport-heavy.routes.json — feed it to a harness or copy ids into the nav-script-routes-live LIMIT list. */
+ *  Output: tools/nav/transport-heavy.routes.json, feed it to a harness or copy ids into the nav-script-routes-live LIMIT list. */
 
 //   bun tools/nav/transport-heavy-routes.ts
 //   bun tools/nav/transport-heavy-routes.ts --write --n=12 --explain
@@ -113,7 +113,7 @@ const SEEDS: Seed[] = [
         to: CART_SHILO
     },
     // Multiloc product path: enter via wizard (sets session) → exit portal.
-    // Live harness must NOT setvar exit_essence_mine_coord — that only tests cheats.
+    // Live harness must NOT setvar exit_essence_mine_coord, that only tests cheats.
     {
         id: 'TH-ess-round-aubury',
         family: 'essence_roundtrip',
@@ -196,7 +196,7 @@ const RICH_STATE: WorldStateData = {
         prayer: 99,
         Prayer: 99
     },
-    // Journal display names + aliases — see transportQuestReqs.ts
+    // Journal display names + aliases, see transportQuestReqs.ts
     quests: richTransportQuestMap(),
     items: {
         'Law rune': 200,

@@ -41,7 +41,7 @@ describe('ladder climb-up approaches', () => {
             const [only] = [...landings];
             const [lx, lz] = only!.split('|').map(Number);
             if (cheb(lx!, lz!, r.locX, r.locZ) > 2) {
-                continue; // teleporting ladder — its landing is not the foot
+                continue; // teleporting ladder, its landing is not the foot
             }
             if (`${r.from.x}|${r.from.z}` !== only) {
                 wrong.push(

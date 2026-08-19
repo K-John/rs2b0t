@@ -109,7 +109,7 @@ export async function enterRashTomb(log: (m: string) => void): Promise<boolean> 
 }
 
 /**
- * `zq_open_tombexit` refuses to open for anyone carrying the bone key — the key has
+ * `zq_open_tombexit` refuses to open for anyone carrying the bone key. The key has
  * to be *used on* the door instead. That inversion is the trick of the exit.
  */
 export async function leaveRashTomb(log: (m: string) => void): Promise<boolean> {
@@ -185,7 +185,7 @@ export async function passGate(dir: 'in' | 'out', log: (m: string) => void): Pro
 }
 
 /**
- * The rocks are clicked from wherever the gate dropped us — the ledge is unwalkable
+ * The rocks are clicked from wherever the gate dropped us. The ledge is unwalkable
  * in the baked pack, so nothing may try to walk onto it first.
  */
 export async function climbRashRocks(dir: 'down' | 'up', log: (m: string) => void): Promise<boolean> {
@@ -255,7 +255,7 @@ async function crossTombDoors(dir: 'north' | 'south', log: (m: string) => void):
     return ok;
 }
 
-// Why: leaving the chamber takes three moves — back through the skeletal doors, east to the foot of the climbing rocks, then up.
+// Why: leaving the chamber takes three moves, back through the skeletal doors, east to the foot of the climbing rocks, then up.
 // Why: nothing but the doors connects the dolmen room to the rest of the tomb.
 
 /** Walk out of the dolmen chamber. */

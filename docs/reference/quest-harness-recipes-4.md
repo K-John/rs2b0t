@@ -4,11 +4,11 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Elemental Workshop — harness recipes and combat floor search
+## Elemental Workshop, harness recipes and combat floor search
 
 Polish goal (all quests with non-required combat): find the **bare minimum**
 stats that still clear, record fails, then later branch tactics by power level
-([Quests — proven floors](../reference/quest-eligibility.md#bot-proven-floors-polish-goal)).
+([Quests, proven floors](../reference/quest-eligibility.md#bot-proven-floors-polish-goal)).
 
 | Recipe | What it proves | Status |
 |---|---|---|
@@ -40,7 +40,7 @@ HEADED=1 bun e2e/aio-quest-test.ts http://localhost:8890 ewreal elemental_worksh
   Lobster 'speed 300' '2725,3491'
 ```
 
-## Ernest the Chicken — stage-scoped harness
+## Ernest the Chicken, stage-scoped harness
 
 [`e2e/ernest-chicken-229-live.ts`](../../e2e/ernest-chicken-229-live.ts) drives
 the quest from a clean account, or one stage of it. `--stage N` sets
@@ -65,10 +65,10 @@ Three details govern this harness:
 - **`--poisoned` sets `haunted_manor_fountain_poisoned`.** The gauge leg Searches
   the fountain first and only fetches poison and fish food if the piranhas bite,
   because the latch is not readable. A fresh account always takes the bitten
-  branch, so the other half is only reachable on a resume — or with this flag.
+  branch, so the other half is only reachable on a resume, or with this flag.
 
 - **Stats are set to 70, not `~maxme`.** A maxed account hides reach and damage
-  problems, and nothing in Draynor Manor is aggressive anyway — the only
+  problems, and nothing in Draynor Manor is aggressive anyway, the only
   guaranteed damage in the quest is the 1 hp piranha bite from searching the
   fountain before it has been poisoned.
 - **It runs on :8890 even though Ernest is free-to-play.** The quest needs

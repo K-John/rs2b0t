@@ -2,7 +2,7 @@
 
 # Quest harness recipes (Fam–Figh)
 
-## Family Crest — stage-scoped harness
+## Family Crest, stage-scoped harness
 
 Family Crest is eleven server stages across four kingdoms, so it has its own
 harness rather than a `e2e/aio-quest-test.ts` invocation:
@@ -17,7 +17,7 @@ HEADED=1 bun e2e/family-crest-210-live.ts --stage 0 --minutes 120            # e
 Two things that harness has to do and a plain `setvar` does not:
 
 - **Relog after the stage jump.** `update_questlist` recolours the journal entry
-  at login only, and every module reads the tab rather than the varp — so a
+  at login only, and every module reads the tab rather than the varp, so a
   `setvar crestquest 7` without a relog leaves the quest reading *not started*.
 - **Clear `crest_spells_levers_gauntlets` too.** The lever bits and the
   four-blasts-cast bits share that varp, so a stage jump that leaves it set
@@ -25,12 +25,12 @@ Two things that harness has to do and a plain `setvar` does not:
 
 It is **members-only** (`map_members`), so it needs the :8890 world, not :8888.
 
-Caleb's five cooked fish and the two rubies are bank seeds by design — no shop
+Caleb's five cooked fish and the two rubies are bank seeds by design, no shop
 in the game stocks cooked bass or shrimp, and the Ardougne gem merchant restocks
 a single ruby every 60k ticks. Everything else (moulds, antipoison, blast runes,
 a pickaxe) is bought live.
 
-## Fight Arena — stage-scoped harness
+## Fight Arena, stage-scoped harness
 
 [`e2e/fight-arena-233-live.ts`](../../e2e/fight-arena-233-live.ts). Members content, so
 `:8890` only.
@@ -47,11 +47,11 @@ a pickaxe) is bought live.
 It deploys **its own copy of the client** through `deployIsolatedClient`: everything in
 `out/` lands in `public/bot/<user>/`, and a generated `bot-<user>.html` points at it. Two
 runs on one engine no longer overwrite each other, and the copy is swept on exit. That
-also carries `navworker.js` and `collision.lcnav.gz`, both of which this quest needs —
+also carries `navworker.js` and `collision.lcnav.gz`, both of which this quest needs,
 refusing the arena's doors changed the transport graph, and a client-only deploy leaves
 the navigator on the old edges.
 
-The bank seed is coins, food and a rune melee kit — `rune_chainbody` rather than
+The bank seed is coins, food and a rune melee kit, `rune_chainbody` rather than
 `rune_platebody`, which wants Dragon Slayer. Nothing the quest can find in the world is
 seeded: the Khazard disguise comes from the chest, the keys from the drunk guard and the
 brew from the barman.
@@ -65,8 +65,8 @@ What the legs proved, at `--tick 150` on `:8890`:
 |---|---|---|
 | 0 → 2 | PASS, 1 min | Lady Servil, the journal parse, the chest's north-only stand, the disguise, the guard door |
 | 2 → 5 | PASS, 3 min | the drunk guard, the walk out for a brew (`coins 1000→995`), the keys (`khali brew 1→0, cell keys 0→1`) |
-| 5 → 9 | PASS, 3 min | the keys reclaimed after a death, the cell-gate cutscene, the ogre — 10 attacks, no damage taken under Protect from Melee |
-| 9 → 12 | PASS, 5 min | Hengrad's cutscene out of the cell, the scorpion, Bouncer, the agreement — hitpoints never left 99, prayer 99 → 53 |
+| 5 → 9 | PASS, 3 min | the keys reclaimed after a death, the cell-gate cutscene, the ogre, 10 attacks, no damage taken under Protect from Melee |
+| 9 → 12 | PASS, 5 min | Hengrad's cutscene out of the cell, the scorpion, Bouncer, the agreement, hitpoints never left 99, prayer 99 → 53 |
 | 12 → 14 | PASS, 2 min | both scripted doors outward, the walk to Lady Servil, `QUEST COMPLETE`, 2 quest points |
 | 0 → 14 | PASS, 7 min | the uncheated run: 26 steps, no parks, nothing seeded but coins, food and a banked rune kit |
 

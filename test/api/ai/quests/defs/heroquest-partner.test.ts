@@ -30,7 +30,7 @@ describe('decideHeroHandoff', () => {
     });
 
     // Why: `open_and_close_door` teleports the actor and re-shuts in three ticks, so the Black Arm bot
-    // cannot hold the side door open — the tradeable spare key is the only way the rival gets in.
+    // cannot hold the side door open, the tradeable spare key is the only way the rival gets in.
     test('the Black Arm bot gives the spare key the moment Grip issues it', () => {
         expect(decideHeroHandoff(input({
             stage: HERO_STAGE.BLACKARM_PAPERS_GIVEN,

@@ -152,7 +152,7 @@ export async function talkAndClose(
     return ok;
 }
 
-// Why: `~mesbox` and `~objbox` build a MAIN modal that no dialogue driver can see, and the curator and the king both use them mid-conversation — a chat-only driver stalls on the first one.
+// Why: `~mesbox` and `~objbox` build a MAIN modal that no dialogue driver can see, and the curator and the king both use them mid-conversation, a chat-only driver stalls on the first one.
 
 /** Drive a conversation that mixes chat with mesboxes, until the goal lands. */
 export async function talkUntil(

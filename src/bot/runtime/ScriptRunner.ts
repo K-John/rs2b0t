@@ -309,7 +309,7 @@ class ScriptRunnerImpl {
             }
             // deliberate wait, not a stall: keep StallGuard from churn-restarting
             ctx.progress();
-            // Wall-clock poll while paused — server ticks may not advance mid scene load.
+            // Wall-clock poll while paused, server ticks may not advance mid scene load.
             scheduleNextLoop(ctx, { kind: 'time', ms: 600 });
             return;
         }

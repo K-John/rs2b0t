@@ -7,7 +7,7 @@ export const HERO_NAME = "Hero's Quest";
 /** Object ids. Key, Herb, Chest and Door each name more than one object, so nothing here is matched by name. */
 export const HERO_ID = {
     COINS: 995,
-    /** Grip's spare, tradeable — the only way a Phoenix bot crosses the side door. */
+    /** Grip's spare, tradeable, the only way a Phoenix bot crosses the side door. */
     MISC_KEY: 1586,
     /** Grip's own keyring, untradeable, dropped for everyone by `obj_addall`. */
     GRIP_KEYS: 1588,
@@ -105,7 +105,7 @@ export const HERO_LOC = {
     GRUBOR_DOOR: 2626,
     GARV_DOOR: 2627,
     KITCHEN_DOOR: 2628,
-    /** "Wall", op1 Push — never a Door, so no derivation ever bakes it. */
+    /** "Wall", op1 Push, never a Door, so no derivation ever bakes it. */
     KITCHEN_PANEL: 2629,
     CHEST_SHUT: 2632,
     CHEST_OPEN: 2633,
@@ -204,7 +204,7 @@ export const HERO_TILE = {
     DRAYNOR_BANK: new Tile(3092, 3245, 0)
 } as const;
 
-// Why: `pickPreferred` matches a lower-cased substring, so every fragment here is apostrophe-free —
+// Why: `pickPreferred` matches a lower-cased substring, so every fragment here is apostrophe-free,
 // the content mixes straight and curly quotes and one wrong glyph silently picks no option at all.
 
 export const ACHIETTIES: NpcStop = {
@@ -340,7 +340,7 @@ function within(t: WorldTile | null | undefined, x0: number, x1: number, z0: num
     return !!t && t.level === level && t.x >= x0 && t.x <= x1 && t.z >= z0 && t.z <= z1;
 }
 
-// Why: every box below is a flood of the collision pack, not a guess — the mansion is six sealed
+// Why: every box below is a flood of the collision pack, not a guess. The mansion is six sealed
 // pockets and a distance test calls two tiles either side of one wall the same place.
 
 /** The Shrimp and Parrot's kitchen, which only `herokitchendoor` opens. */

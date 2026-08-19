@@ -66,7 +66,7 @@ interface ShopSource {
 }
 
 // Why: a trail that rolls an `items` row must not be abandoned for want of an 18gp purchase.
-// Why: only rows carrying `items` reach this — today `Rope` (2811, Baxtorian Falls), whose nearest stocked counter is Aemad's in East Ardougne, the same stand the Waterfall and Watch Tower quests use.
+// Why: only rows carrying `items` reach this, today `Rope` (2811, Baxtorian Falls), whose nearest stocked counter is Aemad's in East Ardougne, the same stand the Waterfall and Watch Tower quests use.
 
 /** Shop counters for the extra items a clue row demands in `items`. */
 const EXTRA_ITEM_SHOPS: Record<string, ShopSource> = {
@@ -78,7 +78,7 @@ export function extraItemShop(name: string): ShopSource | null {
     return key ? EXTRA_ITEM_SHOPS[key]! : null;
 }
 
-// Why: the Kharidian desert has one baked entrance and it eats a Shantay pass, so a bot without one gets no detour — the desert leaves the graph and the leg reports `unreachable`.
+// Why: the Kharidian desert has one baked entrance and it eats a Shantay pass, so a bot without one gets no detour. The desert leaves the graph and the leg reports `unreachable`.
 // Why: Shantay stocks the pass himself (`shantaypass.inv` stock16, 5gp) and his counter is north of his own gate, so the trip is payable from the side the bot is stuck on.
 
 /** Counters that sell a crossing toll, for the case where the bank had none. */

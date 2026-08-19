@@ -1,5 +1,5 @@
 /** Live Eadgar's Ruse harness (#241): --stage N --until N --at x,z,level --pack --paint --unfreed --minutes N, base :8890.
- *  Why: `--stage` sets `%eadgar_quest` and relogs, since update_questlist only recolours the journal at login; the bank holds coins, food, a melee kit and a ranarr weed, and nothing else — the boots, the knife, the pineapple, the vodka, the pestle, the tinderbox, the axe, the logs, the chickens and the grain are all things the run has to source for itself. */
+ *  Why: `--stage` sets `%eadgar_quest` and relogs, since update_questlist only recolours the journal at login; the bank holds coins, food, a melee kit and a ranarr weed, and nothing else, the boots, the knife, the pineapple, the vodka, the pestle, the tinderbox, the axe, the logs, the chickens and the grain are all things the run has to source for itself. */
 
 //   HEADED=1 bun e2e/eadgar-ruse-241-live.ts --stage 0 --minutes 150
 //   HEADED=1 bun e2e/eadgar-ruse-241-live.ts --stage 30 --until 50 --minutes 45   # the Ardougne parrot leg
@@ -99,7 +99,7 @@ const FALADOR_BANK: Tile = { x: 2946, z: 3369, level: 0 };
 const PREREQ = {
     /** ^death_complete */
     death_equiproom: 80,
-    /** %death_map bits 0-3 — Tenzing's front door reads these, not the stage varp. */
+    /** %death_map bits 0-3, Tenzing's front door reads these, not the stage varp. */
     death_map: 8,
     /** ^troll_complete */
     troll_quest: 50,
@@ -165,7 +165,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 // Why: this run gets its own copy of the client and its own navworker, so a neighbouring harness
-// deploying into the shared `public/bot` mid-boot cannot decide which branch this one exercises —
+// deploying into the shared `public/bot` mid-boot cannot decide which branch this one exercises,
 // and this quest adds three transport edges, so a stale navworker plans Eadgar's cave as unreachable.
 const client = args.deploy ? deployIsolatedClient(args.user) : null;
 const clientPage = client?.page ?? '/bot.html';
@@ -203,7 +203,7 @@ try {
         await cheatQuiet(page, `setvar ${varp} ${value}`);
     }
     // Why: Troll Stronghold completes on Godric alone, and Eadgar's cave is empty until his cell is
-    // opened — `--unfreed` leaves the varbit clear so the recovery leg is what gets exercised.
+    // opened, `--unfreed` leaves the varbit clear so the recovery leg is what gets exercised.
     if (!args.unfreed) {
         await cheatQuiet(page, 'setvar troll_freed_eadgar 1');
     }
@@ -256,7 +256,7 @@ try {
         console.log('nav path paint: on');
     }
 
-    // Gear is declared, never inferred — the quest wears whatever this says.
+    // Gear is declared, never inferred, the quest wears whatever this says.
     await page.evaluate(() => {
         const g = globalThis as never as { __rs2b0t: { Loadouts: { save(l: unknown[]): void } } };
         g.__rs2b0t.Loadouts.save([{
@@ -278,7 +278,7 @@ try {
 
     // Why: `public/bot` is shared across sessions, so another deploy can land inside this page's
     // boot window and the run then silently exercises a bundle that has never heard of this quest.
-    // Why: the queue line is the cheapest proof of which bundle booted — an unknown id falls back
+    // Why: the queue line is the cheapest proof of which bundle booted, an unknown id falls back
     // to every quest, so a queue naming anything else is a lost race, not a bad setting.
     let queueLine = '';
     for (let i = 0; i < 20 && !queueLine; i++) {

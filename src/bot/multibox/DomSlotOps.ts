@@ -101,7 +101,7 @@ class DomSlotHandle implements SlotHandle {
                 forwarded.set(k, q.get(k)!);
             }
         }
-        // per-account storage namespace — isolates each iframe's creds/settings
+        // per-account storage namespace, isolates each iframe's creds/settings
         // even though same-origin iframes share one sessionStorage (see box.ts)
         forwarded.set('box', account.username);
         const qs = forwarded.toString();
@@ -110,7 +110,7 @@ class DomSlotHandle implements SlotHandle {
         clip.appendChild(this.scaler);
 
         // The focused bot's live iframe is lifted over the main pane, so its rail
-        // tile mirrors that canvas instead — every bot stays visible in the rail.
+        // tile mirrors that canvas instead, every bot stays visible in the rail.
         this.mirror = document.createElement('canvas');
         this.mirror.className = 'mbx-mirror';
         this.mirror.width = TILE_W;
@@ -214,7 +214,7 @@ class DomSlotHandle implements SlotHandle {
         this.el.classList.toggle('is-focused', focused);
         if (focused) {
             // Fill the main pane (viewport minus the rail): contain-fit keeps the 1100×620 client visible, letterboxing empty space.
-            // Why: map-picker chrome must fit inside the 620px client — see WorldMapPicker.
+            // Why: map-picker chrome must fit inside the 620px client, see WorldMapPicker.
             const mainW = window.innerWidth - railWidth();
             const mainH = window.innerHeight;
             const k = Math.min(mainW / LOGICAL_W, mainH / LOGICAL_H);

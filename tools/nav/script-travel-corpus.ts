@@ -1,4 +1,4 @@
-/** Scrape every travel endpoint scripts use and build directed legs for live nav: --list, --segment=fishing --write, --segment=clues --stats. Sources are in-tree — CLUE_DB coords plus NAV_TARGETS ClueSolver stands, FISHING/MINING/WOODCUTTING spot↔bank and cook stands, FIRE_SPOTS bank pins, CookingRanges fish-camp plans, every `new Tile(x, z, level)` in quest `areas.ts`, and the NAV_TARGETS residual under gathering-all.
+/** Scrape every travel endpoint scripts use and build directed legs for live nav: --list, --segment=fishing --write, --segment=clues --stats. Sources are in-tree, CLUE_DB coords plus NAV_TARGETS ClueSolver stands, FISHING/MINING/WOODCUTTING spot↔bank and cook stands, FIRE_SPOTS bank pins, CookingRanges fish-camp plans, every `new Tile(x, z, level)` in quest `areas.ts`, and the NAV_TARGETS residual under gathering-all.
  *  Segments: all | clues | quests | gathering-all | fishing | mining | woodcutting | firemaking | cooking. Endpoints are snapped off solid locs via out/collision.lcnav.gz when present. */
 
 //   bun --preload ./test/setup-dom.ts tools/nav/script-travel-corpus.ts --list
@@ -189,7 +189,7 @@ export function buildTravelRoutes(): TravelRoute[] {
             label: t.label
         });
     }
-    // Hub mesh would be O(n²) huge — chain consecutive + each → bank-ish hubs.
+    // Hub mesh would be O(n²) huge, chain consecutive + each → bank-ish hubs.
     // Full mesh for small sets; for large, connect each to nearest 3 + ordered chain.
     const clueLimited = limitPoints(cluePts, 80);
     chainNeighbors(clueLimited, add, 'CLUE_DB', 'clues', false, 3);

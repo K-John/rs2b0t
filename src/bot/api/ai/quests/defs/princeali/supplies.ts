@@ -39,7 +39,7 @@ export function withdrawFrom(items: { name: string; id: number; qty: number }[])
     return { kind: 'withdraw', items };
 }
 
-/** Pack, then bank, then nothing — for anything the caller makes itself. */
+/** Pack, then bank, then nothing, for anything the caller makes itself. */
 export function fromBank(snap: QuestSnapshot, item: PrinceItem, qty = 1): QuestStep | null {
     const short = qty - held(snap, item.id);
     if (short <= 0) {

@@ -1,5 +1,5 @@
 /**
- * #339 — origin-aware teleports + deny list for failed teles.
+ * #339, origin-aware teleports + deny list for failed teles.
  */
 import { describe, expect, test } from 'bun:test';
 import fs from 'node:fs';
@@ -68,7 +68,7 @@ describe('wildernessLevelAt', () => {
         expect(wildernessLevelAt({ x: 3100, z: 3600, level: 1 })).toBeGreaterThan(0);
         expect(wildernessLevelAt({ x: 3100, z: 9920, level: 0 })).toBe(1);
         expect(wildernessLevelAt({ x: 3100, z: 9920 + 19 * 8, level: 0 })).toBe(20);
-        // Wrong: treating underground z with surface formula would be huge — we must not.
+        // Wrong: treating underground z with surface formula would be huge, we must not.
         expect(wildernessLevelAt({ x: 3100, z: 9920, level: 0 })).toBeLessThan(5);
     });
 });
@@ -117,7 +117,7 @@ describe('denyTeleportIds policy', () => {
 describe('PathFinder tele inject origin gates', () => {
     test.skipIf(!HAS_PACK)('deep wildy does not inject spell tele even with runes', () => {
         const finder = loadFinder();
-        // Deep wildy tile (level ~26) → Lumbridge — long enough that tele would win if allowed.
+        // Deep wildy tile (level ~26) → Lumbridge, long enough that tele would win if allowed.
         const from = { x: 3100, z: 3520 + 25 * 8, level: 0 };
         const to = { x: 3222, z: 3218, level: 0 };
         // Stale high wildy on state must not matter when `from` is the only origin input.

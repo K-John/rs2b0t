@@ -221,7 +221,7 @@ describe('Tourist Trap area classification', () => {
         [tile(3292, 9435), 'undergroundJail'],
         [tile(3286, 9444), 'undergroundJail'],
         [tile(3171, 3048), 'bedabinTent'],
-        // Outside the tent door — the walkable approach for forge (3169,3046 is interior/sealed).
+        // Outside the tent door, the walkable approach for forge (3169,3046 is interior/sealed).
         [tile(3169, 3045), 'bedabin'],
         [tile(3169, 3046), 'bedabinTent'],
         [tile(3150, 2990), 'bedabin'],

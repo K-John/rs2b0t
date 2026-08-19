@@ -1,4 +1,4 @@
-/** Live proof #422 — Swarm is handled by Supervisor / RandomEvents (evade) rather than by SmelterBot growing its own combat loop: [base].
+/** Live proof #422. Swarm is handled by Supervisor / RandomEvents (evade) rather than by SmelterBot growing its own combat loop: [base].
  *  Seeds ore at the Al Kharid furnace, spawns macro_swarm, starts SmelterBot, and asserts a random-event intercept plus swarm despawn plus smelt progress. */
 
 //   ENGINE_DIR=.../Server/engine sh tools/deploy-local.sh
@@ -66,7 +66,7 @@ try {
     }
     console.log('Swarm present');
 
-    // setSettings(page, scriptName, flat map) — tiles are "x,z,level".
+    // setSettings(page, scriptName, flat map), tiles are "x,z,level".
     await setSettings(page, 'SmelterBot', {
         bar: 'Bronze',
         bankStand: '3269,3167,0',

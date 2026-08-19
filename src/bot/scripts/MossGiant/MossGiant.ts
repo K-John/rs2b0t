@@ -139,7 +139,7 @@ function needEat(): boolean {
     });
 }
 
-/** Full pack + food + loot on the ground — free a slot instead of banking early. */
+/** Full pack + food + loot on the ground, free a slot instead of banking early. */
 function needEatForLoot(): boolean {
     return Inventory.isFull() && hasFood() && findLoot() !== null;
 }
@@ -286,7 +286,7 @@ class GearEquip implements Task {
     constructor(private bot: MossGiant) {}
     private needWeapon(): boolean {
         if (STYLE === 'range' && rangeLoadout().thrown) {
-            // darts are the projectile stack — handled by needQuiver
+            // darts are the projectile stack, handled by needQuiver
             return false;
         }
         return WEAPON !== '' && !Equipment.contains(WEAPON) && Inventory.first(WEAPON) !== null;
@@ -413,7 +413,7 @@ async function bankRoutine(bot: MossGiant, withdrawFood: boolean): Promise<void>
 }
 
 async function withdrawStyleSupplies(bot: MossGiant): Promise<void> {
-    // darts are the projectile stack (not a durable weapon) — restocked below
+    // darts are the projectile stack (not a durable weapon), restocked below
     const needWeapon =
         STYLE !== 'melee' &&
         WEAPON !== '' &&
@@ -448,7 +448,7 @@ async function withdrawStyleSupplies(bot: MossGiant): Promise<void> {
         bot.setStatus(`withdrawing ${projectile}`);
         const got = await withdrawTo(projectile, AMMO_WITHDRAW);
         if (got > 0) {
-            // bank modal blocks equip — same pattern as RockCrab dart restock
+            // bank modal blocks equip, same pattern as RockCrab dart restock
             if (!(await Bank.close()) || !(await equipPackProjectiles())) {
                 bot.log(`WARNING: withdrew ${projectile}, but could not equip the stack — will retry from the pack`);
             }

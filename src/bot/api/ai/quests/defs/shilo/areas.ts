@@ -6,7 +6,7 @@ export interface ShiloItem {
     name: string;
 }
 
-// Why: these are the engine's names — several are misspelled in the configs ("Rashiliya corpse", "Stone-plaque").
+// Why: these are the engine's names, several are misspelled in the configs ("Rashiliya corpse", "Stone-plaque").
 // Why: the five Jungle Potion unids all render as "Unidentified herb", so every lookup here goes through the id.
 export const SV_ITEM = {
     COINS: { id: 995, name: 'Coins' },
@@ -63,7 +63,7 @@ export const SV_NPC = {
 } as const;
 
 /**
- * Stand tiles are the walkable neighbour of each loc, taken from the baked pack —
+ * Stand tiles are the walkable neighbour of each loc, taken from the baked pack,
  * most of these locs are multi-tile blockers whose own coordinate is unwalkable.
  */
 export const SV_TILE = {
@@ -136,7 +136,7 @@ export type ShiloArea =
 const RASH_GATE_Z = 9516;
 const RASH_ROCKS_BOTTOM_Z = 9511;
 
-// Why: every underground area here sits in its own mapsquare, and Rashiliyia's tomb has three parts — the corridor from the hillside doors, the ledge the gate drops you onto, and the tomb below the climbing rocks.
+// Why: every underground area here sits in its own mapsquare, and Rashiliyia's tomb has three parts, the corridor from the hillside doors, the ledge the gate drops you onto, and the tomb below the climbing rocks.
 // Why: collapsing the ledge into either neighbour makes the gate open and re-open forever.
 
 /** Which Shilo area a tile is in. */

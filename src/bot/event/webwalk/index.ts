@@ -1,5 +1,5 @@
 /**
- * World-walker library surface — teleports, travel catalog, requires, bank plan.
+ * World-walker library surface, teleports, travel catalog, requires, bank plan.
  * Product docs: docs/NAV.md
  */
 
@@ -26,4 +26,4 @@ export * from './virtualState.js';
 export * from './bankPlan.js';
 export * from './routeRecovery.js';
 export * from './routeState.js';
-// worldStateLive / teleportExecute import client adapter — use direct paths when needed
+// worldStateLive / teleportExecute import client adapter, use direct paths when needed

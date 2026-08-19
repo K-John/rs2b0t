@@ -20,7 +20,7 @@ const CLOSE_IN_RADIUS = 1;
 const WALK_TIMEOUT_MS = 20_000;
 // spade.rs2 refuses a guardian that is not ours with this message.
 const NOT_YOURS = /not after you/i;
-// Dying respawns us in Lumbridge, which empties the scene of the guardian —
+// Dying respawns us in Lumbridge, which empties the scene of the guardian,
 // indistinguishable from killing it unless the death itself is read.
 const DIED = /oh dear.*you are dead/i;
 

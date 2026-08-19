@@ -1,5 +1,5 @@
 // Why: optional orbit-camera path facing, client-only, with no server or LC changes.
-// Why: the yaw math matches the client's cinema look-at — yaw = (atan2(dx, dz) * -325.949) & 0x7ff.
+// Why: the yaw math matches the client's cinema look-at, yaw = (atan2(dx, dz) * -325.949) & 0x7ff.
 // Why: smoothing runs on the game frame loop rather than the walk tick, so turns ease like a human holding left/right instead of stepping once per path poll.
 
 import { actions, reader } from '../../adapter/ClientAdapter.js';
@@ -212,7 +212,7 @@ class PathCameraFollowImpl {
             this.desiredYaw = yaw & 0x7ff;
             return;
         }
-        // Only retarget when the path heading has moved enough — avoids
+        // Only retarget when the path heading has moved enough, avoids
         // re-aiming every tile on a nearly straight corridor.
         if (Math.abs(yawDelta(this.desiredYaw, yaw)) >= TARGET_RETARGET_MIN) {
             this.desiredYaw = yaw & 0x7ff;
@@ -238,7 +238,7 @@ class PathCameraFollowImpl {
             return;
         }
         if (performance.now() - this.lastSampleAt > STALE_MS) {
-            // Walk stopped sampling — let residual velocity die, then idle.
+            // Walk stopped sampling, let residual velocity die, then idle.
             this.velocity *= 0.6;
             if (Math.abs(this.velocity) < 0.5) {
                 this.release();

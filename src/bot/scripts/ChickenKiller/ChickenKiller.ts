@@ -600,7 +600,7 @@ class BuryBones implements Task {
     }
 }
 
-// Why: the scene can keep a ground stack visible after Take fails — already taken by another bot, client desync, or multibox.
+// Why: the scene can keep a ground stack visible after Take fails, already taken by another bot, client desync, or multibox.
 // Why: without a skip, LootDrops spins on the same ghost pile (#424), so the tile and id are blacklisted for a while, as FireGiant does.
 
 /** How long a failed pickup keeps its tile and id blacklisted. */

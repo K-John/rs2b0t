@@ -12,13 +12,13 @@ supply half.
   or item whose script prints before it acts needs the continue drained before
   the effect it exists for is looked for.
 - **A varp without `transmit=yes` is not on the wire, but its neighbours may be.**
-  `%morttonquest` is server-only, so the stage still comes from the journal — yet
+  `%morttonquest` is server-only, so the stage still comes from the journal, yet
   `temple_repaired_p`, `temple_resources_p` and `temple_sanctity_p` all carry
   `transmit=yes`, and reading them is free. Check the `.varp` file before assuming
   a quest is journal-only.
 - **A one-shot supply defines the budget for the rest of the quest.** The smashed
   table hands out two tarromin once per character and nothing else in Morytania
-  sells or drops one reliably, so two vials — six doses — is the serum allowance
+  sells or drops one reliably, so two vials, six doses, is the serum allowance
   for the run. Counting the conversations that need a dose (four) came first; the
   loadout followed.
 - **An npc's shop op does not exist while he is afflicted.** Razmire carries
@@ -38,7 +38,7 @@ supply half.
   lighting any never lit one. Spend the surplus and let the respawn refill.
 - **Mort Myre charges a food tax and a slot for it.** A ghast turns a random piece
   of food into Rotten food on the way south, so the crossing arrives one lobster
-  poorer and one slot fuller — and the temple loadout has no slot to spare.
+  poorer and one slot fuller, and the temple loadout has no slot to spare.
 - **Every unfinished potion is called "Unfinished potion".** `tarrominvial` and
   `ashesvial` share the name, as do every unid ("Herb") and every serum vial size.
   The serum chain matches on ids alone.
@@ -51,39 +51,39 @@ supply half.
   Reinforce rather than stopping.
 - **One click starts a server-side loop; re-clicking it costs three ticks.** The
   wall op re-queues itself, so the bot re-clicks only when the player is neither
-  animating nor in combat for three ticks running — which is also what makes a
+  animating nor in combat for three ticks running, which is also what makes a
   shade interrupting the build cost nothing but the fight.
 - **A self-re-queueing loop never leaves the loc it started on.** `p_oploc(3)`
   keeps building the wall that was clicked, and a wall at level 10 has no next
-  stage — so the loop went on spending the pool into a finished wall and the
+  stage, so the loop went on spending the pool into a finished wall and the
   temple sat at one repaired piece for four thousand resource points while
   sanctity climbed to 100%. Follow the target by tile and drop it the moment it
   stops offering `Repair`; "the player is animating" only proves the server is
   busy, never that it is busy with anything useful.
 - **The temple is world state; the sanctity that unlocks it is not.** The walls
   hold their level for 9000 ticks, so a character can walk up to a temple another
-  run finished, read 100% repaired, and still be refused the altar — sanctity is
+  run finished, read 100% repaired, and still be refused the altar, sanctity is
   a player varp and only its own building earns any. The light leg therefore
   builds first and strikes second, and the rebuild leg waits for a build tick of
   its own before calling the temple done, because it is the tick and not the
   reading that moves `%morttonquest` on.
 - **Carried material is not pool.** `~add_temple_resources` only converts a plank,
   a brick and five paste into 800 points on a successful build tick, so a pack
-  full of material still reads `temple_resources_p` 0 — and a step that treats
+  full of material still reads `temple_resources_p` 0, and a step that treats
   that reading as "nothing left to build with" gives up holding the answer.
 - **"The player is animating" is not a lock you can wait out.** The wall's build
   loop re-animates every three ticks with no gap, so a light step that waited for
   a quiet tick before striking the altar never struck it. Gate the re-click of the
   loop on idleness; never gate the action that is trying to interrupt it.
 - **A predicate for an item has to know the stage that consumed it.** Past
-  `logs_on_pyre` the log is on the pyre, and "hold one log" still read true — which
+  `logs_on_pyre` the log is on the pyre, and "hold one log" still read true, which
   sent the bot back across the swamp to Varrock for a log the quest had finished
   with, from the last stage but one.
 - **The reward for finishing the temple is on a 99-tick timer.** Both altar states
   are `loc_change(…, 99)`: a build tick arms the cold altar and it reverts to
   broken twenty seconds later, and the lit one goes out on the same clock. An
-  errand between the rebuild and the strike — even the one that buys the olive
-  oil the strike exists for — comes back to a broken altar, so the light step
+  errand between the rebuild and the strike, even the one that buys the olive
+  oil the strike exists for, comes back to a broken altar, so the light step
   builds it back rather than reporting it missing, and the oil goes into the flame
   before anything optional does.
 - **`~addxp` takes plain xp.** The `stat_advance` it wraps takes the engine's

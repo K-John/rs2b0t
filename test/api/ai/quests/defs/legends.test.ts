@@ -181,11 +181,11 @@ describe('legendsPocket', () => {
     }
 });
 
-// Why: both counters are a sea crossing from everything the quest then does, and sourcing per leg alternated between them and the bank across the length of stage 8 — Ardougne bank, Jiminua's on Karamja, then a gold rock back on the mainland, three regions in three consecutive steps.
+// Why: both counters are a sea crossing from everything the quest then does, and sourcing per leg alternated between them and the bank across the length of stage 8, Ardougne bank, Jiminua's on Karamja, then a gold rock back on the mainland, three regions in three consecutive steps.
 // Why: `estGp` is what the buy step tops the pack up to before it opens a counter, so a padded estimate is money carried through three demon fights rather than headroom.
 describe('what the counters cost', () => {
     test('the guild estimate is headroom over the list, not a round number', () => {
-        // two soul at 1250, four law at 40, two mind at 3, two earth at 4, 150 water at 4 — about 3.8k with depletion.
+        // two soul at 1250, four law at 40, two mind at 3, two earth at 4, 150 water at 4, about 3.8k with depletion.
         expect(SHOP_GP.MAGIC_GUILD).toBeLessThan(20_000);
         expect(SHOP_GP.MAGIC_GUILD).toBeGreaterThan(5_000);
     });
@@ -248,7 +248,7 @@ describe('provisioning before the quest starts', () => {
         expect(name(decide({ ...bare(), noProgress: 3 }))).toBe('custom:ask Radimus Erkle for the quest');
     });
 
-    // Why: the Magic Guild stocks no cosmic rune at all — the only counter in the game that sells one is the Mage Arena's, which is deep Wilderness and behind a setting.
+    // Why: the Magic Guild stocks no cosmic rune at all, the only counter in the game that sells one is the Mage Arena's, which is deep Wilderness and behind a setting.
     test('cosmic runes are never asked of a counter', () => {
         const asked: string[] = [];
         let cur = bare();
@@ -292,13 +292,13 @@ describe('Legends Quest decide', () => {
         expect(name(step)).toBe('custom:climb back out of the caves');
     });
 
-    // Why: the shopping now runs ahead of Radimus, so an empty bank shops first — the walk to him is what happens once both counters have been emptied into it.
+    // Why: the shopping now runs ahead of Radimus, so an empty bank shops first, the walk to him is what happens once both counters have been emptied into it.
     test('not started shops before it asks Radimus for the quest', () => {
         const step = decide(snap({ journal: 'notStarted', stage: LQ_STAGE.NOT_STARTED }));
         expect(step.kind).toBe('buy');
     });
 
-    // Why: `quest_legends.rs2` counts the bank as well as the pack — "I hear that you have enough machetes in your bank to start your own store" and it hands over nothing, so the cupboard step failed for ever against a banked one.
+    // Why: `quest_legends.rs2` counts the bank as well as the pack, "I hear that you have enough machetes in your bank to start your own store" and it hands over nothing, so the cupboard step failed for ever against a banked one.
     test('a banked machete is withdrawn rather than asked of the cupboard', () => {
         const step = decide(snap({ stage: LQ_STAGE.STARTED, bankIds: [LQ_ID.MACHETE], bank: ['Machete'] }));
         expect(step.kind).toBe('withdraw');
@@ -310,7 +310,7 @@ describe('Legends Quest decide', () => {
         expect(name(step)).toBe("custom:take the machete from Radimus' cupboard");
     });
 
-    // Why: the kit fixture carries the finished copy, which is the one thing that means the mapping is over — so a snapshot about to map holds the blank notes instead.
+    // Why: the kit fixture carries the finished copy, which is the one thing that means the mapping is over, so a snapshot about to map holds the blank notes instead.
     test('started with the kit and blank notes maps the jungle', () => {
         const blank = kitted({ stage: LQ_STAGE.STARTED });
         const invIds = new Map(blank.invIds);
@@ -319,7 +319,7 @@ describe('Legends Quest decide', () => {
         expect(name(decide({ ...blank, invIds }))).toBe('custom:map all three thirds of the Kharazi Jungle');
     });
 
-    // Why: `radimus_notes.rs2` swaps the notes for the copy and only then advances the stage, and it clears the three section bits as it goes — so the copy in the pack with the stage still at one is a state the loop can reach, and `mapJungle` answers true in no time at all from there, which the engine hands straight back for ever.
+    // Why: `radimus_notes.rs2` swaps the notes for the copy and only then advances the stage, and it clears the three section bits as it goes, so the copy in the pack with the stage still at one is a state the loop can reach, and `mapJungle` answers true in no time at all from there, which the engine hands straight back for ever.
     test('the finished copy ends the mapping whatever the stage says', () => {
         const done = kitted({ stage: LQ_STAGE.STARTED });
         expect(name(decide(done))).not.toBe('custom:map all three thirds of the Kharazi Jungle');
@@ -537,7 +537,7 @@ describe('Legends Quest decide', () => {
         expect(name(decide(ready))).toBe('custom:cut a hollow reed at the sacred pool');
     });
 
-    // Why: `potsFor` answers zero the moment the bowl is blessed, which is stage 8 — and the spent list is a DROP, so a live run threw the flask on the floor at a booth with three demon fights still ahead.
+    // Why: `potsFor` answers zero the moment the bowl is blessed, which is stage 8, and the spent list is a DROP, so a live run threw the flask on the floor at a booth with three demon fights still ahead.
     test('a prayer flask is not spent while a demon is still alive', () => {
         const midQuest = kitted({
             stage: LQ_STAGE.ASKED_GUJUO_WATER,
@@ -558,7 +558,7 @@ describe('Legends Quest decide', () => {
         expect(name(step)).toBe('custom:drop what the quest has finished with');
     });
 
-    // Why: `stageBowl` fetches the fight kit while the bowl is empty, so a run arriving here with it already filled never went through that — and the octagram is in the caves, where `choose` never reaches its upkeep.
+    // Why: `stageBowl` fetches the fight kit while the bowl is empty, so a run arriving here with it already filled never went through that, and the octagram is in the caves, where `choose` never reaches its upkeep.
     test('a filled bowl and no flask goes for the flask before the book', () => {
         const dry = kitted({
             stage: LQ_STAGE.FILLED_BOWL,
@@ -569,7 +569,7 @@ describe('Legends Quest decide', () => {
         expect(name(decide(dry))).not.toBe('custom:open the Book of Binding on Ungadulu');
     });
 
-    // Why: `stat_sub(prayer, 0, 90)` runs as the book opens, and `potionTopUp` answers null when the bank is empty — which walked a filled bowl and an empty prayer book into the demon and said nothing.
+    // Why: `stat_sub(prayer, 0, 90)` runs as the book opens, and `potionTopUp` answers null when the bank is empty, which walked a filled bowl and an empty prayer book into the demon and said nothing.
     test('no flask in the pack or the bank parks before the book is opened', () => {
         const jungle = { x: 2820, z: 2915, level: 0 };
         const dry = kitted({ stage: LQ_STAGE.FILLED_BOWL, invIds: [LQ_ID.GOLD_BOWL_BLESSED, LQ_ID.BOOK_OF_BINDING], tile: jungle });
@@ -618,7 +618,7 @@ describe('Legends Quest decide', () => {
         const step = decide({ ...lean, freeSlots: 12 });
         expect(step.kind).toBe('withdraw');
         expect(step.kind === 'withdraw' && step.items[0]?.qty).toBe(9);
-        // Why: the ask is what the pack can take rather than what the leg wanted — after a death the kit comes back at once and nine lobsters have nowhere to go.
+        // Why: the ask is what the pack can take rather than what the leg wanted, after a death the kit comes back at once and nine lobsters have nowhere to go.
         const tight = decide({ ...lean, freeSlots: 3 });
         expect(tight.kind === 'withdraw' && tight.items[0]?.qty).toBe(3);
     });
@@ -636,7 +636,7 @@ describe('Legends Quest decide', () => {
         expect(step.kind === 'withdraw' && step.items[0]?.name).toBe(PRAYER_POTIONS[0]!.name);
     });
 
-    // Why: replacing the totem spawns Nezikchened on the spot, and the totems stand in the jungle where the upkeep branch never runs — so the kit is asked for at the step or the demon gets what the fight before it left.
+    // Why: replacing the totem spawns Nezikchened on the spot, and the totems stand in the jungle where the upkeep branch never runs, so the kit is asked for at the step or the demon gets what the fight before it left.
     test('the last demon is kitted for before the totem is replaced', () => {
         const bare = snap({
             stage: LQ_STAGE.COLLECTED_TOTEM,
@@ -755,7 +755,7 @@ describe('Legends Quest decide', () => {
     });
 
     // Why: a withdraw decided with no room fails for ever, and the trials and the band both hand back things the keep list does not want.
-    // Why: the reserve rather than the last slot is the trigger — a step already opening the bank pays nothing to empty the pack there, and every hand-over this quest makes wants a slot a pack shed only when full does not have.
+    // Why: the reserve rather than the last slot is the trigger, a step already opening the bank pays nothing to empty the pack there, and every hand-over this quest makes wants a slot a pack shed only when full does not have.
     test('a pack down to its reserve banks the junk at the booth the withdraw was going to', () => {
         const full = snap({
             stage: LQ_STAGE.SACRED_WATER,
@@ -773,7 +773,7 @@ describe('Legends Quest decide', () => {
     test('junk well clear of the reserve rides along rather than costing a deposit', () => {
         const roomy = snap({
             stage: LQ_STAGE.SACRED_WATER,
-            // Why: Logs rather than a lump of rock — the rock is on the spent list, which is shed ahead of a bank errand and would answer this before the deposit rule got a look in.
+            // Why: Logs rather than a lump of rock. The rock is on the spent list, which is shed ahead of a bank errand and would answer this before the deposit rule got a look in.
             invIds: [LQ_ID.RUNE_AXE, LQ_ID.MACHETE, LQ_ID.YOMMI_SEEDS_GERM, 1511],
             inv: [...Array.from({ length: 14 }, () => 'Lobster')],
             bankIds: [LQ_ID.LOCKPICK, LQ_ID.UNPOWERED_ORB],
@@ -782,7 +782,7 @@ describe('Legends Quest decide', () => {
         expect(decide({ ...roomy, freeSlots: 20 }).kind).toBe('withdraw');
     });
 
-    // Why: a live run withdrew five lobsters into its last five slots and dropped four lumps of rock on the next pass — the float came out four short and the drop bought nothing.
+    // Why: a live run withdrew five lobsters into its last five slots and dropped four lumps of rock on the next pass, the float came out four short and the drop bought nothing.
     test('what the quest is finished with goes out before the bank hands anything over', () => {
         const rocky = snap({
             stage: LQ_STAGE.TALK_GUJUO_POOL,
@@ -923,7 +923,7 @@ describe('the module', () => {
         expect(legends.sustain?.foods[0]).toBe('Shark');
     });
 
-    // Why: a slot is bought with the worst food held, which is the opposite order — the point is to keep the heal the demon needs.
+    // Why: a slot is bought with the worst food held, which is the opposite order. The point is to keep the heal the demon needs.
     test('buys a slot with the worst food, not the best', () => {
         expect(FOOD_FOR_SLOT.map(f => f.name)).toEqual(['Tuna', 'Lobster', 'Swordfish', 'Shark']);
     });
@@ -948,7 +948,7 @@ describe('the module', () => {
     });
 });
 
-// Why: every Viyeldi climb rolls `stat_random(agility, 110, 250)` and a miss drops the climber down the rock, so a descent lands anywhere from the next pocket to the cave floor — and the stands above are one-way behind it.
+// Why: every Viyeldi climb rolls `stat_random(agility, 110, 250)` and a miss drops the climber down the rock, so a descent lands anywhere from the next pocket to the cave floor, and the stands above are one-way behind it.
 describe('the Viyeldi descent after a fall', () => {
     const at = (x: number, z: number): string => legendsPocket({ x, z, level: 0 } as never) ?? '—';
 
@@ -958,7 +958,7 @@ describe('the Viyeldi descent after a fall', () => {
         expect(at(2388, 4728)).toBe('descentFour');
     });
 
-    // Why: this is the tile a live run ground on — three tiles from the character and in a pocket the fall had already put behind it.
+    // Why: this is the tile a live run ground on, three tiles from the character and in a pocket the fall had already put behind it.
     test('a guardian standing above the floor is not in the pocket the floor can walk to', () => {
         expect(at(2385, 4730)).not.toBe(at(2386, 4727));
     });

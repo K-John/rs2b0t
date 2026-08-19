@@ -33,7 +33,7 @@ export const FORM_ELEMENT: Record<number, 'Wind' | 'Water' | 'Earth' | 'Fire'> =
 };
 
 // Why: the two forms no spell can touch are `horror_dagganoth_ranged` (1355) and `horror_dagganoth_melee` (1356), from `npc.dat`, named for the style they are weak to like the elemental forms.
-// Why: 1356 is immune only to a magic-only loadout — with a melee weapon wielded it is a fight like any other, which is thirty ticks of the cycle spent killing her instead of praying through.
+// Why: 1356 is immune only to a magic-only loadout, with a melee weapon wielded it is a fight like any other, which is thirty ticks of the cycle spent killing her instead of praying through.
 export const RANGED_FORM = 1355;
 export const MELEE_FORM = 1356;
 
@@ -83,10 +83,10 @@ async function pokeJossik(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: the two dagannoths take different prayers because they are different fights.
-// Why: `horror_dagannoth_jr4` declares no `ai_*player2` of its own, so it runs the default melee AI at `damagetype=stab_style` — Protect from Melee zeroes it and Protect from Missiles does nothing, which is why a "protected" junior fight still cost seventeen hitpoints.
+// Why: `horror_dagannoth_jr4` declares no `ai_*player2` of its own, so it runs the default melee AI at `damagetype=stab_style`, Protect from Melee zeroes it and Protect from Missiles does nothing, which is why a "protected" junior fight still cost seventeen hitpoints.
 // Why: the mother overrides both, meleeing in `opplayer2` and ranging in `applayer2`, and `ai_applayer2` puts her back on melee the moment missiles are protected, so missiles forces her onto the style whose max hit is single figures.
 // Why: alternating the two is the better play only if the flip lands every tick, since each switch costs her the turn and in perfect lockstep she never attacks.
-// Why: a bot cannot promise every tick — taking damage makes the loop eat, eating spends the tick's one action, and the prayer stops flipping when it matters, half the time on the wrong one.
+// Why: a bot cannot promise every tick, taking damage makes the loop eat, eating spends the tick's one action, and the prayer stops flipping when it matters, half the time on the wrong one.
 // Why: holding one prayer is worse in theory and survives in practice.
 const PROTECT = {
     melee: { name: 'protect from melee', level: 43 },
@@ -165,7 +165,7 @@ interface FightPlan {
     guard: number;
 }
 
-// Why: the server runs a single op per tick and silently drops the rest, so a loop that eats, prays and casts in the same breath loses two of the three — one action per tick, in the order pray, eat, cast.
+// Why: the server runs a single op per tick and silently drops the rest, so a loop that eats, prays and casts in the same breath loses two of the three, one action per tick, in the order pray, eat, cast.
 // Why: with eating first, taking damage spends every tick on food, the prayer never gets re-armed, and the fight is lost while the pack is still full.
 // Why: prayer is cheap, a no-op once the varp says it is up, so it goes first and costs nothing on the ticks it is already holding.
 

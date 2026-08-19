@@ -29,7 +29,7 @@ Game.teleport(name: string): Promise<boolean>
 
 ### Camera (client-only)
 
-Orbit camera read/write is **client-side only** — nothing is sent to the game
+Orbit camera read/write is **client-side only**. Nothing is sent to the game
 server except the client's own camera-report packets, which are already
 rate-limited (`sendCameraDelay = 20` ticks between reports).
 
@@ -40,7 +40,7 @@ rate-limited (`sendCameraDelay = 20` ticks between reports).
 | `setCameraYaw(yaw)` | `boolean` | Local mutation / dispatch availability. **Does not** wait for the view to settle; a `true` result only means the client accepted the write. |
 
 For automatic path-facing during walks, prefer Global **`navCameraFollow`**
-(default `false`) rather than driving yaw from scripts every tick — see
+(default `false`) rather than driving yaw from scripts every tick, see
 [World-walking → Path camera](../reference/nav-walker.md#path-camera).
 
 ```ts

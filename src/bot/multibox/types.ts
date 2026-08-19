@@ -14,7 +14,7 @@ export interface Account {
 export interface SlotStatus {
     ready: boolean;
     ingame: boolean;
-    // the logged-in character, once known — a bot is added empty and gets its
+    // the logged-in character, once known. A bot is added empty and gets its
     // account typed into its own panel, so this is what the rail tile shows
     player: string | null;
     loopCycle: number;

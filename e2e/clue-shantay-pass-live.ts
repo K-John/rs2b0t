@@ -1,4 +1,4 @@
-// Live proof for #371 — clue bank prep keeps and withdraws a Shantay pass, then the southbound desert crossing walks (requires-gated edge).
+// Live proof for #371, clue bank prep keeps and withdraws a Shantay pass, then the southbound desert crossing walks (requires-gated edge).
 // Proof: out/issue371-clue-shantay-pass-proof.json + screenshots/
 
 //   ~/redeploy.sh && HEADED=1 bun e2e/clue-shantay-pass-live.ts
@@ -14,7 +14,7 @@ const { base } = parseArgs(process.argv.slice(2), {
 const SHANTAY_PASS = 'Shantay pass';
 /** North of the southbound stand (3304,3118). */
 const NORTH_OF_PASS = { x: 3304, z: 3125, level: 0 } as const;
-/** Hard desert dig 3552 (sextant027) — deep enough south that the pass is required. */
+/** Hard desert dig 3552 (sextant027), deep enough south that the pass is required. */
 const DESERT_DIG = { x: 3168, z: 3041, level: 0 } as const;
 const ARRIVAL = 8;
 const BUDGET_MS = 180_000;
@@ -272,7 +272,7 @@ try {
         timeout: 8000
     }).catch(() => undefined);
 
-    // Deposit everything (incl. pass) into bank via a short script — Bank needs runner.
+    // Deposit everything (incl. pass) into bank via a short script. Bank needs runner.
     await page.evaluate(() => {
         const g = globalThis as never as Abi;
         const api = g.__rs2b0t;
@@ -323,7 +323,7 @@ try {
         throw new Error('bank prep did not leave a Shantay pass in inventory');
     }
 
-    // From north of pass, walk to desert dig — proves requires-gated edge with pass held.
+    // From north of pass, walk to desert dig, proves requires-gated edge with pass held.
     await teleArrive(page, NORTH_OF_PASS);
     const walk = await walkDesert(page);
     const tile = walk.tile;

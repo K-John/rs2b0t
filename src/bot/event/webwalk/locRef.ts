@@ -62,7 +62,7 @@ export function locRefFromDoor(
 
 /**
  * Whether a live loc instance matches this placement ref (id + near tile).
- * Pure — no scene query.
+ * Pure, no scene query.
  */
 export function matchesLocRef(
     ref: LocRef,

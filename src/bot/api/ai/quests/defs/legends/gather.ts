@@ -15,7 +15,7 @@ function uncutHeld(): number {
     return GEM_CUTS.reduce((sum, gem) => sum + heldId(gem.uncut), 0);
 }
 
-// Why: the rock rolls one of seven gems — opal 60/128 down to diamond 4/128 — so waiting for a named uncut gem times out on nearly every swing.
+// Why: the rock rolls one of seven gems, opal 60/128 down to diamond 4/128, so waiting for a named uncut gem times out on nearly every swing.
 // Why: the honest oracle is "any uncut gem landed", and `decide()` asks again for whichever is still missing.
 
 /** Mine the Shilo gem rocks until one more uncut gem is in the pack. */

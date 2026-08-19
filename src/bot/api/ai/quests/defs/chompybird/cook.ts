@@ -15,7 +15,7 @@ const held = (id: number): number => Inventory.countById(id);
 /** The kids' choices live in a varbit the client never sees, so asking them is tracked here. */
 export const CookState = { kidsAsked: false };
 
-// Why: Rantz rolls his own flavour when the carcass is shown and the kids roll theirs when asked, and none of the three is on the wire — so all six candidates are carried.
+// Why: Rantz rolls his own flavour when the carcass is shown and the kids roll theirs when asked, and none of the three is on the wire, so all six candidates are carried.
 // Why: the order is the round trip east of Rantz and then west of him, since taking them in pairs alternates across three hundred tiles of Feldip.
 const SEASONINGS: readonly { id: number; name: string; loc?: number; tile: Tile }[] = [
     { id: CB_ID.POTATO, name: CB_NAME.POTATO, loc: 312, tile: CB_TILE.POTATO },
@@ -26,7 +26,7 @@ const SEASONINGS: readonly { id: number; name: string; loc?: number; tile: Tile 
     { id: CB_ID.DOOGLE, name: CB_NAME.DOOGLE, tile: CB_TILE.DOOGLE }
 ];
 
-// Why: the cabbage loc carries no `name=` at all, so the client menu reads "null" and a name query finds nothing — every patch is matched by loc id instead.
+// Why: the cabbage loc carries no `name=` at all, so the client menu reads "null" and a name query finds nothing, every patch is matched by loc id instead.
 
 /** Pick one vegetable off its patch. */
 function pickPatch(locId: number, name: string, itemId: number, tile: Tile): (log: (m: string) => void) => Promise<boolean> {

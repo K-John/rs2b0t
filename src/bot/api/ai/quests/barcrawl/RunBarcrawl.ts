@@ -36,12 +36,12 @@ export async function readCard(log?: (m: string) => void): Promise<BarcrawlProgr
     if (!Inventory.first(BARCRAWL_CARD)) {
         return null;
     }
-    // Why: the previous read's close takes a tick to land, and a `before` sampled while that scroll is still up can never differ from the id the next Read opens — every read after a successful one then times out on a scroll that is on screen.
+    // Why: the previous read's close takes a tick to land, and a `before` sampled while that scroll is still up can never differ from the id the next Read opens, every read after a successful one then times out on a scroll that is on screen.
     await Modals.closeIfOpen();
     await Execution.delayUntil(() => reader.modals().main === -1, 3000);
     const before = reader.modals().main;
     const mark = GameMessages.mark();
-    // Why: the client clears the modal on the close it sends, but the server clears it a tick or more later and drops an `opheld` that arrives in between — so the first Read after a read of its own opens nothing at all.
+    // Why: the client clears the modal on the close it sends, but the server clears it a tick or more later and drops an `opheld` that arrives in between, so the first Read after a read of its own opens nothing at all.
     // Why: `drinkAt` survived that by reading three times; every other caller read once and called the card unreadable, which is a failed quest step per bar.
     let idChanged = false;
     let parsed: BarcrawlProgress | null = null;
@@ -170,7 +170,7 @@ async function talkToGuard(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     await Execution.delayTicks(2);
-    // Why: the outpost's other "Barbarian guard" is the attackable one and the gate loc runs the same conversation, so a talk aimed by display name can land on either — hence the id.
+    // Why: the outpost's other "Barbarian guard" is the attackable one and the gate loc runs the same conversation, so a talk aimed by display name can land on either, hence the id.
     if (!byId(BARBARIAN_GUARD_ID)) {
         log('no barbarian guard at the outpost gate');
         return false;
@@ -198,8 +198,8 @@ async function handInBarcrawl(log: (m: string) => void): Promise<boolean> {
 
 type GuardVerdict = 'complete' | 'issued' | 'retry';
 
-// Why: the guard is the only oracle there is — `%barcrawl` is not on the wire, and an empty pack looks the same before the card is issued as after it is handed in.
-// Why: `outpost_guard_talk` branches on the varp — "Oi, whaddya want?" for not started, "'Ello friend." for complete, "So, how's the Barcrawl coming along?" for anything between, and that last branch re-issues a lost card.
+// Why: the guard is the only oracle there is, `%barcrawl` is not on the wire, and an empty pack looks the same before the card is issued as after it is handed in.
+// Why: `outpost_guard_talk` branches on the varp, "Oi, whaddya want?" for not started, "'Ello friend." for complete, "So, how's the Barcrawl coming along?" for anything between, and that last branch re-issues a lost card.
 // Why: the greeting is the verdict and the empty pack is not, since a random event landing mid-conversation abandons the option chain.
 // Why: reading "no card came out" as "already done" sends the bot at a gate that will not open, for good, so only "'Ello friend." means finished.
 

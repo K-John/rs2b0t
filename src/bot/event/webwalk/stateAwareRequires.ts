@@ -27,7 +27,7 @@ export const STATE_AWARE_ACTIVATIONS: readonly StateAwareActivation[] = [
         note: 'Edgeville monastery upper floor — 31 Prayer (members guild).'
     }
     // Multi-dest / dialog-state ladders (Horror, Watchtower, board games, …) stay
-    // disabled — add here only with Server-script evidence for a single dest.
+    // disabled, add here only with Server-script evidence for a single dest.
 ];
 
 export function activationForEdge(edge: {
@@ -50,7 +50,7 @@ export function activationForEdge(edge: {
     );
 }
 
-/** True when disabledReason is only “state deferred”, not permanently broken. */
+/** True when disabledReason is only "state deferred", not permanently broken. */
 export function isStateDeferredReason(reason: string | undefined): boolean {
     if (!reason) {
         return false;

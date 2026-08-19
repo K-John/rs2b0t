@@ -26,7 +26,7 @@ describe('kill-for-key anchors (KILL_ANCHORS ↔ keyFrom)', () => {
 const present = auditInputsPresent();
 
 // Destinations the baked nav pack cannot route to; each carries a diagnosis in PACK_UNREACHABLE.
-// Why: derived rather than re-pinned — the audit already fails on an unlisted id that cannot route and on a listed id that now can.
+// Why: derived rather than re-pinned. The audit already fails on an unlisted id that cannot route and on a listed id that now can.
 const EXPECTED_ABANDON = Object.keys(PACK_UNREACHABLE).map(Number).sort((a, b) => a - b);
 
 describe.skipIf(!present)('clue audit (pack-gated)', () => {

@@ -41,7 +41,7 @@ export const ORBON: NpcStop = {
     prefer: ["Ok, I'll take it."]
 };
 
-// Why: an npc only enters the client's list within about fifteen tiles, so a sheep two fields away is not "missing" — the leg has to walk to its map spawn before it can look.
+// Why: an npc only enters the client's list within about fifteen tiles, so a sheep two fields away is not "missing". The leg has to walk to its map spawn before it can look.
 export const SHEEP_SPAWN: Record<SheepIndex, Tile> = {
     1: new Tile(2610, 3344, 0),
     2: new Tile(2622, 3367, 0),
@@ -51,7 +51,7 @@ export const SHEEP_SPAWN: Record<SheepIndex, Tile> = {
 
 export const BANK = new Tile(2616, 3332, 0);
 
-/** The gate's own tile — `check_axis` runs the clothing branch only from x = 2594. */
+/** The gate's own tile, `check_axis` runs the clothing branch only from x = 2594. */
 export const GATE_OUTSIDE = new Tile(2594, 3361, 0);
 /** Where `p_teleport` lands anyone who opens the gate from the west. */
 export const GATE_INSIDE = new Tile(2595, 3361, 0);

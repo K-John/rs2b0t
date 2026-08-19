@@ -100,7 +100,7 @@ const STAGE_START: Record<number, { x: number; z: number; level: number }> = {
     12: RIMMINGTON
 };
 
-// Why: a stage is seeded with what that stage produced and never with its tools — a seeded gown or
+// Why: a stage is seeded with what that stage produced and never with its tools, a seeded gown or
 // bag of bird feed hides whether the bot can find one, and the cupboards check the bank.
 const HANDED_OVER: Record<number, string[]> = {
     7: ['distillator'],
@@ -137,7 +137,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 // Why: `public/bot` is shared by every worktree, and a concurrent deploy landing in the boot window
-// replaces navworker.js as well as botclient.js — the client still prints this quest's queue while
+// replaces navworker.js as well as botclient.js, the client still prints this quest's queue while
 // routing on somebody else's transport graph, which reads as a bug in this quest's own new edge.
 // Why: an isolated copy removes that race rather than detecting it.
 const client = args.deploy ? deployIsolatedClient(args.user) : null;
@@ -164,7 +164,7 @@ try {
     console.log(`tick rate: ${args.tickMs}ms`);
 
     // Why: `setstat` is a built-in branch with no level-up cascade, so it leaves the player
-    // undelayed — unlike `~maxme`, which swallows the next typed command.
+    // undelayed, unlike `~maxme`, which swallows the next typed command.
     for (const skill of SKILLS) {
         await cheatQuiet(page, `setstat ${skill} ${args.level}`, 120);
     }

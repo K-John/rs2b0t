@@ -141,7 +141,7 @@ describe('HillGiant pack management', () => {
         expect(
             shouldBank({ freeSlots: 10, foodInPack: 0, lootSlotsTarget: 14, usedLootSlots: 2, hp: 42, maxHp: 53, heal: 12 })
         ).toBe(false);
-        // still has food — eat in place, do not bank yet
+        // still has food, eat in place, do not bank yet
         expect(
             shouldBank({ freeSlots: 10, foodInPack: 3, lootSlotsTarget: 14, usedLootSlots: 2, hp: 40, maxHp: 53, heal: 12 })
         ).toBe(false);

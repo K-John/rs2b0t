@@ -40,7 +40,7 @@ export function pickNearestPreferLocal<T>(
     return best;
 }
 
-// Why: a successful deplete must not cool the tile — empty rocks and stumps already drop out of the type filters.
+// Why: a successful deplete must not cool the tile, empty rocks and stumps already drop out of the type filters.
 // Why: iron respawns in about 6 ticks, faster than a typical 8-tick skip.
 
 /** Whether to soft-cooldown a mine or chop tile after a failed click. */

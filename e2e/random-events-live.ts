@@ -107,7 +107,7 @@ try {
     }
     pushLog(`Swarm cleared (log=${sawSwarmLog})`);
 
-    // ── Maze (enter mapzone 0_45_71 — content [mapzone,0_45_71] sets ^macro_maze)
+    // ── Maze (enter mapzone 0_45_71, content [mapzone,0_45_71] sets ^macro_maze)
     // NW spawn enum val=0,0_45_71_11_53 → world 2891,4597
     await cheatQuiet(page, 'tele 0,45,71,11,53', 4000);
     await page.waitForFunction(

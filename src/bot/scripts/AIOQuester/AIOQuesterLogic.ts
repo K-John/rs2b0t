@@ -104,7 +104,7 @@ export function applyArravSettings(raw: { gang: string; partner: string; certs: 
     ArravConfig.certTarget = Math.max(1, Math.floor(Number.isFinite(raw.certs) ? raw.certs : 2));
 }
 
-// Why: the gang is Shield of Arrav's, deliberately — Grip refuses a Black Arm attacker and Katrine
+// Why: the gang is Shield of Arrav's, deliberately. Grip refuses a Black Arm attacker and Katrine
 // refuses a Phoenix candlestick, so the branch a character walks is the gang it already joined.
 
 /** Push the panel setting onto the Hero's Quest config. */

@@ -21,7 +21,7 @@ export function navigatorStep(snap: QuestSnapshot): QuestStep | null {
     return { kind: 'custom', name: "walk Swensen's maze", run: runMaze };
 }
 
-// Why: an attempt that ends before its portal fires leaves us on that portal's own stand tile, which is mid-route rather than scattered — reading it as scattered ropes out and throws away every leg already won.
+// Why: an attempt that ends before its portal fires leaves us on that portal's own stand tile, which is mid-route rather than scattered, reading it as scattered ropes out and throws away every leg already won.
 
 /** Which leg of the route a tile belongs to, or -1 when the maze has scattered us. */
 export function mazeLegAt(here: WorldTile | null): number {

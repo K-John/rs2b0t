@@ -6,7 +6,7 @@
 Three engine behaviours bit this quest hard enough to be worth stating once:
 
 - **An op that opens a dialogue does so a tick later.** Driving it immediately makes
-  `talkThrough` find nothing open and start a *fresh* conversation with the same NPC —
+  `talkThrough` find nothing open and start a *fresh* conversation with the same NPC,
   which lands in a dead-end line, or at an aggressive NPC gets you attacked. Wait for
   `ChatDialog.isOpen()` first, then drive what is already there.
 - **Colour tags displace punctuation.** Stripping `@dbl@` leaves a space where it stood,
@@ -18,7 +18,7 @@ Three engine behaviours bit this quest hard enough to be worth stating once:
   `param=owned_shop` in the engine's `.npc` config, and `Shop.open()` matches the display
   name. Read the owner out of the configs; a guide will not tell you.
 - **A tool that is merely absent produces no refusal.** Mining without a pickaxe is not
-  an error — the rock does not respond at all, and the step retries until the watchdog
+  an error. The rock does not respond at all, and the step retries until the watchdog
   parks it. Anything a step needs but does not consume has to be sourced explicitly.
 
 Shilo Village added three more, each of which cost a live run:
@@ -37,7 +37,7 @@ Shilo Village added three more, each of which cost a live run:
   Read the `oplocu` handler before assuming an op exists for what you want.
 - **Not every box is a chat box.** A scroll body built with `if_settext` is a *main*
   modal: dialogue drivers cannot see it, and while it is up every journal read comes back
-  empty — which reads as "stage unavailable" and parks the quest one step later. Close it
+  empty, which reads as "stage unavailable" and parks the quest one step later. Close it
   with `actions.closeModal()`, the same way `readProgress` does.
 
 ## See also

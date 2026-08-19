@@ -9,7 +9,7 @@ const CAGE = 'cage@2384,9655';
 const WELL_SIDE = new Tile(2385, 9655, 0);
 const CELL_SIDE = new Tile(2384, 9657, 0);
 
-/** Stands the character can walk to from where they are — one pocket per call. */
+/** Stands the character can walk to from where they are, one pocket per call. */
 function pocket(...tiles: readonly Stand[]): (t: Stand) => boolean {
     return t => tiles.some(p => p.x === t.x && p.z === t.z && p.level === t.level);
 }
@@ -30,7 +30,7 @@ describe('a seam spent from one side', () => {
 
         expect(spentHere(sides, CAGE, pocket(WELL_SIDE))).toBe(true);
         expect(spentHere(sides, CAGE, pocket(CELL_SIDE))).toBe(true);
-        // Why: a cage joins three pockets, and the third has been in neither list — it keeps its turn.
+        // Why: a cage joins three pockets, and the third has been in neither list. It keeps its turn.
         expect(spentHere(sides, CAGE, pocket(new Tile(2384, 9654, 0)))).toBe(false);
     });
 

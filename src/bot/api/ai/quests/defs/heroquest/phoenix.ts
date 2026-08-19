@@ -26,7 +26,7 @@ import { HERO_STAGE } from './journal.js';
 import { kitOwned, kitStep, type Purchasable } from './shops.js';
 import { heldId } from './state.js';
 
-// Why: the side room is sealed from the mansion by a `snipable_wall`, which carries blockrange=no —
+// Why: the side room is sealed from the mansion by a `snipable_wall`, which carries blockrange=no.
 // Grip is shootable through it and unreachable by every other means, so this branch needs a bow.
 const SNIPE_KIT: readonly Purchasable[] = [
     { id: HERO_ID.OAK_LONGBOW, name: HERO_NAMED.OAK_LONGBOW, qty: 1, sources: [{ ...HERO_SHOP.LOWE, gp: 1_000 }] },
@@ -58,7 +58,7 @@ export function talkToAlfonse(log: (m: string) => void): Promise<boolean> {
 /** Charlie is behind the kitchen door, which only opens once Alfonse has heard the password. */
 export async function talkToCharlie(log: (m: string) => void): Promise<boolean> {
     // Why: the kitchen is a sealed pocket in the baked graph, so walking at Charlie from the restaurant
-    // reads `unreachable` — the door is the module's to cross, not the navigator's.
+    // reads `unreachable`. The door is the module's to cross, not the navigator's.
     if (!(await enterKitchen(log))) {
         return false;
     }
@@ -74,7 +74,7 @@ function keyringOnFloor(): boolean {
 }
 
 // Why: Grip's spawn is six tiles from the slit, in bow range and behind three walls, so the server
-// drops every attack there — the slit's own row is the only line, and the cabinet walks him onto it.
+// drops every attack there, the slit's own row is the only line, and the cabinet walks him onto it.
 function gripOnTheRow(): Npc | null {
     const target = grip();
     const here = Game.tile();
@@ -102,7 +102,7 @@ export async function reachArrowSlit(log: (m: string) => void): Promise<boolean>
 }
 
 // Why: Grip only crosses onto the slit's row while the rival is opening his drinks cabinet, so this
-// loop waits rather than walking — every route to him is a wall.
+// loop waits rather than walking, every route to him is a wall.
 
 /** Shoot Grip through the arrow slit whenever the rival's lure puts him in range. */
 export async function snipeGrip(log: (m: string) => void): Promise<boolean> {
@@ -171,7 +171,7 @@ export function phoenixArmbandStep(snap: QuestSnapshot, stage: number): QuestSte
             return { kind: 'custom', name: 'ask Straven about the master thief armband', run: talkToStraven };
 
         case HERO_STAGE.PHOENIX_SPOKEN: {
-            // Why: the bow is bought in Varrock, where Straven already stands — buying it after the
+            // Why: the bow is bought in Varrock, where Straven already stands, buying it after the
             // crossing costs a return ferry and a walk across two kingdoms.
             const kit = snipeKitOwned(snap) ? null : snipeKitStep(snap);
             if (kit) {

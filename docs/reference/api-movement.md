@@ -4,8 +4,8 @@
 
 ## Movement
 
-How this works underneath — the collision pack, doors, transports, and arrival
-semantics — is [World-walking](../NAV.md).
+How this works underneath, the collision pack, doors, transports, and arrival
+semantics, is [World-walking](../NAV.md).
 
 ```ts
 Traversal.walkTo(dest: WorldTile, opts?: {
@@ -13,7 +13,7 @@ Traversal.walkTo(dest: WorldTile, opts?: {
     timeoutMs?: number;
     log?: (msg: string) => void;
     maxExpansions?: number;
-    // Spell/jewellery tele edges — see Nav teleports below.
+    // Spell/jewellery tele edges, see Nav teleports below.
     useTeleportCatalog?: boolean;
     policy?: {
         useTeleports?: boolean;
@@ -26,7 +26,7 @@ Traversal.walkTo(dest: WorldTile, opts?: {
     avoidZones?: readonly (string | { minX: number; maxX: number; minZ: number; maxZ: number; level?: number })[];
 }): Promise<boolean>
 
-// Prefer for unattended walks — escalates re-path / big-budget / scene bridge
+// Prefer for unattended walks, escalates re-path / big-budget / scene bridge
 // and by default never gives up (only random-event or Stop ends it early).
 // Forwards useTeleportCatalog / policy / bankItemCounts on every baked repath.
 Traversal.walkResilient(dest: WorldTile, opts: {
@@ -66,7 +66,7 @@ Spell/jewellery tele hops are **not** used unless enabled:
 |---|---|---|
 | Global **Nav teleports** (`navTeleports`) | **off** | Panel or `?Global.navTeleports=true` |
 | Per-walk override | inherits Global | `useTeleportCatalog: true` or `...NAV_WITH_TELES` |
-| Force pure walk | — | `useTeleportCatalog: false` or `...NAV_PURE_WALK` |
+| Force pure walk | - | `useTeleportCatalog: false` or `...NAV_PURE_WALK` |
 
 Resolution: explicit force-off → explicit force-on → Global (default off).
 
@@ -77,7 +77,7 @@ city hops stay pure walk. Full behaviour, jewellery limits, and bank-plan rules:
 
 **Essence mine (session multiloc):** multi-entry, **same-origin exit only**. Exit
 portals share one loc type but telejump to the wizard you entered with
-(`%exit_essence_mine_coord`). That varp is **not** sent to the client — the bot
+(`%exit_essence_mine_coord`). That varp is **not** sent to the client, the bot
 tracks return on `EssenceSession` when an entry hop succeeds, and PathFinder
 carries the same return in the A\* key so nav **never routes a surface path
 through the mine** as a free teleport between wizards. Scripts that enter via
@@ -88,7 +88,7 @@ NPC without the walker should call `__rs2b0t.EssenceSession.noteEntryFromNpc('Au
 (tile + optional loc id / open id). Helpers in `nav/locRef.ts` match live locs
 and probe validity (including already-open barriers).
 
-`walkResilient` wraps the same pathfinder in an escalation ladder — **use it for
+`walkResilient` wraps the same pathfinder in an escalation ladder, **use it for
 script bank runs and long unattended walks**. Pass `avoidZones: ['white-wolf-mountain']`
 (or ad-hoc rects) so low-level accounts skip wolf-heavy corridors; off by default.
 See [Danger zones](../reference/nav-pathfinding.md#danger-zones-optional-avoid) for catalog + pack verification.

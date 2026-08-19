@@ -96,7 +96,7 @@ async function cageScorpion(key: ScorpionKey, log: (m: string) => void): Promise
         log(`scorpcatcher: no Kharid Scorpion ${npcId} within 10 tiles`);
         return false;
     }
-    // Why: a scorpion with no `wanderrange` drifts five tiles, which in the monastery is through a door into the next room — and the use-on is then queued against a walk the server cannot make, so it sits silent until its 10s runs out.
+    // Why: a scorpion with no `wanderrange` drifts five tiles, which in the monastery is through a door into the next room, and the use-on is then queued against a walk the server cannot make, so it sits silent until its 10s runs out.
     // Why: the walk is unconditional because tile distance counts through walls, so "already adjacent" is not "already reachable".
     if (!(await Traversal.walkResilient(scorpion.tile(), { radius: 1, attempts: 2, timeoutMs: 60_000, log }))) {
         log(`scorpcatcher: could not reach the ${key.toUpperCase()} scorpion at (${scorpion.tile().x},${scorpion.tile().z})`);
@@ -161,7 +161,7 @@ function upstairs(): boolean {
     return at !== null && at.level === 1 && at.x >= 3040 && at.x <= 3062 && at.z >= 3480 && at.z <= 3495;
 }
 
-// Why: `oploc1,monasteryladder` refuses anyone outside the order, and a refused climb is a mesbox the walker reads as a quest lock — which blacklists the ladder for the rest of the session.
+// Why: `oploc1,monasteryladder` refuses anyone outside the order, and a refused climb is a mesbox the walker reads as a quest lock, which blacklists the ladder for the rest of the session.
 
 async function joinTheOrder(log: (m: string) => void): Promise<boolean> {
     if (!(await Traversal.walkResilient(SC_TILE.ABBOT, { radius: 3, attempts: 3, timeoutMs: WALK_MS, log }))) {

@@ -21,25 +21,25 @@ export const FC_LOC = { WALL_PIPE: 41, GATE_LEFT: 47, GATE_RIGHT: 48 } as const;
 
 // Why: the patch is drawn from seven vine shapes that all render "Vine", and other vines elsewhere in the world share the name.
 
-/** The `red_vine` loc category — every diggable vine in McGrubor's Wood. */
+/** The `red_vine` loc category, every diggable vine in McGrubor's Wood. */
 export const RED_VINE_LOCS: readonly number[] = [58, 2989, 2990, 2991, 2992, 2993, 2994];
 
 // Why: all four contest spots render "Fishing spot" and stand within fifteen tiles of each other, so only the id separates the winning one from the decoys.
 export const FC_NPC = {
-    /** Beside the willow tree — sardines at best, whichever bait is used. */
+    /** Beside the willow tree, sardines at best, whichever bait is used. */
     WILLOW_SPOT: 233,
-    /** Beside the pipes — the only spot that yields giant carp. */
+    /** Beside the pipes, the only spot that yields giant carp. */
     PIPES_SPOT: 234
 } as const;
 
 export const FC_TILE = {
-    // Why: both stands sit on the left half's row — only that half leaves without Bonzo's "calling it quits" prompt while the quest is merely started.
+    // Why: both stands sit on the left half's row, only that half leaves without Bonzo's "calling it quits" prompt while the quest is merely started.
 
     /** Morris's side of the fence: the gate only asks for a pass from the east. */
     GATE_OUTSIDE: new Tile(2643, 3442, 0),
     GATE_INSIDE: new Tile(2642, 3442, 0),
     BONZO: new Tile(2640, 3440, 0),
-    // Why: `ReachStrategy.reachWallDecor` accepts the loc's own tile, and `reachWallDecor1` has adjacency rules for the diagonal wall-decor shapes alone — a straight one, which the pipes are, is legal from underfoot and nowhere else.
+    // Why: `ReachStrategy.reachWallDecor` accepts the loc's own tile, and `reachWallDecor1` has adjacency rules for the diagonal wall-decor shapes alone, a straight one, which the pipes are, is legal from underfoot and nowhere else.
 
     /** The easternmost pipe's own tile: the only stand its Use accepts. */
     PIPE_STAND: new Tile(2638, 3446, 0),
@@ -48,7 +48,7 @@ export const FC_TILE = {
     VINES: new Tile(2632, 3497, 0),
     /** The Falador house floor, on the outbound road. */
     SPADE_FALADOR: new Tile(2981, 3369, 0),
-    /** Edmond's house in East Ardougne — the spade to walk back for once the mountain is behind us. */
+    /** Edmond's house in East Ardougne, the spade to walk back for once the mountain is behind us. */
     SPADE_ARDOUGNE: new Tile(2574, 3331, 0),
     HARRY: new Tile(2834, 3445, 0),
     DWARF_WEST: new Tile(2820, 3486, 0),
@@ -108,7 +108,7 @@ export function nearestDwarf(t: WorldTile | null | undefined): Tile {
 /** The White Wolf Mountain ridge, the only land crossing between Asgarnia and Kandarin. */
 const RIDGE_X = 2860;
 
-// Why: straight-line distance picks Falador from Catherby — 146 tiles against Edmond's 261 — and then walks 363 of path over the mountain and its aggressive wolves, where Ardougne is 312 on the flat.
+// Why: straight-line distance picks Falador from Catherby, 146 tiles against Edmond's 261, and then walks 363 of path over the mountain and its aggressive wolves, where Ardougne is 312 on the flat.
 
 /** The spade spawn on this side of the mountain. */
 export function nearestSpade(t: WorldTile | null | undefined): Tile {

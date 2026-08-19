@@ -1,0 +1,5 @@
+extends: existence
+message: "Curly quote '%s'. Use a straight quote."
+level: error
+raw:
+  - '[‘’“”]'

@@ -38,8 +38,8 @@ function locById(id: number, within = 10, op?: string): Loc | null {
 
 /** Walk the last tile through a gate the module has opened. */
 async function stepThrough(to: Tile, want: LegendsPocket, log: (m: string) => void, quiet = false): Promise<boolean> {
-    // Why: these gates teleport rather than swing, and the teleport lands a tick or two after the box is clicked away — `~mesbox` suspends the script, so `if_close`, the anim and `open_and_close_double_door2` all come after the dismissal.
-    // Why: walking first therefore drags the character back off the tile the script had put it on, and the crossing reads as a gate that would not open. A live run sat at (2809,9331) doing that six times a pass for eleven minutes, with the box saying "you see a lever which you pull on to open the door" — the success branch — every time.
+    // Why: these gates teleport rather than swing, and the teleport lands a tick or two after the box is clicked away, `~mesbox` suspends the script, so `if_close`, the anim and `open_and_close_double_door2` all come after the dismissal.
+    // Why: walking first therefore drags the character back off the tile the script had put it on, and the crossing reads as a gate that would not open. A live run sat at (2809,9331) doing that six times a pass for eleven minutes, with the box saying "you see a lever which you pull on to open the door", the success branch, every time.
     await settleScene();
     if (pocket() === want) {
         return true;
@@ -115,7 +115,7 @@ export async function crawlBackFromCrevice(log: (m: string) => void): Promise<bo
 
 const PICK_ATTEMPTS = 10;
 
-// Why: `stat_random(thieving, 0, 255)` decides the lock and `stat_random(strength, 0, 255)` the doors, and both leave the character on the stand with the gate still shut — so a miss is a re-click, not a crossing.
+// Why: `stat_random(thieving, 0, 255)` decides the lock and `stat_random(strength, 0, 255)` the doors, and both leave the character on the stand with the gate still shut, so a miss is a re-click, not a crossing.
 const PICK_MISSED = /fail to pick the lock/;
 const FORCE_MISSED = /run out of steam/;
 
@@ -137,7 +137,7 @@ export async function openOuterGate(log: (m: string) => void): Promise<boolean> 
         return false;
     }
     // Why: `search_outer_ancient_gate` is a seven-box chain and each box is gone the tick after the driver clicks it, so the open is read off the gate losing its Search op rather than off the text.
-    // Why: losing the op is what `next_loc_stage` does — the leaf becomes `inac_lglockpickgatebottom*`, a model with no name and no ops — so absence here means open rather than missing.
+    // Why: losing the op is what `next_loc_stage` does. The leaf becomes `inac_lglockpickgatebottom*`, a model with no name and no ops, so absence here means open rather than missing.
     const shut = (): boolean =>
         (locById(LQ_LOC_ID.LOCKPICK_GATE_L, 6, 'Search') ?? locById(LQ_LOC_ID.LOCKPICK_GATE_R, 6, 'Search')) !== null;
     for (let i = 0; i < PICK_ATTEMPTS; i++) {
@@ -148,7 +148,7 @@ export async function openOuterGate(log: (m: string) => void): Promise<boolean> 
             // Why: read before the boxes go, since clearing them is what takes the text away.
             const missed = PICK_MISSED.test(modalText());
             await clearBoxes();
-            // Why: a missed roll leaves the door shut and the character where it was, so the next Search goes straight in — the crossing below cannot land and the walk back is to a tile already underfoot, and paying for both is most of the time this leg spends.
+            // Why: a missed roll leaves the door shut and the character where it was, so the next Search goes straight in, the crossing below cannot land and the walk back is to a tile already underfoot, and paying for both is most of the time this leg spends.
             if (missed) {
                 continue;
             }
@@ -176,7 +176,7 @@ export async function leaveOuterGate(log: (m: string) => void): Promise<boolean>
     if (!(await Traversal.walkResilient(LQ_TILE.LOCKPICK_GATE_SOUTH, { radius: 0, attempts: 4, timeoutMs: 60_000, log }))) {
         return false;
     }
-    // Why: the lever swings the doors shut again behind whoever pulled it, so one open and one step is a coin toss — the crossing is retried until it lands.
+    // Why: the lever swings the doors shut again behind whoever pulled it, so one open and one step is a coin toss. The crossing is retried until it lands.
     let lastClick = 'never dispatched';
     let lastBox = '';
     for (let i = 0; i < 6; i++) {
@@ -188,7 +188,7 @@ export async function leaveOuterGate(log: (m: string) => void): Promise<boolean>
             if (dispatched) {
                 // Why: `open_outer_ancient_gate` raises a box and suspends on it, so the teleport only comes after it has been clicked away.
                 await driveBoxes(() => modalText() !== '', 6000);
-                // Why: read before clearing, since the box is the only thing that says which branch `check_axis` took — the push-on-the-doors message is the gate deciding we are outside trying to get in.
+                // Why: read before clearing, since the box is the only thing that says which branch `check_axis` took, the push-on-the-doors message is the gate deciding we are outside trying to get in.
                 lastBox = modalText().slice(0, 120);
                 await clearBoxes();
             }
@@ -218,7 +218,7 @@ const BOULDERS: readonly { id: number; from: LegendsPocket; north: Tile; to: Leg
 
 // Why: mining a boulder teleports the miner past it and drops another behind, so each of the three is a one-shot crossing that has to be re-mined from the other side to come back.
 // Why: `stat_random(mining, 90, 255)` decides each swing and a failure costs a mining level, so the loop is generous.
-// Why: a missed swing answers with the scratch line and changes nothing else, so waiting on the crossing alone spends the per-swing budget on every miss — twenty of those is five minutes per boulder, and there are three of them each way.
+// Why: a missed swing answers with the scratch line and changes nothing else, so waiting on the crossing alone spends the per-swing budget on every miss, twenty of those is five minutes per boulder, and there are three of them each way.
 const SCRATCHED = /only succeed in scratching the rock/;
 
 /** Smash one trial boulder and land on the far side of it. */
@@ -268,7 +268,7 @@ export async function openInnerGate(reverse: boolean, log: (m: string) => void):
     if (!(await Traversal.walkResilient(stand, { radius: 0, attempts: 4, timeoutMs: 60_000, log }))) {
         return false;
     }
-    // Why: a forced gate keeps its Open op — that is how it is shut again — and the success box is gone the tick after the driver clicks it, so the crossing itself is the only oracle.
+    // Why: a forced gate keeps its Open op. That is how it is shut again, and the success box is gone the tick after the driver clicks it, so the crossing itself is the only oracle.
     for (let i = 0; i < STRENGTH_ATTEMPTS; i++) {
         await Sustain.run();
         const gate = locById(LQ_LOC_ID.STRENGTH_GATE_L, 6, 'Open') ?? locById(LQ_LOC_ID.STRENGTH_GATE_R, 6, 'Open');
@@ -371,8 +371,8 @@ export async function crossMarkedWall(reverse: boolean, log: (m: string) => void
         return false;
     }
     await settleScene();
-    // Why: `[oploc1,lgancientwalldoor]` answers "You see no way to use that.... Perhaps you should search it?" until `^legends_law_rune_2_used` is set, and that bit is invisible from here — so a Use tried first spends its `expectMs` proving the wall is still shut. A rune still in the pack is the client-visible proof the wall has not been fed, and feeding it opens the door itself.
-    // Why: offering a spare rune to an already-fed wall is safe — `legends_wall_wrong_rune` jumps straight to `enter_marked_wall` once the fifth is in, so the rune is neither burned nor lost.
+    // Why: `[oploc1,lgancientwalldoor]` answers "You see no way to use that.... Perhaps you should search it?" until `^legends_law_rune_2_used` is set, and that bit is invisible from here, so a Use tried first spends its `expectMs` proving the wall is still shut. A rune still in the pack is the client-visible proof the wall has not been fed, and feeding it opens the door itself.
+    // Why: offering a spare rune to an already-fed wall is safe, `legends_wall_wrong_rune` jumps straight to `enter_marked_wall` once the fifth is in, so the rune is neither burned nor lost.
     if (!reverse && WALL_RUNES.some(rune => heldId(rune.id) > 0)) {
         const placed = await placeWallRunes(stand, want, log);
         if (placed) {
@@ -409,7 +409,7 @@ export async function crossMarkedWall(reverse: boolean, log: (m: string) => void
     return placed;
 }
 
-// Why: each gem answers only its own carved rock, and a gem already hovering there is refused without being consumed — so a resume re-offers every gem and lets the wall sort them out.
+// Why: each gem answers only its own carved rock, and a gem already hovering there is refused without being consumed, so a resume re-offers every gem and lets the wall sort them out.
 
 /** Hover all seven gems over their rocks, which is what conjures the Book of Binding. */
 export async function placeGems(log: (m: string) => void): Promise<boolean> {
@@ -465,7 +465,7 @@ export async function takeBookOfBinding(log: (m: string) => void): Promise<boole
     return Execution.delayUntil(() => heldId(LQ_ID.BOOK_OF_BINDING) > 0, 8000);
 }
 
-// Why: the magic gate takes any charge-orb spell with an unpowered orb in the pack, and the four differ only in level and element — water is the one this quest's magic requirement buys.
+// Why: the magic gate takes any charge-orb spell with an unpowered orb in the pack, and the four differ only in level and element, water is the one this quest's magic requirement buys.
 const ORB_SPELLS = ['Charge water orb', 'Charge earth orb', 'Charge fire orb', 'Charge air orb'] as const;
 
 /** Cast a charge-orb spell at the magic gate and be blown into the winch room. */
@@ -682,7 +682,7 @@ export async function leaveShamanCave(log: (m: string) => void): Promise<boolean
     if (legendsArea(Game.tile()) !== 'shamanCaves') {
         return true;
     }
-    // Why: the two mouth locs sit at (2772,9342) and (2773,9342) with cave wall around them, and the op only lands from the tile below. `Reach` counts a couple of tiles short as arrived, and from (2774,9339) the server answers that it cannot be reached — which spends the prompt's retry budget without a word and strands the run underground.
+    // Why: the two mouth locs sit at (2772,9342) and (2773,9342) with cave wall around them, and the op only lands from the tile below. `Reach` counts a couple of tiles short as arrived, and from (2774,9339) the server answers that it cannot be reached, which spends the prompt's retry budget without a word and strands the run underground.
     await Traversal.walkResilient(LQ_TILE.CAVE_EXIT, { radius: 0, attempts: 3, timeoutMs: 60_000, log });
     const ok = await promptLoc(
         {
@@ -696,7 +696,7 @@ export async function leaveShamanCave(log: (m: string) => void): Promise<boolean
     if (ok) {
         await settleScene();
     } else {
-        // Why: this is the last thing between the shaman cave and every errand above ground, and it failed without a word — one walk, an arrival, and a step that gave up. What it could see from where it stood is the question.
+        // Why: this is the last thing between the shaman cave and every errand above ground, and it failed without a word. One walk, an arrival, and a step that gave up. What it could see from where it stood is the question.
         const at = Game.tile();
         const door = locNear(LQ_LOC.CAVE_ENTRANCE, 'Walk through', 8);
         log(`the cave entrance would not let us out — stood at (${at?.x},${at?.z}), '${LQ_LOC.CAVE_ENTRANCE}' ${door ? 'in range' : 'not in range'}`);
@@ -704,7 +704,7 @@ export async function leaveShamanCave(log: (m: string) => void): Promise<boolean
     return ok;
 }
 
-// Why: Touch only crosses once the demon is dead — before that `legends_touch_fire_wall` burns you for four — and the bowl crosses either way, so a dose is spent when one is carried.
+// Why: Touch only crosses once the demon is dead, before that `legends_touch_fire_wall` burns you for four, and the bowl crosses either way, so a dose is spent when one is carried.
 // Why: the bowl holds ten doses rather than one, so spending one on the way out costs nothing the quest needs back.
 
 /** Step back out of the octagram. */

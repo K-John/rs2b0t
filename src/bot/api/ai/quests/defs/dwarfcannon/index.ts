@@ -80,8 +80,8 @@ function warnDwarfCannonReadiness(): string | null {
     return bits.length > 0 ? `Dwarf Cannon: ${bits.join('; ')}` : null;
 }
 
-// Why: `tools` is read at one place in QuestEngine — the spillover keep list — and is never provisioned, so a resume mid-quest does not bank its own state.
-// Why: the quest buys nothing, and the float otherwise walks at the pinned bank on every activation — which from inside the goblin cave is a route that does not exist, so a resume there spends a minute and a half proving it before starting.
+// Why: `tools` is read at one place in QuestEngine. The spillover keep list, and is never provisioned, so a resume mid-quest does not bank its own state.
+// Why: the quest buys nothing, and the float otherwise walks at the pinned bank on every activation, which from inside the goblin cave is a route that does not exist, so a resume there spends a minute and a half proving it before starting.
 
 export const dwarfcannon: QuestModule = {
     record: QUESTS.find(r => r.id === 'mcannon')!,

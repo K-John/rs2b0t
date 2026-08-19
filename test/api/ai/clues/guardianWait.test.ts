@@ -43,7 +43,7 @@ describe('sustainUntil', () => {
     test('gives up at the deadline and reports the condition', async () => {
         const h = harness({ ticksToSatisfy: 1_000_000 });
         expect(await sustainUntil(h.cond, 3000, h.deps)).toBe(false);
-        // 600ms ticks inside a 3s budget — bounded, and it pumped the way.
+        // 600ms ticks inside a 3s budget, bounded, and it pumped the way.
         expect(h.ticks()).toBeLessThanOrEqual(5);
         expect(h.pumps()).toBeGreaterThan(1);
     });

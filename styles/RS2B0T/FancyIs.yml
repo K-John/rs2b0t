@@ -1,0 +1,7 @@
+extends: existence
+message: "'%s' is a fancy way to say 'is'. Use 'is' or 'has'."
+level: error
+ignorecase: true
+tokens:
+  - 'serves as'
+  - 'boasts'

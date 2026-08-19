@@ -16,7 +16,7 @@ Fight Arena added six, and the first two generalise past this quest.
   clears inside one dialogue and is never observed. Every stage-8 branch has to be
   reachable from stage 9 as well.
 - **Half a disguise is worse than none.** `fightarena_door1` lets a player through wearing
-  *either* Khazard piece, but the drunk guard's `~wearing_khazard_armour` wants both — so
+  *either* Khazard piece, but the drunk guard's `~wearing_khazard_armour` wants both, so
   an account holding one piece walks in and then loops at him forever. The chest re-issues
   whichever piece is missing at any stage above 0, which is also how this quest recovers
   from a death.
@@ -29,8 +29,8 @@ Fight Arena added six, and the first two generalise past this quest.
   in forty ticks of forced movement, and the decide that followed opened the quest log on
   top of it. A talk whose dialogue ends in a ride has to wait for the landing, and the
   honest test for that is the pocket the player ends up in.
-- **Protect from Melee is what the arena rests on, not the weapon.** All three beasts —
-  including Bouncer at level 137 with 120 attack and 120 strength — died to an **unarmed**
+- **Protect from Melee is what the arena rests on, not the weapon.** All three beasts,
+  including Bouncer at level 137 with 120 attack and 120 strength, died to an **unarmed**
   max-stats account without landing a single hit. Hitpoints never left 99 in any run. The
   kit only sets how long the fight takes.
 
@@ -40,7 +40,7 @@ Two more that are the engine rather than the quest:
   `--stage` leg that starts in the arena or a cell spends three minutes watching
   `no path to (2612,3092,0): unreachable` before the quest gets a turn. A run started outside was
   provisioned before it ever went in, and a death puts the account in Lumbridge where
-  banking works, so this is a harness artefact — but it is three minutes of every
+  banking works, so this is a harness artefact, but it is three minutes of every
   mid-quest leg.
 - **The engine serves one bundle to every session on the machine.** `bot.html` hardcodes
   `./bot/botclient.js`, and `navworker.js`, `ondemandworker.js` and `collision.lcnav.gz`

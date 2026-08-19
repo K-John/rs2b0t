@@ -421,7 +421,7 @@ describe('Troll Stronghold decide', () => {
         expect(trollstronghold.record.id).toBe('troll');
         expect(trollstronghold.ownsInventory).toBe(true);
         expect(trollstronghold.sustain?.eatBelowHp).toBe(0.6);
-        // The spillover deposit banks everything not named here — coins included,
+        // The spillover deposit banks everything not named here, coins included,
         // and without them every purchase parks on "need N gp".
         expect(trollstronghold.tools).toContain('coins');
     });

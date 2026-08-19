@@ -89,7 +89,7 @@ const DOOR = {
         }
     },
     /**
-     * N up, S down, north-room lever up — the gold room. The same combination
+     * N up, S down, north-room lever up, the gold room. The same combination
      * still holds on the way back out, so the far side is a normal crossing.
      */
     i2h1: {
@@ -105,7 +105,7 @@ function here(): { x: number; z: number; level: number } | null {
     return Game.tile();
 }
 
-// Why: the loc model is an unreliable read — `loc_change(..., 500)` reverts the lever to its down model after five minutes while leaving the varp bit set, so a lever that looks down may be up.
+// Why: the loc model is an unreliable read, `loc_change(..., 500)` reverts the lever to its down model after five minutes while leaving the varp bit set, so a lever that looks down may be up.
 // Why: the chat line the pull emits is emitted when the bit changes, so it is the oracle.
 
 /** Pull a lever until the server confirms the wanted state. */
@@ -194,7 +194,7 @@ async function crossDoor(
 }
 
 // Why: the plan is fixed, being the shortest chain a BFS over the collision pack found.
-// Why: each leg is written so a restart anywhere in the mine converges — levers are set rather than read.
+// Why: each leg is written so a restart anywhere in the mine converges, levers are set rather than read.
 // Why: the only regions the bot can be stranded in are ones it can only have entered with the lever state that opens the way back.
 
 /** Walk the levers-and-doors chain from wherever we are to the gold room. */
@@ -282,7 +282,7 @@ async function reachPerfectGold(log: (m: string) => void): Promise<boolean> {
             return false;
         }
 
-        // 6. north up, south down, north-room up — the gold-room door.
+        // 6. north up, south down, north-room up, the gold-room door.
         if ((await crossDoor(DOOR.i2h1, 'main', log)) === 'crossed') {
             return true;
         }
@@ -322,7 +322,7 @@ export async function leaveGoldMine(log: (m: string) => void): Promise<boolean> 
             await crossDoor(DOOR.h2g1, 'northRoom', log);
         } else {
             // Which of the two south doors is open depends on the south lever,
-            // which cannot be seen from here — try both, as the entry does.
+            // which cannot be seen from here, try both, as the entry does.
             if ((await crossDoor(DOOR.g2h1, 'south', log)) !== 'crossed') {
                 await crossDoor(DOOR.h2, 'south', log);
             }
@@ -343,7 +343,7 @@ export async function leaveGoldMine(log: (m: string) => void): Promise<boolean> 
 
 export const PERFECT_ORE_NEEDED = 2;
 
-// Why: `inzone` tests the player's tile, so the stand matters as much as the rock — mining a boundary rock from outside the box hands out ordinary gold ore and the smelt downstream silently makes the wrong bar.
+// Why: `inzone` tests the player's tile, so the stand matters as much as the rock, mining a boundary rock from outside the box hands out ordinary gold ore and the smelt downstream silently makes the wrong bar.
 
 /** Mine perfect gold. */
 export async function minePerfectGold(log: (m: string) => void): Promise<boolean> {

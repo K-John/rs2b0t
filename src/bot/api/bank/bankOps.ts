@@ -1,5 +1,5 @@
 /**
- * The withdraw op for an amount, read off the item's own op list — the label
+ * The withdraw op for an amount, read off the item's own op list, the label
  * uses a space ("Withdraw 1"), not a hyphen.
  * @see docs/reference/api-items.md#bank
  */

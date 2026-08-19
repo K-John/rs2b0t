@@ -31,7 +31,7 @@ Shop.close(): Promise<void>
 ## Trade
 
 Player-to-player trade. Both sides must "Trade with" each other, then accept
-offer + confirm. Any movement or combat closes the modal — own the loop with a
+offer + confirm. Any movement or combat closes the modal, own the loop with a
 dedicated task while `Trade.active()`.
 
 ```ts
@@ -88,7 +88,7 @@ village range).
 
 **Two-step path:** a surface may set `approach` then `stand`. FishCook walks
 `approach` first (e.g. exterior of Sinclair Large door), then `stand` next to the
-Range — so pathfinding enters the building before aiming at the interior oven.
+Range, so pathfinding enters the building before aiming at the interior oven.
 
 ### Entity query helpers
 

@@ -118,7 +118,7 @@ try {
                     }
                     if (before || after) {
                         this.postBriefTicks++;
-                        // Call fortress again while briefed — must not re-engage Mordred
+                        // Call fortress again while briefed, must not re-engage Mordred
                         // (product path logs "already briefed" and leaveKeep).
                         await api.questLive.merlinFortress(log);
                     }

@@ -1,7 +1,7 @@
 // Drive an already-open partner trade through offer, accept and confirm.
 
 // Why: it is used by GatheringBot mule modes and by FlaxRunner's Runner/Spinner handoff.
-// Why: policy — the partner filter and the empty-own-offer safety — stays in {@link PartnerTrade}, and this module sequences HUD actions from those decisions plus optional script hooks.
+// Why: policy, the partner filter and the empty-own-offer safety, stays in {@link PartnerTrade}, and this module sequences HUD actions from those decisions plus optional script hooks.
 import { Execution } from '../execution/Execution.js';
 import { Inventory } from '../inventory/Inventory.js';
 import { Trade } from './Trade.js';
@@ -67,7 +67,7 @@ interface DrivePartnerTradeOpts {
     };
 }
 
-// Why: partner accepts and offer sync are not tied to this client's tick rate, so {@link Execution.delayUntilTicks} is wrong here — a live harness at 300ms ticks makes 7 ticks about 2.1s, too short for a mutual Trade or confirm.
+// Why: partner accepts and offer sync are not tied to this client's tick rate, so {@link Execution.delayUntilTicks} is wrong here, a live harness at 300ms ticks makes 7 ticks about 2.1s, too short for a mutual Trade or confirm.
 // Why: the Flax and Nature waits these replace were 3–4s wall-clock.
 
 /** Wall-clock waits for the multiplayer trade UI. */

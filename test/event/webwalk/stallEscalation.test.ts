@@ -34,7 +34,7 @@ describe('stall at a hop approach', () => {
 
     test('combat holds course rather than opening doors', () => {
         expect(stallPhase({ stallRetries: 1, recoverIdx: -1, inCombat: true })).toBe('combat');
-        // Recovery still wins over combat on the first stall — it is a click, not a fight.
+        // Recovery still wins over combat on the first stall. It is a click, not a fight.
         expect(stallPhase({ stallRetries: 0, recoverIdx: 7, inCombat: true })).toBe('recover');
     });
 });

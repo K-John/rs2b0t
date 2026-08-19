@@ -189,7 +189,7 @@ describe('cook flow predicates', () => {
         const N = 5000;
         // Arm when bank hits N
         expect(shouldStartBankRawCookBatch('bank-raw-then-cook', 5000, N)).toBe(true);
-        // After withdrawing 28, bank has 4972 — must NOT re-require ≥ N
+        // After withdrawing 28, bank has 4972, must NOT re-require ≥ N
         expect(shouldStartBankRawCookBatch('bank-raw-then-cook', 4972, N)).toBe(false);
         // Sticky flag keeps the drain going regardless of N
         expect(shouldKeepDrainingCookBatch(true, 4972)).toBe(true);

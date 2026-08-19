@@ -27,7 +27,7 @@ try {
                 : seedStage >= 10 ? 'tele 1,45,55,19,45' // Eohric area
                     : 'tele 0,45,55,16,8';
 
-    // Seed bank-style supplies and the stage varp only — the IOU, combination, boots and secret map must come from doing the steps.
+    // Seed bank-style supplies and the stage varp only, the IOU, combination, boots and secret map must come from doing the steps.
     const seed = [
         'speed 300',
         '~clearinv inv',

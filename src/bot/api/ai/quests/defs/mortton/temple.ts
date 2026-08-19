@@ -21,7 +21,7 @@ const EAT_AT_MISSING = 12;
 const BUILD_GUARD = 3000;
 /** Consecutive idle ticks that mean the server-side build loop has stopped. */
 const IDLE_TO_RECLICK = 3;
-// Why: the leg builds sanctity before it strikes, and climbing from a cold start to the target is about two hundred ticks on its own — a budget that only covers the climb spends itself and reports a flame that never caught.
+// Why: the leg builds sanctity before it strikes, and climbing from a cold start to the target is about two hundred ticks on its own, a budget that only covers the climb spends itself and reports a flame that never caught.
 /** Ticks the sanctity climb and the altar's own three-tick firemaking loop share. */
 const LIGHT_GUARD = 500;
 const OUT_OF_RESOURCES = /material resource pool/i;
@@ -34,11 +34,11 @@ export const templeSanctity = (): number => reader.varp(SM_VARP.TEMPLE_SANCTITY)
 export const SANCTITY_TO_LIGHT = 10;
 /** Sanctity the flame needs before it will make the serum permanent. */
 export const SANCTITY_TO_SANCTIFY_SERUM = 20;
-// Why: the walls are world state and stay rebuilt for 9000 ticks, so a bot can arrive at a finished temple with none of its own sanctity — which the altar wants, and which only its own building earns.
+// Why: the walls are world state and stay rebuilt for 9000 ticks, so a bot can arrive at a finished temple with none of its own sanctity, which the altar wants, and which only its own building earns.
 /** Sanctity the light leg builds toward, leaving room for the oil and the serum to spend some. */
 const SANCTITY_TARGET = 25;
 
-// Why: carried material is not pool — it only becomes points on a successful build tick, so "the pool reads zero" is not "there is nothing left to build with".
+// Why: carried material is not pool. It only becomes points on a successful build tick, so "the pool reads zero" is not "there is nothing left to build with".
 /** Sets of plank, brick and five paste in the pack. */
 export function materialSets(): number {
     return Math.min(
@@ -70,7 +70,7 @@ function hungry(): boolean {
     return max > 0 && Skills.effective('hitpoints') <= max - EAT_AT_MISSING;
 }
 
-// Why: the temple refuses in `~mesbox`, which is `if_openchat` and ends in `p_pausebutton` — it is not a main modal, and the paused script holds the player until it is answered.
+// Why: the temple refuses in `~mesbox`, which is `if_openchat` and ends in `p_pausebutton`. It is not a main modal, and the paused script holds the player until it is answered.
 
 /** Whatever box is up, and what it said. */
 function boxText(): string | null {
@@ -102,7 +102,7 @@ async function standInside(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: one click on a wall starts a server-side `p_oploc(3)` loop that keeps building on its own, so the bot re-clicks only once that loop has stopped.
-// Why: that loop never leaves the loc it was started on, and a wall at level 10 has no next stage — left alone it drains the resource pool into a wall that is already finished, which is what held the temple at one repaired wall for four thousand points.
+// Why: that loop never leaves the loc it was started on, and a wall at level 10 has no next stage, left alone it drains the resource pool into a wall that is already finished, which is what held the temple at one repaired wall for four thousand points.
 // Why: so the target is followed by tile, and dropped the moment it stops offering Repair.
 
 /** Build the temple shell until the fire altar appears. */
@@ -119,7 +119,7 @@ export async function repairTemple(log: (m: string) => void): Promise<boolean> {
     let lastTick = -1;
     let reported = -1;
     let target: { x: number; z: number } | null = null;
-    // Why: the walls are world state, so a temple another run left finished reads 100% before this character has built anything — and it is a build tick, not the reading, that moves `%morttonquest` on.
+    // Why: the walls are world state, so a temple another run left finished reads 100% before this character has built anything, and it is a build tick, not the reading, that moves `%morttonquest` on.
     let built = false;
     let lastSanctity = templeSanctity();
     let lastPool = templeResources();
@@ -204,7 +204,7 @@ export async function repairTemple(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: lighting is its own 3-tick server loop with a firemaking roll, so one click is enough and the wait is on the loc changing type.
-// Why: the altar is `loc_change(templefire_altar_nofire, 99)` — a build tick arms it and it reverts 99 ticks later, so any errand between the rebuild and the strike comes back to a broken altar that only more building brings back.
+// Why: the altar is `loc_change(templefire_altar_nofire, 99)`, a build tick arms it and it reverts 99 ticks later, so any errand between the rebuild and the strike comes back to a broken altar that only more building brings back.
 
 /** Strike the rebuilt altar until the sacred flame catches, re-arming it when it has gone cold. */
 export async function lightAltar(log: (m: string) => void): Promise<boolean> {
@@ -245,7 +245,7 @@ export async function lightAltar(log: (m: string) => void): Promise<boolean> {
         const sanctity = templeSanctity();
         const ready = sanctity >= SANCTITY_TARGET || (sanctity >= SANCTITY_TO_LIGHT && dry);
         const cold = ready ? altarUnlit() : null;
-        // Why: the wall's own build loop animates the player without pause, so gating the strike on "not animating" never fires it — only the build re-click waits for a quiet tick.
+        // Why: the wall's own build loop animates the player without pause, so gating the strike on "not animating" never fires it, only the build re-click waits for a quiet tick.
         if (cold) {
             await cold.interact('Light');
             await Execution.delayTicks(2);
@@ -258,7 +258,7 @@ export async function lightAltar(log: (m: string) => void): Promise<boolean> {
         if (Game.animating() || Game.inCombat()) {
             continue;
         }
-        // Why: Repair first — shades knock the shell back down while the bot is away, and only a rebuilt shell arms the altar at all.
+        // Why: Repair first, shades knock the shell back down while the bot is away, and only a rebuilt shell arms the altar at all.
         const wall = wallOffering(REPAIR) ?? wallOffering(REINFORCE);
         if (!wall) {
             log('the altar is broken and no wall is in reach to re-arm it');

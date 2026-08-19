@@ -18,7 +18,7 @@ import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.
 const MORTTON = { x: 3490, z: 3290, level: 0 };
 const FOOD = QuestFood.name ?? 'Trout';
 
-/** Coins, food, a tinderbox, the ashes and the pyre log — everything the approach kit asks for. */
+/** Coins, food, a tinderbox, the ashes and the pyre log, everything the approach kit asks for. */
 function snap(options: {
     journal?: QuestSnapshot['journal'];
     stage?: number;

@@ -17,11 +17,11 @@ src/bot/scripts/     one directory per contribution             ─┐
 src/bot/panel/       the bot's own control UI                     │
 src/bot/runtime/     script lifecycle, ABI, settings, solvers    │  bot code
 src/bot/api/         game-facing nouns, plus ai/ and ui/          │
-src/bot/event/       long-running events — webwalk                │
+src/bot/event/       long-running events, webwalk                │
 src/bot/input|paint/ the input driver, canvas overlays            │
 src/bot/data/        inert catalogs                              │
 src/bot/geometry/    Tile, Area, distance                       ─┘
-src/bot/adapter/     ClientAdapter — the ONLY place that names client internals
+src/bot/adapter/     ClientAdapter, the ONLY place that names client internals
 src/client/          the vendored era browser client
 src/client/shell/    Client, GameShell, and the rest of the former src/client/*.ts
 src/client/dash3d|io|config|graphics|mapview|sound|util|datastruct|wordfilter|3rdparty
@@ -33,9 +33,9 @@ where this departs from OSBot, is in [namespaces](../reference/namespaces.md).
 [`src/bot/adapter/ClientAdapter.ts`](../../src/bot/adapter/ClientAdapter.ts) is the
 boundary, and it has two halves:
 
-- **`reader`** — typed snapshots out of the client: `worldTile()`, npc/player/loc/obj
+- **`reader`**, typed snapshots out of the client: `worldTile()`, npc/player/loc/obj
   lists, inventory and stat state. Everything above reads the world through it.
-- **`actions`** — input into the client: `login()`, `menuAction()`, `walkTo()`, `answerCountDialog()`.
+- **`actions`**, input into the client: `login()`, `menuAction()`, `walkTo()`, `answerCountDialog()`.
 
 `attach(client)` binds the adapter to a live client instance and returns whatever it
 could not resolve, so a client-shape change surfaces as a list of missing members
@@ -46,10 +46,10 @@ rather than as scattered `undefined`s.
 A script calls `npc.interact('Attack')`. What happens:
 
 1. The entity wrapper resolves `'Attack'` to an **op number** by reading the client's
-   own op list for that entity — the same strings the right-click menu shows.
+   own op list for that entity, the same strings the right-click menu shows.
 2. It calls [`Input`](../../src/bot/input/Input.ts).
-3. `Input` maps `(entity kind, op)` to a `MiniMenuAction` constant — for an NPC,
-   op 2 becomes `OP_NPC2` — and calls `actions.menuAction(action, a, b, c)`.
+3. `Input` maps `(entity kind, op)` to a `MiniMenuAction` constant, for an NPC,
+   op 2 becomes `OP_NPC2`, and calls `actions.menuAction(action, a, b, c)`.
 4. The adapter writes those four values into the client's **own** `menuAction`,
    `menuParamA/B/C` arrays at a scratch slot and calls the client's
    `doAction(slot)`.
@@ -60,7 +60,7 @@ shape: `walkTo(x, z)` calls the client's `tryMove(...)`.
 Two consequences follow from that dispatch path:
 
 - **Actions are fire-and-forget.** `menuAction` returns `false` only when there is no
-  client or you are not in-game — never because the action failed. A bot must verify
+  client or you are not in-game, never because the action failed. A bot must verify
   outcomes against game state, which is why
   [`Execution.delayUntil`](../reference/api-bots.md#execution) exists and why the API docs insist on
   it.
@@ -108,11 +108,11 @@ credentials. The wall passes `?box=<account>` when it spawns each iframe.
 
 Bots sleep through [`Execution`](../reference/api-bots.md#execution), never `setTimeout`. Those waits
 are settled by [`src/bot/runtime/Scheduler.ts`](../../src/bot/runtime/Scheduler.ts),
-which is driven by the client's frame callback — so bot time is *game* time, and a
+which is driven by the client's frame callback, so bot time is *game* time, and a
 paused client cannot let a wait expire early.
 
-It also compensates for time the process did not get. When a frame gap exceeds 1.5 s
-— a throttled background tab, a system sleep, a long main-thread stall — every
+It also compensates for time the process did not get. A frame gap over 1.5 s comes from
+a throttled background tab, a system sleep or a long main-thread stall, and every
 pending deadline is pushed forward by the gap:
 
 ```ts
@@ -126,13 +126,13 @@ if (gap > FRAME_GAP_MS) {
 Without this, a laptop lid closing for a minute would expire every outstanding
 timeout at once and each bot would conclude its actions had failed.
 
-A separate watchdog warns when `loop()` has made no scheduler progress for 10 s —
+A separate watchdog warns when `loop()` has made no scheduler progress for 10 s,
 the signature of synchronous blocking, or of awaiting a promise that is not an
 `Execution` wait.
 
 ## See also
 
 - [Import fences](../reference/import-fences.md)
-- [Scripting API](../API.md) — the surface built on this
-- [World-walking](../NAV.md) — the largest subsystem built on the adapter
-- [MultiBox](../reference/multibox.md#slots) — many clients in one tab
+- [Scripting API](../API.md), the surface built on this
+- [World-walking](../NAV.md), the largest subsystem built on the adapter
+- [MultiBox](../reference/multibox.md#slots), many clients in one tab
