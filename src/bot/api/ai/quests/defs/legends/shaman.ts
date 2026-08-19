@@ -193,7 +193,7 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
 // Why: a devout account starts at the wrong end of the roll and only five points a miss walks it down — from ninety-nine it is eleven misses to the forty-two where the odds are best, and twelve throws still leave one run in fifteen unblessed. Twenty covers the walk with room over, and a throw is now seconds rather than the better part of a minute.
 const BLESS_ATTEMPTS = 20;
 
-// Why: a miss ends the conversation outright. Gujuo offers a retry, but the five points it just took put the answer under his own forty-two gate, so "too inexperienced" closes the chain — and a wait watching for a blessing that is no longer coming polled a chat that had already gone for the whole forty seconds, four times over.
+// Why: a miss ends the conversation outright. Gujuo offers a retry, but the five points it took put the answer under his own forty-two gate, so "too inexperienced" closes the chain — and a wait watching for a blessing that is no longer coming polled a chat that had already gone for all forty seconds, four times over.
 const BLESS_MS = 40_000;
 
 // Why: the trance closes its own dialogue and then chants — `if_close`, two `mes`, then six `p_delay(2)` carrying `npc_say`/`say`, which are overhead chat and open no widget. That is twelve ticks in which nothing is up and the throw has not resolved, so a shorter patience gives up mid-meditation, reports the trance quiet, and re-offers the bowl to a shaman still humming.
@@ -231,7 +231,7 @@ async function driveBlessing(blessed: () => boolean): Promise<Trance> {
         idle++;
         return opened && idle >= BLESS_IDLE_TICKS;
     };
-    // Why: `driveUntil` hands the chain to `driveChoice`, which clicks to the end without re-testing — so the box naming the miss was dismissed before anything read it, and every throw came back `quiet`. `driveBoxes` tests between clicks, which is the whole point of reading his words.
+    // Why: `driveUntil` hands the chain to `driveChoice`, which clicks to the end without re-testing — so the box naming the miss was dismissed before anything read it, and every throw came back `quiet`. `driveBoxes` tests between clicks, which is the point of reading his words.
     await driveBoxes(ended, BLESS_MS, BLESS_PREFER);
     if (blessed()) {
         return 'blessed';
@@ -243,7 +243,7 @@ async function driveBlessing(blessed: () => boolean): Promise<Trance> {
 }
 
 // Why: the stat block lags the server by a tick or two, so a throw made straight after a miss reads a prayer bar that has not fallen yet — Gujuo refuses on his own gate and the throw is spent learning what the miss had already said. At forty-two that doubled every miss: eighteen throws to land nine rolls, against a budget of twenty.
-// Why: a miss takes exactly five, so they are counted rather than waited for, and his refusal is believed over the stat block outright.
+// Why: a miss takes five, so they are counted rather than waited for, and his refusal is believed over the stat block outright.
 
 /** The points `gujuo_bless_bowl` takes on a miss. */
 const BLESS_MISS_COST = 5;
@@ -262,7 +262,7 @@ const BLESS_FLOOR = 42;
 // Why: `value = ⌊80·(99−n)/98⌋ + ⌊250·(n−1)/98⌋ + 1` against `rand(0..256)`, and true is the miss — so the roll rises about 1.73 for every point of prayer and the trance is likelier to fail the more devout you are. It misses three times in five at forty-two and ninety-eight times in a hundred at ninety-nine.
 // Why: that makes every dose above the gate a cost. Prayer is held as low as Gujuo will accept rather than as high as the bar goes, and the five points a miss takes walk the odds towards the player rather than away.
 
-/** The points to hold before a throw. The gate exactly — the roll only worsens above it. */
+/** The points to hold before a throw. The gate itself — the roll only worsens above it. */
 export function blessPrayerFloor(): number {
     return BLESS_FLOOR;
 }

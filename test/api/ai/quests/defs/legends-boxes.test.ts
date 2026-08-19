@@ -56,7 +56,7 @@ test('a box that will not close yields instead of spinning', async () => {
     stuck();
 });
 
-// Why: the strength gate and the outer ancient gate render their chains as chat continues, and `driveChoice` runs a chain to its end without re-testing the goal — so the box carrying the result was clicked away before anything read it, and a crossing that had already succeeded waited out its whole budget.
+// Why: the strength gate and the outer ancient gate render their chains as chat continues, and `driveChoice` runs a chain to its end without re-testing the goal — so the box carrying the result was clicked away before anything read it, and a crossing that had already succeeded waited out its budget.
 test('stops on the goal box when the chain renders as chat continues', async () => {
     chain = [
         'You ripple your muscles.',
@@ -120,7 +120,7 @@ test('an option list nothing matches gives up at once, and says what it saw', as
     asChat.forEach(fn => fn());
 });
 
-// Why: a satisfied goal owns the screen. Tribal Totem's combination lock asks for `Modals.main() === DOOR_UI`, so a clear after success shut the very panel the caller had waited for, and the dials were set on a dead modal for forty minutes.
+// Why: a satisfied goal owns the screen. Tribal Totem's combination lock asks for `Modals.main() === DOOR_UI`, so a clear after success shut the panel the caller had been waiting for, and the dials were set on a dead modal for forty minutes.
 test('a prompt whose goal is an open panel leaves it open', async () => {
     let panel = -1;
     const opened = (): boolean => panel === 42;

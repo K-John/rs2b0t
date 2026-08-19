@@ -108,7 +108,7 @@ export async function driveBoxes(
         if (expect()) {
             return true;
         }
-        // Why: one click per pass, because `driveChoice` runs its own chain to the end without re-testing the goal — and when the goal is the text of the last box, that box has been clicked away before anything reads it. The strength gate's "you just manage to force the doors open" was drained unseen every time, so a crossing that had already succeeded waited out its whole budget and then tried again.
+        // Why: one click per pass, because `driveChoice` runs its own chain to the end without re-testing the goal — and when the goal is the text of the last box, that box has been clicked away before anything reads it. The strength gate's "manage to force the doors open" was drained unseen every time, so a crossing that had already succeeded waited out its budget and then tried again.
         const opts = ChatDialog.options();
         if (opts.length > 0) {
             const pick = pickPreferred(opts, prefer);
@@ -302,7 +302,7 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
     if (!answered) {
         log(`prompt: '${step.op}' on '${step.name}' was sent and the goal never came`);
     }
-    // Why: a satisfied goal owns the screen and this must not touch it — Tribal Totem's combination lock asks for `Modals.main() === DOOR_UI`, so clearing after a success shut the very panel the caller had just waited for, and the dials were set on a dead modal for forty minutes.
+    // Why: a satisfied goal owns the screen and this must not touch it — Tribal Totem's combination lock asks for `Modals.main() === DOOR_UI`, so clearing after a success shut the panel the caller had been waiting for, and the dials were set on a dead modal for forty minutes.
     // Why: a failure is cleared, because that is the one whose next step is a retry, and a retry that cannot click is a step that never recovers.
     if (!answered) {
         await clearBoxes();

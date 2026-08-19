@@ -319,7 +319,7 @@ export function talkGujuoStatus(
                 return 'nodialog';
             }
         }
-        // Why: `gujuo_vessel` hands the sketch through `~objbox`, which renders in the MAIN modal and suspends the script — the `inv_add` behind it only runs once the box is clicked. `driveUntil` clicks the CHAT modal alone, so the box stood, the sketch never came, and a step whose goal is the sketch spent its whole budget waiting on a script it was holding shut.
+        // Why: `gujuo_vessel` hands the sketch through `~objbox`, which renders in the MAIN modal and suspends the script — the `inv_add` behind it only runs once the box is clicked. `driveUntil` clicks the CHAT modal alone, so the box stood, the sketch never came, and a step whose goal is the sketch spent its budget waiting on a script it was holding shut.
         const ok = goal ? await driveBoxes(goal, ms, prefer, log) : await driveToEnd(prefer, log, ms, required);
         return ok ? 'goal' : 'nogoal';
     };

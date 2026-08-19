@@ -218,7 +218,7 @@ const BOULDERS: readonly { id: number; from: LegendsPocket; north: Tile; to: Leg
 
 // Why: mining a boulder teleports the miner past it and drops another behind, so each of the three is a one-shot crossing that has to be re-mined from the other side to come back.
 // Why: `stat_random(mining, 90, 255)` decides each swing and a failure costs a mining level, so the loop is generous.
-// Why: a missed swing answers with the scratch line and changes nothing else, so waiting on the crossing alone spends the whole per-swing budget on every miss — twenty of those is five minutes per boulder, and there are three of them each way.
+// Why: a missed swing answers with the scratch line and changes nothing else, so waiting on the crossing alone spends the per-swing budget on every miss — twenty of those is five minutes per boulder, and there are three of them each way.
 const SCRATCHED = /only succeed in scratching the rock/;
 
 /** Smash one trial boulder and land on the far side of it. */
@@ -371,7 +371,7 @@ export async function crossMarkedWall(reverse: boolean, log: (m: string) => void
         return false;
     }
     await settleScene();
-    // Why: `[oploc1,lgancientwalldoor]` answers "You see no way to use that.... Perhaps you should search it?" until `^legends_law_rune_2_used` is set, and that bit is invisible from here — so a Use tried first spends its whole `expectMs` proving the wall is still shut. A rune still in the pack is the client-visible proof the wall has not been fed, and feeding it opens the door itself.
+    // Why: `[oploc1,lgancientwalldoor]` answers "You see no way to use that.... Perhaps you should search it?" until `^legends_law_rune_2_used` is set, and that bit is invisible from here — so a Use tried first spends its `expectMs` proving the wall is still shut. A rune still in the pack is the client-visible proof the wall has not been fed, and feeding it opens the door itself.
     // Why: offering a spare rune to an already-fed wall is safe — `legends_wall_wrong_rune` jumps straight to `enter_marked_wall` once the fifth is in, so the rune is neither burned nor lost.
     if (!reverse && WALL_RUNES.some(rune => heldId(rune.id) > 0)) {
         const placed = await placeWallRunes(stand, want, log);
@@ -682,7 +682,7 @@ export async function leaveShamanCave(log: (m: string) => void): Promise<boolean
     if (legendsArea(Game.tile()) !== 'shamanCaves') {
         return true;
     }
-    // Why: the two mouth locs sit at (2772,9342) and (2773,9342) with cave wall around them, and the op only lands from the tile below. `Reach` counts a couple of tiles short as arrived, and from (2774,9339) the server answers that it cannot be reached — which spends the prompt's whole retry budget without a word and strands the run underground.
+    // Why: the two mouth locs sit at (2772,9342) and (2773,9342) with cave wall around them, and the op only lands from the tile below. `Reach` counts a couple of tiles short as arrived, and from (2774,9339) the server answers that it cannot be reached — which spends the prompt's retry budget without a word and strands the run underground.
     await Traversal.walkResilient(LQ_TILE.CAVE_EXIT, { radius: 0, attempts: 3, timeoutMs: 60_000, log });
     const ok = await promptLoc(
         {
@@ -696,7 +696,7 @@ export async function leaveShamanCave(log: (m: string) => void): Promise<boolean
     if (ok) {
         await settleScene();
     } else {
-        // Why: this is the last thing between the shaman cave and every errand above ground, and it failed without a word — one walk, an arrival, and a step that gave up. What it could see from where it stood is the whole question.
+        // Why: this is the last thing between the shaman cave and every errand above ground, and it failed without a word — one walk, an arrival, and a step that gave up. What it could see from where it stood is the question.
         const at = Game.tile();
         const door = locNear(LQ_LOC.CAVE_ENTRANCE, 'Walk through', 8);
         log(`the cave entrance would not let us out — stood at (${at?.x},${at?.z}), '${LQ_LOC.CAVE_ENTRANCE}' ${door ? 'in range' : 'not in range'}`);

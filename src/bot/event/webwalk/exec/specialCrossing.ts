@@ -212,7 +212,7 @@ export async function handleSpecialCrossing(
                 }
             } else if (reader.modals().main !== -1) {
                 // Why: Mosol Rei's `~mesbox("Mosol leads you into the village.")` sits between the choice and the `p_telejump`, and a box suspends the script until it is clicked — so waiting for the arrival it gates is waiting for a teleport that cannot run. Placed under `mapChoice` so a glidermap is still answered as a map rather than closed as a box.
-                // Why: the tick is not optional. This loop is bounded by passes rather than by time, so a branch that returns without yielding spends the whole budget in a moment — the Brimhaven ship stopped being waited for and reported itself unresolved while it was still sailing.
+                // Why: the tick is not optional. This loop is bounded by passes rather than by time, so a branch that returns without yielding spends the budget in a moment — the Brimhaven ship stopped being waited for and reported itself unresolved while it was still sailing.
                 await Modals.close();
                 await Execution.delayTicks(1);
             } else {
