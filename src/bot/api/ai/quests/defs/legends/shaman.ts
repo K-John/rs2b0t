@@ -10,7 +10,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE, inOctagram } from './areas.js';
 import { drinkPrayer } from './fight.js';
-import { enterJungle, leaveJungle, summonGujuo, talkGujuoStatus } from './jungle.js';
+import { enterJungle, leaveJungle, summonGujuo, talkGujuoStatus, type GujuoTalk } from './jungle.js';
 import { climbOutOfTrials, leaveOctagram } from './trials.js';
 import { driveBoxes, driveToEnd, driveUntil, heldId, here, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
 
@@ -112,13 +112,21 @@ const gujuoWaterTalk = talkGujuoStatus(
 
 // Why: the caves are the answer to a menu without the topic on it, and to nothing else. A shaman who never opened his mouth says nothing about the bit, and walking to Ungadulu on that reading set a bit that was already set, came back, failed to talk again, and went again — the loop a live run spent six minutes in, four attempts deep, reporting a cause it had not checked.
 
+/** What a failed water talk calls for: the topic is there, he needs asking again, or the bit wants setting. */
+export function waterTalkAnswer(talk: GujuoTalk): 'done' | 'retry' | 'caves' {
+    if (talk === 'goal') {
+        return 'done';
+    }
+    return talk === 'nodialog' ? 'retry' : 'caves';
+}
+
 /** Ask Gujuo where the pure water comes from, going back to Ungadulu if he cannot say. */
 export async function askGujuoForWater(log: (m: string) => void): Promise<boolean> {
     const first = await gujuoWaterTalk(log);
-    if (first === 'goal') {
+    if (waterTalkAnswer(first) === 'done') {
         return true;
     }
-    if (first === 'nodialog') {
+    if (waterTalkAnswer(first) === 'retry') {
         log('Gujuo would not open a dialogue — trying him again rather than walking the caves for a bit he never spoke about');
         return (await gujuoWaterTalk(log)) === 'goal';
     }
