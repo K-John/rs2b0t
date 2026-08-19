@@ -16,7 +16,7 @@ import { QUESTS } from '../data/quests.js';
 import { QUEST_DEFS, defById } from '../defs/index.js';
 import { executeStep } from '../exec/steps.js';
 import type { BankInventorySnapshot, PlayerState, QuestEligibility, QuestRecord } from '../types.js';
-import { coinFloatWithdraw, depositPlan, floatWithdraw, planProvisioning, shouldFreshenPack } from './provisioning.js';
+import { coinFloatWithdraw, depositPlan, foodFloatPlan, planProvisioning, shouldFreshenPack } from './provisioning.js';
 import { nextQuest, queueRows, type QueueRow } from './queue.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from './types.js';
 import { NO_PROGRESS_PARK, NO_PROGRESS_WARN, ProgressWatchdog, progressSignature } from './watchdog.js';
@@ -111,6 +111,9 @@ export class QuestEngine implements Task {
     private readonly deposited = new Set<string>();
     private readonly freshened = new Set<string>();
     private readonly freshenTries = new Map<string, number>();
+    /** Cleared once the session's first quest has emptied its pack, or given up trying. */
+    private sessionStart = true;
+    private readonly foodDrawn = new Set<string>();
     private readonly blocked = new Map<string, string[]>();
     /** Modules that have already emitted {@link QuestModule.warnReadiness}. */
     private readonly readinessWarned = new Set<string>();
@@ -251,6 +254,7 @@ export class QuestEngine implements Task {
             this.deposited.delete(id);
             this.freshened.delete(id);
             this.freshenTries.delete(id);
+            this.foodDrawn.delete(id);
             this.blocked.delete(id);
             this.resetWatchdog();
             this.runningId = null;
@@ -290,9 +294,21 @@ export class QuestEngine implements Task {
             // Only withdraw food once the bank inventory is known — guessing a
             // shortfall forces a failed booth trip and can scramble a full pack.
             const foodReady = module.foodReady?.(snap) ?? true;
-            const foodFloat = (module.food && foodItem && this.bankKnown && foodReady)
-                ? floatWithdraw(snap.inv, this.lastBankCounts, foodItem, module.food)
-                : null;
+            let foodFloat: { name: string; qty: number } | null = null;
+            if (module.food && foodItem && this.bankKnown && foodReady) {
+                const key = foodItem.toLowerCase();
+                const foodPlan = foodFloatPlan(
+                    snap.inv.get(key) ?? 0,
+                    this.lastBankCounts.get(key) ?? 0,
+                    module.food,
+                    this.foodDrawn.has(id)
+                );
+                if (foodPlan.drawn) {
+                    this.foodDrawn.add(id);
+                } else if (foodPlan.qty > 0) {
+                    foodFloat = { name: foodItem, qty: foodPlan.qty };
+                }
+            }
             const extras = [coinFloat, foodFloat].filter((w): w is { name: string; qty: number } => w !== null);
             if (plan.blocked.length > 0 && plan.withdraw.length === 0) {
                 this.host.log(`${module.record.name} short on items: ${plan.blocked.join(', ')} — parking`);
@@ -469,6 +485,7 @@ export class QuestEngine implements Task {
         }
         this.provisioned.delete(deadId);
         this.deposited.delete(deadId);
+        this.foodDrawn.delete(deadId);
         this.resetWatchdog();
         this.stepSubLog.clear();
         this.lastStepLogged = '';
@@ -480,13 +497,15 @@ export class QuestEngine implements Task {
     /** Bank the pack to nothing before a quest opens; true when the loop should yield after the trip. */
     private async freshenPack(module: QuestModule, id: string, snap: QuestSnapshot, rows: QueueRow[]): Promise<boolean> {
         const carried = Inventory.used();
-        if (!shouldFreshenPack(snap.journal, carried, this.freshened.has(id))) {
+        if (!shouldFreshenPack(snap.journal, carried, this.freshened.has(id), this.sessionStart)) {
+            this.sessionStart = false;
             return false;
         }
         const tries = (this.freshenTries.get(id) ?? 0) + 1;
         this.freshenTries.set(id, tries);
         this.host.noteState(rows, id, 'banking the pack to nothing', this.noProgressCount, this.parked.size);
-        this.host.log(`${module.record.name} not started — banking ${carried} carried slot(s) so it provisions from empty (${tries}/${FRESH_GIVE_UP})`);
+        const why = snap.journal === 'notStarted' ? 'not started' : 'first quest of the session';
+        this.host.log(`${module.record.name} ${why} — banking ${carried} carried slot(s) so it provisions from empty (${tries}/${FRESH_GIVE_UP})`);
         const emptied = await executeStep(
             { kind: 'deposit', keep: [], bank: bankFor(module), leaveOpen: true },
             module.hops ?? [],
@@ -494,6 +513,7 @@ export class QuestEngine implements Task {
         );
         if (emptied || tries >= FRESH_GIVE_UP) {
             this.freshened.add(id);
+            this.sessionStart = false;
         }
         if (!emptied && tries >= FRESH_GIVE_UP) {
             this.host.log(`${module.record.name}: no bank reachable after ${FRESH_GIVE_UP} tries — starting on the pack as it stands`);
@@ -552,6 +572,7 @@ export class QuestEngine implements Task {
         this.deposited.delete(id);
         this.freshened.delete(id);
         this.freshenTries.delete(id);
+        this.foodDrawn.delete(id);
         this.retreated.delete(id);
         this.retreatTries.delete(id);
         this.waitKey = '';

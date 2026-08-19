@@ -1,4 +1,4 @@
-// docs/reference/quest-engine.md#provisioning
+// docs/reference/quest-provisioning.md
 import type { QuestStatus } from '../../../ui/questlog/Quests.js';
 import type { QuestItem } from '../types.js';
 
@@ -42,10 +42,34 @@ export function planProvisioning(
 
 /**
  * Why: the bot starts carrying anything and the quest before this one leaves anything behind, so every quest provisions from empty.
- * Why: only before the journal opens — a resumed quest can be standing past its last bank.
+ * Why: after the session's first quest, only before the journal opens — a resumed quest can be standing past its last bank.
  */
-export function shouldFreshenPack(journal: QuestStatus, usedSlots: number, alreadyFresh: boolean): boolean {
-    return journal === 'notStarted' && usedSlots > 0 && !alreadyFresh;
+export function shouldFreshenPack(
+    journal: QuestStatus,
+    usedSlots: number,
+    alreadyFresh: boolean,
+    sessionStart: boolean
+): boolean {
+    if (usedSlots === 0 || alreadyFresh) {
+        return false;
+    }
+    return sessionStart || journal === 'notStarted';
+}
+
+/**
+ * Why: the provisioning block re-runs every tick while a quest is still gathering, so topping the float up sent the bot back to the bank each time it ate — 20 lobsters became a bank trip per meal.
+ * Why: `drawn` closes the float for the quest once the pack has held it, and an empty bank leaves it open so a restock is still honoured.
+ */
+export function foodFloatPlan(
+    held: number,
+    banked: number,
+    target: number,
+    alreadyDrawn: boolean
+): { qty: number; drawn: boolean } {
+    if (alreadyDrawn || held >= target) {
+        return { qty: 0, drawn: true };
+    }
+    return { qty: Math.max(0, Math.min(target - held, banked)), drawn: false };
 }
 
 export function depositPlan(inv: Map<string, number>, keep: string[]): string[] {
