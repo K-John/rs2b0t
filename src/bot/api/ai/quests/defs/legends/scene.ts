@@ -2,6 +2,7 @@ import { reader } from '../../../../../adapter/ClientAdapter.js';
 import { Execution } from '../../../../execution/Execution.js';
 import { Game } from '../../../../game/Game.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
+import { Modals } from '../../../../ui/widgets/Modals.js';
 import type { Npc } from '../../../../model/Npc.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { ChatDialog } from '../../../../ui/dialogue/ChatDialog.js';
@@ -72,6 +73,15 @@ export async function driveToEnd(prefer: string[], log: (m: string) => void, ms 
             took = took || pick === required;
             await ChatDialog.chooseOption(pick);
             await Execution.delayTicks(2);
+            quiet = 0;
+            continue;
+        }
+        // Why: a `~mesbox` opens no chat widget, so the quiet counter read a chain suspended on one as a chain that had ended — and reported success with the box still up. `ungadulu_where` finishes on "The Shaman throws himself down on the floor and starts convulsing.", and the page left standing is the modal that stopped the next shaman from opening his mouth at all.
+        if (Modals.isOpen()) {
+            spoke = true;
+            if (!(await Modals.close())) {
+                await Execution.delayTicks(1);
+            }
             quiet = 0;
             continue;
         }
