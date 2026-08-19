@@ -14,9 +14,10 @@ export const CASES: readonly Case[] = [
         id: 'aio-fresh-pack-live',
         harness: 'aio-fresh-pack-live.ts',
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
-        status: 'unvetted',
+        status: 'vetted',
         args: ['--quest', 'doric', '--junk', '28', '--minutes', '8'],
         budgetMin: 10,
+        provenAt: '0f80d90b',
         note: 'seeds 28 cow hides into the pack and proves the quest banks them before it provisions'
     },
     {
