@@ -155,11 +155,15 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
             return false;
         }
         const offered = await offerTo(LQ_ID.GOLD_BOWL, gujuo, log);
-        if (offered && (await driveBlessing(blessed, log))) {
+        const outcome = offered ? await driveBlessing(blessed, log) : 'quiet';
+        if (outcome === 'blessed') {
             return true;
         }
+        if (needsDose(outcome, Skills.effective('prayer'))) {
+            await drinkPrayer(log);
+        }
         // Why: a silent wait is the one failure that tells you nothing, and this one cost two live runs before it said a word.
-        log(`bowl on Gujuo ${offered ? 'sent' : 'refused'} at ${gujuo.tile().x},${gujuo.tile().z}, chat "${modalText().slice(0, 60)}"`);
+        log(`bowl on Gujuo ${offered ? 'sent' : 'refused'} at ${gujuo.tile().x},${gujuo.tile().z}, prayer ${Skills.effective('prayer')}/${Skills.level('prayer')}, trance ${outcome}`);
         await settleScene();
     }
     log(`Gujuo took the bowl ${BLESS_ATTEMPTS} times and never blessed it`);
@@ -175,14 +179,28 @@ const BLESS_MS = 40_000;
 /** How many idle ticks end the wait, so a gap between two boxes is not read as the end. */
 const BLESS_IDLE_TICKS = 5;
 
+/** What Gujuo's own words said about a throw, read while the chain is still up. */
+export type Trance = 'blessed' | 'refused' | 'missed' | 'quiet';
+
+/** He took the five points and the trance failed. */
+const BLESS_MISSED = /deep enough trance/;
+
+/** He would not begin — the server's prayer is under his gate, whatever the stat block says. */
+const BLESS_REFUSED = /too inexperienced/;
+
 /** Drive Gujuo's trance, ending the moment it blesses the bowl or the conversation closes without it. */
-async function driveBlessing(blessed: () => boolean, log: (m: string) => void): Promise<boolean> {
+async function driveBlessing(blessed: () => boolean, log: (m: string) => void): Promise<Trance> {
     let opened = false;
     let idle = 0;
+    let missed = false;
+    let refused = false;
     const ended = (): boolean => {
         if (blessed()) {
             return true;
         }
+        const said = modalText();
+        missed = missed || BLESS_MISSED.test(said);
+        refused = refused || BLESS_REFUSED.test(said);
         if (ChatDialog.isOpen() || ChatDialog.canContinue() || Modals.isOpen()) {
             opened = true;
             idle = 0;
@@ -192,7 +210,27 @@ async function driveBlessing(blessed: () => boolean, log: (m: string) => void): 
         return opened && idle >= BLESS_IDLE_TICKS;
     };
     await driveUntil(ended, BLESS_PREFER, log, BLESS_MS);
-    return blessed();
+    if (blessed()) {
+        return 'blessed';
+    }
+    if (refused) {
+        return 'refused';
+    }
+    return missed ? 'missed' : 'quiet';
+}
+
+// Why: the stat block lags the server by a tick or two, so a throw made straight after a miss reads a prayer bar that has not fallen yet — Gujuo refuses on his own gate and the throw is spent learning what the miss had already said. At forty-two that doubled every miss: eighteen throws to land nine rolls, against a budget of twenty.
+// Why: a miss takes exactly five, so they are counted rather than waited for, and his refusal is believed over the stat block outright.
+
+/** The points `gujuo_bless_bowl` takes on a miss. */
+const BLESS_MISS_COST = 5;
+
+/** True when the next throw would meet Gujuo's gate short, whatever the stat block has caught up to. */
+export function needsDose(outcome: Trance, points: number): boolean {
+    if (outcome === 'refused') {
+        return true;
+    }
+    return outcome === 'missed' && points - BLESS_MISS_COST < BLESS_FLOOR;
 }
 
 /** The points Gujuo's own gate demands, below which he will not begin. */
