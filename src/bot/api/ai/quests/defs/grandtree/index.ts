@@ -212,6 +212,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
 export const grandtree: QuestModule = {
     record: QUESTS.find(r => r.id === 'grandtree')!,
+    pray: { protect: 'melee', potions: 2 },
     bank: 'nearest',
     hops: GT_HOPS,
     food: FOOD_FLOAT,

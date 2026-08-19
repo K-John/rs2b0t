@@ -620,6 +620,7 @@ function warnTrollStrongholdReadiness(): string | null {
 
 export const trollstronghold: QuestModule = {
     record: QUESTS.find(r => r.id === 'troll')!,
+    pray: { protect: 'melee', potions: 2 },
     bank: FALADOR_WEST_BANK,
     grind: ['Dad', 'Troll General', 'Twig', 'Berry'],
     tools: [

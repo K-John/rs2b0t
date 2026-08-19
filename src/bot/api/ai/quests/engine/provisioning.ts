@@ -57,10 +57,10 @@ export function shouldFreshenPack(
 }
 
 /**
- * Why: the provisioning block re-runs every tick while a quest is still gathering, so topping the float up sent the bot back to the bank each time it ate — 20 lobsters became a bank trip per meal.
+ * Why: the provisioning block re-runs every tick while a quest is still gathering, so topping a float up sent the bot back to the bank each time it ate a lobster or drank a dose.
  * Why: `drawn` closes the float for the quest once the pack has held it, and an empty bank leaves it open so a restock is still honoured.
  */
-export function foodFloatPlan(
+export function floatDrawPlan(
     held: number,
     banked: number,
     target: number,

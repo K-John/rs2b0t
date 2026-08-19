@@ -157,6 +157,7 @@ function egress(snap: QuestSnapshot, step: QuestStep): QuestStep {
 
 export const heroquest: QuestModule = {
     record: QUESTS.find(r => r.id === 'hero')!,
+    pray: { protect: 'melee', potions: 2 },
     // Why: the quest works in six kingdoms, so no one booth is close to more than a leg of it.
     bank: 'nearest',
     // Why: the disguise, the bow, the herb chain and the Entrana strip are all bought or banked at the

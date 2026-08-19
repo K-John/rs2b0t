@@ -48,6 +48,24 @@ Two rules that are easy to get wrong:
 - Quest-internal consumables are not `record.items`. The record lists what the quest
   *requires*; things consumed along the way are the module's own business.
 
+## Prayer
+
+A quest declaring `pray: { protect, potions }` holds that protection prayer through its fights.
+The AIO quester's `Sustain` hook drives it, and `Sustain.run()` is already called from every
+quest fight loop, so no module needs its own upkeep. One op per tick: food first, then prayer.
+
+| Situation | Action |
+|---|---|
+| in combat, points at `PRAYER_FLOOR`, a dose held | drink |
+| in combat, protection down and available | raise it |
+| the fight ends | drop it — held through the walk out it empties the flask |
+| Prayer below the prayer's level | log once, fight on food alone |
+
+Doses join the float like food, drawn once. Declared only where the fight threatens the account:
+Dragon Slayer, Fight Arena, Fremennik Trials, Grand Tree, Heroes' Quest, Horror from the Deep,
+Troll Stronghold, Underground Pass, Vampire Slayer, Witch's House. Lost City, Scorpion Catcher
+and Legends drive prayer inside their own fight loops and declare nothing here.
+
 ## See also
 
 - [Quest engine](quest-engine.md)

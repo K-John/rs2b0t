@@ -3,6 +3,8 @@ import { EventSignal } from '../../api/execution/EventSignal.js';
 import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
 import { Inventory, type InvItem } from '../../api/inventory/Inventory.js';
+import { Prayer } from '../../api/prayer/Prayer.js';
+import { reader } from '../../adapter/ClientAdapter.js';
 import { Paint, type PaintLine } from '../../paint/Paint.js';
 import { fmtDuration } from '../../paint/paintLogic.js';
 import { Quests } from '../../api/ui/questlog/Quests.js';
@@ -12,6 +14,7 @@ import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
 import { QuestEngine } from '../../api/ai/quests/engine/QuestEngine.js';
 import { QUEST_DEFS, defById } from '../../api/ai/quests/defs/index.js';
 import { QuestFood } from '../../api/ai/quests/food.js';
+import { PRAYER_POTION_IDS, prayerUpkeepAction, protectionLevel, protectionName } from '../../api/ai/quests/prayer.js';
 import { QuestLoadout } from '../../api/ai/quests/gear.js';
 import { FOOD_OPTIONS } from '../../api/combat/food.js';
 import { foodOf } from '../../api/loadout/loadoutPlan.js';
@@ -124,6 +127,7 @@ export default class AIOQuester extends TaskBot {
     private parkedCount = 0;
 
     private skipRequested = false;
+    private readonly prayerWarned = new Set<string>();
 
     private died = false;
     private deaths = 0;
@@ -161,7 +165,14 @@ export default class AIOQuester extends TaskBot {
         });
         applyHeroSettings({ partner: this.settings.str('heroPartner', '') });
         applyLegendsSettings({ reward: this.settings.str('legendsReward', 'Prayer') });
-        Sustain.set(async () => { if (this.shouldEat()) { await this.eatOnce(); } });
+        // Why: the server runs one op per tick and drops the rest, so a pass spends its tick on food or on prayer, never both — and food wins, as the fight it is losing is measured in hitpoints.
+        Sustain.set(async () => {
+            if (this.shouldEat()) {
+                await this.eatOnce();
+                return;
+            }
+            await this.prayerUpkeep();
+        });
         // A death must release the active quest operation before the engine can recover it.
         EventSignal.setInterrupt(() => this.skipRequested || this.died);
 
@@ -207,6 +218,46 @@ export default class AIOQuester extends TaskBot {
         const before = Skills.effective('hitpoints');
         if (!(await food.interact(action))) { return; }
         await Execution.delayUntil(() => Skills.effective('hitpoints') > before, 3000);
+    }
+
+    /** Hold the running quest's protection prayer through its fights, and drop it the moment one ends. */
+    async prayerUpkeep(): Promise<void> {
+        const id = this.runningId;
+        const quest = id ? defById(id) : undefined;
+        const pray = quest?.pray;
+        if (!id || !quest || !pray) {
+            return;
+        }
+        const name = protectionName(pray);
+        if (Prayer.max() < protectionLevel(pray)) {
+            if (!this.prayerWarned.has(id)) {
+                this.prayerWarned.add(id);
+                this.log(`${quest.record.name}: Prayer ${Prayer.max()} — no ${name}, fighting on food alone`);
+            }
+            return;
+        }
+        const doses = Inventory.items().filter(i => PRAYER_POTION_IDS.includes(i.id));
+        switch (prayerUpkeepAction({
+            inCombat: reader.inCombat(),
+            protectActive: Prayer.active(name),
+            protectAvailable: Prayer.available(name),
+            points: Prayer.points(),
+            doses: doses.length
+        })) {
+            case 'drink':
+                this.status = `drinking a prayer dose (${Prayer.points()}/${Prayer.max()})`;
+                await doses[0].interact('Drink');
+                return;
+            case 'protect':
+                this.status = `raising ${name}`;
+                await Prayer.set(name, true);
+                return;
+            case 'drop':
+                await Prayer.set(name, false);
+                return;
+            default:
+                return;
+        }
     }
 
     private selectFood(): SustainSelection<InvItem> | null {

@@ -79,6 +79,7 @@ function readiness(): string | null {
 
 export const fremenniktrials: QuestModule = {
     record: QUESTS.find(r => r.id === 'viking')!,
+    pray: { protect: 'melee', potions: 2 },
     bank: FT_TILE.SEERS_BANK,
     // Why: two trials are walked with an empty pack and one is walked with a full combat kit, so the module owns every banking decision.
     ownsInventory: true,

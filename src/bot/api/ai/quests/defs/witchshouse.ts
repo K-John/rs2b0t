@@ -224,6 +224,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
 export const witchshouse: QuestModule = {
     record: QUESTS.find(r => r.id === 'ball')!,
+    pray: { protect: 'melee', potions: 2 },
     bank: new Tile(2946, 3369, 0),
     food: FOOD_FLOAT,
     grind: EXPERIMENT_FORMS,
