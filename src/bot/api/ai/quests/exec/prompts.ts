@@ -118,6 +118,8 @@ export async function driveBoxes(
                 log(`no preferred option in [${opts.join(' | ')}]`);
                 return expect();
             }
+            // Why: `driveToEnd` names every choice it takes and this named none, so a chain that answered the wrong topic and a chain that answered the right one and got nothing looked the same from outside.
+            log(`chose "${pick}" from [${opts.join(' | ')}]`);
             await ChatDialog.chooseOption(pick);
             await Execution.delayTicks(2);
             continue;
