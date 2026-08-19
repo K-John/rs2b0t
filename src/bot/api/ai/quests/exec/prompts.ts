@@ -292,9 +292,14 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
         log
     });
     if (status !== 'done') {
+        // Why: the two ways this fails want opposite answers — one is a loc that could not be clicked, the other a click that landed and led nowhere — and telling them apart from the outside was guesswork every time it mattered.
+        log(`prompt: '${step.op}' on '${step.name}' never reached the loc (${status})`);
         return false;
     }
     const answered = await driveBoxes(step.expect, step.expectMs ?? 20_000, step.prefer ?? [], log);
+    if (!answered) {
+        log(`prompt: '${step.op}' on '${step.name}' was sent and the goal never came`);
+    }
     // Why: the goal can land mid-chain now that it is tested between clicks, and a page left standing would meet the next step as a stale modal.
     // Why: cleared on the way out either way, because a prompt that failed is exactly the one whose next step is a retry, and a retry that cannot click is a step that never recovers.
     await clearBoxes();
