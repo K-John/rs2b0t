@@ -18,6 +18,7 @@ let walkResult: boolean;
 let _walkLastOutcome: string;
 let canReachResult: boolean;
 let cantReach: boolean;
+let refuse: string | null;
 let locBlankQueries: number;
 let locInteractCount: number;
 let doorInteractCount: number;
@@ -59,6 +60,9 @@ const locHandle = () =>
                 if (cantReach) {
                     GameMessages.record("I can't reach that!");
                 }
+                if (refuse) {
+                    GameMessages.record(refuse);
+                }
                 return sceneLoc!.interactResult;
             }
         }
@@ -93,6 +97,9 @@ const npcHandle = () =>
                 onNpcInteract?.();
                 if (cantReach) {
                     GameMessages.record("I can't reach that!");
+                }
+                if (refuse) {
+                    GameMessages.record(refuse);
                 }
                 return sceneNpc?.interactResult ?? false;
             }
@@ -178,6 +185,7 @@ beforeEach(() => {
     WalkExecutor.lastOutcome = 'failed';
     canReachResult = true;
     cantReach = false;
+    refuse = null;
     locBlankQueries = 0;
     locInteractCount = 0;
     doorInteractCount = 0;
@@ -355,6 +363,40 @@ describe('Reach.locOp', () => {
         expectFlips = false;
         const r = await Reach.locOp({ name: 'Ladder', op: 'Climb-down', near: { x: 5, z: 5, level: 0 }, expect: () => expectFlips });
         expect(r).toBe('retry');
+    });
+
+    // Why: without a pattern to watch, a silent refusal costs REACH_DOOR_ATTEMPTS x expectMs — 8 x 12s of standing still on a loc whose script already said no.
+    test('a refusal message ends the op after one call instead of eight', async () => {
+        sceneLoc = { name: 'Marked wall', ops: ['Use'], tile: { x: 6, z: 5, level: 0 }, interactResult: true };
+        expectFlips = false;
+        refuse = 'You see no way to use that....';
+
+        const r = await Reach.locOp({
+            name: 'Marked wall',
+            op: 'Use',
+            near: { x: 5, z: 5, level: 0 },
+            expect: () => expectFlips,
+            refused: /no way to use that/
+        });
+
+        expect(r).toBe('retry');
+        expect(locInteractCount).toBe(1);
+    });
+
+    test('a refusal pattern that never fires still retries to the cap', async () => {
+        sceneLoc = { name: 'Boulder', ops: ['Push'], tile: { x: 6, z: 5, level: 0 }, interactResult: true };
+        expectFlips = false;
+
+        const r = await Reach.locOp({
+            name: 'Boulder',
+            op: 'Push',
+            near: { x: 5, z: 5, level: 0 },
+            expect: () => expectFlips,
+            refused: /nothing interesting happens/
+        });
+
+        expect(r).toBe('retry');
+        expect(locInteractCount).toBeGreaterThan(1);
     });
     test('a scene still rebuilding at the stand is waited out, not read as absent', async () => {
         sceneLoc = { name: 'Portal', id: 4171, ops: ['Use'], tile: { x: 5, z: 5, level: 0 }, interactResult: true };

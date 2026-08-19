@@ -523,6 +523,21 @@ export const SPECIAL_CROSSINGS: SpecialCrossing[] = [
         label: 'Elkoy → maze entrance (maze shortcut out)'
     },
 
+    // Why: Mosol Rei is an NPC, and a transport edge resolves its target through `Locs.query` alone — so naming him on the edge asked the scene for a loc that does not exist and the hop reported him missing while he stood in front of the player.
+    // Why: `p_telejump(0_44_46_50_8)` lands at (2866,2952), and the jungle side is only leavable on foot through the two gates and the cart.
+    {
+        x: 2883,
+        z: 2951,
+        level: 0,
+        npc: 'Mosol Rei',
+        locName: 'Mosol Rei',
+        action: 'Talk-to',
+        dialogue: { choose: ["Yes, I'll give it a go!"] },
+        toTile: { x: 2866, z: 2952, level: 0 },
+        arrivalRadius: 3,
+        label: 'Mosol Rei → Shilo Village (jungle gate in)'
+    },
+
     // Island ropeswings (shortcuts.rs2) — outer swings need agility 10; execute re-check.
     // Do not gate tree_ropeswing2 (2705,3205) — softlock prevention in content.
     {

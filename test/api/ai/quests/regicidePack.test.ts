@@ -110,7 +110,6 @@ describe('what a plan keeps without being asked', () => {
     const BARE: PackPlan = { what: 'a plan that names nothing', allow: [] };
 
     const COSTLY: [string, { id: number; name: string }][] = [
-        ['the summons', RG_ITEM.SUMMONS],
         ['Iorwerth\'s letter', RG_ITEM.MESSAGE],
         ['the crystal pendant', RG_ITEM.PENDANT],
         ['an empty barrel', RG_ITEM.BARREL],
@@ -123,6 +122,13 @@ describe('what a plan keeps without being asked', () => {
 
     test.each(COSTLY)('%s survives a plan that does not name it', (_what, item) => {
         expect(managePack(snapshot({ carried: [[item.id, 1]] }), BARE)).toBeNull();
+    });
+
+    // Why: `regicide_kings_messenger.rs2` sets `%regicide_quest` on the same line it adds the scroll and nothing in the content ever reads it back, so keeping it is one dead slot for the life of the account.
+    test('the King\'s message is banked by a plan that does not name it', () => {
+        const step = managePack(snapshot({ carried: [[RG_ITEM.SUMMONS.id, 1]] }), BARE);
+        expect(step?.kind).toBe('deposit');
+        expect(step?.kind === 'deposit' && step.keepIds).not.toContain(RG_ITEM.SUMMONS.id);
     });
 
     test('a bomb is kept even while junk is being shed', () => {

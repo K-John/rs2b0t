@@ -1,12 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import {
-    QUEUE_COLOUR,
-    blockedEntries,
-    blockedLines,
-    focusRow,
-    queueEntry,
-    queueSummary
-} from '#/bot/scripts/AIOQuester/AIOQuesterPaint.js';
+import { QUEUE_COLOUR, blockedEntries, blockedLines, focusRow, questClockRestarts, queueEntry, queueSummary } from '#/bot/scripts/AIOQuester/AIOQuesterPaint.js';
 import type { QueueRow, QueueStatus } from '#/bot/api/ai/quests/engine/queue.js';
 
 const row = (id: string, status: QueueStatus, reasons: string[] = []): QueueRow => ({
@@ -137,5 +130,24 @@ describe('queueSummary', () => {
 
     test('an empty queue counts nothing', () => {
         expect(queueSummary([])).toEqual({ done: 0, stuck: 0, total: 0 });
+    });
+});
+
+// Why: the engine passes a null running id for a drained queue, a parked plan and a banking spillover — all of which happen inside one quest, so a plain inequality restarts the clock without the quest having changed.
+describe('questClockRestarts', () => {
+    test('restarts when the queue moves to a different quest', () => {
+        expect(questClockRestarts('shilo', 'legends')).toBe(true);
+    });
+
+    test('restarts on the first quest of a session', () => {
+        expect(questClockRestarts(null, 'legends')).toBe(true);
+    });
+
+    test('holds through a drained queue, a park and a banking spillover', () => {
+        expect(questClockRestarts('legends', null)).toBe(false);
+    });
+
+    test('holds while the same quest keeps running', () => {
+        expect(questClockRestarts('legends', 'legends')).toBe(false);
     });
 });

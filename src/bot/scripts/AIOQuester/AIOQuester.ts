@@ -21,17 +21,19 @@ import { LOADOUT_SETTING, selectedLoadout } from '../../api/loadout/loadoutSetti
 import type { QueueRow } from '../../api/ai/quests/engine/queue.js';
 import type { QuestModule } from '../../api/ai/quests/engine/types.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
+import { LEGENDS_REWARD_OPTIONS } from '../../api/ai/quests/defs/legends/config.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import {
     ARRAV_GANG_OPTIONS,
     applyArravSettings,
     applyHeroSettings,
+    applyLegendsSettings,
     resolveSustainPolicy,
     selectSustainConsumable,
     type ResolvedSustainPolicy,
     type SustainSelection
 } from './AIOQuesterLogic.js';
-import { QUEUE_COLOUR, blockedLines, focusRow, queueEntry, queueSummary } from './AIOQuesterPaint.js';
+import { QUEUE_COLOUR, blockedLines, focusRow, queueEntry, queueSummary, questClockRestarts } from './AIOQuesterPaint.js';
 
 const DEATH_RE = /oh dear.*you are dead/i;
 
@@ -97,6 +99,14 @@ export const AIO_SETTINGS: SettingsSchema = {
         group: "Hero's Quest",
         help: 'character name of the bot running the other gang; the master thief armband cannot be earned alone, and the gang itself comes from the Shield of Arrav setting'
     },
+    legendsReward: {
+        type: 'string',
+        default: 'Prayer',
+        options: [...LEGENDS_REWARD_OPTIONS],
+        label: 'Legends Quest reward',
+        group: 'Legends Quest',
+        help: "which skill Radimus' four training sessions go into; Prayer by default, as the quest's own three demon fights are survived on Protect from Melee"
+    },
     verbose: {
         type: 'boolean',
         default: true,
@@ -125,11 +135,14 @@ export default class AIOQuester extends TaskBot {
     private qpAtStart: number | null = null;
     private completed = 0;
     private stepSince = Date.now();
+    // Why: the queue runs one quest after another in a single session, so a runtime clock answers "how long has the bot been up" and nothing answers "how long has this quest taken" — which is the number that says whether a quest is slow or stuck.
+    private questSince = Date.now();
 
     override async onStart(): Promise<void> {
         await Execution.delayUntil(() => Game.ingame() && Game.tile() !== null, 0);
         this.startedAt = Date.now();
         this.stepSince = this.startedAt;
+        this.questSince = this.startedAt;
 
         const all = QUEST_DEFS.map(d => d.record.id);
         const chosen = this.settings.list('quests', []).filter(id => all.includes(id));
@@ -150,6 +163,7 @@ export default class AIOQuester extends TaskBot {
             certs: this.settings.num('arravCerts', 2)
         });
         applyHeroSettings({ partner: this.settings.str('heroPartner', '') });
+        applyLegendsSettings({ reward: this.settings.str('legendsReward', 'Prayer') });
         Sustain.set(async () => { if (this.shouldEat()) { await this.eatOnce(); } });
         // A death must release the active quest operation before the engine can recover it.
         EventSignal.setInterrupt(() => this.skipRequested || this.died);
@@ -241,6 +255,9 @@ export default class AIOQuester extends TaskBot {
         if (stepDesc !== this.stepDesc) {
             this.stepSince = Date.now();
         }
+        if (questClockRestarts(this.runningId, runningId)) {
+            this.questSince = Date.now();
+        }
         // Why: the engine reports no completion event, so the paint counts DONE rows appearing under it.
         const done = rows.filter(r => r.status === 'DONE').length;
         const wasDone = this.rows.filter(r => r.status === 'DONE').length;
@@ -310,10 +327,15 @@ export default class AIOQuester extends TaskBot {
                 footer: `QP ${qp} · done ${sum.done}/${sum.total} · stuck ${sum.stuck}`
             });
         } else if (tab === 'Current') {
-            const mins = (Date.now() - this.stepSince) / 60_000;
+            const stepMins = (Date.now() - this.stepSince) / 60_000;
+            const questMins = (Date.now() - this.questSince) / 60_000;
             p.cells([
                 { text: `Quest: ${running?.name ?? '—'}`, weight: 2, color: running ? QUEUE_COLOUR.RUNNING : DIM },
-                { text: `On step: ${fmtDuration(mins)}`, weight: 1 }
+                { text: `On quest: ${fmtDuration(questMins)}`, weight: 1 }
+            ]);
+            p.cells([
+                { text: `On step: ${fmtDuration(stepMins)}`, weight: 1 },
+                { text: `Session: ${fmtDuration((Date.now() - this.startedAt) / 60_000)}`, weight: 1 }
             ]);
             p.text('Step', DIM);
             p.wrap(this.stepDesc);

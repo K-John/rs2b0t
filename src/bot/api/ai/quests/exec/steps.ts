@@ -21,6 +21,9 @@ import { gotoNpc, talkThrough, type LadderHop } from './primitives.js';
 /** How deep into the straight-line shortlist to look before giving up. */
 const BANK_CANDIDATES = 6;
 
+/** The fraction of a counter's estimate below which the purse is worth a bank trip. */
+const BUY_TOPUP_DIVISOR = 4;
+
 // Why: from the Lumbridge respawn the three closest banks by air — Al Kharid, Shantay Pass and the Duel Arena — sit behind the same 10gp toll gate, and the navigator prunes a fare it cannot pay.
 // Why: to a bot that has died every bank it can see is one it cannot reach, and the first it can walk to is only third on the list, so the navigator is asked for path costs.
 
@@ -60,9 +63,10 @@ export async function openBankLeg(noBankMsg: string, override: Tile | undefined,
     return Banking.open({ stand: bankTile, log });
 }
 
+// Why: `distanceTo` is a plan distance, so the floor below a first-storey shop reads as four tiles from it — the Magic Guild counter sat directly overhead while the step failed in a millisecond, twenty-three times.
 async function ensureAt(anchor: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
-    if (here && anchor.distanceTo(here) <= radius) {
+    if (here && here.level === anchor.level && anchor.distanceTo(here) <= radius) {
         return true;
     }
     return Traversal.walkResilient(anchor, { radius, attempts: 3, timeoutMs: 90_000, log });
@@ -211,14 +215,19 @@ export async function executeStep(step: QuestStep, hops: LadderHop[], log: (m: s
         }
         case 'buy': {
             const before = Inventory.count(step.item);
-            if (Inventory.count('Coins') < step.estGp) {
-                if (!(await openBankLeg('buy: no known bank for coins', undefined, log))) {
+            // Why: `estGp` estimates this counter's full list, not one item off it — so demanding the pack hold all of it before every purchase sent the run back to the bank after each one. Jiminua's eight-item list is about 520 coins of shopping and it made eight round trips to do it.
+            // Why: the trip is made when the purse drops towards what a single item could cost, and then draws the list total back. A quarter clears the dearest thing either counter sells with room over.
+            const floor = Math.ceil(step.estGp / BUY_TOPUP_DIVISOR);
+            if (Inventory.count('Coins') < floor) {
+                // Why: `reachableBank` picks by walking cost, and Shilo's teller has no booth behind its map icon — `Banking.open` needs the npc access the location declares.
+                if (!(await openBankLeg('buy: no known bank for coins', step.bank, log))) {
                     return false;
                 }
-                await Bank.withdrawX('Coins', step.estGp);
+                // Why: `withdrawX` takes its count ON TOP of the pack, so asking for the full estimate draws it twice — Legends' float plus a guild estimate carried 110k into a quest that fights a level-187 demon three times.
+                await Bank.withdrawX('Coins', step.estGp - Inventory.count('Coins'));
                 await Modals.close();
-                if (Inventory.count('Coins') < step.estGp) {
-                    log(`buy: bank could not cover ${step.estGp} gp for ${step.item}`);
+                if (Inventory.count('Coins') < floor) {
+                    log(`buy: bank could not cover ${floor} gp for ${step.item}`);
                     return false;
                 }
             }

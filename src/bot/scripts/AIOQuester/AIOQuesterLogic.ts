@@ -1,6 +1,7 @@
 import { foodForms, foodHealAmount, shouldEatToUseFood } from '../../api/combat/food.js';
 import { ArravConfig, type ArravGangSetting } from '../../api/ai/quests/defs/shieldofarrav/config.js';
 import { HeroConfig } from '../../api/ai/quests/defs/heroquest/config.js';
+import { LEGENDS_REWARD_OPTIONS, LegendsConfig, type LegendsReward } from '../../api/ai/quests/defs/legends/config.js';
 import type { QuestSustain } from '../../api/ai/quests/engine/types.js';
 
 export interface ResolvedSustainPolicy {
@@ -109,4 +110,11 @@ export function applyArravSettings(raw: { gang: string; partner: string; certs: 
 /** Push the panel setting onto the Hero's Quest config. */
 export function applyHeroSettings(raw: { partner: string }): void {
     HeroConfig.partner = raw.partner.trim();
+}
+
+// Why: an unknown skill falls back to Prayer rather than sending the run at a menu option Radimus does not offer, which would page the four menus round for ever.
+
+/** Push the panel setting onto the Legends Quest config. */
+export function applyLegendsSettings(raw: { reward: string }): void {
+    LegendsConfig.reward = LEGENDS_REWARD_OPTIONS.find(s => s === raw.reward) as LegendsReward ?? 'Prayer';
 }

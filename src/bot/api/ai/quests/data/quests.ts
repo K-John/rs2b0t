@@ -462,10 +462,25 @@ export const QUESTS: QuestRecord[] = [
             ],
             quests: ['hero', 'crest', 'zombiequeen', 'upass', 'waterfall']
         },
+        // Why: every entry is `acquirable` because eligibility runs before the bot has opened a booth, so its item snapshot is empty and any `mustHave` would block the quest at startup rather than after a bank scan.
+        // Why: papyrus, charcoal, the machete, the knife, the rope, the runes and the gold bars all have a counter or a rock the module walks to; everything below has neither, so the module parks with the exact shortfall.
+        // Why: no shop sells a rune axe (smithing 86), a lockpick (a rogue's pocket), an unpowered orb (a glassblower's pipe) or a cosmic rune outside the Mage Arena.
+        // Why: the seven gems are listed because no counter stocks opal, jade or red topaz, and the only rocks that drop them are the Shilo ones past Hajedy's cart — the module mines and cuts them when the bank is empty.
         items: [
-            { name: 'Gold bar', qty: 2, kind: 'mustHave' },
-            { name: 'Papyrus', qty: 3, kind: 'mustHave' },
-            { name: 'Charcoal', qty: 3, kind: 'mustHave' }
+            { name: 'Rune axe', qty: 1, kind: 'acquirable' },
+            { name: 'Lockpick', qty: 1, kind: 'acquirable' },
+            { name: 'Unpowered orb', qty: 1, kind: 'acquirable' },
+            { name: 'Cosmic rune', qty: 3, kind: 'acquirable' },
+            { name: 'Opal', qty: 1, kind: 'acquirable' },
+            { name: 'Jade', qty: 1, kind: 'acquirable' },
+            { name: 'Red topaz', qty: 1, kind: 'acquirable' },
+            { name: 'Sapphire', qty: 1, kind: 'acquirable' },
+            { name: 'Emerald', qty: 1, kind: 'acquirable' },
+            { name: 'Ruby', qty: 1, kind: 'acquirable' },
+            { name: 'Diamond', qty: 1, kind: 'acquirable' },
+            { name: 'Gold bar', qty: 2, kind: 'acquirable' },
+            { name: 'Papyrus', qty: 6, kind: 'acquirable' },
+            { name: 'Charcoal', qty: 6, kind: 'acquirable' }
         ]
     },
     {
