@@ -42,10 +42,7 @@ const THESSALIA = { npc: 'Thessalia', anchor: new Tile(3204, 3417, 0) };
 const SHOP_GP = 200;
 
 const CELLAR_UP_STAND = new Tile(2907, 9876, 0);
-const GATE_EAST_STAND = new Tile(2904, 9873, 0);
-const GATE_WEST_STAND = new Tile(2900, 9873, 0);
 const CUPBOARD_STAND = new Tile(2898, 9873, 0);
-const GATE_X = 2902;
 
 const has = (snap: QuestSnapshot, name: string): boolean => (snap.inv.get(name.toLowerCase()) ?? 0) > 0;
 const wornGloves = (snap: QuestSnapshot): boolean => snap.worn.has(GLOVES.toLowerCase());
@@ -75,19 +72,9 @@ async function magnetLeg(log: (m: string) => void): Promise<boolean> {
         }
         return false;
     }
-    if (t.x >= GATE_X) {
-        if (!(await Traversal.walkResilient(GATE_EAST_STAND, { radius: 1, attempts: 3, timeoutMs: 60_000, log }))) {
-            return false;
-        }
-        const gate = Locs.query().name('Gate').action('Open').within(4).nearest();
-        if (!gate) {
-            log('magnetLeg: no Gate to Open (LIVE-VERIFY the iron gate @ 2902,9873)');
-            return false;
-        }
-        await gate.interact('Open');
-        await Execution.delayUntil(() => { const g = Game.tile(); return g !== null && g.x <= GATE_X - 1; }, 6000);
-        return false;
-    }
+    // Why: the cellar gate is a transport hop the walker opens and crosses itself, so the leg names
+    // the cupboard and lets it. Opening the gate by hand and waiting to be on the far side waits for
+    // a move nothing makes — on the gate's own tile that spun for four minutes and 26 attempts.
     if (!(await Traversal.walkResilient(CUPBOARD_STAND, { radius: 2, attempts: 3, timeoutMs: 60_000, log }))) {
         return false;
     }
@@ -114,17 +101,6 @@ async function gardenLeg(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     if (isUnderground(t)) {
-        if (t.x <= GATE_X - 1) {
-            if (!(await Traversal.walkResilient(GATE_WEST_STAND, { radius: 1, attempts: 3, timeoutMs: 60_000, log }))) {
-                return false;
-            }
-            const gate = Locs.query().name('Gate').action('Open').within(4).nearest();
-            if (gate) {
-                await gate.interact('Open');
-                await Execution.delayUntil(() => { const g = Game.tile(); return g !== null && g.x >= GATE_X + 1; }, 6000);
-            }
-            return false;
-        }
         const ladder = Locs.query().name('Ladder').action('Climb-up').within(6).nearest();
         if (ladder) {
             await ladder.interact('Climb-up');
