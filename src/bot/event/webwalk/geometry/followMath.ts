@@ -62,6 +62,17 @@ export function selectClientWalkTarget(
     return -1;
 }
 
+/** Why: RS2 `tryMove(tryNearest)` reports success when the dest is an adjacent blocked pack tile, because the standing tile is dest±1. */
+export function clientWalkLeftSource(
+    src: { x: number; z: number },
+    path: ReadonlyArray<{ x: number; z: number }> | null | undefined
+): boolean {
+    if (!path || path.length < 2) {
+        return false;
+    }
+    return path.some(p => p.x !== src.x || p.z !== src.z);
+}
+
 export function starvedTerminalIndex(tiles: PathTileLike[], me: PathTileLike, isClickable: (t: PathTileLike) => boolean): number {
     const last = tiles.length - 1;
     if (last < 0) {
