@@ -97,7 +97,12 @@ export async function driveUntil(
  * Drive a message-box chain to its goal, clicking each box away as it comes.
  * @see docs/reference/quest-primitives.md
  */
-export async function driveBoxes(expect: () => boolean, ms: number, prefer: string[] = []): Promise<boolean> {
+export async function driveBoxes(
+    expect: () => boolean,
+    ms: number,
+    prefer: string[] = [],
+    log: (m: string) => void = () => {}
+): Promise<boolean> {
     const deadline = performance.now() + ms;
     while (performance.now() < deadline) {
         if (expect()) {
@@ -107,10 +112,11 @@ export async function driveBoxes(expect: () => boolean, ms: number, prefer: stri
         const opts = ChatDialog.options();
         if (opts.length > 0) {
             const pick = pickPreferred(opts, prefer);
-            // Why: an option list nothing matches cannot be advanced, but the goal may still land on its own, so this waits it out rather than spinning.
+            // Why: a list nothing matches is a chain that cannot move, and waiting on one spends the budget to learn what the first look already knew — Gujuo's four dead-end topics cost two minutes of silence each time, and left nothing for the walk that would have fixed them.
+            // Why: said out loud, because the option list is the one piece of evidence that names what the script wanted and the module did not offer.
             if (!pick) {
-                await Execution.delayTicks(1);
-                continue;
+                log(`no preferred option in [${opts.join(' | ')}]`);
+                return expect();
             }
             await ChatDialog.chooseOption(pick);
             await Execution.delayTicks(2);
@@ -288,7 +294,7 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
     if (status !== 'done') {
         return false;
     }
-    const answered = await driveBoxes(step.expect, step.expectMs ?? 20_000, step.prefer ?? []);
+    const answered = await driveBoxes(step.expect, step.expectMs ?? 20_000, step.prefer ?? [], log);
     // Why: the goal can land mid-chain now that it is tested between clicks, and a page left standing would meet the next step as a stale modal.
     // Why: cleared on the way out either way, because a prompt that failed is exactly the one whose next step is a retry, and a retry that cannot click is a step that never recovers.
     await clearBoxes();

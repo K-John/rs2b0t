@@ -375,7 +375,7 @@ export async function takeBlackDagger(log: (m: string) => void): Promise<boolean
     }
     await Execution.delayUntil(() => spirit(), 12_000);
     // Why: Echned hands the dagger through `~objbox`, and the `inv_add` behind it only runs once the box is clicked — a chat-only driver waits out two minutes holding the script shut.
-    return driveBoxes(() => heldId(LQ_ID.DEATH_DAGGER) > 0, 120_000, ECHNED_PREFER);
+    return driveBoxes(() => heldId(LQ_ID.DEATH_DAGGER) > 0, 120_000, ECHNED_PREFER, log);
 }
 
 // Why: Ungadulu is the only source of the Holy Force spell and he wants the dagger for it, which is what makes the climb back up the trials part of the quest rather than an accident.

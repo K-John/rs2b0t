@@ -232,7 +232,7 @@ export async function getBullroarer(log: (m: string) => void): Promise<boolean> 
         return false;
     }
     // Why: the forester hands the roarer through `~objbox`, and the `inv_add` behind it only runs once the box is clicked — a chat-only driver waits out its budget holding the script shut.
-    return driveBoxes(() => heldId(LQ_ID.BULLROARER) > 0, 60_000, FORESTER_PREFER);
+    return driveBoxes(() => heldId(LQ_ID.BULLROARER) > 0, 60_000, FORESTER_PREFER, log);
 }
 
 const GUJUO_LEASH = 14;
@@ -310,7 +310,7 @@ export function talkGujuoStatus(
             return 'nodialog';
         }
         // Why: `gujuo_vessel` hands the sketch through `~objbox`, which renders in the MAIN modal and suspends the script — the `inv_add` behind it only runs once the box is clicked. `driveUntil` clicks the CHAT modal alone, so the box stood, the sketch never came, and a step whose goal is the sketch spent its whole budget waiting on a script it was holding shut.
-        const ok = goal ? await driveBoxes(goal, ms, prefer) : await driveToEnd(prefer, log, ms, required);
+        const ok = goal ? await driveBoxes(goal, ms, prefer, log) : await driveToEnd(prefer, log, ms, required);
         return ok ? 'goal' : 'nogoal';
     };
 }

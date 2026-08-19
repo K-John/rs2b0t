@@ -99,3 +99,23 @@ test('clearBoxes dismisses a chain that rendered as chat continues', async () =>
     expect(chain).toHaveLength(0);
     asChat.forEach(fn => fn());
 });
+
+// Why: a list nothing matches is a chain that cannot move, and waiting on one spends the budget to learn what the first look already knew — Gujuo's four dead-end topics cost two minutes of silence each time, and left nothing for the walk that would have fixed them.
+test('an option list nothing matches gives up at once, and says what it saw', async () => {
+    chain = [];
+    const said: string[] = [];
+    const asChat = [
+        stubProps(Modals, { isOpen: () => false }),
+        stubProps(ChatDialog, {
+            isOpen: () => true,
+            canContinue: () => false,
+            options: () => ['Sorry for bothering you.', "Ungadulu mumbled something about 'pure' water?"]
+        })
+    ];
+    const got = await driveBoxes(() => false, 30_000, ['I need some pure water to douse some magic flames.'], m => said.push(m));
+
+    expect(got).toBe(false);
+    expect(said[0]).toContain('no preferred option');
+    expect(said[0]).toContain('mumbled');
+    asChat.forEach(fn => fn());
+});
