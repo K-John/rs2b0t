@@ -12,7 +12,7 @@ import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { talkThrough, type NpcStop } from '../exec/primitives.js';
 import { GARLIC, MORGAN_STAIRS_TOP, takeGarlic } from '../exec/garlic.js';
-import { QuestFood } from '../food.js';
+import { FOOD_FLOAT, QuestFood } from '../food.js';
 
 export const VAMPIRE_SLAYER_STAGE = {
     NOT_STARTED: 0,
@@ -64,7 +64,7 @@ const ITEM = {
 const COUNT_DRAYNOR_ID = 757;
 const COFFIN_CLOSED_ID = 2614;
 
-const FOOD_TARGET = 20;
+const FOOD_TARGET = FOOD_FLOAT;
 const COIN_FLOAT = 5000;
 const COIN_RESERVE = 2000;
 

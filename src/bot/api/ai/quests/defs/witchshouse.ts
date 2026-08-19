@@ -10,6 +10,7 @@ import Tile from '../../../../geometry/Tile.js';
 import { isUnderground, type NpcStop } from '../exec/primitives.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { QUESTS } from '../data/quests.js';
+import { FOOD_FLOAT } from '../food.js';
 
 const DOOR_KEY = 'Door key';
 const MAGNET = 'Magnet';
@@ -224,7 +225,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 export const witchshouse: QuestModule = {
     record: QUESTS.find(r => r.id === 'ball')!,
     bank: new Tile(2946, 3369, 0),
-    food: 20,
+    food: FOOD_FLOAT,
     grind: EXPERIMENT_FORMS,
     tools: ['door key', 'key', 'magnet', 'cheese', 'ball', 'leather gloves'],
     decide

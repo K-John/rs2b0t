@@ -12,7 +12,7 @@ import { gotoNpc, talkThrough, type NpcStop } from '../exec/primitives.js';
 import { executeStep } from '../exec/steps.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { QUESTS } from '../data/quests.js';
-import { QuestFood } from '../food.js';
+import { FOOD_FLOAT, QuestFood } from '../food.js';
 
 /** Named, so the step literals below get a Tile and not the module's wider type. */
 const DRAYNOR_BANK = new Tile(3093, 3243, 0);
@@ -35,7 +35,7 @@ const VARROCK_FUNDING_MAN = new Tile(3240, 3405, 0);
 const AL_KHARID_FUNDING_MAN = new Tile(3279, 3188, 0);
 const KEBAB_SELLER = new Tile(3272, 3182, 0);
 
-export const GOBLIN_MAIL_FOOD_TARGET = 20;
+export const GOBLIN_MAIL_FOOD_TARGET = FOOD_FLOAT;
 export const GOBLIN_MAIL_FOOD_RESTOCK_FLOOR = 4;
 export const GOBLIN_DIPLOMACY_COIN_TARGET = 200;
 export const GOBLIN_DIPLOMACY_QUEST_COIN_RESERVE = 100;

@@ -1,14 +1,14 @@
 import { Skills } from '../../../../skills/Skills.js';
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { QuestFood } from '../../food.js';
+import { FOOD_FLOAT, QuestFood } from '../../food.js';
 import { KS_ID, KS_NAME, KS_STAGE, RELDO, SQUIRE, THURGO } from './areas.js';
 import { mineBlurite } from './dungeon.js';
 import { readKnightsSwordProgress } from './journal.js';
 import { fetchPortrait } from './portrait.js';
 import { bankedId, heldId, ironBarsAt, kit, pie, pieDish } from './supplies.js';
 
-const FOOD_TARGET = 14;
+const FOOD_TARGET = FOOD_FLOAT;
 const FOOD_LOW = 5;
 
 const talk = (stop: typeof SQUIRE): QuestStep => ({ kind: 'talk', stop });

@@ -8,7 +8,7 @@ import { Npcs } from '../../../../npcs/Npcs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { talkChoosingBy } from '../../exec/primitives.js';
-import { QuestFood } from '../../food.js';
+import { FOOD_FLOAT, QuestFood } from '../../food.js';
 import { COMBAT_FOODS, TENZING_BOOTS, TENZING_DONE_RULES } from '../trollstronghold/areas.js';
 import { plannedGear, wearAll } from '../trollstronghold/index.js';
 import {
@@ -33,7 +33,7 @@ export const COIN_FLOAT = 1000;
 
 /** Below this the purse is refilled to {@link COIN_FLOAT}. */
 export const COIN_FLOOR = 200;
-export const FOOD_TARGET = 10;
+export const FOOD_TARGET = FOOD_FLOAT;
 // Why: the scarecrow is sixteen slots of grain and chicken, so the float shrinks to make room — but only while that load is still being gathered.
 // Why: holding it down across stages 60 and 70 sent the character up the thrower gauntlet on four lobsters and it died three times.
 

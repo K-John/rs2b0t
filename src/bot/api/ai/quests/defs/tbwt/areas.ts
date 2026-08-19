@@ -1,5 +1,6 @@
 import Tile from '../../../../../geometry/Tile.js';
 import type { NpcStop } from '../../exec/primitives.js';
+import { FOOD_FLOAT } from '../../food.js';
 
 export const TBWT_QUEST = 'Tai Bwo Wannai Trio';
 
@@ -137,7 +138,7 @@ export const TB_NAME = {
 export const TB_GEAR: readonly string[] = [TB_NAME.BOW, TB_NAME.ARROWS, TB_NAME.BODY, TB_NAME.LEGS, TB_NAME.HELM];
 
 export const ARROW_TARGET = 200;
-export const FOOD_TARGET = 10;
+export const FOOD_TARGET = FOOD_FLOAT;
 export const COIN_TARGET = 500;
 
 export const TB_TILE = {

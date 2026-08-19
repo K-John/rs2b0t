@@ -1,6 +1,7 @@
 import Tile from '../../../../../geometry/Tile.js';
 import type { QuestSnapshot } from '../../engine/types.js';
 import type { NpcStop } from '../../exec/primitives.js';
+import { FOOD_FLOAT } from '../../food.js';
 
 /** Display names from the content obj configs. */
 export const ITEM = {
@@ -14,7 +15,7 @@ export const ITEM = {
 export const BOOT_COST = 12;
 /** Enough for the boots several times over, and nothing worth a second bank trip. */
 export const COIN_FLOAT = 500;
-export const FOOD_TARGET = 16;
+export const FOOD_TARGET = FOOD_FLOAT;
 /** Below this the loadout is spent and the module walks back down for more. */
 export const FOOD_FLOOR = 4;
 

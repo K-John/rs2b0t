@@ -9,6 +9,7 @@ import {
 } from './areas.js';
 import { readScorpionProgress } from './journal.js';
 import { CATCH_LEG, askTheSeer } from './legs.js';
+import { FOOD_FLOAT } from '../../food.js';
 
 function firstCage(counts: ReadonlyMap<number, number> | undefined): number | undefined {
     for (const id of EVERY_CAGE) {
@@ -83,7 +84,7 @@ export const scorpcatcher: QuestModule = {
     record: QUESTS.find(r => r.id === 'scorpcatcher')!,
     // Why: the quest is spread over the Sorcerer's Tower, the Barbarian Outpost, Taverley Dungeon and the monastery, so the nearest bank beats any one of them pinned.
     bank: SC_TILE.BANK,
-    food: 12,
+    food: FOOD_FLOAT,
     // Why: the ten-bar barcrawl is the only way past the outpost gate, and the Karamja antipoison is two ferry fares on top of it — both are bought with the engine's coin float.
     coinFloat: Math.max(1000, BARCRAWL_GP * 2 + ANTIPOISON_GP),
     tools: [CAGE_NAME, SC_ITEM.DUSTY_KEY, SC_ITEM.JAIL_KEY, BARCRAWL_CARD, ...ANTIPOISON_DOSES],
