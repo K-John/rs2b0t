@@ -282,7 +282,7 @@ describe('watchtower decide — the tribes', () => {
     test('Toban is next once Og is helped, and is spoken to before he wants bones', () => {
         const step = decide(snapshot({
             progress: P(2, 'helped-og'),
-            bankIds: new Map([[WT_ITEM.DRAGON_BONES.id, 1]])
+            invIds: new Map([[WT_ITEM.DRAGON_BONES.id, 1]])
         }));
         expect(step.kind === 'custom' && step.name).toMatch(/toban/i);
     });
@@ -855,5 +855,66 @@ describe('the enclave food is whatever the player chose to eat', () => {
         const step = decide(enclaveTrip([['lobster', 100]]));
         expect(step.kind).toBe('withdraw');
         expect(step.kind === 'withdraw' && step.items[0].name).toBe('Lobster');
+    });
+});
+
+describe('the kit comes out of the bank in one trip', () => {
+    const FULL_BANK = new Map<string, number>([['lobster', 100]]);
+    const bankIds = (): Map<number, number> => new Map([
+        [WT_ITEM.COINS.id, 50_000],
+        [WT_ITEM.ROPE.id, 1],
+        [WT_ITEM.VIAL_WATER.id, 1],
+        [WT_ITEM.PESTLE.id, 1],
+        [WT_ITEM.PICKAXE.id, 1],
+        [WT_ITEM.DEATH_RUNE.id, 5],
+        [WT_ITEM.GUAM_LEAF.id, 1],
+        [WT_ITEM.BAT_BONES.id, 1],
+        [WT_ITEM.DRAGON_BONES.id, 1],
+        [WT_ITEM.GOLD_BAR.id, 1],
+        [WT_ITEM.SKAVID_MAP.id, 1],
+        [WT_ITEM.LIT_CANDLE.id, 1]
+    ]);
+
+    const started = (o: Partial<QuestSnapshot> = {}): QuestSnapshot => snapshot({
+        progress: P(WATCHTOWER_STAGE.STARTED),
+        bankKnown: true,
+        bank: FULL_BANK,
+        bankIds: bankIds(),
+        ...o
+    });
+
+    test('one withdraw carries the whole banked kit, not one item per trip', () => {
+        const step = decide(started());
+        expect(step.kind).toBe('withdraw');
+        const names = step.kind === 'withdraw' ? step.items.map(i => i.name) : [];
+        for (const want of ['Coins', 'Rope', 'Vial of water', 'Pestle and mortar', 'Bronze pickaxe',
+            'Death rune', 'Guam leaf', 'Bat bones', 'Dragon bones', 'Gold bar', 'Skavid map', 'Lit candle']) {
+            expect(names).toContain(want);
+        }
+    });
+
+    test('the configured food rides along in the same trip', () => {
+        const step = decide(started());
+        const names = step.kind === 'withdraw' ? step.items.map(i => i.name) : [];
+        expect(names).toContain('Lobster');
+    });
+
+    test('what the bank does not hold is left to the shop and the quest', () => {
+        const step = decide(started({ bankIds: new Map([[WT_ITEM.ROPE.id, 1]]), bank: new Map() }));
+        const names = step.kind === 'withdraw' ? step.items.map(i => i.name) : [];
+        expect(names).toEqual(['Rope']);
+    });
+
+    test('nothing is drawn twice — a full pack moves the quest on', () => {
+        const held = new Map(bankIds());
+        const step = decide(started({
+            invIds: held,
+            inv: new Map([['lobster', 8]])
+        }));
+        expect(step.kind).not.toBe('withdraw');
+    });
+
+    test('an unread bank is left alone, so a quest wanting nothing takes no trip', () => {
+        expect(decide(started({ bankKnown: false })).kind).not.toBe('withdraw');
     });
 });
