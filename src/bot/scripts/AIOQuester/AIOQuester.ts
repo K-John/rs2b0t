@@ -15,7 +15,6 @@ import { QuestFood } from '../../api/ai/quests/food.js';
 import { prayerUpkeep, setQuestPrayer } from '../../api/ai/quests/prayer.js';
 import { QuestLoadout } from '../../api/ai/quests/gear.js';
 import { FOOD_OPTIONS } from '../../api/combat/food.js';
-import { foodOf } from '../../api/loadout/loadoutPlan.js';
 import { LOADOUT_SETTING, selectedLoadout } from '../../api/loadout/loadoutSetting.js';
 import type { QueueRow } from '../../api/ai/quests/engine/queue.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
@@ -64,7 +63,7 @@ export const AIO_SETTINGS: SettingsSchema = {
         default: FALLBACK_FOOD,
         options: FOOD_OPTIONS,
         label: 'Food',
-        help: 'what the engine withdraws for any quest declaring a food count, and what the bot eats; a loadout carrying its own food wins over this'
+        help: 'what the engine withdraws for any quest declaring a food count, and what the bot eats; this wins over any food the chosen loadout carries'
     },
     arravGang: {
         type: 'string',
@@ -184,8 +183,10 @@ export default class AIOQuester extends TaskBot {
         setQuestPrayer(null, null);
     }
 
+    // Why: the setting is the answer for quests — a loadout built for a training script carries whatever
+    // that script eats, and letting it override sent the queue out on food the player never chose.
     foodItem(): string | null {
-        return foodOf(QuestLoadout.current, this.settings.str('food', FALLBACK_FOOD));
+        return this.settings.str('food', FALLBACK_FOOD);
     }
 
     verbose(): boolean {
