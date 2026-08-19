@@ -4,6 +4,8 @@ import { Execution } from '../../api/execution/Execution.js';
 import { Reachability } from './geometry/Reachability.js';
 import { Input } from '../../input/Input.js';
 import { isArrived } from './geometry/arrival.js';
+import { closestReachableToward } from './geometry/localReach.js';
+import { clientWalkLeftSource } from './geometry/followMath.js';
 
 export const DirectNavigator = {
     walk(dest: WorldTile): boolean | Promise<boolean> {
@@ -17,12 +19,25 @@ export const DirectNavigator = {
             z: Math.max(me.z - 48, Math.min(me.z + 48, dest.z))
         };
 
-        const local = reader.toLocal(clamped.x, clamped.z);
+        const meLocal = reader.toLocal(me.x, me.z);
+        let local = reader.toLocal(clamped.x, clamped.z);
         if (!local) {
             return false;
         }
-
-        return Input.walk(local.lx, local.lz);
+        if (!Input.walk(local.lx, local.lz) || !clientWalkLeftSource(me, reader.lastWalkPathWorld())) {
+            if (!meLocal) {
+                return false;
+            }
+            const live = closestReachableToward((lx, lz) => reader.collisionFlags(lx, lz), meLocal, local);
+            if (!live) {
+                return false;
+            }
+            local = live;
+            if (!Input.walk(local.lx, local.lz)) {
+                return false;
+            }
+        }
+        return clientWalkLeftSource(me, reader.lastWalkPathWorld());
     },
 
     async walkTo(dest: WorldTile, radius: number = 2, timeoutMs: number = 45000): Promise<boolean> {
