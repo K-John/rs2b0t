@@ -10,7 +10,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { GEM_ROCKS, LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_TILE, WALL_RUNES, inOctagram, legendsArea } from './areas.js';
 import { legendsPocket, type LegendsPocket } from './pockets.js';
-import { clearBoxes, driveBoxes, driveUntil, heldId, modalText, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { clearBoxes, driveBoxes, driveUntil, heldId, locNear, modalText, promptLoc, settleScene, useOnLoc } from './scene.js';
 
 /** Which sealed pocket of the cave complex we are standing in. */
 export function pocket(): LegendsPocket | null {
@@ -693,6 +693,11 @@ export async function leaveShamanCave(log: (m: string) => void): Promise<boolean
     );
     if (ok) {
         await settleScene();
+    } else {
+        // Why: this is the last thing between the shaman cave and every errand above ground, and it failed without a word — one walk, an arrival, and a step that gave up. What it could see from where it stood is the whole question.
+        const at = Game.tile();
+        const door = locNear(LQ_LOC.CAVE_ENTRANCE, 'Walk through', 8);
+        log(`the cave entrance would not let us out — stood at (${at?.x},${at?.z}), '${LQ_LOC.CAVE_ENTRANCE}' ${door ? 'in range' : 'not in range'}`);
     }
     return ok;
 }

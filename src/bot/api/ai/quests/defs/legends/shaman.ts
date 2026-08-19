@@ -137,7 +137,7 @@ export async function askGujuoForWater(log: (m: string) => void): Promise<boolea
     // Why: the trip back is the half that fails, and returning its verdict bare left the one interesting failure of this step with nothing said about it at all.
     const after = await gujuoWaterTalk(log);
     if (after !== 'goal') {
-        log(`back from Ungadulu and Gujuo still ${after === 'nodialog' ? 'would not talk' : 'had no topic'}`);
+        log(`back from Ungadulu and the sketch still did not come — ${after === 'nodialog' ? 'no conversation happened' : 'no topic on his menu'}`);
     }
     return after === 'goal';
 }
