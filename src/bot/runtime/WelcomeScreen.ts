@@ -7,7 +7,7 @@ export function welcomeNeedsDismiss(ingame: boolean, mainModal: number): boolean
 }
 
 /**
- * Dismiss the post-login welcome modal while it is actually open.
+ * Dismiss the post-login welcome modal while it is the open main modal.
  * Why: `closeMainModal` only clears local `mainModalId` — Close Window is a CLOSE_BUTTON click.
  */
 class WelcomeDismisserImpl {
