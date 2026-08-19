@@ -2,10 +2,11 @@
  *  Why: `doric` is the default target because it declares `ownsInventory`, the flag that used to opt a quest out of every generic deposit — a full pack survived into its own withdrawal and there was nowhere to put the ore. */
 
 //   HEADED=1 bun e2e/aio-fresh-pack-live.ts --quest doric --junk 28 --minutes 8
+//   HEADED=1 bun e2e/aio-fresh-pack-live.ts --quest doric --junk 28 --resume doricquest=10 --minutes 8
 import type { Page } from 'playwright-core';
 
 import { deployIsolatedClient, launchBrowser } from './lib/harness.js';
-import { cheatQuiet, mainlandAccount, startScript } from './tutorial/harness.js';
+import { cheatQuiet, mainlandAccount, relog, startScript } from './tutorial/harness.js';
 
 interface Args {
     base: string;
@@ -13,6 +14,7 @@ interface Args {
     quest: string;
     junk: number;
     junkObj: string;
+    resume: string;
     minutes: number;
     tickMs: number;
     deploy: boolean;
@@ -25,6 +27,7 @@ function parseArgs(argv: string[]): Args {
         quest: 'doric',
         junk: 28,
         junkObj: 'cow_hide',
+        resume: '',
         minutes: 8,
         tickMs: 300,
         deploy: true
@@ -38,6 +41,7 @@ function parseArgs(argv: string[]): Args {
         else if (flag === '--quest') { out.quest = value; }
         else if (flag === '--junk') { out.junk = Number(value); }
         else if (flag === '--junk-obj') { out.junkObj = value; }
+        else if (flag === '--resume') { out.resume = value; }
         else if (flag === '--minutes') { out.minutes = Number(value); }
         else if (flag === '--tick') { out.tickMs = Number(value); }
     }
@@ -90,6 +94,15 @@ try {
     console.log(`mainland-ready as '${args.user}'`);
     await cheatQuiet(page, `speed ${args.tickMs}`);
 
+    if (args.resume !== '') {
+        // Why: update_questlist only recolours the journal at login, so the varp alone leaves the
+        // status reading notStarted and the run proves the wrong branch.
+        const [name, value] = args.resume.split('=');
+        await cheatQuiet(page, `setvar ${name} ${value}`);
+        await relog(page, args.user);
+        console.log(`resumed: ${name}=${value} — the quest's journal now reads in progress`);
+    }
+
     // Why: cowhide does not stack, so one command fills one slot per unit — a pack no quest asked for.
     await cheatQuiet(page, `~item ${args.junkObj} ${args.junk}`);
     const seeded = (await snapshot(page)).used;
@@ -115,7 +128,7 @@ try {
                 console.log(`  [${Math.round((Date.now() - t0) / 1000)}s] ${line.msg}`);
                 lastLog = Math.max(lastLog, line.time);
             }
-            if (/not started — banking \d+ carried slot\(s\)/i.test(line.msg)) {
+            if (/(not started|first quest of the session) — banking \d+ carried slot\(s\)/i.test(line.msg)) {
                 sawFreshenLog = true;
             }
         }
