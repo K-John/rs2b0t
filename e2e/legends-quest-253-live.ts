@@ -5,6 +5,7 @@
 //   HEADED=1 bun e2e/legends-quest-253-live.ts --stage 0 --minutes 180          # full run
 //   HEADED=1 bun e2e/legends-quest-253-live.ts --stage 8 --until 12 --kit       # one leg, pre-kitted
 //   HEADED=1 bun e2e/legends-quest-253-live.ts --stage 7 --until 8 --nobits      # the recovery a resume needs
+//   HEADED=1 bun e2e/legends-quest-253-live.ts --stage 8 --until 10 --prayer 99  # the trance at its worst odds
 import type { Page } from 'playwright-core';
 import { deployIsolatedClient, launchBrowser } from './lib/harness.js';
 import {
@@ -19,6 +20,9 @@ import {
     type BankSeedItem
 } from './tutorial/harness.js';
 
+/** The quest's own requirements, as `legends_journal.rs2` renders them, at the level under test. */
+const STAT_LEVEL = 70;
+
 interface Args {
     base: string;
     user: string;
@@ -29,6 +33,9 @@ interface Args {
     /** Seed the gems, gold bars and papyrus the module would otherwise mine and buy. */
     kit: boolean;
     // Why: `bitsFor` hands a stage jump the `%legends_bits` a continuous run would have set, which for stage 7 includes `asked_ungadulu_who` — the one bit that makes Gujuo offer the pure-water topic first time. A leg run with it set never exercises the recovery in `askGujuoForWater`.
+
+    /** Prayer to seed, apart from the rest. Gujuo's trance is hardest on a devout account. */
+    prayer: number;
 
     /** Leave `%legends_bits` clear, to test the recovery a resume needs. */
     noBits: boolean;
@@ -44,6 +51,7 @@ function parse(argv: string[]): Args {
         minutes: 180,
         tickMs: 300,
         kit: false,
+        prayer: STAT_LEVEL,
         noBits: false,
         deploy: true
     };
@@ -61,6 +69,7 @@ function parse(argv: string[]): Args {
         else if (flag === '--until') { out.until = Number(value); }
         else if (flag === '--minutes') { out.minutes = Number(value); }
         else if (flag === '--tick') { out.tickMs = Number(value); }
+        else if (flag === '--prayer') { out.prayer = Number(value); }
     }
     return out;
 }
@@ -76,8 +85,6 @@ const QUEST = 'Legends Quest';
 // Why: Karamja has no bank in this content, so the quest's own float sits in Ardougne West.
 const ARDOUGNE_BANK = { x: 2616, z: 3332, level: 0 };
 
-/** The quest's own requirements, as `legends_journal.rs2` renders them, at the level under test. */
-const STAT_LEVEL = 70;
 const STATS = [
     'attack', 'strength', 'defence', 'hitpoints', 'ranged', 'prayer', 'magic',
     'cooking', 'woodcutting', 'fletching', 'fishing', 'firemaking', 'crafting',
@@ -268,10 +275,11 @@ try {
 
     // Why: `setstat` is a built-in branch with no level-up cascade, so unlike ~maxme it leaves the player undelayed and the next command lands.
     for (const stat of STATS) {
-        await cheatQuiet(page, `setstat ${stat} ${STAT_LEVEL}`);
+        await cheatQuiet(page, `setstat ${stat} ${stat === 'prayer' ? args.prayer : STAT_LEVEL}`);
     }
     await clearChatDialogs(page, 'level dialog(s)');
-    console.log(`stats: every skill at ${STAT_LEVEL}`);
+    // Why: Gujuo's trance climbs about 1.73 for every point of prayer and true is the miss, so the blessing is hardest on a devout account — a fixed seventy tests neither the forty-two the quest asks for nor the ninety-nine that misses ninety-eight times in a hundred.
+    console.log(`stats: every skill at ${STAT_LEVEL}, prayer at ${args.prayer}`);
 
     const seed = args.kit ? [...BANK_SEED, ...KIT_SEED] : BANK_SEED;
     console.log(`seeding ${seed.length} item type(s) into the Ardougne bank`);
