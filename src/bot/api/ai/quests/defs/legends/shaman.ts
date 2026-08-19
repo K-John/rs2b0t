@@ -176,8 +176,10 @@ const BLESS_ATTEMPTS = 20;
 // Why: a miss ends the conversation outright. Gujuo offers a retry, but the five points it just took put the answer under his own forty-two gate, so "too inexperienced" closes the chain — and a wait watching for a blessing that is no longer coming polled a chat that had already gone for the whole forty seconds, four times over.
 const BLESS_MS = 40_000;
 
-/** How many idle ticks end the wait, so a gap between two boxes is not read as the end. */
-const BLESS_IDLE_TICKS = 5;
+// Why: the trance closes its own dialogue and then chants — `if_close`, two `mes`, then six `p_delay(2)` carrying `npc_say`/`say`, which are overhead chat and open no widget. That is twelve ticks in which nothing is up and the throw has not resolved, so a shorter patience gives up mid-meditation, reports the trance quiet, and re-offers the bowl to a shaman still humming.
+
+/** How many idle ticks end the wait, longer than the trance's own twelve of silence. */
+const BLESS_IDLE_TICKS = 20;
 
 /** What Gujuo's own words said about a throw, read while the chain is still up. */
 export type Trance = 'blessed' | 'refused' | 'missed' | 'quiet';
