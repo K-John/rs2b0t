@@ -286,6 +286,10 @@ async function eatOne(log: (m: string) => void): Promise<boolean> {
 // Why: the pack is tightest through the trials and the fights want the most food, so the float is chosen by where the quest is rather than once.
 // Why: the Book of Binding in the pack is what says the trials are behind us and the octagram demon is next, which the stage alone does not — both are stage 10.
 function foodFor(snap: QuestSnapshot, stage: number): number {
+    // Why: nothing after the last demon is a fight. The gilded totem is a walk to Radimus and four training sessions, so a fight float there is a bank trip for flasks the quest will never drink — and `potsFor` reads this, so it is what sent the run for prayer potions on its way to hand the totem in.
+    if (stage >= LQ_STAGE.DEFEATED_NEZI_FINAL) {
+        return FOOD.jungle;
+    }
     // Why: everything from the winch down is a fight — three aggressive guardians, then the demon at the source — so the trials float ends where the trials do.
     if (held(snap, LQ_ID.BOOK_OF_BINDING) > 0 || stage >= LQ_STAGE.ENTER_LOWER_DUNGEON) {
         return FOOD.fight;
@@ -632,6 +636,15 @@ function stageReplace(snap: QuestSnapshot): QuestStep {
         return inTheOpen(snap, step('take the gilded totem to Radimus', handInTotem));
     }
     if (held(snap, LQ_ID.TOTEM_POLE) > 0) {
+        // Why: replacing the totem is what spawns Nezikchened for the last time, and the totems stand in the Kharazi jungle — where `choose` never reaches its upkeep, since that branch only runs on the mainland. So the fight kit is asked for here or the demon is met with whatever the fight before it left.
+        const kit = offIsland(snap, upkeep(snap, FOOD.fight, FIGHT_POTS));
+        if (kit) {
+            return kit;
+        }
+        // Why: the same silence as the octagram — `potionTopUp` answers null when the bank has no flask, and Protect from Melee cannot be raised on an empty prayer bar, so the last demon is fought with no protection and nothing says why.
+        if (potsHeld(snap) === 0 && potsBanked(snap) === 0) {
+            return { kind: 'wait', reason: 'no prayer potion in the pack or the bank, and replacing the totem spawns Nezikchened on the spot' };
+        }
         return step('replace the evil totem and kill what comes out', replaceEvilTotem);
     }
     return step('collect the gilded totem from Gujuo', takeGildedTotem);

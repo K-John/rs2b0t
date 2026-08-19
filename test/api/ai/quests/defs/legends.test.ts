@@ -508,7 +508,7 @@ describe('Legends Quest decide', () => {
     });
 
     test('a carved pole is taken to an evil totem', () => {
-        const step = decide(kitted({ stage: LQ_STAGE.COLLECTED_TOTEM, invIds: [LQ_ID.TOTEM_POLE] }));
+        const step = decide(kitted({ stage: LQ_STAGE.COLLECTED_TOTEM, invIds: [PRAYER_POTIONS[0]!.id, LQ_ID.TOTEM_POLE] }));
         expect(name(step)).toBe('custom:replace the evil totem and kill what comes out');
     });
 
@@ -623,6 +623,29 @@ describe('Legends Quest decide', () => {
         const step = decide({ ...lean, freeSlots: 12 });
         expect(step.kind).toBe('withdraw');
         expect(step.kind === 'withdraw' && step.items[0]?.name).toBe(PRAYER_POTIONS[0]!.name);
+    });
+
+    // Why: replacing the totem spawns Nezikchened on the spot, and the totems stand in the jungle where the upkeep branch never runs — so the kit is asked for at the step or the demon gets what the fight before it left.
+    test('the last demon is kitted for before the totem is replaced', () => {
+        const bare = snap({
+            stage: LQ_STAGE.COLLECTED_TOTEM,
+            invIds: [LQ_ID.TOTEM_POLE, LQ_ID.COINS],
+            inv: ['Coins'],
+            bankIds: [LQ_ID.COINS, PRAYER_POTIONS[0]!.id, ...Array.from({ length: 20 }, () => LQ_ID.SHARK)],
+            bank: ['Coins', 'Prayer potion(4)', 'Shark']
+        });
+        expect(name(decide(bare))).not.toBe('custom:replace the evil totem and kill what comes out');
+    });
+
+    // Why: nothing after the last demon is a fight, so a flask fetched on the way to hand the totem in is a bank trip for something the quest will never drink.
+    test('the gilded totem is walked to Radimus, not taken shopping', () => {
+        const done = kitted({
+            stage: LQ_STAGE.GOT_GILDED_TOTEM,
+            invIds: [LQ_ID.GILDED_TOTEM],
+            bankIds: [PRAYER_POTIONS[0]!.id],
+            bank: ['Prayer potion(4)', 'Coins']
+        });
+        expect(name(decide(done))).toBe('custom:take the gilded totem to Radimus');
     });
 
     // Why: the outer gate shuts behind whoever picked it and the boulders drop back down, so a second descent is paid for in full.
