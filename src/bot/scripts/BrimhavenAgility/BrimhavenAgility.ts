@@ -39,10 +39,10 @@ import {
     hasPaid,
     inArena,
     inArenaPit,
-    CAKE_STEAL_FILL,
     GUARD_THIEVING_MIN,
     STEAL_THIEVING_MIN,
     needsCakeSteal,
+    shouldLeaveForSteal,
     needsCoinsRestock,
     needsFoodSaleForBoat,
     strandedWithoutBoatFare,
@@ -280,7 +280,13 @@ export default class BrimhavenAgility extends TaskBot {
     }
 
     needsCakesNow(): boolean {
-        return needsCakeSteal(this.foodInPack(), this.cakesInPack(), this.stealRestock, this.needsCoinsNow());
+        return needsCakeSteal(
+            this.foodInPack(),
+            this.cakesInPack(),
+            this.stealRestock,
+            this.needsCoinsNow(),
+            this.foodPerTrip
+        );
     }
 
     onBrimhavenNow(): boolean {
@@ -394,10 +400,12 @@ function findEdible(food: string) {
 class LeaveForSteal implements Task {
     constructor(private bot: BrimhavenAgility) {}
     validate(): boolean {
-        if (!this.bot.cfg().stealRestock || !this.bot.inArenaNow()) {
-            return false;
-        }
-        return this.bot.needsCakesNow() || this.bot.needsCoinsNow();
+        return shouldLeaveForSteal(
+            this.bot.cfg().stealRestock,
+            this.bot.inArenaNow(),
+            this.bot.edibleInPack(),
+            this.bot.needsCoinsNow()
+        );
     }
     async execute(): Promise<void> {
         this.bot.setStatus('leaving arena to steal restock');
@@ -464,7 +472,7 @@ class StealFood implements Task {
         }
         this.bot.setStatus('stealing cakes at the Baker\'s stall');
         const result = await stealCakes({
-            fillTo: CAKE_STEAL_FILL,
+            fillTo: this.bot.cfg().foodPerTrip,
             abort: () => !this.bot.needsCakesNow(),
             shouldEat: () => shouldEat(this.bot.hp(), this.bot.edibleInPack()),
             setStatus: s => this.bot.setStatus(s),
@@ -877,7 +885,7 @@ class CrossObstacle implements Task {
         if (!canStartObstacle(Game.animating(), false)) {
             return false;
         }
-        if (shouldBank(this.bot.ticketCount(), this.bot.foodInPack(), this.bot.cfg().bankAtTickets)) {
+        if (shouldBank(this.bot.ticketCount(), this.bot.foodInPack(), this.bot.cfg().bankAtTickets, this.bot.cfg().stealRestock)) {
             return false;
         }
         const here = this.bot.platform();
@@ -931,7 +939,7 @@ class SpikeWait implements Task {
         if (!this.bot.inArenaNow() || this.bot.inPitNow()) {
             return false;
         }
-        if (shouldBank(this.bot.ticketCount(), this.bot.foodInPack(), this.bot.cfg().bankAtTickets)) {
+        if (shouldBank(this.bot.ticketCount(), this.bot.foodInPack(), this.bot.cfg().bankAtTickets, this.bot.cfg().stealRestock)) {
             return false;
         }
         // only idle-grind while the current pillar is already tagged (or no hint yet)
