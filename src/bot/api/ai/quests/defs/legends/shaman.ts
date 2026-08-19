@@ -166,8 +166,8 @@ export async function blessBowl(log: (m: string) => void): Promise<boolean> {
     return blessed();
 }
 
-// Why: the trance fails about three times in five at forty-two prayer — `value = 151` against a `rand(0..256)` — so four throws leave better than one run in ten unblessed, and every throw is now seconds rather than the better part of a minute.
-const BLESS_ATTEMPTS = 12;
+// Why: a devout account starts at the wrong end of the roll and only five points a miss walks it down — from ninety-nine it is eleven misses to the forty-two where the odds are best, and twelve throws still leave one run in fifteen unblessed. Twenty covers the walk with room over, and a throw is now seconds rather than the better part of a minute.
+const BLESS_ATTEMPTS = 20;
 
 // Why: a miss ends the conversation outright. Gujuo offers a retry, but the five points it just took put the answer under his own forty-two gate, so "too inexperienced" closes the chain — and a wait watching for a blessing that is no longer coming polled a chat that had already gone for the whole forty seconds, four times over.
 const BLESS_MS = 40_000;
@@ -195,22 +195,20 @@ async function driveBlessing(blessed: () => boolean, log: (m: string) => void): 
     return blessed();
 }
 
-// Why: the trance rolls `stat_random(prayer, 80, 250)` and takes five points on every miss, so a run of them walks under the script's own floor — and Gujuo then refuses outright, in a chain the driver has already closed.
-const BLESS_PRAYER = 50;
-
 /** The points Gujuo's own gate demands, below which he will not begin. */
 const BLESS_FLOOR = 42;
 
-// Why: the quest asks for prayer 42 and the bar cannot hold more than the level, so a fifty-point target is unreachable on the account the requirement describes — it drank a dose before every throw at a full bar, and emptied the flask on nothing.
+// Why: `value = ⌊80·(99−n)/98⌋ + ⌊250·(n−1)/98⌋ + 1` against `rand(0..256)`, and true is the miss — so the roll rises about 1.73 for every point of prayer and the trance is likelier to fail the more devout you are. It misses three times in five at forty-two and ninety-eight times in a hundred at ninety-nine.
+// Why: that makes every dose above the gate a cost. Prayer is held as low as Gujuo will accept rather than as high as the bar goes, and the five points a miss takes walk the odds towards the player rather than away.
 
-/** The points to hold before a throw, given what the prayer bar can hold. */
-export function blessPrayerFloor(base: number): number {
-    return Math.min(BLESS_PRAYER, Math.max(BLESS_FLOOR, base));
+/** The points to hold before a throw. The gate exactly — the roll only worsens above it. */
+export function blessPrayerFloor(): number {
+    return BLESS_FLOOR;
 }
 
 /** Put the prayer back above the trance's floor, so a run of misses cannot end the leg. */
 async function topUpPrayer(log: (m: string) => void): Promise<boolean> {
-    return Skills.effective('prayer') >= blessPrayerFloor(Skills.level('prayer')) ? true : drinkPrayer(log);
+    return Skills.effective('prayer') >= blessPrayerFloor() ? true : drinkPrayer(log);
 }
 
 const BOWL_ATTEMPTS = 6;

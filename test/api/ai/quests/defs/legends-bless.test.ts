@@ -2,14 +2,20 @@ import { expect, test } from 'bun:test';
 
 import { blessPrayerFloor } from '#/bot/api/ai/quests/defs/legends/shaman.js';
 
-// Why: the quest asks for prayer 42 and the bar cannot hold more than the level, so a flat fifty-point target is unreachable on the account the requirement describes — it drank a dose before every throw at a full bar and emptied the flask on nothing.
-test('the floor never asks for more points than the bar can hold', () => {
-    expect(blessPrayerFloor(42)).toBe(42);
-    expect(blessPrayerFloor(43)).toBe(43);
+/** `gujuo_bless_bowl`'s roll: `stat_random(prayer, 80, 250)`, where true is the miss. */
+function missChance(points: number): number {
+    const value = Math.floor((80 * (99 - points)) / 98) + Math.floor((250 * (points - 1)) / 98) + 1;
+    return value / 256;
+}
+
+// Why: the roll rises about 1.73 for every point of prayer, so the trance is likelier to fail the more devout you are — a dose above the gate buys worse odds, and topping up to a margin was paying for them.
+test('the trance only gets harder as prayer rises', () => {
+    expect(missChance(42)).toBeLessThan(missChance(70));
+    expect(missChance(70)).toBeLessThan(missChance(99));
 });
 
-// Why: Gujuo refuses below forty-two and takes five on a miss, so a bar with room to spare keeps a margin over his gate rather than sitting on it.
-test('a bar with room to spare keeps a margin over the gate', () => {
-    expect(blessPrayerFloor(60)).toBe(50);
-    expect(blessPrayerFloor(99)).toBe(50);
+// Why: Gujuo refuses below forty-two and the odds are best at exactly forty-two, so the gate is both the floor and the target however high the bar goes.
+test('the floor is the gate itself, whatever the bar can hold', () => {
+    expect(blessPrayerFloor()).toBe(42);
+    expect(missChance(blessPrayerFloor())).toBeLessThan(missChance(43));
 });
