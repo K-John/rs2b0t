@@ -103,6 +103,7 @@ export async function prayerUpkeep(): Promise<boolean> {
             QuestPrayerState.log?.(`drinking a prayer dose (${Prayer.points()}/${Prayer.max()})`);
             return doses[0].interact('Drink');
         case 'protect':
+            QuestPrayerState.log?.(`raising ${name} (${Prayer.points()}/${Prayer.max()})`);
             return Prayer.set(name, true);
         case 'drop':
             return Prayer.set(name, false);

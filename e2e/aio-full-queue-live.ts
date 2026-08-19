@@ -174,6 +174,7 @@ interface Row { id: string; name: string; status: string; reasons: string[] }
 interface Snap {
     runner: string;
     qp: number;
+    protectActive: boolean;
     rows: Row[];
     runningId: string | null;
     status: string | null;
@@ -188,7 +189,10 @@ interface Abi {
             ctx?: { log?: LogLine[] } | null;
         };
     };
-    __rs2b0t: { Quests: { points(): number } };
+    __rs2b0t: {
+        Quests: { points(): number };
+        Prayer: { active(name: string): boolean };
+    };
 }
 
 async function snapshot(page: Page): Promise<Snap> {
@@ -198,6 +202,8 @@ async function snapshot(page: Page): Promise<Snap> {
         return {
             runner: g.rs2b0t.runner.state,
             qp: g.__rs2b0t.Quests.points(),
+            protectActive: ['Protect from Melee', 'Protect from Magic', 'Protect from Missiles']
+                .some(name => g.__rs2b0t.Prayer.active(name)),
             rows: bot?.rows ?? [],
             runningId: bot?.runningId ?? null,
             status: bot?.status ?? null,
@@ -275,6 +281,7 @@ try {
     const t0 = Date.now();
     const budgetMs = args.minutes * 60_000;
     let lastLog = 0;
+    let sawProtection = false;
 
     while (Date.now() - t0 < budgetMs) {
         const snap = await snapshot(page);
@@ -292,6 +299,10 @@ try {
             if (row.status === 'DONE' && !tookMs.has(row.id)) {
                 tookMs.set(row.id, Date.now() - (startedAt.get(row.id) ?? t0));
             }
+        }
+        if (snap.protectActive && !sawProtection) {
+            sawProtection = true;
+            console.log(`  [${fmt(Date.now() - t0)}] a protection prayer is lit`);
         }
         if (snap.runner === 'crashed') {
             fail(`script crashed: ${JSON.stringify(snap.logs.slice(-20))}`);
@@ -322,7 +333,7 @@ try {
     if (stuck.length > 0) {
         fail(`${done.length}/${final.rows.length} done in ${fmt(elapsed)}; ${stuck.length} not done: ${stuck.map(r => `${r.name} (${r.status})`).join(', ')}`);
     }
-    console.log(`PASS full queue: ${done.length}/${final.rows.length} done in ${fmt(elapsed)}, QP ${final.qp}`);
+    console.log(`PASS full queue: ${done.length}/${final.rows.length} done in ${fmt(elapsed)}, QP ${final.qp}, protection ${sawProtection ? 'lit' : 'never needed'}`);
 } finally {
     await browser.close();
     client.cleanup();
