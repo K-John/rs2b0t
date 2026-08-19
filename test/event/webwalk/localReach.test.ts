@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { CollisionFlag } from '#/client/dash3d/CollisionFlag.js';
-import { canReachLocal, canStepLocal, closestReachableToward, type FlagsAt } from '#/bot/event/webwalk/geometry/localReach.js';
+import { canReachLocal, canStepLocal, type FlagsAt } from '#/bot/event/webwalk/geometry/localReach.js';
 
 function grid(rows: string[]): FlagsAt {
     return (lx, lz) => {
@@ -62,22 +62,5 @@ describe('canReachLocal', () => {
     test('maxSteps caps the search', () => {
         const g = grid(['.'.repeat(60)]);
         expect(canReachLocal(g, { lx: 0, lz: 0 }, { lx: 59, lz: 0 }, { maxSteps: 10 })).toBe(false);
-    });
-});
-
-describe('closestReachableToward', () => {
-    test('walks around a tree line instead of clicking through it', () => {
-        // Frozen Waste west cliff: dest is east through trees, live path goes south then around.
-        const g = grid(['..#..', '..#..', '.....']);
-        const live = closestReachableToward(g, { lx: 0, lz: 0 }, { lx: 4, lz: 0 });
-        expect(live).toEqual({ lx: 4, lz: 0 });
-    });
-    test('stops on this side of a wall when dest is disconnected', () => {
-        const g = grid(['..#.', '..#.']);
-        expect(closestReachableToward(g, { lx: 0, lz: 0 }, { lx: 3, lz: 0 })).toEqual({ lx: 1, lz: 0 });
-    });
-    test('returns null when every neighbour is blocked', () => {
-        const g = grid(['@#', '##']);
-        expect(closestReachableToward(g, { lx: 0, lz: 0 }, { lx: 1, lz: 0 })).toBeNull();
     });
 });

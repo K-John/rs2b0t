@@ -4,7 +4,6 @@ import {
     crossingEligible,
     locateOnPath,
     minChebyshevToPath,
-    clientWalkLeftSource,
     selectClientWalkTarget,
     selectClickTarget,
     shouldApproachClosedBarrier,
@@ -85,22 +84,6 @@ describe('selectClientWalkTarget', () => {
         });
         expect(tried).not.toContain(5);
         expect(tried[0]).toBe(4);
-    });
-});
-
-describe('clientWalkLeftSource', () => {
-    test('rejects tryNearest no-op onto the standing tile', () => {
-        expect(clientWalkLeftSource({ x: 2944, z: 3911 }, [{ x: 2944, z: 3911 }])).toBe(false);
-        expect(clientWalkLeftSource({ x: 2944, z: 3911 }, [])).toBe(false);
-        expect(clientWalkLeftSource({ x: 2944, z: 3911 }, null)).toBe(false);
-    });
-    test('accepts a path that actually leaves src', () => {
-        expect(
-            clientWalkLeftSource({ x: 2944, z: 3911 }, [
-                { x: 2944, z: 3911 },
-                { x: 2945, z: 3910 }
-            ])
-        ).toBe(true);
     });
 });
 
