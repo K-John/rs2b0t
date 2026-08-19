@@ -196,7 +196,7 @@ function offIsland(snap: QuestSnapshot, kit: QuestStep | null): QuestStep | null
 
 /** Everything a descent to the winch spends, whether or not it is the first. */
 function gateKit(snap: QuestSnapshot): QuestStep | null {
-    return sourceBankOnly(snap, DESCENT_KIT, LEG_BANK.karamja)
+    return sourceBankOnly(snap, DESCENT_KIT)
         ?? sourceFrom(snap, ORB_RUNE_KIT, LQ_SHOP.MAGIC_GUILD, SHOP_GP.MAGIC_GUILD, LEG_BANK.runes)
         ?? sourcePickaxe(snap, LEG_BANK.karamja)
         // Why: the rope is tied once and recovered from the beams afterwards, but the first descent has no beams to search — and a spare costs a few coins at Jiminua's.
@@ -219,7 +219,7 @@ function descentKit(snap: QuestSnapshot): QuestStep | null {
 
 /** Everything the trials swallow in one go, none of which can be fetched from inside. */
 function trialsKit(snap: QuestSnapshot): QuestStep | null {
-    return sourceBankOnly(snap, BANK_ONLY_KIT, LEG_BANK.karamja)
+    return sourceBankOnly(snap, BANK_ONLY_KIT)
         ?? sourceFrom(snap, RUNE_KIT, LQ_SHOP.MAGIC_GUILD, SHOP_GP.MAGIC_GUILD, LEG_BANK.runes)
         ?? sourceGems(snap, LEG_BANK.karamja)
         ?? fromShop(snap, TRIALS_KIT)
@@ -329,7 +329,7 @@ function stageMapping(snap: QuestSnapshot): QuestStep {
     }
     if (held(snap, LQ_ID.MACHETE) === 0) {
         const machete = { id: LQ_ID.MACHETE, name: LQ_ITEM.MACHETE };
-        return inTheOpen(snap, fromBank(snap, machete, 1, LEG_BANK.karamja)
+        return inTheOpen(snap, fromBank(snap, machete, 1)
             ?? step("take the machete from Radimus' cupboard", takeMachete));
     }
     const kit = legendsArea(snap.tile) === 'mainland'

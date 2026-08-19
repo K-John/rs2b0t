@@ -165,16 +165,17 @@ export function deposit(bank?: Tile): QuestStep {
 // Why: `null` covers both "already carried" and "the bank cannot help", and the caller decides whether that is a shop trip or a park.
 
 /** Withdraw a shortfall when the bank has it. */
-export function fromBank(snap: QuestSnapshot, item: LqItem, qty = 1, bank?: Tile): QuestStep | null {
+// Why: every booth shows the same contents, so a withdrawal is owed to the nearest one and never to a named one. The tile is threaded this far for the buy leg, which does want the counter's own bank for its coins — and pinning a withdrawal to it sailed a run from Karamja to Yanille for runes Shilo's teller was holding.
+export function fromBank(snap: QuestSnapshot, item: LqItem, qty = 1): QuestStep | null {
     const short = qty - owned(snap, item.id);
     if (short <= 0) {
         return null;
     }
     if (!snap.bankKnown) {
-        return scanBank(bank);
+        return scanBank();
     }
     const inBank = banked(snap, item.id);
-    return inBank > 0 ? withdraw([{ name: item.name, id: item.id, qty: Math.min(short, inBank) }], bank) : null;
+    return inBank > 0 ? withdraw([{ name: item.name, id: item.id, qty: Math.min(short, inBank) }]) : null;
 }
 
 /** Bank first, then the counter that stocks it. */
@@ -185,16 +186,16 @@ export function source(snap: QuestSnapshot, item: LqItem, qty: number, shop: Sho
     if (have >= qty) {
         return null;
     }
-    return fromBank(snap, item, qty, bank)
+    return fromBank(snap, item, qty)
         ?? { kind: 'buy', item: item.name, qty: Math.max(stock, qty) - have, shop, estGp, bank };
 }
 
 /** Bank only — nothing in the game sells this. */
-export function bankOnly(snap: QuestSnapshot, item: LqItem, qty: number, bank?: Tile): QuestStep | null {
+export function bankOnly(snap: QuestSnapshot, item: LqItem, qty: number): QuestStep | null {
     if (owned(snap, item.id) >= qty) {
         return null;
     }
-    return fromBank(snap, item, qty, bank)
+    return fromBank(snap, item, qty)
         ?? { kind: 'wait', reason: `no ${item.name} in the pack or the bank, and no shop stocks one` };
 }
 
@@ -371,9 +372,9 @@ export function sourceFrom(
     return null;
 }
 
-export function sourceBankOnly(snap: QuestSnapshot, kit: readonly { item: LqItem; qty: number }[], bank?: Tile): QuestStep | null {
+export function sourceBankOnly(snap: QuestSnapshot, kit: readonly { item: LqItem; qty: number }[]): QuestStep | null {
     for (const want of kit) {
-        const step = bankOnly(snap, want.item, want.qty, bank);
+        const step = bankOnly(snap, want.item, want.qty);
         if (step) {
             return step;
         }
@@ -399,7 +400,7 @@ export function sourceGems(snap: QuestSnapshot, bank?: Tile): QuestStep | null {
     }
     const cut = GEM_CUTS.find(gem => owned(snap, gem.cut) === 0 && (held(snap, gem.uncut) > 0 || banked(snap, gem.uncut) > 0));
     if (cut) {
-        const rough = fromBank(snap, { id: cut.uncut, name: cut.uncutName }, 1, bank);
+        const rough = fromBank(snap, { id: cut.uncut, name: cut.uncutName }, 1);
         if (rough) {
             return rough;
         }
@@ -424,7 +425,7 @@ export function sourceGoldBars(snap: QuestSnapshot, bank?: Tile): QuestStep | nu
     if (owned(snap, bars.id) >= 2) {
         return null;
     }
-    const fromTheBank = fromBank(snap, bars, 2, bank);
+    const fromTheBank = fromBank(snap, bars, 2);
     if (fromTheBank) {
         return fromTheBank;
     }
