@@ -34,6 +34,13 @@ const MOUSEHOLE_STAND = new Tile(2903, 3467, 0);
 const FOUNTAIN_STAND = new Tile(2909, 3471, 0);
 const SHED_STAND = new Tile(2933, 3463, 0);
 
+// Why: both keepers carry `op3=Trade`, so the buy step's `Shop.open` reaches the counter without driving the dialogue.
+const WYDIN = { npc: 'Wydin', anchor: new Tile(3014, 3204, 0) };
+const THESSALIA = { npc: 'Thessalia', anchor: new Tile(3204, 3417, 0) };
+
+// Why: cheese costs 4 and the gloves 6, so this is headroom for the shop multiplier rather than an estimate of the bill.
+const SHOP_GP = 200;
+
 const CELLAR_UP_STAND = new Tile(2907, 9876, 0);
 const GATE_EAST_STAND = new Tile(2904, 9873, 0);
 const GATE_WEST_STAND = new Tile(2900, 9873, 0);
@@ -229,5 +236,11 @@ export const witchshouse: QuestModule = {
     food: FOOD_FLOAT,
     grind: EXPERIMENT_FORMS,
     tools: ['door key', 'key', 'magnet', 'cheese', 'ball', 'leather gloves'],
+    // Why: neither spawns anywhere and the record calls both acquirable, so with an empty bank the
+    // engine had no route to either and blocked the quest before its first step.
+    gather: {
+        'cheese': (_snap, need) => ({ kind: 'buy', item: CHEESE, qty: need, shop: WYDIN, estGp: SHOP_GP }),
+        'leather gloves': (_snap, need) => ({ kind: 'buy', item: GLOVES, qty: need, shop: THESSALIA, estGp: SHOP_GP })
+    },
     decide
 };
