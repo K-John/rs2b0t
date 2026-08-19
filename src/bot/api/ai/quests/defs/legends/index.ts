@@ -80,10 +80,12 @@ function step(name: string, run: (log: (m: string) => void) => Promise<boolean>)
 
 /** A step out of whatever pocket we are standing in, or null on open ground. */
 function escapePocket(snap: QuestSnapshot): QuestStep | null {
-    if (legendsPocket(snap.tile) !== null || legendsArea(snap.tile) === 'viyeldiCaves') {
+    // Why: the shaman cave is underground and carries no pocket, so leaving it off this list filed it as open ground — the one area the quest never offers to climb out of, and the one a run stands in every time it goes to ask Ungadulu anything.
+    const area = legendsArea(snap.tile);
+    if (legendsPocket(snap.tile) !== null || area === 'viyeldiCaves' || area === 'shamanCaves') {
         return step('climb back out of the caves', leaveCaves);
     }
-    if (legendsArea(snap.tile) === 'jungle') {
+    if (area === 'jungle') {
         return step('cut back out of the Kharazi Jungle', leaveJungle);
     }
     return null;
