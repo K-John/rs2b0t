@@ -28,7 +28,25 @@ export function owned(snap: QuestSnapshot, id: number): number {
     return held(snap, id) + banked(snap, id);
 }
 
-export function withdrawFrom(items: { name: string; id: number; qty: number }[]): QuestStep {
+/** The kit the bank can supply, one of each. */
+const KIT_ITEMS: readonly WatchtowerItem[] = [
+    WT_ITEM.ROPE,
+    WT_ITEM.LIT_CANDLE,
+    WT_ITEM.VIAL_WATER,
+    WT_ITEM.GUAM_LEAF,
+    WT_ITEM.PESTLE,
+    WT_ITEM.PICKAXE,
+    WT_ITEM.BAT_BONES,
+    WT_ITEM.DRAGON_BONES,
+    WT_ITEM.DEATH_RUNE,
+    WT_ITEM.GOLD_BAR,
+    WT_ITEM.SKAVID_MAP
+];
+
+/** Tolls and shop money the whole quest runs on. */
+const KIT_COINS = 2000;
+
+export function withdrawFrom(items: { name: string; id?: number; qty: number }[]): QuestStep {
     return { kind: 'withdraw', items, bank: WT_TILE.YANILLE_BANK };
 }
 
@@ -160,4 +178,38 @@ export function sourceFood(snap: QuestSnapshot, want: number): QuestStep | null 
         }
     }
     return { kind: 'wait', reason: 'no food in the bank for the shaman enclave' };
+}
+
+// Why: the bank supplies the whole kit at once, where sourcing item by item paid for a trip each, from wherever the quest had got to.
+// Why: only what the bank holds is asked for, so the shop, the ground candle and the guard's riddle stay as the fallbacks and an empty bank changes nothing.
+
+/** Everything the kit still needs that the bank can supply, in one withdrawal. */
+export function questKit(snap: QuestSnapshot, foodWant: number): QuestStep | null {
+    // Why: an unread bank is left to whichever stage first needs a scan, so a quest wanting nothing more from the bank never takes a trip to prove it.
+    if (!snap.bankKnown) {
+        return null;
+    }
+    const items: { name: string; id?: number; qty: number }[] = [];
+    for (const item of KIT_ITEMS) {
+        const missing = 1 - held(snap, item.id);
+        if (missing > 0 && banked(snap, item.id) > 0) {
+            items.push({ name: item.name, id: item.id, qty: missing });
+        }
+    }
+    const coinsShort = KIT_COINS - held(snap, WT_ITEM.COINS.id);
+    const bankedCoins = banked(snap, WT_ITEM.COINS.id);
+    if (coinsShort > 0 && bankedCoins > 0) {
+        items.push({ name: WT_ITEM.COINS.name, id: WT_ITEM.COINS.id, qty: Math.min(coinsShort, bankedCoins) });
+    }
+    const foodShort = foodWant - carriedFood(snap);
+    if (foodShort > 0) {
+        for (const food of questFoods()) {
+            const inBank = snap.bank?.get(food.toLowerCase()) ?? 0;
+            if (inBank > 0) {
+                items.push({ name: food, qty: Math.min(foodShort, inBank) });
+                break;
+            }
+        }
+    }
+    return items.length > 0 ? withdrawFrom(items) : null;
 }
