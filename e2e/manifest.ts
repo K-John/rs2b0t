@@ -11,6 +11,15 @@ export const CASES: readonly Case[] = [
         documentedIn: 'docs/reference/quest-harness-recipes-4.md'
     },
     {
+        id: 'aio-full-queue-live',
+        harness: 'aio-full-queue-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        manual: true,
+        budgetMin: 480,
+        note: 'every implemented quest on a level-70 account seeded with the mustHave items, a coin float, food and a rune kit'
+    },
+    {
         id: 'aio-fresh-pack-live',
         harness: 'aio-fresh-pack-live.ts',
         covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
