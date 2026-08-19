@@ -22,7 +22,8 @@ const LOCKOUT_RE = /can't steal from the market stall during combat/i;
 type StealCakesResult = 'stocked' | 'combat' | 'aborted' | 'no-progress';
 
 interface StealCakesOptions {
-    fillTo: number;
+    /** Stop once this many stall foods are held. Omit to fill the pack. */
+    fillTo?: number;
     abort: () => boolean;
     shouldEat?: () => boolean;
     lockedOutUntil?: () => number;
@@ -67,8 +68,8 @@ export async function stealCakes(opts: StealCakesOptions): Promise<StealCakesRes
             if (Game.inCombat()) {
                 return 'combat';
             }
-            if (Inventory.isFull() || carriedCakes() >= opts.fillTo) {
-                opts.log(`stocked ${carriedCakes()} stall food`);
+            if (Inventory.isFull() || (opts.fillTo !== undefined && carriedCakes() >= opts.fillTo)) {
+                opts.log(`stocked ${carriedCakes()} stall food (${Inventory.used()} slots)`);
                 return 'stocked';
             }
 
@@ -100,7 +101,11 @@ export async function stealCakes(opts: StealCakesOptions): Promise<StealCakesRes
             attemptSeen = false;
             lockoutSeen = false;
             const before = carriedCakes();
-            opts.setStatus(`stealing cake (${before}/${opts.fillTo})`);
+            opts.setStatus(
+                opts.fillTo !== undefined
+                    ? `stealing cake (${before}/${opts.fillTo})`
+                    : `stealing cake (${Inventory.used()}/${Inventory.used() + Inventory.free()} slots)`
+            );
             if (!(await stall.interact(STALL_OP))) {
                 refusals++;
                 await Execution.delayTicks(1);

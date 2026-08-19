@@ -311,21 +311,21 @@ export function shouldBank(tickets: number, foodCount: number, bankAtTickets: nu
     return foodCount <= 0;
 }
 
-/** Steal cakes until `fillTo` when the selected food is gone, or up to the guard buffer when a coin run is next. */
+/** Steal while the pack has room. Cake/bread/slice counts do not matter — they are unstackable mixed stall loot. */
 export function needsCakeSteal(
     selectedFood: number,
     cakes: number,
     stealRestock: boolean,
     needCoins: boolean,
-    fillTo: number
+    freeSlots: number
 ): boolean {
     if (!stealRestock) {
         return false;
     }
-    if (fillTo <= 0) {
-        throw new Error(`cake steal fillTo must be > 0 (got ${fillTo})`);
+    if (freeSlots <= 0) {
+        return false;
     }
-    if (selectedFood <= 0 && cakes < fillTo) {
+    if (selectedFood <= 0) {
         return true;
     }
     return needCoins && cakes < CAKE_GUARD_BUFFER;
