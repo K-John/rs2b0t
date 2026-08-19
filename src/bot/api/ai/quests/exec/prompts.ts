@@ -288,12 +288,11 @@ export async function promptLoc(step: LocPrompt, log: (m: string) => void): Prom
     if (status !== 'done') {
         return false;
     }
-    if (!(await driveBoxes(step.expect, step.expectMs ?? 20_000, step.prefer ?? []))) {
-        return false;
-    }
+    const answered = await driveBoxes(step.expect, step.expectMs ?? 20_000, step.prefer ?? []);
     // Why: the goal can land mid-chain now that it is tested between clicks, and a page left standing would meet the next step as a stale modal.
+    // Why: cleared on the way out either way, because a prompt that failed is exactly the one whose next step is a retry, and a retry that cannot click is a step that never recovers.
     await clearBoxes();
-    return true;
+    return answered;
 }
 
 // Why: quest item chains run through `oplocu`, which no op-based step can express.
