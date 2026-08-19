@@ -232,7 +232,10 @@ export class QuestEngine implements Task {
         const snap = this.buildSnapshot(module, stage, progress);
 
         // Why: a fight shaped as a step returns here every pass, so this is the only place its prayer can be held.
-        await prayerUpkeep();
+        // Why: the tick is yielded when the upkeep spends it, as the server runs one op per tick and a pass that prays and swings drops one of them.
+        if (await prayerUpkeep()) {
+            return;
+        }
 
         if (await this.freshenPack(module, id, snap, rows)) {
             return;
