@@ -9,7 +9,7 @@ import { Reach } from '../../../../walking/Reach.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type Tile from '../../../../../geometry/Tile.js';
 import { JUNGLE_BAND, LQ_ID, LQ_LOC, LQ_NPC, LQ_TILE, inJungleBand, jungleSection, legendsArea } from './areas.js';
-import { clearBoxes, driveToEnd, driveUntil, heldId, here, modalText, offerTo, settleScene } from './scene.js';
+import { clearBoxes, driveBoxes, driveToEnd, driveUntil, heldId, here, modalText, offerTo, settleScene } from './scene.js';
 import { leaveCaves } from './viyeldi.js';
 
 const CHOP_ATTEMPTS = 14;
@@ -308,7 +308,8 @@ export function talkGujuoStatus(
             log('Gujuo never opened a dialogue');
             return 'nodialog';
         }
-        const ok = goal ? await driveUntil(goal, prefer, log, ms) : await driveToEnd(prefer, log, ms, required);
+        // Why: `gujuo_vessel` hands the sketch through `~objbox`, which renders in the MAIN modal and suspends the script — the `inv_add` behind it only runs once the box is clicked. `driveUntil` clicks the CHAT modal alone, so the box stood, the sketch never came, and a step whose goal is the sketch spent its whole budget waiting on a script it was holding shut.
+        const ok = goal ? await driveBoxes(goal, ms, prefer) : await driveToEnd(prefer, log, ms, required);
         return ok ? 'goal' : 'nogoal';
     };
 }
