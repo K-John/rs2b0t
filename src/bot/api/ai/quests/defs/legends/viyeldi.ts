@@ -8,7 +8,7 @@ import Tile from '../../../../../geometry/Tile.js';
 import { HEROES, LQ_ID, LQ_LOC, LQ_LOC_ID, LQ_NPC, LQ_TILE, legendsArea } from './areas.js';
 import { fight } from './fight.js';
 import { legendsPocket, type LegendsPocket } from './pockets.js';
-import { clearBoxes, driveUntil, heldId, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
+import { clearBoxes, driveBoxes, driveUntil, heldId, locNear, modalText, offerTo, promptLoc, settleScene, useOnLoc } from './scene.js';
 import { climbOutOfTrials, leaveOctagram, leaveShamanCave, pocket } from './trials.js';
 
 interface Ledge {
@@ -374,7 +374,8 @@ export async function takeBlackDagger(log: (m: string) => void): Promise<boolean
         return false;
     }
     await Execution.delayUntil(() => spirit(), 12_000);
-    return driveUntil(() => heldId(LQ_ID.DEATH_DAGGER) > 0, ECHNED_PREFER, log, 120_000);
+    // Why: Echned hands the dagger through `~objbox`, and the `inv_add` behind it only runs once the box is clicked — a chat-only driver waits out two minutes holding the script shut.
+    return driveBoxes(() => heldId(LQ_ID.DEATH_DAGGER) > 0, 120_000, ECHNED_PREFER);
 }
 
 // Why: Ungadulu is the only source of the Holy Force spell and he wants the dagger for it, which is what makes the climb back up the trials part of the quest rather than an accident.

@@ -231,7 +231,8 @@ export async function getBullroarer(log: (m: string) => void): Promise<boolean> 
     if (!(await offerTo(LQ_ID.MAP_COMPLETE, forester, log))) {
         return false;
     }
-    return driveUntil(() => heldId(LQ_ID.BULLROARER) > 0, FORESTER_PREFER, log, 60_000);
+    // Why: the forester hands the roarer through `~objbox`, and the `inv_add` behind it only runs once the box is clicked — a chat-only driver waits out its budget holding the script shut.
+    return driveBoxes(() => heldId(LQ_ID.BULLROARER) > 0, 60_000, FORESTER_PREFER);
 }
 
 const GUJUO_LEASH = 14;
