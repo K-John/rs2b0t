@@ -1,4 +1,5 @@
-import { describe, expect, test } from 'bun:test';
+import { afterEach, describe, expect, test } from 'bun:test';
+import { QuestFood } from '#/bot/api/ai/quests/food.js';
 import { CRYSTALS, WT_ITEM, WT_NPC, watchtowerArea } from '#/bot/api/ai/quests/defs/watchtower/areas.js';
 import { WATCHTOWER_STAGE, parseWatchtowerJournal } from '#/bot/api/ai/quests/defs/watchtower/journal.js';
 import { flagValue, hasFlag } from '#/bot/api/ai/quests/engine/types.js';
@@ -822,5 +823,37 @@ describe('watchtower decide — the Rock of Dalgroth needs a pickaxe', () => {
             ])
         });
         expect(step.kind === 'custom' && step.name).toMatch(/Rock of Dalgroth/i);
+    });
+});
+
+describe('the enclave food is whatever the player chose to eat', () => {
+    const enclaveTrip = (bank: [string, number][], inv: [string, number][] = []): QuestSnapshot => snapshot({
+        progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+        inv: new Map(inv),
+        invIds: new Map([[WT_ITEM.MAGIC_OGRE_POTION.id, 1], [WT_ITEM.NIGHTSHADE.id, 1]]),
+        bank: new Map(bank)
+    });
+
+    afterEach(() => {
+        QuestFood.name = 'Lobster';
+    });
+
+    test('the configured food is withdrawn when the bank holds only that', () => {
+        QuestFood.name = 'Shark';
+        const step = decide(enclaveTrip([['shark', 100]]));
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' && step.items[0].name).toBe('Shark');
+    });
+
+    test('food already carried counts, whatever the player chose', () => {
+        QuestFood.name = 'Shark';
+        expect(decide(enclaveTrip([['shark', 100]], [['shark', 8]])).kind).not.toBe('withdraw');
+    });
+
+    test('the listed foods still work when the player chose one of them', () => {
+        QuestFood.name = 'Lobster';
+        const step = decide(enclaveTrip([['lobster', 100]]));
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' && step.items[0].name).toBe('Lobster');
     });
 });
