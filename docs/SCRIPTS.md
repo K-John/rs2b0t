@@ -139,6 +139,7 @@ Start-or-coordinate fighter — kills any named NPC in its leash, loots selected
 | `solveClues` | boolean | `true` | Solve clue drops |
 | `banking` | string | `"Auto"` | Banking — one of: Auto, None |
 | `bankAtLootSlots` | number (1–27) | `12` | Bank at loot slots |
+| `bankEveryMinutes` | number (0–120) | `0` | Bank every N minutes |
 | `bankCommonJunk` | boolean | `true` | Bank common junk too |
 
 ### ChaosDruidKiller
