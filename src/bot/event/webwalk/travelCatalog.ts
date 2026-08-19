@@ -235,8 +235,9 @@ export function shiloGateEdges(): TransportEdgeData[] {
         quests: REQ.shiloComplete.quests
     };
     return [
-        edge(SHILO_CART, SHILO_CART_OUT, 'Broken cart', 'Search', 'agility_shortcut', 'shilo_cart_climb_out', shiloDone),
-        edge(SHILO_MOSOL, SHILO_MOSOL_IN, 'Mosol Rei', 'Talk-to', 'npc', 'shilo_mosol_leads_in', shiloDone)
+        // Why: the kind is what `kindOf` reads to pick an executor, and anything it does not know falls through to `door` — which sent the walker looking for a leaf to open on a man standing in front of it. `shortcut` is a loc with an op, `ship` is a Talk-to that puts you somewhere else, the same pair Vigroy and Hajedy use.
+        edge(SHILO_CART, SHILO_CART_OUT, 'Broken cart', 'Search', 'shortcut', 'shilo_cart_climb_out', shiloDone),
+        edge(SHILO_MOSOL, SHILO_MOSOL_IN, 'Mosol Rei', 'Talk-to', 'ship', 'shilo_mosol_leads_in', shiloDone)
     ];
 }
 

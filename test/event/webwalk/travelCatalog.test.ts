@@ -223,6 +223,12 @@ describe('Shilo Village gates', () => {
         expect(mosol?.to).toEqual({ x: 2866, z: 2952, level: 0 });
     });
 
+    // Why: `kindOf` falls through to `door` for a kind it does not know, which sent the walker hunting a leaf to open on a man standing in front of it.
+    test('each carries a kind the hop classifier knows', () => {
+        expect(byName('Broken cart')?.kind).toBe('shortcut');
+        expect(byName('Mosol Rei')?.kind).toBe('ship');
+    });
+
     test('both are gated on the quest that opens the village', () => {
         for (const e of shiloGateEdges()) {
             expect(e.requires?.quests?.some(q => q.quest === 'Shilo Village')).toBe(true);
