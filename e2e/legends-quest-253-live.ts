@@ -346,6 +346,7 @@ try {
 
     const deadline = Date.now() + args.minutes * 60_000;
     let lastLogTime = 0;
+    let stepFails = 0;
     let reached = args.stage;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
@@ -357,7 +358,13 @@ try {
             + ` legendsquest=${now} journal=${last.status} qp=${last.qp} runner=${last.runner} step=${last.step ?? '-'}`
         );
         for (const l of last.logs) {
-            if (l.time > lastLogTime) { console.log(`      · [${l.level}] ${l.msg}`); }
+            if (l.time > lastLogTime) {
+                // Why: a leg watches `%legendsquest`, and a stage can move on a step that failed — `gujuo_pure_water` sets stage 8 before the branch that hands over the sketch, so a run printed PASS having failed the same step four times and come away without the item the next stage needs. The tally is not a verdict; it is the number that made that run look green.
+                if (l.msg.includes('→ FAILED in ')) {
+                    stepFails += 1;
+                }
+                console.log(`      · [${l.level}] ${l.msg}`);
+            }
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
@@ -368,7 +375,8 @@ try {
         // Why: the quest-complete recolour and the QP award land a tick behind `%legendsquest`, so a full run waits on the journal.
         const done = args.until >= 75 ? last.status === 'complete' : now >= args.until;
         if (done) {
-            console.log(`PASS (legendsquest=${now}, journal=${last.status}, QP=${last.qp})`);
+            const fails = stepFails > 0 ? `, ${stepFails} step failure${stepFails === 1 ? '' : 's'}` : '';
+            console.log(`PASS (legendsquest=${now}, journal=${last.status}, QP=${last.qp}${fails})`);
             process.exit(0);
         }
         if (last.runner === 'stopped') {
