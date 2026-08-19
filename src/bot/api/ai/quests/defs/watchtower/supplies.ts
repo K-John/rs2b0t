@@ -1,6 +1,7 @@
 import Tile from '../../../../../geometry/Tile.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { WT_ITEM, WT_TILE, type WatchtowerItem } from './areas.js';
+import { QuestFood } from '../../food.js';
 
 // Why: every shop here was read out of the engine's own configs rather than a guide.
 // Why: nobody in this game is called 'Shop keeper' — the shop belongs to a named NPC through param=owned_shop, and Shop.open() matches on the display name.
@@ -121,11 +122,23 @@ export function sourceLightSource(snap: QuestSnapshot): QuestStep | null {
     return { kind: 'grabGround', item: WT_ITEM.LIT_CANDLE.name, anchor: WT_TILE.CANDLE, waitIfMissing: true };
 }
 
-/** Ordered by preference; the module withdraws whichever the bank holds. */
-const QUEST_FOODS = ['Tuna', 'Swordfish', 'Lobster'] as const;
+// Why: the chosen food comes first, as naming three fish meant a bank stocked with anything else read as no food at all and the enclave trip waited instead of withdrawing.
+const FALLBACK_FOODS = ['Tuna', 'Swordfish', 'Lobster'] as const;
+
+/** The configured food, then the fish the module falls back on. */
+function questFoods(): string[] {
+    const chosen = QuestFood.name?.trim();
+    const out = chosen ? [chosen] : [];
+    for (const food of FALLBACK_FOODS) {
+        if (!out.some(held => held.toLowerCase() === food.toLowerCase())) {
+            out.push(food);
+        }
+    }
+    return out;
+}
 
 export function carriedFood(snap: QuestSnapshot): number {
-    return QUEST_FOODS.reduce((total, food) => total + (snap.inv.get(food.toLowerCase()) ?? 0), 0);
+    return questFoods().reduce((total, food) => total + (snap.inv.get(food.toLowerCase()) ?? 0), 0);
 }
 
 // Why: the shamans are 99 in every combat stat and respawn about every hundred ticks, so an enclave trip without food is a death.
@@ -140,7 +153,7 @@ export function sourceFood(snap: QuestSnapshot, want: number): QuestStep | null 
     if (!snap.bankKnown) {
         return scanBank();
     }
-    for (const food of QUEST_FOODS) {
+    for (const food of questFoods()) {
         const inBank = snap.bank?.get(food.toLowerCase()) ?? 0;
         if (inBank > 0) {
             return { kind: 'withdraw', items: [{ name: food, qty: Math.min(want - carried, inBank) }], bank: WT_TILE.YANILLE_BANK };
