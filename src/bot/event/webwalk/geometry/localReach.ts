@@ -116,11 +116,7 @@ export function canReachLocal(flags: FlagsAt, from: LocalPoint, to: LocalPoint, 
 
 const cheb = (a: LocalPoint, b: LocalPoint): number => Math.max(Math.abs(a.lx - b.lx), Math.abs(a.lz - b.lz));
 
-/**
- * Live-scene stand closest to `to`.
- * Why: pack dests behind a loc/cliff fail `tryMove`; walking this tile follows
- * the client collision detour instead of treating a no-op nearest-click as success.
- */
+/** Why: pack dests behind a loc fail tryMove; this is the live stand closest to that dest. */
 export function closestReachableToward(
     flags: FlagsAt,
     from: LocalPoint,
