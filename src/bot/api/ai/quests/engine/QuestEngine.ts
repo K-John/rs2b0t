@@ -675,6 +675,7 @@ export class QuestEngine implements Task {
             bankIds: new Map(this.lastBankIdCounts),
             bankKnown: this.bankKnown,
             tile: Game.tile(),
+            prayer: Skills.effective('prayer'),
             freeSlots: Inventory.free()
         };
     }

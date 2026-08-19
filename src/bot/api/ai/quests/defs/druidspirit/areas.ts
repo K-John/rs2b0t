@@ -30,6 +30,10 @@ export const NS_STAGE = {
     COMPLETE: 110
 } as const;
 
+// Why: `opheld3,silver_sickle_blessed` charges `random_range(1, 7)` and refuses outright at zero, so a bar under seven can still lose the cast it is about to pay for.
+/** The dearest a single Cast Bloom can cost. */
+export const BLOOM_MAX_COST = 7;
+
 export const NS_ID = {
     GHOSTSPEAK: 552,
     POUCH_EMPTY: 2957,

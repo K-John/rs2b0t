@@ -1,9 +1,9 @@
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { DREZEL, inGrotto, NS_HOPS, NS_ID, NS_STAGE } from './areas.js';
+import { BLOOM_MAX_COST, DREZEL, inGrotto, NS_HOPS, NS_ID, NS_STAGE } from './areas.js';
 import { askToHelp, bloomWithScroll, feedStones, journalLeg, mirrorLeg, solvePuzzle, talkFilliman } from './camp.js';
 import { bloomWithSickle, fillPouch, killGhast } from './ghasts.js';
-import { blessSickle, enterGrotto, exitAfterQuest, leaveGrotto, talkInGrotto } from './grotto.js';
+import { blessSickle, enterGrotto, exitAfterQuest, leaveGrotto, rechargePrayer, talkInGrotto } from './grotto.js';
 import { NS_FLAG, readDruidProgress } from './journal.js';
 import { amulet, heldId, NS_TOOLS, sickleStep } from './supplies.js';
 
@@ -57,6 +57,10 @@ function ghastLoop(snap: QuestSnapshot): QuestStep {
     }
     if (harvestHeld(snap) >= 3) {
         return custom('fill the druid pouch', fillPouch);
+    }
+    // Why: only the bloom costs prayer — a pouch fill and a ghast kill are free, so the altar trip is taken here and nowhere else.
+    if ((snap.prayer ?? BLOOM_MAX_COST) < BLOOM_MAX_COST) {
+        return custom('recharge at the altar of nature', rechargePrayer);
     }
     return custom('harvest natures bounty', bloomWithSickle);
 }
