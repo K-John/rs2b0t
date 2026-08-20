@@ -54,6 +54,10 @@ const ITEM = {
 
 const RUNES = [ITEM.AIR_RUNE, ITEM.EARTH_RUNE, ITEM.WATER_RUNE] as const;
 const FOOD_TARGET = 8;
+
+// Why: refilling on any shortfall walked the run back to Ardougne for a single fish, while the walker was still following the route to the falls.
+/** Food left before a bank trip is worth making, well under the float it refills to. */
+const FOOD_LOW = 3;
 const RUNE_TARGET = 6;
 const RUNE_UNIT_BUDGET = 24;
 const BETTY_RETURN_FARE = 60;
@@ -521,15 +525,16 @@ function withFood(ids: readonly number[]): readonly number[] {
     return food ? [...ids, food.id] : ids;
 }
 
-function sourceFood(snap: QuestSnapshot, bank: Tile = ARDOUGNE_BANK): QuestStep | null {
+export function sourceFood(snap: QuestSnapshot, bank: Tile = ARDOUGNE_BANK): QuestStep | null {
     const food = foodItem();
     if (!food) {
         return { kind: 'wait', reason: 'no food selected for the Waterfall dungeon' };
     }
-    const missing = FOOD_TARGET - heldCount(snap, food);
-    if (missing <= 0) {
+    const held = heldCount(snap, food);
+    if (held > FOOD_LOW) {
         return null;
     }
+    const missing = FOOD_TARGET - held;
     if (!snap.bankKnown) {
         return scanBank(bank);
     }
@@ -1096,7 +1101,7 @@ function prepareDungeon(snap: QuestSnapshot, finalTrip: boolean): QuestStep | nu
     if (relicRecovery) return relicRecovery;
     // Why: a food refill first narrows the pack to travel supplies, so a mainland restart with surviving relics or runes cannot fill the pack before the food and a missing Rope are assembled.
     const food0 = foodItem();
-    const replenishingFood = food0 !== null && heldCount(snap, food0) < FOOD_TARGET;
+    const replenishingFood = food0 !== null && heldCount(snap, food0) <= FOOD_LOW;
     const travelNormalize = normalizeLoadout(
         snap,
         withFood(replenishingFood ? START_KEEP : (finalTrip ? FINAL_KEEP : DUNGEON_KEEP)),
