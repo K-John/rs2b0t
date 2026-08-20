@@ -191,7 +191,14 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
     if (has(snap, SHED_KEY)) { return { kind: 'custom', name: 'shed + experiment fight', run: shedLeg }; }
 
-    if (has(snap, MAGNET)) { return { kind: 'custom', name: 'mouse/magnet + shed key', run: gardenLeg }; }
+    if (has(snap, MAGNET)) {
+        // Why: the cheese is spent luring the mouse, so a bot thrown out of the house before the magnet
+        // lands comes back holding the magnet and nothing to lure with, and the leg has no way to recover.
+        if (!has(snap, CHEESE)) {
+            return { kind: 'buy', item: CHEESE, qty: 1, shop: WYDIN, estGp: SHOP_GP };
+        }
+        return { kind: 'custom', name: 'mouse/magnet + shed key', run: gardenLeg };
+    }
 
     if (has(snap, DOOR_KEY)) {
         if (!wornGloves(snap)) {
