@@ -58,7 +58,7 @@ function ghastLoop(snap: QuestSnapshot): QuestStep {
     if (harvestHeld(snap) >= 3) {
         return custom('fill the druid pouch', fillPouch);
     }
-    // Why: only the bloom costs prayer — a pouch fill and a ghast kill are free, so the altar trip is taken here and nowhere else.
+    // Why: only the bloom costs prayer, a pouch fill and a ghast kill are free, so the altar trip is taken here and nowhere else.
     if ((snap.prayer ?? BLOOM_MAX_COST) < BLOOM_MAX_COST) {
         return custom('recharge at the altar of nature', rechargePrayer);
     }

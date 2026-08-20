@@ -125,7 +125,7 @@ export interface QuestModule {
     readProgress?: () => QuestProgress | undefined | Promise<QuestProgress | undefined>;
     /** Optional quest-specific survival policy applied while this module is active. */
     sustain?: QuestSustain;
-    // Why: declared only on the quests whose fights threaten the account — a level-2 goblin is not worth the points.
+    // Why: declared only on the quests whose fights threaten the account, a level-2 goblin is not worth the points.
     /** Protection prayer to hold through this quest's fights, and the doses it carries. */
     pray?: QuestPrayer;
     // Why: set 0 when the module fetches coins at the point of sale, as the float is restored on every provisioning loop and a standing balance means a bank trip per purchase.

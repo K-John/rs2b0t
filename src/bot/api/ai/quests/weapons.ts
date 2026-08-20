@@ -29,7 +29,7 @@ const TIERS: readonly { tier: string; attack: number }[] = [
     { tier: 'Bronze', attack: 1 }
 ];
 
-// Why: one-handed only — a two-hander takes the shield slot, and every quest that arms itself also wears one.
+// Why: one-handed only, a two-hander takes the shield slot, and every quest that arms itself also wears one.
 /** Melee types within a tier, best first. */
 const TYPES: readonly string[] = ['scimitar', 'longsword', 'battleaxe', 'sword', 'mace', 'dagger', 'warhammer'];
 
@@ -59,7 +59,7 @@ function build(): MeleeWeapon[] {
 export const MELEE_WEAPONS: readonly MeleeWeapon[] = build();
 
 // Why: `tier40.rs2` gates a rune pickaxe on Attack 40, not on Mining, so a pickaxe rides the same
-// tiers as a scimitar — and it is kept out of `MELEE_WEAPONS` so nothing goes to a fight holding one.
+// tiers as a scimitar, and it is kept out of `MELEE_WEAPONS` so nothing goes to a fight holding one.
 
 /** Every pickaxe the item db knows, best tier first. */
 export const PICKAXES: readonly MeleeWeapon[] = TIERS

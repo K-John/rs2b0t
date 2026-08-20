@@ -119,7 +119,7 @@ export default class AIOQuester extends TaskBot {
     private picked = new Set<string>();
     private rows: QueueRow[] = [];
     private runningId: string | null = null;
-    private stepDesc = '—';
+    private stepDesc = ', ';
     private noProgress = 0;
     private parkedCount = 0;
 
@@ -132,7 +132,7 @@ export default class AIOQuester extends TaskBot {
     private qpAtStart: number | null = null;
     private completed = 0;
     private stepSince = Date.now();
-    // Why: the queue runs one quest after another in a single session, so a runtime clock answers "how long has the bot been up" and nothing answers "how long has this quest taken" — which is the number that says whether a quest is slow or stuck.
+    // Why: the queue runs one quest after another in a single session, so a runtime clock answers "how long has the bot been up" and nothing answers "how long has this quest taken", which is the number that says whether a quest is slow or stuck.
     private questSince = Date.now();
 
     override async onStart(): Promise<void> {
@@ -161,7 +161,7 @@ export default class AIOQuester extends TaskBot {
         });
         applyHeroSettings({ partner: this.settings.str('heroPartner', '') });
         applyLegendsSettings({ reward: this.settings.str('legendsReward', 'Prayer') });
-        // Why: the server runs one op per tick and drops the rest, so a pass spends its tick on food or on prayer, never both — and food wins, as the fight it is losing is measured in hitpoints.
+        // Why: the server runs one op per tick and drops the rest, so a pass spends its tick on food or on prayer, never both, and food wins, as the fight it is losing is measured in hitpoints.
         Sustain.set(async () => {
             if (this.shouldEat()) {
                 await this.eatOnce();
@@ -173,7 +173,7 @@ export default class AIOQuester extends TaskBot {
         EventSignal.setInterrupt(() => this.skipRequested || this.died);
 
         const queueNames = [...this.picked].map(id => defById(id)?.record.name ?? id);
-        this.log(`AIOQuester — queue: ${queueNames.join(', ') || '(none)'}`);
+        this.log(`AIOQuester, queue: ${queueNames.join(', ') || '(none)'}`);
         this.add(new ContinueDialog(), new EatFood(this), new QuestEngine(this));
     }
 
@@ -183,7 +183,7 @@ export default class AIOQuester extends TaskBot {
         setQuestPrayer(null, null);
     }
 
-    // Why: the setting is the answer for quests — a loadout built for a training script carries whatever
+    // Why: the setting is the answer for quests, a loadout built for a training script carries whatever
     // that script eats, and letting it override sent the queue out on food the player never chose.
     foodItem(): string | null {
         return this.settings.str('food', FALLBACK_FOOD);
@@ -268,7 +268,7 @@ export default class AIOQuester extends TaskBot {
         }
         this.skipRequested = true;
         const name = this.rows.find(r => r.id === this.runningId)?.name ?? this.runningId ?? 'current quest';
-        this.log(`Skip quest — abandoning ${name} after the current step yields`);
+        this.log(`Skip quest, abandoning ${name} after the current step yields`);
     }
 
     /** True while the player has pressed Skip and the engine has not yet applied it. */
@@ -301,7 +301,7 @@ export default class AIOQuester extends TaskBot {
         }
 
         const p = Paint.begin(ctx, { dock: 'chatbox', accent: '#c8a2ff' });
-        p.title(`AIOQuester — ${this.status}`);
+        p.title(`AIOQuester, ${this.status}`);
 
         const tab = p.tabs('aio', ['Queue', 'Current', 'Blocked', 'Session']);
         if (tab === 'Queue') {
@@ -319,7 +319,7 @@ export default class AIOQuester extends TaskBot {
             const stepMins = (Date.now() - this.stepSince) / 60_000;
             const questMins = (Date.now() - this.questSince) / 60_000;
             p.cells([
-                { text: `Quest: ${running?.name ?? '—'}`, weight: 2, color: running ? QUEUE_COLOUR.RUNNING : DIM },
+                { text: `Quest: ${running?.name ?? ', '}`, weight: 2, color: running ? QUEUE_COLOUR.RUNNING : DIM },
                 { text: `On quest: ${fmtDuration(questMins)}`, weight: 1 }
             ]);
             p.cells([

@@ -1,4 +1,4 @@
-/** Live proof — ArdyFighter fights instead of spinning on the Baker's stall when a loadout names a food the stall never hands over.
+/** Live proof, ArdyFighter fights instead of spinning on the Baker's stall when a loadout names a food the stall never hands over.
  *  Why: a loadout is seeded with Lobster, the pack holds only cakes, and the pre-fix gate re-entered the stall driver every loop. */
 
 //   bun e2e/ardyfighter-restock-loop-live.ts [http://localhost:8888]
@@ -81,7 +81,7 @@ try {
         }
         g.rs2b0t.runner.start(meta);
     });
-    console.log('ArdyFighter started — watching for combat XP, not for stall spin');
+    console.log('ArdyFighter started, watching for combat XP, not for stall spin');
 
     const deadline = Date.now() + RUN_MS;
     let stocked = 0;
@@ -104,7 +104,7 @@ try {
             fail(`script stopped early: ${snap.logs.slice(-6).join(' | ')}`);
         }
         if (stocked > STOCKED_CAP) {
-            fail(`stall spin is back — ${stocked} "stocked N stall food" lines: ${snap.logs.slice(-4).join(' | ')}`);
+            fail(`stall spin is back, ${stocked} "stocked N stall food" lines: ${snap.logs.slice(-4).join(' | ')}`);
         }
         if (fought && xpGained > 0) {
             break;
@@ -123,9 +123,9 @@ try {
     await page.evaluate(() => (globalThis as never as Api).rs2b0t.runner.stop('harness stop'));
 
     if (xpGained <= 0) {
-        fail(`no combat XP in ${RUN_MS / 1000}s — the bot never left the stall (stocked lines=${stocked})`);
+        fail(`no combat XP in ${RUN_MS / 1000}s, the bot never left the stall (stocked lines=${stocked})`);
     }
-    console.log(`PASS — combat xp +${xpGained}, "stocked" lines=${stocked} (cap ${STOCKED_CAP})`);
+    console.log(`PASS, combat xp +${xpGained}, "stocked" lines=${stocked} (cap ${STOCKED_CAP})`);
 } finally {
     client.cleanup();
     await browser.close();

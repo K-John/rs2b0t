@@ -16,7 +16,7 @@ quest needs **before** it starts, bank-first:
 
 ## An empty pack per quest
 
-`QuestEngine.freshenPack` banks all 28 slots — coin float (`COIN_FLOAT`) and food included — so
+`QuestEngine.freshenPack` banks all 28 slots, coin float (`COIN_FLOAT`) and food included, so
 the quest's own withdrawal is the only thing that fills it. Both constants live in
 `QuestEngine.ts`, and the fixed bank is `PROVISION_BANK`.
 
@@ -42,7 +42,7 @@ Three failed bank trips and the quest starts on the pack as it stands rather tha
 `food: N` declarations and the modules that provision themselves start from it; a quest that
 raises it says why. A quest declaring `food: N` draws up to N once, and the float is then closed
 for that quest.
-Eating during the quest does not reopen it — the provisioning block re-runs every tick while a
+Eating during the quest does not reopen it, the provisioning block re-runs every tick while a
 quest is still gathering, and topping the float up sent the bot back to the bank after every
 meal. A death reopens it, because the pack is gone.
 
@@ -69,7 +69,7 @@ three shapes and `prayerUpkeep()` is called from each:
 |---|---|
 | in combat, points at `PRAYER_FLOOR`, a dose held | drink |
 | in combat, protection down and available | raise it |
-| the fight ends | drop it — held through the walk out it empties the flask |
+| the fight ends | drop it, held through the walk out it empties the flask |
 | Prayer below the prayer's level | log once, fight on food alone |
 
 Doses join the float like food, drawn once. Declared only on the nine quests above, whose fights

@@ -1,7 +1,7 @@
 import Tile from '../../../../../geometry/Tile.js';
 import type { NpcStop } from '../../exec/primitives.js';
 
-/** Falador West — nearest era-correct bank to Burthorpe (no Burthorpe bank). */
+/** Falador West, nearest era-correct bank to Burthorpe (no Burthorpe bank). */
 export const FALADOR_WEST_BANK = new Tile(2946, 3369, 0);
 
 export const DEATH_ITEM = {
@@ -79,7 +79,7 @@ export const DENULTH_START: NpcStop = {
     prefer: [
         'Do you have any quests for me?',
         'No but perhaps I could try and find one?',
-        // Server already started (setvar / desync) — re-sync client journal colour.
+        // Server already started (setvar / desync), re-sync client journal colour.
         'Can you remind me of the quest I am on?'
     ]
 };

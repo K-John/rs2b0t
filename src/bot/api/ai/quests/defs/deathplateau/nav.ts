@@ -6,7 +6,7 @@ import Tile from '../../../../../geometry/Tile.js';
 import { talkThrough, type NpcStop } from '../../exec/primitives.js';
 import { TILE } from './areas.js';
 
-// Why: Burthorpe floor plan — Eohric is castle L1 via "Stairs" at about (2897,3566), Harold is Toad & Chicken L1 via "Staircase" at about (2914,3539), and Tostig, Denulth and Dunstan are on the ground.
+// Why: Burthorpe floor plan, Eohric is castle L1 via "Stairs" at about (2897,3566), Harold is Toad & Chicken L1 via "Staircase" at about (2914,3539), and Tostig, Denulth and Dunstan are on the ground.
 // Why: castle L1 and inn L1 are unconnected, so any L1-to-L1 hop between them has to Climb-down, walk the ground, then Climb-up the other building.
 // Why: walkResilient can plan that multi-hop only while the stair loc names match the scene.
 
@@ -89,7 +89,7 @@ async function ascendToDestFloor(dest: Tile, log: (m: string) => void): Promise<
         return true;
     }
     if (here.level > 0) {
-        // Wrong building upstairs — go down first.
+        // Wrong building upstairs, go down first.
         if (!(await descendToGround(log))) {
             return false;
         }

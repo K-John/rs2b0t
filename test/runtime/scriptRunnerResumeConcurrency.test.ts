@@ -93,7 +93,7 @@ class WedgedLoopBot extends LoopingBot {
     }
 }
 
-// Why: #580 — nothing wakes a loop the scheduler has no waiter for, so a resume has to
+// Why: #580, nothing wakes a loop the scheduler has no waiter for, so a resume has to
 // abandon it or the pump never launches another iteration again.
 test('a resume still frees a loop wedged on a promise the scheduler does not own', async () => {
     stubIngame();

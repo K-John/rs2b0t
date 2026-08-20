@@ -1,5 +1,5 @@
 /** Live full-queue soak: --minutes N --stats N --quests csv --food name --coins N --tick N --content dir --no-deploy, base :8890.
- *  Why: the bank is seeded with the seven `mustHave` items and nothing else the engine can reach — the other 87 declared items are `acquirable`, and leaving them out is what makes a broken gather fn, shop buy or mining leg fail here instead of passing silently.
+ *  Why: the bank is seeded with the seven `mustHave` items and nothing else the engine can reach, the other 87 declared items are `acquirable`, and leaving them out is what makes a broken gather fn, shop buy or mining leg fail here instead of passing silently.
  *  Why: 70 clears every skill gate in the records (Magic 59 is the highest), so one number covers the queue without hand-tuning per quest. */
 
 //   HEADED=1 bun e2e/aio-full-queue-live.ts --minutes 480
@@ -107,7 +107,7 @@ function objNames(contentDir: string): Map<string, string> {
     try {
         files = objConfigs(scripts);
     } catch {
-        return fail(`content: ${scripts} not readable — set CONTENT_DIR or --content to the content the sim serves`);
+        return fail(`content: ${scripts} not readable, set CONTENT_DIR or --content to the content the sim serves`);
     }
     const byName = new Map<string, string>();
     for (const file of files) {
@@ -139,7 +139,7 @@ function bankSeed(picked: ReadonlySet<string>): BankSeedItem[] {
     const resolve = (display: string, qty: number): BankSeedItem => {
         const debugName = names.get(display.toLowerCase());
         if (!debugName) {
-            fail(`seed: no obj config names '${display}' under ${args.content} — has it been renamed?`);
+            fail(`seed: no obj config names '${display}' under ${args.content}, has it been renamed?`);
         }
         return { debugName, displayName: display, qty };
     };
@@ -259,10 +259,10 @@ try {
         sessionStorage.setItem('rs2b0t:set:AIOQuester:food', food);
     }, [args.quests.join(','), args.food] as const);
     await startScript(page, 'AIOQuester');
-    console.log(`started AIOQuester — ${picked.size} quest(s), food ${args.food}, budget ${args.minutes}m`);
+    console.log(`started AIOQuester, ${picked.size} quest(s), food ${args.food}, budget ${args.minutes}m`);
 
     // Why: the queue setting is filtered against the engine's implemented modules, and an id that
-    // has a record but no module drops out silently — leaving an empty setting, which means "all".
+    // has a record but no module drops out silently, leaving an empty setting, which means "all".
     await page.waitForFunction(
         () => ((globalThis as never as Abi).rs2b0t.runner.bot?.rows ?? []).length > 0,
         undefined,
@@ -272,10 +272,10 @@ try {
     const queued = new Set(opening.rows.map(r => r.id));
     const dropped = [...picked].filter(id => !queued.has(id));
     if (opening.rows.length === 0) {
-        fail('the engine reported no queue rows — AIOQuester did not start');
+        fail('the engine reported no queue rows, AIOQuester did not start');
     }
     if (dropped.length > 0) {
-        fail(`the engine has no module for: ${dropped.join(', ')} — they have a record but are not implemented`);
+        fail(`the engine has no module for: ${dropped.join(', ')}, they have a record but are not implemented`);
     }
 
     const t0 = Date.now();
@@ -308,7 +308,7 @@ try {
             fail(`script crashed: ${JSON.stringify(snap.logs.slice(-20))}`);
         }
         if (snap.runner === 'stopped') {
-            console.log('runner stopped — queue drained');
+            console.log('runner stopped, queue drained');
             break;
         }
         await page.waitForTimeout(1000);
@@ -320,10 +320,10 @@ try {
     }
 
     console.log('');
-    console.log(`queue after ${fmt(elapsed)} — QP ${final.qp}`);
+    console.log(`queue after ${fmt(elapsed)}, QP ${final.qp}`);
     for (const row of final.rows) {
         const took = tookMs.has(row.id) ? fmt(tookMs.get(row.id)!) : '';
-        const why = row.reasons.length > 0 ? ` — ${row.reasons.join('; ')}` : '';
+        const why = row.reasons.length > 0 ? `, ${row.reasons.join('; ')}` : '';
         console.log(`  ${row.status.padEnd(8)} ${row.name.padEnd(28)} ${took.padStart(7)}${why}`);
     }
 

@@ -696,7 +696,7 @@ export class PathFinder {
         if (!hasOtherGates(other)) {
             return true;
         }
-        // Why: offline planners — the clue audit, the route corpora, `route-probe` — carry no WorldState and
+        // Why: offline planners, the clue audit, the route corpora, `route-probe`, carry no WorldState and
         // would lose every gated transport, so this stays open and `Navigator` supplies the live state instead.
         if (!baseState) {
             return true; // fail open without WorldState (pre-v2 pack parity)

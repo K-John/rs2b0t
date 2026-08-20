@@ -43,7 +43,7 @@ export const SETTINGS: SettingsSchema = {
     target: { type: 'string', default: 'Guard', label: 'NPC to fight (name)' },
     combatStyle: { type: 'string', default: 'strength', options: COMBAT_STYLE_OPTIONS, label: 'Combat style', help: 'which melee stat to train; re-applied each login since com_mode is not saved' },
     bankStand: { type: 'tile', default: DEFAULT_BANK_STAND, label: 'Bank stand tile (x,z)' },
-    loadout: { ...LOADOUT_SETTING, help: 'gear to wear, defined in the Loadouts panel; its food is ignored — this bot eats what it steals from the Baker\'s stall' },
+    loadout: { ...LOADOUT_SETTING, help: 'gear to wear, defined in the Loadouts panel; its food is ignored, this bot eats what it steals from the Baker\'s stall' },
 
     panicHp: { type: 'number', default: 25, min: 0, max: 100, label: 'Panic below HP% (no food)' },
     restUntilHp: { type: 'number', default: 60, min: 0, max: 100, label: 'Regen to HP% when bank empty' },
@@ -58,7 +58,7 @@ let ANCHOR = DEFAULT_ANCHOR;
 let LEASH = 12;
 let TARGET = 'Guard';
 let BANK_STAND = DEFAULT_BANK_STAND;
-// Why: the Baker's stall is the only restock, so the eat list is what the stall hands over — a loadout food would never arrive and the restock gate would never settle.
+// Why: the Baker's stall is the only restock, so the eat list is what the stall hands over, a loadout food would never arrive and the restock gate would never settle.
 const FOOD = CAKE_ITEMS;
 let LOOT = DEFAULT_LOOT.split(',').map(s => s.trim().toLowerCase());
 
@@ -150,14 +150,14 @@ export default class ArdyFighter extends TaskBot {
         });
 
         if (Skills.level('thieving') < 5) {
-            this.log(`ArdyFighter needs Thieving 5 for the Baker's stall (have ${Skills.level('thieving')}) — stopping.`);
+            this.log(`ArdyFighter needs Thieving 5 for the Baker's stall (have ${Skills.level('thieving')}), stopping.`);
             throw new Error('ArdyFighter: Thieving 5 required');
         }
 
         this.startedAt = Date.now();
         this.xpAtStart = COMBAT_SKILLS.reduce((n, sk) => n + Skills.xp(sk), 0);
 
-        this.log(`ArdyFighter starting — anchor ${ANCHOR} r${LEASH}, target '${TARGET}', stall via shared driver, bank ${BANK_STAND}`);
+        this.log(`ArdyFighter starting, anchor ${ANCHOR} r${LEASH}, target '${TARGET}', stall via shared driver, bank ${BANK_STAND}`);
 
         this.on('chat.message', e => {
             if (/oh dear.*you are dead/i.test(e.text)) {
@@ -171,7 +171,7 @@ export default class ArdyFighter extends TaskBot {
                 anchor: ANCHOR,
                 radius: 6,
                 onDeath: () => {
-                    this.setStatus('died — recovering');
+                    this.setStatus('died, recovering');
                     this.countDeath();
                     this.solveClue?.noteDeath();
                     this.log('died! waiting for respawn, then walking back to the market');
@@ -213,13 +213,13 @@ export default class ArdyFighter extends TaskBot {
 
     override onPaint(ctx: CanvasRenderingContext2D): void {
         const p = Paint.begin(ctx, { dock: 'chatbox', accent: '#ffb86c' });
-        p.title(`ArdyFighter — ${this.status}`);
+        p.title(`ArdyFighter, ${this.status}`);
 
         const mins = (Date.now() - this.startedAt) / 60_000;
         const tab = p.tabs('af', ['Overview', 'Loot', 'Clue']);
         if (tab === 'Overview') {
             const xpGained = COMBAT_SKILLS.reduce((n, s) => n + Skills.xp(s), 0) - this.xpAtStart;
-            const xph = mins > 0.5 ? `${((xpGained / mins) * 60 / 1000).toFixed(1)}k` : '—';
+            const xph = mins > 0.5 ? `${((xpGained / mins) * 60 / 1000).toFixed(1)}k` : ', ';
             p.row(`Runtime: ${fmtDuration(mins)}`, `Kills: ${this.kills}`, `XP/hr: ${xph}`);
             p.row(`Food: ${foodCount()}`, `Steals: ${this.steals}`, this.deaths ? `Deaths: ${this.deaths}` : `Ate: ${this.eats}`);
             p.row(`Clues: ${this.cluesSolved}`, `Clue: ${this.solveClue?.clueStatus() ?? 'idle'}`);
@@ -381,7 +381,7 @@ class BankRun implements Task {
         await Traversal.walkTo(BANK_STAND, { radius: 2, timeoutMs: 90000, log: m => this.bot.log(`  ${m}`) });
 
         if (!(await Bank.openBooth(BANK_STAND, BOOTH.name, BOOTH.op, m => this.bot.log(`  ${m}`)))) {
-            this.bot.log('could not open the bank — will retry');
+            this.bot.log('could not open the bank, will retry');
             return;
         }
 
@@ -403,7 +403,7 @@ class PanicRetreat implements Task {
     }
 
     async execute(): Promise<void> {
-        this.bot.setStatus('panic: no food — retreating to the bank');
+        this.bot.setStatus('panic: no food, retreating to the bank');
         this.bot.log(`panic retreat at ${Skills.effective('hitpoints')}/${Skills.level('hitpoints')} hp`);
         await Traversal.walkTo(BANK_STAND, { radius: 2, timeoutMs: 90000, log: m => this.bot.log(`  ${m}`) });
 
@@ -424,7 +424,7 @@ class PanicRetreat implements Task {
         }
 
         if (foodCount() === 0) {
-            this.bot.setStatus('panic: bank empty — waiting for regen');
+            this.bot.setStatus('panic: bank empty, waiting for regen');
             await Execution.delayUntil(() => Skills.hpFraction() >= REST_UNTIL || Game.inCombat() || ChatDialog.canContinue() || EventSignal.pending(), 300_000);
         }
 
@@ -502,7 +502,7 @@ class Fight implements Task {
 
             const me = Game.tile();
             if (!me || guard.tile().distanceTo(me) > LEASH + 10) {
-                this.bot.log('displaced mid-fight — abandoning target');
+                this.bot.log('displaced mid-fight, abandoning target');
                 return;
             }
 

@@ -1,5 +1,5 @@
 /** Live proof that every quest opens on an empty pack: --quest id --junk N --minutes N --tick N --no-deploy, base :8890.
- *  Why: `doric` is the default target because it declares `ownsInventory`, the flag that used to opt a quest out of every generic deposit — a full pack survived into its own withdrawal and there was nowhere to put the ore. */
+ *  Why: `doric` is the default target because it declares `ownsInventory`, the flag that used to opt a quest out of every generic deposit, a full pack survived into its own withdrawal and there was nowhere to put the ore. */
 
 //   HEADED=1 bun e2e/aio-fresh-pack-live.ts --quest doric --junk 28 --minutes 8
 //   HEADED=1 bun e2e/aio-fresh-pack-live.ts --quest doric --junk 28 --resume doricquest=10 --minutes 8
@@ -100,14 +100,14 @@ try {
         const [name, value] = args.resume.split('=');
         await cheatQuiet(page, `setvar ${name} ${value}`);
         await relog(page, args.user);
-        console.log(`resumed: ${name}=${value} — the quest's journal now reads in progress`);
+        console.log(`resumed: ${name}=${value}, the quest's journal now reads in progress`);
     }
 
-    // Why: cowhide does not stack, so one command fills one slot per unit — a pack no quest asked for.
+    // Why: cowhide does not stack, so one command fills one slot per unit, a pack no quest asked for.
     await cheatQuiet(page, `~item ${args.junkObj} ${args.junk}`);
     const seeded = (await snapshot(page)).used;
     if (seeded < args.junk) {
-        fail(`seed: pack holds ${seeded}/${args.junk} slots of ${args.junkObj} — is ~item packed on this content build?`);
+        fail(`seed: pack holds ${seeded}/${args.junk} slots of ${args.junkObj}, is ~item packed on this content build?`);
     }
     console.log(`seeded ${seeded} junk slot(s) of ${args.junkObj}`);
 
@@ -128,7 +128,7 @@ try {
                 console.log(`  [${Math.round((Date.now() - t0) / 1000)}s] ${line.msg}`);
                 lastLog = Math.max(lastLog, line.time);
             }
-            if (/(not started|first quest of the session) — banking \d+ carried slot\(s\)/i.test(line.msg)) {
+            if (/(not started|first quest of the session), banking \d+ carried slot\(s\)/i.test(line.msg)) {
                 sawFreshenLog = true;
             }
         }

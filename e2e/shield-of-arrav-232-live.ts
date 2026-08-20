@@ -1,6 +1,6 @@
 /** Live Shield of Arrav harness (#232): --gang phoenix|blackarm, --phoenix N, --blackarm N, --until N, --keep-half, base :8890.
  *  Why: the quest runs on two independent varps and the journal renders one gang's block at a time, so a single stage number reaches only half of it; the bank holds coins and food alone so the book, the bribe and the shields are sourced in the world; the :8888 sim answers neither `givebank` nor `~bankitem`.
- *  Why: this harness proves one side only — a lone account cannot redeem, because the certificate needs both halves and the halves need two gangs. Use shield-of-arrav-pair-232-live.ts for a completion. */
+ *  Why: this harness proves one side only, a lone account cannot redeem, because the certificate needs both halves and the halves need two gangs. Use shield-of-arrav-pair-232-live.ts for a completion. */
 
 //   HEADED=1 bun e2e/shield-of-arrav-232-live.ts --gang phoenix --phoenix 0 --until 9 --tick 300 --minutes 45
 //   HEADED=1 bun e2e/shield-of-arrav-232-live.ts --gang blackarm --blackarm 2 --until 3 --tick 300 --minutes 30
@@ -209,13 +209,13 @@ try {
     await setStats(page, args.stats);
     console.log(`stats: ${args.stats} across the board`);
 
-    // Why: a Black Arm account needs a weapon-store key it has no way to obtain alone — only Straven issues one, and joining Phoenix makes Katrine refuse you.
+    // Why: a Black Arm account needs a weapon-store key it has no way to obtain alone, only Straven issues one, and joining Phoenix makes Katrine refuse you.
     // Why: it goes through seedItemsToBank rather than a bare `givebank`, because this engine answers only `~bankitem` and a bare cheat fails silently.
     const seed = args.gang === 'blackarm'
         ? [...BANK_SEED, { debugName: 'phoenixkey2', displayName: 'Key', qty: 1 }]
         : BANK_SEED;
     if (args.gang === 'blackarm') {
-        console.log('SEEDING phoenixkey2 — a lone Black Arm account cannot source one, so this run is not self-sufficient');
+        console.log('SEEDING phoenixkey2, a lone Black Arm account cannot source one, so this run is not self-sufficient');
     }
     console.log(`seeding ${seed.length} item type(s) into the Varrock West bank`);
     await seedItemsToBank(page, seed, VARROCK_WEST_BANK);
@@ -281,11 +281,11 @@ try {
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
         if (t > 90 && !sawOurBuild) {
-            fail('the queue never named Shield of Arrav in 90s — the deployed bundle is not this branch');
+            fail('the queue never named Shield of Arrav in 90s, the deployed bundle is not this branch');
         }
         // Why: the chest reads `inv_total(bank, arravshield1)`, so a half that leaves the pack for a booth is gone for the run.
         if (args.keepHalf && last.halves === 0) {
-            fail(`the seeded Broken shield (${halfId}) left the pack at ${varp}=${stage} — the fresh-pack sweep banked it`);
+            fail(`the seeded Broken shield (${halfId}) left the pack at ${varp}=${stage}, the fresh-pack sweep banked it`);
         }
         const done = args.keepHalf
             ? parked.length > 0
@@ -307,7 +307,7 @@ try {
     }
     fail(
         args.keepHalf
-            ? `no park inside ${args.minutes}min (${varp}=${reached}) — the leg is still retrying instead of saying why`
+            ? `no park inside ${args.minutes}min (${varp}=${reached}), the leg is still retrying instead of saying why`
             : args.wantHalf
                 ? `no Broken shield (${halfId}) in the pack within ${args.minutes}min (${varp}=${reached})`
                 : `${varp} reached ${reached}, wanted ${args.until}, within ${args.minutes}min`

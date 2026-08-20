@@ -74,7 +74,7 @@ class NavigatorImpl {
         }
 
         // Why: quest-gated transports fail closed without a state, so a caller that names none would lose
-        // spirit trees and gliders it has earned — the live snapshot is the honest default.
+        // spirit trees and gliders it has earned, the live snapshot is the honest default.
         const state = opts?.state ?? snapshotWorldStateData();
 
         const timeoutMs = opts?.timeoutMs ?? FIND_TIMEOUT_MS;

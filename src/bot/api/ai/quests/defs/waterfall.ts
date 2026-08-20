@@ -506,7 +506,7 @@ function sourceRope(snap: QuestSnapshot, bank: Tile = ARDOUGNE_BANK): QuestStep 
     return coins ?? { kind: 'buy', item: ITEM.ROPE.name, qty: 1, shop: AEMAD_SHOP, estGp: 20 };
 }
 
-// Why: the food is whatever the player chose, drawn from the bank like every other quest — the old
+// Why: the food is whatever the player chose, drawn from the bank like every other quest, the old
 // pair of shop runs for fifteen Bread and ten Tea existed to carry a level-3 account with an empty bank.
 
 /** The configured food as an id and name, or null when it names nothing the item db knows. */
@@ -983,7 +983,7 @@ async function solvePillars(log: (message: string) => void): Promise<boolean> {
     }
 
     // Why: varp 66 is server-only, and a fresh trip starts with six of each rune, so after an interrupted trip the number still held equals the number of unset pillars.
-    // Why: replaying every possible placement is therefore idempotent — set bits consume nothing and unset bits consume one.
+    // Why: replaying every possible placement is therefore idempotent, set bits consume nothing and unset bits consume one.
     for (const pillar of pillars) {
         for (const rune of RUNES) {
             if (!(await placeRune(rune, pillar, log))) return false;

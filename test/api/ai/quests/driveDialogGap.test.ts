@@ -4,7 +4,7 @@ import { ChatDialog } from '#/bot/api/ui/dialogue/ChatDialog.js';
 import { Execution } from '#/bot/api/execution/Execution.js';
 
 // Why: Lawgof walks to the cannon and inspects it before the next page, and the default 1.5s lull
-// tolerance ended the drive mid-scene — the quest then picked another step and talked over him.
+// tolerance ended the drive mid-scene, the quest then picked another step and talked over him.
 
 const TICK_MS = 600;
 /** Poll the predicate once per simulated tick, so a longer wait gets more chances. */

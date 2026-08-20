@@ -62,7 +62,7 @@ export const COMMANDER: NpcStop = {
 };
 
 // Why: told the cannon is fixed, the Commander walks to it and inspects it before the next page, and the
-// default lull tolerance ended the drive in that gap — the quest then chose another step and talked over him.
+// default lull tolerance ended the drive in that gap, the quest then chose another step and talked over him.
 
 /** The same Commander, for the one stage where he leaves the conversation to go and look. */
 export const COMMANDER_INSPECT: NpcStop = { ...COMMANDER, gapMs: 20_000 };
