@@ -9,8 +9,10 @@ import {
     equipFloor,
     effectiveMap,
     parseDeathPlateauJournal,
-    closeDiceIfOpen
+    closeDiceIfOpen,
+    insideHaroldRoom
 } from '#/bot/api/ai/quests/defs/deathplateau/index.js';
+import { nextStake, purseAfter } from '#/bot/api/ai/quests/defs/deathplateau/harold.js';
 import { DEATH_DICE_MAIN } from '#/bot/api/ai/quests/defs/deathplateau/areas.js';
 import { actions, reader } from '#/bot/adapter/ClientAdapter.js';
 import { Execution } from '#/bot/api/execution/Execution.js';
@@ -421,7 +423,6 @@ describe('the dice interface never outlives a gamble round', () => {
         (reader as unknown as { modals: () => { main: number } }).modals = () => ({
             main: mainSeq[Math.min(call++, mainSeq.length - 1)]
         });
-        (reader as unknown as { mainModalButtonNearText: (t: string) => number }).mainModalButtonNearText = () => -1;
     };
 
     test('an open dice interface is closed', async () => {
@@ -455,5 +456,54 @@ describe('the dice interface never outlives a gamble round', () => {
         };
         await closeDiceIfOpen(() => {});
         expect(touched).toBe(false);
+    });
+});
+
+describe("Harold's bedroom is the L behind the door, not the box around it", () => {
+    // Why: the wall line at z3543 seals x2905..2907, and the room east of x2907 opens straight onto the corridor.
+    test('the bed end is inside', () => {
+        expect(insideHaroldRoom({ x: 2905, z: 3539, level: 1 })).toBe(true);
+        expect(insideHaroldRoom({ x: 2906, z: 3542, level: 1 })).toBe(true);
+    });
+
+    test('the elbow at the door end reaches x2907 and no further south', () => {
+        expect(insideHaroldRoom({ x: 2907, z: 3541, level: 1 })).toBe(true);
+        expect(insideHaroldRoom({ x: 2907, z: 3539, level: 1 })).toBe(false);
+    });
+
+    test('the corridor and the room beyond it are outside', () => {
+        expect(insideHaroldRoom({ x: 2906, z: 3543, level: 1 })).toBe(false);
+        expect(insideHaroldRoom({ x: 2909, z: 3539, level: 1 })).toBe(false);
+        expect(insideHaroldRoom({ x: 2905, z: 3539, level: 0 })).toBe(false);
+        expect(insideHaroldRoom(null)).toBe(false);
+    });
+});
+
+describe('the stake climbs past whatever Harold has won', () => {
+    // Why: `dice_winnings` writes the IOU only when `harold_gold - bet` goes below zero, and a loss hands him the stake.
+    test('101 bankrupts the 100gp Denulth gives him', () => {
+        expect(nextStake(100, 2000)).toBe(101);
+    });
+
+    test('a loss raises the next stake past his new purse', () => {
+        let purse = 100;
+        const first = nextStake(purse, 2000);
+        purse = purseAfter(purse, first, 'loss');
+        expect(purse).toBe(201);
+        expect(nextStake(purse, 2000)).toBe(202);
+    });
+
+    test('the stake never passes the 1000gp harold_gamble refuses', () => {
+        expect(nextStake(5000, 20000)).toBe(1000);
+        expect(purseAfter(900, 901, 'win')).toBe(1000);
+    });
+
+    test('an empty pack caps the stake rather than betting money that is not there', () => {
+        expect(nextStake(300, 40)).toBe(40);
+        expect(nextStake(300, 0)).toBe(0);
+    });
+
+    test('a win Harold could pay means the purse was read too low', () => {
+        expect(purseAfter(100, 101, 'win')).toBe(201);
     });
 });
