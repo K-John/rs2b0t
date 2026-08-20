@@ -1,5 +1,5 @@
 import { expect, test, describe } from 'bun:test';
-import { coinFloatWithdraw, depositPlan, floatWithdraw, gpShort, planProvisioning, floatDrawPlan, shouldFreshenPack } from '#/bot/api/ai/quests/engine/provisioning.js';
+import { coinFloatWithdraw, depositPlan, floatWithdraw, gpShort, planProvisioning, floatDrawPlan, shouldFreshenPack, buyPurseTopUp, COIN_FLOAT } from '#/bot/api/ai/quests/engine/provisioning.js';
 import type { QuestItem } from '#/bot/api/ai/quests/types.js';
 
 const it = (name: string, qty: number, kind: 'mustHave' | 'acquirable'): QuestItem => ({ name, qty, kind });
@@ -165,5 +165,31 @@ describe('floatDrawPlan', () => {
 
     test('a short bank draws what it has', () => {
         expect(floatDrawPlan(0, 3, 8, false)).toEqual({ qty: 3, drawn: false });
+    });
+});
+
+describe('buyPurseTopUp', () => {
+    test('a cheap counter still carries a real purse, not the price of one loaf', () => {
+        // Why: bread estimates 20 gp. Topping up to 20 left the next boat fare unpayable.
+        expect(buyPurseTopUp(0, 20)).toEqual({ need: true, draw: COIN_FLOAT });
+    });
+
+    test('the trip is made well below what the quest needs, not at the last coin', () => {
+        expect(buyPurseTopUp(COIN_FLOAT / 4 - 1, 20).need).toBe(true);
+        expect(buyPurseTopUp(COIN_FLOAT / 4 + 1, 20).need).toBe(false);
+    });
+
+    test('a purse that already covers the float is left alone', () => {
+        expect(buyPurseTopUp(COIN_FLOAT, 20)).toEqual({ need: false, draw: 0 });
+        expect(buyPurseTopUp(50_000, 20)).toEqual({ need: false, draw: 0 });
+    });
+
+    test('a counter dearer than the float tops up to the counter', () => {
+        expect(buyPurseTopUp(0, 12_000)).toEqual({ need: true, draw: 12_000 });
+        expect(buyPurseTopUp(2_000, 12_000)).toEqual({ need: true, draw: 10_000 });
+    });
+
+    test('the draw is the shortfall, never the whole target on top of the pack', () => {
+        expect(buyPurseTopUp(200, 20).draw).toBe(COIN_FLOAT - 200);
     });
 });
