@@ -1,5 +1,6 @@
 import Tile from '../../../../../geometry/Tile.js';
 import type { NpcStop } from '../../exec/primitives.js';
+import { CATHERBY_RANGE } from '../../../../../data/cookingRanges.js';
 
 export const OBS_QUEST = 'Observatory Quest';
 
@@ -111,10 +112,10 @@ export const OBS_TILE = {
     MINE: new Tile(2631, 3146, 0),
     // Why: `furnace1` is `forceapproach=east` placed at angle 2, so the only legal side is west in world space — the furnace spans (2601-2603,3310-3312).
     FURNACE: new Tile(2600, 3310, 0),
-    // Why: every Range is `forceapproach=east` and the two nearer Ardougne ones are placed at angle 2, which puts their legal side inside a house — a use-on from anywhere else is dropped in silence.
-    // Why: this is the Fishing Guild range south of the fence, whose stand the fishing cook loops already prove, and it sits on the walk home from the shore.
-    RANGE_LOC: new Tile(2616, 3396, 0),
-    RANGE_STAND: new Tile(2616, 3395, 0),
+    // Why: Catherby rather than the Fishing Guild range, whose stand sits inside the fence and reports `no path`, and rather than Yanille's, which is 629 tiles from the seaweed shore against Catherby's 284 and then doubles back past Ardougne.
+    // Why: the pair comes from `CATHERBY_RANGE` so the stand cannot drift from the one the cook loops already walk — `useOnLocFrom` stands on it exactly, and a wrong side is dropped in silence.
+    RANGE_LOC: CATHERBY_RANGE.loc,
+    RANGE_STAND: CATHERBY_RANGE.stand,
 
     BANK: new Tile(2655, 3283, 0)
 } as const;

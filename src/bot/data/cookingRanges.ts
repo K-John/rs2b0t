@@ -153,7 +153,7 @@ interface FishCampCookPlan {
     bank?: CookingSurface;
 }
 
-const CATHERBY_RANGE: CookingSurface = {
+export const CATHERBY_RANGE: CookingSurface = {
     stand: new Tile(2817, 3443, 0),
     loc: new Tile(2817, 3444, 0),
     locName: 'Range',
