@@ -62,10 +62,10 @@ export function certStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null
     const held = certsHeld(snap);
     const banked = certsBanked(snap);
     const target = Math.max(1, ArravConfig.certTarget);
-    // Why: only the phoenix bot mints — it is the one that reaches Straven and the curator unaided — so only it is held to the stockpile target.
+    // Why: only the phoenix bot mints, it is the one that reaches Straven and the curator unaided, so only it is held to the stockpile target.
     // Why: the stockpile is what pays a partner, and a solo account has nobody to pay, so holding out for a second certificate it cannot mint alone is a wedge.
     const minting = gang === 'phoenix' && ArravConfig.partner.trim().length > 0;
-    // Why: the test is the total, never the split between pack and bank — a predicate that flips when the certificates move makes the deposit and the withdraw undo each other every tick.
+    // Why: the test is the total, never the split between pack and bank, a predicate that flips when the certificates move makes the deposit and the withdraw undo each other every tick.
     // Why: handing the partner its certificate ends the minting whatever the total then reads, since giving one away drops it back below target.
     const doneMinting = !minting || ArravHandoffState.gaveCert || held + banked >= target;
 
@@ -74,7 +74,7 @@ export function certStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null
             return { kind: 'custom', name: 'claim the reward from King Roald', run: redeemCertificate };
         }
         if (banked > 0) {
-            // Why: two when a partner is still owed one — the bot redeems one and hands the other over, and a trade can only offer from the pack.
+            // Why: two when a partner is still owed one, the bot redeems one and hands the other over, and a trade can only offer from the pack.
             const owed = ArravConfig.partner.trim().length > 0 && !ArravHandoffState.gaveCert && gang === 'phoenix';
             const qty = owed ? Math.min(2, banked) : 1;
             return {
@@ -85,7 +85,7 @@ export function certStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null
         return null;
     }
 
-    // Why: a spare half cannot be banked — the chest and cupboard re-check the bank — so only the certificate stockpiles.
+    // Why: a spare half cannot be banked, the chest and cupboard re-check the bank, so only the certificate stockpiles.
     if (held >= 2) {
         return {
             kind: 'deposit',

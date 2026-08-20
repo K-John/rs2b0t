@@ -5,9 +5,9 @@ import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { UP_ITEM, UP_TILE, banked, carried, held, type UpassItem } from './areas.js';
 import { FOOD_FLOAT } from '../../food.js';
 
-/** Bronze arrows are what the fire arrow is built from — a stack covers every missed shot. */
+/** Bronze arrows are what the fire arrow is built from, a stack covers every missed shot. */
 export const ARROW_TARGET = 50;
-// Why: the grid crossing and the orb corridor alone cost eight lobsters on the first clean run, and the traps below are timer-driven damage the module walks into rather than fights. The pass hands out food of its own — Koftik, the paladins and Nilhoof between them give a dozen — but those arrive as separate stacks that each take a slot, so the float is what has to cover the trapped stretches.
+// Why: the grid crossing and the orb corridor alone cost eight lobsters on the first clean run, and the traps below are timer-driven damage the module walks into rather than fights. The pass hands out food of its own, Koftik, the paladins and Nilhoof between them give a dozen, but those arrive as separate stacks that each take a slot, so the float is what has to cover the trapped stretches.
 export const FOOD_TARGET = FOOD_FLOAT;
 
 export function scanBank(): QuestStep {
@@ -34,18 +34,18 @@ export function fromBank(snap: QuestSnapshot, item: UpassItem, qty: number): Que
     return withdraw([{ name: item.name, id: item.id, qty: Math.min(qty - have, stock) }]);
 }
 
-// Why: the pass has no bank and no shop, and every trip back out is the dungeon over again — so the
+// Why: the pass has no bank and no shop, and every trip back out is the dungeon over again, so the
 // kit is drawn in one go before the cave mouth rather than fetched when each obstacle asks for it.
 
 /** Everything the pass consumes, in the order the quest reaches it. */
 export const KIT: readonly { item: UpassItem; qty: number; reason: string }[] = [
     // Why: `upass_rock_ropeswing` deletes the rope before it rolls agility, so a failed swing costs one and
-    // drops the player into the swamp — one rope is a single point of failure on a roll that is not certain.
+    // drops the player into the swamp, one rope is a single point of failure on a roll that is not certain.
     { item: UP_ITEM.ROPE, qty: 3, reason: 'the rock swing east, which eats one per attempt' },
     { item: UP_ITEM.SHORTBOW, qty: 1, reason: 'firing the bridge stay rope' },
     { item: UP_ITEM.BRONZE_ARROW, qty: ARROW_TARGET, reason: 'the fire arrow' },
     { item: UP_ITEM.TINDERBOX, qty: 1, reason: 'lighting the cloth arrow and burning the tomb' },
-    // Why: a probe of the second cavern from inside the slave cages reaches one thing and no other — the mud.
+    // Why: a probe of the second cavern from inside the slave cages reaches one thing and no other, the mud.
     // `upass_mud` takes a spade and nothing else, and every route south to the unicorn is behind it.
     { item: UP_ITEM.SPADE, qty: 1, reason: 'the filled-in tunnel out of the slave cages' },
     { item: UP_ITEM.BUCKET, qty: 1, reason: "the dwarf brew for Iban's tomb" },
@@ -77,7 +77,7 @@ export function needsEquip(snap: QuestSnapshot, item: UpassItem): boolean {
     return held(snap, item) > 0;
 }
 
-// Why: the pass is not walked past, it is fought through — three paladins at level 62 for their crests, three demons for their amulets and Kalrag for the blood, and the bow in the kit is there for one arrow at a rope. Descending in what the fire arrow left on is descending unarmed.
+// Why: the pass is not walked past, it is fought through, three paladins at level 62 for their crests, three demons for their amulets and Kalrag for the blood, and the bow in the kit is there for one arrow at a rope. Descending in what the fire arrow left on is descending unarmed.
 
 const TIERS = ['rune', 'adamant', 'mithril', 'black', 'steel', 'iron', 'bronze'] as const;
 
@@ -89,7 +89,7 @@ const GEAR_SLOTS: readonly { slot: string; kinds: readonly string[] }[] = [
     { slot: 'shield', kinds: ['kiteshield', 'sq shield'] }
 ];
 
-/** Refusals are silent — `equip` returns false — so a re-picked piece would burn the run. */
+/** Refusals are silent, `equip` returns false, so a re-picked piece would burn the run. */
 const unwearable = new Set<string>();
 
 const bankedNamed = (snap: QuestSnapshot, name: string): number => snap.bank?.get(name.toLowerCase()) ?? 0;
@@ -163,7 +163,7 @@ export function wearGear(snap: QuestSnapshot): QuestStep | null {
                 if (Equipment.contains(name) || (await Equipment.equip(name))) {
                     continue;
                 }
-                log(`cannot wear ${name} — level or quest requirement; leaving it behind`);
+                log(`cannot wear ${name}, level or quest requirement; leaving it behind`);
                 unwearable.add(name.toLowerCase());
             }
             return true;
@@ -173,7 +173,7 @@ export function wearGear(snap: QuestSnapshot): QuestStep | null {
 
 const WEAPON_KINDS = GEAR_SLOTS[0]!.kinds;
 
-/** True once a melee weapon is on — the bow does not count, it is there for one arrow at one rope. */
+/** True once a melee weapon is on, the bow does not count, it is there for one arrow at one rope. */
 export function meleeArmed(snap: QuestSnapshot): boolean {
     return wearingSlot(snap, WEAPON_KINDS);
 }
@@ -201,9 +201,9 @@ function packGear(snap: QuestSnapshot, slots: readonly { kinds: readonly string[
     return null;
 }
 
-// Why: `armFireArrow` puts the shortbow in the right hand and the melee weapon in the pack, and nothing after the bridge takes it back out — the paladins were being fought bare-handed. Armour in the pack is the same problem plus five slots the orb sweep needs, so the full set goes on rather than only the weapon.
+// Why: `armFireArrow` puts the shortbow in the right hand and the melee weapon in the pack, and nothing after the bridge takes it back out, the paladins were being fought bare-handed. Armour in the pack is the same problem plus five slots the orb sweep needs, so the full set goes on rather than only the weapon.
 
-// Why: a rune platebody wants Dragon Slayer, and `equip` answers a refusal the same way it answers a miss — with false — so a plain equip step retried one forever. A refusal is shed instead: the piece is written off, the step still succeeds, and the next cycle moves on to the rest of the set.
+// Why: a rune platebody wants Dragon Slayer, and `equip` answers a refusal the same way it answers a miss, with false, so a plain equip step retried one forever. A refusal is shed instead: the piece is written off, the step still succeeds, and the next cycle moves on to the rest of the set.
 
 /** Wear the next piece of melee kit the pack is still carrying, once the bow has had its turn. */
 export function drawGear(snap: QuestSnapshot): QuestStep | null {
@@ -218,7 +218,7 @@ export function drawGear(snap: QuestSnapshot): QuestStep | null {
             if (Equipment.contains(name) || (await Equipment.equip(name))) {
                 return true;
             }
-            log(`cannot wear ${name} — level or quest requirement; carrying it and moving on`);
+            log(`cannot wear ${name}, level or quest requirement; carrying it and moving on`);
             unwearable.add(name);
             return true;
         }

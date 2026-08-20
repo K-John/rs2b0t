@@ -22,7 +22,7 @@ import { buyPurseTopUp } from '../engine/provisioning.js';
 /** How deep into the straight-line shortlist to look before giving up. */
 const BANK_CANDIDATES = 6;
 
-// Why: from the Lumbridge respawn the three closest banks by air — Al Kharid, Shantay Pass and the Duel Arena — sit behind the same 10gp toll gate, and the navigator prunes a fare it cannot pay.
+// Why: from the Lumbridge respawn the three closest banks by air, Al Kharid, Shantay Pass and the Duel Arena, sit behind the same 10gp toll gate, and the navigator prunes a fare it cannot pay.
 // Why: to a bot that has died every bank it can see is one it cannot reach, and the first it can walk to is only third on the list, so the navigator is asked for path costs.
 
 /** The nearest bank measured by walking cost. */
@@ -45,7 +45,7 @@ async function reachableBank(from: WorldTile, log: (m: string) => void): Promise
     if (best) {
         return best.tile;
     }
-    log(`no bank answered a path from (${from.x},${from.z}) — trying the closest anyway`);
+    log(`no bank answered a path from (${from.x},${from.z}), trying the closest anyway`);
     return candidates[0]?.tile;
 }
 
@@ -61,7 +61,7 @@ export async function openBankLeg(noBankMsg: string, override: Tile | undefined,
     return Banking.open({ stand: bankTile, log });
 }
 
-// Why: `distanceTo` is a plan distance, so the floor below a first-storey shop reads as four tiles from it — the Magic Guild counter sat directly overhead while the step failed in a millisecond, twenty-three times.
+// Why: `distanceTo` is a plan distance, so the floor below a first-storey shop reads as four tiles from it, the Magic Guild counter sat directly overhead while the step failed in a millisecond, twenty-three times.
 async function ensureAt(anchor: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
     const here = Game.tile();
     if (here && here.level === anchor.level && anchor.distanceTo(here) <= radius) {
@@ -215,11 +215,11 @@ export async function executeStep(step: QuestStep, hops: LadderHop[], log: (m: s
             const before = Inventory.count(step.item);
             const purse = buyPurseTopUp(Inventory.count('Coins'), step.estGp);
             if (purse.need) {
-                // Why: `reachableBank` picks by walking cost, and Shilo's teller has no booth behind its map icon — `Banking.open` needs the npc access the location declares.
+                // Why: `reachableBank` picks by walking cost, and Shilo's teller has no booth behind its map icon, `Banking.open` needs the npc access the location declares.
                 if (!(await openBankLeg('buy: no known bank for coins', step.bank, log))) {
                     return false;
                 }
-                // Why: `withdrawX` takes its count ON TOP of the pack, so asking for the full target draws it twice — Legends' float plus a guild estimate carried 110k into a quest that fights a level-187 demon three times.
+                // Why: `withdrawX` takes its count ON TOP of the pack, so asking for the full target draws it twice, Legends' float plus a guild estimate carried 110k into a quest that fights a level-187 demon three times.
                 await Bank.withdrawX('Coins', purse.draw);
                 await Modals.close();
                 if (Inventory.count('Coins') < step.estGp) {

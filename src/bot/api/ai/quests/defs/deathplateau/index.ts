@@ -346,7 +346,7 @@ async function readIou(log: (m: string) => void): Promise<boolean> {
         }
         await Execution.delayTicks(1);
     }
-    log(`read IOU done — combo=${liveId(DEATH_ITEM.COMBINATION.id)}`);
+    log(`read IOU done, combo=${liveId(DEATH_ITEM.COMBINATION.id)}`);
     return liveId(DEATH_ITEM.COMBINATION.id) > 0;
 }
 
@@ -449,7 +449,7 @@ async function solveStoneMechanism(log: (m: string) => void): Promise<boolean> {
             return false;
         }
         await settleScene();
-        // Exact loc_coord match — content drops the ball on the mechanism tile.
+        // Exact loc_coord match, content drops the ball on the mechanism tile.
         // nearest() within 1 was hitting the wrong pedestal (six mechanisms in a 2×3 grid).
         const mech = Locs.query()
             .name('Stone Mechanism')
@@ -469,7 +469,7 @@ async function solveStoneMechanism(log: (m: string) => void): Promise<boolean> {
             return false;
         }
         if (!(await Execution.delayUntil(() => ballOnTile(ped.at, ped.ballId), 8000))) {
-            // Content drops at loc_coord — accept any ball of this id within 1 of ped.
+            // Content drops at loc_coord, accept any ball of this id within 1 of ped.
             const ok = GroundItems.query()
                 .where(item => item.id === ped.ballId && item.tile().distanceTo(ped.at) <= 1)
                 .within(8)
@@ -482,7 +482,7 @@ async function solveStoneMechanism(log: (m: string) => void): Promise<boolean> {
     }
 
     if (allPedestalsCorrect()) {
-        log('stone mechanism complete — door should unlock');
+        log('stone mechanism complete, door should unlock');
         await Execution.delayTicks(2);
         return true;
     }
@@ -491,8 +491,8 @@ async function solveStoneMechanism(log: (m: string) => void): Promise<boolean> {
 
 async function scoutSecretPath(log: (m: string) => void): Promise<boolean> {
     if (!(await openTenzingBackDoor(log))) {
-        // Still try the walk — path may already be open.
-        log('tenzing back door open failed — walking scout path anyway');
+        // Still try the walk, path may already be open.
+        log('tenzing back door open failed, walking scout path anyway');
     }
     if (!(await walkTo(TILE.SCOUT, 3, log))) {
         return false;
@@ -556,7 +556,7 @@ async function takeEntranceCertFromGround(log: (m: string) => void): Promise<boo
         return true;
     }
     if (Inventory.isFull()) {
-        log('pack full — cannot take entrance certificate from the ground');
+        log('pack full, cannot take entrance certificate from the ground');
         return false;
     }
     const drop = GroundItems.query()
@@ -609,7 +609,7 @@ async function getEntranceCertFromDenulth(log: (m: string) => void): Promise<boo
             log
         )) {
             if (liveId(DEATH_ITEM.ENTRANCE_CERT.id) > 0) {
-                log(`entrance cert — held=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)}`);
+                log(`entrance cert, held=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)}`);
                 return true;
             }
             // Server dumped it underfoot despite free-slot check (race / inv_add).
@@ -618,7 +618,7 @@ async function getEntranceCertFromDenulth(log: (m: string) => void): Promise<boo
             }
         }
     }
-    log(`entrance cert — held=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)}`);
+    log(`entrance cert, held=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)}`);
     if (liveId(DEATH_ITEM.ENTRANCE_CERT.id) > 0) {
         return true;
     }
@@ -642,7 +642,7 @@ async function giveCertToDunstan(log: (m: string) => void): Promise<boolean> {
         () => liveId(DEATH_ITEM.ENTRANCE_CERT.id) < before || liveId(DEATH_ITEM.SPIKED_BOOTS.id) > 0,
         log
     );
-    log(`gave cert — cert=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)} spiked=${liveId(DEATH_ITEM.SPIKED_BOOTS.id)}`);
+    log(`gave cert, cert=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)} spiked=${liveId(DEATH_ITEM.SPIKED_BOOTS.id)}`);
     return liveId(DEATH_ITEM.ENTRANCE_CERT.id) < before || liveId(DEATH_ITEM.SPIKED_BOOTS.id) > 0;
 }
 
@@ -683,7 +683,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         }
         // Need map + combination in pack for the hand-in bits.
         if (heldId(snap, DEATH_ITEM.COMBINATION.id) === 0) {
-            // Already unlocked without the paper — Denulth still asks for it; reclaim from Harold.
+            // Already unlocked without the paper, Denulth still asks for it; reclaim from Harold.
             return custom('reclaim combination from Harold', reclaimIouFromHarold);
         }
         if (heldId(snap, DEATH_ITEM.SECRET_MAP.id) === 0) {
@@ -759,7 +759,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             });
         }
         if (!map.tenzing) {
-            // Tenzing hands climbing boots — need 1 free slot or they hit the floor.
+            // Tenzing hands climbing boots, need 1 free slot or they hit the floor.
             return makeSpace(snap, 1)
                 ?? custom('ask Tenzing for the secret way', async log => {
                     if (inSabaCave(Game.tile()) && !(await leaveSabaCave(log))) return false;
@@ -774,7 +774,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             });
         }
         if (!map.entrancecert || (map.entrancecert && heldId(snap, DEATH_ITEM.ENTRANCE_CERT.id) === 0 && !map.given_cert)) {
-            // Denulth grants the certificate via inv_add — full pack drops it.
+            // Denulth grants the certificate via inv_add, full pack drops it.
             return makeSpace(snap, 1)
                 ?? custom("get Dunstan's son signed up with Denulth (certificate)", getEntranceCertFromDenulth);
         }
@@ -809,7 +809,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             });
         }
         if (!map.got_map) {
-            // Supplies flag without map — talk again for the map hand-over.
+            // Supplies flag without map, talk again for the map hand-over.
             if (heldId(snap, DEATH_ITEM.SECRET_MAP.id) === 0) {
                 return custom('get the secret way map from Tenzing', async log => {
                     if (!(await openTenzingDoor(log))) return false;

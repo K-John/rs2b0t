@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Sheep Herder — stage-scoped harness
+## Sheep Herder, stage-scoped harness
 
 [`e2e/sheep-herder-260-live.ts`](../../e2e/sheep-herder-260-live.ts) drives the quest
 from a clean account or from any point inside it. `--stage N` sets `%sheepherderquest`,
@@ -17,7 +17,7 @@ HEADED=1 bun e2e/sheep-herder-260-live.ts --stage 2 --done 3 --until 4 --minutes
 ```
 
 Measured at `--tick 300`, no parks: **11 and 20 minutes** for two clean-account runs, and
-5 minutes for `--done 3`. The spread is the sheep rather than the bot — each one walks
+5 minutes for `--done 3`. The spread is the sheep rather than the bot, each one walks
 back toward its own spawn between prods, so a leg that costs 37 pushes on one run costs
 255 on another.
 
@@ -33,7 +33,7 @@ Four details govern this harness:
   inside the enclosure, the feed comes from Halgrive and the suit from Orbon; seeding any
   of them hides whether the bot can source it.
 - **`--stats 70` is the default and the quest needs none of it.** There is no combat here
-  at all — the levels are for the walk through Ardougne rather than the quest.
+  at all, the levels are for the walk through Ardougne rather than the quest.
 
 It is members-only, so it needs the `:8890` world; the `:8888` sim answers neither
 `givebank` nor `~bankitem` either.
@@ -43,7 +43,7 @@ It is members-only, so it needs the `:8890` world; the `:8888` sim answers neith
 Two harnesses, because one account cannot finish the quest.
 
 [`e2e/shield-of-arrav-232-live.ts`](../../e2e/shield-of-arrav-232-live.ts) drives one gang
-side. Two varps, seeded one at a time — `~completequests` opens a gang-choice dialog
+side. Two varps, seeded one at a time, `~completequests` opens a gang-choice dialog
 nothing answers and completes nothing:
 
 ```
@@ -64,7 +64,7 @@ the pack with the `~item` debugproc, fails the moment the half leaves it, and pa
 first park. Both the chest and `~obj_gettotal` count the bank, so a half or key that reaches
 a booth is gone for the run: this is the only mode that catches a generic pack sweep.
 
-It must **not** assert `journal === 'complete'` — a lone account can never redeem. At
+It must **not** assert `journal === 'complete'`, a lone account can never redeem. At
 `--gang blackarm --blackarm 2` it seeds a `phoenixkey2` into the bank and says so: only
 Straven issues one, and joining Phoenix makes Katrine refuse you, so that stage is not
 self-sufficient by construction.

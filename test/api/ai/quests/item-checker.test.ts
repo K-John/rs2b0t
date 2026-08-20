@@ -49,7 +49,7 @@ test('name match is case-insensitive', () => {
 });
 
 // Why: the engine reads the bank only after a quest starts, so blocking on an unread one stopped the
-// queue before it ever opened a booth — Watch Tower reported four missing items it had two of each.
+// queue before it ever opened a booth, Watch Tower reported four missing items it had two of each.
 
 test('an unread bank does not block a mustHave item', () => {
     const r = rec([{ name: 'Gold bar', qty: 1, kind: 'mustHave' }]);

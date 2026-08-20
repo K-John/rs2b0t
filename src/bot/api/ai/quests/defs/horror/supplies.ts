@@ -168,7 +168,7 @@ export function nails(snap: QuestSnapshot): QuestStep {
     if (fromNails) {
         return fromNails;
     }
-    // Why: `smithNails` reads steel in the pack alone, so banked bars were mined past — two to a bar, and hammering them skips the whole ore chain.
+    // Why: `smithNails` reads steel in the pack alone, so banked bars were mined past, two to a bar, and hammering them skips the whole ore chain.
     const bars = Math.ceil(need / 2);
     if (heldId(snap, HD_ID.STEEL_BAR) < bars) {
         const fromSteel = fromBank(snap, HD_ID.STEEL_BAR, 'Steel bar', bars - heldId(snap, HD_ID.STEEL_BAR));
@@ -366,7 +366,7 @@ let wieldTries = 0;
 
 export function meleeWeaponName(): string | null {
     // Why: no shop sells a rune scimitar, so naming one as the fallback asked for something the
-    // account may never own — the tier its Attack level reaches and it already carries is the answer.
+    // account may never own, the tier its Attack level reaches and it already carries is the answer.
     const name = (weaponOf(QuestLoadout.current) ?? liveBestWeapon()?.name)?.trim();
     return name && name.length > 0 ? name : null;
 }
@@ -391,7 +391,7 @@ async function wieldMelee(name: string, log: (m: string) => void): Promise<boole
     if (++wieldTries >= WIELD_TRIES) {
         meleeGaveUp = true;
         log(`could not wield the ${name} after ${WIELD_TRIES} tries `
-            + `(attack ${Skills.level('attack')}) — falling back to the magic-only fight`);
+            + `(attack ${Skills.level('attack')}), falling back to the magic-only fight`);
     }
     return false;
 }
