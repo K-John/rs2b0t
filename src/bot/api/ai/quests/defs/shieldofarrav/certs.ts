@@ -42,12 +42,17 @@ export function certsBanked(snap: QuestSnapshot): number {
 
 /** Both halves in one pack, the only thing the curator answers to; runs before any handoff. */
 export function curatorStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null {
-    const mine = heldId(snap, ownHalf(gang));
-    const theirs = heldId(snap, otherHalf(gang));
+    const pair = [ownHalf(gang), otherHalf(gang)];
+    // Why: the test is the total across pack and bank, never the split. A predicate that flips as the halves move makes a withdraw and a deposit undo each other every tick.
+    if (pair.some(id => heldId(snap, id) + bankedId(snap, id) === 0)) {
+        return null;
+    }
+    const short = pair.filter(id => heldId(snap, id) === 0);
+    if (short.length > 0) {
+        return { kind: 'withdraw', items: short.map(id => ({ name: 'Broken shield', qty: 1, id })) };
+    }
     // Why: he mints two per pair and stops the moment either varp goes complete, so this is the only window.
-    return mine > 0 && theirs > 0
-        ? { kind: 'custom', name: 'mint two certificates at the curator', run: mintCertificates }
-        : null;
+    return { kind: 'custom', name: 'mint two certificates at the curator', run: mintCertificates };
 }
 
 // Why: this runs after the handoffs, so the partner is paid before this bot spends the last certificate it holds.
@@ -58,7 +63,8 @@ export function certStep(snap: QuestSnapshot, gang: ArravGang): QuestStep | null
     const banked = certsBanked(snap);
     const target = Math.max(1, ArravConfig.certTarget);
     // Why: only the phoenix bot mints — it is the one that reaches Straven and the curator unaided — so only it is held to the stockpile target.
-    const minting = gang === 'phoenix';
+    // Why: the stockpile is what pays a partner, and a solo account has nobody to pay, so holding out for a second certificate it cannot mint alone is a wedge.
+    const minting = gang === 'phoenix' && ArravConfig.partner.trim().length > 0;
     // Why: the test is the total, never the split between pack and bank — a predicate that flips when the certificates move makes the deposit and the withdraw undo each other every tick.
     // Why: handing the partner its certificate ends the minting whatever the total then reads, since giving one away drops it back below target.
     const doneMinting = !minting || ArravHandoffState.gaveCert || held + banked >= target;

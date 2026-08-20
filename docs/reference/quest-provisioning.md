@@ -22,14 +22,19 @@ the quest's own withdrawal is the only thing that fills it. Both constants live 
 
 | When | Empties the pack |
 |---|---|
-| the session's first quest | always, whatever its journal reads |
-| any later quest, journal `notStarted` | yes |
-| any later quest, already underway | no — it can be resumed with no route back to a bank |
+| journal `notStarted` | yes |
+| already underway | no, the pack may hold the only copy of something |
+| journal unread | no |
 | pack already empty | no |
 
+The journal is the only gate, and the session's first quest is no exception. A quest underway can
+be carrying an item the server will not hand out twice: Shield of Arrav's chest reads
+`inv_total(bank, arravshield1)` and Straven's `~obj_gettotal(phoenixkey2)` counts the bank, so a
+swept half and store key are gone for good. A resumed quest can also be standing with no route back
+to a bank. Emptying a pack the quest owns costs more than the junk it clears, and the module's own
+`ownsInventory` deposits are what tidy a resumed pack instead.
+
 Three failed bank trips and the quest starts on the pack as it stands rather than deadlocking.
-The session's first quest is the one case that can pay that cost inside a bankless area, which is
-the trade for a quester that can be started from anywhere.
 
 ## The food float
 

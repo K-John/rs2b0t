@@ -8,9 +8,10 @@ import { Npcs, type Npc } from '../../../../npcs/Npcs.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { Modals } from '../../../../ui/widgets/Modals.js';
-import { heldId, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
+import { bankedId, heldId, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
 import { promptLoc } from '../../exec/prompts.js';
 import { BARAEK, RELDO, SOA_ID, SOA_LOC, SOA_TILE, STRAVEN_HANDIN, STRAVEN_JOIN } from './areas.js';
+import { ArravConfig } from './config.js';
 import { enterPhoenixInner, leaveHideout, openContainer, talkInHideout, walkAndTalk } from './hideout.js';
 import { SOA_STAGE } from './journal.js';
 import { liveItem, modalSaid } from './state.js';
@@ -164,6 +165,19 @@ function say(stop: typeof RELDO, name: string): QuestStep {
     return { kind: 'custom', name, run: log => walkAndTalk(stop, stop.prefer, log) };
 }
 
+/** The half, and the key a partner is owed, when the last bank read holds them and the pack does not. */
+function bankedRecovery(snap: QuestSnapshot): { name: string; qty: number; id: number }[] {
+    const out: { name: string; qty: number; id: number }[] = [];
+    if (heldId(snap, SOA_ID.SHIELD_PHOENIX) === 0 && bankedId(snap, SOA_ID.SHIELD_PHOENIX) > 0) {
+        out.push({ name: 'Broken shield', qty: 1, id: SOA_ID.SHIELD_PHOENIX });
+    }
+    const owed = ArravConfig.partner.trim().length > 0;
+    if (owed && heldId(snap, SOA_ID.STORE_KEY) === 0 && bankedId(snap, SOA_ID.STORE_KEY) > 0) {
+        out.push({ name: 'Key', qty: 1, id: SOA_ID.STORE_KEY });
+    }
+    return out;
+}
+
 export function phoenixStep(snap: QuestSnapshot): QuestStep {
     const stage = snap.progress?.stage ?? snap.stage ?? SOA_STAGE.NOT_STARTED;
     const flags = snap.progress?.flags ?? new Set<string>();
@@ -198,11 +212,18 @@ export function phoenixStep(snap: QuestSnapshot): QuestStep {
             }
             return { kind: 'custom', name: 'kill Jonny the beard for the report', run: killJonny };
 
-        case SOA_STAGE.PHOENIX_JOINED:
+        case SOA_STAGE.PHOENIX_JOINED: {
+            // Why: `[oploc1,phoenixopenchest]` and `~obj_gettotal` both count the bank, so a banked half or key is never re-issued. Only a withdraw gets it back.
+            // Why: the guard is the pack rather than the split, so a stale bank read cannot make this and a deposit undo each other.
+            const recover = bankedRecovery(snap);
+            if (recover.length > 0) {
+                return { kind: 'withdraw', items: recover };
+            }
             if (heldId(snap, SOA_ID.SHIELD_PHOENIX) > 0) {
                 return { kind: 'wait', reason: 'phoenix half held — the other half is not this leg' };
             }
             return { kind: 'custom', name: 'search the Phoenix hideout chest', run: takePhoenixHalf };
+        }
 
         default:
             return { kind: 'wait', reason: `phoenix leg has nothing for stage ${stage}` };

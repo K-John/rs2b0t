@@ -109,6 +109,73 @@ describe('shield of arrav decide', () => {
         expect(decide(snap())).toMatchObject({ kind: 'custom' });
     });
 
+    // Why: the other gang's half sits behind a door only its own members open, and joining one gang makes the other refuse you, so a solo account has no route to the pair.
+    test('a partnerless phoenix member holding its half parks with the reason', () => {
+        withGang('phoenix');
+        const step = decide(snap({
+            stage: SOA_STAGE.PHOENIX_JOINED,
+            progress: { stage: SOA_STAGE.PHOENIX_JOINED, flags: new Set() },
+            invIds: new Map([[SOA_ID.SHIELD_PHOENIX, 1]])
+        }));
+        expect(step.kind).toBe('wait');
+        expect((step as { reason: string }).reason).toContain('partner');
+    });
+
+    test('a partnerless black arm member parks the same way', () => {
+        withGang('blackarm');
+        const step = decide(snap({
+            stage: SOA_STAGE.BLACKARM_JOINED,
+            progress: { stage: SOA_STAGE.BLACKARM_JOINED, flags: new Set() },
+            invIds: new Map([[SOA_ID.SHIELD_BLACKARM, 1]])
+        }));
+        expect(step.kind).toBe('wait');
+        expect((step as { reason: string }).reason).toContain('partner');
+    });
+
+    // Why: the banked half is what the sweep took, and the chest reads the bank, so a search can never land it again.
+    test('a partnerless member recovers a banked half before it parks on it', () => {
+        withGang('phoenix');
+        const step = decide(snap({
+            stage: SOA_STAGE.PHOENIX_JOINED,
+            progress: { stage: SOA_STAGE.PHOENIX_JOINED, flags: new Set() },
+            bankIds: new Map([[SOA_ID.SHIELD_PHOENIX, 1]])
+        }));
+        expect(step).toMatchObject({ kind: 'withdraw' });
+        expect((step as { items: { id: number }[] }).items[0].id).toBe(SOA_ID.SHIELD_PHOENIX);
+    });
+
+    test('a banked certificate is worth a solo run, so it redeems instead of parking', () => {
+        withGang('phoenix');
+        const step = decide(snap({
+            stage: SOA_STAGE.PHOENIX_JOINED,
+            progress: { stage: SOA_STAGE.PHOENIX_JOINED, flags: new Set() },
+            invIds: new Map([[SOA_ID.SHIELD_PHOENIX, 1]]),
+            bankIds: new Map([[SOA_ID.CERTIFICATE, 1]])
+        }));
+        expect(step).toMatchObject({ kind: 'withdraw' });
+    });
+
+    test('a configured partner keeps the gang leg running', () => {
+        withGang('phoenix');
+        ArravConfig.partner = 'Someone';
+        const step = decide(snap({
+            stage: SOA_STAGE.PHOENIX_JOINED,
+            progress: { stage: SOA_STAGE.PHOENIX_JOINED, flags: new Set() },
+            invIds: new Map([[SOA_ID.SHIELD_PHOENIX, 1]])
+        }));
+        expect(step).toMatchObject({ kind: 'custom' });
+    });
+
+    // Why: the half is work a later paired run needs, so the park waits until the pack holds it.
+    test('a partnerless member empty handed still fetches its own half', () => {
+        withGang('phoenix');
+        const step = decide(snap({
+            stage: SOA_STAGE.PHOENIX_JOINED,
+            progress: { stage: SOA_STAGE.PHOENIX_JOINED, flags: new Set() }
+        }));
+        expect(step).toMatchObject({ kind: 'custom', name: 'search the Phoenix hideout chest' });
+    });
+
     test('the module is registered and reachable by id', () => {
         expect(QUEST_DEFS).toContain(shieldofarrav);
         expect(defById('blackarmgang')).toBe(shieldofarrav);

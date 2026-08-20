@@ -117,6 +117,20 @@ describe('black arm leg', () => {
         expect(step.kind).toBe('wait');
     });
 
+    // Why: `[oploc2,blackarmcupboardopen]` reads `inv_total(bank, arravshield2)`, so a banked half leaves the cupboard bare for good.
+    test('a banked half is withdrawn, not searched for a second time', () => {
+        const step = blackarmStep(at(SOA_STAGE.BLACKARM_JOINED, [], [], [[SOA_ID.SHIELD_BLACKARM, 1]]));
+        expect(step).toMatchObject({ kind: 'withdraw' });
+        expect((step as { items: { id: number }[] }).items[0].id).toBe(SOA_ID.SHIELD_BLACKARM);
+    });
+
+    test('a held half stops the withdraw even while the bank read still shows one', () => {
+        const step = blackarmStep(
+            at(SOA_STAGE.BLACKARM_JOINED, [], [[SOA_ID.SHIELD_BLACKARM, 1]], [[SOA_ID.SHIELD_BLACKARM, 1]])
+        );
+        expect(step.kind).toBe('wait');
+    });
+
     test('a phoenix stage is not this leg and says so', () => {
         const step = blackarmStep(at(SOA_STAGE.KILL_JONNY));
         expect(step.kind).toBe('wait');

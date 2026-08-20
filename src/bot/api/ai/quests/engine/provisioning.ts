@@ -59,18 +59,17 @@ export function buyPurseTopUp(held: number, estGp: number): { need: boolean; dra
 
 /**
  * Why: the bot starts carrying anything and the quest before this one leaves anything behind, so every quest provisions from empty.
- * Why: after the session's first quest, only before the journal opens — a resumed quest can be standing past its last bank.
+ * Why: the journal is the only gate. A quest already underway may be carrying the only copy of something: Shield of Arrav's chest and Straven both re-check the bank, so a swept store key and shield half never come back.
  */
 export function shouldFreshenPack(
     journal: QuestStatus,
     usedSlots: number,
-    alreadyFresh: boolean,
-    sessionStart: boolean
+    alreadyFresh: boolean
 ): boolean {
     if (usedSlots === 0 || alreadyFresh) {
         return false;
     }
-    return sessionStart || journal === 'notStarted';
+    return journal === 'notStarted';
 }
 
 /**

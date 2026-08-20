@@ -114,6 +114,27 @@ describe('shield of arrav resumes from every reachable state', () => {
         expect((step as { reason: string }).reason).toContain('key');
     });
 
+    // Why: the engine's fresh-pack sweep banked both, and the chest reads `inv_total(bank, arravshield1)` while Straven reads `~obj_gettotal(phoenixkey2)`, so neither is issued a second time.
+    test('a phoenix bot whose half was swept into the bank withdraws it rather than re-searching', () => {
+        ArravConfig.gang = 'phoenix';
+        ArravConfig.partner = '';
+        resetGangCache();
+        const s = snap(SOA_STAGE.PHOENIX_JOINED, [], []);
+        s.bankIds = new Map([[SOA_ID.SHIELD_PHOENIX, 1], [SOA_ID.STORE_KEY, 1]]);
+        const step = decide(s);
+        expect(step).toMatchObject({ kind: 'withdraw' });
+        expect((step as { items: { id: number }[] }).items[0].id).toBe(SOA_ID.SHIELD_PHOENIX);
+    });
+
+    test('a black arm bot whose half was swept into the bank withdraws it too', () => {
+        ArravConfig.gang = 'blackarm';
+        ArravConfig.partner = '';
+        resetGangCache();
+        const s = snap(SOA_STAGE.BLACKARM_JOINED, [], []);
+        s.bankIds = new Map([[SOA_ID.SHIELD_BLACKARM, 1]]);
+        expect(decide(s)).toMatchObject({ kind: 'withdraw' });
+    });
+
     test('a banked certificate lets a partnerless bot finish', () => {
         ArravConfig.gang = 'phoenix';
         ArravConfig.partner = '';
