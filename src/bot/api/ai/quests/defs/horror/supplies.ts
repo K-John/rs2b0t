@@ -11,7 +11,7 @@ import { weaponOf } from '../../../../loadout/loadoutPlan.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { useOnLoc } from '../../exec/prompts.js';
 import { smithNails } from '../dragonslayer/supplies.js';
-import { liveBestWeapon } from '../../weapons.js';
+import { PICKAXES, bankedPickaxe, liveBestWeapon } from '../../weapons.js';
 import {
     ARCHERY_SHOP, GENERAL_SHOP, HD_ID, HD_ITEM, HD_LOC, HD_TILE, RUNE_SHOP, SWORD_SHOP
 } from './areas.js';
@@ -157,15 +157,31 @@ export function planks(snap: QuestSnapshot): QuestStep {
 // Why: nothing in the game sells nails or the steel bars they come from, so they are mined, smelted and hammered.
 // Why: that is the same chain Dragon Slayer's ship repair uses, reused rather than re-derived.
 
-/** Source the eight steel nails. */
+/** Source the eight steel nails: the bank's nails, then its steel, then the ore chain. */
 export function nails(snap: QuestSnapshot): QuestStep {
     const held = heldId(snap, HD_ID.NAILS);
     const need = NAILS_NEEDED - held;
     if (need <= 0) {
         return { kind: 'wait', reason: 'nails already held' };
     }
-    return fromBank(snap, HD_ID.NAILS, HD_ITEM.NAILS, need)
-        ?? { kind: 'custom', name: `smith ${need} nails`, run: log => smithNails(need, log) };
+    const fromNails = fromBank(snap, HD_ID.NAILS, HD_ITEM.NAILS, need);
+    if (fromNails) {
+        return fromNails;
+    }
+    // Why: `smithNails` reads steel in the pack alone, so banked bars were mined past — two to a bar, and hammering them skips the whole ore chain.
+    const bars = Math.ceil(need / 2);
+    if (heldId(snap, HD_ID.STEEL_BAR) < bars) {
+        const fromSteel = fromBank(snap, HD_ID.STEEL_BAR, 'Steel bar', bars - heldId(snap, HD_ID.STEEL_BAR));
+        if (fromSteel) {
+            return fromSteel;
+        }
+        // Why: mining is what is left, and it wants the best pickaxe the account owns rather than the bronze one the spawn walk settles for.
+        const pick = bankedPickaxe(snap.bankIds, snap.attack ?? 0);
+        if (pick && !PICKAXES.some(p => heldId(snap, p.id) > 0 || (snap.wornIds?.has(p.id) ?? false))) {
+            return withdraw([{ name: pick.name, qty: 1, id: pick.id }]);
+        }
+    }
+    return { kind: 'custom', name: `smith ${need} nails`, run: log => smithNails(need, log) };
 }
 
 // Why: both the Range and the Furnace carry `forceapproach=east`, which names the only side that works and rotates with the placement.

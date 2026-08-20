@@ -58,6 +58,20 @@ function build(): MeleeWeapon[] {
 /** Every one-handed melee weapon the item db knows, best tier first. */
 export const MELEE_WEAPONS: readonly MeleeWeapon[] = build();
 
+// Why: `tier40.rs2` gates a rune pickaxe on Attack 40, not on Mining, so a pickaxe rides the same
+// tiers as a scimitar — and it is kept out of `MELEE_WEAPONS` so nothing goes to a fight holding one.
+
+/** Every pickaxe the item db knows, best tier first. */
+export const PICKAXES: readonly MeleeWeapon[] = TIERS
+    .map(({ tier, attack }) => ({ tier, attack, record: ITEM_DB.find(r => r.name === `${tier} pickaxe`) }))
+    .filter((entry): entry is typeof entry & { record: NonNullable<typeof entry.record> } => entry.record !== undefined)
+    .map(({ tier, attack, record }) => ({ id: record.id, name: record.name, tier, attack }));
+
+/** The best pickaxe this account may wield and has banked. */
+export function bankedPickaxe(banked: ReadonlyMap<number, number> | undefined, attack: number): MeleeWeapon | null {
+    return PICKAXES.find(p => attack >= p.attack && (banked?.get(p.id) ?? 0) > 0) ?? null;
+}
+
 /** Weapons this account may wield right now, best first. */
 export function wieldable(attack: number, questDone: (quest: string) => boolean): MeleeWeapon[] {
     return MELEE_WEAPONS.filter(w => attack >= w.attack && (w.quest === undefined || questDone(w.quest)));

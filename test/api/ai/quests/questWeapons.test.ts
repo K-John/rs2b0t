@@ -3,7 +3,9 @@ import {
     MELEE_WEAPONS,
     bankedWeapon,
     heldWeapon,
-    wieldable
+    wieldable,
+    PICKAXES,
+    bankedPickaxe
 } from '#/bot/api/ai/quests/weapons.js';
 
 const done = (): boolean => true;
@@ -82,5 +84,29 @@ describe('picking from what the account actually has', () => {
     test('a worn weapon counts as held', () => {
         expect(nameOf(heldWeapon(undefined, new Set([id('Rune scimitar')]), 60, done))).toBe('Rune scimitar');
         expect(nameOf(heldWeapon(new Map([[id('Rune scimitar'), 1]]), undefined, 60, done))).toBe('Rune scimitar');
+    });
+});
+
+describe('pickaxes ride the same tiers', () => {
+    const id = (name: string): number => PICKAXES.find(p => p.name === name)!.id;
+
+    test('the attack level buys the pickaxe tier, the way it buys a scimitar', () => {
+        expect(bankedPickaxe(new Map([[id('Rune pickaxe'), 1]]), 40)).toMatchObject({ name: 'Rune pickaxe' });
+        expect(bankedPickaxe(new Map([[id('Rune pickaxe'), 1]]), 39)).toBeNull();
+    });
+
+    test('the best banked pickaxe wins over the cheapest', () => {
+        const bank = new Map([[id('Bronze pickaxe'), 1], [id('Rune pickaxe'), 1], [id('Steel pickaxe'), 1]]);
+        expect(bankedPickaxe(bank, 40)).toMatchObject({ name: 'Rune pickaxe' });
+        expect(bankedPickaxe(bank, 30)).toMatchObject({ name: 'Steel pickaxe' });
+        expect(bankedPickaxe(bank, 1)).toMatchObject({ name: 'Bronze pickaxe' });
+    });
+
+    test('an empty bank yields nothing rather than a bronze default', () => {
+        expect(bankedPickaxe(new Map(), 40)).toBeNull();
+    });
+
+    test('a pickaxe is never offered as a weapon to fight with', () => {
+        expect(MELEE_WEAPONS.some(w => w.name.includes('pickaxe'))).toBe(false);
     });
 });
