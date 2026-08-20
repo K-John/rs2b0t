@@ -15,7 +15,7 @@ import { shieldofarrav } from './shieldofarrav/index.js';
 import { waterfall } from './waterfall.js';
 import { goblindiplomacy } from './goblindiplomacy.js';
 import { demonslayer } from './demonslayer.js';
-import { witchshouse } from './witchshouse.js';
+import { witchshouse } from './witchshouse/index.js';
 import { dwarfcannon } from './dwarfcannon/index.js';
 import { merlinscrystal } from './merlinscrystal.js';
 import { priestperil } from './priestperil.js';

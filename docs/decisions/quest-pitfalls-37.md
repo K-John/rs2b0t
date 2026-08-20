@@ -124,6 +124,7 @@ Fifteen that only a live run could find, and most of them cost a run apiece.
 ## See also
 
 - [Quest pitfalls: Legends Quest (from the content)](quest-pitfalls-36.md)
+- [Quest pitfalls: Witch's House](quest-pitfalls-38.md)
 - [Quest pitfalls](quest-pitfalls.md)
 - [More pitfalls](quest-pitfalls-2.md)
 - [Legends Quest's harness recipe](../reference/quest-harness-recipes-20.md)
