@@ -1,7 +1,7 @@
 import { Skills } from '../../../../skills/Skills.js';
 import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
-import { CAVE_HOPS, COMMANDER, FALADOR_WEST_BANK, MC_FOOD_TARGET, MC_OBJ, NULODION } from './areas.js';
+import { CAVE_HOPS, COMMANDER, COMMANDER_INSPECT, FALADOR_WEST_BANK, MC_FOOD_TARGET, MC_OBJ, NULODION } from './areas.js';
 import { MC_FLAG, MC_STAGE, readDwarfCannonProgress } from './journal.js';
 import { fetchRemains, fixRailings, inCave, repairCannon, rescueChild } from './repair.js';
 
@@ -56,7 +56,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             : { kind: 'talk', stop: COMMANDER };
     }
     if (stage === MC_STAGE.CANNON_FIXED) {
-        return { kind: 'talk', stop: COMMANDER };
+        return { kind: 'talk', stop: COMMANDER_INSPECT };
     }
     if (stage === MC_STAGE.SEE_NULODION) {
         return { kind: 'talk', stop: NULODION };
