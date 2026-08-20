@@ -16,7 +16,9 @@ import { QUESTS } from '../data/quests.js';
 import { QUEST_DEFS, defById } from '../defs/index.js';
 import { executeStep } from '../exec/steps.js';
 import type { BankInventorySnapshot, PlayerState, QuestEligibility, QuestRecord } from '../types.js';
-import { coinFloatWithdraw, depositPlan, floatDrawPlan, planProvisioning, shouldFreshenPack } from './provisioning.js';
+import { COIN_FLOAT, coinFloatWithdraw, depositPlan, floatDrawPlan, planProvisioning, shouldFreshenPack } from './provisioning.js';
+
+export { COIN_FLOAT };
 import { nextQuest, queueRows, type QueueRow } from './queue.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from './types.js';
 import { NO_PROGRESS_PARK, NO_PROGRESS_WARN, ProgressWatchdog, progressSignature } from './watchdog.js';
@@ -46,8 +48,6 @@ const RETREAT_GIVE_UP = 4;
 
 /** Bank trips to try emptying the pack before a quest starts on whatever it is carrying. */
 const FRESH_GIVE_UP = 3;
-
-export const COIN_FLOAT = 1000;
 
 export const PROVISION_BANK = new Tile(3093, 3243, 0);
 

@@ -40,6 +40,23 @@ export function planProvisioning(
     return plan;
 }
 
+/** Spending money a quest keeps in the pack unless its module names another figure. */
+export const COIN_FLOAT = 1000;
+
+/** Purse below which a counter trip is worth making, well under anything a quest asks for. */
+const BUY_TOPUP_DIVISOR = 4;
+
+/**
+ * Why: topping up to the item's own estimate left 20 gp in the purse after a loaf and the next boat fare emptied it, so Merlin's Crystal crossed, ran dry and walked back for another twenty.
+ * Why: the trip refills a float rather than one purchase, and only once the purse is a quarter of it, so nothing returns to the bank between two cheap buys.
+ */
+export function buyPurseTopUp(held: number, estGp: number): { need: boolean; draw: number } {
+    const target = Math.max(estGp, COIN_FLOAT);
+    return held >= Math.ceil(target / BUY_TOPUP_DIVISOR)
+        ? { need: false, draw: 0 }
+        : { need: true, draw: target - held };
+}
+
 /**
  * Why: the bot starts carrying anything and the quest before this one leaves anything behind, so every quest provisions from empty.
  * Why: after the session's first quest, only before the journal opens — a resumed quest can be standing past its last bank.
