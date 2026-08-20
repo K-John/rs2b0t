@@ -582,8 +582,37 @@ async function giveAleToHarold(log: (m: string) => void): Promise<boolean> {
 // Why: Harold starts with 100gp, and a 100gp win bankrupts him and grants the IOU.
 // Why: losses need more rounds, so the caller keeps calling until the IOU or the combination lands.
 
-/** One full dice round: pick gamble, enter bet, wait for Harold's roll, roll, settle. */
+// Why: `death_dice` is on the engine's do-not-auto-close list, so a round that bails with it up leaves a main modal nothing will ever shut, the next round cannot talk to Harold past it, and the run sits in his room.
+// Why: every exit from a round goes through here, including the ones that give up mid-roll.
+
+/** Shut the dice interface if a round left it open. */
+export async function closeDiceIfOpen(log: (m: string) => void): Promise<void> {
+    if (reader.modals().main !== DEATH_DICE_MAIN) {
+        return;
+    }
+    const cont = reader.mainModalButtonNearText('Click here to continue');
+    if (cont > 0 && !actions.menuAction(MiniMenuAction.PAUSE_BUTTON, 0, 0, cont)) {
+        actions.ifButton(cont);
+    }
+    if (await Execution.delayUntil(() => reader.modals().main !== DEATH_DICE_MAIN, 2000)) {
+        return;
+    }
+    actions.closeModal();
+    if (!(await Execution.delayUntil(() => reader.modals().main !== DEATH_DICE_MAIN, 3000))) {
+        log('Harold gamble: the dice interface would not close');
+    }
+}
+
 async function gambleHaroldRound(log: (m: string) => void): Promise<boolean> {
+    try {
+        return await playGambleRound(log);
+    } finally {
+        await closeDiceIfOpen(log);
+    }
+}
+
+/** One full dice round: pick gamble, enter bet, wait for Harold's roll, roll, settle. */
+async function playGambleRound(log: (m: string) => void): Promise<boolean> {
     if (!(await openDialogue('Harold', log))) {
         return false;
     }
