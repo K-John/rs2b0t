@@ -8,7 +8,8 @@ import {
     waterfall,
     waterfallFundingTarget,
     waterfallDungeonEntryReadiness,
-    waterfallArea
+    waterfallArea,
+    sourceFood
 } from '#/bot/api/ai/quests/defs/waterfall.js';
 import Tile from '#/bot/geometry/Tile.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
@@ -297,6 +298,32 @@ describe('bank knowledge and one-way areas', () => {
     });
 });
 
+describe('food is refilled at a low mark, not on every bite', () => {
+    // Why: refilling on any shortfall walked the run back to Ardougne for a single fish, and the walker
+    // was still following the route to the falls when the next decision turned it round.
+    const pack = (held: number): QuestSnapshot => snapshot({
+        stage: WATERFALL_STAGE.ENTERED_WATERFALL,
+        inv: [[ITEM.FOOD, held]],
+        bank: [[ITEM.FOOD, 100]]
+    });
+
+    test('a pack above the low mark asks for nothing', () => {
+        for (const held of [8, 7, 6, 5, 4]) {
+            expect(sourceFood(pack(held))).toBeNull();
+        }
+    });
+
+    test('at or under the low mark it refills to the float in one trip', () => {
+        expect(withdrawal(sourceFood(pack(3))!).items).toEqual([{ name: 'Trout', id: 333, qty: 5 }]);
+        expect(withdrawal(sourceFood(pack(0))!).items).toEqual([{ name: 'Trout', id: 333, qty: 8 }]);
+    });
+
+    test('an empty bank parks rather than walking there for nothing', () => {
+        const dry = snapshot({ stage: WATERFALL_STAGE.ENTERED_WATERFALL, inv: [[ITEM.FOOD, 1]], bank: [] });
+        expect(sourceFood(dry)?.kind).toBe('wait');
+    });
+});
+
 describe('coin funding', () => {
     test('reserves the exact observed route home from each funding area', () => {
         expect(waterfallFundingTarget(1472, new Tile(3253, 3420, 0))).toBe(1482);
@@ -549,10 +576,10 @@ describe('stage 5/6 dungeon loadout and dispatch', () => {
 
         expect(withdrawal(decide(snapshot({
             stage: WATERFALL_STAGE.ENTERED_WATERFALL,
-            inv: [[ITEM.COINS, 500], [ITEM.ROPE, 1], [ITEM.FOOD, 7]],
+            inv: [[ITEM.COINS, 500], [ITEM.ROPE, 1], [ITEM.FOOD, 2]],
             bank: [[ITEM.FOOD, 10], [ITEM.AMULET, 1], [ITEM.FULL_URN, 1]],
             tile: [2616, 3332]
-        }))).items).toEqual([{ name: 'Trout', id: 333, qty: 1 }]);
+        }))).items).toEqual([{ name: 'Trout', id: 333, qty: 6 }]);
 
         const shortAir = DUNGEON_PACK.map(([item, qty]) => [item, item.id === ITEM.AIR_RUNE.id ? 2 : qty] as ItemQty);
         expect(withdrawal(decide(snapshot({
