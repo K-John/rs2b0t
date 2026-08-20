@@ -883,5 +883,14 @@ export const CASES: readonly Case[] = [
         harness: 'waterfall-exit-test.ts',
         covers: { subsystems: ['nav', 'quests'] },
         status: 'unvetted'
+    },
+    {
+        id: 'witchs-house-226-live',
+        harness: 'witchs-house-226-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        args: ['--stage', '5', '--until', '6', '--at', '2901,3466,0', '--stocked', '--minutes', '30'],
+        budgetMin: 35,
+        note: "Witch's House by stage; --stage jumps %ballquest, --stocked hands over the cheese and gloves so a staged run does not shop for them"
     }
 ];
