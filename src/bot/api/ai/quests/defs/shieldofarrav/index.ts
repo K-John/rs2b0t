@@ -75,6 +75,13 @@ export function decide(snap: QuestSnapshot): QuestStep {
         return certs;
     }
 
+    // Why: one half in the pack and no way to a second is the dead end `warnReadiness` names, and only a `wait` parks it. A `custom` step that fails forever parks nothing.
+    if (ArravConfig.partner.trim().length === 0
+        && certsHeld(snap) + certsBanked(snap) === 0
+        && heldId(snap, ownHalf(mine)) > 0) {
+        return { kind: 'wait', reason: 'own half held, no partner and no banked certificate: the other gang\'s half is out of reach alone' };
+    }
+
     return mine === 'phoenix' ? phoenixStep(snap) : blackarmStep(snap);
 }
 

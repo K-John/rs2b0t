@@ -112,8 +112,6 @@ export class QuestEngine implements Task {
     private readonly deposited = new Set<string>();
     private readonly freshened = new Set<string>();
     private readonly freshenTries = new Map<string, number>();
-    /** Cleared once the session's first quest has emptied its pack, or given up trying. */
-    private sessionStart = true;
     private readonly foodDrawn = new Set<string>();
     private readonly potionsDrawn = new Set<string>();
     private readonly blocked = new Map<string, string[]>();
@@ -522,15 +520,13 @@ export class QuestEngine implements Task {
     /** Bank the pack to nothing before a quest opens; true when the loop should yield after the trip. */
     private async freshenPack(module: QuestModule, id: string, snap: QuestSnapshot, rows: QueueRow[]): Promise<boolean> {
         const carried = Inventory.used();
-        if (!shouldFreshenPack(snap.journal, carried, this.freshened.has(id), this.sessionStart)) {
-            this.sessionStart = false;
+        if (!shouldFreshenPack(snap.journal, carried, this.freshened.has(id))) {
             return false;
         }
         const tries = (this.freshenTries.get(id) ?? 0) + 1;
         this.freshenTries.set(id, tries);
         this.host.noteState(rows, id, 'banking the pack to nothing', this.noProgressCount, this.parked.size);
-        const why = snap.journal === 'notStarted' ? 'not started' : 'first quest of the session';
-        this.host.log(`${module.record.name} ${why} — banking ${carried} carried slot(s) so it provisions from empty (${tries}/${FRESH_GIVE_UP})`);
+        this.host.log(`${module.record.name} not started, banking ${carried} carried slot(s) so it provisions from empty (${tries}/${FRESH_GIVE_UP})`);
         const emptied = await executeStep(
             { kind: 'deposit', keep: [], bank: bankFor(module), leaveOpen: true },
             module.hops ?? [],
@@ -538,7 +534,6 @@ export class QuestEngine implements Task {
         );
         if (emptied || tries >= FRESH_GIVE_UP) {
             this.freshened.add(id);
-            this.sessionStart = false;
         }
         if (!emptied && tries >= FRESH_GIVE_UP) {
             this.host.log(`${module.record.name}: no bank reachable after ${FRESH_GIVE_UP} tries — starting on the pack as it stands`);

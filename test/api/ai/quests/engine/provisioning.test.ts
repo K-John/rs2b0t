@@ -112,32 +112,26 @@ describe('floatWithdraw (generalised, e.g. quest food)', () => {
 
 describe('shouldFreshenPack', () => {
     test('a not-started quest with anything in the pack starts by emptying it', () => {
-        expect(shouldFreshenPack('notStarted', 28, false, false)).toBe(true);
-        expect(shouldFreshenPack('notStarted', 1, false, false)).toBe(true);
+        expect(shouldFreshenPack('notStarted', 28, false)).toBe(true);
+        expect(shouldFreshenPack('notStarted', 1, false)).toBe(true);
     });
 
     test('an empty pack is already fresh', () => {
-        expect(shouldFreshenPack('notStarted', 0, false, false)).toBe(false);
-        expect(shouldFreshenPack('inProgress', 0, false, true)).toBe(false);
+        expect(shouldFreshenPack('notStarted', 0, false)).toBe(false);
     });
 
     test('runs once per quest', () => {
-        expect(shouldFreshenPack('notStarted', 28, true, false)).toBe(false);
-        expect(shouldFreshenPack('inProgress', 28, true, true)).toBe(false);
+        expect(shouldFreshenPack('notStarted', 28, true)).toBe(false);
     });
 
-    test('the first quest of a session empties the pack whatever its journal reads', () => {
-        expect(shouldFreshenPack('inProgress', 28, false, true)).toBe(true);
-        expect(shouldFreshenPack('unknown', 28, false, true)).toBe(true);
-    });
-
-    test('a quest already underway is never emptied later in the session — it may be past the last bank', () => {
-        expect(shouldFreshenPack('inProgress', 28, false, false)).toBe(false);
+    // Why: Shield of Arrav resumed at PHOENIX_JOINED had its store key and shield half banked by the session's first sweep, and both the chest and Straven re-check the bank, so neither came back.
+    test('a quest already underway keeps its pack, first of the session or not', () => {
+        expect(shouldFreshenPack('inProgress', 28, false)).toBe(false);
     });
 
     test('an unread journal waits rather than banking the pack blind', () => {
-        expect(shouldFreshenPack('unknown', 28, false, false)).toBe(false);
-        expect(shouldFreshenPack('complete', 28, false, false)).toBe(false);
+        expect(shouldFreshenPack('unknown', 28, false)).toBe(false);
+        expect(shouldFreshenPack('complete', 28, false)).toBe(false);
     });
 });
 

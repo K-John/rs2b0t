@@ -1,13 +1,20 @@
-import { describe, expect, test } from 'bun:test';
+import { afterEach, describe, expect, test } from 'bun:test';
 
 import { SOA_ID } from '#/bot/api/ai/quests/defs/shieldofarrav/areas.js';
+import { ArravConfig } from '#/bot/api/ai/quests/defs/shieldofarrav/config.js';
 import { SOA_STAGE } from '#/bot/api/ai/quests/defs/shieldofarrav/journal.js';
 import { phoenixStep } from '#/bot/api/ai/quests/defs/shieldofarrav/phoenix.js';
 import type { QuestSnapshot } from '#/bot/api/ai/quests/engine/types.js';
 
 const VARROCK = { x: 3210, z: 3490, level: 0 };
 
-function at(stage: number, flags: string[] = [], ids: [number, number][] = []): QuestSnapshot {
+function at(
+    stage: number,
+    flags: string[] = [],
+    ids: [number, number][] = [],
+    bankIds: [number, number][] = [],
+    bankKnown = true
+): QuestSnapshot {
     return {
         journal: 'inProgress',
         inv: new Map(),
@@ -17,14 +24,18 @@ function at(stage: number, flags: string[] = [], ids: [number, number][] = []): 
         noProgress: 0,
         bankCoins: 2_000_000,
         bank: new Map(),
-        bankIds: new Map(),
-        bankKnown: true,
+        bankIds: new Map(bankIds),
+        bankKnown,
         tile: VARROCK as QuestSnapshot['tile'],
         freeSlots: 20,
         stage,
         progress: { stage, flags: new Set(flags) }
     };
 }
+
+afterEach(() => {
+    ArravConfig.partner = '';
+});
 
 describe('phoenix leg', () => {
     test('an unstarted quest talks to Reldo', () => {
@@ -82,6 +93,48 @@ describe('phoenix leg', () => {
     test('a joined member holding the half asks for nothing more from this leg', () => {
         const step = phoenixStep(at(SOA_STAGE.PHOENIX_JOINED, ['own-half-only'], [[SOA_ID.SHIELD_PHOENIX, 1]]));
         expect(step.kind).toBe('wait');
+    });
+
+    // Why: `[oploc1,phoenixopenchest]` reads `inv_total(bank, arravshield1)`, so a banked half leaves the chest empty for good.
+    test('a banked half is withdrawn, not searched for a second time', () => {
+        const step = phoenixStep(at(SOA_STAGE.PHOENIX_JOINED, [], [], [[SOA_ID.SHIELD_PHOENIX, 1]]));
+        expect(step).toMatchObject({ kind: 'withdraw' });
+        expect((step as { items: { id: number }[] }).items[0].id).toBe(SOA_ID.SHIELD_PHOENIX);
+    });
+
+    // Why: the guard is the pack, never the split, so a stale bank read cannot make the withdraw repeat.
+    test('a held half stops the withdraw even while the bank read still shows one', () => {
+        const step = phoenixStep(
+            at(SOA_STAGE.PHOENIX_JOINED, [], [[SOA_ID.SHIELD_PHOENIX, 1]], [[SOA_ID.SHIELD_PHOENIX, 1]])
+        );
+        expect(step.kind).toBe('wait');
+    });
+
+    test('an unread bank searches the chest rather than a booth it never opened', () => {
+        const step = phoenixStep(at(SOA_STAGE.PHOENIX_JOINED, [], [], [[SOA_ID.SHIELD_PHOENIX, 1]], false));
+        expect(step).toMatchObject({ kind: 'custom', name: 'search the Phoenix hideout chest' });
+    });
+
+    // Why: `~obj_gettotal` counts the bank, so Straven re-issues nothing while the key sits in a booth.
+    test('a banked store key is withdrawn for the partner who is owed it', () => {
+        ArravConfig.partner = 'Someone';
+        const step = phoenixStep(at(SOA_STAGE.PHOENIX_JOINED, [], [], [[SOA_ID.STORE_KEY, 1]]));
+        expect(step).toMatchObject({ kind: 'withdraw' });
+        expect((step as { items: { id: number }[] }).items[0].id).toBe(SOA_ID.STORE_KEY);
+    });
+
+    test('a banked half and a banked key come out on one trip', () => {
+        ArravConfig.partner = 'Someone';
+        const step = phoenixStep(
+            at(SOA_STAGE.PHOENIX_JOINED, [], [], [[SOA_ID.SHIELD_PHOENIX, 1], [SOA_ID.STORE_KEY, 1]])
+        );
+        expect((step as { items: { id: number }[] }).items.map(i => i.id))
+            .toEqual([SOA_ID.SHIELD_PHOENIX, SOA_ID.STORE_KEY]);
+    });
+
+    test('a partnerless bot leaves the key where it is, since nothing it does needs one', () => {
+        const step = phoenixStep(at(SOA_STAGE.PHOENIX_JOINED, [], [], [[SOA_ID.STORE_KEY, 1]]));
+        expect(step).toMatchObject({ kind: 'custom', name: 'search the Phoenix hideout chest' });
     });
 
     test('a black arm stage is not this leg and says so', () => {

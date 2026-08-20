@@ -54,6 +54,26 @@ describe('arrav certificates', () => {
         expect(curatorStep(s, 'phoenix')).toMatchObject({ kind: 'custom' });
     });
 
+    // Why: the curator answers to one pack holding both, and a pair split between pack and bank is one withdraw away from that.
+    test('a pair split between the pack and the bank is reunited before the curator', () => {
+        const s = snap([[SOA_ID.SHIELD_PHOENIX, 1]], [[SOA_ID.SHIELD_BLACKARM, 1]]);
+        const step = curatorStep(s, 'phoenix');
+        expect(step).toMatchObject({ kind: 'withdraw' });
+        expect((step as { items: { id: number }[] }).items.map(i => i.id)).toEqual([SOA_ID.SHIELD_BLACKARM]);
+    });
+
+    test('a pair sitting entirely in the bank comes out on one trip', () => {
+        const s = snap([], [[SOA_ID.SHIELD_PHOENIX, 1], [SOA_ID.SHIELD_BLACKARM, 1]]);
+        const step = curatorStep(s, 'blackarm');
+        expect((step as { items: { id: number }[] }).items.map(i => i.id).sort())
+            .toEqual([SOA_ID.SHIELD_PHOENIX, SOA_ID.SHIELD_BLACKARM].sort());
+    });
+
+    test('an unread bank is not a banked half', () => {
+        const s = snap([[SOA_ID.SHIELD_PHOENIX, 1]], [[SOA_ID.SHIELD_BLACKARM, 1]], false);
+        expect(curatorStep(s, 'phoenix')).toBeNull();
+    });
+
     test('one half alone is never a curator trip', () => {
         expect(curatorStep(snap([[SOA_ID.SHIELD_PHOENIX, 1]]), 'phoenix')).toBeNull();
         expect(curatorStep(snap([[SOA_ID.SHIELD_BLACKARM, 1]]), 'blackarm')).toBeNull();
@@ -67,7 +87,21 @@ describe('arrav certificates', () => {
 
     test('a phoenix bot mid-stockpile keeps farming rather than redeeming its last one', () => {
         ArravConfig.certTarget = 10;
+        ArravConfig.partner = 'Someone';
         expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]]), 'phoenix')).toBeNull();
+    });
+
+    // Why: the stockpile exists to pay a partner, and a solo bot has nobody to pay. Holding out for a second certificate it cannot mint alone is the wedge.
+    test('a partnerless phoenix bot redeems what it has rather than stockpiling', () => {
+        ArravConfig.certTarget = 10;
+        expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]]), 'phoenix')).toMatchObject({ kind: 'custom' });
+    });
+
+    test('a partnerless phoenix bot withdraws a banked certificate below target', () => {
+        ArravConfig.certTarget = 10;
+        const step = certStep(snap([], [[SOA_ID.CERTIFICATE, 1]]), 'phoenix');
+        expect(step).toMatchObject({ kind: 'withdraw' });
+        expect((step as { items: { qty: number }[] }).items[0].qty).toBe(1);
     });
 
     // Why: giving the partner its certificate drops the total back below target, and without this the bot would go and farm another half.
@@ -81,6 +115,7 @@ describe('arrav certificates', () => {
     // Why: a predicate that flips when the certificates move between pack and bank makes the deposit and the withdraw undo each other every tick.
     test('banking the surplus does not make the bot withdraw it straight back', () => {
         ArravConfig.certTarget = 6;
+        ArravConfig.partner = 'Someone';
         const afterDeposit = certStep(snap([], [[SOA_ID.CERTIFICATE, 4]]), 'phoenix');
         expect(afterDeposit).toBeNull();
     });
@@ -119,6 +154,7 @@ describe('arrav certificates', () => {
 
     test('below target the surplus banks instead of being redeemed', () => {
         ArravConfig.certTarget = 10;
+        ArravConfig.partner = 'Someone';
         const step = certStep(snap([[SOA_ID.CERTIFICATE, 2]]), 'phoenix');
         expect(step).toMatchObject({ kind: 'deposit' });
         expect((step as { keepIds: readonly number[] }).keepIds).not.toContain(SOA_ID.CERTIFICATE);
@@ -126,6 +162,7 @@ describe('arrav certificates', () => {
 
     test('a banking deposit spares the halves, the key, coins and food', () => {
         ArravConfig.certTarget = 10;
+        ArravConfig.partner = 'Someone';
         const step = certStep(snap([[SOA_ID.CERTIFICATE, 2]]), 'phoenix') as {
             keep: string[];
             keepIds: readonly number[];
@@ -139,6 +176,7 @@ describe('arrav certificates', () => {
 
     test('one certificate below target is left alone so the gang legs farm another half', () => {
         ArravConfig.certTarget = 10;
+        ArravConfig.partner = 'Someone';
         expect(certStep(snap([[SOA_ID.CERTIFICATE, 1]]), 'phoenix')).toBeNull();
     });
 

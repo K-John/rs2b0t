@@ -206,6 +206,10 @@ export function blackarmStep(snap: QuestSnapshot): QuestStep {
             if (heldId(snap, SOA_ID.SHIELD_BLACKARM) > 0) {
                 return { kind: 'wait', reason: 'black arm half held — the other half is not this leg' };
             }
+            // Why: `[oploc2,blackarmcupboardopen]` counts the bank, so a banked half leaves the cupboard bare for good.
+            if (bankedId(snap, SOA_ID.SHIELD_BLACKARM) > 0) {
+                return { kind: 'withdraw', items: [{ name: 'Broken shield', qty: 1, id: SOA_ID.SHIELD_BLACKARM }] };
+            }
             return { kind: 'custom', name: 'search the Black Arm cupboard', run: takeBlackArmHalf };
 
         default:

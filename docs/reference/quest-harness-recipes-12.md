@@ -51,11 +51,18 @@ nothing answers and completes nothing:
 --phoenix N --blackarm N  seed both varps, then relog
 --until N                 target varp value
 --want-half               assert a Broken shield lands in the pack instead
+--keep-half               seed the half and the key into the pack, assert neither is banked
 ```
 
 `--want-half` exists because the half-farming legs move no varp: the chest and the
 cupboard hand over an object and nothing else changes. Asserting the varp there passes
 before the leg has run.
+
+`--keep-half` is the resumed-session shape, and it needs a joined varp (`--phoenix 9` or
+`--blackarm 23`). It seeds `arravshield1`/`arravshield2` and `phoenixkey2` straight into
+the pack with the `~item` debugproc, fails the moment the half leaves it, and passes on the
+first park. Both the chest and `~obj_gettotal` count the bank, so a half or key that reaches
+a booth is gone for the run: this is the only mode that catches a generic pack sweep.
 
 It must **not** assert `journal === 'complete'` — a lone account can never redeem. At
 `--gang blackarm --blackarm 2` it seeds a `phoenixkey2` into the bank and says so: only

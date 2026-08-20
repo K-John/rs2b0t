@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Shield of Arrav
 
-Fourteen, and only the first two are quest facts.
+Sixteen, and only the first two are quest facts.
 
 - **A reward that deletes one of two is not a reward that needs two.** `king_roald.rs2`
   tests `inv_total(inv, arravcertificate) > 0` and deletes one, gated on nothing
@@ -44,6 +44,16 @@ Fourteen, and only the first two are quest facts.
 - **An npc's display name comes from the `.npc` config, never from a guide.** The curator
   is `Curator`; every walkthrough calls him Curator Haig Halen, and a name that matches
   nothing makes `Reach` report a bare `retry` with no hint that the name is the problem.
+- **An engine-wide pack sweep is a quest-specific theft.** `QuestEngine.freshenPack` banks
+  all 28 slots, and its gate let the session's first quest through whatever the journal read.
+  Resumed at `phoenixgang=9` it took the weapon-store key and the shield half, and both
+  `[oploc1,phoenixopenchest]` and `~obj_gettotal(phoenixkey2)` count the bank, so the server
+  issued neither a second time. Anything that empties a pack it does not own owes the question
+  every step owes first: what is this pack for?
+- **A step that fails forever parks nothing.** Only a `wait` feeds `WAIT_PARK` (15); a
+  `custom` step returning false warns every fifth failure and then repeats until the script is
+  stopped. `takePhoenixHalf` searching a chest the bank had emptied ran that way. A leg with no
+  route forward owes a `wait` naming what is missing, and a park is the correct outcome.
 
 Three came from stockpiling, and none of them is reachable at the default target — one
 cycle hides every one of them, so the loop needs its own run:
