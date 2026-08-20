@@ -249,9 +249,11 @@ class ScriptRunnerImpl {
 
         ctx.resume();
 
-        // Why: a previous loop() can still be in flight, blocked on a non-Execution promise that will not resolve while the scheduler was paused, so the flag is cleared to let the pump launch a fresh iteration.
-        // Why: the stale .then() handler fires later but only sets timing gates (scheduleNextLoop) and bumps loopCount, which is harmless.
-        ctx.loopInFlight = false;
+        // Why: ctx.resume() re-arms the waiter a parked loop is sitting on, so that loop comes back by itself and clearing the flag would run a second body through the WalkExecutor singleton the first one is still walking.
+        // Why: with no waiter the loop is blocked on a promise the scheduler does not own (#580) and nothing will wake it, so the flag is cleared to let the pump start a fresh iteration.
+        if (ctx.waiters.length === 0) {
+            ctx.loopInFlight = false;
+        }
 
         try {
             bot?.onResume?.();

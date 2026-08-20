@@ -44,6 +44,14 @@ export const CASES: readonly Case[] = [
         provenAt: 'b0ae0134ec44db595faa9d58947fb30e14f6e56c'
     },
     {
+        id: 'resume-loop-concurrency-live',
+        harness: 'resume-loop-concurrency-live.ts',
+        covers: { scripts: ['WalkToBot'], subsystems: ['infra', 'nav'] },
+        status: 'unvetted',
+        budgetMin: 10,
+        note: 'pauses and resumes in the middle of a walk and proves one loop body comes back, not two (#580 regression)'
+    },
+    {
         id: 'baxtorian-rope-369-live',
         harness: 'baxtorian-rope-369-live.ts',
         covers: { subsystems: ['world'] },
