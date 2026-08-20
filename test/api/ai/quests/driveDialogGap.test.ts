@@ -7,7 +7,7 @@ import { Execution } from '#/bot/api/execution/Execution.js';
 // tolerance ended the drive mid-scene — the quest then picked another step and talked over him.
 
 const TICK_MS = 600;
-/** Poll the predicate once per simulated tick, so a longer wait genuinely gets more chances. */
+/** Poll the predicate once per simulated tick, so a longer wait gets more chances. */
 beforeEach(() => {
     (Execution as unknown as { delayUntil: (c: () => boolean, ms: number) => Promise<boolean> }).delayUntil =
         async (check: () => boolean, ms: number) => {
