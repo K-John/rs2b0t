@@ -76,7 +76,7 @@ export async function executeStep(step: QuestStep, hops: LadderHop[], log: (m: s
             if (!(await gotoNpc(step.stop, hops, log))) {
                 return false;
             }
-            return talkThrough(step.stop.npc, step.stop.prefer, log);
+            return talkThrough(step.stop.npc, step.stop.prefer, log, step.stop.gapMs);
         }
         case 'grabGround': {
             const before = Inventory.count(step.item);
