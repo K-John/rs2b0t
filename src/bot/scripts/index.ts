@@ -46,6 +46,8 @@ import TannerBot, { TANNER_SETTINGS } from './TannerBot/TannerBot.js';
 import VialFiller, { VIAL_FILLER_SETTINGS } from './VialFiller/VialFiller.js';
 import LeatherCrafter, { CRAFTER_SETTINGS } from './LeatherCrafter/LeatherCrafter.js';
 import Firemaker, { FIREMAKER_SETTINGS } from './Firemaker/Firemaker.js';
+import TickFiremaker, { TICK_FIREMAKER_SETTINGS } from './TickFiremaker/TickFiremaker.js';
+import Superheater, { SUPERHEATER_SETTINGS } from './Superheater/Superheater.js';
 import SmithingBot, { SETTINGS as SMITHING_SETTINGS } from './SmithingBot/SmithingBot.js';
 import BankFletcher, { SETTINGS as BANKFLETCHER_SETTINGS } from './BankFletcher/BankFletcher.js';
 import DartFletcher, { DART_FLETCHER_SETTINGS } from './DartFletcher/DartFletcher.js';
@@ -685,6 +687,24 @@ ScriptRegistry.register({
     tags: ['firemaking', 'banking', 'varrock', 'draynor', 'seers', 'afk'],
     settingsSchema: FIREMAKER_SETTINGS,
     create: () => new Firemaker()
+});
+
+ScriptRegistry.register({
+    name: 'TickFiremaker',
+    description: 'Tick-perfect reactive firemaker in Varrock West with multi-lane scanning and zero dead ticks',
+    category: 'Firemaking',
+    tags: ['firemaking', 'banking', 'varrock', 'tick-perfect', 'fast'],
+    settingsSchema: TICK_FIREMAKER_SETTINGS,
+    create: () => new TickFiremaker()
+});
+
+ScriptRegistry.register({
+    name: 'Superheater',
+    description: 'Tick-perfect 3-tick Superheat Item magic trainer — auto-equips fire staff, withdraws exact ore/coal ratios, banks at any nearest bank',
+    category: 'Magic',
+    tags: ['magic', 'smithing', 'superheat', 'banking', 'tick-perfect', 'fast'],
+    settingsSchema: SUPERHEATER_SETTINGS,
+    create: () => new Superheater()
 });
 
 ScriptRegistry.register({
