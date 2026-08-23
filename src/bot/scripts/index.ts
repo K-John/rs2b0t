@@ -48,6 +48,7 @@ import LeatherCrafter, { CRAFTER_SETTINGS } from './LeatherCrafter/LeatherCrafte
 import Firemaker, { FIREMAKER_SETTINGS } from './Firemaker/Firemaker.js';
 import TickFiremaker, { TICK_FIREMAKER_SETTINGS } from './TickFiremaker/TickFiremaker.js';
 import Superheater, { SUPERHEATER_SETTINGS } from './Superheater/Superheater.js';
+import TickChaosDruid, { CHAOS_DRUID_SETTINGS } from './TickChaosDruid/TickChaosDruid.js';
 import SmithingBot, { SETTINGS as SMITHING_SETTINGS } from './SmithingBot/SmithingBot.js';
 import BankFletcher, { SETTINGS as BANKFLETCHER_SETTINGS } from './BankFletcher/BankFletcher.js';
 import DartFletcher, { DART_FLETCHER_SETTINGS } from './DartFletcher/DartFletcher.js';
@@ -705,6 +706,15 @@ ScriptRegistry.register({
     tags: ['magic', 'smithing', 'superheat', 'banking', 'tick-perfect', 'fast'],
     settingsSchema: SUPERHEATER_SETTINGS,
     create: () => new Superheater()
+});
+
+ScriptRegistry.register({
+    name: 'TickChaosDruid',
+    description: 'Tick-perfect Chaos Druid fighter & herb farmer — 0-tick kill detection, instant targeting, and automated Edgeville banking',
+    category: 'Combat',
+    tags: ['combat', 'druids', 'herbs', 'money', 'banking', 'tick-perfect', 'fast'],
+    settingsSchema: CHAOS_DRUID_SETTINGS,
+    create: () => new TickChaosDruid()
 });
 
 ScriptRegistry.register({
