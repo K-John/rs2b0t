@@ -18,7 +18,7 @@ tiles, and an unwindowed search would "advance" the bot across a fold it never
 walked.
 
 `selectClickTarget` then picks a target **by path index, not straight-line
-distance** — the furthest clickable tile at or before the limit, walking backwards
+distance**, the furthest clickable tile at or before the limit, walking backwards
 from the top:
 
 ```ts
@@ -33,7 +33,7 @@ side of a wall are adjacent in space and far apart along the path.
 Those two rules interact badly at short range. `selectClickTarget` searches
 strictly `i > pathIdx`, and the terminal snap can put `pathIdx` **on the last tile**.
 For any hop of three tiles or fewer the search window is then empty, and the executor
-emits **zero clicks** — reporting "blocked" or "as close as reachable" while standing
+emits **zero clicks**, reporting "blocked" or "as close as reachable" while standing
 still, having never tried.
 
 `starvedTerminalIndex` is the rescue: when the player is not already on the end tile
@@ -48,7 +48,7 @@ export function starvedTerminalIndex(tiles, me, isClickable): number {
 ```
 
 **Players and NPCs never block navigation.** A bot standing on your destination tile
-is not why a walk failed — this was proven live with two clients stacked on one tile.
+is not why a walk failed. This was proven live with two clients stacked on one tile.
 Suspect click starvation or a door instead.
 
 ## See also

@@ -7,7 +7,7 @@ Thirteen, and the first four are all one fight.
 - **A stage that only ever moves backwards cannot be the fight's oracle.** `defeat_titan`
   runs on the titan's death and reads `inv_total(worn, excalibur)`. Without it he heals to
   full, taunts, and sets `%grail` to 7; with it he dies and the player is teleported past
-  him — and `%grail` does not move at all. The journal has no line for the win either,
+  him, and `%grail` does not move at all. The journal has no line for the win either,
   because the "I defeated the Black Knight Titan" paragraph only renders from stage 8. The
   crossing is read from where the character is standing or not at all.
 - **Refuse the fight rather than warn about it.** A kill without Excalibur wielded is worse
@@ -22,7 +22,7 @@ Thirteen, and the first four are all one fight.
   side's on the same z. Flood the pack once, read the two components' per-row extents, and
   encode the bands between them.
 - **`derive-doors` bakes straight walls only.** The Fisher King's hall is behind
-  `loc_1530` at shape 9 — a diagonal door — so the baked graph calls his room sealed and
+  `loc_1530` at shape 9, a diagonal door, so the baked graph calls his room sealed and
   every route to him reports unreachable. `Reach`'s "server said it cannot reach, open what
   is in front" path is what gets in; the walk has to stop on the near side and let the talk
   do the last tile.
@@ -38,7 +38,7 @@ Thirteen, and the first four are all one fight.
   Grail sits on a `roundtable` and the whistles land on a `spookytable`; both block their
   tile. `reachedObj` wants the exact tile, but `Player.inOperableDistance` also accepts
   `reachedEntity`, and `reachRectangle1` reads the four cardinal neighbours alone. The walk
-  target has to be the cardinal neighbour at radius 0 — a diagonal stand is not adjacent.
+  target has to be the cardinal neighbour at radius 0. A diagonal stand is not adjacent.
 - **`walkResilient` returning true is not "standing on the tile you asked for".** The
   arrival probe accepts the closest reachable point when the destination is sealed, so a
   step that walks to an unreachable tile logs `arrived (0 clicks)`, reports ok, and then
@@ -48,11 +48,11 @@ Thirteen, and the first four are all one fight.
 - **An item that unlocks a supply is a standing key, not a step's input.** The napkin is
   what makes `whistledoor` drop whistles, and whistles are needed at three stages the
   napkin's own leg never reaches. Checking for it once, where it is acquired, left every
-  later leg failing with a message and no way to act on it — each one has to be able to
+  later leg failing with a message and no way to act on it, each one has to be able to
   withdraw it, or park saying why it cannot.
 - **A quest hint item is not a quest gate.** `oploc2,percy_sacks` tests the stage and
-  nothing else, so King Arthur's magic golden feather — which the journal talks about at
-  length — is a Camelot round trip the bot never needs to make.
+  nothing else, so King Arthur's magic golden feather, which the journal talks about at
+  length, is a Camelot round trip the bot never needs to make.
 - **The Entrana monk searches the pack as well as the shoulders.** `~has_entrana_restricted_items`
   reads `inv` and `worn` for every weapon and armour category, so the strip is a bank trip
   and a strip. Take the gear off *first*: stripping after the deposit puts it straight back

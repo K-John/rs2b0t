@@ -8,7 +8,7 @@ const encoded = new Map<number, string>();
 
 /**
  * Item icon as a data URL. Null when the cache is not loaded or the id has no sprite, so callers fall back to the item's name.
- * Why: DOM is fenced to this directory, so the adapter hands over raw pixels — an `Int32Array` of 0xRRGGBB with 0 meaning transparent.
+ * Why: DOM is fenced to this directory, so the adapter hands over raw pixels, an `Int32Array` of 0xRRGGBB with 0 meaning transparent.
  */
 export function itemIconDataUrl(id: number): string | null {
     const hit = encoded.get(id);

@@ -1,5 +1,5 @@
 /**
- * Map picker display theme — SettingsStore namespace `MapPicker` (in-picker Settings modal).
+ * Map picker display theme, SettingsStore namespace `MapPicker` (in-picker Settings modal).
  * Not part of Global settings.
  */
 import { parseHtmlColor, rgba } from '../event/webwalk/pathPaintTheme.js';
@@ -11,7 +11,7 @@ import {
     SettingsStore
 } from '../runtime/Settings.js';
 
-/** Default dark blue — readable on basemap. */
+/** Default dark blue, readable on basemap. */
 export const MAP_PICKER_DOT_DEFAULT = '#0a3d7a';
 const MAP_PICKER_DOT_ALPHA_DEFAULT = 0.85;
 
@@ -27,7 +27,7 @@ type MapPickerDotTheme = {
     /** Classic worldmap terrain mode (vs collision-dot mode). */
     showBasemap: boolean;
     /**
-     * Walkable collision dots — only drawn when basemap is **off** (classic mode).
+     * Walkable collision dots, only drawn when basemap is **off** (classic mode).
      * Always true in classic mode; always false in basemap mode.
      */
     showWalkable: boolean;

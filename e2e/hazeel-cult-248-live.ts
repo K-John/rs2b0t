@@ -1,6 +1,6 @@
 /** Live Hazeel Cult harness (#248): --stage N --until N --minutes N, base :8890.
  *  Why: `--stage` is the raw `%hazeelcultquest`, pinned to the Carnillean side by `%hazeelcult_side`, and it relogs because the quest list only recolours at login.
- *  Why: the bank holds coins and lobsters alone — the armour is a quest drop and the five sewer valves are world state, so nothing else can be seeded without hiding the leg under test. */
+ *  Why: the bank holds coins and lobsters alone. The armour is a quest drop and the five sewer valves are world state, so nothing else can be seeded without hiding the leg under test. */
 
 //   HEADED=1 bun e2e/hazeel-cult-248-live.ts --stage 0 --until 9 --minutes 60 --tick 200
 //   HEADED=1 bun e2e/hazeel-cult-248-live.ts --stage 4 --until 6 --minutes 30 --tick 200
@@ -125,7 +125,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph compiles into navworker.js, a separate entrypoint, deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {
@@ -211,7 +211,7 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without Hazeel Cult in it spends the budget on somebody else's quest.
+        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch, and a queue without Hazeel Cult in it spends the budget on somebody else's quest.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;
@@ -231,7 +231,7 @@ try {
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
-        // Why: a full run waits for the list to go green rather than the varp — the recolour and the QP award land a tick behind %hazeelcultquest.
+        // Why: a full run waits for the list to go green rather than the varp, the recolour and the QP award land a tick behind %hazeelcultquest.
         const done = args.until >= 9 ? last.status === 'complete' : stage >= args.until;
         if (done) {
             console.log(`PASS (stage=${stage}, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);

@@ -22,7 +22,7 @@ With the toggle **on**, these apply:
 - A* may inject standard-spellbook teles (Varrock, Lumbridge, Falador, Camelot, …) and
   jewellery Rub destinations (dueling ring, games necklace, glory, …) when
   **live inventory** (and magic level / quest gates) can pay for them.
-- Jewellery is **inventory Rub only** — the bank planner does not withdraw rings/glories.
+- Jewellery is **inventory Rub only**, the bank planner does not withdraw rings/glories.
 - Path-scoped bank may withdraw **runes/toll coins** if a cheaper tele path needs them
   and `bankItemCounts` / open-bank snapshot allows it.
 
@@ -30,11 +30,11 @@ With the toggle **on**, these apply:
 
 For each `walkTo` / `walkResilient`, tele inject is decided as follows (first match wins):
 
-1. **Force off** — `useTeleportCatalog: false`, or `policy: { useTeleports: false }`,
+1. **Force off**, `useTeleportCatalog: false`, or `policy: { useTeleports: false }`,
    or spread `NAV_PURE_WALK` / `Traversal.pureWalk`.
-2. **Force on** — `useTeleportCatalog: true`, or `policy: { useTeleports: true }`,
+2. **Force on**, `useTeleportCatalog: true`, or `policy: { useTeleports: true }`,
    or spread `NAV_WITH_TELES` / `Traversal.withTeles`.
-3. **Else** — Global **`navTeleports`** (default **false**).
+3. **Else**, Global **`navTeleports`** (default **false**).
 
 ```ts
 // Default: pure walk (Global off)
@@ -71,7 +71,7 @@ total. Prefer that over static span gates.
 
 ### Min span when teles are enabled
 
-When tele inject is active, `policy.distanceBeforeTeleport` defaults to **0** — A* cost
+When tele inject is active, `policy.distanceBeforeTeleport` defaults to **0**, A* cost
 decides (e.g. a ~5-tick spell tele costs **10** run-tiles; short hops stay walk). Pass a
 positive floor only if a caller wants a hard gate.
 
@@ -108,7 +108,7 @@ do not require that (overlay projection is enough for interact targeting).
 (`specialRequires.ts`). Matrix: [transport reference](../reference/transports-2004.md).
 
 **Essence mine multiloc (litmus):** multi-entry, **same-origin exit only**. Entering
-via a wizard sets the session return; every exit portal telejumps to that return — not
+via a wizard sets the session return; every exit portal telejumps to that return, not
 to a fixed Sedridor stand. Nav must **never route a surface OD *through* the mine** as
 a shortcut (entry at A + exit as if at B). Implementation: entry edges set
 `essenceEntrySetsReturn`; PathFinder carries return in the A\* key; exit edges require
@@ -119,11 +119,11 @@ the **path corridor** ahead of the player, not merely the nearest Open-door with
 tiles (wrong doorway / same loc type).
 
 **Loc placement ref (`locRef.ts`):** scenery-backed edges are keyed by **placement**
-(level + tile) plus optional closed/open ids — not by name alone. `matchesLocRef` /
-`locRefValid` / `locRefStale` support “is this edge still present in the scene?” checks
+(level + tile) plus optional closed/open ids, not by name alone. `matchesLocRef` /
+`locRefValid` / `locRefStale` support "is this edge still present in the scene?" checks
 (open leaf counts as valid for Open-actions).
 
-**Code map:** `src/bot/event/webwalk/` — `PathFinder`, `WalkExecutor`, `exec/`, `data/`, plus
+**Code map:** `src/bot/event/webwalk/`, `PathFinder`, `WalkExecutor`, `exec/`, `data/`, plus
 teleport catalog, travel catalog, WorldState helpers, bank plan. Transport matrix:
 [transport reference](../reference/transports-2004.md).
 

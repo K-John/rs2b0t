@@ -81,7 +81,7 @@ export default class FlaxRunner extends TaskBot {
     private status = 'starting';
     private startedAt = Date.now();
 
-    /** Last flax tile we committed to picking — prefer it while it still exists. */
+    /** Last flax tile we committed to picking, prefer it while it still exists. */
     private stickyFlax: Tile | null = null;
 
     /** Earliest wall-clock time we may call Trade.request again (stops request thrash). */
@@ -207,7 +207,7 @@ export default class FlaxRunner extends TaskBot {
         return flaxCount() === 0 && Inventory.used() === 0;
     }
 
-    /** Pack is full and still holds flax — deliver, do not pick or return to the field. */
+    /** Pack is full and still holds flax, deliver, do not pick or return to the field. */
     readyToDeliver(): boolean {
         return Inventory.isFull() && flaxCount() > 0 && !this.needsJunkBank();
     }
@@ -428,7 +428,7 @@ export default class FlaxRunner extends TaskBot {
 
     /**
      * Full pack (or delivering) and reachable ground is a small pocket walled by flax.
-     * 2004 flax is solid collision — the runner can be sealed in as plants respawn.
+     * 2004 flax is solid collision. The runner can be sealed in as plants respawn.
      */
     boxedByFlax(): boolean {
         if (!this.atField()) return false;
@@ -602,7 +602,7 @@ class GoToMeet implements Task {
         if (Trade.active()) return false;
         const here = Game.tile();
         if (!here) return false;
-        // Match atMeet / TRADE_RANGE — a d<=1 test fights WaitAndTrade at d=2.
+        // Match atMeet / TRADE_RANGE, a d<=1 test fights WaitAndTrade at d=2.
         if (this.bot.atMeet()) return false;
         // Runner only leaves the field when the pack is ready to hand off.
         if (this.bot.getMode() === 'Runner') return this.bot.readyToDeliver();
@@ -715,7 +715,7 @@ class RequestTrade implements Task {
     validate(): boolean {
         if (this.bot.getMode() !== 'Spinner') return false;
         if (Trade.active()) return false;
-        // Empty pack only — junk/strings must bank first or the runner's full
+        // Empty pack only, junk/strings must bank first or the runner's full
         // offer cannot land and both sides re-trade forever.
         if (!this.bot.spinnerReadyForHandoff()) return false;
         if (!this.bot.canRequestTrade()) return false;
@@ -917,7 +917,7 @@ class BankStrings implements Task {
             BOOTH.op,
             m => this.bot.log(`  ${m}`),
         );
-        // Deposit everything — strings, leftover fibre, and random-event trash.
+        // Deposit everything, strings, leftover fibre, and random-event trash.
         await Bank.depositInventory();
         await Bank.close();
         if (strings > 0) {

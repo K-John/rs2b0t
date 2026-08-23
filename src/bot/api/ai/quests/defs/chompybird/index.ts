@@ -32,7 +32,7 @@ const hasBellows = (snap: QuestSnapshot): boolean => ANY_BELLOWS.some(id => held
 const bankHasBellows = (snap: QuestSnapshot): number | null =>
     ANY_BELLOWS.find(id => (snap.bankIds?.get(id) ?? 0) > 0) ?? null;
 
-// Why: three in the pack is a fight that runs dry with the bird alive, and the quiver has no count on the wire — so a quivered stack is trusted and the pack is what has to reach this floor.
+// Why: three in the pack is a fight that runs dry with the bird alive, and the quiver has no count on the wire, so a quivered stack is trusted and the pack is what has to reach this floor.
 
 /** Enough ogre arrows to see a chompy off. */
 const HUNT_ARROWS = 6;
@@ -43,7 +43,7 @@ const hasArrows = (snap: QuestSnapshot): boolean =>
 const hasBow = (snap: QuestSnapshot): boolean =>
     heldId(snap, CB_ID.BOW) > 0 || (snap.wornIds?.has(CB_ID.BOW) ?? false);
 
-// Why: the bait clearing is fifteen tiles from Rantz, which is outside the range the npc list holds him in — a talk from there finds nobody and fails in a millisecond.
+// Why: the bait clearing is fifteen tiles from Rantz, which is outside the range the npc list holds him in, a talk from there finds nobody and fails in a millisecond.
 
 /** Walk to Rantz, then drive whatever his current stage answers with. */
 async function talkRantz(drive: BoxDrive, log: (m: string) => void): Promise<boolean> {
@@ -81,7 +81,7 @@ function showToad(log: (m: string) => void): Promise<boolean> {
     return talkRantz({ prefer: [THANKS], ms: 60_000 }, log);
 }
 
-// Why: at 40 Rantz lends the bow through a two-page choice, and at 45 with no bow he sells a replacement first — one preference list covers both, and the bow in hand is the only proof either landed.
+// Why: at 40 Rantz lends the bow through a two-page choice, and at 45 with no bow he sells a replacement first, one preference list covers both, and the bow in hand is the only proof either landed.
 
 function getBow(log: (m: string) => void): Promise<boolean> {
     return talkRantz(
@@ -143,7 +143,7 @@ function bellowsStep(snap: QuestSnapshot): QuestStep | null {
 
 /** Feathers, shafts and tips, with an axe in the pack and the melee kit on before the wolves. */
 function fletchLeg(snap: QuestSnapshot): QuestStep | null {
-    // Why: an achey tree with no axe in the pack answers nothing at all — no refusal, no message.
+    // Why: an achey tree with no axe in the pack answers nothing at all, no refusal, no message.
     const loadout = loadoutStep(snap);
     if (loadout) {
         return loadout;
@@ -250,7 +250,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (stage === CB_STAGE.STARTED) {
         return arrowLeg(snap);
     }
-    // Why: a resume past the loan finds Rantz selling the replacement bow for 500-550 coins, and he answers an empty purse with "come back when you have" — a refusal no oracle here can tell from a dropped click; the axe is left out, since only the arrow leg needs one.
+    // Why: a resume past the loan finds Rantz selling the replacement bow for 500-550 coins, and he answers an empty purse with "come back when you have", a refusal no oracle here can tell from a dropped click; the axe is left out, since only the arrow leg needs one.
     const provisions = loadoutStep(snap, false);
     if (provisions) {
         return provisions;

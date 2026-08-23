@@ -52,6 +52,7 @@ import {
     sourceFood,
     sourceRope,
     sourceVial,
+    questKit,
     withdrawFrom
 } from './supplies.js';
 
@@ -352,7 +353,7 @@ const CRYSTAL_RECOVERY: Readonly<Record<number, { name: string; run: (log: (m: s
 };
 
 function recoverCrystals(snap: QuestSnapshot): QuestStep | null {
-    // Nothing to recover once all four are carried — do not walk to the bank
+    // Nothing to recover once all four are carried, do not walk to the bank
     // merely to learn what is in it.
     const lost = CRYSTALS.find(crystal => held(snap, crystal.id) === 0);
     if (!lost) {
@@ -397,6 +398,15 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return { kind: 'custom', name: 'read the Watchtower spell scroll', run: readSpellScroll };
         }
         return { kind: 'custom', name: 'climb down from the activated Watchtower', run: leaveWizardFloor };
+    }
+
+    // Why: one bank trip for everything the bank can supply, rather than a trip per item as each stage reached for it; what the bank lacks still falls to the shop, the ground candle and the guard's riddle.
+    // Why: bounded to the collecting stages, as past the potion the kit is spent and a trip proves nothing.
+    if (snap.stage > WATCHTOWER_STAGE.NOT_STARTED && snap.stage <= WATCHTOWER_STAGE.MADE_POTION) {
+        const kit = questKit(snap, ENCLAVE_FOOD);
+        if (kit) {
+            return at(area, 'yanille', kit);
+        }
     }
 
     switch (snap.stage) {

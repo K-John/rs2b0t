@@ -149,7 +149,7 @@ export function currentLoginStatsReady(
 
 /**
  * Object/NPC vertical extent for hulls. RS model space: minY = max(-vertexY)
- * (height above origin) — same as ClientNpc.height. maxY is below-origin only.
+ * (height above origin), same as ClientNpc.height. maxY is below-origin only.
  */
 export function locHullHeight(
     model: { minY: number; maxY: number } | null | undefined,
@@ -420,6 +420,18 @@ interface SelectButtonLabel {
     label: string;
 }
 
+export interface ModalButton {
+    comId: number;
+    /** The button's own caption, as drawn. */
+    label: string;
+    /** The word the right-click menu offers, which is what the client sends the option as. */
+    menu: string;
+    /** True while the button or any layer above it is hidden, and a click on it cannot be seen. */
+    hidden: boolean;
+    /** True for a `buttontype=pause` button, which resumes a suspended script instead of firing an `if_button` trigger. */
+    pause: boolean;
+}
+
 export function attach(client: unknown): string[] {
     const missing = SELF_TEST.filter(name => !(name in (client as Record<string, unknown>)));
     raw = client as RawClient;
@@ -588,7 +600,7 @@ export const reader = {
 
     /**
      * Orbit camera yaw 0–2047 (client-only; TS-private on Client, plain property at runtime).
-     * Used by optional nav path-facing — no server/LC dependency.
+     * Used by optional nav path-facing, no server/LC dependency.
      */
     cameraYaw(): number {
         const c = raw as (RawClient & { orbitCameraYaw?: number }) | null;
@@ -886,7 +898,7 @@ export const reader = {
                     }
                 }
                 const model = resolveLocModelExtents(modelSrc);
-                // resizey is a % scale (128 = 100%), not a height — never use it as topH.
+                // resizey is a % scale (128 = 100%), not a height, never use it as topH.
                 topH = locHullHeight(model, 128);
                 if (
                     !usedSceneFootprint &&
@@ -1612,11 +1624,11 @@ export const reader = {
     },
 
     tradeSidePack(): InvItemSnapshot[] {
-        return readInvComponent(3322, () => IfType.list[3322]?.iop ?? []); // tradeside:inv — your pack while trading
+        return readInvComponent(3322, () => IfType.list[3322]?.iop ?? []); // tradeside:inv, your pack while trading
     },
 
     tradePartner(): string | null {
-        return IfType.list[3417]?.text ?? null; // trademain:otherplayer — "Trading With: <name>"
+        return IfType.list[3417]?.text ?? null; // trademain:otherplayer, "Trading With: <name>"
     },
 
     closeButtonComId(rootComId: number): number {
@@ -1658,6 +1670,14 @@ export const reader = {
     ifModelObjId(comId: number): number | null {
         const com = IfType.list[comId];
         return com && com.model1Type === 4 ? com.model1Id : null;
+    },
+
+    // Why: `if_sethide` arrives as a packet and lands on `IfType.hide`, so the client already knows which buttons a script has armed, and a press on a hidden one is dropped by `Player.runScript` with no message.
+    // Why: the caller picks a button by what it says rather than by an id, because a root's children are not numbered from `root + 1` and counting entries in the `.if` file gives the wrong one.
+
+    /** Every button under a modal root, with its caption, its menu word and whether a layer above it is hiding it. */
+    modalButtons(rootComId: number): ModalButton[] {
+        return raw ? readModalButtons(rootComId) : [];
     },
 
     buttonByText(rootComId: number, label: string): number {
@@ -1840,6 +1860,13 @@ export const actions = {
         return actions.menuAction(MiniMenuAction.IF_BUTTON, 0, 0, comId);
     },
 
+    // Why: the client sends RESUME_PAUSEBUTTON once per interface open and then refuses until the next one, so a press aimed at a script that is not yet suspended spends the only press the round has.
+
+    /** Resume a script suspended on `p_pausebutton` from a main-modal button. */
+    pauseButton(comId: number): boolean {
+        return actions.menuAction(MiniMenuAction.PAUSE_BUTTON, 0, 0, comId);
+    },
+
     setRun(on: boolean): boolean {
         const controls = reader.runControls();
         if (!controls) {
@@ -1850,7 +1877,7 @@ export const actions = {
     },
 
     /**
-     * Set orbit camera yaw (0–2047). Client-side only — flags the periodic
+     * Set orbit camera yaw (0–2047). Client-side only, flags the periodic
      * camera report packet when available. Does not touch LC/engine code.
      */
     setCameraYaw(yaw: number): boolean {
@@ -1982,6 +2009,35 @@ export function readRetaliateControls(): { onComId: number; offComId: number } |
     }
 
     return null;
+}
+
+export function readModalButtons(rootComId: number): ModalButton[] {
+    const out: ModalButton[] = [];
+    const queue: { id: number; hidden: boolean }[] = [{ id: rootComId, hidden: false }];
+    while (queue.length > 0) {
+        const current = queue.shift()!;
+        const com = IfType.list[current.id];
+        if (!com) {
+            continue;
+        }
+
+        const hidden = current.hidden || com.hide;
+        // Why: the interface archive writes 0 for a component with no `buttontype`, so anything that is not a button has to be filtered out by that and not by the class default.
+        if (com.buttonType > 0 && com.buttonType !== ButtonType.BUTTON_CLOSE) {
+            out.push({
+                comId: com.id,
+                label: com.text ?? '',
+                menu: com.buttonText ?? '',
+                hidden,
+                pause: com.buttonType === ButtonType.BUTTON_CONTINUE
+            });
+        }
+        for (const child of com.children ?? []) {
+            queue.push({ id: child, hidden });
+        }
+    }
+
+    return out;
 }
 
 /** Read each select button together with the style text rendered beside it. */

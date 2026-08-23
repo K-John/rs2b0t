@@ -79,7 +79,7 @@ async function killJailer(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-// Why: `unlock_taverley_jaildoor` takes the key on the way in only — the way out is the plain Open op — so the cell is left by op and entered by use.
+// Why: `unlock_taverley_jaildoor` takes the key on the way in only, the way out is the plain Open op, so the cell is left by op and entered by use.
 
 async function unlockWithKey(keyId: number, locId: number, expect: () => boolean, what: string, log: (m: string) => void): Promise<boolean> {
     if (expect()) {
@@ -116,7 +116,7 @@ function inCell(): boolean {
     return at !== null && at.level === 0 && at.z <= SC_TILE.JAIL_CELL.z && at.x >= 2928 && at.x <= 2934 && at.z >= 9683;
 }
 
-// Why: Velrak has no `wanderrange`, so he drifts five tiles around a cell whose walls make that a walk rather than a step, and the shared talk primitive answers an out-of-reach NPC by opening the door in front of it — which here is the cell door, and walks the run back out.
+// Why: Velrak has no `wanderrange`, so he drifts five tiles around a cell whose walls make that a walk rather than a step, and the shared talk primitive answers an out-of-reach NPC by opening the door in front of it, which here is the cell door, and walks the run back out.
 
 /** Talk to Velrak without leaving the cell: scene steps only, and no door is opened on the way. */
 async function talkInCell(log: (m: string) => void): Promise<boolean> {
@@ -176,7 +176,7 @@ async function fetchDustyKey(log: (m: string) => void): Promise<boolean> {
     return openLoc(SC_ID.JAIL_DOOR, 'Open', () => !inCell(), 'cell door', log);
 }
 
-// Why: the entrance corridor from the Taverley ladder runs x 2881-2887 up the same z band as the deep half, and only a wall of solid rock at x 2888 separates them — so a plain "west of the gate" box would read the way in as the way through.
+// Why: the entrance corridor from the Taverley ladder runs x 2881-2887 up the same z band as the deep half, and only a wall of solid rock at x 2888 separates them, so a plain "west of the gate" box would read the way in as the way through.
 
 /** West of the dusty-key gate: the far half at x ≤ 2880, and the blue dragon cave east of it. */
 function inDeepDungeon(): boolean {

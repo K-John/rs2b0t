@@ -1,5 +1,5 @@
 /** Live walk stress over every travel OD scraped from clues, gathering and quests (corpus: tools/nav/script-travel-corpus.ts). SEGMENT=all|clues|quests|gathering-all|fishing|mining|woodcutting|firemaking|cooking, LIMIT (0 = all, default 25), OFFSET, USE_TELEPORTS, PATH_PAINT, ENERGY_REFILL_AT, HP_REFILL_AT, SUSTAIN_EVERY_S. A success proof is written only when every leg passes.
- *  Why: startup logs out through IF_BUTTON com 2458 so mainlandAccount relogs in ~9s rather than holding a long unclean disconnect; STUCK_ABORT kills a leg whose wall time far exceeds the path-cost estimate while the character has not moved (door thrash), and HARNESS_SUITE_ABORT stops the suite on harness death alone — product OD failures continue. */
+ *  Why: startup logs out through IF_BUTTON com 2458 so mainlandAccount relogs in ~9s rather than holding a long unclean disconnect; STUCK_ABORT kills a leg whose wall time far exceeds the path-cost estimate while the character has not moved (door thrash), and HARNESS_SUITE_ABORT stops the suite on harness death alone, product OD failures continue. */
 
 //   ~/redeploy.sh
 //   HEADED=1 SEGMENT=fishing LIMIT=0 bun e2e/nav-script-travel-live.ts
@@ -182,7 +182,7 @@ try {
             await ensureJewellery(page, { useTeleports: USE_TELEPORTS });
             await teleArrive(page, r.from as NavTile, 14);
             await restoreRunEnergy(page);
-            // One HP top-up at leg start if enabled (not every tick — mid-walk is throttled).
+            // One HP top-up at leg start if enabled (not every tick, mid-walk is throttled).
             if (HP_REFILL_AT > 0) {
                 await restoreHp(page, 99).catch(() => undefined);
             }
@@ -218,7 +218,7 @@ try {
             console.error(`FAIL ${id}:`, e);
             results.push({ id, ok: false, detail, segment: r.segment });
             fail++;
-            // Harness death only — product OD fails continue the suite.
+            // Harness death only, product OD fails continue the suite.
             if (HARNESS_SUITE_ABORT && isHarnessDeathDetail(detail)) {
                 suiteAbortReason = detail;
                 console.error(

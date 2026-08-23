@@ -138,7 +138,7 @@ export async function takeBlackArmHalf(log: (m: string) => void): Promise<boolea
         log('could not get through the gang door and up the stairs to the cupboard');
         return false;
     }
-    // Why: the cupboard renders as two locs, and Search is op2 of the open one — op1 is Shut.
+    // Why: the cupboard renders as two locs, and Search is op2 of the open one, op1 is Shut.
     if (!(await openContainer('Cupboard', SOA_LOC.CUPBOARD_SHUT, SOA_LOC.CUPBOARD_OPEN, SOA_TILE.CUPBOARD_STAND, log))) {
         await leaveBlackArmUpper(log);
         return false;
@@ -169,7 +169,7 @@ export async function takeBlackArmHalf(log: (m: string) => void): Promise<boolea
     return true;
 }
 
-// Why: every conversation goes through Reach rather than the shared `talk` step — `gotoNpc` approaches on a leash and its crossHops calls a stand two tiles off "arrived", which failed the Katrine hand-in twenty times in a row on one run and worked on the next.
+// Why: every conversation goes through Reach rather than the shared `talk` step, `gotoNpc` approaches on a leash and its crossHops calls a stand two tiles off "arrived", which failed the Katrine hand-in twenty times in a row on one run and worked on the next.
 function say(stop: typeof TRAMP, name: string): QuestStep {
     return { kind: 'custom', name, run: log => walkAndTalk(stop, stop.prefer, log) };
 }
@@ -185,7 +185,7 @@ export function blackarmStep(snap: QuestSnapshot): QuestStep {
             return say(KATRINE_JOIN, 'ask Katrine to join the Black Arm Gang');
 
         case SOA_STAGE.KATRINE_TASK:
-            // Why: the store door is out of the nav graph, so a bot that took the crossbows and then failed the crossing has no route to Katrine and every path reads unreachable — the way out is owed before the hand-in, not only inside the raid step.
+            // Why: the store door is out of the nav graph, so a bot that took the crossbows and then failed the crossing has no route to Katrine and every path reads unreachable, the way out is owed before the hand-in, not only inside the raid step.
             if (inStoreGround(snap.tile) || inWeaponStore(snap.tile)) {
                 return { kind: 'custom', name: 'leave the weapon store', run: leaveWeaponStore };
             }
@@ -205,6 +205,10 @@ export function blackarmStep(snap: QuestSnapshot): QuestStep {
         case SOA_STAGE.BLACKARM_JOINED:
             if (heldId(snap, SOA_ID.SHIELD_BLACKARM) > 0) {
                 return { kind: 'wait', reason: 'black arm half held — the other half is not this leg' };
+            }
+            // Why: `[oploc2,blackarmcupboardopen]` counts the bank, so a banked half leaves the cupboard bare for good.
+            if (bankedId(snap, SOA_ID.SHIELD_BLACKARM) > 0) {
+                return { kind: 'withdraw', items: [{ name: 'Broken shield', qty: 1, id: SOA_ID.SHIELD_BLACKARM }] };
             }
             return { kind: 'custom', name: 'search the Black Arm cupboard', run: takeBlackArmHalf };
 

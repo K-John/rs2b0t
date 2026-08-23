@@ -17,7 +17,7 @@ export interface IsolatedClient {
 }
 
 // Why: `bot.html` hardcodes one bundle path, so every session that deploys into `public/bot/` overwrites the others and the last writer decides what everyone runs.
-// Why: a copy per run under its own directory costs a few megabytes and removes the race rather than detecting it — the client is served by the engine either way, so the origin, the websocket and the asset stream are unchanged.
+// Why: a copy per run under its own directory costs a few megabytes and removes the race rather than detecting it. The client is served by the engine either way, so the origin, the websocket and the asset stream are unchanged.
 
 /**
  * Deploy this run's own client next to the engine's, and return the page that loads it.
@@ -105,7 +105,7 @@ export function parseArgs(argv: string[], defaults?: { base?: string; minutes?: 
 }
 
 /** Preferred Playwright viewport for live harnesses; matches Playwright's own default for `browser.newPage()`.
- *  Why: bot.html scales the 765×503 game stage to fill the page, so forcing `{ width: 1500, height: 1000 }` blows the client up next to the smaller harnesses — omit `setViewportSize`/`viewport` or pass `HARNESS_VIEWPORT`. */
+ *  Why: bot.html scales the 765×503 game stage to fill the page, so forcing `{ width: 1500, height: 1000 }` blows the client up next to the smaller harnesses, omit `setViewportSize`/`viewport` or pass `HARNESS_VIEWPORT`. */
 export const HARNESS_VIEWPORT = { width: 1280, height: 720 } as const;
 
 export async function launchBrowser(opts?: { swiftshader?: boolean }): Promise<Browser> {
@@ -160,7 +160,7 @@ export async function login(page: Page, user: string, pass = 'test'): Promise<bo
 
 /**
  * Send a client cheat packet (CLIENT_CHEAT / op 224) without keyboard focus.
- * `command` is the text after `::` — e.g. `tele 0,50,50,20,20`.
+ * `command` is the text after `::`, e.g. `tele 0,50,50,20,20`.
  */
 export async function cheatQuiet(page: Page, command: string, waitMs = 700): Promise<boolean> {
     const sent = await page.evaluate(c => {
@@ -177,7 +177,7 @@ export async function cheatQuiet(page: Page, command: string, waitMs = 700): Pro
     return sent;
 }
 
-/** logout:try_logout — if_button com 2458 → ClientProt.IF_BUTTON (opcode 9) → p_logout.
+/** logout:try_logout, if_button com 2458 → ClientProt.IF_BUTTON (opcode 9) → p_logout.
  *  Tab-rooted, so the engine accepts it without the logout tab open; ~seconds against 60s for a socket drop. */
 export const LOGOUT_BUTTON_COM = 2458;
 

@@ -91,7 +91,7 @@ export async function catchCat(log: (m: string) => void): Promise<boolean> {
         return false;
     }
     await settleScene();
-    // Why: the cat wanders its platform, so the query reaches further than the walk's own radius — and it says what it found, because a silent false here alternates the step between fetching a cat and knocking with nothing, re-routing across a bridge every time.
+    // Why: the cat wanders its platform, so the query reaches further than the walk's own radius, and it says what it found, because a silent false here alternates the step between fetching a cat and knocking with nothing, re-routing across a bridge every time.
     const cat = Npcs.query().where(n => n.id === UP_NPC.WITCH_CAT).within(20).nearest();
     const op = cat?.actions()[0];
     if (!cat || !op) {
@@ -106,8 +106,8 @@ export async function catchCat(log: (m: string) => void): Promise<boolean> {
     return driveUntil(() => heldId(UP_ITEM.WITCH_CAT.id) > 0, [], log, 12_000);
 }
 
-// Why: knocking is what draws Kardia out, and she only comes if the cat is already by the door — the door's op1 answers with 25% damage while she is still inside.
-// Why: and the knock takes the cat, which the journal never records — so a snapshot reads "no cat, no doll" after the knock as it reads it before the cat is caught, and the run went back for a cat that was already at the witch's door. Catching it, knocking, and opening the chest are therefore one step, ending on the doll, which the journal does record.
+// Why: knocking is what draws Kardia out, and she only comes if the cat is already by the door, the door's op1 answers with 25% damage while she is still inside.
+// Why: and the knock takes the cat, which the journal never records, so a snapshot reads "no cat, no doll" after the knock as it reads it before the cat is caught, and the run went back for a cat that was already at the witch's door. Catching it, knocking, and opening the chest are therefore one step, ending on the doll, which the journal does record.
 
 /** Take the cat to Kardia's door, knock, and lift the doll from her chest while she is outside. */
 export async function stealTheDoll(log: (m: string) => void): Promise<boolean> {
@@ -115,7 +115,7 @@ export async function stealTheDoll(log: (m: string) => void): Promise<boolean> {
         if (heldId(UP_ITEM.DOLL.id) > 0) {
             return true;
         }
-        // Why: the cat first, because the chest is across the platforms and walking to it to find out she is still inside costs the trip twice. A cat that cannot be caught is not fatal — it usually means it is already sitting at her door from an earlier round — so the chest is still tried.
+        // Why: the cat first, because the chest is across the platforms and walking to it to find out she is still inside costs the trip twice. A cat that cannot be caught is not fatal, it usually means it is already sitting at her door from an earlier round, so the chest is still tried.
         if (heldId(UP_ITEM.WITCH_CAT.id) === 0) {
             await catchCat(log);
         }
@@ -129,7 +129,7 @@ export async function stealTheDoll(log: (m: string) => void): Promise<boolean> {
     return heldId(UP_ITEM.DOLL.id) > 0;
 }
 
-// Why: standing on the door's own tile sends the knock and the server answers with nothing at all — no "You knock on the door...", no "I can't reach that!" — so the op is dropped before the script is reached. A wall is operated from a side, and which side is not knowable from here, so every side gets a turn and each one reports what the game said. The chat is joined into one line because the harness only surfaces a few log lines per poll, and a per-side report reads as silence.
+// Why: standing on the door's own tile sends the knock and the server answers with nothing at all: no "You knock on the door...", no "I can't reach that!", so the op is dropped before the script is reached. A wall is operated from a side, and which side is not knowable from here, so every side gets a turn and each one reports what the game said. The chat is joined into one line because the harness only surfaces a few log lines per poll, and a per-side report reads as silence.
 
 /** Out of Kardia's house, which the navigator has no way out of. */
 export async function leaveWitchHouse(log: (m: string) => void): Promise<boolean> {
@@ -140,7 +140,7 @@ export async function leaveWitchHouse(log: (m: string) => void): Promise<boolean
             log("the way out of Kardia's house would not open");
         }
         await driveUntil(() => locById(UP_LOC.WITCH_DOOR, 'Open', 8) === null, [], log, 6_000);
-        // Why: the collision pack still calls the door tile blocked, so every tile outside reads as unreachable and the navigator will not click. A raw walk leaves the pathing to the server, which is looking at the door that has been opened — the same reason an op-click got the character in.
+        // Why: the collision pack still calls the door tile blocked, so every tile outside reads as unreachable and the navigator will not click. A raw walk leaves the pathing to the server, which is looking at the door that has been opened, the same reason an op-click got the character in.
         await DirectNavigator.walkTo(UP_TILE.WITCH_DOOR_OUT, 0, 15_000);
     }
     if (!insideWitchHouse(Game.tile())) {
@@ -185,7 +185,7 @@ export async function distractWitch(log: (m: string) => void): Promise<boolean> 
             return true;
         }
         const said = GameMessages.since(mark).map(m => m.text).filter(t => !t.startsWith('get ')).slice(-2).join(' ');
-        // Why: the drop sets a bit that is never cleared, so a knock afterwards says she is already busy with the cat. That is the distraction holding, not a failure — and the cat respawns, so a leg that reads it as failure catches a second one and knocks all day.
+        // Why: the drop sets a bit that is never cleared, so a knock afterwards says she is already busy with the cat. That is the distraction holding, not a failure, and the cat respawns, so a leg that reads it as failure catches a second one and knocks all day.
         if (said.includes('talking to her cat')) {
             return true;
         }
@@ -203,9 +203,9 @@ export async function lootWitchChest(log: (m: string) => void): Promise<boolean>
     if (heldId(UP_ITEM.DOLL.id) > 0) {
         return true;
     }
-    // Why: the chest is two locs and the first Open turns it into the other one for twenty ticks, so a round that retries inside that window has to ask for the form standing there — see `chest.ts`.
+    // Why: the chest is two locs and the first Open turns it into the other one for twenty ticks, so a round that retries inside that window has to ask for the form standing there, see `chest.ts`.
     const form = chestForm((id, op) => locById(id, op, 10) !== null);
-    // Why: `~mesbox` ends in `.if_openchat`, so the box the chest raises is a CHAT modal — `Modals.isOpen()` reads `main` alone and never sees it. With that as the oracle the reach primitive had nothing to succeed on and sat out its window eight times over, twenty seconds each, while a box waited for a click nothing was sending. Both modals count now.
+    // Why: `~mesbox` ends in `.if_openchat`, so the box the chest raises is a CHAT modal, `Modals.isOpen()` reads `main` alone and never sees it. With that as the oracle the reach primitive had nothing to succeed on and sat out its window eight times over, twenty seconds each, while a box waited for a click nothing was sending. Both modals count now.
     const prompted = (): boolean =>
         heldId(UP_ITEM.DOLL.id) > 0 || ChatDialog.isOpen() || ChatDialog.canContinue() || Modals.isOpen();
     // Why: the chest is two tiles from the door and on the other side of Kardia's wall, so a walk that counts distance reports arrival from the street and the click that follows is refused by a server that cannot path to it. `Reach.locOp` is the one that opens what stands in the way.
@@ -224,7 +224,7 @@ export async function lootWitchChest(log: (m: string) => void): Promise<boolean>
         return false;
     }
     // Why: `@search_cavewitch_chest` is `~mesbox` → `p_pausebutton` → three ticks → `~mesbox` → `inv_add`, so the doll lands only once BOTH boxes have been clicked through, and the gap between them has nothing open. Pressing continue is the only thing that advances a `p_pausebutton`: `Player.closeModal` throws a script suspended on one away rather than resuming it.
-    // Why: and at any stage past `^upass_spoken_nilhoof` the second box says the doll is gone and `~chatplayer` frames follow it — no doll is coming, so the chain is driven to its end and then reported, rather than waited out.
+    // Why: and at any stage past `^upass_spoken_nilhoof` the second box says the doll is gone and `~chatplayer` frames follow it, no doll is coming, so the chain is driven to its end and then reported, rather than waited out.
     let empty = false;
     const done = (): boolean => {
         if (ChatDialog.texts().some(text => DOLL_GONE.test(text))) {

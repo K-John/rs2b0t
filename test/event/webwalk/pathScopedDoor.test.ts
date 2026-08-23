@@ -24,7 +24,7 @@ describe('path-scoped nearby door pick (multiloc placement)', () => {
     };
 
     test('prefers door on a path tile over nearer street-front door', () => {
-        // Lateral house door — d=1 from path, must NOT count as on-route.
+        // Lateral house door, d=1 from path, must NOT count as on-route.
         const streetFront = { x: 100, z: 99, level: 0 };
         // Exact path tile (edge endpoint / door placement).
         const onPath = { x: 102, z: 100, level: 0 };
@@ -33,7 +33,7 @@ describe('path-scoped nearby door pick (multiloc placement)', () => {
     });
 
     test('with path: never opens street-front / off-path doors', () => {
-        // Only house doors adjacent to the street path — repath, do not tour.
+        // Only house doors adjacent to the street path, repath, do not tour.
         const offPath = { x: 100, z: 99, level: 0 };
         const offPath2 = { x: 101, z: 99, level: 0 };
         expect(pickNearbyDoorTile([offPath, offPath2], me, path)).toBeNull();

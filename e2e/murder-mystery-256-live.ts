@@ -1,5 +1,5 @@
 /** Live Murder Mystery harness (#256): --stage N --until N --minutes N, base :8890.
- *  Why: `--stage` writes `%murderquest`, `%murdersus`, `%murder_evidence` and `%murder_poisonproof_progress` together — the guilty sibling is rolled by the guard's own dialogue, so a seeded stage has to name one or every later check reads a quest with no murderer.
+ *  Why: `--stage` writes `%murderquest`, `%murdersus`, `%murder_evidence` and `%murder_poisonproof_progress` together, the guilty sibling is rolled by the guard's own dialogue, so a seeded stage has to name one or every later check reads a quest with no murderer.
  *  Why: the bank holds coins and food alone; the empty pot comes from Arhein in Catherby and every other item from the mansion, and seeding one hides whether the bot can find it. */
 
 //   HEADED=1 bun e2e/murder-mystery-256-live.ts --stage 0 --until 5 --minutes 90 --tick 200

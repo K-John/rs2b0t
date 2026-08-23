@@ -1,5 +1,5 @@
 // Default AIOQuester "need quest money" route: pickpocket Men, heal with Kebabs.
-// Why: the anchors match the Waterfall and Goblin Diplomacy funding legs — the Al Kharid Man stands next to the kebab shop, and the Varrock Man is used only to afford the 10 gp toll.
+// Why: the anchors match the Waterfall and Goblin Diplomacy funding legs, the Al Kharid Man stands next to the kebab shop, and the Varrock Man is used only to afford the 10 gp toll.
 import { Execution } from '../../../execution/Execution.js';
 import { EventSignal } from '../../../execution/EventSignal.js';
 import { Game } from '../../../game/Game.js';
@@ -28,7 +28,7 @@ const FUNDING_REGEN_WAIT_MS = 60_000;
 const KEBAB = 'Kebab';
 
 export function inAlKharidFundingArea(tile: ReturnType<typeof Game.tile>): boolean {
-    // Town proper around the Man + kebab shop — not Shantay Pass (z≈3116–3124).
+    // Town proper around the Man + kebab shop, not Shantay Pass (z≈3116–3124).
     return tile !== null
         && tile.level === 0
         && tile.x >= 3260
@@ -211,7 +211,7 @@ async function farmFundingCoins(
     return true;
 }
 
-/** East of the Al Kharid toll gate (incl. Shantay north) — no 10gp fee to reach the Man. */
+/** East of the Al Kharid toll gate (incl. Shantay north), no 10gp fee to reach the Man. */
 export function eastOfAlKharidGate(tile: ReturnType<typeof Game.tile>): boolean {
     return tile !== null
         && tile.level === 0

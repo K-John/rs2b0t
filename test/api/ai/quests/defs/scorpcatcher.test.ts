@@ -104,7 +104,7 @@ describe('Scorpion Catcher decide', () => {
         expect(step.kind === 'custom' && step.name).toContain('monastery');
     });
 
-    // Why: a run that catches Taverley's scorpion first is legal — the cage's switch table takes them in any order — so the leg picker has to read the cage rather than a counter.
+    // Why: a run that catches Taverley's scorpion first is legal, the cage's switch table takes them in any order, so the leg picker has to read the cage rather than a counter.
     test('a cage holding Taverley and the monastery goes back for the outpost', () => {
         const step = decide(snap({ invIds: [CAGE_ID.AC], stage: SC_STAGE.SECOND_HINT }));
         expect(step.kind === 'custom' && step.name).toContain('Barbarian Outpost');

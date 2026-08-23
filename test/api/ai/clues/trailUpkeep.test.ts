@@ -11,7 +11,7 @@ import { stubProps } from '../../../lib/stubSingletons.js';
 
 const LOBSTER = 'Lobster';
 const MAX_HP = 70;
-/** Any clue scroll — the bank check only runs while one is held. */
+/** Any clue scroll, the bank check only runs while one is held. */
 const HELD_CLUE = Number(Object.keys(CLUE_DB)[0]);
 
 let hp: number;
@@ -130,7 +130,7 @@ describe('trail upkeep', () => {
     });
 
     // A trail banked once and never again, so a long one ran dry and then walked
-    // the Wilderness with nothing to eat. Upkeep was fine — the pack was empty.
+    // the Wilderness with nothing to eat. Upkeep was fine. The pack was empty.
     test('an empty pack sends the bot back to the bank, once per dry spell', async () => {
         const banks: number[] = [];
         const solve = stubProps(ClueExecutor, { solveHeldClue: async (): Promise<'abandon'> => 'abandon' });

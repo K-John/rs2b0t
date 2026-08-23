@@ -3,7 +3,7 @@ import { Execution } from '../../api/execution/Execution.js';
 
 /** specwep.rs2: %sa_energy, 0–1000, +100 every 50 ticks. */
 const SA_ENERGY_VARP = 300;
-/** %sa_attack — set by the spec bar, cleared by set_sa_vars once the hit lands. */
+/** %sa_attack, set by the spec bar, cleared by set_sa_vars once the hit lands. */
 const SA_ARMED_VARP = 301;
 export const SA_MAX_ENERGY = 1000;
 
@@ -30,7 +30,7 @@ const SPECBAR_BY_ROOT = new Map<number, number>([
     [8460, 8481] // combat_polearm
 ]);
 
-// Why: Dragon battleaxe and Excalibur declare specwep with no cost — their specials are self-buffs with no scripted attack here, so they are deliberately absent.
+// Why: Dragon battleaxe and Excalibur declare specwep with no cost, their specials are self-buffs with no scripted attack here, so they are deliberately absent.
 
 /** `param=sa_energy` per weapon carrying `param=specwep`. */
 const SPEC_COST = new Map<string, number>([
@@ -48,7 +48,7 @@ const SPEC_COST = new Map<string, number>([
     ['magic longbow', 350]
 ]);
 
-// Why: arming is one-shot, not a mode — the spec bar flips `%sa_attack`, the next attack spends it, and `set_sa_vars` clears the flag again, so it is re-armed per special.
+// Why: arming is one-shot, not a mode, the spec bar flips `%sa_attack`, the next attack spends it, and `set_sa_vars` clears the flag again, so it is re-armed per special.
 // Why: `~sa_enabled` also requires a members world (`map_members`), which is a world-level flag rather than a per-area one.
 
 /** Weapon special attacks. */

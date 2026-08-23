@@ -1,4 +1,4 @@
-/** End-to-end hard-trail run against the local server — one trail of up to six legs, each handing back a random new hard clue: --id, --mins, --trails, --speed, --no-teleports.
+/** End-to-end hard-trail run against the local server, one trail of up to six legs, each handing back a random new hard clue: --id, --mins, --trails, --speed, --no-teleports.
  *  HEADED=1 (optionally SLOWMO=ms) opens a visible window to watch a trail run. */
 
 //   bun e2e/clues/hardclue-e2e.ts                     # start from a random hard clue
@@ -139,7 +139,7 @@ async function boot(browser: Browser): Promise<Page> {
                 await new Promise(r => setTimeout(r, 300));
             }
         }
-        // Anything still in the pack refused to equip — a level or quest gate.
+        // Anything still in the pack refused to equip, a level or quest gate.
         for (const it of abi.Inventory.items()) {
             if (/^rune /i.test(it.name ?? '')) {
                 on.push(it.name!);
@@ -179,7 +179,7 @@ interface TrailResult {
     startId: number;
     startObj: string;
     ok: boolean;
-    /** Died on a clue the nav pack cannot reach — a known gap, not a regression. */
+    /** Died on a clue the nav pack cannot reach, a known gap, not a regression. */
     blocked?: string;
     legs: number;
     guardians: number;
@@ -193,8 +193,8 @@ interface TrailResult {
  *  Why: a third of hard clues sit behind one, and dying on those is not a solver regression. */
 function blockedBy(seedId: number, lines: string[]): string | null {
     const name = (id: number): string => CLUE_DB[id]?.obj ?? `clue_${id}`;
-    // The seed itself may never reach a leg line — an unreachable coord
-    // grinds the walker — so check it directly before scanning the log.
+    // The seed itself may never reach a leg line, an unreachable coord
+    // grinds the walker, so check it directly before scanning the log.
     if (PACK_UNREACHABLE[seedId]) {
         return `${name(seedId)}: ${PACK_UNREACHABLE[seedId]}`;
     }

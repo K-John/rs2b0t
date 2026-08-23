@@ -1,5 +1,5 @@
 // Prince Ali Rescue, one quest at a time: --stage 30 --give beer:3 --keystatus 1.
-// Why: the bank is seeded with coins alone — seeding a stage with the tools that stage needs is what let every Watch Tower stage-10 test pass while the quest could not mine.
+// Why: the bank is seeded with coins alone, seeding a stage with the tools that stage needs is what let every Watch Tower stage-10 test pass while the quest could not mine.
 
 //   bun e2e/princeali-solo-test.ts                          uncheated 0 -> 110
 //   bun e2e/princeali-solo-test.ts --stage 30 --give beer:3  from a jumped stage
@@ -44,7 +44,7 @@ interface SeedResult {
     banked: number;
 }
 
-// Why: the page loads the built bundle, so a source edit is invisible until it is rebuilt and copied into the engine's public/bot/ — skipping this silently tests the old code.
+// Why: the page loads the built bundle, so a source edit is invisible until it is rebuilt and copied into the engine's public/bot/, skipping this silently tests the old code.
 if (!argv.includes('--no-deploy')) {
     deployBundle();
 }

@@ -11,7 +11,7 @@ export const THIEVER_BANKING_OPTIONS = ['None', 'Auto'];
 
 /**
  * Combat ticks a failed pickpocket stun locks movement for (Ardy / Thiever).
- * Engine stun is 9 ticks — wait the full lock so the next click can path.
+ * Engine stun is 9 ticks, wait the full lock so the next click can path.
  */
 export const STUN_COMBAT_TICKS = 9;
 
@@ -109,4 +109,9 @@ export function shouldRestockFood(enabled: boolean, foodCount: number, restockAt
 
 export function safeToSteal(hpFraction: number, eatAt: number, foodCount: number): boolean {
     return hpFraction >= eatAt || foodCount > 0;
+}
+
+/** Why: suicide thieving keeps pickpocketing instead of idling for regen when the pack is empty. */
+export function canStealNow(foodCount: number, hp: number, minEatHp: number, suicide: boolean): boolean {
+    return suicide || foodCount > 0 || hp > minEatHp;
 }

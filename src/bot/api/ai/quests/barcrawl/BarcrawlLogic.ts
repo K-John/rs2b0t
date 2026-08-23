@@ -4,7 +4,7 @@ import Tile from '../../../../geometry/Tile.js';
 // Why: Alfred Grimhand's Barcrawl is a miniquest in its own right and the only way past the Barbarian Outpost gate, so its data and card parsing live here rather than inside the one quest that needs it.
 // Why: {@link RunBarcrawl} drives it, and scripts and quest modules both call that.
 // Why: `%barcrawl` is `scope=perm` with no transmit, so which bars are signed is not on the wire.
-// Why: the card's Read op is the oracle — it renders one green/red line per bar into a scroll modal, the same shape as a quest journal.
+// Why: the card's Read op is the oracle, it renders one green/red line per bar into a scroll modal, the same shape as a quest journal.
 
 export const COINS_ID = 995;
 export const BARCRAWL_CARD = 'Barcrawl card';

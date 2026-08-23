@@ -11,10 +11,45 @@ export const CASES: readonly Case[] = [
         documentedIn: 'docs/reference/quest-harness-recipes-4.md'
     },
     {
+        id: 'aio-full-queue-live',
+        harness: 'aio-full-queue-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        manual: true,
+        budgetMin: 480,
+        note: 'every implemented quest on a level-70 account seeded with the mustHave items, a coin float, food and a rune kit'
+    },
+    {
+        id: 'aio-fresh-pack-live',
+        harness: 'aio-fresh-pack-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'vetted',
+        args: ['--quest', 'doric', '--junk', '28', '--minutes', '8'],
+        budgetMin: 10,
+        provenAt: '0f80d90b',
+        note: 'seeds 28 cow hides into the pack and proves the quest banks them before it provisions'
+    },
+    {
         id: 'aio-skip-quest-432-live',
         harness: 'aio-skip-quest-432-live.ts',
         covers: { scripts: ['AIOQuester'] },
         status: 'unvetted'
+    },
+    {
+        id: 'ardyfighter-restock-loop-live',
+        harness: 'ardyfighter-restock-loop-live.ts',
+        covers: { scripts: ['ArdyFighter'] },
+        status: 'vetted',
+        budgetMin: 5,
+        provenAt: 'b0ae0134ec44db595faa9d58947fb30e14f6e56c'
+    },
+    {
+        id: 'resume-loop-concurrency-live',
+        harness: 'resume-loop-concurrency-live.ts',
+        covers: { scripts: ['WalkToBot'], subsystems: ['infra', 'nav'] },
+        status: 'unvetted',
+        budgetMin: 10,
+        note: 'pauses and resumes in the middle of a walk and proves one loop body comes back, not two (#580 regression)'
     },
     {
         id: 'baxtorian-rope-369-live',
@@ -330,6 +365,25 @@ export const CASES: readonly Case[] = [
         status: 'unvetted'
     },
     {
+        id: 'heros-quest-items-249-live',
+        harness: 'heros-quest-items-249-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 60,
+        documentedIn: 'docs/reference/quest-harness-recipes-19.md',
+        note: 'one account seeded at stage 13 — proves the eel chain, the feather and the hand-in'
+    },
+    {
+        id: 'heros-quest-pair-249-live',
+        harness: 'heros-quest-pair-249-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 90,
+        manual: true,
+        documentedIn: 'docs/reference/quest-harness-recipes-19.md',
+        note: 'two accounts, one per gang; --stage grip proves the armband dance in 9min at --tick 300'
+    },
+    {
         id: 'hillgiant-bank-428-live',
         harness: 'hillgiant-bank-428-live.ts',
         covers: { scripts: ['HillGiant'] },
@@ -388,6 +442,13 @@ export const CASES: readonly Case[] = [
         covers: { scripts: ['AIOQuester'] },
         status: 'unvetted',
         budgetMin: 60
+    },
+    {
+        id: 'legends-quest-253-live',
+        harness: 'legends-quest-253-live.ts',
+        covers: { scripts: ['AIOQuester'] },
+        status: 'unvetted',
+        budgetMin: 180
     },
     {
         id: 'loadout-panel-live',
@@ -602,6 +663,14 @@ export const CASES: readonly Case[] = [
         budgetMin: 110,
         documentedIn: 'docs/reference/quest-harness-recipes-16.md',
         note: 'every leg 0 to 10 proven live from its own seeded stage; end to end stalls in the second cavern'
+    },
+    {
+        id: 'regicide-257-live',
+        harness: 'regicide-257-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        budgetMin: 90,
+        note: 'seeds Underground Pass complete varp and bits; --stage is the %regicide_quest value, 0 to 15'
     },
     {
         id: 'plague-pipe-366-live',
@@ -822,5 +891,14 @@ export const CASES: readonly Case[] = [
         harness: 'waterfall-exit-test.ts',
         covers: { subsystems: ['nav', 'quests'] },
         status: 'unvetted'
+    },
+    {
+        id: 'witchs-house-226-live',
+        harness: 'witchs-house-226-live.ts',
+        covers: { scripts: ['AIOQuester'], subsystems: ['quests'] },
+        status: 'unvetted',
+        args: ['--stage', '5', '--until', '6', '--at', '2901,3466,0', '--stocked', '--minutes', '30'],
+        budgetMin: 35,
+        note: "Witch's House by stage; --stage jumps %ballquest, --stocked hands over the cheese and gloves so a staged run does not shop for them"
     }
 ];

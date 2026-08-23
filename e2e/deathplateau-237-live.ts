@@ -2,7 +2,7 @@
  *  Stages (death_equiproom): 0 start, 10 Eohric, 20 Harold duty, 40 ale, 50 gamble, 55 IOU, 60 combo, 70 unlocked door. */
 
 //   bun e2e/deathplateau-237-live.ts [base] [stage]
-import { launchBrowser, positionalArgs } from './lib/harness.js';
+import { deployIsolatedClient, launchBrowser, positionalArgs } from './lib/harness.js';
 import { cheatQuiet, getServerVarQuiet, mainlandAccount, relog, startScript } from './tutorial/harness.js';
 
 const args = positionalArgs(process.argv.slice(2), 'http://localhost:8890');
@@ -11,24 +11,28 @@ const seedStage = Number(process.env.DEATH_STAGE ?? args[1] ?? '55');
 const minutes = Number(process.env.MINUTES ?? args[2] ?? '15');
 const user = args[3] ?? `dp${Date.now().toString(36).slice(-6)}`;
 const target = Number(process.env.DEATH_TARGET ?? '80');
+// Why: `harold_money_lower` is bit 9 of `%death_bits`, and seeding a purse is the only way to make the stake ladder climb on demand, since the dice are otherwise a coin flip.
+const haroldGold = Number(process.env.DEATH_HAROLD_GOLD ?? '0');
 
+const client = deployIsolatedClient(`dp${Date.now().toString(36).slice(-6)}`);
 const browser = await launchBrowser();
 const page = await browser.newPage();
 try {
-    await mainlandAccount(page, base, user);
+    await mainlandAccount(page, base, user, client.page);
 
     const tele =
     seedStage >= 70 ? 'tele 0,45,55,16,8' // Denulth / camp
         : seedStage >= 55 ? 'tele 0,45,55,14,41' // stone balls ~2894,3561
-            : seedStage >= 40 ? 'tele 1,45,55,26,19' // Harold
+            : seedStage >= 40 ? 'tele 0,45,55,20,20' // Burthorpe ground, so the run climbs the inn and knocks on Harold's door
                 : seedStage >= 10 ? 'tele 1,45,55,19,45' // Eohric area
                     : 'tele 0,45,55,16,8';
 
-    // Seed bank-style supplies and the stage varp only — the IOU, combination, boots and secret map must come from doing the steps.
+    // Seed bank-style supplies and the stage varp only, the IOU, combination, boots and secret map must come from doing the steps.
     const seed = [
         'speed 300',
         '~clearinv inv',
         `setvar death_equiproom ${seedStage}`,
+        ...(haroldGold > 0 ? [`setvar death_bits ${haroldGold << 9}`] : []),
         'give coins 50000',
         ...(seedStage >= 70
             ? ['give iron_bar 2', 'give bread 10', 'give trout 10']
@@ -43,7 +47,8 @@ try {
         if (/^(setvar|give|tele|speed|~clear)/.test(c)) await cheatQuiet(page, c);
     }
 
-    console.log('seeded death_equiproom=', await getServerVarQuiet(page, 'death_equiproom'), 'target=', target);
+    console.log('seeded death_equiproom=', await getServerVarQuiet(page, 'death_equiproom'),
+        'target=', target, "harold's purse=", haroldGold);
 
     await page.evaluate(() => {
         sessionStorage.setItem('rs2b0t:set:AIOQuester:quests', 'death');
@@ -52,6 +57,7 @@ try {
 
     const deadline = Date.now() + minutes * 60_000;
     let last = '';
+    let printed = 0;
     while (Date.now() < deadline) {
         await page.waitForTimeout(2500);
         const snap = await page.evaluate(() => {
@@ -70,7 +76,8 @@ try {
                 pos: g.__rs2b0t.reader.worldTile(),
                 status: g.__rs2b0t.Quests.status('Death Plateau'),
                 runner: g.rs2b0t.runner.state,
-                log: (g.rs2b0t.runner.ctx?.log ?? []).slice(-6).map(l => l.msg),
+                written: (g.rs2b0t.runner.ctx?.log ?? []).length,
+                log: (g.rs2b0t.runner.ctx?.log ?? []).slice(-20).map(l => l.msg),
                 iou: has('Iou') || has('IOU') || hasId(3103),
                 combo: has('Combination') || hasId(3102),
                 map: has('Secret way map') || hasId(3104),
@@ -79,9 +86,12 @@ try {
             };
         });
         const equip = await getServerVarQuiet(page, 'death_equiproom');
-        const tip = snap.log[snap.log.length - 1] ?? '';
-        const line = `[eq=${equip} ${snap.status} L${snap.pos?.level} ${snap.pos?.x},${snap.pos?.z} iou=${snap.iou} combo=${snap.combo} map=${snap.map} boots=${snap.boots}] ${tip}`;
-        if (line !== last) {
+        // Why: the tip alone hides every line a failing step wrote before the engine restarted it, and the restart is what makes the same tip come back.
+        const fresh = snap.log.slice(Math.max(0, snap.log.length - (snap.written - printed)));
+        printed = snap.written;
+        const where = `[eq=${equip} ${snap.status} L${snap.pos?.level} ${snap.pos?.x},${snap.pos?.z} iou=${snap.iou} combo=${snap.combo} map=${snap.map} boots=${snap.boots}${snap.main === -1 ? '' : ` main=${snap.main}`}]`;
+        const line = `${where} ${fresh.join(' | ')}`;
+        if (fresh.length > 0 || line !== last) {
             console.log(line);
             last = line;
         }
@@ -98,4 +108,5 @@ try {
         'status=', await page.evaluate(() => (globalThis as never as { __rs2b0t: { Quests: { status(n: string): string } } }).__rs2b0t.Quests.status('Death Plateau')));
 } finally {
     await browser.close();
+    client.cleanup();
 }

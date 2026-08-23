@@ -100,7 +100,7 @@ export async function wearKhazard(log: (m: string) => void): Promise<boolean> {
     return ok;
 }
 
-/** Refusals are silent — `Equipment.equip` returns a bare false — so a re-picked item burns the run. */
+/** Refusals are silent, `Equipment.equip` returns a bare false, so a re-picked item burns the run. */
 export const unwearable = new Set<string>();
 
 // Why: a step per piece pays a task hand-off each, and the engine re-reads the journal between them.
@@ -250,7 +250,7 @@ export async function talkAndLand(
     return false;
 }
 
-// Why: each beast is caged until a script lets it out, and only the entry cutscenes do that — a bot that walked back in after a death has to ask a Servil instead.
+// Why: each beast is caged until a script lets it out, and only the entry cutscenes do that, a bot that walked back in after a death has to ask a Servil instead.
 // Why: swinging at an empty arena burns every tick of the fight's budget and then repeats, which is a wedge rather than a slow start.
 
 /** Make sure the beast is out, asking the Servils if it is not, then fight it. */
@@ -261,7 +261,7 @@ export async function fightWithRelease(
 ): Promise<boolean> {
     const loose = (): boolean => Npcs.query().where(n => n.id === fight.npcId).action('Attack').within(20).exists();
     // Why: a caged beast still renders and still offers Attack, so the first pass may only
-    // learn it is caged by swinging at it — either way the Servil is what lets it out.
+    // learn it is caged by swinging at it, either way the Servil is what lets it out.
     const result = loose() ? await runFight(fight, log) : 'unengaged';
     if (result !== 'unengaged') {
         return result === 'won';

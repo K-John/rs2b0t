@@ -147,7 +147,7 @@ const PICKPOCKET_MS = 8 * 60_000;
 // Why: a pocket hands over four pairs of gloves and six brushes on the way to two ropes, and a leg that only tidies at four free slots hands the cave legs a full pack.
 const SPOIL_FREE = 10;
 
-// Why: the specimen brush has no other source in the game — "we have a bit of a shortage of those at the moment" — and the green student's rock sample is only ever a pocket.
+// Why: the specimen brush has no other source in the game, "we have a bit of a shortage of those at the moment", and the green student's rock sample is only ever a pocket.
 
 /** Steal from digsite workmen until the goal lands, dropping the spade-and-bucket spoil as it comes. */
 export async function pickpocketWorkman(
@@ -182,7 +182,7 @@ export async function pickpocketWorkman(
             what: 'digsite workman',
             log
         });
-        // Why: the nearest workman is often inside a fenced dig site, and the server refuses a pocket it cannot path to — walking at his own tile lets the baked graph find the gate.
+        // Why: the nearest workman is often inside a fenced dig site, and the server refuses a pocket it cannot path to, walking at his own tile lets the baked graph find the gate.
         if (status === 'unreachable' && target) {
             await walkTo(target.tile() as Tile, 2, log);
         }

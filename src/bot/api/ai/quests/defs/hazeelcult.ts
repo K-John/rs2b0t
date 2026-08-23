@@ -80,7 +80,7 @@ interface Valve {
     tile: Tile;
 }
 
-// Why: `_hazeelcult_valve` sets its bit on Turn-left for `sewervalve3` alone and on Turn-right for the other four, and `count_correct_valves` counts a prefix — so all five have to be set before the raft moves at all.
+// Why: `_hazeelcult_valve` sets its bit on Turn-left for `sewervalve3` alone and on Turn-right for the other four, and `count_correct_valves` counts a prefix, so all five have to be set before the raft moves at all.
 const VALVES: readonly Valve[] = [
     { id: 2844, op: 'Turn-right', tile: new Tile(2562, 3247, 0) },
     { id: 2845, op: 'Turn-right', tile: new Tile(2572, 3263, 0) },
@@ -89,7 +89,7 @@ const VALVES: readonly Valve[] = [
     { id: 2848, op: 'Turn-right', tile: new Tile(2609, 3243, 0) }
 ];
 
-// Why: `%hazeelcult_valves` is `scope=perm` with no transmit, so where the raft stops is the only oracle — this holds what the last ride proved rather than what the varp says.
+// Why: `%hazeelcult_valves` is `scope=perm` with no transmit, so where the raft stops is the only oracle. This holds what the last ride proved rather than what the varp says.
 let valvesTurned = false;
 
 function normalize(lines: readonly string[] | string): string {
@@ -191,7 +191,7 @@ async function boardRaft(within: number, log: (m: string) => void): Promise<bool
     return rode;
 }
 
-// Why: `Reach.locOp` walks and then gives up in the one call where the loc starts out of the scene, and the five valves stand twenty tiles apart — so a leg that bailed on that would walk from valve to valve and never turn one.
+// Why: `Reach.locOp` walks and then gives up in the one call where the loc starts out of the scene, and the five valves stand twenty tiles apart, so a leg that bailed on that would walk from valve to valve and never turn one.
 const REACH_TRIES = 3;
 
 async function turnValve(valve: Valve, log: (m: string) => void): Promise<boolean> {
@@ -254,7 +254,7 @@ async function toHideout(log: (m: string) => void): Promise<boolean> {
         }
         valvesTurned = true;
     }
-    // Why: the cave entrance is a teleport, and the walker's client-side pathfind burns five repaths on the tick its scene is still unbuilt — so the hop lands first and the last three tiles are walked after it settles.
+    // Why: the cave entrance is a teleport, and the walker's client-side pathfind burns five repaths on the tick its scene is still unbuilt, so the hop lands first and the last three tiles are walked after it settles.
     if (!(await walkWithHops(SEWER_LANDING, 5, HOPS, log))) {
         return false;
     }
@@ -381,10 +381,10 @@ function chat(stop: NpcStop): (log: (m: string) => void) => Promise<boolean> {
 const askCeril = chat(CERIL_START);
 const refuseClivet = chat(CLIVET);
 
-// Why: `hazeelcult_fake_complete` opens the reward scroll on a main modal part-way through, so the chat driver comes back with the rest of Ceril's lines unread — the stage is already 7 by then.
+// Why: `hazeelcult_fake_complete` opens the reward scroll on a main modal part-way through, so the chat driver comes back with the rest of Ceril's lines unread. The stage is already 7 by then.
 const returnArmour = chat(CERIL_RETURN);
 
-// Why: the first call climbs the stairs and finds nothing — every loc query reads empty for a tick after a level change — so the climb and the open are two of these, same as the valves.
+// Why: the first call climbs the stairs and finds nothing, every loc query reads empty for a tick after a level change, so the climb and the open are two of these, same as the valves.
 async function openCupboard(log: (m: string) => void): Promise<boolean> {
     for (let attempt = 0; attempt < REACH_TRIES; attempt++) {
         if (locById(CUPBOARD_OPEN, 6)) {
@@ -418,7 +418,7 @@ function questDone(): boolean {
 /** How many quiet ticks prove the accusation ran short rather than being mid-page. */
 const CHAT_QUIET_TICKS = 4;
 
-// Why: the short branch ends in silence, so a plain `driveUntil` on the journal spends its full budget every time Ceril or Jones is out of range — the chat going quiet is what says the run was the short one.
+// Why: the short branch ends in silence, so a plain `driveUntil` on the journal spends its full budget every time Ceril or Jones is out of range, the chat going quiet is what says the run was the short one.
 async function driveToComplete(log: (m: string) => void): Promise<boolean> {
     const deadline = performance.now() + 120_000;
     let quiet = 0;
@@ -440,7 +440,7 @@ async function driveToComplete(log: (m: string) => void): Promise<boolean> {
     return questDone();
 }
 
-// Why: `oploc1,hazeelcbopen` bails unless Ceril and Jones are both inside `npc_find(..., 6, 0)` of the player, and it says nothing at all when they are not — so the leg runs again.
+// Why: `oploc1,hazeelcbopen` bails unless Ceril and Jones are both inside `npc_find(..., 6, 0)` of the player, and it says nothing at all when they are not, so the leg runs again.
 async function searchCupboard(log: (m: string) => void): Promise<boolean> {
     if (!(await toSurface(log))) {
         return false;

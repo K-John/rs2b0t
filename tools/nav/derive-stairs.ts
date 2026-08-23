@@ -63,7 +63,7 @@ function reverseAction(action: string): string {
     return action;
 }
 
-// Underground is not another level — the engine p_telejumps you to the same level 6400 squares north (`movecoord(coord, 0, 0, 6400)`).
+// Underground is not another level, the engine p_telejumps you to the same level 6400 squares north (`movecoord(coord, 0, 0, 6400)`).
 // Why: a cellar hop therefore looks like a same-level walk to anything that only inspects `level`, which is why these were never auto-reversed and every cellar could be climbed out of but not into.
 const UNDERGROUND_SHIFT = 6400;
 
@@ -82,7 +82,7 @@ function edgeKind(e: TransportEdgeData): TransportEdgeData['kind'] {
     return e.from.level === e.to.level && underground(e.from) !== underground(e.to) ? 'dungeon' : e.kind;
 }
 
-// Walkable is not reachable: build-collision leaves sealed tiles behind — a lone square with no exits at all, or a one-tile-wide strip whose only exits run along itself.
+// Walkable is not reachable: build-collision leaves sealed tiles behind, a lone square with no exits at all, or a one-tile-wide strip whose only exits run along itself.
 // Why: snapping a ladder onto one lands the walker somewhere it can never leave, and the local component size tells them apart without a-map flood.
 const LOCAL_FLOOD_CAP = 192;
 const DX8 = [0, 1, 0, -1, 1, 1, -1, -1];

@@ -1,5 +1,5 @@
 /** Range-path smoke for every fishing camp with a curated cook surface: tele to the pier, seed raw fish, start Fisher, pass on reaching the range stand or gaining cook XP.
- *  Why: the case list mirrors CookingRanges FISH_CAMP_COOK_PLANS and must be kept in sync, and nothing here may import from src/bot — the client graphics init breaks under plain Bun. */
+ *  Why: the case list mirrors CookingRanges FISH_CAMP_COOK_PLANS and must be kept in sync, and nothing here may import from src/bot, the client graphics init breaks under plain Bun. */
 
 // Why: it catches door/approach regressions (Seers Large door) without a full bank-home loop.
 
@@ -399,7 +399,7 @@ try {
                     `| ${s.lastLog.slice(0, 72)}`
             );
 
-            // Success requires cooking XP — standing on the stand alone is a false pass
+            // Success requires cooking XP, standing on the stand alone is a false pass
             // (Draynor fireplace / Seers bank were at tile with 0 cook XP).
             if (cookXp > 0) {
                 ok = true;

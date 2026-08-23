@@ -1,5 +1,5 @@
 /** Live Family Crest harness (#210): --stage N --until N --minutes N --teleports. Members-only, so the :8890 world, not the :8888 sim.
- *  Why: `--stage` sets `%crestquest` and relogs — update_questlist only recolours the journal entry at login, and the module reads the tab rather than the varp. */
+ *  Why: `--stage` sets `%crestquest` and relogs, update_questlist only recolours the journal entry at login, and the module reads the tab rather than the varp. */
 
 //   HEADED=1 bun e2e/family-crest-210-live.ts --stage 7 --minutes 25
 //   HEADED=1 bun e2e/family-crest-210-live.ts --stage 0 --minutes 90     # full run
@@ -82,7 +82,7 @@ const BANK_SEED: BankSeedItem[] = [
 ];
 
 /** Only added with `--teleports`.
- *  Why: law runes are Magic Guild / Mage Arena stock and nothing sells a ring of dueling, so both are bank items — which is all the navigator needs, since it rubs jewellery from the inventory and never withdraws it. */
+ *  Why: law runes are Magic Guild / Mage Arena stock and nothing sells a ring of dueling, so both are bank items, which is all the navigator needs, since it rubs jewellery from the inventory and never withdraws it. */
 const TELEPORT_SEED: BankSeedItem[] = [
     { debugName: 'lawrune', displayName: 'Law rune', qty: 200 },
     { debugName: 'ring_of_dueling_8', displayName: 'Ring of dueling(8)', qty: 2 }

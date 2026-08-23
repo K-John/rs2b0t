@@ -10,7 +10,7 @@ import { OBS_ID, OBS_ITEM, OBS_LOC_NAME, OBS_TILE, PLANKS_NEEDED } from './areas
 /** A bronze pickaxe is 1gp; this covers it with room to spare. */
 const SHOP_GP = 200;
 
-/** Port Khazard's counter — the only shop within fifty tiles of the copper and tin. */
+/** Port Khazard's counter, the only shop within fifty tiles of the copper and tin. */
 export const KHAZARD_SHOP = { npc: 'Shop keeper', anchor: new Tile(2641, 3171, 0) };
 
 export function heldId(snap: QuestSnapshot, id: number): number {
@@ -58,7 +58,7 @@ export function planks(snap: QuestSnapshot): QuestStep {
 
 // Why: no shop this side of the Karamja ferry stocks a bronze bar, and the Fight Arena seam carries copper and tin in one radius.
 
-/** The pickaxe, then one copper and one tin — everything the bar needs before the furnace. */
+/** The pickaxe, then one copper and one tin, everything the bar needs before the furnace. */
 export function ore(snap: QuestSnapshot): QuestStep {
     if (![...snap.inv.keys()].some(name => name.includes('pickaxe'))) {
         return fromBank(snap, OBS_ID.BRONZE_PICKAXE, OBS_ITEM.BRONZE_PICKAXE, 1)
@@ -75,7 +75,7 @@ export function oreShort(snap: QuestSnapshot): boolean {
 }
 
 // Why: both the Range and the Furnace carry `forceapproach=east`, which names the only side that works and rotates with the placement.
-// Why: standing anywhere else has the use-on silently dropped — no refusal, no message, a loc that never answers, which is what a radius-2 walk turns into a coin flip.
+// Why: standing anywhere else has the use-on silently dropped, no refusal, no message, a loc that never answers, which is what a radius-2 walk turns into a coin flip.
 
 /** Use a held item on a loc from an exact tile. */
 async function useOnLocFrom(
@@ -105,7 +105,7 @@ async function useOnLocFrom(
     return Execution.delayUntil(done, 12_000);
 }
 
-// Why: an ore used on a furnace runs `smelt_ore_single`, which reads the bar off the ore's own `smeltsto` param — one bar, no quantity panel, and copper and tin each name bronze.
+// Why: an ore used on a furnace runs `smelt_ore_single`, which reads the bar off the ore's own `smeltsto` param, one bar, no quantity panel, and copper and tin each name bronze.
 const smeltBronzeRun = (log: (m: string) => void): Promise<boolean> => useOnLocFrom(
     OBS_TILE.FURNACE,
     OBS_ID.COPPER_ORE,

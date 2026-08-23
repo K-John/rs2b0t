@@ -1,4 +1,4 @@
-// Why: curated 2004-era travel edges derived from Server content scripts — spirit trees, gnome glider, Entrana ferry, Shilo↔Brimhaven cart.
+// Why: curated 2004-era travel edges derived from Server content scripts, spirit trees, gnome glider, Entrana ferry, Shilo↔Brimhaven cart.
 // Why: loaded alongside transports.json (see NavWorker); stands may be refined with live probes while destinations come from content constants and p_teleport targets.
 // Why: the content root on the operator machine is experiments/Server/content/scripts/.
 
@@ -17,7 +17,7 @@ export const SPIRIT_TREE = {
 } as const;
 
 export const GLIDER_PAD = {
-    /** Grand Tree top — hub. */
+    /** Grand Tree top, hub. */
     taQuirPriw: parseLcCoord('3_38_54_33_45'),
     gandius: parseLcCoord('0_46_46_27_25'),
     sindarpos: parseLcCoord('0_44_54_34_41'),
@@ -34,7 +34,7 @@ export const CART_BRIMHAVEN = parseLcCoord('0_43_50_24_14');
 export const CART_SHILO = parseLcCoord('0_44_46_18_7');
 
 /**
- * Essence-mine surface return stands (runecraft.constant) — used as NPC stands
+ * Essence-mine surface return stands (runecraft.constant), used as NPC stands
  * for entry edges. Mine landing is random; planner uses a representative pad.
  */
 export const ESSENCE_RETURN = {
@@ -63,7 +63,7 @@ export const TRAVEL_STANDS = {
     entranaMonk: { x: 2834, z: 3335, level: 0 } as NavPoint,
     shiloCart: { x: 2834, z: 2954, level: 0 } as NavPoint,
     brimhavenCart: { x: 2779, z: 3212, level: 0 } as NavPoint,
-    /** Lever locs — stand next to the object. */
+    /** Lever locs, stand next to the object. */
     ardyLever: { x: 2561, z: 3311, level: 0 } as NavPoint,
     wildLever: { x: 3153, z: 3923, level: 0 } as NavPoint
 } as const;
@@ -115,7 +115,7 @@ export function spiritTreeEdges(): TransportEdgeData[] {
     link(SPIRIT_TREE.village, SPIRIT_TREE.khazard, 'spirit_village_to_khazard', villageReq);
     link(SPIRIT_TREE.village, SPIRIT_TREE.varrock, 'spirit_village_to_varrock', villageReq);
     link(SPIRIT_TREE.village, SPIRIT_TREE.stronghold, 'spirit_village_to_stronghold', villageReq);
-    // Young / satellite trees only offer home (village) — model as return edges from known dests
+    // Young / satellite trees only offer home (village), model as return edges from known dests
     // that talk back toward village (varrock + khazard young trees).
     link(SPIRIT_TREE.varrock, SPIRIT_TREE.village, 'spirit_varrock_to_village', villageReq);
     link(SPIRIT_TREE.khazard, SPIRIT_TREE.village, 'spirit_khazard_to_village', villageReq);
@@ -123,7 +123,7 @@ export function spiritTreeEdges(): TransportEdgeData[] {
 }
 
 // Why: gnome_glider.rs2 forces non-hub hops via Ta Quir Priw, so only hub↔pad edges are encoded.
-// Why: execution is a Talk-to on the Gnome pilot plus a glidermap click — there is no loc named glider.
+// Why: execution is a Talk-to on the Gnome pilot plus a glidermap click. There is no loc named glider.
 
 /** Gnome glider pad edges. */
 export function gliderEdges(): TransportEdgeData[] {
@@ -213,6 +213,31 @@ export function shiloCartEdges(): TransportEdgeData[] {
             'cart_brimhaven_to_shilo',
             shiloDone
         )
+    ];
+}
+
+// Why: the cart is not the only way in and out of Shilo. A wooden gate, a metal gate and a broken cart lead east onto open Karamja, and the collision pack sees none of it, the barricade and the timber defence wall the strip in, so the pathfinder routed every approach through Hajedy and never took the door in front of it.
+// Why: `[oploc2,shilo_brokencart]` telejumps from the village side to `movecoord(loc_coord, 3, 0, 1)`, and Mosol Rei's "Yes, I'll give it a go!" telejumps to `0_44_46_50_8`, both fixed landings, so both are edges rather than walks.
+// Why: the two gates in between are already door edges out of `doors.json`; only the ends of the corridor were missing.
+
+// Why: the cart is a three-by-three loc and its own tiles are blocked, so the stand is the walkable tile beside it on the village side, which is also the side `coordx(coord) <= coordx(loc_coord)` wants for the jump out.
+/** Beside the broken cart, village side; the Search telejumps out to open ground. */
+const SHILO_CART = { x: 2876, z: 2953, level: 0 } as NavPoint;
+const SHILO_CART_OUT = { x: 2880, z: 2952, level: 0 } as NavPoint;
+/** Where Mosol Rei's "shall I show you the way?" puts you down. */
+const SHILO_MOSOL = { x: 2883, z: 2951, level: 0 } as NavPoint;
+const SHILO_MOSOL_IN = { x: 2866, z: 2952, level: 0 } as NavPoint;
+
+/** Shilo Village's own gates: Mosol Rei in, the broken cart out. */
+export function shiloGateEdges(): TransportEdgeData[] {
+    const shiloDone: TransportRequires = {
+        members: true,
+        quests: REQ.shiloComplete.quests
+    };
+    return [
+        // Why: the kind is what `kindOf` reads to pick an executor, and anything it does not know falls through to `door`, which sent the walker looking for a leaf to open on a man standing in front of it. `shortcut` is a loc with an op, `ship` is a Talk-to that puts you somewhere else, the same pair Vigroy and Hajedy use.
+        edge(SHILO_CART, SHILO_CART_OUT, 'Broken cart', 'Search', 'shortcut', 'shilo_cart_climb_out', shiloDone),
+        edge(SHILO_MOSOL, SHILO_MOSOL_IN, 'Mosol Rei', 'Talk-to', 'ship', 'shilo_mosol_leads_in', shiloDone)
     ];
 }
 
@@ -325,7 +350,7 @@ export function mageArenaBarrierEdges(): TransportEdgeData[] {
 }
 
 // Why: `[oploc1,tribaltotemdoor]` opens only for `coordz(coord) > coordz(loc_coord)`, so the mansion's one ground-floor door lets a player out and never in.
-// Why: derive-doors.ts drops the instance rather than baking it both ways, and this restores the half that works — without it every route out of the mansion reads unreachable.
+// Why: derive-doors.ts drops the instance rather than baking it both ways, and this restores the half that works, without it every route out of the mansion reads unreachable.
 
 /** Handelmort Mansion's inner door (loc 0_41_51_11_57), northward side only. */
 export function handelmortDoorEdges(): TransportEdgeData[] {
@@ -346,7 +371,7 @@ export function handelmortDoorEdges(): TransportEdgeData[] {
 
 /**
  * OD-relevant agility shortcuts from skill_agility/shortcuts.rs2 (not full courses).
- * Coal logs + island ropes already live in transports.json — these fill remaining OD gaps.
+ * Coal logs + island ropes already live in transports.json, these fill remaining OD gaps.
  */
 export function agilityShortcutEdges(): TransportEdgeData[] {
     const agi = (level: number): TransportRequires => ({
@@ -399,7 +424,7 @@ export function agilityShortcutEdges(): TransportEdgeData[] {
 }
 
 // Why: in areas/area_gnome/scripts/elkoy.rs2 the outside `elkoy` goes to ^elkoy_maze_coord and the village `elkoy_village` goes to ^elkoy_entrance_coord.
-// Why: Tree Gnome Village must be started for the escort dialogue — not_started offers the intro only.
+// Why: Tree Gnome Village must be started for the escort dialogue, not_started offers the intro only.
 
 /** Elkoy maze escort edges. */
 export function elkoyMazeEdges(): TransportEdgeData[] {
@@ -596,6 +621,7 @@ export function curatedTravelEdges(): TransportEdgeData[] {
         ...gliderEdges(),
         ...entranaFerryEdges(),
         ...shiloCartEdges(),
+        ...shiloGateEdges(),
         ...essenceEntryEdges(),
         // Session multiloc: portal × return, gated by WorldState.essenceExitReturn.
         // Replaces the four hard-coded Sedridor-only rows formerly in transports.json.

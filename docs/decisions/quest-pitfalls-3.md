@@ -4,7 +4,7 @@
 
 Pirate's Treasure added five, and the first three are not quest facts:
 
-- **An NPC that blocks an action cannot always be waited out — check the arithmetic
+- **An NPC that blocks an action cannot always be waited out, check the arithmetic
   before writing a wait.** `dig.rs2` abandons the dig whenever
   `npc_find(coord, falador_gardener, 10, 0)` hits. The gardener spawns three tiles from
   the dig site with `wanderrange=5` and `maxrange=7`, so his distance from it never
@@ -13,7 +13,7 @@ Pirate's Treasure added five, and the first three are not quest facts:
   `maxrange` before assuming patience is a strategy.
 - **Clearing a blocker moves you off the tile the action needs.** The attack that
   removes the gardener walks the character to him, and `spade.rs2` fires only within
-  one tile of the X, so the dig that follows answers "Nothing interesting happens." —
+  one tile of the X, so the dig that follows answers "Nothing interesting happens." , 
   and the retry kills the respawn and walks away again, a loop that never converges.
   It only looked fine on the first run because the gardener happened to be out of
   range. Anything that fights before acting has to walk back before it acts.
@@ -31,11 +31,11 @@ Pirate's Treasure added five, and the first three are not quest facts:
   at Wydin's store" both when the rum is waiting in the back room and when it is still
   in the plantation crate mid-re-smuggle. Nothing in the text separates them. The module
   searches the back room and treats the rum arriving as the proof, falling through to
-  the island when it does not — and each side's leg ends by crossing back, so the next
+  the island when it does not, and each side's leg ends by crossing back, so the next
   `decide()` is never stranded on the wrong side of the water.
 - **The same ambiguity turns up twice, and the same oracle settles it.** With the store
   job held, `hunt_journal.rs2` prints "I have the Karamja Rum. I should take it to
-  Redbeard Frank." for *any* bottle in the pack — including one bought minutes earlier on Karamja
+  Redbeard Frank." for *any* bottle in the pack, including one bought minutes earlier on Karamja
   that has never been smuggled. Following it walks the rum onto the boat, where the
   customs officer confiscates it, and the journal then reads lost-rum and buys another
   forever. Standing on the island is what separates the two, the same way it does for
@@ -54,7 +54,7 @@ Dwarf Cannon added seven, and the first three are engine behaviour rather than q
 - **`GameMessages` records `MESSAGE_GAME` and nothing else, so a dialogue line is not an
   oracle.** `BotHost` feeds the ring from that one packet, which is what `mes` emits;
   `~chatplayer` and `~chatnpc` build a chat interface the ring never sees. The line that
-  ends the cannon repair — "The Cannon seems to be in working order" — is a `~chatplayer`,
+  ends the cannon repair, "The Cannon seems to be in working order", is a `~chatplayer`,
   so watching for it would have run the loop through every attempt and then declared
   success on a timeout. Read the `.rs2` and see which call prints a line before making it
   a test.
@@ -65,8 +65,8 @@ Dwarf Cannon added seven, and the first three are engine behaviour rather than q
   else reaches either room. The question is not whether a door can refuse, but whether the
   refusal outlasts the quest.
 - **A ladder whose transport is disabled has no descent edge either.** `transports.json`
-  carries the watchtower's ground ladder with `disabled: true` — "no statically
-  identifiable movement destination" — and carries nothing at all for the two floors above
+  carries the watchtower's ground ladder with `disabled: true`, "no statically
+  identifiable movement destination", and carries nothing at all for the two floors above
   or for either `laddertop` back down. A step that climbs up and stops therefore strands
   the walker on a floor it cannot route off, holding the quest item it went up for.
   Anything that climbs an unbaked ladder owns the descent too.
@@ -89,12 +89,13 @@ Dwarf Cannon added seven, and the first three are engine behaviour rather than q
   `StartupWithdraw` ran a generic 1000gp withdrawal against the pinned bank before the
   first `decide()`, skipping only for `ownsInventory`. Resumed inside the goblin cave that
   is a route which does not exist, and it spent 84 seconds and three retries proving so
-  before the quest could start. It now honours the declared float, which also silences the
-  same waste in Dragon Slayer — the other module that declares `coinFloat: 0`.
+  before the quest could start. The task is gone: `QuestEngine.freshenPack` now empties the
+  pack and the engine's own provisioning refills it, and both are gated on the journal
+  reading `notStarted`, inside the cave it reads `inProgress`, so neither runs.
 
 The camp is also worth stating on its own: plain walking never enters it. It is a
 1294-tile compound whose perimeter is the railings themselves, and every route in
-crosses the Coal trucks log balance — an Agility shortcut, not a door. A flood over the
+crosses the Coal trucks log balance, an Agility shortcut, not a door. A flood over the
 collision pack therefore reports the Commander and all six railings unreachable, and
 `findPath` with the baked edges loaded reports them fine. Probe with the pathfinder, not
 with a flood.

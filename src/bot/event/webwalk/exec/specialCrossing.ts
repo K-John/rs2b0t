@@ -4,6 +4,7 @@
 
 import type { WorldTile } from '../../../adapter/ClientAdapter.js';
 import { actions, reader } from '../../../adapter/ClientAdapter.js';
+import { Modals } from '../../../api/ui/widgets/Modals.js';
 import { Banking, isDisposableGatherJunk } from '../../../api/bank/Banking.js';
 import { Execution } from '../../../api/execution/Execution.js';
 import { Bank } from '../../../api/bank/Bank.js';
@@ -171,7 +172,7 @@ export async function handleSpecialCrossing(
                 ? sc.action
                 : 'Talk-to';
         const tryActs = preferred === 'Talk-to' ? (['Talk-to'] as const) : ([preferred, 'Talk-to'] as const);
-        // Why: keying on the specialCrossing stand tile rather than the NPC type alone matters because one type serves several routes — a Customs officer with coordx(npc) < 2815 goes to Ardougne, else Port Sarim.
+        // Why: keying on the specialCrossing stand tile rather than the NPC type alone matters because one type serves several routes, a Customs officer with coordx(npc) < 2815 goes to Ardougne, else Port Sarim.
         // Why: a global nearest() would work while piers are far apart, but the instance at this pier is preferred so a wrong officer can never steal the hop (#404).
         const stand = { x: sc.x, z: sc.z, level: sc.level };
         let interacted = false;
@@ -209,6 +210,11 @@ export async function handleSpecialCrossing(
                 } else {
                     await Execution.delayTicks(1);
                 }
+            } else if (reader.modals().main !== -1) {
+                // Why: Mosol Rei's `~mesbox("Mosol leads you into the village.")` sits between the choice and the `p_telejump`, and a box suspends the script until it is clicked, so waiting for the arrival it gates is waiting for a teleport that cannot run. Placed under `mapChoice` so a glidermap is still answered as a map rather than closed as a box.
+                // Why: the tick is not optional. This loop is bounded by passes rather than by time, so a branch that returns without yielding spends the budget in a moment, the Brimhaven ship stopped being waited for and reported itself unresolved while it was still sailing.
+                await Modals.close();
+                await Execution.delayTicks(1);
             } else {
                 await Execution.delayTicks(1);
             }
@@ -237,7 +243,7 @@ export async function handleSpecialCrossing(
         }
         return isOnFarSide(reader.worldTile(), approach, step);
     };
-    // Already-open gate (Close leaf only): do not fail "not found" — walk through.
+    // Already-open gate (Close leaf only): do not fail "not found", walk through.
     if (/^open$/i.test(sc.action) && !sc.useItem) {
         const shutProbe = findTransportLoc(transport);
         if (!shutProbe) {
@@ -285,7 +291,7 @@ export async function handleSpecialCrossing(
             }
         }
         // useItem (e.g. rope on Rock) must not require a menu action that is not
-        // the use-with target — content often only exposes Swim-to / no Climb.
+        // the use-with target, content often only exposes Swim-to / no Climb.
         const loc = sc.useItem
             ? Locs.query()
                 .name(sc.locName)

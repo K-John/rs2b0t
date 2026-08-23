@@ -14,6 +14,7 @@ import { gotoNpc, pickPreferred, talkThrough, type NpcStop } from '../exec/primi
 import { gpShort } from '../engine/provisioning.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { QUESTS } from '../data/quests.js';
+import { FOOD_FLOAT } from '../food.js';
 
 const EXCALIBUR = 'Excalibur';
 const UNLIT_CANDLE = 'Black candle';
@@ -27,7 +28,7 @@ const TINDERBOX = 'Tinderbox';
 const WEAPON = 'Rune mace';
 
 const KING_ARTHUR: NpcStop = { npc: 'King Arthur', anchor: new Tile(2764, 3515, 0), leash: 6, prefer: ['I want to become a Knight of the Round Table!'] };
-// Content strings from sir_gawain.rs2 / sir_lancelot.rs2 — prefer fragments must match.
+// Content strings from sir_gawain.rs2 / sir_lancelot.rs2, prefer fragments must match.
 const GAWAIN: NpcStop = {
     npc: 'Sir Gawain',
     anchor: new Tile(2761, 3508, 0),
@@ -94,7 +95,7 @@ function buyOrWait(snap: QuestSnapshot, step: Extract<QuestStep, { kind: 'buy' }
     return step;
 }
 
-// East Ardougne Baker's stall stocks cake/chocolate — not bread (rev 274).
+// East Ardougne Baker's stall stocks cake/chocolate, not bread (rev 274).
 // Beggar needs actual Bread, so always buy from Wydin's (Port Sarim).
 export function breadPlan(snap: QuestSnapshot, _thievingLevel = 0, _passesUsed = 0): QuestStep {
     return buyOrWait(snap, { kind: 'buy', item: 'Bread', qty: 1, shop: WYDIN_SHOP, estGp: 20 });
@@ -176,7 +177,7 @@ async function ensureCamelotL1(log: (m: string) => void): Promise<boolean> {
 }
 
 async function talkKnights(log: (m: string) => void): Promise<void> {
-    // Gawain (L0) first — Lancelot's fortress option only appears after spoken_gawain.
+    // Gawain (L0) first, Lancelot's fortress option only appears after spoken_gawain.
     for (const knight of [GAWAIN, LANCELOT]) {
         let done = false;
         for (let attempt = 0; attempt < 5; attempt++) {
@@ -256,7 +257,7 @@ async function fortress(log: (m: string) => void): Promise<boolean> {
     if (!t) {
         return false;
     }
-    // After Morgan's brief the keep is done — never re-board the Catherby crate.
+    // After Morgan's brief the keep is done, never re-board the Catherby crate.
     if (mordredBriefed && !insideKeep(t)) {
         log('fortress: Morgan brief already done and outside the keep');
         return true;
@@ -332,7 +333,7 @@ async function fortress(log: (m: string) => void): Promise<boolean> {
             await Traversal.walkResilient(mordred.tile(), { radius: 1, attempts: 2, timeoutMs: 20_000, log });
         }
         await mordred.interact('Attack');
-        // Why: the wait covers the Morgan dialogue or combat ending, so a combat that ended without dialogue does not re-Attack next tick — the flag stays false and the next call may re-engage once.
+        // Why: the wait covers the Morgan dialogue or combat ending, so a combat that ended without dialogue does not re-Attack next tick, the flag stays false and the next call may re-engage once.
         // Why: dialogue detection is preferred on every tick.
         for (let i = 0; i < 40 && !mordredBriefed; i++) {
             if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
@@ -341,7 +342,7 @@ async function fortress(log: (m: string) => void): Promise<boolean> {
                 break;
             }
             if (!Game.inCombat() && i > 4) {
-                // Combat ended without dialog yet — give Morgan a moment to spawn dialog
+                // Combat ended without dialog yet, give Morgan a moment to spawn dialog
                 await Execution.delayTicks(2);
                 if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
                     continue;
@@ -416,7 +417,7 @@ async function leaveKeep(log: (m: string) => void): Promise<boolean> {
             }
             await Execution.delayTicks(1);
         }
-        // Crate ride is a multi-mesbox teleport sequence — give it time.
+        // Crate ride is a multi-mesbox teleport sequence, give it time.
         await Execution.delayUntil(() => {
             const g = Game.tile();
             return g !== null && !insideKeep(g);
@@ -429,7 +430,7 @@ async function leaveKeep(log: (m: string) => void): Promise<boolean> {
         log('leaveKeep: crate Hide-in did not leave the keep');
     }
     // Front door is the west Large door (same one the crate entry uses), not south into the sea.
-    // Keep box is x 2762–2782 — exit must be west of 2762.
+    // Keep box is x 2762–2782, exit must be west of 2762.
     log('leaveKeep: walking west out the keep door');
     const KEEP_WEST_EXIT = new Tile(2758, 3401, 0);
     for (let attempt = 0; attempt < 8; attempt++) {
@@ -454,7 +455,7 @@ async function openingLeg(log: (m: string) => void): Promise<boolean> {
         return fortress(log);
     }
     if (mordredBriefed) {
-        // Keep is done. Do not thrash the candle maker every tick — wax exchange
+        // Keep is done. Do not thrash the candle maker every tick, wax exchange
         // happens later via decide() once bones/wax are in the pack.
         return killGiantBat(log);
     }
@@ -672,7 +673,7 @@ async function summonThrantax(log: (m: string) => void): Promise<boolean> {
     return true;
 }
 
-/** Live harness surface for #353 — calls the same fortress() product path. */
+/** Live harness surface for #353, calls the same fortress() product path. */
 export async function liveFortressStep(log: (m: string) => void): Promise<boolean> {
     return fortress(log);
 }
@@ -728,7 +729,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 export const merlinscrystal: QuestModule = {
     record: QUESTS.find(r => r.id === 'arthur')!,
     bank: new Tile(2725, 3491, 0),
-    food: 15,
+    food: FOOD_FLOAT,
     gather: {
         'insect repellent': () => ({ kind: 'grabGround', item: 'Insect repellent', anchor: REPELLENT_SPAWN }),
         'bread': s => breadPlan(s),

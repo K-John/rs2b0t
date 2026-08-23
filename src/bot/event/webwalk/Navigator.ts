@@ -2,6 +2,7 @@ import { navPackForWorker } from './navPack.js';
 import type { NavPoint, NavResponse, PathOutcome } from './PathFinder.js';
 import type { PathPolicy } from './types.js';
 import type { WorldStateData } from './worldStateData.js';
+import { snapshotWorldStateData } from './worldStateLive.js';
 
 export type PathResult = PathOutcome & { elapsedMs?: number };
 
@@ -72,6 +73,10 @@ class NavigatorImpl {
             return { ok: false, reason: `navigator unavailable: ${this.failReason || this.state}`, expanded: 0 };
         }
 
+        // Why: quest-gated transports fail closed without a state, so a caller that names none would lose
+        // spirit trees and gliders it has earned, the live snapshot is the honest default.
+        const state = opts?.state ?? snapshotWorldStateData();
+
         const timeoutMs = opts?.timeoutMs ?? FIND_TIMEOUT_MS;
         const id = this.nextId++;
         return new Promise<PathResult>(resolve => {
@@ -87,7 +92,7 @@ class NavigatorImpl {
                 to,
                 avoid: opts?.avoidDoors,
                 maxExpansions: opts?.maxExpansions,
-                state: opts?.state,
+                state,
                 policy: opts?.policy,
                 useTeleportCatalog: opts?.useTeleportCatalog,
                 avoidZones: opts?.avoidZones

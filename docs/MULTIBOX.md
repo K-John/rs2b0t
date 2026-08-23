@@ -18,6 +18,6 @@ full speed while that tab is visible.
 
 ## See also
 
-- [Dev and deploy](DEV.md) — run modes, viewers, and the hosting pipeline
-- [Running locally](how-to/run-locally.md#run-a-bot) — opening a wall
-- [`desktop/README.md`](../desktop/README.md) — the unthrottled shell
+- [Dev and deploy](DEV.md), run modes, viewers, and the hosting pipeline
+- [Running locally](how-to/run-locally.md#run-a-bot), opening a wall
+- [`desktop/README.md`](../desktop/README.md), the unthrottled shell

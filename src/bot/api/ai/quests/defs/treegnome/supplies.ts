@@ -5,7 +5,7 @@ import { Locs } from '../../../../locs/Locs.js';
 import { Sustain } from '../../../../sustain/Sustain.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import { gearOf } from '../../../../loadout/loadoutPlan.js';
-import { QuestFood } from '../../food.js';
+import { FOOD_FLOAT, QuestFood } from '../../food.js';
 import { QuestLoadout } from '../../gear.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { settleScene } from '../../exec/prompts.js';
@@ -25,8 +25,8 @@ export const AXES: readonly { id: number; name: string }[] = [
 const SHOP_AXE = 'Iron axe';
 const SHOP_AXE_GP = 300;
 
-export const FOOD_LOW = 8;
-export const FOOD_TARGET = 18;
+export const FOOD_LOW = 3;
+export const FOOD_TARGET = FOOD_FLOAT;
 
 export function hasAxe(snap: QuestSnapshot): boolean {
     return AXES.some(axe => (snap.invIds?.get(axe.id) ?? 0) > 0 || (snap.wornIds?.has(axe.id) ?? false));

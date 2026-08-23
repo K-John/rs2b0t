@@ -253,7 +253,7 @@ export class ProfileVault {
         }
         const all = this.assertUnlocked();
         const i = all.findIndex(x => x.username === p.username);
-        // tab membership changes flow only through saveTabState — a password
+        // tab membership changes flow only through saveTabState, a password
         // re-save (the in-game save prompt) must not move the account
         if (i >= 0) {
             all[i] = { ...all[i], password: p.password };

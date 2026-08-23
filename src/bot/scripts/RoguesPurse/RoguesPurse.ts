@@ -73,7 +73,7 @@ export default class RoguesPurse extends LoopingBot {
         this.startedAt = Date.now();
         this.xpStart = Skills.xp('herblore');
 
-        // The journal read opens a modal, so it happens once — before the walk to Karamja.
+        // The journal read opens a modal, so it happens once, before the walk to Karamja.
         const gate = checkGates({
             herbloreLevel: Skills.level('herblore'),
             stage: (await readJungleProgress())?.stage
@@ -138,12 +138,12 @@ export default class RoguesPurse extends LoopingBot {
                 await settleScene();
             }
         }
-        // loopDelay is 0 — every path pays a tick here, so a fast-failing walk cannot spin.
+        // loopDelay is 0, every path pays a tick here, so a fast-failing walk cannot spin.
         await Execution.delayTicks(1);
     }
 
     // Why: both `opheld`s run inline as the server decodes them, while the search resolves in the movement phase.
-    // Why: the burst pipelines — identify and drop clear what the last tick produced, and the search stocks the next.
+    // Why: the burst pipelines, identify and drop clear what the last tick produced, and the search stocks the next.
 
     /** One tick of packets. */
     private async cycle(wall: Loc): Promise<void> {
@@ -221,7 +221,7 @@ export default class RoguesPurse extends LoopingBot {
             }
             this.status = 'entering the caves';
             // The climb telejumps first and answers its prompt after, so a false return
-            // with our feet already underground means it worked — check, don't trust.
+            // with our feet already underground means it worked, check, don't trust.
             if (!(await enterPothole(log)) && !inCaves(Game.tile())) {
                 this.log('could not climb into the caves — retrying');
                 return;
@@ -244,7 +244,7 @@ export default class RoguesPurse extends LoopingBot {
         if (!here) {
             return null;
         }
-        // Cheapest detour on the way to the pothole, not nearest to us — Draynor sits on the
+        // Cheapest detour on the way to the pothole, not nearest to us. Draynor sits on the
         // Lumbridge->Port Sarim line, where Al Kharid is 50 tiles backwards plus a toll.
         const ranked = rankBanksByDetour(
             here,

@@ -75,7 +75,7 @@ export const PuzzleBox = {
                     return false;
                 }
                 if (isPuzzleSolved(board)) {
-                    // Re-entered to hand a finished box back — not a fresh solve.
+                    // Re-entered to hand a finished box back, not a fresh solve.
                     log(moved === 0 ? 'puzzle already solved' : `puzzle solved in ${moved} moves`);
                     return true;
                 }

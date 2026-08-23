@@ -1,7 +1,7 @@
 import Tile from '../../../../../geometry/Tile.js';
 import type { NpcStop } from '../../exec/primitives.js';
 
-/** Falador West — nearest era-correct bank to Burthorpe (no Burthorpe bank). */
+/** Falador West, nearest era-correct bank to Burthorpe (no Burthorpe bank). */
 export const FALADOR_WEST_BANK = new Tile(2946, 3369, 0);
 
 export const DEATH_ITEM = {
@@ -79,7 +79,7 @@ export const DENULTH_START: NpcStop = {
     prefer: [
         'Do you have any quests for me?',
         'No but perhaps I could try and find one?',
-        // Server already started (setvar / desync) — re-sync client journal colour.
+        // Server already started (setvar / desync), re-sync client journal colour.
         'Can you remind me of the quest I am on?'
     ]
 };
@@ -143,15 +143,18 @@ export const DUNSTAN_SPIKES: NpcStop = {
     ]
 };
 
-/** death_dice root interface pack id. */
+/** death_dice root interface, which the server names when it opens the modal. */
 export const DEATH_DICE_MAIN = 6675;
-/** death_dice:com_28 — "Roll Dice!" (buttontype=normal / IF_BUTTON). */
-export const DEATH_DICE_ROLL_COM = 8421;
-/** death_dice:com_30 — "Continue..." after the roll (buttontype=pause / RESUME_PAUSEBUTTON). */
-export const DEATH_DICE_CONTINUE_COM = 8423;
+
+/** The wall the knock chain hangs off. `~check_axis` reads the player's side off this tile's z alone. */
+export const HAROLD_DOOR = { id: 3747, x: 2906, z: 3543, level: 1 } as const;
+
+/** What `death_ig_commander.rs2` puts in Harold's purse when Denulth starts the quest. */
+export const HAROLD_PURSE_START = 100;
+/** `harold_gamble` turns down anything larger. */
+export const MAX_BET = 1000;
 
 export const COIN_FLOAT = 2000;
-// Why: Harold starts with 100gp and the content only sets `harold_lostall` (the IOU) when `harold_gold - bet < 0`.
-// Why: an exact 100gp win zeros him without the IOU and needs a second win, where betting 101gp bankrupts him on the first.
-export const GAMBLE_BET = 101;
+/** Enough to cover the first stake and the ones a losing streak forces up after it. */
+export const GAMBLE_STAKE_FLOAT = 400;
 export const ALE_PRICE = 5;

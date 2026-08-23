@@ -131,7 +131,7 @@ async function meleeFight(fight: MeleeFight, log: (m: string) => void): Promise<
         log(`${fight.what}: gave up after ${fight.guard} ticks (${swings} attacks)`);
         return false;
     } finally {
-        // Why: left holding, Protect from Melee burns the bar flat over the walk to the next fight — the loop re-arms in a tick if this one is not over.
+        // Why: left holding, Protect from Melee burns the bar flat over the walk to the next fight, the loop re-arms in a tick if this one is not over.
         await dropPrayer();
     }
 }

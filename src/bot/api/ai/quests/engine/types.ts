@@ -45,10 +45,15 @@ export interface QuestSnapshot {
     bankIds?: ReadonlyMap<number, number>;
     bankKnown?: boolean;
     tile?: WorldTile | null;
+    // Why: absent means the snapshot does not report it, and a step that needs prayer treats that as "not short" rather than guessing.
+    /** Current prayer points. */
+    prayer?: number;
+    /** Attack level, which is the tier of melee weapon the account can wield. */
+    attack?: number;
     freeSlots?: number;
 }
 
-// Why: display names collide — "Broken shield", "Certificate", "Fishing spot" and "Gate" each name more than one thing — so a name lookup silently accepts the wrong object.
+// Why: display names collide: "Broken shield", "Certificate", "Fishing spot" and "Gate" each name more than one thing, so a name lookup silently accepts the wrong object.
 
 /** How many of an exact object id the pack holds. */
 export function heldId(snap: QuestSnapshot, id: number): number {
@@ -73,10 +78,18 @@ export type QuestStep =
     | { kind: 'withdraw'; items: { name: string; qty: number; id?: number }[]; bank?: Tile; leaveOpen?: boolean }
     | { kind: 'deposit'; keep: string[]; keepIds?: readonly number[]; bank?: Tile; leaveOpen?: boolean; exactKeep?: boolean }
     | { kind: 'mineRock'; rock: string; item: string; qty: number; anchor: Tile }
-    | { kind: 'buy'; item: string; qty: number; shop: { npc: string; anchor: Tile }; estGp: number }
+    | { kind: 'buy'; item: string; qty: number; shop: { npc: string; anchor: Tile }; estGp: number; bank?: Tile }
     | { kind: 'custom'; name: string; run: (log: (m: string) => void) => Promise<boolean> }
     | { kind: 'wait'; reason: string }
     | { kind: 'done' };
+
+export type ProtectionKind = 'melee' | 'magic' | 'missiles';
+
+export interface QuestPrayer {
+    protect: ProtectionKind;
+    /** Prayer potion doses drawn into the float alongside the food. */
+    potions?: number;
+}
 
 export interface QuestSustain {
     /** Food display names this quest can source and use for traversal upkeep. */
@@ -112,6 +125,9 @@ export interface QuestModule {
     readProgress?: () => QuestProgress | undefined | Promise<QuestProgress | undefined>;
     /** Optional quest-specific survival policy applied while this module is active. */
     sustain?: QuestSustain;
+    // Why: declared only on the quests whose fights threaten the account, a level-2 goblin is not worth the points.
+    /** Protection prayer to hold through this quest's fights, and the doses it carries. */
+    pray?: QuestPrayer;
     // Why: set 0 when the module fetches coins at the point of sale, as the float is restored on every provisioning loop and a standing balance means a bank trip per purchase.
 
     /** Spending money to keep in the pack, default `COIN_FLOAT`. */
@@ -122,7 +138,7 @@ export interface QuestModule {
     warnReadiness?: () => string | null;
     /**
      * Extra log lines when this quest decides a step (or on death). Pilot for
-     * Tourist Trap observability — copy-pasteable context for stuck runs.
+     * Tourist Trap observability, copy-pasteable context for stuck runs.
      */
     observe?: (snap: QuestSnapshot, step: QuestStep) => readonly string[];
     decide(snap: QuestSnapshot): QuestStep;

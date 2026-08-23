@@ -26,7 +26,8 @@ abstract class AbstractBot {
 }
 ```
 
-- `onStop` runs on **both** a clean stop and a crash — release resources here.
+- `onStop` runs on **both** a clean stop and a crash, release resources here.
+- `onPaint` draws the overlay HUD; its widgets are in [Paint](api-paint.md).
 - Event callbacks (`this.on`) fire mid-frame: set flags or `log`, and keep the work in `loop()`.
 
 ### LoopingBot
@@ -71,7 +72,7 @@ class Fighter extends TaskBot {
 ### TreeBot
 
 A behaviour tree. Walk `BranchTask.validate()` from `root()` until a `LeafTask`,
-then run it — once per loop.
+then run it, once per loop.
 
 ```ts
 abstract class BranchTask { validate(): boolean; success(): TreeNode; failure(): TreeNode; }
@@ -84,7 +85,7 @@ abstract class TreeBot extends LoopingBot { abstract root(): TreeNode; }
 
 ## Execution
 
-The **only** legal way to sleep. Awaiting anything else escapes the runtime —
+The **only** legal way to sleep. Awaiting anything else escapes the runtime.
 Stop can't unwind it and the watchdog warns.
 
 ```ts

@@ -8,6 +8,7 @@
 //   bun run e2e -- --only troll,horror
 //   bun run e2e -- --gates-only     # offline gates, no engine needed
 //   bun run e2e -- --verbose        # stream every child line
+//   bun run e2e -- --level full --jobs 6   # every harness, six at a time
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -181,6 +182,8 @@ function report(now: Run, before: Run | null): string {
 const level = (arg('level') as Level | undefined) ?? 'quick';
 const only = (arg('only') ?? '').split(',').map(s => s.trim()).filter(Boolean);
 const engine = arg('engine');
+// Why: every harness is a headless browser against one world, so the ceiling is memory and world contention rather than cores, one at a time stays the default and the number is the caller's to raise.
+const jobs = Math.max(1, Number(arg('jobs') ?? 1) || 1);
 
 // Why: --list answers "what would run" without an engine, a deploy or a browser.
 if (has('list')) {
@@ -223,20 +226,43 @@ if (!has('gates-only')) {
 
         if (deploy.status === 'pass') {
             const { cases, why } = pick(level, only);
-            console.log(`${cases.length} case(s) — ${why}`);
-            for (const [i, c] of cases.entries()) {
-                const budget = (c.budgetMin ?? DEFAULT_BUDGET) * 60_000;
-                const cmd = ['bun', join('e2e', c.harness), ...(c.args ?? []), '--no-deploy'];
-                if (engine) cmd.push('--base', engine);
-                const r = await run(`[${i + 1}/${cases.length}] ${c.id}`, cmd, join(LOGS, `${c.id}.log`), budget, undefined, c.env);
-                now.results.push({ name: c.id, kind: 'harness', status: r.status, ms: r.ms, note: r.status === 'pass' ? '' : r.tail });
-                console.log(`  ${ICON[r.status]} ${c.id} (${mins(r.ms)})${r.status === 'pass' ? '' : `\n      ${r.tail}`}`);
-            }
+            console.log(`${cases.length} case(s) — ${why}${jobs > 1 ? `, ${jobs} at a time` : ''}`);
+
+            // Why: the deploy above is the one every harness shares, and each passes `--no-deploy`, so nothing rewrites `public/bot` underneath a run in flight, which is what made a pool safe to add.
+            // Why: each harness makes its own account, so the only thing they contend for is the world itself.
+            let next = 0;
+            let done = 0;
+            const worker = async (): Promise<void> => {
+                for (;;) {
+                    const i = next++;
+                    const c = cases[i];
+                    if (!c) {
+                        return;
+                    }
+                    const budget = (c.budgetMin ?? DEFAULT_BUDGET) * 60_000;
+                    const cmd = ['bun', join('e2e', c.harness), ...(c.args ?? []), '--no-deploy'];
+                    if (engine) cmd.push('--base', engine);
+                    const r = await run(`[${i + 1}/${cases.length}] ${c.id}`, cmd, join(LOGS, `${c.id}.log`), budget, undefined, c.env);
+                    now.results.push({ name: c.id, kind: 'harness', status: r.status, ms: r.ms, note: r.status === 'pass' ? '' : r.tail });
+                    done += 1;
+                    console.log(`  ${ICON[r.status]} [${done}/${cases.length}] ${c.id} (${mins(r.ms)})${r.status === 'pass' ? '' : `\n      ${r.tail}`}`);
+                }
+            };
+            await Promise.all(Array.from({ length: Math.min(jobs, cases.length) }, () => worker()));
         } else {
             console.log('deploy failed — harnesses would test a stale bundle, so none were run');
         }
     }
 }
+
+// Why: a pool finishes in whatever order the harnesses happen to end, so the report is put back into manifest order. The file is diffed between runs and a shuffled one reads as change that is not there.
+const ORDER = new Map(CASES.map((c, i) => [c.id, i]));
+now.results.sort((a, b) => {
+    if (a.kind !== b.kind) {
+        return a.kind === 'gate' ? -1 : 1;
+    }
+    return (ORDER.get(a.name) ?? 0) - (ORDER.get(b.name) ?? 0);
+});
 
 const before: Run | null = existsSync(LATEST) ? JSON.parse(readFileSync(LATEST, 'utf8')) as Run : null;
 const md = report(now, before);

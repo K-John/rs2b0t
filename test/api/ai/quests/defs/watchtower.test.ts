@@ -1,4 +1,5 @@
-import { describe, expect, test } from 'bun:test';
+import { afterEach, describe, expect, test } from 'bun:test';
+import { QuestFood } from '#/bot/api/ai/quests/food.js';
 import { CRYSTALS, WT_ITEM, WT_NPC, watchtowerArea } from '#/bot/api/ai/quests/defs/watchtower/areas.js';
 import { WATCHTOWER_STAGE, parseWatchtowerJournal } from '#/bot/api/ai/quests/defs/watchtower/journal.js';
 import { flagValue, hasFlag } from '#/bot/api/ai/quests/engine/types.js';
@@ -281,7 +282,7 @@ describe('watchtower decide — the tribes', () => {
     test('Toban is next once Og is helped, and is spoken to before he wants bones', () => {
         const step = decide(snapshot({
             progress: P(2, 'helped-og'),
-            bankIds: new Map([[WT_ITEM.DRAGON_BONES.id, 1]])
+            invIds: new Map([[WT_ITEM.DRAGON_BONES.id, 1]])
         }));
         expect(step.kind === 'custom' && step.name).toMatch(/toban/i);
     });
@@ -822,5 +823,128 @@ describe('watchtower decide — the Rock of Dalgroth needs a pickaxe', () => {
             ])
         });
         expect(step.kind === 'custom' && step.name).toMatch(/Rock of Dalgroth/i);
+    });
+});
+
+describe('the enclave food is whatever the player chose to eat', () => {
+    const enclaveTrip = (bank: [string, number][], inv: [string, number][] = []): QuestSnapshot => snapshot({
+        progress: P(WATCHTOWER_STAGE.MADE_POTION, 'shamans-left:6'),
+        inv: new Map(inv),
+        invIds: new Map([[WT_ITEM.MAGIC_OGRE_POTION.id, 1], [WT_ITEM.NIGHTSHADE.id, 1]]),
+        bank: new Map(bank)
+    });
+
+    afterEach(() => {
+        QuestFood.name = 'Lobster';
+    });
+
+    test('the configured food is withdrawn when the bank holds only that', () => {
+        QuestFood.name = 'Shark';
+        const step = decide(enclaveTrip([['shark', 100]]));
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' && step.items[0].name).toBe('Shark');
+    });
+
+    test('food already carried counts, whatever the player chose', () => {
+        QuestFood.name = 'Shark';
+        expect(decide(enclaveTrip([['shark', 100]], [['shark', 8]])).kind).not.toBe('withdraw');
+    });
+
+    test('the listed foods still work when the player chose one of them', () => {
+        QuestFood.name = 'Lobster';
+        const step = decide(enclaveTrip([['lobster', 100]]));
+        expect(step.kind).toBe('withdraw');
+        expect(step.kind === 'withdraw' && step.items[0].name).toBe('Lobster');
+    });
+});
+
+describe('the kit comes out of the bank in one trip', () => {
+    const FULL_BANK = new Map<string, number>([['lobster', 100]]);
+    const bankIds = (): Map<number, number> => new Map([
+        [WT_ITEM.COINS.id, 50_000],
+        [WT_ITEM.ROPE.id, 1],
+        [WT_ITEM.VIAL_WATER.id, 1],
+        [WT_ITEM.PESTLE.id, 1],
+        [WT_ITEM.PICKAXE.id, 1],
+        [WT_ITEM.DEATH_RUNE.id, 5],
+        [WT_ITEM.GUAM_LEAF.id, 1],
+        [WT_ITEM.BAT_BONES.id, 1],
+        [WT_ITEM.DRAGON_BONES.id, 1],
+        [WT_ITEM.GOLD_BAR.id, 1],
+        [WT_ITEM.SKAVID_MAP.id, 1],
+        [WT_ITEM.LIT_CANDLE.id, 1]
+    ]);
+
+    const started = (o: Partial<QuestSnapshot> = {}): QuestSnapshot => snapshot({
+        progress: P(WATCHTOWER_STAGE.STARTED),
+        bankKnown: true,
+        bank: FULL_BANK,
+        bankIds: bankIds(),
+        ...o
+    });
+
+    test('one withdraw carries the whole banked kit, not one item per trip', () => {
+        const step = decide(started());
+        expect(step.kind).toBe('withdraw');
+        const names = step.kind === 'withdraw' ? step.items.map(i => i.name) : [];
+        for (const want of ['Coins', 'Rope', 'Vial of water', 'Pestle and mortar', 'Bronze pickaxe',
+            'Death rune', 'Guam leaf', 'Bat bones', 'Dragon bones', 'Gold bar', 'Skavid map', 'Lit candle']) {
+            expect(names).toContain(want);
+        }
+    });
+
+    test('the configured food rides along in the same trip', () => {
+        const step = decide(started());
+        const names = step.kind === 'withdraw' ? step.items.map(i => i.name) : [];
+        expect(names).toContain('Lobster');
+    });
+
+    test('what the bank does not hold is left to the shop and the quest', () => {
+        const step = decide(started({ bankIds: new Map([[WT_ITEM.ROPE.id, 1]]), bank: new Map() }));
+        const names = step.kind === 'withdraw' ? step.items.map(i => i.name) : [];
+        expect(names).toEqual(['Rope']);
+    });
+
+    test('nothing is drawn twice — a full pack moves the quest on', () => {
+        const held = new Map(bankIds());
+        const step = decide(started({
+            invIds: held,
+            inv: new Map([['lobster', 8]])
+        }));
+        expect(step.kind).not.toBe('withdraw');
+    });
+
+    test('a purse a few coins short does not buy another bank trip', () => {
+        const gear = new Map(bankIds());
+        gear.delete(WT_ITEM.COINS.id);
+        const step = decide(started({
+            invIds: new Map([...gear, [WT_ITEM.COINS.id, 1977]]),
+            inv: new Map([['lobster', 8]])
+        }));
+        expect(step.kind).not.toBe('withdraw');
+    });
+
+    test('food eaten down does not buy another bank trip', () => {
+        const step = decide(started({
+            invIds: new Map(bankIds()),
+            inv: new Map([['lobster', 5]])
+        }));
+        expect(step.kind).not.toBe('withdraw');
+    });
+
+    test('a missing piece of gear still brings the purse and the food with it', () => {
+        const short = new Map(bankIds());
+        short.delete(WT_ITEM.ROPE.id);
+        short.set(WT_ITEM.COINS.id, 1977);
+        const step = decide(started({ invIds: short, inv: new Map([['lobster', 5]]) }));
+        expect(step.kind).toBe('withdraw');
+        const names = step.kind === 'withdraw' ? step.items.map(i => i.name) : [];
+        expect(names).toContain('Rope');
+        expect(names).toContain('Coins');
+        expect(names).toContain('Lobster');
+    });
+
+    test('an unread bank is left alone, so a quest wanting nothing takes no trip', () => {
+        expect(decide(started({ bankKnown: false })).kind).not.toBe('withdraw');
     });
 });

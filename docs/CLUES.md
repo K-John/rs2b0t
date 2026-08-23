@@ -2,7 +2,7 @@
 
 # Clue scrolls
 
-The solver takes a held clue through a full trail — search, dig or talk — and can run
+The solver takes a held clue through a full trail of search, dig and talk steps, and can run
 inside another bot that drops one.
 
 ## Pages

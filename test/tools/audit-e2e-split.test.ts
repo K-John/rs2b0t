@@ -11,7 +11,7 @@ import {
 } from '../../tools/audit-e2e-split.js';
 
 // Why: these fixtures are synthetic path strings rather than a picture of the tree, and they model
-// the pre-move layout deliberately — that is the shape the closure was written to resolve.
+// the pre-move layout deliberately. That is the shape the closure was written to resolve.
 
 describe('resolveSpec', () => {
     test('resolves a sibling .js specifier to its .ts path', () => {

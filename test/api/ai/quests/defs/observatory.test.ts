@@ -68,7 +68,7 @@ describe('observatory decide', () => {
     });
 });
 
-// Why: the errand order is the map, not the quest — every one of these fixes a leg of the single loop the bot walks.
+// Why: the errand order is the map, not the quest, every one of these fixes a leg of the single loop the bot walks.
 describe('observatory errand order', () => {
     const empty = { stage: OBS_STAGE.STARTED };
 

@@ -1,9 +1,10 @@
 import Tile from '../../../../../geometry/Tile.js';
 import type { NpcStop } from '../../exec/primitives.js';
+import { FOOD_FLOAT } from '../../food.js';
 
 export const TBWT_QUEST = 'Tai Bwo Wannai Trio';
 
-// Why: `tbwt_main` and `tbwt_tiadeche` are the two `transmit=yes` varps this quest owns, so they are on the wire and exact — see docs/decisions/quest-state-not-varps.md, which names TBWT as the exception.
+// Why: `tbwt_main` and `tbwt_tiadeche` are the two `transmit=yes` varps this quest owns, so they are on the wire and exact, see docs/decisions/quest-state-not-varps.md, which names TBWT as the exception.
 // Why: the other four (`tbwt_tinsay`, `tbwt_tamayu`, `tbwt_lubufu`, `tbwt_flags`) are `scope=perm` only and read back 0, so they come off the journal page instead.
 
 /** Transmitted varp indices, from content/pack/varp.pack. */
@@ -55,7 +56,7 @@ export const TB_TAMAYU = {
     CLAIMED: 5
 } as const;
 
-/** `%tbwt_lubufu` — the counted stretch 5..24 is "karambwanji handed in so far". */
+/** `%tbwt_lubufu`, the counted stretch 5..24 is "karambwanji handed in so far". */
 export const TB_LUBUFU = {
     UNKNOWN: 0,
     INTRO: 1,
@@ -137,7 +138,7 @@ export const TB_NAME = {
 export const TB_GEAR: readonly string[] = [TB_NAME.BOW, TB_NAME.ARROWS, TB_NAME.BODY, TB_NAME.LEGS, TB_NAME.HELM];
 
 export const ARROW_TARGET = 200;
-export const FOOD_TARGET = 10;
+export const FOOD_TARGET = FOOD_FLOAT;
 export const COIN_TARGET = 500;
 
 export const TB_TILE = {
@@ -154,14 +155,14 @@ export const TB_TILE = {
     KARAMBWAN_SHOAL: new Tile(2768, 3165, 0),
     /** Jiminua's Jungle Store, north edge of Tai Bwo Wannai. */
     JIMINUA: new Tile(2767, 3122, 0),
-    /** Zambo's bar in Musa Point — the only Karamjan rum on the island. */
+    /** Zambo's bar in Musa Point, the only Karamjan rum on the island. */
     ZAMBO: new Tile(2925, 3143, 0),
     BANANA_PLANTATION: new Tile(2916, 3161, 0),
-    /** Why: both Brimhaven ranges are out — one is inside the Shrimp and Parrot kitchen behind Heroes' Quest, the other in a room the baked graph has no door into.
+    /** Why: both Brimhaven ranges are out. One is inside the Shrimp and Parrot kitchen behind Heroes' Quest, the other in a room the baked graph has no door into.
      *  The permanent jungle fire south of the village is the only cooking source this quest can reach. */
     FIRE: new Tile(2789, 3049, 0),
     MONKEYS: new Tile(2833, 3031, 0),
-    /** Why: the jungle edge the Jogres wander from — their own spawn tiles are outside the baked graph, and a walk aimed at one never arrives. */
+    /** Why: the jungle edge the Jogres wander from, their own spawn tiles are outside the baked graph, and a walk aimed at one never arrives. */
     JOGRES: new Tile(2916, 3053, 0)
 } as const;
 

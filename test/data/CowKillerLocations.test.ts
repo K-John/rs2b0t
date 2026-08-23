@@ -58,7 +58,7 @@ describe('CowKiller locations', () => {
         expect(isCowFieldLootTile(falador, 18, new Tile(3014, 3324, 0))).toBe(false);
     });
 
-    // the scouted spawns run x 3154..3182, z 3316..3342 — the default leash must hold them
+    // the scouted spawns run x 3154..3182, z 3316..3342, the default leash must hold them
     test('the north-west field leash covers its scouted cow spawns', () => {
         const northWest = COW_LOCATIONS[1].anchor;
         for (const cow of [new Tile(3154, 3326, 0), new Tile(3182, 3331, 0), new Tile(3159, 3316, 0), new Tile(3157, 3342, 0)]) {

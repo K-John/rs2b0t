@@ -16,10 +16,13 @@ import { QUESTS } from '../data/quests.js';
 import { QUEST_DEFS, defById } from '../defs/index.js';
 import { executeStep } from '../exec/steps.js';
 import type { BankInventorySnapshot, PlayerState, QuestEligibility, QuestRecord } from '../types.js';
-import { coinFloatWithdraw, depositPlan, floatWithdraw, planProvisioning } from './provisioning.js';
+import { COIN_FLOAT, coinFloatWithdraw, depositPlan, floatDrawPlan, planProvisioning, shouldFreshenPack } from './provisioning.js';
+
+export { COIN_FLOAT };
 import { nextQuest, queueRows, type QueueRow } from './queue.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from './types.js';
 import { NO_PROGRESS_PARK, NO_PROGRESS_WARN, ProgressWatchdog, progressSignature } from './watchdog.js';
+import { PRAYER_POTION, prayerUpkeep } from '../prayer.js';
 import { FAIL_WARN, StepTracker, formatDuration, formatTile, invDelta } from './trace.js';
 import { GameMessages } from '../../../chatbox/gameMessages.js';
 /** What the engine needs from whatever script is driving it. */
@@ -43,7 +46,8 @@ const WAIT_PARK = 15;
 /** Walks back to a bank to try before leaving the character where it finished. */
 const RETREAT_GIVE_UP = 4;
 
-export const COIN_FLOAT = 1000;
+/** Bank trips to try emptying the pack before a quest starts on whatever it is carrying. */
+const FRESH_GIVE_UP = 3;
 
 export const PROVISION_BANK = new Tile(3093, 3243, 0);
 
@@ -59,8 +63,8 @@ function bankFor(module: QuestModule): Tile | undefined {
  * content/pack/interface.pack (rev 274).
  */
 const INTERACTIVE_QUEST_MAIN: ReadonlySet<number> = new Set([
-    6675, // death_dice — Harold gambling (Death Plateau)
-    8119 // messagescroll_handwriting — combination after reading the IOU
+    6675, // death_dice, Harold gambling (Death Plateau)
+    8119 // messagescroll_handwriting, combination after reading the IOU
 ]);
 
 function isInteractiveQuestMainModal(mainId: number): boolean {
@@ -81,7 +85,7 @@ function describeStep(step: QuestStep): string {
         case 'equip': return `equip ${step.item}`;
         case 'scanBank': return 'check the bank';
         case 'withdraw': return `withdraw ${step.items.map(i => `${i.name}×${i.qty}`).join(', ')}`;
-        // Not always spillover from the previous quest any more — Family Crest
+        // Not always spillover from the previous quest any more, Family Crest
         // banks its coin float mid-quest before walking into the wilderness.
         case 'deposit': return `bank all but ${step.keep.length} kept item type(s)`;
         case 'mineRock': return `mine ${step.item}`;
@@ -106,6 +110,10 @@ export class QuestEngine implements Task {
     private readonly retreated = new Set<string>();
     private readonly retreatTries = new Map<string, number>();
     private readonly deposited = new Set<string>();
+    private readonly freshened = new Set<string>();
+    private readonly freshenTries = new Map<string, number>();
+    private readonly foodDrawn = new Set<string>();
+    private readonly potionsDrawn = new Set<string>();
     private readonly blocked = new Map<string, string[]>();
     /** Modules that have already emitted {@link QuestModule.warnReadiness}. */
     private readonly readinessWarned = new Set<string>();
@@ -146,8 +154,8 @@ export class QuestEngine implements Task {
             return;
         }
 
-        // StartupWithdraw and bank-aware quest steps deliberately leave the bank open so this
-        // task can take an authoritative snapshot before the interface disappears.
+        // Bank-aware quest steps deliberately leave the bank open so this task can take an
+        // authoritative snapshot before the interface disappears.
         if (!skipEarly && Bank.isOpen()) {
             await Execution.delayUntil(() => Bank.loaded(), 3000);
             this.refreshBankCounts(true);
@@ -221,6 +229,16 @@ export class QuestEngine implements Task {
         const stage = progress ? progress.stage : await module.readStage?.();
         const snap = this.buildSnapshot(module, stage, progress);
 
+        // Why: a fight shaped as a step returns here every pass, so this is the only place its prayer can be held.
+        // Why: the tick is yielded when the upkeep spends it, as the server runs one op per tick and a pass that prays and swings drops one of them.
+        if (await prayerUpkeep()) {
+            return;
+        }
+
+        if (await this.freshenPack(module, id, snap, rows)) {
+            return;
+        }
+
         if (module.ownsInventory) {
             // Some quests have one-way, bankless areas. Their stage oracle must run before any
             // generic attempt to bank spillover or provision items on the mainland.
@@ -240,6 +258,10 @@ export class QuestEngine implements Task {
             this.parkCounts.delete(id);
             this.provisioned.delete(id);
             this.deposited.delete(id);
+            this.freshened.delete(id);
+            this.freshenTries.delete(id);
+            this.foodDrawn.delete(id);
+            this.potionsDrawn.delete(id);
             this.blocked.delete(id);
             this.resetWatchdog();
             this.runningId = null;
@@ -276,13 +298,40 @@ export class QuestEngine implements Task {
             // Why: a quest that fetches coins at the point of sale wants no float, as this runs every loop while anything is outstanding and a standing balance is restored after every purchase.
             const coinFloat = coinFloatWithdraw(snap.inv, this.lastBankCounts, module.coinFloat ?? COIN_FLOAT);
             const foodItem = this.host.foodItem();
-            // Only withdraw food once the bank inventory is known — guessing a
+            // Only withdraw food once the bank inventory is known, guessing a
             // shortfall forces a failed booth trip and can scramble a full pack.
             const foodReady = module.foodReady?.(snap) ?? true;
-            const foodFloat = (module.food && foodItem && this.bankKnown && foodReady)
-                ? floatWithdraw(snap.inv, this.lastBankCounts, foodItem, module.food)
-                : null;
-            const extras = [coinFloat, foodFloat].filter((w): w is { name: string; qty: number } => w !== null);
+            let foodFloat: { name: string; qty: number } | null = null;
+            if (module.food && foodItem && this.bankKnown && foodReady) {
+                const key = foodItem.toLowerCase();
+                const foodPlan = floatDrawPlan(
+                    snap.inv.get(key) ?? 0,
+                    this.lastBankCounts.get(key) ?? 0,
+                    module.food,
+                    this.foodDrawn.has(id)
+                );
+                if (foodPlan.drawn) {
+                    this.foodDrawn.add(id);
+                } else if (foodPlan.qty > 0) {
+                    foodFloat = { name: foodItem, qty: foodPlan.qty };
+                }
+            }
+            let potionFloat: { name: string; qty: number } | null = null;
+            if (module.pray?.potions && this.bankKnown) {
+                const key = PRAYER_POTION.toLowerCase();
+                const potionPlan = floatDrawPlan(
+                    snap.inv.get(key) ?? 0,
+                    this.lastBankCounts.get(key) ?? 0,
+                    module.pray.potions,
+                    this.potionsDrawn.has(id)
+                );
+                if (potionPlan.drawn) {
+                    this.potionsDrawn.add(id);
+                } else if (potionPlan.qty > 0) {
+                    potionFloat = { name: PRAYER_POTION, qty: potionPlan.qty };
+                }
+            }
+            const extras = [coinFloat, foodFloat, potionFloat].filter((w): w is { name: string; qty: number } => w !== null);
             if (plan.blocked.length > 0 && plan.withdraw.length === 0) {
                 this.host.log(`${module.record.name} short on items: ${plan.blocked.join(', ')} — parking`);
                 this.parkedReasons.set(id, plan.blocked.map(b => `missing: ${b}`));
@@ -295,7 +344,7 @@ export class QuestEngine implements Task {
             } else if (plan.withdraw.length > 0 || extras.length > 0) {
                 step = { kind: 'withdraw', items: [...plan.withdraw, ...extras], bank: bankFor(module) };
             } else if (plan.satisfied) {
-                // Why: holding the food back is not being provisioned — closing the block here would
+                // Why: holding the food back is not being provisioned, closing the block here would
                 // retire it for the run and the quest would fight on an empty stomach.
                 if (foodReady) {
                     this.provisioned.add(id);
@@ -327,7 +376,7 @@ export class QuestEngine implements Task {
         const stepLine = `${module.record.name}: ${stepDesc}`;
         const fresh = stepLine !== this.lastStepLogged;
         // Why: a leg that keeps re-deciding to the same step is the normal way this engine loops, so silence on the repeat is the default.
-        // Why: the heartbeat is what stops a long chain — mine, smelt, hammer, all called `smith 8 nails` — from looking like a hang.
+        // Why: the heartbeat is what stops a long chain of mine, smelt and hammer, all called `smith 8 nails`, from looking like a hang.
         const announce = verbose || fresh || this.tracker.beat(now);
         if (announce) {
             const context = `stage ${snap.stage ?? '?'} · ${formatTile(snap.tile)} · ${snap.freeSlots} free`;
@@ -458,11 +507,40 @@ export class QuestEngine implements Task {
         }
         this.provisioned.delete(deadId);
         this.deposited.delete(deadId);
+        this.foodDrawn.delete(deadId);
+        this.potionsDrawn.delete(deadId);
         this.resetWatchdog();
         this.stepSubLog.clear();
         this.lastStepLogged = '';
         this.waitKey = '';
         this.waitCount = 0;
+        return true;
+    }
+
+    /** Bank the pack to nothing before a quest opens; true when the loop should yield after the trip. */
+    private async freshenPack(module: QuestModule, id: string, snap: QuestSnapshot, rows: QueueRow[]): Promise<boolean> {
+        const carried = Inventory.used();
+        if (!shouldFreshenPack(snap.journal, carried, this.freshened.has(id))) {
+            return false;
+        }
+        const tries = (this.freshenTries.get(id) ?? 0) + 1;
+        this.freshenTries.set(id, tries);
+        this.host.noteState(rows, id, 'banking the pack to nothing', this.noProgressCount, this.parked.size);
+        this.host.log(`${module.record.name} not started, banking ${carried} carried slot(s) so it provisions from empty (${tries}/${FRESH_GIVE_UP})`);
+        const emptied = await executeStep(
+            { kind: 'deposit', keep: [], bank: bankFor(module), leaveOpen: true },
+            module.hops ?? [],
+            m => this.host.log(`  ${m}`)
+        );
+        if (emptied || tries >= FRESH_GIVE_UP) {
+            this.freshened.add(id);
+        }
+        if (!emptied && tries >= FRESH_GIVE_UP) {
+            this.host.log(`${module.record.name}: no bank reachable after ${FRESH_GIVE_UP} tries — starting on the pack as it stands`);
+        }
+        await Execution.delayUntil(() => Bank.loaded(), 3000);
+        this.refreshBankCounts(true);
+        await Modals.closeIfOpen();
         return true;
     }
 
@@ -512,6 +590,10 @@ export class QuestEngine implements Task {
         this.parkCounts.delete(id);
         this.provisioned.delete(id);
         this.deposited.delete(id);
+        this.freshened.delete(id);
+        this.freshenTries.delete(id);
+        this.foodDrawn.delete(id);
+        this.potionsDrawn.delete(id);
         this.retreated.delete(id);
         this.retreatTries.delete(id);
         this.waitKey = '';
@@ -588,6 +670,8 @@ export class QuestEngine implements Task {
             bankIds: new Map(this.lastBankIdCounts),
             bankKnown: this.bankKnown,
             tile: Game.tile(),
+            prayer: Skills.effective('prayer'),
+            attack: Skills.level('attack'),
             freeSlots: Inventory.free()
         };
     }
@@ -603,7 +687,7 @@ export class QuestEngine implements Task {
         for (const name of skillNames) {
             skillLevels.set(name, Skills.level(name));
         }
-        // Why: what the account has finished is read from every known quest, not only the ones with a module. A prerequisite whose own quest has no module yet — Biohazard ahead of Underground Pass — would otherwise be unsatisfiable, and the quest it gates would report BLOCKED forever.
+        // Why: what the account has finished is read from every known quest, not only the ones with a module. A prerequisite whose own quest has no module yet, such as Biohazard ahead of Underground Pass or Heroes' Quest ahead of Legends, would otherwise be unsatisfiable, and the quest it gates would report BLOCKED forever.
         const completedQuests = new Set<string>();
         for (const r of QUESTS) {
             if (Quests.status(r.name) === 'complete') {
@@ -625,7 +709,7 @@ export class QuestEngine implements Task {
             const key = name.toLowerCase();
             counts.set(key, Inventory.count(name) + (this.lastBankCounts.get(key) ?? 0));
         }
-        return { counts };
+        return { counts, bankKnown: this.bankKnown };
     }
 
     private refreshBankCounts(acceptSettledEmpty = false): void {

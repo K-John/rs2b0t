@@ -100,7 +100,7 @@ describe('parseEadgarJournal', () => {
     });
 
     // Why: every later entry keeps every struck-through line, so a phrase that first appears
-    // at stage 60 is still in the text at stage 100 — the newest phrase has to win.
+    // at stage 60 is still in the text at stage 100, the newest phrase has to win.
     test('the newest phrase wins over every earlier one it still carries', () => {
         const late = OPENED + COOK + PLAN + PARROT + HIDDEN + GAVE + POTION + FETCHED + FAKE_MAN + BURNT + UNLOCKED;
         expect(late).toContain('I hid the parrot under the rack');

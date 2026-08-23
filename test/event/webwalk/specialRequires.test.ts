@@ -71,7 +71,7 @@ describe('specialRequiresAt — guild skill gates (content-backed)', () => {
     test('outer island ropeswings need agility 10; softlock swing does not', () => {
         expect(specialRequiresAt(2709, 3209, 0)?.skills).toEqual([{ name: 'agility', level: 10 }]);
         expect(specialRequiresAt(2511, 3091, 0)?.skills).toEqual([{ name: 'agility', level: 10 }]);
-        // tree_ropeswing2 — content skips level check to prevent island softlock
+        // tree_ropeswing2, content skips level check to prevent island softlock
         expect(specialRequiresAt(2705, 3205, 0)).toBeUndefined();
     });
 });

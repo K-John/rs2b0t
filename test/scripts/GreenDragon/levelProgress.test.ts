@@ -3,7 +3,7 @@ import { describe, expect, test } from 'bun:test';
 import { etaHours, levelProgress, xpAtLevel } from '#/bot/scripts/GreenDragon/levelProgress.js';
 
 describe('xpAtLevel', () => {
-    // Pinned against the published curve — a generated table is only trustworthy
+    // Pinned against the published curve, a generated table is only trustworthy
     // if its well-known values are asserted.
     test('matches the known experience table', () => {
         expect(xpAtLevel(1)).toBe(0);

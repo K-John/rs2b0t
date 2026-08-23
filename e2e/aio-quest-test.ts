@@ -1,11 +1,11 @@
 // Live AIOQuester harness: [base] [user] [questsCsv] [minutes] [giveCsv] [statsCsv] [food] [cheatsCsv] [tele].
-// Why: giveCsv takes engine debug names (bronze_pickaxe) through give/givebank — content `~item` no-ops silently behind the busy guard.
+// Why: giveCsv takes engine debug names (bronze_pickaxe) through give/givebank, content `~item` no-ops silently behind the busy guard.
 
 // Usage:
 //   HEADED=1 bun e2e/aio-quest-test.ts \
 //     [base] [user] [questsCsv] [minutes] [giveCsv] [statsCsv] [food] [cheatsCsv] [tele]
 
-// Ideal (inventory pre-loaded, max stats) — mid-quest smoke only (proven PASS):
+// Ideal (inventory pre-loaded, max stats), mid-quest smoke only (proven PASS):
 //   HEADED=1 bun e2e/aio-quest-test.ts http://localhost:8890 ew1 elemental_workshop 15 \
 //     'knife:1,hammer:1,bronze_pickaxe:1,thread:1,leather:1,needle:1,coal:4,lobster:15,steel_scimitar:1' \
 //     max Lobster 'speed 300' '2716,3481'
@@ -39,7 +39,7 @@ const budgetMin = Number(args[3]) || 25;
 const giveCsv = (args[4] || '').trim();
 const statsCsv = (args[5] || '').trim();
 const foodSetting = (args[6] || '').trim();
-/** Raw debugprocs (not ~maxme — use statsCsv=max). e.g. `speed 300`. */
+/** Raw debugprocs (not ~maxme, use statsCsv=max). e.g. `speed 300`. */
 const cheatsCsv = (args[7] || '').trim();
 /** World `x,z[,level]` or engine `level,mx,mz,lx,lz`. */
 const teleArg = (args[8] || '').trim();

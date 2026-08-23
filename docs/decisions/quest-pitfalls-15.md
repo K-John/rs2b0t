@@ -7,7 +7,7 @@ Ten, and the first three are about doors the graph should never have owned.
 - **The route the guide describes and the route the map allows can disagree by a building.**
   Every baked path to the mourners' cauldron ran in one headquarters door and
   out the other, and both are locked until the stew in that cauldron is poisoned. The way
-  in is `mournerstewfence` at (2541,3331), a `Climb-over` railing with no `Open` op — so
+  in is `mournerstewfence` at (2541,3331), a `Climb-over` railing with no `Open` op, so
   `derive-doors` never saw it and `derive-stairs` never looks at fences. A quest whose
   first step is unreachable is a missing *transport*, not a missing door.
 - **Refusing a door is a decision about a region, not about a loc.** With
@@ -22,7 +22,7 @@ Ten, and the first three are about doors the graph should never have owned.
   itself, on both legs.
 - **A stand tile the pack says is reachable can still be unreachable, because NPCs block.**
   The headquarters corridor is where the mourners themselves stand, and one on the tile the
-  walker is clicking makes the *client's* own path search fail — every repath, every pass,
+  walker is clicking makes the *client's* own path search fail, every repath, every pass,
   four tiles short, with the distillator already in the pack. A hand-rolled
   `walkResilient(tile, radius 0)` then `interact` has no answer for that; `Reach.locOp` does,
   and it operates a wall door from either side of its edge rather than from one named tile.
@@ -37,7 +37,7 @@ Ten, and the first three are about doors the graph should never have owned.
 - **Three unreadable bits decide who ruined which vial.** `%bioerrand` is `scope=perm`
   with no transmit, so which errand boy holds which vial is not state to branch on. The
   pack is the oracle: vials in hand outside the quarter go to the boys, vials missing
-  inside it come back from the inn. What that cannot express — a boy who drank his — is
+  inside it come back from the inn. What that cannot express, a boy who drank his, is
   recovered by walking out to Elena, who reissues on `inv_total(inv, …) = 0` and so does
   not care what the bank holds.
 - **Two objects that share a display name are the rule in this quest, not the exception.**
@@ -49,7 +49,7 @@ Ten, and the first three are about doors the graph should never have owned.
   returns three vials and the sample one at a time after taking the distillator, and a
   pack with three free silently loses the last. The leg banks down to six first.
 - **The bundle race has a quiet half.** `public/bot` is shared, and a concurrent deploy
-  that lands during boot replaces `navworker.js` as well as `botclient.js` — the client
+  that lands during boot replaces `navworker.js` as well as `botclient.js`, the client
   still prints this quest's queue while routing on somebody else's graph, so the assertion
   that catches a stolen `botclient.js` passes and the new transport reads as broken. Three
   runs died on that here. `deployIsolatedClient` removes the race rather than detecting it,

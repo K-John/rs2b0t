@@ -15,7 +15,7 @@ const WEAKENS = /chronozon weakens/i;
 const POISONED = /you have been poisoned/i;
 
 // Why: this is the south end of the chamber, two tiles clear of the furthest south the demon's 3x3 body can stand, on an open x=3089 column that keeps line of sight north to it.
-// Why: the east alcove at (3092,9940) is an equally good safespot from the demon and a bad one in practice — the poison spiders spawn at z 9943-9945 with `wanderrange=10`, `maxrange=12`, which puts that alcove three to five tiles inside their roam.
+// Why: the east alcove at (3092,9940) is an equally good safespot from the demon and a bad one in practice, the poison spiders spawn at z 9943-9945 with `wanderrange=10`, `maxrange=12`, which puts that alcove three to five tiles inside their roam.
 // Why: down here the nearest spider spawn is eleven to thirteen away, at or past their limit.
 // Why: derived by `tools/nav/chronozon-safespot.ts` over every 3x3 placement the demon can slide between, every tile those placements touch, and the walkable remainder.
 // Why: that remainder is intersected with the chamber's own component, as the west passage that looks ideal on the map is a sealed island and the corridor north of the gates is behind a gate that blocks the cast (three live casts from there never landed).
@@ -32,7 +32,7 @@ const SAFESPOT_PROBE_CASTS = 3;
 export const BLASTS = ['Wind blast', 'Water blast', 'Earth blast', 'Fire blast'] as const;
 
 // Why: the antipoison is drunk on the way out rather than on arrival.
-// Why: a dose sets `%poison = min(%poison, -5)`, a cure plus a short immunity window, so spending it on arrival spends it on the fight — and the safespot is eleven tiles clear of the spiders' roam.
+// Why: a dose sets `%poison = min(%poison, -5)`, a cure plus a short immunity window, so spending it on arrival spends it on the fight, and the safespot is eleven tiles clear of the spiders' roam.
 // Why: the poison is taken crossing the gate tiles, and what it threatens is the long walk home on whatever food the demon left, which is where a run died.
 // Why: `%poison` is `scope=perm` with no transmit, so the bot cannot read whether it is poisoned and the tell is the server's "You have been poisoned!" line.
 // Why: the drink is rate-limited so a retried step does not drink the potion dry.
@@ -114,7 +114,7 @@ async function walkToChronozon(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => chronozon() !== null, 60_000);
 }
 
-// Why: killing it before all four blasts have landed is harmless — `ai_queue3` heals it to full and sets it back on the player instead of letting it die.
+// Why: killing it before all four blasts have landed is harmless, `ai_queue3` heals it to full and sets it back on the player instead of letting it die.
 // Why: that is also why the loop below never has to protect its damage output.
 
 /** Land one of each elemental blast, then finish the demon. */
@@ -127,7 +127,7 @@ export async function fightChronozon(log: (m: string) => void): Promise<boolean>
 }
 
 async function runFight(log: (m: string) => void): Promise<boolean> {
-    // Why: auto-retaliate breaks a safespot — the spiders on the gate tiles attack, the bot swings back, and walks itself off the alcove into the demon's reach.
+    // Why: auto-retaliate breaks a safespot, the spiders on the gate tiles attack, the bot swings back, and walks itself off the alcove into the demon's reach.
     Game.setAutoRetaliate(false);
 
     // Why: the walk targets the safespot rather than the demon, as `walkToChronozon` closes to within four tiles, which is inside its reach.
@@ -181,7 +181,7 @@ async function runFight(log: (m: string) => void): Promise<boolean> {
                 safespot = false;
             }
             if (!safespot && !onSafespot() && !landed) {
-                // Why: abandoning the spot has to move, as whatever stopped the casts landing — a gate in the way — still stops them from here.
+                // Why: abandoning the spot has to move, as whatever stopped the casts landing, a gate in the way, still stops them from here.
                 await walkToChronozon(log);
             }
         }

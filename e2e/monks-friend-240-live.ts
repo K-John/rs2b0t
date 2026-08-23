@@ -1,5 +1,5 @@
 /** Live Monk's Friend harness (#240): --stage N --until N --minutes N, base :8890.
- *  Why: `--stage` is the raw `%drunkmonkquest` value and relogs after seeding it, because `update_questlist` only recolours the list at login — and the same login script re-arms the `blanket_ladder` timer, which is what puts the hidden ladder back inside the ring of stones.
+ *  Why: `--stage` is the raw `%drunkmonkquest` value and relogs after seeding it, because `update_questlist` only recolours the list at login, and the same login script re-arms the `blanket_ladder` timer, which is what puts the hidden ladder back inside the ring of stones.
  *  Why: stats are 70 and the bank holds coins and food alone, so the jug, the sink, the axe and the logs are all sourced in the world. */
 
 //   HEADED=1 bun e2e/monks-friend-240-live.ts --stage 0 --until 80 --minutes 45 --tick 200
@@ -77,7 +77,7 @@ const STAGES = [0, 10, 20, 30, 40, 50, 60, 70, 80];
 
 /**
  * Coins and food only. The jug comes from Port Khazard's general store, the water
- * from the guardhouse sink, the axe from Aemad's and the logs from a forest tree —
+ * from the guardhouse sink, the axe from Aemad's and the logs from a forest tree,
  * banking any of them would hide whether the bot can find its own.
  */
 const BANK_SEED: BankSeedItem[] = [
@@ -129,7 +129,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph compiles into navworker.js, a separate entrypoint, deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {
@@ -218,7 +218,7 @@ try {
     let queueChecked = false;
     while (Date.now() < deadline) {
         const last = await snapshot(page);
-        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch — and a queue without Monk's Friend in it spends the budget on somebody else's quest.
+        // Why: the engine serves one bundle to everyone, so a session that deploys between this deploy and the page load hands the run its own branch, and a queue without Monk's Friend in it spends the budget on somebody else's quest.
         const queue = last.logs.find(l => l.msg.startsWith('AIOQuester — queue:'));
         if (!queueChecked && queue) {
             queueChecked = true;
@@ -238,7 +238,7 @@ try {
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
-        // Why: a full run waits for the list to go green rather than the varp — the recolour and the QP award land a tick behind %drunkmonkquest.
+        // Why: a full run waits for the list to go green rather than the varp, the recolour and the QP award land a tick behind %drunkmonkquest.
         const done = args.until >= 80 ? last.status === 'complete' : stage >= args.until;
         if (done) {
             console.log(`PASS (stage=${stage}, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);

@@ -38,7 +38,7 @@ const STAGES: readonly [string, number][] = [
     ['i can start this quest by speaking to', GRAIL_STAGE.NOT_STARTED]
 ];
 
-// Why: no flags — beating the titan never moves the varp and never prints a line at the stage it happens on, so the crossing is read from where the player is standing, and everything else the quest branches on is an item.
+// Why: no flags, beating the titan never moves the varp and never prints a line at the stage it happens on, so the crossing is read from where the player is standing, and everything else the quest branches on is an item.
 
 export function parseHolyGrailJournal(lines: readonly string[] | string): QuestProgress | undefined {
     const text = normalize(lines);

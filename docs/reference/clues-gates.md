@@ -24,11 +24,11 @@ The recurring causes are worth knowing, because they affect more than clues:
   climb-*in*, so the area was unreachable. Fixed for the Lumbridge cellar and
   the Varrock manhole; other cellars likely have the same gap.
 - **Double doors and gates are not derived.** `derive-doors` emits single
-  `WALL_STRAIGHT` doors, so paired gates — the Varrock sewer gates, the West
-  Ardougne wall — leave regions islanded.
+  `WALL_STRAIGHT` doors, so paired gates, the Varrock sewer gates, the West
+  Ardougne wall, leave regions islanded.
 - **Item-gated crossings.** Entering the Kharidian desert southbound consumes a
-  Shantay pass (edge is baked; `SolveClue.bankFirst` keeps/withdraws one — #371,
-  and a leg that still comes up short buys one — see [Crossing tolls](clues-mechanics.md#crossing-tolls)).
+  Shantay pass (edge is baked; `SolveClue.bankFirst` keeps/withdraws one, #371,
+  and a leg that still comes up short buys one, see [Crossing tolls](clues-mechanics.md#crossing-tolls)).
   Offline pack audit still treats desert as closed without virtual WorldState.
 
 ## See also

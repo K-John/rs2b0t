@@ -22,7 +22,7 @@ import { combine, gatherAxe, gatherKnife, gatherShark, heldId, talkUntil, walkTo
 const TRIAL_WON = /completed the Bard's Trial/i;
 
 // Why: Askeladden only parts with a pet rock once Lalli has named him, and no journal line separates those two states.
-// Why: the latch is process state on purpose — a fresh session re-asks Lalli, which the content treats as a no-op.
+// Why: the latch is process state on purpose, a fresh session re-asks Lalli, which the content treats as a no-op.
 let lalliAsked = false;
 
 export function resetBardLatch(): void {

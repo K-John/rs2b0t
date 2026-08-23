@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Sheep Herder — stage-scoped harness
+## Sheep Herder, stage-scoped harness
 
 [`e2e/sheep-herder-260-live.ts`](../../e2e/sheep-herder-260-live.ts) drives the quest
 from a clean account or from any point inside it. `--stage N` sets `%sheepherderquest`,
@@ -17,7 +17,7 @@ HEADED=1 bun e2e/sheep-herder-260-live.ts --stage 2 --done 3 --until 4 --minutes
 ```
 
 Measured at `--tick 300`, no parks: **11 and 20 minutes** for two clean-account runs, and
-5 minutes for `--done 3`. The spread is the sheep rather than the bot — each one walks
+5 minutes for `--done 3`. The spread is the sheep rather than the bot, each one walks
 back toward its own spawn between prods, so a leg that costs 37 pushes on one run costs
 255 on another.
 
@@ -33,7 +33,7 @@ Four details govern this harness:
   inside the enclosure, the feed comes from Halgrive and the suit from Orbon; seeding any
   of them hides whether the bot can source it.
 - **`--stats 70` is the default and the quest needs none of it.** There is no combat here
-  at all — the levels are for the walk through Ardougne rather than the quest.
+  at all, the levels are for the walk through Ardougne rather than the quest.
 
 It is members-only, so it needs the `:8890` world; the `:8888` sim answers neither
 `givebank` nor `~bankitem` either.
@@ -43,7 +43,7 @@ It is members-only, so it needs the `:8890` world; the `:8888` sim answers neith
 Two harnesses, because one account cannot finish the quest.
 
 [`e2e/shield-of-arrav-232-live.ts`](../../e2e/shield-of-arrav-232-live.ts) drives one gang
-side. Two varps, seeded one at a time — `~completequests` opens a gang-choice dialog
+side. Two varps, seeded one at a time, `~completequests` opens a gang-choice dialog
 nothing answers and completes nothing:
 
 ```
@@ -51,13 +51,20 @@ nothing answers and completes nothing:
 --phoenix N --blackarm N  seed both varps, then relog
 --until N                 target varp value
 --want-half               assert a Broken shield lands in the pack instead
+--keep-half               seed the half and the key into the pack, assert neither is banked
 ```
 
 `--want-half` exists because the half-farming legs move no varp: the chest and the
 cupboard hand over an object and nothing else changes. Asserting the varp there passes
 before the leg has run.
 
-It must **not** assert `journal === 'complete'` — a lone account can never redeem. At
+`--keep-half` is the resumed-session shape, and it needs a joined varp (`--phoenix 9` or
+`--blackarm 23`). It seeds `arravshield1`/`arravshield2` and `phoenixkey2` straight into
+the pack with the `~item` debugproc, fails the moment the half leaves it, and passes on the
+first park. Both the chest and `~obj_gettotal` count the bank, so a half or key that reaches
+a booth is gone for the run: this is the only mode that catches a generic pack sweep.
+
+It must **not** assert `journal === 'complete'`, a lone account can never redeem. At
 `--gang blackarm --blackarm 2` it seeds a `phoenixkey2` into the bank and says so: only
 Straven issues one, and joining Phoenix makes Katrine refuse you, so that stage is not
 self-sufficient by construction.
@@ -73,13 +80,17 @@ cross-contaminates the two bots. PASS wants all four: `phoenixgang = 10`,
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)
 - [Quest harness recipes (Big)](quest-harness-recipes-17.md)
 - [Quest harness recipes (Dig)](quest-harness-recipes-15.md)
-- [Quest harness recipes (E)](quest-harness-recipes-4.md)
-- [Quest harness recipes (F)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Ea)](quest-harness-recipes-22.md)
+- [Quest harness recipes (El–Er)](quest-harness-recipes-4.md)
+- [Quest harness recipes (Fam–Figh)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Fis)](quest-harness-recipes-21.md)
 - [Quest harness recipes (Fre)](quest-harness-recipes-18.md)
 - [Quest harness recipes (G)](quest-harness-recipes-11.md)
 - [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
 - [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
+- [Quest harness recipes (Leg)](quest-harness-recipes-20.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)
 - [Quest harness recipes (N–O)](quest-harness-recipes-14.md)
 - [Quest harness recipes (P–R)](quest-harness-recipes-5.md)

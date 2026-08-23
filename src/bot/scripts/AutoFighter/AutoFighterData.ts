@@ -24,6 +24,19 @@ export function autoBankEnabled(mode: string): boolean {
     return mode.trim().toLowerCase() === 'auto';
 }
 
+/** CowKiller-style timed bank: Auto banking, a positive interval, loot in the pack, and the timer elapsed. */
+export function shouldBankAfterMinutes(
+    autoBank: boolean,
+    everyMinutes: number,
+    minutesSinceLastBank: number,
+    lootCount: number
+): boolean {
+    if (!autoBank || everyMinutes <= 0 || lootCount <= 0) {
+        return false;
+    }
+    return minutesSinceLastBank >= everyMinutes;
+}
+
 export function isBurialBone(name: string | null): boolean {
     return name?.trim().toLowerCase() === BURIAL_BONE_NAME.toLowerCase();
 }

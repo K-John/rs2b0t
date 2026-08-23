@@ -69,12 +69,12 @@ const LADDER_BASE = new Tile(3310, 3509, 0);
 const LADDER_TOP = new Tile(3310, 3509, 1);
 const CAT_STAND = new Tile(3306, 3512, 1);
 
-// Why: this is the one tile the server routes to from every crate, the ladder and the fence alike — aim anywhere else from beside a crate and the walk is refused in silence.
+// Why: this is the one tile the server routes to from every crate, the ladder and the fence alike, aim anywhere else from beside a crate and the walk is refused in silence.
 
 /** The yard's hub: every leg inside it starts and ends here. */
 const YARD_HUB = new Tile(3305, 3504, 0);
 
-// Why: the sixth crate sits in the corner behind the yard's shed, and the route round it is long enough that the server's own finder gives up and walks the character to the closest tile it liked — nine tiles short, with no refusal.
+// Why: the sixth crate sits in the corner behind the yard's shed, and the route round it is long enough that the server's own finder gives up and walks the character to the closest tile it liked, nine tiles short, with no refusal.
 // Why: it is searched first for the same reason, since the walk in is only reliable from the open ground by the fence and not from the tile the previous crate leaves the character on.
 
 /** Waypoints into and back out of that corner, each a leg short enough for the server to route in one go. */
@@ -106,7 +106,7 @@ const FOUND_NOTHING = /you find nothing/i;
 const CRATE_SEARCH_MS = 30_000;
 
 // Why: `npc_find` measures the brothers against each other, not against us, and both wander two tiles from their own spawn.
-// Why: the check runs four chat lines into the conversation, so the gap has to start well inside the script's own limit of 3 — at 2 the pair drifted out of range on two attempts in three.
+// Why: the check runs four chat lines into the conversation, so the gap has to start well inside the script's own limit of 3, at 2 the pair drifted out of range on two attempts in three.
 
 /** How close the brothers must stand before the dialogue is opened. */
 const BROTHER_GAP = 1;
@@ -176,7 +176,7 @@ function inYard(t: { x: number; z: number; level: number }): boolean {
     return t.level === 0 && t.x >= 3288 && t.x <= 3327 && t.z >= 3494 && t.z <= 3527;
 }
 
-// Why: the yard's inner walls leave the walk south unplannable from the tiles the crate legs end on — the walker spent five repaths clicking the fence approach from nine tiles away and never moved.
+// Why: the yard's inner walls leave the walk south unplannable from the tiles the crate legs end on, the walker spent five repaths clicking the fence approach from nine tiles away and never moved.
 /** Walk back to the fence side, which is where a route out of the yard can be planned from. */
 async function leaveYard(log: (m: string) => void): Promise<boolean> {
     if (!(await climbDownToYard(log))) {
@@ -272,7 +272,7 @@ function offerToCat(objId: number, what: string): (log: (m: string) => void) => 
             await Traversal.walkResilient(CAT_STAND, { radius: 2, attempts: 2, timeoutMs: 30_000, log });
             await settleScene();
         }
-        // Why: the first use lands while the ladder still has the character delayed, where the engine drops it — and a dropped use is indistinguishable from a refused one.
+        // Why: the first use lands while the ladder still has the character delayed, where the engine drops it, and a dropped use is indistinguishable from a refused one.
         for (let attempt = 0; attempt < OFFER_ATTEMPTS && !gone(); attempt++) {
             const cat = findCat();
             const held = Inventory.items().find(item => item.id === objId);
@@ -295,7 +295,7 @@ function offerToCat(objId: number, what: string): (log: (m: string) => void) => 
 }
 
 // Why: the kitten leaves the pack six ticks before the hand-over cutscene ends, so the wait that watches the pack returns while Fluffs is still walking home.
-// Why: a character left holding the closing mesbox cannot move at all — the walker spent a hundred seconds clicking three tiles away and never took a step.
+// Why: a character left holding the closing mesbox cannot move at all, the walker spent a hundred seconds clicking three tiles away and never took a step.
 async function settleCutscene(log: (m: string) => void): Promise<void> {
     await Execution.delayTicks(CUTSCENE_TICKS);
     await driveUntil(() => !ChatDialog.isOpen() && !ChatDialog.canContinue(), [], log, 15_000);
@@ -354,7 +354,7 @@ async function searchCrate(spot: Tile, found: () => boolean, log: (m: string) =>
     await driveUntil(() => found() || GameMessages.sawSince(mark, FOUND_NOTHING), [], log, CRATE_SEARCH_MS);
 }
 
-// Why: this runs the tick after Gerrant's shop closes, and a shop screen that has not finished shutting swallows the use with no refusal — the pack is untouched and the wait times out.
+// Why: this runs the tick after Gerrant's shop closes, and a shop screen that has not finished shutting swallows the use with no refusal. The pack is untouched and the wait times out.
 async function seasonSardine(log: (m: string) => void): Promise<boolean> {
     const seasoned = (): boolean => heldId(FLUFFS_OBJ.seasonedSardine) > 0;
     for (let attempt = 0; attempt < SEASON_ATTEMPTS && !seasoned(); attempt++) {
@@ -450,7 +450,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             }
             return { kind: 'custom', name: 'buy the play area out of Shilop', run: payBrothers };
         }
-        // Why: the sardine is fetched on the milk leg too — its shop and its herb are both on the way out, and coming back for them is a second lap of the map.
+        // Why: the sardine is fetched on the milk leg too, its shop and its herb are both on the way out, and coming back for them is a second lap of the map.
         case FLUFFS_STAGE.PAID_BOY: {
             const sardine = gatherSeasonedSardine(snap);
             if (sardine !== null) { return sardine; }

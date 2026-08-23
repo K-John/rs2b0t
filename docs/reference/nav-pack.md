@@ -10,7 +10,7 @@ needs the map, so collision is **baked ahead of time** from an engine's data by
 The pack is built from *the engine you are deploying into*
 ([`tools/deploy-local.sh`](../../tools/deploy-local.sh) does it on first run), so it
 matches that server's map. The **map tile picker** uses the same pack for its
-walkable overlay (and a separately baked worldmap basemap for decoration) — see
+walkable overlay (and a separately baked worldmap basemap for decoration), see
 [Map tile picker](../MAP-PICKER.md).
 
 Alongside the raw collision the pack carries a graph of traversal edges that plain
@@ -28,7 +28,7 @@ collision cannot express:
 There is a **single** door/transport/travelCatalog graph and a **single** executor
 (`WalkExecutor` + `exec/`). Live walks snapshot WorldState so skill/quest/coin gates
 fail closed when the player cannot use them. Offline / no-state path finds **fail open**
-on requires (pack-tool parity — ships and skill doors still expand).
+on requires (pack-tool parity, ships and skill doors still expand).
 
 Multi-level routing is therefore a **data** property, not an algorithm one: the
 executor already knows how to climb, and gains a new route the moment an edge for it
@@ -38,11 +38,11 @@ So is *same-level* routing, wherever the link is an Agility shortcut. `derive-do
 only sees doors, so a balance log or a climbable outcrop leaves two regions looking
 disconnected however open they are in game. Southern Karamja was the extreme case:
 the 6,193-tile jungle holding the Ah Za Rhoon mound and Rashiliyia's tomb, and all of
-Cairn Isle, were unreachable from anywhere until four `kind: "dungeon"` edges — a
-wooden log and a set of climbing rocks — were curated in. When a quest reports a stand
+Cairn Isle, were unreachable from anywhere until four `kind: "dungeon"` edges, a
+wooden log and a set of climbing rocks, were curated in. When a quest reports a stand
 tile as `pathable-from=[nothing]`, look for the shortcut before touching the walker.
 
-A pack-less checkout is a silent failure mode — the navigator has nothing to search,
+A pack-less checkout is a silent failure mode. The navigator has nothing to search,
 so every route fails rather than erroring loudly.
 
 ## See also

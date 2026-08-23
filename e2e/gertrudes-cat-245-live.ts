@@ -1,6 +1,6 @@
 /** Live Gertrude's Cat harness (#245): --stage N --until N --minutes N, base :8890.
  *  Why: `--stage` writes `%fluffs` directly and relogs, since update_questlist only recolours the list at login.
- *  Why: a jump to stage 4 also writes `%fluffs_crate`, the server-side coord the client cannot see — it is seeded to the LAST crate the module searches, so the leg still proves all six.
+ *  Why: a jump to stage 4 also writes `%fluffs_crate`, the server-side coord the client cannot see. It is seeded to the LAST crate the module searches, so the leg still proves all six.
  *  Why: the bank holds coins and food alone, so the milk, the doogle leaves and the sardine are all sourced in the world. */
 
 //   HEADED=1 bun e2e/gertrudes-cat-245-live.ts --stage 0 --until 6 --minutes 60 --tick 200
@@ -139,7 +139,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 
 const ENGINE_DIR = process.env.ENGINE_DIR ?? `${homedir()}/code/rs2b2t-engine`;
 
-// Why: `build:bot` does not bake the collision pack, and `deployIsolatedClient` refuses without it — building it here keeps the run a single command.
+// Why: `build:bot` does not bake the collision pack, and `deployIsolatedClient` refuses without it, building it here keeps the run a single command.
 function bakeCollision(): void {
     if (existsSync('out/collision.lcnav.gz')) {
         return;
@@ -155,7 +155,7 @@ if (args.stage < 0 || args.stage > 5) {
     fail('--stage writes %fluffs and runs 0 (not started) to 5 (rescued)');
 }
 
-// Why: `bot.html` hardcodes one bundle path, so a concurrent session's deploy decides what this run executes — a copy per run removes the race instead of detecting it.
+// Why: `bot.html` hardcodes one bundle path, so a concurrent session's deploy decides what this run executes, a copy per run removes the race instead of detecting it.
 let isolated: IsolatedClient | null = null;
 if (args.deploy) {
     bakeCollision();
@@ -247,7 +247,7 @@ try {
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
-        // Why: a full run waits for the list to go green rather than the varp — the recolour and the QP award land a tick behind %fluffs.
+        // Why: a full run waits for the list to go green rather than the varp, the recolour and the QP award land a tick behind %fluffs.
         const done = args.until >= 6 ? last.status === 'complete' : stage >= args.until;
         if (done) {
             console.log(`PASS (fluffs=${stage}/6, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);

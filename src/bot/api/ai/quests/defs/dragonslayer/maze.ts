@@ -9,8 +9,8 @@ import Tile from '../../../../../geometry/Tile.js';
 import { DS_ID } from './areas.js';
 
 // Why: Melzar's Maze is written as a fixed list of legs, and the route is the shortest path the baked collision pack admits from the front door to the chest once each coloured door is opened in key order.
-// Why: locs are addressed by exact tile and NPCs by exact id, as the maze is full of decoys — six ordinary Giant rats share the one that drops the red key, and eleven unclimbable "Ladder"s share a name with the three that work.
-// Why: a key does not open a door in place — `open_and_close_door` teleports the player through and eats the key, so a leg is done when the key is gone and the player has landed on the far side.
+// Why: locs are addressed by exact tile and NPCs by exact id, as the maze is full of decoys, six ordinary Giant rats share the one that drops the red key, and eleven unclimbable "Ladder"s share a name with the three that work.
+// Why: a key does not open a door in place, `open_and_close_door` teleports the player through and eats the key, so a leg is done when the key is gone and the player has landed on the far side.
 
 /** Only these ids drop keys; the same-named neighbours never do. */
 export const MAZE_NPC = {
@@ -141,7 +141,7 @@ async function killFor(leg: MazeLeg & { kind: 'kill' }, log: (m: string) => void
         return false;
     }
     // Why: every floor of this maze is stocked with aggressive same-named monsters that never drop a key.
-    // Why: Game.inCombat() reads our own health bar, so one of them landing a hit would park this leg forever — only being locked onto the right NPC is a reason to wait.
+    // Why: Game.inCombat() reads our own health bar, so one of them landing a hit would park this leg forever, only being locked onto the right NPC is a reason to wait.
     if (target.targetsMe()) {
         await Execution.delayTicks(2);
         return heldById(leg.keyId);
@@ -269,7 +269,7 @@ function legDone(leg: MazeLeg, here: { x: number; z: number; level: number }): b
     }
 }
 
-// Why: Melzar's Maze is one-way — every ladder in is broken from below and every coloured key is spent.
+// Why: Melzar's Maze is one-way, every ladder in is broken from below and every coloured key is spent.
 // Why: the only way back out of the chest room is the cellar ladder in the north-east, then the `funexit` door, which opens from the inside only, and finally the front door.
 // Why: the maze key still opens that front door, as it was never consumed.
 

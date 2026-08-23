@@ -1,5 +1,6 @@
 import Tile from '../../../../../geometry/Tile.js';
 import type { NpcStop } from '../../exec/primitives.js';
+import { CATHERBY_RANGE } from '../../../../../data/cookingRanges.js';
 
 export const OBS_QUEST = 'Observatory Quest';
 
@@ -46,7 +47,7 @@ export const OBS_ITEM = {
     BRONZE_PICKAXE: 'Bronze pickaxe'
 } as const;
 
-/** Three planks, one bar, one glass — the professor counts each hand-over himself. */
+/** Three planks, one bar, one glass, the professor counts each hand-over himself. */
 export const PLANKS_NEEDED = 3;
 
 // Why: eight of the cavern's locs render "Chest" and six of them are `shutdungeonchest`, which spawns a poisonous spider on Search, so every lookup down here is by id.
@@ -71,7 +72,7 @@ export const OBS_LOC_NAME = {
     FURNACE: 'Furnace'
 } as const;
 
-// Why: the reception, the cavern and the dome are three pockets of one map — the dome is walled off from the surface, so its only door is the cavern below it.
+// Why: the reception, the cavern and the dome are three pockets of one map, the dome is walled off from the surface, so its only door is the cavern below it.
 export const OBS_TILE = {
     /** Observatory reception: the professor takes every hand-over here. */
     PROFESSOR: new Tile(2438, 3186, 0),
@@ -82,11 +83,11 @@ export const OBS_TILE = {
 
     /** South of `loc_2197`, the one chest in the cavern that holds the keep key. */
     KEY_CHEST_STAND: new Tile(2428, 9418, 0),
-    /** North of the keep gate — the locked side, and where the goblin guard stands. */
+    /** North of the keep gate, the locked side, and where the goblin guard stands. */
     GATE_NORTH: new Tile(2390, 9458, 0),
     /** South of the gate, inside the keep. */
     GATE_SOUTH: new Tile(2390, 9457, 0),
-    // Why: the keep is one walkable column at x 2390 — a `smashedtable` fills (2389,9455) and the sack itself (2389,9454), so this is the sack's only cardinal neighbour.
+    // Why: the keep is one walkable column at x 2390, a `smashedtable` fills (2389,9455) and the sack itself (2389,9454), so this is the sack's only cardinal neighbour.
     SACK_STAND: new Tile(2390, 9454, 0),
 
     /** Foot of the cavern ladder that climbs into the dome. */
@@ -98,7 +99,7 @@ export const OBS_TILE = {
 
     /** The lone `bucket_sand` spawn, twenty-five tiles east of the reception. */
     SAND_SPAWN: new Tile(2461, 3178, 0),
-    // Why: these two are Horror from the Deep's, already walked live — four plank spawns north-east of the Barbarian Outpost, and the nine-spawn seaweed shore.
+    // Why: these two are Horror from the Deep's, already walked live, four plank spawns north-east of the Barbarian Outpost, and the nine-spawn seaweed shore.
     PLANK_SPAWNS: [
         new Tile(2552, 3574, 0),
         new Tile(2553, 3575, 0),
@@ -109,12 +110,12 @@ export const OBS_TILE = {
 
     /** Copper and tin in one seam; the stand is clear of the rocks themselves. */
     MINE: new Tile(2631, 3146, 0),
-    // Why: `furnace1` is `forceapproach=east` placed at angle 2, so the only legal side is west in world space — the furnace spans (2601-2603,3310-3312).
+    // Why: `furnace1` is `forceapproach=east` placed at angle 2, so the only legal side is west in world space, the furnace spans (2601-2603,3310-3312).
     FURNACE: new Tile(2600, 3310, 0),
-    // Why: every Range is `forceapproach=east` and the two nearer Ardougne ones are placed at angle 2, which puts their legal side inside a house — a use-on from anywhere else is dropped in silence.
-    // Why: this is the Fishing Guild range south of the fence, whose stand the fishing cook loops already prove, and it sits on the walk home from the shore.
-    RANGE_LOC: new Tile(2616, 3396, 0),
-    RANGE_STAND: new Tile(2616, 3395, 0),
+    // Why: Catherby rather than the Fishing Guild range, whose stand sits inside the fence and reports `no path`, and rather than Yanille's, which is 629 tiles from the seaweed shore against Catherby's 284 and then doubles back past Ardougne.
+    // Why: the pair comes from `CATHERBY_RANGE` so the stand cannot drift from the one the cook loops already walk, `useOnLocFrom` stands on it exactly, and a wrong side is dropped in silence.
+    RANGE_LOC: CATHERBY_RANGE.loc,
+    RANGE_STAND: CATHERBY_RANGE.stand,
 
     BANK: new Tile(2655, 3283, 0)
 } as const;
@@ -129,7 +130,7 @@ export const PROFESSOR: NpcStop = {
     ]
 };
 
-/** The dome copy of the professor — the telescope only answers while he is within seven tiles. */
+/** The dome copy of the professor, the telescope only answers while he is within seven tiles. */
 export const PROFESSOR_DOME = 'Observatory professor';
 
 /** Everything the module ever wants to keep through a spillover deposit. */

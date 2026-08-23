@@ -3,7 +3,7 @@ import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { PC_ITEM, PC_TILE, banked, held, type PlagueItem } from './areas.js';
 import { takeFromHouse } from './east.js';
 
-// Why: nobody in this game is called 'Shop keeper' — Shop.open matches the display name of the NPC that owns the stock.
+// Why: nobody in this game is called 'Shop keeper'. Shop.open matches the display name of the NPC that owns the stock.
 export const AEMAD = { npc: 'Aemad', anchor: PC_TILE.AEMAD };
 export const JATIX = { npc: 'Jatix', anchor: PC_TILE.JATIX };
 export const WYDIN = { npc: 'Wydin', anchor: PC_TILE.WYDIN };
@@ -51,7 +51,7 @@ export function reclaim(snap: QuestSnapshot, item: PlagueItem): QuestStep | null
 /** What the rope, pestle and chocolate bar cost between them. */
 const SHOPPING_NEED = ROPE_PRICE + PESTLE_PRICE + CHOCOLATE_PRICE;
 
-// Why: the float is drawn once and spent down, so the trigger is the shopping still to do —
+// Why: the float is drawn once and spent down, so the trigger is the shopping still to do,
 // a purse topped back up to 2000 after every price walks to a bank between each shop.
 function sourcePurse(snap: QuestSnapshot, floor: number, blocking: boolean): QuestStep | null {
     if (held(snap, PC_ITEM.COINS) >= floor) {

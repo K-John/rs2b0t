@@ -90,7 +90,7 @@ export const PC_TILE = {
     REHNISON_TOP: new Tile(2527, 3331, 1),
     MILLI: new Tile(2530, 3331, 1),
     // Why: `check_axis` grants this door's op only while the player's z equals its own, so the
-    // stand is the door's own tile — a tile north answers the wrong branch and opens loc_2536.
+    // stand is the door's own tile, a tile north answers the wrong branch and opens loc_2536.
     PLAGUE_DOOR: new Tile(2533, 3272, 0),
     PLAGUE_DOOR_INSIDE: new Tile(2533, 3271, 0),
     CLERK: new Tile(2529, 3317, 0),

@@ -20,17 +20,17 @@ const DOOR_SKILL_GATES: readonly {
     worn?: { name: string; count: number }[];
     note?: string;
 }[] = [
-    // fishing_guild.rs2 loc_2025 — fishing 68
+    // fishing_guild.rs2 loc_2025, fishing 68
     { x: 2611, z: 3394, level: 0, skill: 'fishing', levelReq: 68 },
     { x: 2611, z: 3398, level: 0, skill: 'fishing', levelReq: 68 },
-    // magic_guild.rs2 — magic 66 (Yanille double doors, both sides)
+    // magic_guild.rs2, magic 66 (Yanille double doors, both sides)
     { x: 2584, z: 3087, level: 0, skill: 'magic', levelReq: 66 },
     { x: 2584, z: 3088, level: 0, skill: 'magic', levelReq: 66 },
     { x: 2597, z: 3087, level: 0, skill: 'magic', levelReq: 66 },
     { x: 2597, z: 3088, level: 0, skill: 'magic', levelReq: 66 },
-    // crafting_guild.rs2 crafting_guild_door — crafting 40
+    // crafting_guild.rs2 crafting_guild_door, crafting 40
     { x: 2933, z: 3289, level: 0, skill: 'crafting', levelReq: 40 },
-    // cooking_guild.rs2 chefdoor — cooking 32 + Chef's hat worn
+    // cooking_guild.rs2 chefdoor, cooking 32 + Chef's hat worn
     {
         x: 3143,
         z: 3444,
@@ -40,13 +40,13 @@ const DOOR_SKILL_GATES: readonly {
         worn: [{ name: "Chef's hat", count: 1 }],
         note: "chef's hat worn"
     },
-    // ranging_guild_door.rs2 — ranged 40 (map loc 2658,3438). doors.json uses loc tile;
-    // transports.json uses diagonal stands — gate both so PathFinder from-tile attach works.
+    // ranging_guild_door.rs2, ranged 40 (map loc 2658,3438). doors.json uses loc tile;
+    // transports.json uses diagonal stands, gate both so PathFinder from-tile attach works.
     { x: 2658, z: 3438, level: 0, skill: 'ranged', levelReq: 40 }
 ];
 
 /**
- * Transport from-tiles (transports.json) with skill gates — same attach path as
+ * Transport from-tiles (transports.json) with skill gates, same attach path as
  * doors via specialRequiresAt(edge.from). Exit ladders (climb-up from cellar) stay open.
  */
 const TRANSPORT_SKILL_GATES: readonly {
@@ -56,14 +56,14 @@ const TRANSPORT_SKILL_GATES: readonly {
     skill: string;
     levelReq: number;
 }[] = [
-    // mining_guild.rs2 miningguildladder — mining 60 to descend into guild
+    // mining_guild.rs2 miningguildladder, mining 60 to descend into guild
     // All four surface from-tiles in transports.json (locId 2113)
     { x: 3018, z: 3340, level: 0, skill: 'mining', levelReq: 60 },
     { x: 3019, z: 3339, level: 0, skill: 'mining', levelReq: 60 },
     { x: 3019, z: 3341, level: 0, skill: 'mining', levelReq: 60 },
     { x: 3020, z: 3340, level: 0, skill: 'mining', levelReq: 60 },
     // Why: skill_agility/shortcuts.rs2 _island_rope_swing needs agility 10 on the outer swings.
-    // Why: tree_ropeswing2 (brim south, from 2705,3205) carries no level check on purpose so players cannot softlock on the island — content reads `loc_type ! tree_ropeswing2`.
+    // Why: tree_ropeswing2 (brim south, from 2705,3205) carries no level check on purpose so players cannot softlock on the island, content reads `loc_type ! tree_ropeswing2`.
     { x: 2709, z: 3209, level: 0, skill: 'agility', levelReq: 10 }, // tree_ropeswing1 north
     { x: 2511, z: 3091, level: 0, skill: 'agility', levelReq: 10 }, // tree_ropeswing3 ogre
     // ranging_guild_door diagonal stands (transports.json from-tiles; loc at 2658,3438)
@@ -71,10 +71,10 @@ const TRANSPORT_SKILL_GATES: readonly {
     { x: 2659, z: 3437, level: 0, skill: 'ranged', levelReq: 40 }
 ];
 
-// Why: these are crossings whose content handler checks a quest varp, keyed by the edge origin — doors by loc tile, transports by `from`, the two ways `specialRequiresAt` is called.
+// Why: these are crossings whose content handler checks a quest varp, keyed by the edge origin, doors by loc tile, transports by `from`, the two ways `specialRequiresAt` is called.
 // Why: without them A* plans a route the player can never walk and the walker only finds out standing at the barrier; seven Morytania clue destinations spent their eight-minute budget at the Paterdomus gate before this existed.
 // Why: the journal is the only quest state on the wire, so a stage check maps to `started` or `complete` and never finer.
-// Why: a crossing needing a post-quest step — the Salve barrier wants stage 61, one Drezel conversation past complete — is gated on complete here and unlocked at execute time.
+// Why: a crossing needing a post-quest step, as the Salve barrier wants stage 61 and one Drezel conversation past complete, is gated on complete here and unlocked at execute time.
 // Why: offline probes carry no WorldState, so these fail open and pack-tool parity is unchanged.
 const CROSSING_GATES: readonly {
     x: number;
@@ -89,21 +89,21 @@ const CROSSING_GATES: readonly {
     /** Content script and the stage it tests. */
     note: string;
 }[] = [
-    // area_mausoleum/gates.rs2 — check_priest_peril_gate(^priestperil_find_drezel_key = 5)
+    // area_mausoleum/gates.rs2, check_priest_peril_gate(^priestperil_find_drezel_key = 5)
     { x: 3405, z: 9895, level: 0, quest: 'Priest in Peril', minStatus: 'started', note: 'pip_underground_door1 needs %priestperil >= 5' },
     // check_priest_peril_gate(^priestperil_meet_in_mausoleum = 8)
     { x: 3431, z: 9897, level: 0, quest: 'Priest in Peril', minStatus: 'started', note: 'pip_underground_door2 needs %priestperil >= 8' },
-    // area_mausoleum/holy_barrier.rs2 — %priestperil = ^priestperil_access_holy_barrier (61),
+    // area_mausoleum/holy_barrier.rs2, %priestperil = ^priestperil_access_holy_barrier (61),
     // which is one Drezel conversation past ^priestperil_complete (60).
     { x: 3440, z: 9887, level: 0, quest: 'Priest in Peril', minStatus: 'complete', note: 'pip_underground_wall_side_withportal needs %priestperil = 61' },
-    // quest_elena/sewerpipe.rs2 — %elenaquest >= ^quest_elena_opened_pipe AND the
+    // quest_elena/sewerpipe.rs2, %elenaquest >= ^quest_elena_opened_pipe AND the
     // gas mask *worn* (the pack only asked for one in the pack).
     {
         x: 2530, z: 9703, level: 0, quest: 'Plague City', minStatus: 'started',
         worn: [{ name: 'Gas mask', count: 1 }],
         note: 'plaguesewerpipe needs the mask worn, not carried'
     },
-    // quest_desertrescue.rs2 open_desertcamp_gate — both directions retain the key.
+    // quest_desertrescue.rs2 open_desertcamp_gate, both directions retain the key.
     // The gate itself has no quest-stage check; this remains usable while the quest runs.
     {
         x: 3273,
@@ -140,8 +140,8 @@ const CROSSING_GATES: readonly {
 
 /** Plan-time requires for an edge origin tile. */
 export function specialRequiresAt(x: number, z: number, level: number): TransportRequires | undefined {
-    // A tile can carry more than one gate — the sewer pipe wants Plague City
-    // *and* the gas mask worn — so collect rather than return on the first hit.
+    // A tile can carry more than one gate, the sewer pipe wants Plague City
+    // *and* the gas mask worn, so collect rather than return on the first hit.
     const requires: TransportRequires = {};
     let gated = false;
 
@@ -160,7 +160,7 @@ export function specialRequiresAt(x: number, z: number, level: number): Transpor
             requires.skills = [{ name: sc.requiresSkill.name, level: sc.requiresSkill.level }];
             gated = true;
         }
-        // unlockQuest-only rows (Mort Myre) contribute nothing at plan time — never
+        // unlockQuest-only rows (Mort Myre) contribute nothing at plan time, never
         // attach their freeSlots, or a full pack fails the gate forever.
     }
 

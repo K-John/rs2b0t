@@ -1,4 +1,5 @@
-import { describe, expect, test } from 'bun:test';
+import { beforeEach, describe, expect, test } from 'bun:test';
+import { QuestFood } from '#/bot/api/ai/quests/food.js';
 import {
     WATERFALL_STAGE,
     decide,
@@ -7,7 +8,8 @@ import {
     waterfall,
     waterfallFundingTarget,
     waterfallDungeonEntryReadiness,
-    waterfallArea
+    waterfallArea,
+    sourceFood
 } from '#/bot/api/ai/quests/defs/waterfall.js';
 import Tile from '#/bot/geometry/Tile.js';
 import type { QuestSnapshot, QuestStep } from '#/bot/api/ai/quests/engine/types.js';
@@ -17,6 +19,10 @@ interface ItemSpec {
     name: string;
     stackable?: boolean;
 }
+
+beforeEach(() => {
+    QuestFood.name = 'Trout';
+});
 
 const ITEM = {
     BOOK: { id: 292, name: 'Book on baxtorian' },
@@ -32,9 +38,8 @@ const ITEM = {
     COINS: { id: 995, name: 'Coins', stackable: true },
     ROPE: { id: 954, name: 'Rope' },
     SWORD: { id: 1277, name: 'Bronze sword' },
-    TEA: { id: 1978, name: 'Cup of tea' },
     EMPTY_CUP: { id: 1980, name: 'Empty cup' },
-    BREAD: { id: 2309, name: 'Bread' }
+    FOOD: { id: 333, name: 'Trout' }
 } as const satisfies Record<string, ItemSpec>;
 
 type ItemQty = readonly [ItemSpec, number];
@@ -102,13 +107,13 @@ function snapshot(options: SnapshotOptions = {}): QuestSnapshot {
 
 const START_PACK: readonly ItemQty[] = [
     [ITEM.ROPE, 1],
-    [ITEM.BREAD, 15],
+    [ITEM.FOOD, 8],
     [ITEM.COINS, 992]
 ];
 
 const DUNGEON_PACK: readonly ItemQty[] = [
     [ITEM.ROPE, 1],
-    [ITEM.BREAD, 15],
+    [ITEM.FOOD, 8],
     [ITEM.AMULET, 1],
     [ITEM.FULL_URN, 1],
     [ITEM.AIR_RUNE, 6],
@@ -119,7 +124,7 @@ const DUNGEON_PACK: readonly ItemQty[] = [
 
 const FINAL_PACK: readonly ItemQty[] = [
     [ITEM.ROPE, 1],
-    [ITEM.BREAD, 15],
+    [ITEM.FOOD, 8],
     [ITEM.AMULET, 1],
     [ITEM.FULL_URN, 1],
     [ITEM.COINS, 500]
@@ -243,7 +248,7 @@ describe('journal and exact-stage gates', () => {
             [WATERFALL_STAGE.NOT_STARTED, { inv: START_PACK }, 'talk', 'Almera'],
             [WATERFALL_STAGE.STARTED, { inv: START_PACK }, 'custom', 'board Almera raft and find Hudon'],
             [WATERFALL_STAGE.SPOKEN_TO_HUDON, { inv: START_PACK }, 'custom', 'find and read the Book on Baxtorian'],
-            [WATERFALL_STAGE.READ_BOOK, { inv: [[ITEM.PEBBLE, 1], [ITEM.BREAD, 15]] }, 'custom', 'loot Glarial amulet and urn'],
+            [WATERFALL_STAGE.READ_BOOK, { inv: [[ITEM.PEBBLE, 1], [ITEM.FOOD, 8]] }, 'custom', 'loot Glarial amulet and urn'],
             [WATERFALL_STAGE.ENTERED_TOMB, { inv: DUNGEON_PACK }, 'custom', 'enter Baxtorian Falls'],
             [WATERFALL_STAGE.ENTERED_WATERFALL, { inv: DUNGEON_PACK }, 'custom', 'cross into Baxtorian Falls'],
             [WATERFALL_STAGE.ENTERED_PUZZLE, { inv: DUNGEON_PACK }, 'custom', 'cross into Baxtorian Falls'],
@@ -293,103 +298,47 @@ describe('bank knowledge and one-way areas', () => {
     });
 });
 
-describe('fresh-account travel bootstrap', () => {
+describe('food is refilled at a low mark, not on every bite', () => {
+    // Why: refilling on any shortfall walked the run back to Ardougne for a single fish, and the walker
+    // was still following the route to the falls when the next decision turned it round.
+    const pack = (held: number): QuestSnapshot => snapshot({
+        stage: WATERFALL_STAGE.ENTERED_WATERFALL,
+        inv: [[ITEM.FOOD, held]],
+        bank: [[ITEM.FOOD, 100]]
+    });
+
+    test('a pack above the low mark asks for nothing', () => {
+        for (const held of [8, 7, 6, 5, 4]) {
+            expect(sourceFood(pack(held))).toBeNull();
+        }
+    });
+
+    test('at or under the low mark it refills to the float in one trip', () => {
+        expect(withdrawal(sourceFood(pack(3))!).items).toEqual([{ name: 'Trout', id: 333, qty: 5 }]);
+        expect(withdrawal(sourceFood(pack(0))!).items).toEqual([{ name: 'Trout', id: 333, qty: 8 }]);
+    });
+
+    test('an empty bank parks rather than walking there for nothing', () => {
+        const dry = snapshot({ stage: WATERFALL_STAGE.ENTERED_WATERFALL, inv: [[ITEM.FOOD, 1]], bank: [] });
+        expect(sourceFood(dry)?.kind).toBe('wait');
+    });
+});
+
+describe('coin funding', () => {
     test('reserves the exact observed route home from each funding area', () => {
         expect(waterfallFundingTarget(1472, new Tile(3253, 3420, 0))).toBe(1482);
         expect(waterfallFundingTarget(500, new Tile(2616, 3332, 0))).toBe(570);
     });
 
-    test('scans the safe Varrock East bank from a fresh Lumbridge start', () => {
-        const step = decide(snapshot({
-            stage: WATERFALL_STAGE.NOT_STARTED,
-            bankKnown: false,
-            tile: [3222, 3218]
-        }));
-        expect(step.kind).toBe('scanBank');
-        if (step.kind === 'scanBank') {
-            expect({ x: step.bank?.x, z: step.bank?.z }).toEqual({ x: 3253, z: 3420 });
-        }
-    });
 
-    test('withdraws the full 1472-gp quest budget before the dangerous westbound supply trip', () => {
-        const coins = withdrawal(decide(snapshot({
-            stage: WATERFALL_STAGE.NOT_STARTED,
-            bank: [[ITEM.COINS, 2_000_000]],
-            tile: [3253, 3420]
-        })));
-        expect(coins.items).toEqual([{ name: 'Coins', id: 995, qty: 1472 }]);
-        expect({ x: coins.bank?.x, z: coins.bank?.z }).toEqual({ x: 3253, z: 3420 });
 
-        const tea = decide(snapshot({
-            stage: WATERFALL_STAGE.NOT_STARTED,
-            inv: [[ITEM.COINS, 1472]],
-            bank: [[ITEM.COINS, 1_998_528]],
-            tile: [3253, 3420]
-        }));
-        expect(tea.kind).toBe('buy');
-        if (tea.kind === 'buy') {
-            expect({ item: tea.item, qty: tea.qty, npc: tea.shop.npc, x: tea.shop.anchor.x, z: tea.shop.anchor.z }).toEqual({
-                item: 'Cup of tea',
-                qty: 10,
-                npc: 'Tea seller',
-                x: 3271,
-                z: 3411
-            });
-        }
 
-        const bread = decide(snapshot({
-            stage: WATERFALL_STAGE.NOT_STARTED,
-            inv: [[ITEM.COINS, 1372], [ITEM.TEA, 10]],
-            bank: [[ITEM.COINS, 1_998_528]],
-            tile: [3271, 3411]
-        }));
-        expect(bread.kind).toBe('buy');
-        if (bread.kind === 'buy') {
-            expect({ item: bread.item, qty: bread.qty, npc: bread.shop.npc }).toEqual({
-                item: 'Bread',
-                qty: 15,
-                npc: 'Baker'
-            });
-        }
-    });
 
-    test('earns its whole remaining quest budget when both the fresh pack and bank are empty', () => {
-        const step = decide(snapshot({
-            stage: WATERFALL_STAGE.NOT_STARTED,
-            tile: [3253, 3420]
-        }));
-        expect(step.kind).toBe('custom');
-        expect(customName(step)).toBe('earn 1472 gp for Waterfall supplies');
-    });
-
-    test('retains the later rune fare even when a stage-zero restart is already beside Betty', () => {
-        const step = decide(snapshot({
-            stage: WATERFALL_STAGE.NOT_STARTED,
-            tile: [3012, 3259]
-        }));
-        expect(customName(step)).toBe('earn 1312 gp for Waterfall supplies');
-    });
-
-    test('self-funds only the remaining shortage after exhausting a small bank stack', () => {
-        const withdrawalStep = withdrawal(decide(snapshot({
-            stage: WATERFALL_STAGE.NOT_STARTED,
-            bank: [[ITEM.COINS, 500]],
-            tile: [3253, 3420]
-        })));
-        expect(withdrawalStep.items).toEqual([{ name: 'Coins', id: 995, qty: 500 }]);
-
-        const fundingStep = decide(snapshot({
-            stage: WATERFALL_STAGE.NOT_STARTED,
-            inv: [[ITEM.COINS, 500]],
-            tile: [3253, 3420]
-        }));
-        expect(customName(fundingStep)).toBe('earn 1472 gp for Waterfall supplies');
-    });
 
     test('does not refarm after the aggregate cash is spent on the stocked western loadout', () => {
         const step = decide(snapshot({
             stage: WATERFALL_STAGE.NOT_STARTED,
-            inv: [[ITEM.COINS, 992], [ITEM.TEA, 10], [ITEM.BREAD, 15], [ITEM.ROPE, 1]],
+            inv: [[ITEM.COINS, 992], [ITEM.FOOD, 8], [ITEM.ROPE, 1]],
             tile: [2654, 3311]
         }));
         expect(step.kind).toBe('talk');
@@ -399,25 +348,11 @@ describe('fresh-account travel bootstrap', () => {
     test('banks spent cups but retains unconsumed tea during startup', () => {
         expect(customName(decide(snapshot({
             stage: WATERFALL_STAGE.NOT_STARTED,
-            inv: [[ITEM.COINS, 500], [ITEM.TEA, 4], [ITEM.EMPTY_CUP, 6], [ITEM.BREAD, 15], [ITEM.ROPE, 1]],
+            inv: [[ITEM.COINS, 500], [ITEM.EMPTY_CUP, 6], [ITEM.FOOD, 8], [ITEM.ROPE, 1]],
             tile: [2654, 3311]
         })))).toBe('bank everything except Waterfall supplies');
     });
 
-    test('sources eastern travel tea even when all Bread is already held or banked', () => {
-        for (const options of [
-            { inv: [[ITEM.COINS, 1172], [ITEM.BREAD, 15]] as ItemQty[] },
-            { inv: [[ITEM.COINS, 1172]] as ItemQty[], bank: [[ITEM.BREAD, 15]] as ItemQty[] }
-        ]) {
-            const step = decide(snapshot({
-                ...options,
-                stage: WATERFALL_STAGE.NOT_STARTED,
-                tile: [3222, 3218]
-            }));
-            expect(step.kind).toBe('buy');
-            if (step.kind === 'buy') expect(step.item).toBe('Cup of tea');
-        }
-    });
 
     test('clears a full arbitrary restart pack before stage 1 food or stage 2 book acquisition', () => {
         expect(customName(decide(snapshot({
@@ -474,7 +409,7 @@ describe('exact object-ID collisions', () => {
 
         const empty = decide(snapshot({
             stage: WATERFALL_STAGE.ENTERED_WATERFALL,
-            inv: [[ITEM.PEBBLE, 1], [ITEM.BREAD, 15]],
+            inv: [[ITEM.PEBBLE, 1], [ITEM.FOOD, 8]],
             bank: [[ITEM.EMPTY_URN, 1]]
         }));
         expect(customName(empty)).toBe('loot Glarial amulet and urn');
@@ -483,7 +418,7 @@ describe('exact object-ID collisions', () => {
     test('an empty urn in inventory is prohibited tomb baggage, not a recovered full urn', () => {
         const step = decide(snapshot({
             stage: WATERFALL_STAGE.ENTERED_WATERFALL,
-            inv: [[ITEM.PEBBLE, 1], [ITEM.AMULET, 1], [ITEM.EMPTY_URN, 1], [ITEM.BREAD, 15]]
+            inv: [[ITEM.PEBBLE, 1], [ITEM.AMULET, 1], [ITEM.EMPTY_URN, 1], [ITEM.FOOD, 8]]
         }));
         expect(customName(step)).toBe('strip prohibited items before Glarial tomb');
     });
@@ -493,7 +428,7 @@ describe('Glarial tomb stripping and recovery', () => {
     test('withdraws the exact pebble ID when it is banked', () => {
         const step = withdrawal(decide(snapshot({
             stage: WATERFALL_STAGE.READ_BOOK,
-            inv: [[ITEM.BREAD, 15]],
+            inv: [[ITEM.FOOD, 8]],
             bank: [[ITEM.PEBBLE, 1]]
         })));
         expect(step.items).toEqual([{ name: "Glarial's pebble", id: 294, qty: 1 }]);
@@ -502,20 +437,20 @@ describe('Glarial tomb stripping and recovery', () => {
     test('returns to Golrie when the pebble is absent from a known bank', () => {
         expect(customName(decide(snapshot({
             stage: WATERFALL_STAGE.READ_BOOK,
-            inv: [[ITEM.BREAD, 15]]
+            inv: [[ITEM.FOOD, 8]]
         })))).toBe('recover Glarial pebble from Golrie');
     });
 
     test('strips forbidden inventory and all equipment before tomb entry', () => {
         const forbidden = decide(snapshot({
             stage: WATERFALL_STAGE.READ_BOOK,
-            inv: [[ITEM.PEBBLE, 1], [ITEM.BREAD, 15], [ITEM.AIR_RUNE, 6]]
+            inv: [[ITEM.PEBBLE, 1], [ITEM.FOOD, 8], [ITEM.AIR_RUNE, 6]]
         }));
         expect(customName(forbidden)).toBe('strip prohibited items before Glarial tomb');
 
         const equipped = decide(snapshot({
             stage: WATERFALL_STAGE.READ_BOOK,
-            inv: [[ITEM.PEBBLE, 1], [ITEM.BREAD, 15]],
+            inv: [[ITEM.PEBBLE, 1], [ITEM.FOOD, 8]],
             worn: [ITEM.SWORD]
         }));
         expect(customName(equipped)).toBe('strip prohibited items before Glarial tomb');
@@ -524,7 +459,7 @@ describe('Glarial tomb stripping and recovery', () => {
     test('banks a full prohibited pack before trying to replenish tomb food', () => {
         expect(customName(decide(snapshot({
             stage: WATERFALL_STAGE.RAISED_FLOOR,
-            inv: [[ITEM.PEBBLE, 1], [ITEM.BREAD, 1], [ITEM.SWORD, 26]],
+            inv: [[ITEM.PEBBLE, 1], [ITEM.FOOD, 1], [ITEM.SWORD, 26]],
             bank: [[ITEM.FULL_URN, 1], [ITEM.BAXTORIAN_KEY, 1]]
         })))).toBe('strip prohibited items before Glarial tomb');
     });
@@ -532,7 +467,7 @@ describe('Glarial tomb stripping and recovery', () => {
     test('retains only exact tomb-safe IDs and begins looting', () => {
         const step = decide(snapshot({
             stage: WATERFALL_STAGE.READ_BOOK,
-            inv: [[ITEM.PEBBLE, 1], [ITEM.BREAD, 15], [ITEM.COINS, 500]]
+            inv: [[ITEM.PEBBLE, 1], [ITEM.FOOD, 8], [ITEM.COINS, 500]]
         }));
         expect(customName(step)).toBe('loot Glarial amulet and urn');
     });
@@ -550,7 +485,7 @@ describe('Glarial tomb stripping and recovery', () => {
     test('withdraws both exact relics after a mainland death when they are banked', () => {
         const step = withdrawal(decide(snapshot({
             stage: WATERFALL_STAGE.ENTERED_TOMB,
-            inv: [[ITEM.COINS, 500], [ITEM.BREAD, 15], [ITEM.ROPE, 1]],
+            inv: [[ITEM.COINS, 500], [ITEM.FOOD, 8], [ITEM.ROPE, 1]],
             bank: [[ITEM.AMULET, 1], [ITEM.FULL_URN, 1]]
         })));
         expect(step.items).toEqual([
@@ -562,7 +497,7 @@ describe('Glarial tomb stripping and recovery', () => {
     test('protects surviving relics during Golrie recovery, then carries them into the tomb', () => {
         const withdrawSurvivors = withdrawal(decide(snapshot({
             stage: WATERFALL_STAGE.RAISED_FLOOR,
-            inv: [[ITEM.PEBBLE, 1], [ITEM.BREAD, 15]],
+            inv: [[ITEM.PEBBLE, 1], [ITEM.FOOD, 8]],
             bank: [[ITEM.FULL_URN, 1], [ITEM.BAXTORIAN_KEY, 1]]
         })));
         expect(withdrawSurvivors.items).toEqual([
@@ -572,7 +507,7 @@ describe('Glarial tomb stripping and recovery', () => {
 
         expect(customName(decide(snapshot({
             stage: WATERFALL_STAGE.RAISED_FLOOR,
-            inv: [[ITEM.PEBBLE, 1], [ITEM.BREAD, 15], [ITEM.FULL_URN, 1], [ITEM.BAXTORIAN_KEY, 1]]
+            inv: [[ITEM.PEBBLE, 1], [ITEM.FOOD, 8], [ITEM.FULL_URN, 1], [ITEM.BAXTORIAN_KEY, 1]]
         })))).toBe('loot Glarial amulet and urn');
     });
 });
@@ -589,11 +524,11 @@ describe('stage 5/6 dungeon loadout and dispatch', () => {
         })))).toBe('cross into Baxtorian Falls');
     });
 
-    test('banks relics before any capacity-bound Bread refill, then restores them after Tea is stripped', () => {
+    test('banks relics before any capacity-bound food refill, then restores them after', () => {
         const relics = [ITEM.AMULET, ITEM.FULL_URN, ITEM.BAXTORIAN_KEY] as const;
         expect(customName(decide(snapshot({
             stage: WATERFALL_STAGE.ENTERED_WATERFALL,
-            inv: [[ITEM.COINS, 500], [ITEM.TEA, 10], ...relics.map(item => [item, 1] as ItemQty)],
+            inv: [[ITEM.COINS, 500], ...relics.map(item => [item, 1] as ItemQty)],
             tile: [3222, 3218]
         })))).toBe('prepare a safe Waterfall dungeon trip');
 
@@ -602,7 +537,6 @@ describe('stage 5/6 dungeon loadout and dispatch', () => {
             inv: [
                 [ITEM.COINS, 500],
                 [ITEM.ROPE, 1],
-                [ITEM.TEA, 10],
                 ...relics.map(item => [item, 1] as ItemQty),
                 [ITEM.AIR_RUNE, 6],
                 [ITEM.EARTH_RUNE, 6],
@@ -611,32 +545,28 @@ describe('stage 5/6 dungeon loadout and dispatch', () => {
             tile: [2616, 3332]
         })))).toBe('prepare a safe Waterfall dungeon trip');
 
-        const bread = decide(snapshot({
+        const refill = decide(snapshot({
             stage: WATERFALL_STAGE.ENTERED_WATERFALL,
-            inv: [[ITEM.COINS, 500], [ITEM.TEA, 10]],
-            bank: relics.map(item => [item, 1] as ItemQty),
+            inv: [[ITEM.COINS, 500]],
+            bank: [...relics.map(item => [item, 1] as ItemQty), [ITEM.FOOD, 20]],
             tile: [3222, 3218]
         }));
-        expect(bread.kind).toBe('buy');
-        if (bread.kind === 'buy') expect({ item: bread.item, qty: bread.qty }).toEqual({ item: 'Bread', qty: 15 });
+        expect(withdrawal(refill).items).toEqual([{ name: 'Trout', id: 333, qty: 8 }]);
 
-        expect(customName(decide(snapshot({
-            stage: WATERFALL_STAGE.ENTERED_WATERFALL,
-            inv: [[ITEM.COINS, 500], [ITEM.TEA, 10], [ITEM.BREAD, 15], [ITEM.ROPE, 1]],
-            bank: relics.map(item => [item, 1] as ItemQty),
-            tile: [3222, 3218]
-        })))).toBe('assemble the Waterfall dungeon loadout');
-
-        const restored = withdrawal(decide(snapshot({
-            stage: WATERFALL_STAGE.ENTERED_WATERFALL,
-            inv: [[ITEM.COINS, 500], [ITEM.BREAD, 15], [ITEM.ROPE, 1]],
-            bank: relics.map(item => [item, 1] as ItemQty),
-            tile: [2616, 3332]
-        })));
-        expect(restored.items.map(item => item.id)).toEqual([295, 296, 298]);
+        // Why: the supply bank no longer moves with the player, so east and west both restore from Ardougne.
+        for (const tile of [[3222, 3218], [2616, 3332]] as const) {
+            const restored = withdrawal(decide(snapshot({
+                stage: WATERFALL_STAGE.ENTERED_WATERFALL,
+                inv: [[ITEM.COINS, 500], [ITEM.FOOD, 8], [ITEM.ROPE, 1]],
+                bank: relics.map(item => [item, 1] as ItemQty),
+                tile
+            })));
+            expect(restored.items.map(item => item.id)).toEqual([295, 296, 298]);
+            expect({ x: restored.bank?.x, z: restored.bank?.z }).toEqual({ x: 2616, z: 3332 });
+        }
     });
 
-    test('withdraws missing rope, Bread, and partial runes by exact ID', () => {
+    test('withdraws missing rope, food, and partial runes by exact ID', () => {
         const withoutRope = DUNGEON_PACK.filter(([item]) => item.id !== ITEM.ROPE.id);
         expect(withdrawal(decide(snapshot({
             stage: WATERFALL_STAGE.ENTERED_WATERFALL,
@@ -646,10 +576,10 @@ describe('stage 5/6 dungeon loadout and dispatch', () => {
 
         expect(withdrawal(decide(snapshot({
             stage: WATERFALL_STAGE.ENTERED_WATERFALL,
-            inv: [[ITEM.COINS, 500], [ITEM.ROPE, 1], [ITEM.BREAD, 7]],
-            bank: [[ITEM.BREAD, 10], [ITEM.AMULET, 1], [ITEM.FULL_URN, 1]],
+            inv: [[ITEM.COINS, 500], [ITEM.ROPE, 1], [ITEM.FOOD, 2]],
+            bank: [[ITEM.FOOD, 10], [ITEM.AMULET, 1], [ITEM.FULL_URN, 1]],
             tile: [2616, 3332]
-        }))).items).toEqual([{ name: 'Bread', id: 2309, qty: 8 }]);
+        }))).items).toEqual([{ name: 'Trout', id: 333, qty: 6 }]);
 
         const shortAir = DUNGEON_PACK.map(([item, qty]) => [item, item.id === ITEM.AIR_RUNE.id ? 2 : qty] as ItemQty);
         expect(withdrawal(decide(snapshot({
@@ -891,7 +821,7 @@ describe('stage 8 final recovery and completion', () => {
     test('rebuilds overfilled allowed-item packs instead of looping below five reward slots', () => {
         expect(customName(decide(snapshot({
             stage: WATERFALL_STAGE.RAISED_FLOOR,
-            inv: FINAL_PACK.map(([item, qty]) => [item, item.id === ITEM.BREAD.id ? 20 : qty] as ItemQty)
+            inv: FINAL_PACK.map(([item, qty]) => [item, item.id === ITEM.FOOD.id ? 20 : qty] as ItemQty)
         })))).toBe('prepare a safe final Waterfall trip');
 
         expect(customName(decide(snapshot({
@@ -903,7 +833,7 @@ describe('stage 8 final recovery and completion', () => {
     test('withdraws exact banked final relics and key after a death', () => {
         const step = withdrawal(decide(snapshot({
             stage: WATERFALL_STAGE.RAISED_FLOOR,
-            inv: [[ITEM.COINS, 500], [ITEM.BREAD, 15], [ITEM.ROPE, 1]],
+            inv: [[ITEM.COINS, 500], [ITEM.FOOD, 8], [ITEM.ROPE, 1]],
             bank: [[ITEM.AMULET, 1], [ITEM.FULL_URN, 1], [ITEM.BAXTORIAN_KEY, 1]]
         })));
         expect(step.items).toEqual([
@@ -915,35 +845,18 @@ describe('stage 8 final recovery and completion', () => {
 });
 
 describe('mainland death and restart states', () => {
-    test('sources travel tea and Bread before sending an empty 10-HP recovery account to Golrie', () => {
-        const coins = withdrawal(decide(snapshot({
-            stage: WATERFALL_STAGE.ENTERED_PUZZLE,
-            bank: [[ITEM.COINS, 2_000_000]],
-            tile: [3222, 3218]
-        })));
-        expect(coins.items).toEqual([{ name: 'Coins', id: 995, qty: 600 }]);
-
-        const tea = decide(snapshot({
+    test('draws food from the bank before sending an empty 10-HP recovery account to Golrie', () => {
+        const food = withdrawal(decide(snapshot({
             stage: WATERFALL_STAGE.ENTERED_PUZZLE,
             inv: [[ITEM.COINS, 600]],
-            bank: [[ITEM.COINS, 1_999_400]],
-            tile: [3253, 3420]
-        }));
-        expect(tea.kind).toBe('buy');
-        if (tea.kind === 'buy') expect(tea.item).toBe('Cup of tea');
-
-        const bread = decide(snapshot({
-            stage: WATERFALL_STAGE.ENTERED_PUZZLE,
-            inv: [[ITEM.COINS, 500], [ITEM.TEA, 10]],
-            bank: [[ITEM.COINS, 1_999_400]],
-            tile: [3271, 3411]
-        }));
-        expect(bread.kind).toBe('buy');
-        if (bread.kind === 'buy') expect(bread.item).toBe('Bread');
+            bank: [[ITEM.COINS, 1_999_400], [ITEM.FOOD, 20]],
+            tile: [2616, 3332]
+        })));
+        expect(food.items).toEqual([{ name: 'Trout', id: 333, qty: 8 }]);
 
         expect(customName(decide(snapshot({
             stage: WATERFALL_STAGE.ENTERED_PUZZLE,
-            inv: [[ITEM.BREAD, 15]],
+            inv: [[ITEM.FOOD, 8]],
             tile: [2654, 3311]
         })))).toBe('recover Glarial pebble from Golrie');
     });
@@ -959,13 +872,13 @@ describe('mainland death and restart states', () => {
         });
 
         test(`stage ${stage} reacquires the pebble when all dropped relics are absent`, () => {
-            expect(customName(decide(snapshot({ stage, inv: [[ITEM.BREAD, 15]] })))).toBe('recover Glarial pebble from Golrie');
+            expect(customName(decide(snapshot({ stage, inv: [[ITEM.FOOD, 8]] })))).toBe('recover Glarial pebble from Golrie');
         });
 
         test(`stage ${stage} resumes the Golrie leg after acquiring its key`, () => {
             expect(customName(decide(snapshot({
                 stage,
-                inv: [[ITEM.BREAD, 15], [ITEM.GOLRIE_KEY, 1]],
+                inv: [[ITEM.FOOD, 8], [ITEM.GOLRIE_KEY, 1]],
                 bankKnown: false,
                 tile: [2515, 9570]
             })))).toBe('recover Glarial pebble from Golrie');
@@ -974,7 +887,7 @@ describe('mainland death and restart states', () => {
         test(`stage ${stage} withdraws exact relics from a known post-death bank`, () => {
             const step = withdrawal(decide(snapshot({
                 stage,
-                inv: [[ITEM.COINS, 500], [ITEM.BREAD, 15], [ITEM.ROPE, 1]],
+                inv: [[ITEM.COINS, 500], [ITEM.FOOD, 8], [ITEM.ROPE, 1]],
                 bank: [[ITEM.AMULET, 1], [ITEM.FULL_URN, 1]]
             })));
             expect(step.items).toEqual([
@@ -993,7 +906,7 @@ describe('Waterfall module wiring', () => {
         expect(waterfall.food).toBeUndefined();
     });
 
-    test('declares Bread and bootstrap tea sustain through the full-health entry threshold', () => {
-        expect(waterfall.sustain).toEqual({ foods: ['Bread', 'Cup of tea'], eatBelowHp: 1 });
+    test('names no food of its own, so the configured one is what gets eaten', () => {
+        expect(waterfall.sustain).toEqual({ foods: [], eatBelowHp: 1 });
     });
 });

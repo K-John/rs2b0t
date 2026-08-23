@@ -1,5 +1,5 @@
 /** Live Dwarf Cannon harness (#254): --stage N --until N --multi N --at x,z,level --paint --minutes N, base :8890.
- *  Why: `--stage` sets `%mcannon` and relogs since update_questlist only recolours the journal at login; `--multi` sets `%mcannonmulti`, whose bits 5-10 are the six railings and 0-3 the four cannon parts, so a leg can start with earlier work already done. The bank holds coins, food and a melee kit and nothing else — every item this quest needs is given to it, and seeding one would hide a broken dialogue. */
+ *  Why: `--stage` sets `%mcannon` and relogs since update_questlist only recolours the journal at login; `--multi` sets `%mcannonmulti`, whose bits 5-10 are the six railings and 0-3 the four cannon parts, so a leg can start with earlier work already done. The bank holds coins, food and a melee kit and nothing else, every item this quest needs is given to it, and seeding one would hide a broken dialogue. */
 
 //   HEADED=1 bun e2e/dwarf-cannon-254-live.ts --stage 0 --minutes 90
 //   HEADED=1 bun e2e/dwarf-cannon-254-live.ts --stage 1 --multi 0 --until 2 --minutes 25
@@ -239,7 +239,7 @@ try {
         console.log('nav path paint: on');
     }
 
-    // Gear is declared, never inferred — the quest wears whatever this says.
+    // Gear is declared, never inferred, the quest wears whatever this says.
     await page.evaluate(() => {
         const g = globalThis as never as { __rs2b0t: { Loadouts: { save(l: unknown[]): void } } };
         g.__rs2b0t.Loadouts.save([{

@@ -4,10 +4,10 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Gertrude's Cat — stage-scoped harness
+## Gertrude's Cat, stage-scoped harness
 
 [`e2e/gertrudes-cat-245-live.ts`](../../e2e/gertrudes-cat-245-live.ts). Members
-content, so `:8890` only — the broken fence refuses from the south on a free
+content, so `:8890` only, the broken fence refuses from the south on a free
 world.
 
 | Flag | Default | Purpose |
@@ -49,7 +49,7 @@ What the legs proved, at `--tick 200` on `:8890`:
 | 5 → 6 | PASS, 1 min | the reward talk, the pet kitten, the chocolate cake and stew, 1 quest point |
 | 0 → 6 | PASS, 7 min | the uncheated run: 16 steps, no parks, nothing seeded but coins and food |
 
-## The Grand Tree — stage-scoped harness
+## The Grand Tree, stage-scoped harness
 
 [`e2e/grand-tree-247-live.ts`](../../e2e/grand-tree-247-live.ts). Members content, so
 `:8890` only.
@@ -60,7 +60,7 @@ What the legs proved, at `--tick 200` on `:8890`:
 | `--until N` | 160 | stop at this stage; 160 waits for the journal to go green |
 | `--tick N` | 300 | server tick in ms; 300 is double speed |
 | `--minutes N` | 90 | wall-clock budget |
-| `--stats N` | 70 | every skill, not max — the demon is what the floor exists for |
+| `--stats N` | 70 | every skill, not max. The demon is what the floor exists for |
 | `--root N` | 15 | which of the fifteen roots holds the rock, for `--stage 150` |
 | `--food NAME` | Lobster | the AIO Quester's food setting |
 | `--no-tele` | off | start where the account already stands |
@@ -71,7 +71,7 @@ is a state the content never writes. Stage starts are chosen by continent: 0 to 
 Ardougne East bank, 80 at the Grand Tree bank, 90 at the glider crash site in the Karamja
 jungle, 100 and up at the Grand Tree bank.
 
-The bank seed is coins, lobsters and a rune melee kit — `rune_chainbody` rather than
+The bank seed is coins, lobsters and a rune melee kit, `rune_chainbody` rather than
 `rune_platebody`, which wants Dragon Slayer. Every quest item is left in the world: the bark
 sample and the translation book come from the King, the scroll from Hazelmere, the journal
 from Glough's cupboard, the lumber order from the foreman, the key from Anita, the twigs
@@ -88,7 +88,7 @@ What the legs proved, at `--tick 300` on `:8890`:
 | 0 → 20 | PASS, 4 min | the walk in from Ardougne, the Femi gate crossing, the King's trapdoor cutscene, Hazelmere's island ladder |
 | 20 → 70 | PASS, 4 min | the five-page translation, Glough, the King, Charlie through the cage, the cupboard's south-only stand |
 | 80 → 90 | PASS, 3 min | the glider off the top of the tree, the Ka-Lu-Min gate, the foreman's three questions |
-| 90 → 110 | PASS, 7 min | the six-hundred-tile walk home, Femi's cart, Anita's unbaked staircase, the chest — through a death in the jungle |
+| 90 → 110 | PASS, 7 min | the six-hundred-tile walk home, Femi's cart, Anita's unbaked staircase, the chest, through a death in the jungle |
 | 110 → 160 | PASS, 5 min | the twigs on their pillars, the Black Demon, the roots, the quest-complete scroll |
 | 150 → 160, `--root 15` | PASS, 4 min | the worst-case sweep: all fifteen roots in order, the rock in the last |
 | 0 → 160 | PASS, 16 min | the uncheated run: 31 steps, no parks, nothing seeded but coins, lobsters and a banked rune kit |
@@ -98,7 +98,7 @@ The demon fought at 70 across the board in a rune melee kit under Protect from M
 70 → 22**. Nothing about the kit is load-bearing except how long it takes.
 
 `%daconia_rock_root` is rolled by the King's stage-140 dialogue, so a jump straight to 150
-leaves it 0 — a value no root in `daconia_coords` answers, which the sweep would walk
+leaves it 0, a value no root in `daconia_coords` answers, which the sweep would walk
 forever. `--root N` writes it, and 15 is the default because it is the longest walk.
 
 ## See also
@@ -106,12 +106,16 @@ forever. `--root N` writes it, and 15 is the default because it is the longest w
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)
 - [Quest harness recipes (Big)](quest-harness-recipes-17.md)
 - [Quest harness recipes (Dig)](quest-harness-recipes-15.md)
-- [Quest harness recipes (E)](quest-harness-recipes-4.md)
-- [Quest harness recipes (F)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Ea)](quest-harness-recipes-22.md)
+- [Quest harness recipes (El–Er)](quest-harness-recipes-4.md)
+- [Quest harness recipes (Fam–Figh)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Fis)](quest-harness-recipes-21.md)
 - [Quest harness recipes (Fre)](quest-harness-recipes-18.md)
 - [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
 - [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
+- [Quest harness recipes (Leg)](quest-harness-recipes-20.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)
 - [Quest harness recipes (N–O)](quest-harness-recipes-14.md)
 - [Quest harness recipes (P–R)](quest-harness-recipes-5.md)

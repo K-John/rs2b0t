@@ -1,5 +1,5 @@
 /** Live verification for Thiever efficiency (#139): [base], with BASE / BUDGET_S / HEADED / SLOWMO from the environment. Boots a mainland account, seeds a short pack of cooked lobsters, starts Thiever on Ardougne Guards with loot off, and asserts thieving XP/hr >= 25k after a warm-up.
- *  Why: item seeds go through the engine cheat `give <obj> <qty>` rather than `~item`/`~bankitem`, and the bot client is redeployed by hand — tools/deploy-local.sh from this tree is not for live e2e. */
+ *  Why: item seeds go through the engine cheat `give <obj> <qty>` rather than `~item`/`~bankitem`, and the bot client is redeployed by hand, tools/deploy-local.sh from this tree is not for live e2e. */
 
 // Usage:
 //   bun e2e/thievingbot-test.ts
@@ -12,7 +12,7 @@ import { cheatQuiet, mainlandAccount, startScript } from './tutorial/harness.js'
 
 const { base } = parseArgs(process.argv.slice(2), { base: process.env.BASE ?? 'http://localhost:8890' });
 const USER = process.env.USER_NAME || `th${Date.now().toString(36).slice(-7)}`;
-/** Total wall budget (default 12 min — needs a few minutes of steal XP for a stable XP/hr). */
+/** Total wall budget (default 12 min, needs a few minutes of steal XP for a stable XP/hr). */
 const BUDGET_MS = (Number(process.env.BUDGET_S) || 720) * 1000;
 /** Ignore XP/hr until this many seconds of runtime (warmup / first bank trip). */
 const WARMUP_S = Number(process.env.WARMUP_S) || 180;
@@ -20,7 +20,7 @@ const WARMUP_S = Number(process.env.WARMUP_S) || 180;
 const TARGET_XPH = Number(process.env.TARGET_XPH) || 25_000;
 
 const GUARD_SPOT = { x: 2661, z: 3306, level: 0 } as const;
-/** Pack food only — enough for a default ~12 min soak without a bank trip. */
+/** Pack food only, enough for a default ~12 min soak without a bank trip. */
 const INV_FOOD = 22;
 
 function fail(msg: string): never {
@@ -254,7 +254,7 @@ try {
 
     await clearInv(page);
 
-    // Pack food only — skip bank seed on short budgets (setup waste).
+    // Pack food only, skip bank seed on short budgets (setup waste).
     await seedItem(page, 'lobster', 'Lobster', INV_FOOD);
     console.log(`  inv: ${INV_FOOD} cooked Lobster (no bank seed)`);
 
@@ -288,7 +288,7 @@ try {
         action: 'Pickpocket',
         food: 'Lobster',
         eatAtHp: 50,
-        // No bank seed on short soaks — don't walk empty for food.
+        // No bank seed on short soaks, don't walk empty for food.
         banking: 'None',
         foodWithdraw: 22,
         bankAtFood: 0,

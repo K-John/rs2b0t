@@ -1,15 +1,17 @@
 import { expect, test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 
 const VALE = 'node_modules/@vvago/vale/bin/vale';
 const FIXTURES = 'styles/RS2B0T/fixtures';
+const REPO_PATHS = ['docs', 'README.md', 'src/bot', 'tools', 'e2e', 'test', 'bundle.ts', 'bot.bundle.ts', 'eslint.config.ts', 'identifier.js'];
 
 export type Alert = { Check: string; Severity: string; Line: number; Match: string; Message: string };
 
 export function lint(paths: string[]): Map<string, Alert[]> {
-    const run = spawnSync(VALE, ['--config=.vale.ini', '--output=JSON', '--no-exit', ...paths], { encoding: 'utf8' });
+    const run = spawnSync(VALE, ['--config=.vale.ini', '--output=JSON', '--no-exit', ...paths], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
     if (run.error) throw new Error(`vale did not run: ${run.error.message}`);
+    if (run.status !== 0) throw new Error(`vale exited ${run.status}: ${run.stderr.trim() || run.stdout.trim()}`);
     const report = JSON.parse(run.stdout || '{}') as Record<string, Alert[]>;
     const byPath = new Map<string, Alert[]>();
     const cwd = `${process.cwd()}/`;
@@ -39,7 +41,7 @@ test('BannedWords ignores a TypeScript string literal', () => {
     expect(alertsFor('probe.ts').filter(a => a.Match === 'strikingly')).toEqual([]);
 });
 
-const BOTH_FORMATS = ['RS2B0T.SoftWords', 'RS2B0T.Wordiness', 'RS2B0T.Editorialising', 'RS2B0T.Antithesis'];
+const BOTH_FORMATS = ['RS2B0T.SoftWords', 'RS2B0T.Wordiness', 'RS2B0T.Filler', 'RS2B0T.Antithesis', 'RS2B0T.Dashes', 'RS2B0T.CurlyQuotes', 'RS2B0T.Puffery', 'RS2B0T.FancyIs'];
 
 test.each(BOTH_FORMATS)('%s fires on markdown', check => {
     expect(checksIn('probe.md').has(check)).toBe(true);
@@ -81,6 +83,17 @@ test('HeadingContent fires only on heading lines', () => {
     expect(offending).toEqual([]);
 });
 
+test('Dashes ignores a range and catches a spaced en dash', () => {
+    const lines = readFileSync(`${FIXTURES}/probe.md`, 'utf8').split('\n');
+    const hits = alertsFor('probe.md').filter(a => a.Check === 'RS2B0T.Dashes');
+    expect(hits.some(a => lines[a.Line - 1].startsWith('The radius is 2'))).toBe(false);
+    expect(hits.some(a => a.Match === ' – ')).toBe(true);
+});
+
+test('every linted path exists, so the repository lint is never vacuous', () => {
+    for (const path of REPO_PATHS) expect(existsSync(path)).toBe(true);
+});
+
 test('NegationList catches a two-item list and ignores a conjunction', () => {
     const lines = readFileSync(`${FIXTURES}/probe.md`, 'utf8').split('\n');
     const hits = alertsFor('probe.md').filter(a => a.Check === 'RS2B0T.NegationList');
@@ -92,7 +105,7 @@ test('lint:prose covers every source area and excludes the vendored client', () 
     const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { scripts: Record<string, string> };
     const script = pkg.scripts['lint:prose'];
     expect(script).toBeDefined();
-    for (const path of ['docs', 'README.md', 'src/bot', 'tools', 'test', 'bundle.ts', 'bot.bundle.ts', 'eslint.config.ts', 'identifier.js']) {
+    for (const path of REPO_PATHS) {
         expect(script).toContain(path);
     }
     expect(script).not.toContain('src/client');
@@ -100,9 +113,8 @@ test('lint:prose covers every source area and excludes the vendored client', () 
 });
 
 test('the repository has no prose errors', () => {
-    const paths = ['docs', 'README.md', 'templates', 'src/bot', 'tools', 'test', 'bundle.ts', 'bot.bundle.ts', 'eslint.config.ts', 'identifier.js'];
     const errors: string[] = [];
-    for (const [file, alerts] of lint(paths)) {
+    for (const [file, alerts] of lint(REPO_PATHS)) {
         for (const a of alerts.filter(x => x.Severity === 'error')) errors.push(`${file}:${a.Line}  ${a.Check}  ${a.Match}`);
     }
     expect(errors.sort()).toEqual([]);

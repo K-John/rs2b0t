@@ -137,7 +137,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph compiles into navworker.js, a separate entrypoint — deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph compiles into navworker.js, a separate entrypoint, deploying only botclient.js leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {
@@ -195,7 +195,7 @@ try {
     console.log(`seeding ${BANK_SEED.length} item type(s) into the Draynor bank`);
     await seedItemsToBank(page, BANK_SEED, DRAYNOR_BANK);
 
-    // Why: the smuggle sub-state is three varps, and a stage jump that leaves them at zero seeds a state the server can never reach — %crate_rum = 2 with %hunt = 1 is the shipped crate, and nothing else says so.
+    // Why: the smuggle sub-state is three varps, and a stage jump that leaves them at zero seeds a state the server can never reach, %crate_rum = 2 with %hunt = 1 is the shipped crate, and nothing else says so.
     if (args.stage > 0 || args.employed > 0 || args.crateRum > 0 || args.crateBananas > 0) {
         await seedVar(page, 'hunt', args.stage);
         await seedVar(page, 'hunt_store_employed', args.employed);

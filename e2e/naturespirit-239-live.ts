@@ -1,4 +1,4 @@
-/** Live Nature Spirit harness (#239): --stage N --until N --minutes N --tick ms --teleports --stocked. Members-only, so base :8890 — the :8888 sim has no `node` block and every members gate refuses.
+/** Live Nature Spirit harness (#239): --stage N --until N --minutes N --tick ms --teleports --stocked. Members-only, so base :8890, the :8888 sim has no `node` block and every members gate refuses.
  *  Why: `--stage` relogs, since update_questlist only recolours the journal entry at login; `%druidspirit_bits` is seeded alongside the stage, since the two ritual stones are bits of a second varp and a stage past the ritual with the bits clear describes a state the quest cannot reach; the bank holds coins and food alone, since a run handed a sickle passes while the quest cannot source one. */
 
 //   HEADED=1 bun e2e/naturespirit-239-live.ts --stage 0 --until 110 --minutes 180 --tick 200
@@ -86,13 +86,13 @@ const ALKHARID_BANK = { x: 3269, z: 3167, level: 0 };
 const GATE_NORTH = { x: 3443, z: 3461, level: 0 };
 const CAMP = { x: 3440, z: 3337, level: 0 };
 
-/** Coins and food only by default — every other item has a source in the world, and banking one hides whether the bot can find it. */
+/** Coins and food only by default, every other item has a source in the world, and banking one hides whether the bot can find it. */
 function bankSeed(): BankSeedItem[] {
     const seed: BankSeedItem[] = [
         { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
         { debugName: args.food.toLowerCase().replace(/ /g, '_'), displayName: args.food, qty: 40 }
     ];
-    // Why: a mould and a silver bar are ordinary bank clutter on an established account — the common case a from-scratch run never exercises.
+    // Why: a mould and a silver bar are ordinary bank clutter on an established account, the common case a from-scratch run never exercises.
     if (args.stocked) {
         seed.push(
             { debugName: 'sickle_mould', displayName: 'Sickle mould', qty: 1 },
@@ -168,7 +168,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph — the temple crossing and the swamp gate — compiles into navworker.js, a separate entrypoint, so deploying only the client leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph, the temple crossing and the swamp gate, compiles into navworker.js, a separate entrypoint, so deploying only the client leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {

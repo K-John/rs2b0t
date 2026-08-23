@@ -5,7 +5,7 @@
 
 /**
  * A trail is not a grind. Hosts size foodWithdraw() for sustained combat (20+),
- * which alone fills the pack and starves the trail kit — the runes especially.
+ * which alone fills the pack and starves the trail kit, the runes especially.
  */
 export const TRAIL_FOOD_CAP = 10;
 

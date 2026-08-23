@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Tree Gnome Village — stage-scoped harness
+## Tree Gnome Village, stage-scoped harness
 
 [`e2e/treegnome-263-live.ts`](../../e2e/treegnome-263-live.ts) drives the quest from a
 clean account or from any point inside it. `--stage N` sets `%treequest`, hands over the
@@ -40,7 +40,7 @@ Four details govern this harness:
 
 What the live runs paid for is in [Tree Gnome Village's pitfalls](../decisions/quest-pitfalls-17.md).
 
-## Tribal Totem — stage-scoped harness
+## Tribal Totem, stage-scoped harness
 
 [`e2e/tribal-totem-262-live.ts`](../../e2e/tribal-totem-262-live.ts) drives the quest from a
 clean account, or one leg of it. `--stage N` is `%totemquest` itself and relogs.
@@ -63,7 +63,7 @@ Measured at `--tick 200` on 70 stats, no parks:
 Four details govern this harness:
 
 - **`--stage` is the varp, and 4 starts inside the mansion.** Nothing walks into Handelmort
-  Mansion — its one ground-floor door opens outward only — so a stage-4 seed teleports to
+  Mansion, its one ground-floor door opens outward only, so a stage-4 seed teleports to
   Cromperty's landing tile at (2638,3321) rather than the bank every earlier stage starts at.
 - **The stairs trap bit is never seeded.** `--combo` sets bit 0 of
   `%handelmort_traps_disabled` to skip the four dials, and bit 21 is deliberately left clear:
@@ -85,13 +85,17 @@ float.
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)
 - [Quest harness recipes (Big)](quest-harness-recipes-17.md)
 - [Quest harness recipes (Dig)](quest-harness-recipes-15.md)
-- [Quest harness recipes (E)](quest-harness-recipes-4.md)
-- [Quest harness recipes (F)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Ea)](quest-harness-recipes-22.md)
+- [Quest harness recipes (El–Er)](quest-harness-recipes-4.md)
+- [Quest harness recipes (Fam–Figh)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Fis)](quest-harness-recipes-21.md)
 - [Quest harness recipes (Fre)](quest-harness-recipes-18.md)
 - [Quest harness recipes (G)](quest-harness-recipes-11.md)
 - [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
 - [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
+- [Quest harness recipes (Leg)](quest-harness-recipes-20.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)
 - [Quest harness recipes (N–O)](quest-harness-recipes-14.md)
 - [Quest harness recipes (P–R)](quest-harness-recipes-5.md)

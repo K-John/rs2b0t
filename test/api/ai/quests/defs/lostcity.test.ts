@@ -143,8 +143,8 @@ describe('Lost City stages 0-3', () => {
         expect(blank.kind === 'wait' && blank.reason).toContain('select a food item');
 
         QuestFood.name = 'Lobster';
-        const short = decide(snap({ stage: 2, inv: ['Knife'], bank: Array(10).fill('Lobster') }));
-        expect(short.kind === 'wait' && short.reason).toContain('20 combat food total');
+        const short = decide(snap({ stage: 2, inv: ['Knife'], bank: Array(3).fill('Lobster') }));
+        expect(short.kind === 'wait' && short.reason).toContain(`${LOST_CITY_FOOD_TARGET} combat food total`);
         expect(JSON.stringify(short)).not.toContain('Kebab');
     });
 
@@ -313,7 +313,7 @@ describe('Lost City stages 5-6', () => {
     });
 
     test('uses the AIO-selected food at the quest-safe combat threshold', () => {
-        // 0.5 — not 0.9; the tree spirit fight was burning food every tick (#393).
+        // 0.5, not 0.9; the tree spirit fight was burning food every tick (#393).
         expect(lostcity.sustain).toEqual({ foods: [], eatBelowHp: 0.5 });
     });
 });

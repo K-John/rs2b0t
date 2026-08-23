@@ -38,7 +38,9 @@ import {
     restockShortfall,
     shouldBank,
     shouldEat,
+    shouldLeaveForSteal,
     needsCakeSteal,
+    stealReserveSlots,
     STEAL_THIEVING_MIN,
     GUARD_THIEVING_MIN,
     ticketInventoryGain,
@@ -216,7 +218,7 @@ describe('BrimhavenAgility pathfinding', () => {
     });
 
     test('unreachable when every connecting edge is gated', () => {
-        // from 1 to 6 only via spikes (20) — at level 1, still reachable via longer routes?
+        // from 1 to 6 only via spikes (20), at level 1, still reachable via longer routes?
         // 1→0→5→6 uses pillar + plank (both level 1)
         const path = pathPlatforms(1, 6, 1);
         expect(path).not.toBeNull();
@@ -344,21 +346,35 @@ describe('BrimhavenAgility banking & combat decisions', () => {
     });
 
     test('banks when out of food or ticket threshold hit', () => {
-        expect(shouldBank(0, 0, 1000)).toBe(true);
-        expect(shouldBank(1000, 5, 1000)).toBe(true);
-        expect(shouldBank(999, 5, 1000)).toBe(false);
+        expect(shouldBank(0, 0, 1000, false)).toBe(true);
+        expect(shouldBank(1000, 5, 1000, false)).toBe(true);
+        expect(shouldBank(999, 5, 1000, false)).toBe(false);
         expect(shouldBank(0, 0, 1000, true)).toBe(false);
         expect(shouldBank(1000, 0, 1000, true)).toBe(true);
     });
 
-    test('steal restock wants cakes when the pack is empty or a guard run needs a buffer', () => {
+    test('steal restock fills free inventory slots, not a cake count', () => {
         expect(STEAL_THIEVING_MIN).toBe(20);
         expect(GUARD_THIEVING_MIN).toBe(40);
-        expect(needsCakeSteal(0, 0, true, false)).toBe(true);
-        expect(needsCakeSteal(3, 0, true, false)).toBe(false);
-        expect(needsCakeSteal(0, 8, true, false)).toBe(false);
-        expect(needsCakeSteal(0, 2, true, true)).toBe(true);
-        expect(needsCakeSteal(0, 0, false, true)).toBe(false);
+        expect(needsCakeSteal(0, 0, true, false, 20)).toBe(true);
+        expect(needsCakeSteal(0, 24, true, false, 0)).toBe(false);
+        expect(needsCakeSteal(0, 4, true, false, 6)).toBe(true);
+        expect(needsCakeSteal(3, 0, true, false, 20)).toBe(false);
+        expect(needsCakeSteal(0, 2, true, true, 5)).toBe(true);
+        expect(needsCakeSteal(0, 2, true, true, 0)).toBe(false);
+        expect(needsCakeSteal(0, 0, false, true, 20)).toBe(false);
+        expect(stealReserveSlots(0, 0)).toBe(2);
+        expect(stealReserveSlots(3, 0)).toBe(1);
+        expect(stealReserveSlots(0, 5)).toBe(1);
+        expect(stealReserveSlots(3, 5)).toBe(0);
+    });
+
+    test('steal restock does not freeze hops when the selected food is gone', () => {
+        expect(shouldBank(0, 0, 1000, true)).toBe(false);
+        expect(shouldLeaveForSteal(true, true, 4, false)).toBe(false);
+        expect(shouldLeaveForSteal(true, true, 0, false)).toBe(true);
+        expect(shouldLeaveForSteal(true, true, 4, true)).toBe(true);
+        expect(shouldLeaveForSteal(true, false, 0, false)).toBe(false);
     });
 
     test('eats only below 5 HP with food in pack', () => {
@@ -453,7 +469,7 @@ describe('BrimhavenAgility location helpers', () => {
         expect(inArenaPit(2802, 9590, 3)).toBe(false);
         expect(onArenaPlatform(3)).toBe(true);
         expect(onArenaPlatform(0)).toBe(false);
-        // pit tiles still snap by x/z — callers must gate with onArenaPlatform
+        // pit tiles still snap by x/z, callers must gate with onArenaPlatform
         expect(platformAt(2802, 9590)).toBe(24);
     });
 });
@@ -516,7 +532,7 @@ describe('BrimhavenAgility restock verification', () => {
         const broke = restockShortfall({ ...base, foodInPack: 25, coins: 100 });
         expect(broke).toContain('coins');
         expect(broke).toContain('260');
-        // Entrance already paid — only the two boat fares are needed.
+        // Entrance already paid, only the two boat fares are needed.
         expect(restockShortfall({ ...base, foodInPack: 25, coins: 60, alreadyPaid: true })).toBeNull();
     });
 });

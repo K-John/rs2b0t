@@ -215,7 +215,7 @@ async function chopLogs(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-// Why: a `useOn` step clicks as soon as the walk returns, and from the sink that lands inside the arrive window and is dropped — every attempt that walked first burned its ten-second wait, while a retry from a standstill filled the jug in 295ms.
+// Why: a `useOn` step clicks as soon as the walk returns, and from the sink that lands inside the arrive window and is dropped, every attempt that walked first burned its ten-second wait, while a retry from a standstill filled the jug in 295ms.
 function fillJug(log: (m: string) => void): Promise<boolean> {
     return useOnLoc(
         JUG_OBJ,
@@ -323,7 +323,7 @@ export const monksfriend: QuestModule = {
     record: QUESTS.find(record => record.id === 'drunkmonk')!,
     bank: ARDOUGNE_BANK,
     hops: HOPS,
-    // Why: the thieves in the cave are `huntmode=cowardly`, so at quest-ready stats nothing here attacks — the float is traversal upkeep alone.
+    // Why: the thieves in the cave are `huntmode=cowardly`, so at quest-ready stats nothing here attacks. The float is traversal upkeep alone.
     food: 6,
     tools: [BLANKET.toLowerCase(), 'jug', 'logs', 'axe', 'coins'],
     readStage: readMonksFriendStage,

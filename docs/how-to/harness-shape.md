@@ -22,7 +22,7 @@ try {
 ```
 
 Seed preconditions with cheats rather than waiting for the world to provide them, and
-poll for a condition instead of sleeping a fixed time — a fixed wait is the most
+poll for a condition instead of sleeping a fixed time, a fixed wait is the most
 common source of a flaky harness.
 
 ## The end-to-end smoke
@@ -35,14 +35,14 @@ bun run smoke http://localhost:8888 user pass     # another engine, named accoun
 [`e2e/e2e-smoke.ts`](../../e2e/e2e-smoke.ts) is the single harness that stands in
 for the client. It boots `bot.html`, logs in, asserts the adapter banner is
 empty and the tick counter is advancing, then starts a looping bundled script
-(`AIO Teleport`) from the library and drives it through pause, resume and stop —
+(`AIO Teleport`) from the library and drives it through pause, resume and stop,
 checking that the overlay paints and that a paused script makes no
 progress. Screenshots land in `out/`, and any page error fails the run.
 
 It does **not** deploy. Deploy first (`bun run b0t`, or
 [`tools/deploy-local.sh`](../../tools/deploy-local.sh)) or it loads a stale client.
 
-The other harnesses are per-subsystem and are run individually — a quest chain,
+The other harnesses are per-subsystem and are run individually, a quest chain,
 FireGiant, GatheringBot (`bun run verify:gatheringbot`), the hosted wall, relogin,
 external script loading, a nature-runner soak. Several want a physical GPU or a special
 environment rather than a plain local engine.

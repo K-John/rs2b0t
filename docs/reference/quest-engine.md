@@ -49,7 +49,7 @@ the client for almost every quest. What lands in the bot process:
 |---|---|---|---|
 | List colour | `Quests.status(name)` | `IF_SETCOLOUR` on the quest-tab name (red / yellow / green) | **three-way only**: not started / in progress / complete |
 | Quest points | `Quests.points()` | transmitted varp `qp` (index 101) | total QP |
-| Journal body | `Quests.journal(name)` | server builds text and **`if_openmain`** the scroll when you click the name | full stage narrative — **opens the log (the flash)** |
+| Journal body | `Quests.journal(name)` | server builds text and **`if_openmain`** the scroll when you click the name | full stage narrative, **opens the log (the flash)** |
 | Inventory / worn | snapshot `inv` / `worn` | normal inv sync | item oracles |
 | Game messages | `GameMessages` | chat lines | last-action confirmation (ephemeral) |
 | Scene | locs / npcs | usual scene | doors, levers, rocks, NPCs |
@@ -62,7 +62,7 @@ client field.
 Journal text is built only when the player opens a quest: the engine runs
 `if_button,questlist:…`, fills `questjournal_scroll` with `if_settext`, and
 opens that main modal. There is no side-tab mirror of that body. That is why
-`readStage` / `readProgress` flash the log — they are reading the only durable
+`readStage` / `readProgress` flash the log, they are reading the only durable
 client view of mid-progress.
 
 ### How modules should read progress
@@ -70,13 +70,13 @@ client view of mid-progress.
 Prefer oracles that do not open the log:
 
 1. **Held / worn / bank items** (ids when names collide).
-2. **Game messages** after an action (“water wheel starting up”, “already fixed”).
+2. **Game messages** after an action ("water wheel starting up", "already fixed").
 3. **Scene behaviour** (valve locked ⇒ water already running; do not re-pull).
 4. **`Quests.status`** for coarse gates (started vs done).
 5. **`Quests.journal` via `readStage` / `readProgress`** only when nothing else distinguishes the branch.
 
-When the stage number alone cannot say where a quest is — which of three tribes
-are satisfied, which words have been learned, how many monsters remain — a module
+When the stage number alone cannot say where a quest is, which of three tribes
+are satisfied, which words have been learned, how many monsters remain, a module
 implements `readProgress()` instead of `readStage()` and returns named flags
 alongside the stage. They arrive on the snapshot as `snap.progress`, so
 `decide()` stays a pure function; `hasFlag` and `flagValue` in
@@ -103,29 +103,12 @@ Two consequences worth stating plainly:
 
 A held item can also route the bot into a wedge: carrying an item whose delivery is
 gated behind something else loops forever at the gate. When an oracle refuses, the
-holding must be *undone* — bank it — not retried.
+holding must be *undone*, bank it, not retried.
 
 ## Provisioning
 
-[`engine/provisioning.ts`](../../src/bot/api/ai/quests/engine/provisioning.ts) assembles what a
-quest needs **before** it starts, bank-first:
-
-| Function | Job |
-|---|---|
-| `planProvisioning(...)` | what to withdraw, given the record's items and what is held |
-| `depositPlan(inv, keep)` | what to drop before starting |
-| `gpShort(snap, estGp)` | how much coin is missing for a purchase |
-| `floatWithdraw(...)`, `coinFloatWithdraw(...)` | withdrawing with headroom |
-
-Two rules that are easy to get wrong:
-
-- **A quest that buys anything must keep `coins` in its `tools`.** Omit it and the
-  provisioner does not carry coin, so every purchase step parks with "need gp".
-- Quest-internal consumables are not `record.items`. The record lists what the quest
-  *requires*; things consumed along the way are the module's own business.
-
-The engine carries a coin float (`COIN_FLOAT`) and provisions from a fixed bank
-(`PROVISION_BANK`) — both in [`QuestEngine.ts`](../../src/bot/api/ai/quests/engine/QuestEngine.ts).
+Assembling a pack, emptying it between quests and drawing the coin and food floats is its own
+page: [Quest provisioning](quest-provisioning.md).
 
 ## The queue and the watchdog
 

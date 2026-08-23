@@ -5,7 +5,7 @@
 ## World catalogs
 
 Reusable data tables and pure helpers for out-of-tree scripts. These are the same
-catalogs the bundled Fisher / Miner / Woodcutter / Thiever / WalkTo bots use —
+catalogs the bundled Fisher / Miner / Woodcutter / Thiever / WalkTo bots use,
 import them from `@rs2b0t/api` rather than hard-coding tiles.
 
 ### Bank locations
@@ -58,7 +58,7 @@ bankHasBetterGatherTool / canWieldTool / toolAttackLevel
 
 ### Tool acquire (planning)
 
-Pure planners for buy / repair / smith routes. **Plans only** — scripts still
+Pure planners for buy / repair / smith routes. **Plans only**, scripts still
 execute the walk, bank, and shop steps (see GatheringBot).
 
 ```ts
@@ -81,7 +81,7 @@ canFundPlan / coinsToWithdraw / acquireKeepNames
 ```
 
 `AcquireWorld` is a pure snapshot interface (`skillLevel`, `heldCount`,
-`invCount`, `bankCount`, `worn`) — no client calls inside the planner.
+`invCount`, `bankCount`, `worn`), no client calls inside the planner.
 
 ### Gathering locations
 

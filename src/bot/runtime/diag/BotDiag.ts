@@ -1,5 +1,5 @@
 // docs/decisions/multibox-telemetry-honesty.md
-// Why: the per-frame half of diagnostics — one bot's main-thread cost and the queue depths most likely to grow.
+// Why: the per-frame half of diagnostics, one bot's main-thread cost and the queue depths most likely to grow.
 // Why: the wall drains this on every sample tick, so each value is "since the last drain" and needs no clock of its own.
 
 import { boxId } from '../box.js';

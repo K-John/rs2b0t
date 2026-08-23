@@ -4,6 +4,7 @@ import { Input } from '../../input/Input.js';
 import { Execution } from '../execution/Execution.js';
 import { CombatStyleController, type CombatModeLabel, type CombatStyleResolution, type MeleeCombatStyle } from '../combat/CombatStyle.js';
 import { resolveTeleport, resolveTeleportComponent } from '../map/Teleport.js';
+import type { Loc } from '../model/Loc.js';
 import type { Npc } from '../model/Npc.js';
 
 const COM_MODE_VARP = 43;
@@ -190,6 +191,25 @@ export const Game = {
         }
 
         return Input.castOnNpc(comId, npc.index);
+    },
+
+    // Why: a spell aimed at scenery is `oploct`, which no op-based step can express, the Legends Quest magic gate is opened by charging an orb at it and nothing else.
+
+    /** Cast a targeted spell at a piece of scenery. */
+    async castOnLoc(spell: string, loc: Loc): Promise<boolean> {
+        const root = reader.sideTabInterface(MAGIC_TAB);
+        const comId = reader.targetButtonByBase(root, spell);
+        if (comId === -1) {
+            return false;
+        }
+
+        const tile = loc.tile();
+        const local = reader.toLocal(tile.x, tile.z);
+        if (!local) {
+            return false;
+        }
+
+        return Input.castOnLoc(comId, local.lx, local.lz, loc.snap.typecode);
     },
 
     /**

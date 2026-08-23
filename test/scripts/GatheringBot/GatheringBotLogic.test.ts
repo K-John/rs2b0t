@@ -44,7 +44,7 @@ describe('shouldWalkHomeToGatherAnchor (#154 post-bank)', () => {
         expect(bankDist).toBe(36);
         expect(bankDist).toBeLessThanOrEqual(NAMED_CAMP_LEASH_FLOOR);
         expect(bankDist).toBeGreaterThan(HOME_ARRIVE_RADIUS);
-        // Full-leash "already home" was the bug — bank must still request a walk.
+        // Full-leash "already home" was the bug, bank must still request a walk.
         expect(shouldWalkHomeToGatherAnchor(bankDist)).toBe(true);
         expect(shouldWalkHomeToGatherAnchor(bankDist, NAMED_CAMP_LEASH_FLOOR)).toBe(false);
     });
@@ -53,7 +53,7 @@ describe('shouldWalkHomeToGatherAnchor (#154 post-bank)', () => {
         expect(shouldWalkHomeToGatherAnchor(0)).toBe(false);
         expect(shouldWalkHomeToGatherAnchor(HOME_ARRIVE_RADIUS)).toBe(false);
         expect(shouldWalkHomeToGatherAnchor(HOME_ARRIVE_RADIUS + 1)).toBe(true);
-        // Draynor bank ~12 from willows — short walk into arrive disk is correct.
+        // Draynor bank ~12 from willows, short walk into arrive disk is correct.
         expect(shouldWalkHomeToGatherAnchor(12)).toBe(true);
     });
 
@@ -89,7 +89,7 @@ describe('gatherSpotRangeOrigin (Auto freeform fish vs named camp)', () => {
     });
 
     test('spotWithinGatherRange is inclusive Chebyshev disk', () => {
-        // Stuck tile 2582,3353 vs start 2566,3374 is cheb 21 — outside a 10 leash
+        // Stuck tile 2582,3353 vs start 2566,3374 is cheb 21, outside a 10 leash
         // from start, but a spot 3 tiles from the player is still fishable freeform.
         expect(spotWithinGatherRange(3, 40)).toBe(true);
         expect(spotWithinGatherRange(40, 40)).toBe(true);
@@ -148,7 +148,7 @@ describe('shouldSoftHomeFromGatherMiss (gather no-target thrash)', () => {
         expect(shouldSoftHomeFromGatherMiss(20)).toBe(false);
         expect(shouldSoftHomeFromGatherMiss(28)).toBe(false);
         expect(shouldSoftHomeFromGatherMiss(29)).toBe(true);
-        // Catherby bank ~36 from pier — clearly off-camp.
+        // Catherby bank ~36 from pier, clearly off-camp.
         expect(shouldSoftHomeFromGatherMiss(36)).toBe(true);
         // Varrock W bank → SW mine is far past any camp disk.
         expect(shouldSoftHomeFromGatherMiss(69)).toBe(true);

@@ -49,7 +49,7 @@ Shared rules on every leg (`add`):
   `teleArrive` also re-teles onto a walkable stand if scene flags say the anchor
   is solid.
 
-This is **endpoint OD stress**, not “replay the product’s planned clue trail.”
+This is **endpoint OD stress**, not "replay the product's planned clue trail."
 Product chooses paths via `Traversal.walkTo` / pathfinder on each leg after the
 harness cheat-teles to `from`.
 
@@ -75,17 +75,17 @@ HEADED=1 SEGMENT=quests LIMIT=50 OFFSET=0 bun e2e/nav-script-travel-live.ts
 | `BUDGET_S` | Per-leg walk timeout seconds (default 240) |
 | `SEED_QUESTS` | Force transport-quest varp seed (also on when `SEGMENT=quests`) |
 | `PATH_PAINT` | Path paint defaults on; set `0` to disable |
-| `STUCK_ABORT` | Default **on** — per-leg early stop when wall time ≫ path-cost estimate **and** no tile move (door thrash / pathfind loop). Not a suite kill. `STUCK_ABORT=0` to disable. |
+| `STUCK_ABORT` | Default **on**, per-leg early stop when wall time ≫ path-cost estimate **and** no tile move (door thrash / pathfind loop). Not a suite kill. `STUCK_ABORT=0` to disable. |
 | `STUCK_FACTOR` | Multiplier on est wall time (default **2.5**) |
 | `STUCK_MIN_S` | Min elapsed before stuck kill (default **20**) |
 | `STUCK_NOMOVE_S` | Min seconds without tile change (default **12**) |
-| `HARNESS_SUITE_ABORT` | Default **on** — stop the full suite only on harness death (`is still running`, seed fail, tele fail). Product OD fails continue. |
+| `HARNESS_SUITE_ABORT` | Default **on**, stop the full suite only on harness death (`is still running`, seed fail, tele fail). Product OD fails continue. |
 | `HP_REFILL_AT` | Effective HP ≤ this → `setstat hitpoints 99` (default **40**; `0` = off). Not invuln. |
 | `SUSTAIN_EVERY_S` | Energy + HP check period mid-walk (default **5**; floor 2). Keeps multi-suite fleets light. |
 | `ENERGY_REFILL_AT` | Run energy % threshold mid-walk (default **25**). Same sustain cadence. |
 | `WALK_POLL_MS` / `WALK_POLL_S` | Outer mid-walk poll for done/tile/stuck (default **2000** ms). Floor 500. |
 
-**Pacing defaults** (shared `e2e/lib/navLiveHarness.ts` — prefer these over ad-hoc tight loops):
+**Pacing defaults** (shared `e2e/lib/navLiveHarness.ts`, prefer these over ad-hoc tight loops):
 
 | Constant | Default | Use |
 |---|---|---|
@@ -95,7 +95,7 @@ HEADED=1 SEGMENT=quests LIMIT=50 OFFSET=0 bun e2e/nav-script-travel-live.ts
 | `DEFAULT_ARRIVAL_POLL_MS` | 400 | Tele / inv seed wait |
 | `DEFAULT_STOP_POLL_MS` | 500 | Runner stop wait |
 
-**377-style helpers** (same module): `waitSceneReady`, `giveItems`, `setStats`, `fillRunEnergy`, `ensureInvItem`, `maybeSustain` — condition → seed/restore without inventing new poll storms.
+**377-style helpers** (same module): `waitSceneReady`, `giveItems`, `setStats`, `fillRunEnergy`, `ensureInvItem`, `maybeSustain`, condition → seed/restore without inventing new poll storms.
 
 Path-cost estimate (optimistic): `estSec ≈ (cost / 2) × (tickMs / 1000)` with live
 `tickMs=300`. Stuck abort requires **no movement** so long multi-ship ODs that

@@ -11,7 +11,7 @@ import { ResourcePanel } from './ResourcePanel.js';
 import { SettingsPanel } from './SettingsPanel.js';
 import { TabBar } from './TabBar.js';
 import { VaultPrompt } from './VaultPrompt.js';
-import type { ProfileSnapshot } from './ProfileTransfer.js';
+import { applyBoxStorage, collectBoxStorage, type ProfileSnapshot } from './ProfileTransfer.js';
 import type { Account } from './types.js';
 
 if (typeof window !== 'undefined') {
@@ -277,21 +277,40 @@ function boot(): void {
         if (live.length === 0) {
             controller.setTabState(data.tabs, data.activeTab);
             tabsHydrated = true;
-            renderRail();
             return;
         }
         const extra = data.tabs.filter(tab => !controller.tabs().includes(tab));
         if (extra.length > 0) {
             controller.setTabState([...controller.tabs().slice(1), ...extra], controller.activeTab());
         }
+    }
+
+    function loadImportedProfiles(): void {
+        const live = new Set(controller.snapshot().map(slot => slot.username));
+        for (const p of vault.list()) {
+            if (!live.has(p.username)) {
+                controller.add({ username: p.username, password: p.password, tab: p.tab });
+            }
+        }
+        persistTabState();
         renderRail();
     }
 
     const settings = new SettingsPanel({
         ensureUnlocked: () => ensureUnlocked(),
-        snapshot: () => vault.snapshot(),
-        replaceAll: data => vault.replaceAll(data),
-        onImported: applyImportedTabs
+        snapshot: () => ({
+            ...vault.snapshot(),
+            storage: collectBoxStorage(vault.list().map(p => p.username))
+        }),
+        replaceAll: async data => {
+            const previous = vault.list().map(p => p.username);
+            await vault.replaceAll(data);
+            applyBoxStorage(data.storage, [...previous, ...data.profiles.map(p => p.username)]);
+        },
+        onImported: data => {
+            applyImportedTabs(data);
+            loadImportedProfiles();
+        }
     });
     document.body.appendChild(settings.el);
     document.getElementById('mbx-settings')!.addEventListener('click', () => settings.open());
@@ -331,7 +350,7 @@ function boot(): void {
     }
 
     // Bind live status (name + running dot) onto the rail tiles, which DomSlotOps keeps in slot order, so snapshot[i] is tile[i].
-    // Why: tabs filter by visibility only — hidden tiles stay in the DOM, keeping that mapping intact.
+    // Why: tabs filter by visibility only, hidden tiles stay in the DOM, keeping that mapping intact.
     function renderRail(): void {
         tabBar.render(controller.tabs(), controller.activeTab());
         const snaps = controller.snapshot();

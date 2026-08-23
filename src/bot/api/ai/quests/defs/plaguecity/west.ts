@@ -169,7 +169,7 @@ export async function getAudience(log: (m: string) => void): Promise<boolean> {
     return askBravekForRecipe(log);
 }
 
-// Why: the door is not a baked edge — it opens for a warrant holder mid-conversation, so the last
+// Why: the door is not a baked edge. It opens for a warrant holder mid-conversation, so the last
 // tile is a scene step the pathfinder never sees.
 async function enterPlagueHouse(log: (m: string) => void): Promise<boolean> {
     if (!(await knockPlagueDoor([], log))) {

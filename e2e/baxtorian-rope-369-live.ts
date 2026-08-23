@@ -1,4 +1,4 @@
-// Live proof for #369 / #320 — the baked FireGiant Baxtorian sequence with no mid-path cheats.
+// Live proof for #369 / #320, the baked FireGiant Baxtorian sequence with no mid-path cheats.
 // Why: only the raft board is teleported to, and every rope hop needs the south walk between it.
 
 //   ~/redeploy.sh && HEADED=1 bun e2e/baxtorian-rope-369-live.ts
@@ -17,7 +17,7 @@ const { base } = parseArgs(process.argv.slice(2), {
     base: process.env.BASE ?? 'http://localhost:8890'
 });
 
-/** FireGiantLogic stands — baked path must include south walk between hops. */
+/** FireGiantLogic stands, baked path must include south walk between hops. */
 const RAFT_STAND = { x: 2510, z: 3493, level: 0 };
 const LEDGE = { x: 2511, z: 3463, level: 0 };
 const DIG = { x: 2512, z: 3467, level: 0 };
@@ -94,7 +94,7 @@ try {
     await cheatQuiet(page, 'speed 300');
 
     // Content: lograft_waterfall_quest refuses Board while waterfall_quest == 0
-    // (FireGiant parks: "Waterfall Quest is not started — the log raft refuses").
+    // (FireGiant parks: "Waterfall Quest is not started, the log raft refuses").
     await cheatQuiet(page, 'setvar waterfall_quest 1');
     await relog(page, user);
     await maxmeAndClearDialogs(page);

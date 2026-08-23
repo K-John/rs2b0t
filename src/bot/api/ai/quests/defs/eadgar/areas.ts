@@ -9,7 +9,7 @@ export interface EadgarItem {
 }
 
 // Why: every unfinished potion in the game displays as "Unfinished potion", so the ranarr
-// vial is only ever addressed by id — a name-keyed withdraw pulls whichever unf the bank sorted first.
+// vial is only ever addressed by id, a name-keyed withdraw pulls whichever unf the bank sorted first.
 export const ER_ITEM = {
     COINS: { id: 995, name: 'Coins' },
     CLIMBING_BOOTS: { id: 3105, name: 'Climbing boots' },
@@ -68,11 +68,11 @@ export const ER_NPC = {
     CHICKEN: 'Chicken'
 } as const;
 
-/** `chicken` npc id — "Chicken" also names the cooked food. */
+/** `chicken` npc id, "Chicken" also names the cooked food. */
 export const CHICKEN_NPC_ID = 41;
 
 export const ER_TILE = {
-    /** Falador West — the nearest bank to Taverley, Burthorpe and Trollheim. */
+    /** Falador West, the nearest bank to Taverley, Burthorpe and Trollheim. */
     FALADOR_BANK: new Tile(2946, 3369, 0),
     /** Ardougne north bank, beside the zoo, the wheat field and the trees. */
     ARDOUGNE_BANK: new Tile(2616, 3332, 0),
@@ -133,7 +133,7 @@ export const SANFEW_FINISH: NpcStop = {
     prefer: ['I have some more goutweed for you.', "Actually I don't need to speak to you."]
 };
 
-// Why: one stop covers every Eadgar visit — the option he offers is a function of the stage, and
+// Why: one stop covers every Eadgar visit, the option he offers is a function of the stage, and
 // no two stages offer two of these at once, so a single ordered list never picks the wrong branch.
 export const EADGAR_TALK: NpcStop = {
     npc: ER_NPC.EADGAR,
@@ -205,7 +205,7 @@ export function committed(zone: EadgarZone): boolean {
     return zone !== 'mainland' && zone !== 'unknown';
 }
 
-// Why: `nearest` ranks banks by straight line, and the cave and the stronghold sit at z ≈ 10 000, where every surface bank is six thousand tiles away and the ordering is noise — one run walked past Falador and out towards Varrock.
+// Why: `nearest` ranks banks by straight line, and the cave and the stronghold sit at z ≈ 10 000, where every surface bank is six thousand tiles away and the ordering is noise. One run walked past Falador and out towards Varrock.
 // Why: on that side of the map there is one answer, so the bank is pinned rather than ranked.
 
 /** The bank a leg should open: pinned above the stile, nearest anywhere else. */

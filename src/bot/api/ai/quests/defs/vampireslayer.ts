@@ -12,7 +12,8 @@ import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { talkThrough, type NpcStop } from '../exec/primitives.js';
 import { GARLIC, MORGAN_STAIRS_TOP, takeGarlic } from '../exec/garlic.js';
-import { QuestFood } from '../food.js';
+import { FOOD_FLOAT, QuestFood } from '../food.js';
+import { prayerUpkeep } from '../prayer.js';
 
 export const VAMPIRE_SLAYER_STAGE = {
     NOT_STARTED: 0,
@@ -64,7 +65,7 @@ const ITEM = {
 const COUNT_DRAYNOR_ID = 757;
 const COFFIN_CLOSED_ID = 2614;
 
-const FOOD_TARGET = 20;
+const FOOD_TARGET = FOOD_FLOAT;
 const COIN_FLOAT = 5000;
 const COIN_RESERVE = 2000;
 
@@ -360,6 +361,7 @@ async function fightCount(log: (message: string) => void): Promise<boolean> {
     while (performance.now() < deadline) {
         if (Quests.status('Vampire Slayer') === 'complete') return true;
         if (Skills.hpFraction() < 0.6) await eatFood();
+        else await prayerUpkeep();
 
         count = liveCount();
         if (!count) {
@@ -472,6 +474,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
 
 export const vampireslayer: QuestModule = {
     record: QUESTS.find(record => record.id === 'vampire')!,
+    pray: { protect: 'melee', potions: 2 },
     bank: DRAYNOR_BANK,
     grind: ['Count Draynor'],
     tools: ['beer', 'garlic', 'hammer', 'stake', 'sword', 'kebab', 'coins'],

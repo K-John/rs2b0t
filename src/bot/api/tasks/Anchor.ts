@@ -16,7 +16,7 @@ export interface AnchorHost {
 
 /**
  * Soft home arrive radius after bank/shop/repair.
- * Humans re-enter the camp disk — they do not pin the exact location.spot tile.
+ * Humans re-enter the camp disk. They do not pin the exact location.spot tile.
  */
 export const HOME_ARRIVE_RADIUS = 8;
 
@@ -36,7 +36,7 @@ export function shouldWalkHomeToGatherAnchor(
 }
 
 // Why: BankCatch and restock use the tight {@link HOME_ARRIVE_RADIUS} disk via {@link shouldWalkHomeToGatherAnchor}, but gather must not, since freeform pier-hops and brief spot despawns sit outside the 8-tile disk and thrash hunt↔home.
-// Why: home is only pulled when clearly off the resource pad — a bank square or a long wander.
+// Why: home is only pulled when clearly off the resource pad, a bank square or a long wander.
 // Why: the threshold is soft (~20–28) rather than full camp membership, because a bank at ~36 must still soft-home even when membership is 64.
 
 /** Backup soft-home from a gather miss (no spot or rock in scene). */
@@ -48,7 +48,7 @@ export function shouldSoftHomeFromGatherMiss(
         return false;
     }
     const L = Math.max(2, Math.floor(Number.isFinite(leash) ? leash : DEFAULT_CAMP_RADIUS));
-    // ≥20 tiles off anchor, or past half a tight freeform leash — not the soft arrive disk.
+    // ≥20 tiles off anchor, or past half a tight freeform leash, not the soft arrive disk.
     const threshold = Math.max(HOME_ARRIVE_RADIUS + 12, Math.min(L, 28));
     return distToAnchor > threshold;
 }
@@ -112,7 +112,7 @@ export function createReturnToAnchorTask(host: AnchorHost, opts: ReturnToAnchorO
             const log = (m: string) => host.log?.(m);
             const here = Game.tile();
             const anchor = host.getAnchor();
-            // Already inside the arrive disk — don't micro-walk the pin.
+            // Already inside the arrive disk, don't micro-walk the pin.
             if (here && anchor.distanceTo(here) <= arriveRadius) {
                 return;
             }

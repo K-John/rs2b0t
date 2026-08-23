@@ -71,7 +71,7 @@ export class MultiBoxController {
         if (account) {
             handle.setCredentials(acct.username, acct.password);
         }
-        // a new bot is what you want to look at — but only when it lands in the
+        // a new bot is what you want to look at, but only when it lands in the
         // visible tab; a restored bot spawns into its saved (possibly hidden) tab
         if (tab === this.active) {
             this.focusedId = slot.id;

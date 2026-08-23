@@ -70,8 +70,8 @@ export const Traversal = {
     withTeles: NAV_WITH_TELES,
 
     /**
-     * Whether ordinary walks may inject teleport edges — the Global `navTeleports` toggle every walk already consults.
-     * Why: exposed because it is a provisioning question — A* only injects a hop the live inventory can pay for, so a script that wants the toggle to mean anything must put the runes in the pack before it walks.
+     * Whether ordinary walks may inject teleport edges, the Global `navTeleports` toggle every walk already consults.
+     * Why: exposed because it is a provisioning question, A* only injects a hop the live inventory can pay for, so a script that wants the toggle to mean anything must put the runes in the pack before it walks.
      */
     teleportsEnabled(): boolean {
         try {
@@ -86,7 +86,7 @@ export const Traversal = {
     },
 
     /**
-     * Force the active (or next) world walk to repath. Always honored —
+     * Force the active (or next) world walk to repath. Always honored,
      * does not wait for stall/deviation. See path stickiness on WalkExecutor.
      */
     requestRepath(reason?: string): void {

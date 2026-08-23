@@ -13,7 +13,7 @@ describe('decideOpenTrade', () => {
         expect(decideOpenTrade({ ...base, tradeActive: true, nowMs: 99_000 })).toBe('done');
     });
 
-    // Why: the regression — the giver's next step is a 24-tile round trip to the curator, so the taker's partner walks out of trade range mid-wait and the old code failed the step on a partner that was en route.
+    // Why: the regression, the giver's next step is a 24-tile round trip to the curator, so the taker's partner walks out of trade range mid-wait and the old code failed the step on a partner that was en route.
     test('a partner out of trade range is waited for, never given up on', () => {
         expect(decideOpenTrade({ ...base, partnerNear: false })).toBe('wait');
     });

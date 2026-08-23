@@ -1,6 +1,6 @@
 import type { QuestEligibility } from './types.js';
 
-/** Stable fingerprint of an eligibility pass — used to suppress no-op log spam. */
+/** Stable fingerprint of an eligibility pass, used to suppress no-op log spam. */
 export function eligibilityReportKey(results: readonly QuestEligibility[], banner: string): string {
     if (banner) {
         return `banner:${banner}`;

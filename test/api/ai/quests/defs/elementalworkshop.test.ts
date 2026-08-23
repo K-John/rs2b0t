@@ -49,6 +49,7 @@ function snap(options: {
     bankKnown?: boolean;
     tile?: WorldTile | null;
     freeSlots?: number;
+    attack?: number;
     worn?: string[];
     wornIds?: number[];
 } = {}): QuestSnapshot {
@@ -67,6 +68,8 @@ function snap(options: {
         bankIds: invIds(...(options.bankIds ?? [])),
         bankKnown: options.bankKnown ?? true,
         tile: options.tile === undefined ? SEERS : options.tile,
+        // Why: the quest arms itself from the bank, so a fixture with no Attack level can wield nothing.
+        attack: options.attack ?? 60,
         freeSlots: options.freeSlots ?? 20
     };
 }
@@ -267,7 +270,7 @@ describe('Elemental Workshop decide()', () => {
     });
 
     test('before ENTERED, missing key re-slashes the book when a knife is held', () => {
-        // Journal can already be SLASHED while the key was lost before first entry —
+        // Journal can already be SLASHED while the key was lost before first entry,
         // re-cut the spine rather than hard-wait (Push only works after ENTERED).
         const step = decide(snap({
             stage: EW_STAGE.SLASHED,

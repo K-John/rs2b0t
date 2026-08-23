@@ -61,7 +61,7 @@ async function continueObjectBankDialog(log?: (msg: string) => void): Promise<bo
 
 /**
  * The bank interface.
- * Why: `isOpen()` only means the component exists — the item list fills a beat later and the deposit side view lags the main modal by a tick, so a count of zero is not proof of an empty bank.
+ * Why: `isOpen()` only means the component exists, the item list fills a beat later and the deposit side view lags the main modal by a tick, so a count of zero is not proof of an empty bank.
  * @see docs/reference/api-items.md#bank
  */
 export const Bank = {
@@ -69,7 +69,7 @@ export const Bank = {
         return reader.bankComId() !== -1;
     },
 
-    // isOpen only says the component exists — its item list fills a beat later, and again after a
+    // isOpen only says the component exists, its item list fills a beat later, and again after a
     // deposit. Until then every count() reads 0, which is indistinguishable from an empty bank.
     loaded(): boolean {
         return reader.bankItems().length > 0;
@@ -183,7 +183,7 @@ export const Bank = {
         }
         const take = Math.min(count, available);
         const target = before + take;
-        // Withdraw-1 / Withdraw-5 / Withdraw-10 skip the count dialog (more reliable than X).
+        // Withdraw-1/5/10 skip the count dialog (more reliable than X).
         if (take === 1 || take === 5 || take === 10) {
             const fixedOp = item.ops.find(
                 (o): o is string => o !== null && new RegExp(`withdraw[\\s-]*${take}\\b`, 'i').test(o)
@@ -196,45 +196,6 @@ export const Bank = {
                     () => invCount() >= target || (invCount() > before && backpackFull()),
                     4000
                 );
-            }
-        }
-        if (take <= 50) {
-            const fixed = [10, 5, 1].map(quantity => ({
-                quantity,
-                operation: item.ops.find(
-                    (o): o is string => o !== null && new RegExp(`withdraw[\\s-]*${quantity}\\b`, 'i').test(o)
-                )
-            }));
-            let remaining = take;
-            const plan: { quantity: number; operation: string }[] = [];
-            for (const candidate of fixed) {
-                const clicks = Math.floor(remaining / candidate.quantity);
-                if (clicks > 0 && !candidate.operation) {
-                    plan.length = 0;
-                    break;
-                }
-                for (let click = 0; click < clicks; click++) {
-                    plan.push({ quantity: candidate.quantity, operation: candidate.operation! });
-                }
-                remaining %= candidate.quantity;
-            }
-            if (plan.length > 0 && remaining === 0) {
-                for (const action of plan) {
-                    const beforeClick = invCount();
-                    if (!(await clickInvButton(reader.bankItems(), name, action.operation))) {
-                        return false;
-                    }
-                    if (!(await Execution.delayUntil(
-                        () => invCount() >= beforeClick + action.quantity || (invCount() > beforeClick && backpackFull()),
-                        4000
-                    ))) {
-                        return false;
-                    }
-                    if (backpackFull() && invCount() < target) {
-                        return true;
-                    }
-                }
-                return invCount() >= target;
             }
         }
         const xOp = item.ops.find((o): o is string => o !== null && /withdraw[\s-]*x/i.test(o));
@@ -308,7 +269,7 @@ export const Bank = {
                 await Execution.delayUntil(() => reader.bankSideItems().length > 0 || !Bank.isOpen(), 1200);
                 items = reader.bankSideItems();
             }
-            // a nameless obj (cache miss) is still an item taking a slot — let the matcher decide
+            // a nameless obj (cache miss) is still an item taking a slot, let the matcher decide
             const item = items.find(i => match(i.name ?? '', i.id));
             if (!item) {
                 return;
@@ -349,7 +310,7 @@ export const Bank = {
 
             log?.(`booth didn't open from here — stepping near (${stand.x}, ${stand.z}, ${stand.level})`);
             // radius 1: adjacent is enough to click the booth; exact-tile pin looks robotic.
-            // 90s — 15s was too short for long camp→bank legs (Rimmington→Fally E).
+            // 90s, 15s was too short for long camp→bank legs (Rimmington→Fally E).
             await Traversal.walkTo(stand, { radius: 1, timeoutMs: 90_000, log });
             await Execution.delayTicks(1);
             const adj = Locs.query().name(boothName).where(l => l.actions().length > 0 && l.distance() <= 1).nearest();

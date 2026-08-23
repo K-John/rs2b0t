@@ -1,6 +1,6 @@
 /**
  * Walkable-tile map picker for `type: 'tile'` settings: loads the bot collision pack (same `collision.lcnav.gz` as the nav worker), draws a zoomable dot grid of walkable tiles under an optional worldmap basemap, and snaps a click to the nearest walkable tile. Public API: `WorldMapPicker.open()` → `{ x, z, level } | null`.
- * Why: there is no continuous render loop — paint runs only on user input or setting change, coalesced to one `requestAnimationFrame` — and basemap rebuild is manual only, so opening the picker never runs MapView.
+ * Why: there is no continuous render loop, paint runs only on user input or setting change, coalesced to one `requestAnimationFrame`, and basemap rebuild is manual only, so opening the picker never runs MapView.
  */
 import { gunzipSync } from 'fflate';
 import { PathFinder } from '../event/webwalk/PathFinder.js';
@@ -114,7 +114,7 @@ async function loadDeployBasemap(): Promise<LoadedBasemap | null> {
     }
     const blob = await imgRes.blob();
     const image = await blobToImage(blob);
-    // Pre-baked overlays (schema ≥ 2) — free toggles at paint time.
+    // Pre-baked overlays (schema ≥ 2), free toggles at paint time.
     const typeEntries = Object.entries(json.keyTypeOverlayUrls ?? {});
     const [keyOverlay, multiOverlay, freeOverlay, labelsOverlay, playerMarker, ...typeImgs] = await Promise.all([
         fetchOptionalImage(manUrl, json.keyOverlayUrl),
@@ -170,7 +170,7 @@ function tileKey(t: { x: number; z: number; level: number } | null): string {
 
 /**
  * You Are Here marker.
- * Basemap mode draws the classic media `mapmarker` pin when available, else a yellow X; classic dots mode draws a soft yellow glow with a “You Are Here” label.
+ * Basemap mode draws the classic media `mapmarker` pin when available, else a yellow X; classic dots mode draws a soft yellow glow with a "You Are Here" label.
  */
 function paintYouAreHere(
     ctx: CanvasRenderingContext2D,
@@ -279,7 +279,7 @@ async function loadBasemap(): Promise<LoadedBasemap | null> {
                 }
             }
 
-            // Offline /crc but we still have a prior rebuild — better than nothing.
+            // Offline /crc but we still have a prior rebuild, better than nothing.
             if (local && !crcKey) {
                 const hit = await tryLocal('crc-unverified');
                 if (hit) {
@@ -300,7 +300,7 @@ async function loadBasemap(): Promise<LoadedBasemap | null> {
                 return { ...deploy, hint };
             }
 
-            // No deploy asset — last resort: show stale local if we have one.
+            // No deploy asset, last resort: show stale local if we have one.
             if (local) {
                 const hint: LoadedBasemap['hint'] =
                     crcKey && local.crcKey !== crcKey ? 'stale-crc' : 'prefs-mismatch';
@@ -406,7 +406,7 @@ export class WorldMapPicker {
             let finder: PathFinder | null = null;
             let loadError: string | null = null;
             let basemap: LoadedBasemap | null = null;
-            /** ready | missing | error — stable hook for live smoke (dataset may show off). */
+            /** ready | missing | error, stable hook for live smoke (dataset may show off). */
             let basemapState: 'loading' | 'ready' | 'missing' | 'error' = 'loading';
 
             // Stand tile: snapshot once, then refresh only on PLAYER_INFO (no poll).
@@ -497,7 +497,7 @@ export class WorldMapPicker {
                 maxWidth: '100%'
             });
 
-            // .rs2b0t-button defaults to flex:1 (panel rows) — that shrinks toolbar
+            // .rs2b0t-button defaults to flex:1 (panel rows), that shrinks toolbar
             // chips and word-wraps "Rebuild map…". Keep them natural width, one line.
             const toolbarBtnStyle = {
                 flex: '0 0 auto',
@@ -634,7 +634,7 @@ export class WorldMapPicker {
                 let bm = 'basemap off';
                 if (getMapPickerShowBasemap()) {
                     if (basemapState === 'ready') {
-                        // worldmap.jag is surface art only — not L1–L3 floor plans
+                        // worldmap.jag is surface art only, not L1–L3 floor plans
                         bm =
                             level === 0
                                 ? `surface basemap ${basemap?.manifest.fingerprint.slice(0, 8) ?? ''}`
@@ -680,7 +680,7 @@ export class WorldMapPicker {
                 ctx.globalAlpha = level === 0 ? 1 : 0.32;
                 try {
                     ctx.drawImage(image, src.sx, src.sy, src.sw, src.sh, 0, 0, w, h);
-                    // Pre-baked overlays (free toggles — no MapView). Same source rect as terrain.
+                    // Pre-baked overlays (free toggles, no MapView). Same source rect as terrain.
                     if (theme.showFreeTint && basemap.freeOverlay) {
                         ctx.drawImage(basemap.freeOverlay, src.sx, src.sy, src.sw, src.sh, 0, 0, w, h);
                     }
@@ -711,12 +711,12 @@ export class WorldMapPicker {
                         ctx.drawImage(basemap.labelsOverlay, src.sx, src.sy, src.sw, src.sh, 0, 0, w, h);
                     }
                 } catch {
-                    /* out-of-bounds source rects on some browsers — skip frame */
+                    /* out-of-bounds source rects on some browsers, skip frame */
                 }
                 ctx.restore();
             };
 
-            /** Coalesce paints to one frame — pan must not full-redraw on every mousemove. */
+            /** Coalesce paints to one frame, pan must not full-redraw on every mousemove. */
             let paintRaf = 0;
             let closed = false;
 
@@ -816,7 +816,7 @@ export class WorldMapPicker {
                     ctx.lineWidth = 1;
                 }
 
-                // You Are Here — stand tile (all modes; level must match).
+                // You Are Here, stand tile (all modes; level must match).
                 if (here && here.level === level) {
                     const { sx, sy } = worldToScreen(here.x + 0.5, here.z + 0.5);
                     if (sx >= -20 && sy >= -20 && sx <= w + 20 && sy <= h + 20) {

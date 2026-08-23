@@ -68,7 +68,7 @@ export function isHostileEventNpc(
     if (npc.distance > HOSTILE_ENGAGE_DISTANCE) {
         return false;
     }
-    // Why: these antimacro ids only exist as your own random event — they are not world mobs you walk past.
+    // Why: these antimacro ids only exist as your own random event. They are not world mobs you walk past.
     // Why: soft flags (combatCycle / faceEntity) often lag or never set for 0-damage Swarm (#422), which left walks repathing until timeout while Supervisor never intercepted, so presence within engage range is enough.
     return true;
 }
@@ -336,7 +336,7 @@ class RandomEventsImpl {
         }
         this.handling = true;
         try {
-            // detect/handle must never throw into ScriptRunner — a thrown error
+            // detect/handle must never throw into ScriptRunner, a thrown error
             // marks the script crashed even when the maze/dialog later succeeds.
             return await this.handleInner(log);
         } catch (err) {

@@ -87,7 +87,7 @@ for (const [name, p] of stands) {
 }
 console.log(bad === 0 ? '\nall stands accounted for' : `\n${bad} stand(s) unaccounted for`);
 
-// For anything the flood could not reach, name the nearest tile it could — an
+// For anything the flood could not reach, name the nearest tile it could, an
 // anchor one tile inside a wall reads like a sealed room.
 const NEAR: [string, NavPoint][] = stands.filter(([n, p]) =>
     !SEALED.has(n.replace(/\[\d+\]$/, '')) && !inMain(p));

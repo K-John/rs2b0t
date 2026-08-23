@@ -34,7 +34,7 @@ const RELOG_BUDGET_MS = Number(process.env.RELOG_BUDGET_MS) || 90_000;
 /** Logout via the logout UI button (if_button 2458 → ClientProt.IF_BUTTON).
  *  Falls back to client.logout() when the button packet cannot be sent. Why: 2458 is the same component id as LOGOUT_BUTTON_COM in e2e/lib/harness.ts, so the two logout paths have to move together. */
 async function cleanLogout(page: Page): Promise<'ifbutton' | 'client'> {
-    // logout:try_logout — tab-rooted; engine accepts without the logout tab open.
+    // logout:try_logout, tab-rooted; engine accepts without the logout tab open.
     const LOGOUT_BUTTON = 2458;
     const via = await page.evaluate(com => {
         const g = globalThis as never as {
@@ -57,7 +57,7 @@ async function cleanLogout(page: Page): Promise<'ifbutton' | 'client'> {
 
 async function waitClientBooted(page: Page, label: string): Promise<void> {
     // loopCycle only advances once title-screen assets are loaded and the game
-    // loop is running — longer than jag download alone on a cold profile.
+    // loop is running, longer than jag download alone on a cold profile.
     try {
         await page.waitForFunction(
             () =>
@@ -141,7 +141,7 @@ export async function relog(page: Page, user: string): Promise<void> {
             .catch(() => false);
 
     // Don't hammer login while the engine still holds the old session, but don't
-    // oversleep either — probe early with short timeouts until one sticks.
+    // oversleep either, probe early with short timeouts until one sticks.
     await page.waitForTimeout(RELOG_COOLDOWN_MS);
 
     // Title loop must still be ticking (cache/UI ready) before we hammer login.
@@ -231,7 +231,7 @@ export async function getServerVarQuiet(page: Page, name: string): Promise<numbe
     return Number.isNaN(value) ? null : value;
 }
 
-// Lumbridge courtyard — same hop other live harnesses use (not a tutorial stage walk).
+// Lumbridge courtyard, same hop other live harnesses use (not a tutorial stage walk).
 const OFF_ISLAND_TELE = '0,50,50,20,20';
 
 /** New account → off Tutorial Island without playing it: boot and login, tele off-island and setvar tutorial 1000, clean IF_BUTTON logout (com 2458), then login again so the side icons and tutorial UI lock refresh from the login payload.
@@ -263,7 +263,7 @@ export async function mainlandAccount(page: Page, base: string, user: string, cl
     }
 
     // Side icons / tutorial UI lock only refresh from the login payload.
-    // Use clean IF_BUTTON logout (not socket drop) — see relog / cleanLogout.
+    // Use clean IF_BUTTON logout (not socket drop), see relog / cleanLogout.
     await relog(page, user);
 
     const unlocked = await page.evaluate(() => ((globalThis as never as Rs2b0t).rs2b0t.client.sideIcon[3] ?? -1) !== -1);
@@ -580,7 +580,7 @@ export async function seedItemsToBank(
     const want = items.map(i => ({ name: i.displayName, qty: i.qty }));
 
     // Prefer engine givebank (no p_finduid busy-guard). cheatQuiet only proves the
-    // packet left the client — verify with a booth open before trusting it.
+    // packet left the client, verify with a booth open before trusting it.
     console.log('  trying givebank (engine)…');
     await applyBankSeedCmds(page, items, 'givebank');
     let res = await verifyBankCounts(page, bankStand, want);

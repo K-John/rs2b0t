@@ -94,7 +94,7 @@ export interface TickManipProfile {
     farmerWillowCycle: boolean;
     /** Interleave cook+eat during fishing (Tannerfishing). */
     cookEatInterleave: boolean;
-    /** May die — same product risk as Location Auto. */
+    /** May die, same product risk as Location Auto. */
     mayDie: boolean;
 }
 
@@ -338,7 +338,7 @@ export function miningRateForPickaxe(pickName: string | null | undefined): numbe
     if (n.includes('bronze') || n.includes('pickaxe')) {
         return 7;
     }
-    // Unknown / bare hands — treat as slow bronze-class.
+    // Unknown / bare hands, treat as slow bronze-class.
     return 7;
 }
 
@@ -369,7 +369,7 @@ export function knifeDelayPhase(nowTick: number, armTick: number): KnifeDelayPha
     if (now === arm + 1) {
         return 'reclick';
     }
-    // Missed the reclick window — re-arm rather than idle.
+    // Missed the reclick window, re-arm rather than idle.
     if (now > arm + 1) {
         return 'delay-action';
     }
@@ -446,7 +446,7 @@ export function shouldEatForTannerfish(hpFraction: number, hasCooked: boolean): 
 
 /**
  * Prefer cooking a raw catch when the pack is getting full or we need food soon.
- * Pure heuristic — caller still needs a Fire/Range in scene.
+ * Pure heuristic, caller still needs a Fire/Range in scene.
  */
 export function shouldCookForTannerfish(opts: {
     rawCount: number;

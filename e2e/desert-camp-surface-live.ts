@@ -1,4 +1,4 @@
-/** Live proof — Miner at Desert Mining Camp Surface mines coal without entering the underground mine.
+/** Live proof, Miner at Desert Mining Camp Surface mines coal without entering the underground mine.
  *
  *   ENGINE_DIR=.../engine sh tools/deploy-local.sh
  *   bun e2e/desert-camp-surface-live.ts [http://localhost:8888]

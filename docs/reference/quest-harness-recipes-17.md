@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## Big Chompy Bird Hunting — stage-scoped harness
+## Big Chompy Bird Hunting, stage-scoped harness
 
 [`e2e/chompy-bird-235-live.ts`](../../e2e/chompy-bird-235-live.ts) takes `--stage N`
 (`%chompybird`, 0 to 60 in fives) and relogs, since `update_questlist` only recolours the
@@ -34,13 +34,17 @@ Three details govern this harness:
 
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)
 - [Quest harness recipes (Dig)](quest-harness-recipes-15.md)
-- [Quest harness recipes (E)](quest-harness-recipes-4.md)
-- [Quest harness recipes (F)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Ea)](quest-harness-recipes-22.md)
+- [Quest harness recipes (El–Er)](quest-harness-recipes-4.md)
+- [Quest harness recipes (Fam–Figh)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Fis)](quest-harness-recipes-21.md)
 - [Quest harness recipes (Fre)](quest-harness-recipes-18.md)
 - [Quest harness recipes (G)](quest-harness-recipes-11.md)
 - [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
 - [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
+- [Quest harness recipes (Leg)](quest-harness-recipes-20.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)
 - [Quest harness recipes (N–O)](quest-harness-recipes-14.md)
 - [Quest harness recipes (P–R)](quest-harness-recipes-5.md)

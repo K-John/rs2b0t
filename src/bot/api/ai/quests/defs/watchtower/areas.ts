@@ -6,7 +6,7 @@ export interface WatchtowerItem {
     name: string;
 }
 
-// Why: these are the engine's names, and several collide — all four crystals are "Crystal", both mid-brew vials are "Vial", and the ogre potion is "Potion".
+// Why: these are the engine's names, and several collide, all four crystals are "Crystal", both mid-brew vials are "Vial", and the ogre potion is "Potion".
 // Why: every lookup in this quest therefore goes through the id.
 export const WT_ITEM = {
     COINS: { id: 995, name: 'Coins' },

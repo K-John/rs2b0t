@@ -42,7 +42,7 @@ export async function takeRottenApples(log: (m: string) => void): Promise<boolea
 }
 
 // Why: the cauldron sits in the headquarters yard, and the only way in that is not the
-// gown-locked building is the Climb-over fence at 2541,3331 — a curated transport.
+// gown-locked building is the Climb-over fence at 2541,3331, a curated transport.
 export async function poisonTheStew(log: (m: string) => void): Promise<boolean> {
     if (!(await walkTo(BIO_TILE.CAULDRON, 1, log))) {
         return false;
@@ -100,7 +100,7 @@ function hungry(): boolean {
     return max > 0 && Skills.effective('hitpoints') <= max - EAT_AT_MISSING;
 }
 
-// Why: the key only drops for the player the mourner is aggressive toward, and `%npc_aggressive_player` is set by `~npc_retaliate` — which is what the doctor dialogue calls, so Attack alone is not guaranteed to claim him.
+// Why: the key only drops for the player the mourner is aggressive toward, and `%npc_aggressive_player` is set by `~npc_retaliate`, which is what the doctor dialogue calls, so Attack alone is not guaranteed to claim him.
 // Why: he respawns 140 ticks after dying, so the talk, the fight and the search are one step.
 async function fightForKey(log: (m: string) => void): Promise<boolean> {
     let swings = 0;

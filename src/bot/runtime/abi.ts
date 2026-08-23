@@ -191,6 +191,7 @@ import { ChatDialog } from '../api/ui/dialogue/ChatDialog.js';
 import { Equipment } from '../api/equipment/Equipment.js';
 import { InvItem, Inventory } from '../api/inventory/Inventory.js';
 import { Quests } from '../api/ui/questlog/Quests.js';
+import { Prayer } from '../api/prayer/Prayer.js';
 import { Shop } from '../api/shop/Shop.js';
 import { Skills } from '../api/skills/Skills.js';
 import { Trade } from '../api/trade/Trade.js';
@@ -241,7 +242,7 @@ export function installAbi(): void {
         DirectNavigator,
         /** Client-side reachability probes, for a harness asking what this pocket can walk to. */
         Reachability,
-        /** Bot-side essence exit return (varp 64 is server-only — not on client wire). */
+        /** Bot-side essence exit return (varp 64 is server-only, not on client wire). */
         EssenceSession,
 
         Npcs,
@@ -277,6 +278,7 @@ export function installAbi(): void {
         nearestUsableBank,
         Shop,
         Skills,
+        Prayer,
         Loadouts,
         ChatDialog,
         Quests,
@@ -433,7 +435,7 @@ export function installAbi(): void {
         isNavPathPaintEnabled,
         SettingsStore,
 
-        // Danger zones (pathfinder avoid) — idea @lolwut
+        // Danger zones (pathfinder avoid), idea @lolwut
         KNOWN_DANGER_ZONES,
         knownDangerZone,
         knownDangerZoneIds,

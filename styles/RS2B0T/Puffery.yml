@@ -1,0 +1,14 @@
+extends: existence
+message: "Puffery: '%s'. State what happened."
+level: error
+ignorecase: true
+tokens:
+  - 'evolving landscape'
+  - 'setting the stage'
+  - 'indelible mark'
+  - 'deeply rooted'
+  - 'must-visit'
+  - 'game[- ]chang(?:er|ing)'
+  - 'cutting[- ]edge'
+  - 'state of the art'
+  - 'seamless(?:ly)?'

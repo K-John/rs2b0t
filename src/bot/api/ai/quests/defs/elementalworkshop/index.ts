@@ -56,7 +56,7 @@ function needFurnaceWork(snap: QuestSnapshot): boolean {
 }
 
 function sourceKnife(snap: QuestSnapshot): QuestStep | null {
-    // useOn needs a pack item — worn-only does not count (slashBookForKey unequips if needed).
+    // useOn needs a pack item, worn-only does not count (slashBookForKey unequips if needed).
     if (held(snap, EW_ITEM.BATTERED_KEY.id) > 0 || hasHeldSlashTool(snap)) {
         return null;
     }
@@ -141,7 +141,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     // Surface provisioning before first entry (and when forced out for missing tools / death).
     if (area !== 'workshop') {
         // First open needs the Battered key. After ENTERED, Push works without it
-        // (death piles often leave the key in Lumbridge — re-bank/withdraw if held).
+        // (death piles often leave the key in Lumbridge, re-bank/withdraw if held).
         if (held(snap, EW_ITEM.BATTERED_KEY.id) === 0) {
             const bankKey = fromBank(snap, EW_ITEM.BATTERED_KEY, 1);
             if (bankKey) {
@@ -152,7 +152,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             }
             // Stage already entered: enterWorkshop will Push the odd wall.
         }
-        // Before entered, journal has no machinery flags — assume all workshop work remains.
+        // Before entered, journal has no machinery flags, assume all workshop work remains.
         const bellows = stage < EW_STAGE.ENTERED || needBellowsWork(snap);
         const smelt = stage < EW_STAGE.ENTERED || needSmeltMaterials(snap);
         const load = surfaceLoadout(snap, bellows, smelt);

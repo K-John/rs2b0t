@@ -167,7 +167,7 @@ async function pollArrived(
     return sample;
 }
 
-/** Packet-based ::tele + wait for arrival. Soft retries only — no logout/reload thrash. */
+/** Packet-based ::tele + wait for arrival. Soft retries only, no logout/reload thrash. */
 async function teleArrive(
     page: import('playwright-core').Page,
     spot: { x: number; z: number; level: number }
@@ -204,7 +204,7 @@ try {
         fail('login failed');
     }
 
-    // No warmup reload — local engines accept CLIENT_CHEAT once ingame.
+    // No warmup reload, local engines accept CLIENT_CHEAT once ingame.
     // (A tele+reload warmup only costs a long unclean-disconnect relogin.)
 
     const headed = !!process.env.HEADED;

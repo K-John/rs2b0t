@@ -74,7 +74,7 @@ describe('ToolAcquire pickaxe', () => {
             levels: { mining: 41 },
             bank: { Coins: 10 }
         });
-        // bronze is 1gp — still affordable
+        // bronze is 1gp, still affordable
         const plan = planPickaxeAcquire(w, { upgrade: false });
         expect(plan?.kind).toBe('buy');
         if (plan?.kind === 'buy') {
@@ -312,7 +312,7 @@ describe('ToolAcquire helpers', () => {
         expect(
             bestSmithableAxe(5, 1, null, bar => (bar === 'Bronze bar' ? 1 : 0), true)?.name
         ).toBe('Bronze axe');
-        // Woodcutting never gates the axe — smithing and the bar do
+        // Woodcutting never gates the axe, smithing and the bar do
         expect(bestSmithableAxe(5, 51, null, bar => (bar === 'Mithril bar' ? 1 : 0), true)?.name).toBe('Mithril axe');
         expect(bestSmithableAxe(41, 50, null, bar => (bar === 'Mithril bar' ? 1 : 0), true)).toBeNull();
     });

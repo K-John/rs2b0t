@@ -7,8 +7,8 @@ re-pay them.
 
 ## Sealed pockets and the baked graph
 
-areas — Grew's island, Toban's camp, the lower city, the city-guard pocket, each skavid
-cave, the shaman enclave, the wizard's floor — are reachable only through a scripted
+areas, Grew's island, Toban's camp, the lower city, the city-guard pocket, each skavid
+cave, the shaman enclave, the wizard's floor, are reachable only through a scripted
 crossing that teleports the player, so nothing routes into them by walking. Two rules
 fall out of that, and both were found the hard way:
 
@@ -19,10 +19,10 @@ fall out of that, and both were found the hard way:
   [`tools/nav/probe-tile.ts`](../../tools/nav/probe-tile.ts) pathfinds to every tile a quest
   module names, from each of its regions, and is worth running before any live attempt.
   `findPath` snapping to within five tiles is a weaker claim than
-  `walkResilient(radius: 2)` arriving — a wide blocker whose only open side faces
+  `walkResilient(radius: 2)` arriving, a wide blocker whose only open side faces
   away satisfies the first and never the second.
 - **A flood over the baked graph merges components the player cannot connect.**
-  Any door edge the walker can click but not *pay* — a guarded gate, a toll — makes two
+  Any door edge the walker can click but not *pay*, a guarded gate or a toll, makes two
   regions look like one. Watch Tower's design concluded a gold bar was unnecessary for
   this reason, and the opposite was true.
 

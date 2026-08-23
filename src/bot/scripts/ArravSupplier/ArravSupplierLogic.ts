@@ -24,7 +24,7 @@ export type SupplierPhase =
     | 'mint'
     | 'done';
 
-// Why: it must never redeem — the king sets %phoenixgang complete, which seals the chest and stops the curator for good.
+// Why: it must never redeem. The king sets %phoenixgang complete, which seals the chest and stops the curator for good.
 
 /** The supplier's one decision. */
 export function supplierPhase(s: SupplierState): SupplierPhase {

@@ -1,0 +1,16 @@
+extends: existence
+message: "Filler: '%s'. Delete it or name the source."
+level: error
+ignorecase: true
+tokens:
+  - 'it.?s worth mentioning'
+  - 'as you can see'
+  - 'note that'
+  - 'it.?s important to'
+  - 'it is important to'
+  - 'needless to say'
+  - 'at the end of the day'
+  - 'experts (?:believe|say|agree)'
+  - 'industry reports suggest'
+  - 'some critics argue'
+  - 'while specific details are'

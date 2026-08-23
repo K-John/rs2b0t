@@ -30,7 +30,7 @@ HEADED=1 TRANSPORT_HEAVY=1 LIMIT=14 ENERGY_REFILL_AT=25 bun e2e/nav-script-route
 
 Quest seeds and the relog are automatic. `TH-ess-round-*` pins the essence roundtrip:
 teleport to the wizard, walk into the mine, portal out. `EssenceSession` is set by the
-entry hop only — there is no `setvar exit_essence_mine_coord`.
+entry hop only. There is no `setvar exit_essence_mine_coord`.
 
 ## Seed a quest gate by hand
 

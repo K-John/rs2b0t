@@ -17,7 +17,7 @@ Production target is [rs2b2t](https://rs2b2t.com) only.
 
 ## Get an engine
 
-Engine and content are separate repos on matching branches and **must be siblings** —
+Engine and content are separate repos on matching branches and **must be siblings**,
 the engine resolves content as `../content`.
 
 1. Clone both at revision 274:
@@ -93,7 +93,7 @@ Open an issue if it does not work.
 ## Run a bot
 
 1. Open `http://localhost:<web>/bot.html`.
-2. Register an account — a fresh engine has `website.registration` enabled.
+2. Register an account, a fresh engine has `website.registration` enabled.
 3. Log in, open the panel, pick a script, set parameters, start it.
 
 For several accounts in one tab open `multibox.html` and keep the tab visible; a
@@ -117,7 +117,7 @@ bun run smoke                                     # against localhost:8890
 bun run smoke http://localhost:8888 user pass     # another engine, named account
 ```
 
-`bunfig.toml` preloads `test/setup-dom.ts`, which registers happy-dom globally — that is
+`bunfig.toml` preloads `test/setup-dom.ts`, which registers happy-dom globally. That is
 what lets DOM-touching modules be imported in unit tests.
 
 `bun run lint` reports pre-existing problems in the vendored client. The bar is not
@@ -126,7 +126,7 @@ adding new ones, not reaching zero.
 `format` deliberately takes explicit paths. The repo is not globally prettier-formatted,
 so `prettier --write .` produces an enormous unrelated diff.
 
-`bun run smoke` does **not** deploy — deploy first or it loads a stale client.
+`bun run smoke` does **not** deploy, deploy first or it loads a stale client.
 
 ## Maintainer appendix
 
@@ -138,10 +138,10 @@ Requires repositories not published alongside this one.
   `LOCAL_RSAE`/`LOCAL_RSAN` is needed.
 - Cheats (staffModLevel 4 locally): `::tele 0,mx,mz,lx,lz`, `::~maxme`,
   `::~item <objname> <count>`, `::~bankitem`, `::~spawnloc <locname>`. The level-up
-  dialogs raised by `::~maxme` swallow the next typed command — clear dialogs first.
+  dialogs raised by `::~maxme` swallow the next typed command, clear dialogs first.
 
 ## See also
 
 - [Ports and troubleshooting](../reference/ports.md)
-- [Testing](../TESTING.md) — unit tests and the live harnesses
-- [Dev and deploy](../DEV.md) — build targets, run modes, hosting
+- [Testing](../TESTING.md), unit tests and the live harnesses
+- [Dev and deploy](../DEV.md), build targets, run modes, hosting

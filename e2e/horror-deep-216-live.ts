@@ -1,4 +1,4 @@
-/** Live Horror from the Deep harness (#216): --stage N --until N --minutes N --barcrawl 0 --bits <names> --teleports --stocked. Members-only, so base :8890 — the :8888 sim has no `node` block and every members gate refuses.
+/** Live Horror from the Deep harness (#216): --stage N --until N --minutes N --barcrawl 0 --bits <names> --teleports --stocked. Members-only, so base :8890, the :8888 sim has no `node` block and every members gate refuses.
  *  Why: `--stage` relogs since update_questlist only recolours the journal entry at login; every `deephorror` sub-bit is seeded to match, since the bridge, the key and the three lamp repairs are separate bits of one varp and a stage jump leaving them clear describes a state the quest cannot reach; the bank holds coins and food alone, since a stage-1 run handed eight nails passes while the quest cannot smith them. */
 
 //   HEADED=1 bun e2e/horror-deep-216-live.ts --stage 0 --until 10 --minutes 240
@@ -96,7 +96,7 @@ const QUEST = 'Horror from the Deep';
 const CAMELOT_BANK = { x: 2725, z: 3491, level: 0 };
 const VARROCK_EAST_BANK = { x: 3253, z: 3420, level: 0 };
 
-/** Coins and food only — everything else has a source in the world, and banking one would hide whether the bot can find it.
+/** Coins and food only, everything else has a source in the world, and banking one would hide whether the bot can find it.
  *  Why: the food follows `--food`, or the quest withdraws a name the bank has never heard of. */
 function bankSeed(): BankSeedItem[] {
     const seed: BankSeedItem[] = [
@@ -105,7 +105,7 @@ function bankSeed(): BankSeedItem[] {
         // Why: nothing in the game sells a rune scimitar, so without it the melee form of the mother is prayed through and the branch never runs.
         { debugName: 'rune_scimitar', displayName: 'Rune scimitar', qty: 1 }
     ];
-    // Why: law is the one rune the module will not shop for — only the Magic Guild and the Mage Arena stock it — so `--teleports` has to bank it or the toggle changes nothing.
+    // Why: law is the one rune the module will not shop for, only the Magic Guild and the Mage Arena stock it, so `--teleports` has to bank it or the toggle changes nothing.
     if (args.teleports) {
         seed.push({ debugName: 'lawrune', displayName: 'Law rune', qty: 500 });
     }
@@ -185,7 +185,7 @@ async function snapshot(page: Page): Promise<Snapshot> {
 }
 
 /** A live run loads the deployed bundles, never the working tree.
- *  Why: the transport graph — the basalt causeway, the bridge and the outpost pipe — compiles into navworker.js, a separate entrypoint, so deploying only the client leaves the navigator on the old edges and every route reports "unreachable". */
+ *  Why: the transport graph, meaning the basalt causeway, the bridge and the outpost pipe, compiles into navworker.js, a separate entrypoint, so deploying only the client leaves the navigator on the old edges and every route reports "unreachable". */
 const DEPLOYED = ['botclient.js', 'botclient.js.map', 'navworker.js', 'navworker.js.map'];
 
 function deployBundle(): void {

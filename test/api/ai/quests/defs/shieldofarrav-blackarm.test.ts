@@ -47,7 +47,7 @@ describe('black arm leg', () => {
             .toMatchObject({ kind: 'custom', name: 'ask Katrine to join the Black Arm Gang' });
     });
 
-    // Why: the regression — decide() preferred the hand-in the moment the crossbows landed, and the raid step was the only thing that ever tried to leave, so a failed crossing read "no path to Katrine: unreachable" forever.
+    // Why: the regression, decide() preferred the hand-in the moment the crossbows landed, and the raid step was the only thing that ever tried to leave, so a failed crossing read "no path to Katrine: unreachable" forever.
     test('crossbows held inside the store pocket leave before the hand-in', () => {
         const snap = at(SOA_STAGE.KATRINE_TASK, [], [[SOA_ID.CROSSBOW, 2]]);
         snap.tile = STORE_GROUND as QuestSnapshot['tile'];
@@ -114,6 +114,20 @@ describe('black arm leg', () => {
 
     test('a joined member holding the half asks for nothing more from this leg', () => {
         const step = blackarmStep(at(SOA_STAGE.BLACKARM_JOINED, ['own-half-only'], [[SOA_ID.SHIELD_BLACKARM, 1]]));
+        expect(step.kind).toBe('wait');
+    });
+
+    // Why: `[oploc2,blackarmcupboardopen]` reads `inv_total(bank, arravshield2)`, so a banked half leaves the cupboard bare for good.
+    test('a banked half is withdrawn, not searched for a second time', () => {
+        const step = blackarmStep(at(SOA_STAGE.BLACKARM_JOINED, [], [], [[SOA_ID.SHIELD_BLACKARM, 1]]));
+        expect(step).toMatchObject({ kind: 'withdraw' });
+        expect((step as { items: { id: number }[] }).items[0].id).toBe(SOA_ID.SHIELD_BLACKARM);
+    });
+
+    test('a held half stops the withdraw even while the bank read still shows one', () => {
+        const step = blackarmStep(
+            at(SOA_STAGE.BLACKARM_JOINED, [], [[SOA_ID.SHIELD_BLACKARM, 1]], [[SOA_ID.SHIELD_BLACKARM, 1]])
+        );
         expect(step.kind).toBe('wait');
     });
 

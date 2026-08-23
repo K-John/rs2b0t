@@ -17,11 +17,11 @@ What every quest harness does, independent of which quest it drives.
 ## Facts a harness is built on
 
 - **`::death` is a clean kill** (`~damage_self(999)`): respawn is Lumbridge `(3221,3218)`,
-  and `move_priciest_item_on_hero_to_death` keeps *one* of each of the three priciest items
-  — so a coin stack comes back as a single coin. Use it to drive death recovery through a death
+  and `move_priciest_item_on_hero_to_death` keeps *one* of each of the three priciest items,
+  so a coin stack comes back as a single coin. Use it to drive death recovery through a death
   rather than seeding a post-death pose.
 - **A stage test seeds only what that stage produces, never its tools.** See
-  [Quests](../how-to/add-a-quest.md) — every Watch Tower stage-10 test handed the bot
+  [Quests](../how-to/add-a-quest.md), every Watch Tower stage-10 test handed the bot
   a pickaxe, so all of them passed while the quest could not mine.
   [`e2e/shilo-solo-test.ts`](../../e2e/shilo-solo-test.ts) is the current worked
   example: `--stage`/`--bits` jump the quest varps, `--tele` drops the account beside
@@ -38,12 +38,16 @@ What every quest harness does, independent of which quest it drives.
 ## See also
 
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)
-- [Quest harness recipes (E)](quest-harness-recipes-4.md)
-- [Quest harness recipes (F)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Ea)](quest-harness-recipes-22.md)
+- [Quest harness recipes (El–Er)](quest-harness-recipes-4.md)
+- [Quest harness recipes (Fam–Figh)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Fis)](quest-harness-recipes-21.md)
 - [Quest harness recipes (G)](quest-harness-recipes-11.md)
 - [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
 - [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
+- [Quest harness recipes (Leg)](quest-harness-recipes-20.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)
 - [Quest harness recipes (N–O)](quest-harness-recipes-14.md)
 - [Quest harness recipes (P–R)](quest-harness-recipes-5.md)

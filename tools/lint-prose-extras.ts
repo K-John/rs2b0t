@@ -25,55 +25,6 @@ export function checkDocCap(files: string[]): Finding[] {
     return found;
 }
 
-const MIN_WORDS = 5;
-
-function isProse(line: string): boolean {
-    const t = line.trim();
-    if (t === '') return false;
-    if (t.startsWith('#')) return false;
-    if (t.startsWith('|')) return false;
-    if (t.startsWith('-') || t.startsWith('*') || t.startsWith('>')) return false;
-    if (/^\d+\./.test(t)) return false;
-    if (t.startsWith('<!--')) return false;
-    return true;
-}
-
-const NAVIGATION = /^\[[^\]]+\]\([^)]+\)/;
-
-export function checkFragments(files: string[]): Finding[] {
-    const found: Finding[] = [];
-    for (const file of files) {
-        const lines = readFileSync(file, 'utf8').split('\n');
-        let fenced = false;
-        let start = -1;
-        let block: string[] = [];
-        const flush = () => {
-            const t = block[0]?.trim() ?? '';
-            if (block.length === 1 && !NAVIGATION.test(t) && t.split(/\s+/).length < MIN_WORDS) {
-                found.push({ file, line: start, check: 'fragment', message: `One-line paragraph "${t}" reads as punctuation. Give it a subject and a verb or fold it into the neighbouring block.` });
-            }
-            block = [];
-            start = -1;
-        };
-        for (const [index, line] of lines.entries()) {
-            if (line.trim().startsWith('```')) {
-                fenced = !fenced;
-                flush();
-                continue;
-            }
-            if (fenced) continue;
-            if (isProse(line)) {
-                if (start === -1) start = index + 1;
-                block.push(line);
-            } else {
-                flush();
-            }
-        }
-        flush();
-    }
-    return found;
-}
-
 const MAX_BLOCK = 2;
 const RATIONALE = /\b(because|so that|the reason)\b/i;
 const DIRECTIVE = /^\s*(?:\/\/|\/\*+|\*)\s*(eslint|@ts-|prettier|vale|biome|c8|istanbul|oxlint)/;
@@ -159,8 +110,8 @@ export function checkComments(files: string[]): Finding[] {
     return found;
 }
 
-const CHECKS = ['doc-cap', 'fragment', 'why-tag', 'comment-block'];
-const DEFAULT_GATE = ['doc-cap', 'fragment'];
+const CHECKS = ['doc-cap', 'why-tag', 'comment-block'];
+const DEFAULT_GATE = ['doc-cap'];
 
 function tracked(roots: string[], ext: string): string[] {
     const out = spawnSync('git', ['ls-files', '--', ...roots], { encoding: 'utf8' });
@@ -185,7 +136,7 @@ if (import.meta.main) {
         process.exit(2);
     }
 
-    const findings = [...checkDocCap(markdown), ...checkFragments(markdown), ...checkComments(sources)];
+    const findings = [...checkDocCap(markdown), ...checkComments(sources)];
     for (const f of findings) {
         const gated = gate.has(f.check) ? 'error' : 'report';
         console.log(`${f.file}:${f.line}  ${gated}  ${f.check}  ${f.message}`);

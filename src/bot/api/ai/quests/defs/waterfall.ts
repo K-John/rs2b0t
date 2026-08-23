@@ -16,6 +16,8 @@ import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { talkThrough, walkWithHops, type LadderHop, type NpcStop } from '../exec/primitives.js';
 import { executeStep } from '../exec/steps.js';
+import { ITEM_DB } from '../../../../data/itemdb.js';
+import { QuestFood } from '../food.js';
 
 export const WATERFALL_STAGE = {
     NOT_STARTED: 0,
@@ -47,14 +49,15 @@ const ITEM = {
     EARTH_RUNE: { id: 557, name: 'Earth rune' },
     COINS: { id: 995, name: 'Coins' },
     KEBAB: { id: 1971, name: 'Kebab' },
-    ROPE: { id: 954, name: 'Rope' },
-    TEA: { id: 1978, name: 'Cup of tea' },
-    BREAD: { id: 2309, name: 'Bread' }
+    ROPE: { id: 954, name: 'Rope' }
 } as const satisfies Record<string, WaterfallItem>;
 
 const RUNES = [ITEM.AIR_RUNE, ITEM.EARTH_RUNE, ITEM.WATER_RUNE] as const;
-const BREAD_TARGET = 15;
-const TRAVEL_TEA_TARGET = 10;
+const FOOD_TARGET = 8;
+
+// Why: refilling on any shortfall walked the run back to Ardougne for a single fish, while the walker was still following the route to the falls.
+/** Food left before a bank trip is worth making, well under the float it refills to. */
+const FOOD_LOW = 3;
 const RUNE_TARGET = 6;
 const RUNE_UNIT_BUDGET = 24;
 const BETTY_RETURN_FARE = 60;
@@ -86,10 +89,7 @@ const LOC = {
 } as const;
 
 const ARDOUGNE_BANK = new Tile(2616, 3332, 0);
-const VARROCK_EAST_BANK = new Tile(3253, 3420, 0);
 const AEMAD_SHOP = { npc: 'Aemad', anchor: new Tile(2614, 3293, 0) };
-const BAKER_SHOP = { npc: 'Baker', anchor: new Tile(2654, 3311, 0) };
-const TEA_SHOP = { npc: 'Tea seller', anchor: new Tile(3271, 3411, 0) };
 const BETTY_SHOP = { npc: 'Betty', anchor: new Tile(3012, 3259, 0) };
 const VARROCK_MAN = new Tile(3240, 3405, 0);
 const AL_KHARID_MAN = new Tile(3279, 3188, 0);
@@ -276,21 +276,15 @@ function coinsHeld(snap: QuestSnapshot): number {
 }
 
 function remainingWaterfallCash(snap: QuestSnapshot): number {
-    // Why: a blank eastern account needs 1,472 gp at Varrock East — 500 retained float, 100 Tea, 300 Bread, 20 Rope, 432 runes, 60 for the later Betty leg and 60 for the safe eastern supply leg.
-    // Why: that last 60 is not headroom, as the live level-3 route to the Baker crossed Port Sarim to Musa and Brimhaven to Ardougne at 30 gp each.
-    const tea = needsEasternTravelBootstrap(snap)
-        ? Math.max(0, TRAVEL_TEA_TARGET - owned(snap, ITEM.TEA)) * 10
-        : 0;
-    const bread = Math.max(0, BREAD_TARGET - owned(snap, ITEM.BREAD)) * 20;
+    // Why: the food comes out of the bank now, so the purse covers the rope, the runes and the fares alone.
     const rope = owned(snap, ITEM.ROPE) > 0 ? 0 : 20;
     const runes = RUNES.reduce(
         (total, rune) => total + Math.max(0, RUNE_TARGET - owned(snap, rune)) * RUNE_UNIT_BUDGET,
         0
     );
-    const supplyFare = needsEasternTravelBootstrap(snap) ? EASTERN_SUPPLY_FARE : 0;
     // Why: stage zero cannot buy runes yet, and even a restart beside Betty retains the later fare, as the quest first leaves and returns west.
     const runeFare = runes > 0 ? BETTY_RETURN_FARE : 0;
-    return CASH_FLOAT + tea + bread + rope + runes + supplyFare + runeFare;
+    return CASH_FLOAT + rope + runes + runeFare;
 }
 
 function liveCoins(): number {
@@ -512,46 +506,46 @@ function sourceRope(snap: QuestSnapshot, bank: Tile = ARDOUGNE_BANK): QuestStep 
     return coins ?? { kind: 'buy', item: ITEM.ROPE.name, qty: 1, shop: AEMAD_SHOP, estGp: 20 };
 }
 
-function sourceBread(snap: QuestSnapshot, bank: Tile = ARDOUGNE_BANK): QuestStep | null {
-    const missing = BREAD_TARGET - heldCount(snap, ITEM.BREAD);
-    if (missing <= 0) return null;
-    if (!snap.bankKnown) return scanBank(bank);
-    const inBank = banked(snap, ITEM.BREAD);
-    if (inBank > 0) return withdrawExact(ITEM.BREAD, Math.min(missing, inBank), bank);
+// Why: the food is whatever the player chose, drawn from the bank like every other quest, the old
+// pair of shop runs for fifteen Bread and ten Tea existed to carry a level-3 account with an empty bank.
+
+/** The configured food as an id and name, or null when it names nothing the item db knows. */
+function foodItem(): WaterfallItem | null {
+    const name = QuestFood.name?.trim();
+    if (!name) {
+        return null;
+    }
+    const record = ITEM_DB.find(item => item.name.toLowerCase() === name.toLowerCase());
+    return record ? { id: record.id, name: record.name } : null;
+}
+
+/** Keep ids plus whatever the player eats, so a normalize pass never banks the food. */
+function withFood(ids: readonly number[]): readonly number[] {
+    const food = foodItem();
+    return food ? [...ids, food.id] : ids;
+}
+
+export function sourceFood(snap: QuestSnapshot, bank: Tile = ARDOUGNE_BANK): QuestStep | null {
+    const food = foodItem();
+    if (!food) {
+        return { kind: 'wait', reason: 'no food selected for the Waterfall dungeon' };
+    }
+    const held = heldCount(snap, food);
+    if (held > FOOD_LOW) {
+        return null;
+    }
+    const missing = FOOD_TARGET - held;
+    if (!snap.bankKnown) {
+        return scanBank(bank);
+    }
+    const inBank = banked(snap, food);
+    if (inBank <= 0) {
+        return { kind: 'wait', reason: `no ${food.name} in the bank for the Waterfall dungeon` };
+    }
     if (snap.freeSlots !== undefined && snap.freeSlots < missing) {
-        return { kind: 'wait', reason: 'need ' + missing + ' free slots for combat Bread' };
+        return { kind: 'wait', reason: `need ${missing} free slots for ${food.name}` };
     }
-    const coins = ensureCoins(snap, CASH_FLOAT, bank);
-    return coins ?? { kind: 'buy', item: ITEM.BREAD.name, qty: missing, shop: BAKER_SHOP, estGp: missing * 20 };
-}
-
-function nearerSupplyBank(snap: QuestSnapshot): Tile {
-    return needsEasternTravelBootstrap(snap) ? VARROCK_EAST_BANK : ARDOUGNE_BANK;
-}
-
-function needsEasternTravelBootstrap(snap: QuestSnapshot): boolean {
-    // Why: Lumbridge, Varrock and Al Kharid are far enough east that a fresh level-3 account needs the extra Tea leg.
-    // Why: Betty and Port Sarim sit west of this boundary on purpose, so rune shopping cannot restart the bootstrap.
-    return (snap.tile?.x ?? 0) >= 3100;
-}
-
-function sourceTravelFood(snap: QuestSnapshot, bank: Tile = nearerSupplyBank(snap)): QuestStep | null {
-    const missingTea = needsEasternTravelBootstrap(snap)
-        ? TRAVEL_TEA_TARGET - heldCount(snap, ITEM.TEA)
-        : 0;
-    const missingBread = BREAD_TARGET - heldCount(snap, ITEM.BREAD);
-    if (missingTea <= 0 && missingBread <= 0) return null;
-    if (!snap.bankKnown) return scanBank(bank);
-    if (missingTea > 0) {
-        const inBank = banked(snap, ITEM.TEA);
-        if (inBank > 0) return withdrawExact(ITEM.TEA, Math.min(missingTea, inBank), bank);
-        if (snap.freeSlots !== undefined && snap.freeSlots < missingTea) {
-            return { kind: 'wait', reason: 'need ' + missingTea + ' free slots for fresh-account travel tea' };
-        }
-        const coins = ensureCoins(snap, CASH_FLOAT + missingTea * 10, bank);
-        return coins ?? { kind: 'buy', item: ITEM.TEA.name, qty: missingTea, shop: TEA_SHOP, estGp: missingTea * 10 };
-    }
-    return sourceBread(snap, bank);
+    return withdrawExact(food, Math.min(missing, inBank), bank);
 }
 
 function nearBetty(snap: QuestSnapshot): boolean {
@@ -613,15 +607,18 @@ const MAX_LOADOUT_COUNT = new Map<number, number>([
     [ITEM.WATER_RUNE.id, RUNE_TARGET],
     [ITEM.AIR_RUNE.id, RUNE_TARGET],
     [ITEM.EARTH_RUNE.id, RUNE_TARGET],
-    [ITEM.ROPE.id, 1],
-    [ITEM.TEA.id, TRAVEL_TEA_TARGET],
-    [ITEM.BREAD.id, BREAD_TARGET]
+    [ITEM.ROPE.id, 1]
 ]);
+
+function maxLoadoutCount(id: number): number | undefined {
+    const food = foodItem();
+    return food && id === food.id ? FOOD_TARGET : MAX_LOADOUT_COUNT.get(id);
+}
 
 function inventoryHasExcessKeptIds(snap: QuestSnapshot, keepIds: readonly number[]): boolean {
     if (!snap.invIds) return false;
     return [...snap.invIds.entries()].some(([id, count]) => {
-        const maximum = MAX_LOADOUT_COUNT.get(id);
+        const maximum = maxLoadoutCount(id);
         return keepIds.includes(id) && maximum !== undefined && count > maximum;
     });
 }
@@ -671,21 +668,19 @@ function normalizeLoadout(
     return { kind: 'custom', name, run: log => stripAndDeposit(normalizedKeepIds, log, bank) };
 }
 
-const START_KEEP = [ITEM.COINS.id, ITEM.ROPE.id, ITEM.TEA.id, ITEM.BREAD.id] as const;
+const START_KEEP = [ITEM.COINS.id, ITEM.ROPE.id] as const;
 const BOOK_TRAVEL_KEEP = [...START_KEEP, ITEM.BOOK.id] as const;
 const TOMB_KEEP = [
     ITEM.COINS.id,
     ITEM.PEBBLE.id,
-    ITEM.BREAD.id,
     ITEM.AMULET.id,
     ITEM.FULL_URN.id,
     ITEM.BAXTORIAN_KEY.id
 ] as const;
-const TOMB_TRAVEL_KEEP = [ITEM.COINS.id, ITEM.PEBBLE.id, ITEM.TEA.id, ITEM.BREAD.id] as const;
+const TOMB_TRAVEL_KEEP = [ITEM.COINS.id, ITEM.PEBBLE.id] as const;
 const DUNGEON_KEEP = [
     ITEM.COINS.id,
     ITEM.ROPE.id,
-    ITEM.BREAD.id,
     ITEM.AMULET.id,
     ITEM.FULL_URN.id,
     ITEM.BAXTORIAN_KEY.id,
@@ -696,13 +691,10 @@ const DUNGEON_KEEP = [
 const FINAL_KEEP = [
     ITEM.COINS.id,
     ITEM.ROPE.id,
-    ITEM.BREAD.id,
     ITEM.AMULET.id,
     ITEM.FULL_URN.id,
     ITEM.BAXTORIAN_KEY.id
 ] as const;
-const DUNGEON_TRAVEL_KEEP = [...DUNGEON_KEEP, ITEM.TEA.id] as const;
-const FINAL_TRAVEL_KEEP = [...FINAL_KEEP, ITEM.TEA.id] as const;
 
 async function boardRaft(log: (message: string) => void, driveHudon: boolean = false): Promise<boolean> {
     if (!(await Traversal.walkResilient(RAFT_STAND, { radius: 2, attempts: 3, timeoutMs: 120_000, log }))) return false;
@@ -991,7 +983,7 @@ async function solvePillars(log: (message: string) => void): Promise<boolean> {
     }
 
     // Why: varp 66 is server-only, and a fresh trip starts with six of each rune, so after an interrupted trip the number still held equals the number of unset pillars.
-    // Why: replaying every possible placement is therefore idempotent — set bits consume nothing and unset bits consume one.
+    // Why: replaying every possible placement is therefore idempotent, set bits consume nothing and unset bits consume one.
     for (const pillar of pillars) {
         for (const rune of RUNES) {
             if (!(await placeRune(rune, pillar, log))) return false;
@@ -1062,19 +1054,19 @@ async function dungeonLeg(stage: number, log: (message: string) => void): Promis
 }
 
 function prepareTombEntry(snap: QuestSnapshot): QuestStep {
-    const bank = nearerSupplyBank(snap);
+    const bank = ARDOUGNE_BANK;
     if (!snap.bankKnown) return scanBank(bank);
     if (!held(snap, ITEM.PEBBLE)) {
-        const travelNormalize = normalizeLoadout(snap, TOMB_TRAVEL_KEEP, 'prepare a safe Glarial tomb recovery trip', bank);
+        const travelNormalize = normalizeLoadout(snap, withFood(TOMB_TRAVEL_KEEP), 'prepare a safe Glarial tomb recovery trip', bank);
         if (travelNormalize) return travelNormalize;
-        const travelFood = sourceTravelFood(snap, bank);
+        const travelFood = sourceFood(snap, bank);
         if (travelFood) return travelFood;
         if (banked(snap, ITEM.PEBBLE) > 0) return withdrawExact(ITEM.PEBBLE, 1, bank);
         return { kind: 'custom', name: 'recover Glarial pebble from Golrie', run: pebbleLeg };
     }
-    const normalize = normalizeLoadout(snap, TOMB_KEEP, 'strip prohibited items before Glarial tomb');
+    const normalize = normalizeLoadout(snap, withFood(TOMB_KEEP), 'strip prohibited items before Glarial tomb');
     if (normalize) return normalize;
-    const food = sourceTravelFood(snap, bank);
+    const food = sourceFood(snap, bank);
     if (food) return food;
     // Why: surviving relics are banked during the exposed Golrie leg and brought into the tomb, so only the missing relic is recovered.
     const survivingRelics = withdrawBankedRelics(snap, bank);
@@ -1103,27 +1095,27 @@ function withdrawBankedRelics(snap: QuestSnapshot, bank: Tile = ARDOUGNE_BANK): 
 }
 
 function prepareDungeon(snap: QuestSnapshot, finalTrip: boolean): QuestStep | null {
-    const bank = nearerSupplyBank(snap);
+    const bank = ARDOUGNE_BANK;
     if (!snap.bankKnown) return scanBank(bank);
     const relicRecovery = recoverRelics(snap);
     if (relicRecovery) return relicRecovery;
-    // Why: any Bread refill first narrows the pack to travel supplies, so an arbitrary mainland restart with surviving relics or runes cannot fill the pack before all 15 Bread and a missing Rope are assembled.
-    const replenishingFood = heldCount(snap, ITEM.BREAD) < BREAD_TARGET
-        || (needsEasternTravelBootstrap(snap) && heldCount(snap, ITEM.TEA) < TRAVEL_TEA_TARGET);
+    // Why: a food refill first narrows the pack to travel supplies, so a mainland restart with surviving relics or runes cannot fill the pack before the food and a missing Rope are assembled.
+    const food0 = foodItem();
+    const replenishingFood = food0 !== null && heldCount(snap, food0) <= FOOD_LOW;
     const travelNormalize = normalizeLoadout(
         snap,
-        replenishingFood ? START_KEEP : (finalTrip ? FINAL_TRAVEL_KEEP : DUNGEON_TRAVEL_KEEP),
+        withFood(replenishingFood ? START_KEEP : (finalTrip ? FINAL_KEEP : DUNGEON_KEEP)),
         finalTrip ? 'prepare a safe final Waterfall trip' : 'prepare a safe Waterfall dungeon trip',
         bank
     );
     if (travelNormalize) return travelNormalize;
-    const food = sourceTravelFood(snap, bank);
+    const food = sourceFood(snap, bank);
     if (food) return food;
     const rope = sourceRope(snap, bank);
     if (rope) return rope;
     const normalize = normalizeLoadout(
         snap,
-        finalTrip ? FINAL_KEEP : DUNGEON_KEEP,
+        withFood(finalTrip ? FINAL_KEEP : DUNGEON_KEEP),
         finalTrip ? 'bank puzzle leftovers for the final trip' : 'assemble the Waterfall dungeon loadout'
     );
     if (normalize) return normalize;
@@ -1168,13 +1160,13 @@ function stageZero(snap: QuestSnapshot, area: WaterfallArea): QuestStep {
     if (area === 'unknown') return { kind: 'wait', reason: 'player location unavailable' };
     const escape = escapeUnexpectedArea(area);
     if (escape) return escape;
-    const bank = nearerSupplyBank(snap);
+    const bank = ARDOUGNE_BANK;
     if (!snap.bankKnown) return scanBank(bank);
-    const normalize = normalizeLoadout(snap, START_KEEP, 'bank everything except Waterfall supplies', bank);
+    const normalize = normalizeLoadout(snap, withFood(START_KEEP), 'bank everything except Waterfall supplies', bank);
     if (normalize) return normalize;
     const cash = ensureCoins(snap, remainingWaterfallCash(snap), bank);
     if (cash) return cash;
-    const food = sourceTravelFood(snap, bank);
+    const food = sourceFood(snap, bank);
     if (food) return food;
     const rope = sourceRope(snap, bank);
     if (rope) return rope;
@@ -1185,11 +1177,11 @@ function stageTwo(snap: QuestSnapshot, area: WaterfallArea): QuestStep {
     if (area === 'hudonMound') return { kind: 'custom', name: 'swim downstream to the tourist office', run: leaveHudonMound };
     const escape = escapeUnexpectedArea(area);
     if (escape) return escape;
-    const bank = nearerSupplyBank(snap);
+    const bank = ARDOUGNE_BANK;
     if (!snap.bankKnown) return scanBank(bank);
-    const normalize = normalizeLoadout(snap, BOOK_TRAVEL_KEEP, 'prepare the Book on Baxtorian trip', bank);
+    const normalize = normalizeLoadout(snap, withFood(BOOK_TRAVEL_KEEP), 'prepare the Book on Baxtorian trip', bank);
     if (normalize) return normalize;
-    const food = sourceTravelFood(snap);
+    const food = sourceFood(snap);
     if (food) return food;
     if (held(snap, ITEM.BOOK)) return { kind: 'custom', name: 'read the Book on Baxtorian', run: readBook };
     if (banked(snap, ITEM.BOOK) > 0) return withdrawExact(ITEM.BOOK, 1);
@@ -1299,11 +1291,11 @@ export function decide(snap: QuestSnapshot): QuestStep {
                 return escapeUnexpectedArea(area) ?? { kind: 'wait', reason: 'cannot reach Almera raft from this area' };
             }
             {
-                const bank = nearerSupplyBank(snap);
+                const bank = ARDOUGNE_BANK;
                 if (!snap.bankKnown) return scanBank(bank);
-                const normalize = normalizeLoadout(snap, START_KEEP, 'prepare the Almera raft trip', bank);
+                const normalize = normalizeLoadout(snap, withFood(START_KEEP), 'prepare the Almera raft trip', bank);
                 if (normalize) return normalize;
-                const food = sourceTravelFood(snap);
+                const food = sourceFood(snap);
                 if (food) return food;
             }
             return { kind: 'custom', name: 'board Almera raft and find Hudon', run: stageOneLeg };
@@ -1327,11 +1319,10 @@ export const waterfall: QuestModule = {
     record: QUESTS.find(record => record.id === 'waterfall')!,
     bank: ARDOUGNE_BANK,
     hops: WATERFALL_HOPS,
-    tools: ['glarial', 'a key', 'rope', 'book on baxtorian', 'bread', 'cup of tea', 'air rune', 'earth rune', 'water rune', 'coins'],
+    tools: ['glarial', 'a key', 'rope', 'book on baxtorian', 'air rune', 'earth rune', 'water rune', 'coins'],
     ownsInventory: true,
     readStage: readWaterfallStage,
-    // prepareDungeonSprint requires full health. At 1.0 the shared sustain hook
-    // can satisfy that invariant at every Hitpoints level, not only fresh 10 HP.
-    sustain: { foods: [ITEM.BREAD.name, ITEM.TEA.name], eatBelowHp: 1 },
+    // Why: `resolveSustainPolicy` appends the configured food, so naming none here eats whatever was chosen.
+    sustain: { foods: [], eatBelowHp: 1 },
     decide
 };

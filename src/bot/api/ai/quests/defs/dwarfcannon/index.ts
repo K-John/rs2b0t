@@ -1,7 +1,7 @@
 import { Skills } from '../../../../skills/Skills.js';
 import { QUESTS } from '../../data/quests.js';
 import { hasFlag, type QuestModule, type QuestSnapshot, type QuestStep } from '../../engine/types.js';
-import { CAVE_HOPS, COMMANDER, FALADOR_WEST_BANK, MC_FOOD_TARGET, MC_OBJ, NULODION } from './areas.js';
+import { CAVE_HOPS, COMMANDER, COMMANDER_INSPECT, FALADOR_WEST_BANK, MC_FOOD_TARGET, MC_OBJ, NULODION } from './areas.js';
 import { MC_FLAG, MC_STAGE, readDwarfCannonProgress } from './journal.js';
 import { fetchRemains, fixRailings, inCave, repairCannon, rescueChild } from './repair.js';
 
@@ -56,7 +56,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             : { kind: 'talk', stop: COMMANDER };
     }
     if (stage === MC_STAGE.CANNON_FIXED) {
-        return { kind: 'talk', stop: COMMANDER };
+        return { kind: 'talk', stop: COMMANDER_INSPECT };
     }
     if (stage === MC_STAGE.SEE_NULODION) {
         return { kind: 'talk', stop: NULODION };
@@ -80,8 +80,8 @@ function warnDwarfCannonReadiness(): string | null {
     return bits.length > 0 ? `Dwarf Cannon: ${bits.join('; ')}` : null;
 }
 
-// Why: `tools` is read at one place in QuestEngine — the spillover keep list — and is never provisioned, so a resume mid-quest does not bank its own state.
-// Why: the quest buys nothing, and the float otherwise walks at the pinned bank on every activation — which from inside the goblin cave is a route that does not exist, so a resume there spends a minute and a half proving it before starting.
+// Why: `tools` is read at one place in QuestEngine. The spillover keep list, and is never provisioned, so a resume mid-quest does not bank its own state.
+// Why: the quest buys nothing, and the float otherwise walks at the pinned bank on every activation, which from inside the goblin cave is a route that does not exist, so a resume there spends a minute and a half proving it before starting.
 
 export const dwarfcannon: QuestModule = {
     record: QUESTS.find(r => r.id === 'mcannon')!,

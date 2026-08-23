@@ -2,7 +2,7 @@ import type { QuestSnapshot } from '../../engine/types.js';
 
 const TIERS = ['rune', 'adamant', 'mithril', 'black', 'steel', 'iron', 'bronze'] as const;
 
-// Why: no weapon slot — Excalibur is the only sword that kills the titan, and anything else in the hand loses the fight in silence.
+// Why: no weapon slot. Excalibur is the only sword that kills the titan, and anything else in the hand loses the fight in silence.
 // Why: chainbody outranks platebody, as rune plate wants Dragon Slayer complete and refuses without a message.
 const SLOTS: readonly { readonly kinds: readonly string[] }[] = [
     { kinds: ['chainbody', 'platebody'] },

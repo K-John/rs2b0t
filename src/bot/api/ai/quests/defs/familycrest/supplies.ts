@@ -3,6 +3,7 @@ import { Traversal } from '../../../../walking/Traversal.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { ANTIPOISON_IDS, DUEL_RING_IDS, FC_BANK, FC_ID, FC_ITEM, FC_SHOP, PICKAXES } from './areas.js';
 import type Tile from '../../../../../geometry/Tile.js';
+import { bestBanked, bestHeld, packWeapon, wieldedWeapon } from '../../weapons.js';
 
 export interface FcItem {
     id: number;
@@ -17,7 +18,7 @@ export const FC_OFFICIAL_SKILLS = {
     magic: 59
 } as const;
 
-// Why: combat is no server gate here, but two fights are unavoidable — the hellhounds (lvl 122) guarding the perfect-gold rocks aggro at any combat level a 2004 account can reach.
+// Why: combat is no server gate here, but two fights are unavoidable, the hellhounds (lvl 122) guarding the perfect-gold rocks aggro at any combat level a 2004 account can reach.
 // Why: Chronozon (lvl 170, att 173 / str 172) is in the wilderness, where the not-too-strong check does not apply.
 // Why: only max stats have been through a headed run so far, so lower this once a realistic profile clears (docs/QUESTS.md polish goal).
 const FC_PROVEN_COMBAT_FLOOR = {
@@ -75,16 +76,6 @@ export const BLAST_MINIMUM: readonly { item: FcItem; qty: number }[] = [
     { item: { id: FC_ID.DEATH_RUNE, name: FC_ITEM.DEATH_RUNE }, qty: 4 }
 ];
 
-/** Melee weapons worth wielding for the hellhounds and for finishing Chronozon. */
-export const WEAPONS: readonly FcItem[] = [
-    { id: 1333, name: 'Rune scimitar' },
-    { id: 1331, name: 'Adamant scimitar' },
-    { id: 1329, name: 'Mithril scimitar' },
-    { id: 1325, name: 'Steel scimitar' },
-    { id: 1327, name: 'Iron scimitar' },
-    { id: 1321, name: 'Bronze scimitar' }
-];
-
 export function held(snap: QuestSnapshot, id: number): number {
     return snap.invIds?.get(id) ?? 0;
 }
@@ -127,22 +118,22 @@ export function bestBankPickaxe(snap: QuestSnapshot): FcItem | null {
 }
 
 export function hasWeapon(snap: QuestSnapshot): boolean {
-    return WEAPONS.some(w => held(snap, w.id) > 0 || worn(snap, w.id));
+    return bestHeld(snap) !== null;
 }
 
 export function bestBankWeapon(snap: QuestSnapshot): FcItem | null {
-    return WEAPONS.find(w => banked(snap, w.id) > 0) ?? null;
+    return bestBanked(snap);
 }
 
-// Why: `hasWeapon` is happy with a scimitar in the pack, so the withdraw satisfies it and the equip step never fires — hence a separate check against `worn`.
+// Why: `hasWeapon` is happy with a scimitar in the pack, so the withdraw satisfies it and the equip step never fires, hence a separate check against `worn`.
 // Why: null comes back both when a weapon is already wielded and when none exists anywhere, as Chronozon dies to the blasts, so an unarmed fight is slow rather than impossible and stalling the quest over it would be worse.
 
 /** Equip a melee weapon when one is held or banked, or null. */
 export function wieldWeapon(snap: QuestSnapshot, bank?: Tile): QuestStep | null {
-    if (WEAPONS.some(w => worn(snap, w.id))) {
+    if (wieldedWeapon(snap)) {
         return null;
     }
-    const inPack = WEAPONS.find(w => held(snap, w.id) > 0);
+    const inPack = packWeapon(snap);
     if (inPack) {
         return { kind: 'equip', item: inPack.name };
     }
@@ -154,7 +145,7 @@ export function wieldWeapon(snap: QuestSnapshot, bank?: Tile): QuestStep | null 
 }
 
 // Why: air covers Camelot (5) and the strike component of the others, and law is the limiting rune at one or two a hop.
-// Why: the quest takes roughly ten hops, so these quantities are generous rather than exact — nothing else consumes them and unused runes come home.
+// Why: the quest takes roughly ten hops, so these quantities are generous rather than exact, nothing else consumes them and unused runes come home.
 
 // Runes the standard-spellbook hops need, and how many to carry.
 export const TELEPORT_KIT: readonly { item: FcItem; qty: number }[] = [
@@ -164,7 +155,7 @@ export const TELEPORT_KIT: readonly { item: FcItem; qty: number }[] = [
     { item: { id: FC_ID.WATER_RUNE, name: FC_ITEM.WATER_RUNE }, qty: 30 }
 ];
 
-/** Aubury's rune stock — everything in the kit except law. */
+/** Aubury's rune stock, everything in the kit except law. */
 const AUBURY_STOCKS: ReadonlySet<number> = new Set([FC_ID.AIR_RUNE, FC_ID.FIRE_RUNE, FC_ID.WATER_RUNE]);
 
 /** Global `navTeleports`; the nav layer consults the same setting per walk. */
@@ -174,9 +165,9 @@ function heldDuelRing(snap: QuestSnapshot): number {
     return DUEL_RING_IDS.reduce((sum, id) => sum + held(snap, id), 0);
 }
 
-// Why: A* only injects a teleport the live inventory can afford, and nothing else in this quest ever puts a law rune in the pack — this is the gap between the navigator being able to plan a Camelot hop and it doing so.
+// Why: A* only injects a teleport the live inventory can afford, and nothing else in this quest ever puts a law rune in the pack. This is the gap between the navigator being able to plan a Camelot hop and it doing so.
 // Why: it costs one bank trip at the start and saves several minutes of walking, as Camelot lands 71 tiles from Caleb against a 379-cost walk and the duel ring lands 73 from the Al Kharid furnace against roughly 600 from Witchaven.
-// Why: it never blocks — no runes banked means the quest walks, as before.
+// Why: it never blocks, no runes banked means the quest walks, as before.
 
 /** Carry the teleport kit when nav teleports are on and the bank can pay for it. */
 export function teleportKitTopUp(snap: QuestSnapshot, bank?: Tile): QuestStep | null {
@@ -185,7 +176,7 @@ export function teleportKitTopUp(snap: QuestSnapshot, bank?: Tile): QuestStep | 
 
 /** {@link teleportKitTopUp} without the settings read, so it is testable. */
 export function teleportKitPlan(snap: QuestSnapshot, bank?: Tile): QuestStep | null {
-    // Why: both halves are tested up front, as keying the "already carrying it" check on one item at a time went wrong twice — on law alone it stopped before fetching the air every spell needs, and on the runes alone it stopped before the ring.
+    // Why: both halves are tested up front, as keying the "already carrying it" check on one item at a time went wrong twice, on law alone it stopped before fetching the air every spell needs, and on the runes alone it stopped before the ring.
     const runesShort = TELEPORT_KIT.some(want => held(snap, want.item.id) < Math.ceil(want.qty / 3));
     const ringShort = heldDuelRing(snap) === 0;
     if (!runesShort && !ringShort) {
@@ -303,7 +294,7 @@ export function foodTopUp(snap: QuestSnapshot, want = FOOD_WITHDRAW, bank?: Tile
     return take > 0 ? withdraw([{ name: food, qty: take }], bank) : null;
 }
 
-/** Bank stand nearest each leg — this quest is spread over four kingdoms. */
+/** Bank stand nearest each leg, this quest is spread over four kingdoms. */
 export const LEG_BANK = {
     start: FC_BANK.VARROCK_EAST,
     caleb: FC_BANK.CATHERBY,

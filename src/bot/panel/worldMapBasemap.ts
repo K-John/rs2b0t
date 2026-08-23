@@ -6,7 +6,7 @@
 /** Bump when bake layout / overlay contract changes. */
 export const BASEMAP_SCHEMA = 2;
 
-/** Filename served next to botclient (not fingerprinted — points at fingerprinted assets). */
+/** Filename served next to botclient (not fingerprinted, points at fingerprinted assets). */
 export const BASEMAP_MANIFEST_NAME = 'worldmap-basemap.manifest.json';
 
 export type BasemapManifest = {

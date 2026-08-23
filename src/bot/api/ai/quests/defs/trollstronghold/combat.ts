@@ -48,7 +48,7 @@ class Protection {
     }
 }
 
-// Why: a fixed on-at-A-off-at-B window is always wrong at one end — the throwers are behind you well before the stronghold door, and every tick of prayer burnt after that is a tick the fight inside does not get.
+// Why: a fixed on-at-A-off-at-B window is always wrong at one end. The throwers are behind you well before the stronghold door, and every tick of prayer burnt after that is a tick the fight inside does not get.
 // Why: `Sustain` is pumped by the walker on every pass, so borrowing the hook for the duration of the walk gives a per-tick check: up while something is shooting, down the moment it is not.
 // Why: the host's own hook (eating) still runs first, as prayer is free when it is already holding and food is not.
 
@@ -123,12 +123,12 @@ export interface FightPlan {
     what: string;
     /** The thing to hit, or null while it is out of range or not spawned. */
     target: () => Npc | null;
-    /** True once this fight is over — a corpse, a dropped key, a varp move. */
+    /** True once this fight is over, a corpse, a dropped key, a varp move. */
     won: () => boolean;
     protect: ProtectKind;
     /** Ticks before the fight is declared stuck. */
     guard: number;
-    // Why: Dad forfeits below 20 hitpoints instead of dying — `defeat_dad` sets the stage, heals him to full and offers "I'll be going now."
+    // Why: Dad forfeits below 20 hitpoints instead of dying, `defeat_dad` sets the stage, heals him to full and offers "I'll be going now."
     // Why: leaving that dialogue undrained loses the win.
 
     /** Options to take when a dialogue opens mid-fight. */
@@ -139,7 +139,7 @@ export interface FightPlan {
     onMissing?: () => Promise<boolean>;
 }
 
-// Why: the server runs a single op per tick and silently drops the rest, so a loop that eats, prays and swings in the same breath loses two of the three — one action per tick, in the order dialogue, pray, eat, attack.
+// Why: the server runs a single op per tick and silently drops the rest, so a loop that eats, prays and swings in the same breath loses two of the three, one action per tick, in the order dialogue, pray, eat, attack.
 // Why: prayer goes before food because it is free once the varp says it is up, and because a loop that eats first spends every damaged tick on food and never re-arms.
 
 /** Run one fight to its win condition. */

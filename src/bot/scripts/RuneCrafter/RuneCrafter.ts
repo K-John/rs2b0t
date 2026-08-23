@@ -33,7 +33,7 @@ const TRADE_LOAD = 26;
 const TRADEREQ_CHAT = 4; // Client.addChat(4, 'wishes to trade with you.', player)
 const TRADE_REQ_TEXT = /wishes to trade with you/i;
 const EMPTY_TRADE_MS = 20_000; // a trade nobody puts essence into gets declined after this
-const ADJACENT = 2; // OPPLAYER4 walks you to the target — only answer a runner that already came to us
+const ADJACENT = 2; // OPPLAYER4 walks you to the target, only answer a runner that already came to us
 const TEMPLE_RANGE = 30; // the runner lands at the temple entrance, a walk away from the altar
 const ALTAR_PARK = 2; // the recipient camps this close to the altar so every runner finds it there
 
@@ -41,7 +41,7 @@ interface RuneType {
     talisman: string;
     rune: string;
     level: number;
-    ruins: Tile; // the Mysterious ruins loc — walk here + use the talisman
+    ruins: Tile; // the Mysterious ruins loc, walk here + use the talisman
     bank: Tile;
 }
 
@@ -69,7 +69,7 @@ function essCount(): number {
     return Inventory.items().filter(i => i.id === ESSENCE_ID).reduce((s, i) => s + i.count, 0);
 }
 // everything the pack is allowed to hold; anything else eats a slot essence needs.
-// Nameless items count as junk — a cache miss must not smuggle an item past the deposit.
+// Nameless items count as junk, a cache miss must not smuggle an item past the deposit.
 function packJunk(keep: string[]): InvItem[] {
     const kept = new Set(keep.map(s => s.toLowerCase()));
     return Inventory.items().filter(i => !kept.has((i.name ?? '').toLowerCase()));
@@ -195,7 +195,7 @@ export default class RuneCrafter extends TaskBot {
         if (this.mode === 'Mule Recipient') {
             this.on('chat.message', e => {
                 if (e.type === TRADEREQ_CHAT && e.username && TRADE_REQ_TEXT.test(e.text)) {
-                    this.lastRequester = e.username; // most recent wins — that runner is still waiting
+                    this.lastRequester = e.username; // most recent wins, that runner is still waiting
                 }
             });
             this.log(`RuneCrafter mule recipient starting — camping inside the ${this.choice} altar, crafting whatever essence gets traded in`);
@@ -282,7 +282,7 @@ class Craft implements Task {
         const made = before - essCount();
         this.bot.countCraft(made);
         this.bot.log(`crafted ${made} ${this.bot.runeName()}s`);
-        if (!this.thenExit) { return; } // the recipient lives here — it stays parked at the altar
+        if (!this.thenExit) { return; } // the recipient lives here, it stays parked at the altar
         // Why: the craft locks the player (p_delay 3) and pops a level-up.
         // Why: a tight loop closes any dialog and re-clicks the portal every tick, so the Use fires the instant the lock clears.
         this.bot.setStatus('taking the portal out');
@@ -371,7 +371,7 @@ class Enter implements Task {
     }
 }
 
-// runner: owns the loop while a trade modal is open — never moves (movement closes it)
+// runner: owns the loop while a trade modal is open, never moves (movement closes it)
 class RunnerTrade implements Task {
     private before = 0;
     constructor(private bot: RuneCrafter) {}
@@ -408,7 +408,7 @@ class RunnerTrade implements Task {
     }
 }
 
-// runner: inside the altar with a load — the recipient is parked at the altar, so walk to it
+// runner: inside the altar with a load. The recipient is parked at the altar, so walk to it
 class RunnerDeliver implements Task {
     constructor(private bot: RuneCrafter) {}
     validate(): boolean { return inTemple() && essCount() > 0 && !Trade.active(); }
@@ -423,7 +423,7 @@ class RunnerDeliver implements Task {
             return;
         }
         // spam on purpose: a busy recipient drops the request server-side, and answering our
-        // most recent request is how the recipient opens the trade — so keep asking
+        // most recent request is how the recipient opens the trade, so keep asking
         this.bot.setStatus(`delivering to ${partner}`);
         this.bot.log(`requesting a trade with ${master.name}`);
         await Trade.request(master.name ?? partner);
@@ -433,7 +433,7 @@ class RunnerDeliver implements Task {
 
 class RunnerRestock implements Task {
     private emptyReads = 0;
-    private stocked = false; // one withdraw per run — a drained bank must not shuttle the same short load forever
+    private stocked = false; // one withdraw per run, a drained bank must not shuttle the same short load forever
     constructor(private bot: RuneCrafter) {}
     validate(): boolean {
         if (essCount() === 0) { this.stocked = false; }
@@ -442,12 +442,12 @@ class RunnerRestock implements Task {
     async execute(): Promise<void> {
         this.bot.setStatus('restocking essence');
         if (!(await openBank(this.bot))) { return; }
-        // Why: the talisman is the only thing that stays — junk, the noted essence the bank hands back, and leftovers from the last delivery all go.
+        // Why: the talisman is the only thing that stays, junk, the noted essence the bank hands back, and leftovers from the last delivery all go.
         // Why: the run then starts on one full load instead of dribbling 1-2 essence into a trade the recipient waited for.
         if (!(await cleanPack(this.bot, [this.bot.talismanName()]))) { return; }
         if (!(await ensureTalisman(this.bot))) { return; }
 
-        // blank is not empty: the list reads [] for a beat after opening — believe it on the third read
+        // blank is not empty: the list reads [] for a beat after opening, believe it on the third read
         await Execution.delayUntil(() => Bank.loaded(), 3000);
         const banked = Bank.count(ESSENCE);
         if (banked === 0) {
@@ -505,7 +505,7 @@ class MuleTakeTrade implements Task {
             return;
         }
         if (theirEssence > Inventory.free()) {
-            // junk in the pack (random event) — the window has to close before MuleDropJunk can drop it
+            // junk in the pack (random event). The window has to close before MuleDropJunk can drop it
             this.bot.log(`can't fit ${theirEssence} essence (${Inventory.free()} slots free) — declining so the pack can be cleared first`);
             await Trade.decline();
             return;
@@ -546,7 +546,7 @@ class MuleAnswerRequest implements Task {
 /** Drops recipient-side junk that would block a full delivery. */
 class MuleDropJunk implements Task {
     constructor(private bot: RuneCrafter) {}
-    // essence is the payload, never junk — a delivery can land between two loops
+    // essence is the payload, never junk. A delivery can land between two loops
     private junk(): InvItem[] { return packJunk([...this.bot.muleKeep(), ESSENCE]); }
     validate(): boolean { return inTemple() && !Trade.active() && this.junk().length > 0; }
     async execute(): Promise<void> {
@@ -567,7 +567,7 @@ class MuleDropJunk implements Task {
     }
 }
 
-// anything besides the talisman/runes blocks a full 26-essence trade — bank it off
+// anything besides the talisman/runes blocks a full 26-essence trade, bank it off
 class MulePrepare implements Task {
     constructor(private bot: RuneCrafter) {}
     validate(): boolean {

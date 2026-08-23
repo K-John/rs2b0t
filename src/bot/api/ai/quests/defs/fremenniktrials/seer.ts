@@ -245,7 +245,7 @@ async function pressDisk(log: (m: string) => void): Promise<boolean> {
 
 // Step builders
 
-// Why: both mounted heads answer with `~mesbox`, which suspends the script until the box is continued — the disk lands after the click, not on it.
+// Why: both mounted heads answer with `~mesbox`, which suspends the script until the box is continued. The disk lands after the click, not on it.
 function locStep(name: string, op: string, id: number, near: Tile, expect: () => boolean, label: string): QuestStep {
     return {
         kind: 'custom',

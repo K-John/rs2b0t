@@ -1,5 +1,5 @@
-/** PvP combat-signal probe: what the client can see when another player attacks. Two accounts in the wilderness — the victim samples every candidate raw client field ~10x/sec while the attacker drives OP_PLAYER2 ("Attack"). No bot code is touched and no script runs on either side, so this measures the deployed client.
- *  Scenarios: A idle_attacked (does self faceEntity get set), B npcfight_attacked (does retaliate re-target), C retaliate_off (the dependency plus varp 172 polarity), D npcfight_clean (negative control — self faceEntity stays <32768), E disengage (how fast the signal decays). */
+/** PvP combat-signal probe: what the client can see when another player attacks. Two accounts in the wilderness, the victim samples every candidate raw client field ~10x/sec while the attacker drives OP_PLAYER2 ("Attack"). No bot code is touched and no script runs on either side, so this measures the deployed client.
+ *  Scenarios: A idle_attacked (does self faceEntity get set), B npcfight_attacked (does retaliate re-target), C retaliate_off (the dependency plus varp 172 polarity), D npcfight_clean (negative control, self faceEntity stays <32768), E disengage (how fast the signal decays). */
 
 //   HEADED=1 bun e2e/pvp-signal-probe.ts
 //   BASE=http://localhost:8888 bun e2e/pvp-signal-probe.ts
@@ -21,7 +21,7 @@ const SCRATCH_SLOT = 499;
 const OP_PLAYER2 = 499;
 
 const DRAGON_FIELD = { x: 3096, z: 3814, level: 0 };
-/** Low, quiet wilderness — no aggressive NPCs to muddy the idle scenarios. */
+/** Low, quiet wilderness, no aggressive NPCs to muddy the idle scenarios. */
 const QUIET_WILDY = { x: 3096, z: 3560, level: 0 };
 /** Outside the wilderness, for parking the attacker during the control run. */
 const EDGEVILLE = { x: 3094, z: 3493, level: 0 };
@@ -237,7 +237,7 @@ function tileOf(page: Page): Promise<{ x: number; z: number; level: number } | n
     );
 }
 
-/** True once our own target is an NPC — i.e. we are mid-NPC-fight. */
+/** True once our own target is an NPC, i.e. we are mid-NPC-fight. */
 function inNpcFight(page: Page): Promise<boolean> {
     return page.evaluate(() => {
         const lp = (globalThis as never as { rs2b0t: { client: Record<string, never> } }).rs2b0t.client
@@ -333,7 +333,7 @@ async function waitForPlayerVisible(page: Page, name: string, timeoutMs = 30_000
         .catch(() => false);
 }
 
-/** Persist and report per phase — a later phase failing must not cost earlier data. */
+/** Persist and report per phase, a later phase failing must not cost earlier data. */
 let total = 0;
 async function collect(page: Page, phase: string, ms: number, attackerName: string): Promise<Row[]> {
     await page.waitForTimeout(ms);
@@ -386,7 +386,7 @@ function report(phase: string, rows: Row[], attackerName: string): void {
         if (lastFlip && firstFlip) {
             console.log(`  held player-target for    ${((lastFlip.t - firstFlip.t) / 1000).toFixed(1)}s (last sample +${((lastFlip.t - t0) / 1000).toFixed(1)}s)`);
         }
-        // A phase that never established its own preconditions proves nothing —
+        // A phase that never established its own preconditions proves nothing,
         // run 2's scenario B looked like a disproof but was an idle attacker.
         const engagedPct = Math.round((attackerTargetedUs.length / rows.length) * 100);
         const npcPct = Math.round((selfFacedNpc.length / rows.length) * 100);
@@ -453,7 +453,7 @@ try {
     console.log(`  attacker chat: ${JSON.stringify((await chatOf(attacker)).slice(0, 5))}`);
 
     // --- B: victim mid-NPC-fight, attacked ----------------------------------
-    // Why: both sides are held engaged for the full window — run 2's B was inconclusive when the attacker never sustained its attack.
+    // Why: both sides are held engaged for the full window, run 2's B was inconclusive when the attacker never sustained its attack.
     console.log(`${at()} B: victim mid-NPC-fight at the dragon field`);
     await stage(DRAGON_FIELD);
     const npc = await attackNearestNpc(victim);

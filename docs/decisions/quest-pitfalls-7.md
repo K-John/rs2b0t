@@ -2,7 +2,7 @@
 
 # Quest pitfalls: Shield of Arrav
 
-Fourteen, and only the first two are quest facts.
+Sixteen, and only the first two are quest facts.
 
 - **A reward that deletes one of two is not a reward that needs two.** `king_roald.rs2`
   tests `inv_total(inv, arravcertificate) > 0` and deletes one, gated on nothing
@@ -11,7 +11,7 @@ Fourteen, and only the first two are quest facts.
   before designing around what the guide says it wants.
 - **A pickup gated on the bank cannot be stockpiled.** The chest and the cupboard refuse
   while a copy sits in inventory *or* bank, so a spare half is impossible and only the
-  certificate — checked in neither — banks. Which item is farmable is a property of the
+  certificate, checked in neither, banks. Which item is farmable is a property of the
   gate, not of the item.
 - **`~objbox` and `~mesbox` build a main modal, not a chat line.** "You find half a
   shield, which you take." never reaches `GameMessages`, so a `sawSince` oracle on it is
@@ -38,14 +38,24 @@ Fourteen, and only the first two are quest facts.
 - **A component test, not a distance test, says which side of a door you are on.** The two
   sides of a one-tile wall are two tiles apart, so a proximity check calls a character
   standing at the door already through it. Flood the pack once and box each side.
-- **`ownsInventory` means nothing ever opens a booth.** No banked item is visible at all —
-  `snap.bankIds` stays empty all run — so a quest that reads the bank has to ask
+- **`ownsInventory` means nothing ever opens a booth.** No banked item is visible at all,
+  `snap.bankIds` stays empty all run, so a quest that reads the bank has to ask
   for a `scanBank` itself. Ours parked beside a bank holding the key it was waiting for.
 - **An npc's display name comes from the `.npc` config, never from a guide.** The curator
   is `Curator`; every walkthrough calls him Curator Haig Halen, and a name that matches
   nothing makes `Reach` report a bare `retry` with no hint that the name is the problem.
+- **An engine-wide pack sweep is a quest-specific theft.** `QuestEngine.freshenPack` banks
+  all 28 slots, and its gate let the session's first quest through whatever the journal read.
+  Resumed at `phoenixgang=9` it took the weapon-store key and the shield half, and both
+  `[oploc1,phoenixopenchest]` and `~obj_gettotal(phoenixkey2)` count the bank, so the server
+  issued neither a second time. Anything that empties a pack it does not own owes the question
+  every step owes first: what is this pack for?
+- **A step that fails forever parks nothing.** Only a `wait` feeds `WAIT_PARK` (15); a
+  `custom` step returning false warns every fifth failure and then repeats until the script is
+  stopped. `takePhoenixHalf` searching a chest the bank had emptied ran that way. A leg with no
+  route forward owes a `wait` naming what is missing, and a park is the correct outcome.
 
-Three came from stockpiling, and none of them is reachable at the default target — one
+Three came from stockpiling, and none of them is reachable at the default target, one
 cycle hides every one of them, so the loop needs its own run:
 
 - **A predicate that reads where an item sits, rather than how many there are, makes two
@@ -64,17 +74,17 @@ Four more came from the two-account trade, and they generalise to any partner ha
 
 - **The engine shuts the offer screen a tick before it opens the confirm.** A loop gated on
   "is a trade open" exits on that one frame, reads a pack view that is still swapped, and
-  walks away — which closes the window the partner is confirming in. Tolerate the gap.
+  walks away, which closes the window the partner is confirming in. Tolerate the gap.
 - **The pack view hides whatever is sitting in the offer.** A giver that counts its own
   items mid-trade sees them already gone and calls the trade done before the partner has
   confirmed. Measure once the window is shut.
 - **A giver that keeps one of two is still a giver.** "Gone from the pack" is the wrong
-  test wherever the giver keeps one — one fewer than the baseline is the test, and the
+  test wherever the giver keeps one, one fewer than the baseline is the test, and the
   baseline can only be taken with no window open. Taking it by declining an open trade
   kills the partner's handshake, and two bots then deadlock closing each other's windows.
 - **A main modal swallows the Trade-with click.** A conversation driver that returns the
   moment its goal lands leaves the closing mesbox up, and the next leg's trade never opens
-  for either side — with no refusal to say why.
+  for either side, with no refusal to say why.
 
 ## See also
 

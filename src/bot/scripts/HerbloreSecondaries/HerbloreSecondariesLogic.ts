@@ -39,7 +39,7 @@ export interface SecondaryDef {
     searchRadius: number;
     bank: TileRef;
     bankName: string;
-    /** Dangerous route — withdraw food. */
+    /** Dangerous route, withdraw food. */
     takeFood: boolean;
     /** Needs anti-dragon shield equipped or carried. */
     needShield: boolean;
@@ -112,7 +112,7 @@ export const SECONDARIES: readonly SecondaryDef[] = [
         id: 'white_berries',
         name: 'White berries',
         mode: 'loot',
-        // red dragon isle (wilderness) — needs dragonfire shield
+        // red dragon isle (wilderness), needs dragonfire shield
         anchor: { x: 3216, z: 3812, level: 0 },
         searchRadius: 12,
         bank: { x: 3094, z: 3493, level: 0 },
@@ -174,11 +174,11 @@ export function shouldEat(opts: {
     if (shouldEatToUseFood(opts)) {
         return true;
     }
-    // pack full while still collecting — free a slot
+    // pack full while still collecting, free a slot
     return opts.foodCount > 0 && opts.collecting && opts.freeSlots === 0;
 }
 
-/** @deprecated use foodHealAmount from combat/food — kept for older imports */
+/** @deprecated use foodHealAmount from combat/food, kept for older imports */
 export const FOOD_HEAL: Record<string, number> = {
     lobster: healOf('Lobster'),
     swordfish: healOf('Swordfish'),
@@ -194,7 +194,7 @@ export const FOOD_HEAL: Record<string, number> = {
 };
 
 // Why: everything not kept is deposited, including random-event loot such as coins, runes and arrows that would otherwise ride along.
-// Why: the product and source — toad legs, swamp toads, eggs and the rest — are deliberately omitted, since they are the loot being deposited.
+// Why: the product and source, toad legs, swamp toads, eggs and the rest, are deliberately omitted, since they are the loot being deposited.
 // Why: keeping them leaves a full pack after close and spams open/close.
 
 /** What to keep in the pack when banking. */
@@ -232,7 +232,7 @@ export function needsRestock(opts: {
     if (opts.packFull) {
         return true;
     }
-    // only restock food when empty — mid-trip eating is fine until zero
+    // only restock food when empty, mid-trip eating is fine until zero
     if (opts.def.takeFood && opts.foodWant > 0 && opts.foodCount < 1) {
         return true;
     }

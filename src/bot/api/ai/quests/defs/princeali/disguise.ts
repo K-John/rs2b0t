@@ -180,7 +180,7 @@ async function burnLogs(log: (m: string) => void): Promise<boolean> {
         log('burnLogs: no tinderbox or no logs');
         return false;
     }
-    // Bank tiles (and an open bank) refuse firemaking — walk outside first (#278).
+    // Bank tiles (and an open bank) refuse firemaking, walk outside first (#278).
     if (Bank.isOpen()) {
         await Bank.close();
     }

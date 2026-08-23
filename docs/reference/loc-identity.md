@@ -9,12 +9,12 @@ What the client and adapter do today with locs that change state.
 | Timed loc changes are received and applied | `Client.locChangeCreate`, `locChangeDoQueue`, `locChangeUnchecked` |
 | Applying a change removes the old loc, updates collision, installs the replacement | `Client.locChangeUnchecked` |
 | `ClientAdapter.locs()` reads the resulting `World`, so a fresh query sees a tree become a stump | `ClientAdapter` |
-| A stale typecode does not produce a packet — `interactWithLoc` asks `World.typeCode2` whether that exact typecode still occupies the tile | `Client.interactWithLoc`, `World.typeCode2` |
+| A stale typecode does not produce a packet, `interactWithLoc` asks `World.typeCode2` whether that exact typecode still occupies the tile | `Client.interactWithLoc`, `World.typeCode2` |
 
 ## Known gaps
 
 - **`actions.menuAction()` returns `true` unconditionally** once in game, after calling
-  the client's `doAction()` — including when the client rejected the stale loc
+  the client's `doAction()`, including when the client rejected the stale loc
   internally. A `true` result means "accepted for dispatch", never "the action
   succeeded".
 - **`Loc` has no `valid()`, state revision, or changed/gone distinction.**

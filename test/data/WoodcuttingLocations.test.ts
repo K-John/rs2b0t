@@ -25,7 +25,7 @@ describe('resolveWoodcuttingLocation', () => {
     });
 
     test('Auto freeform at willows NW of Crafting Guild (outside every WC camp chunk)', () => {
-        // 2910,3328 — not same 64×64 as Crafting Guild mine or any WC preset.
+        // 2910,3328, not same 64×64 as Crafting Guild mine or any WC preset.
         expect(resolveWoodcuttingLocation('Auto', new Tile(2910, 3328, 0))).toBeNull();
     });
 
@@ -75,7 +75,7 @@ describe('WOODCUTTING_LOCATIONS table', () => {
     });
 
     test('fire spots are not mixed into chop camps', () => {
-        // Burn strips live in FiremakingLogic — chop table is trees + bank only.
+        // Burn strips live in FiremakingLogic, chop table is trees + bank only.
         for (const loc of WOODCUTTING_LOCATIONS) {
             expect('rangeStand' in loc).toBe(false);
             expect(loc.spot).toBeDefined();

@@ -118,7 +118,7 @@ export async function slashBookForKey(log: (m: string) => void): Promise<boolean
     }
 
     let knife = findHeldSlashTool();
-    // useOn needs a pack item — if the only blade is worn, remove it first.
+    // useOn needs a pack item, if the only blade is worn, remove it first.
     if (!knife) {
         const wornBlade = Equipment.items().find(i => isSlashToolName(i.name));
         if (wornBlade?.name) {
@@ -143,7 +143,7 @@ export async function enterWorkshop(log: (m: string) => void): Promise<boolean> 
     if (ewArea(Game.tile()) === 'workshop') {
         return true;
     }
-    // Stand outside the smithy — do not path onto the wall loc tile (unwalkable).
+    // Stand outside the smithy, do not path onto the wall loc tile (unwalkable).
     if (!(await walkNear(SMITHY, 4, log))) {
         return false;
     }
@@ -268,7 +268,7 @@ async function turnValve(valve: Loc, label: string, log: (m: string) => void): P
         return 'fail';
     }
     await settleScene();
-    // Re-query — scene may have resettled after the walk.
+    // Re-query, scene may have resettled after the walk.
     const live = Locs.query().name('Water Valve').action('Turn').within(6).nearest()
         ?? valve;
     if (!(await live.interact('Turn'))) {
@@ -541,7 +541,7 @@ async function _waitOutCombat(ms: number): Promise<void> {
     await Execution.delayUntil(() => !Game.inCombat(), ms);
 }
 
-/** Prefer a live weapon — unarmed maxed accounts still stall forever on the rock elemental. */
+/** Prefer a live weapon, unarmed maxed accounts still stall forever on the rock elemental. */
 async function ensureMeleeWeapon(log: (m: string) => void): Promise<void> {
     if (Equipment.items().some(i => {
         const n = i.name?.toLowerCase() ?? '';
@@ -562,7 +562,7 @@ async function ensureMeleeWeapon(log: (m: string) => void): Promise<void> {
     await Equipment.equip(weapon.name);
 }
 
-/** Earth elementals in the water/air wings do not drop quest ore — only the rock spawn does. */
+/** Earth elementals in the water/air wings do not drop quest ore, only the rock spawn does. */
 function nearRockPocket(tile: { x: number; z: number } | null | undefined): boolean {
     if (!tile) {
         return false;
@@ -579,7 +579,7 @@ function earthAtRock(): Npc | null {
         .nearest();
 }
 
-/** Prefer exact object id — name match alone can miss depending on scene load order. */
+/** Prefer exact object id, name match alone can miss depending on scene load order. */
 function findOreOnGround(): GroundItem | null {
     return GroundItems.query()
         .where(g => g.id === EW_ITEM.ELEMENTAL_ORE.id)
@@ -590,7 +590,7 @@ function findOreOnGround(): GroundItem | null {
 
 /**
  * Loot Elemental ore after the rock-spawn death. Drop can land a few tiles off and
- * appears a tick or two after the NPC is gone — wait, walk, and retry Take.
+ * appears a tick or two after the NPC is gone, wait, walk, and retry Take.
  */
 async function takeElementalOre(log: (m: string) => void): Promise<boolean> {
     if (heldId(EW_ITEM.ELEMENTAL_ORE.id) > 0) {
@@ -627,7 +627,7 @@ async function takeElementalOre(log: (m: string) => void): Promise<boolean> {
         if (await Execution.delayUntil(() => heldId(EW_ITEM.ELEMENTAL_ORE.id) > before, 6_000)) {
             return true;
         }
-        // Another pile (e.g. swamprocks) may have been clicked first — try again.
+        // Another pile (e.g. swamprocks) may have been clicked first, try again.
         await Execution.delayTicks(1);
     }
     return heldId(EW_ITEM.ELEMENTAL_ORE.id) > 0;
@@ -663,7 +663,7 @@ async function freeSlotForOre(log: (m: string) => void): Promise<void> {
     await Execution.delayUntil(() => !Inventory.isFull(), 3_000);
 }
 
-// Why: standing "Earth elemental" NPCs in the workshop drop no quest ore — only `earth_elemental_rock_version` after Mine does, and only for the hero.
+// Why: standing "Earth elemental" NPCs in the workshop drop no quest ore, only `earth_elemental_rock_version` after Mine does, and only for the hero.
 // Why: the step therefore always mines first and never attacks a pre-existing earth elemental.
 
 /** Mine the west-chamber rock, which spawns the rock Earth elemental, and take the ore. */
@@ -739,7 +739,7 @@ export async function mineElementalOre(log: (m: string) => void): Promise<boolea
         6_000
     );
 
-    // Stay until the NPC is gone or ore is visible — hero loot only drops on our kill.
+    // Stay until the NPC is gone or ore is visible, hero loot only drops on our kill.
     const deathTile = elemental.tile();
     const finished = await Execution.delayUntil(
         () => heldId(EW_ITEM.ELEMENTAL_ORE.id) > 0
@@ -765,7 +765,7 @@ export async function mineElementalOre(log: (m: string) => void): Promise<boolea
 }
 
 /**
- * Smelt ore + 4 coal. Air is not journal-visible and the air lever toggles —
+ * Smelt ore + 4 coal. Air is not journal-visible and the air lever toggles,
  * try the furnace first; only pull air when the server says it needs more heat.
  */
 export async function smeltElementalBar(log: (m: string) => void): Promise<boolean> {
@@ -835,7 +835,7 @@ export async function smeltElementalBar(log: (m: string) => void): Promise<boole
         // Heat off or unknown: try air once (toggle risk handled by message).
         const air = await pullAirLever(log);
         if (air === 'off') {
-            // Toggled off a running blast — pull again to restore.
+            // Toggled off a running blast, pull again to restore.
             log('air was on; re-pulling to restore blast');
             await pullAirLever(log);
         } else if (air === 'nothing') {

@@ -5,7 +5,7 @@ import type { QuestProgress } from '../../engine/types.js';
 
 export const SHILO_QUEST = 'Shilo Village';
 
-// Why: several of the engine's stage numbers render identically in the journal and are never distinguished — 1-2 (found the mound), 7-9 before the Bervirius dolmen is searched, 10-11, and 12-14.
+// Why: several of the engine's stage numbers render identically in the journal and are never distinguished, 1-2 (found the mound), 7-9 before the Bervirius dolmen is searched, 10-11, and 12-14.
 // Why: `decide()` separates those by area and by what is carried, which is what drives the next step.
 export const SV_STAGE = {
     NOT_STARTED: 0,

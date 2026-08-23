@@ -18,7 +18,7 @@ function normalize(lines: readonly string[] | string): string {
         .toLowerCase();
 }
 
-// Why: druidspirit_journal.rs2 appends, so every earlier stage's prose is still on the page — newest marker first, or an early line answers for a late stage.
+// Why: druidspirit_journal.rs2 appends, so every earlier stage's prose is still on the page, newest marker first, or an early line answers for a late stage.
 const MARKERS: readonly [string, number][] = [
     ['quest complete!', NS_STAGE.COMPLETE],
     ["i've killed three ghasts now.", NS_STAGE.KILLED_GHAST3],

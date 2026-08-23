@@ -11,10 +11,10 @@ import { settleScene } from '../../exec/prompts.js';
 import { UP_ITEM, UP_LOC } from './areas.js';
 import { verdictSince } from './verdict.js';
 
-// Why: the way from the well's corridor down to the loose railings is six crossings and it never varies. A search over it offered five ledge locs whose stand is in another pocket, two telejumps twenty-one tiles the wrong way, seven walled stone bridges and ten cages in another cell — and reported a cage thirty tiles off as crossed. Spelled out, there is nothing to choose.
+// Why: the way from the well's corridor down to the loose railings is six crossings and it never varies. A search over it offered five ledge locs whose stand is in another pocket, two telejumps twenty-one tiles the wrong way, seven walled stone bridges and ten cages in another cell, and reported a cage thirty tiles off as crossed. Spelled out, there is nothing to choose.
 
 /** One crossing of the run: walk the stand, send the op at THAT loc, arrive on `lands`. */
-interface Crossing {
+export interface Crossing {
     what: string;
     /** Stepping stones walked before the stand, where one walk will not carry it. */
     via?: readonly Tile[];
@@ -24,15 +24,16 @@ interface Crossing {
     at: Tile;
     loc: number;
     op: string;
-    /** Where the crossing puts the character — and the guard that says it has already happened. */
+    /** Where the crossing puts the character, and the guard that says it has already happened. */
     lands: Tile;
     /** The item to use on the loc, where the crossing is a use rather than an op. */
     item?: { id: number; name: string };
 }
 
-// Why: `at` is carried because the ledge is six locs in a column and the two nearest the stand are BOTH chebyshev one from it — `nearest()` picks whichever, and the wrong one answers "I can't reach that!" without the script ever running.
-export const TO_RAILINGS: readonly Crossing[] = [
-    // Why: the run starts in the CORRIDOR, where the well drops the character — not in the mud pocket. The cage and the dig are the first two crossings of the same chain, and leaving them to a search is what had a leg standing in the corridor trying to reach a ledge two crossings away, a hundred and five times over.
+// Why: `at` is carried because the ledge is six locs in a column and the two nearest the stand are BOTH chebyshev one from it, `nearest()` picks whichever, and the wrong one answers "I can't reach that!" without the script ever running.
+// Why: the cage, the dig and the ledge are their own chain because Regicide walks them too, it re-enters the pass westbound with the quest finished, and the well drops it in the same corridor. Aiming a mover at the dig's own tile instead is what sent a leg back up through the thieving railings for twenty-four hops: (2393,9650) carries the loc, so live it routes to nothing and the free search takes over.
+export const OUT_OF_CAGES: readonly Crossing[] = [
+    // Why: the run starts in the CORRIDOR, where the well drops the character, not in the mud pocket. The cage and the dig are the first two crossings of the same chain, and leaving them to a search is what had a leg standing in the corridor trying to reach a ledge two crossings away, a hundred and five times over.
     {
         what: 'the cage into the mud cell',
         stand: new Tile(2393, 9655, 0), at: new Tile(2393, 9655, 0),
@@ -47,7 +48,11 @@ export const TO_RAILINGS: readonly Crossing[] = [
         what: 'the ledge south out of the mud pocket',
         stand: new Tile(2375, 9644, 0), at: new Tile(2374, 9644, 0),
         loc: UP_LOC.LEDGE, op: 'Cross', lands: new Tile(2374, 9638, 0)
-    },
+    }
+];
+
+export const TO_RAILINGS: readonly Crossing[] = [
+    ...OUT_OF_CAGES,
     {
         what: 'the first thieving railing',
         stand: new Tile(2380, 9619, 0), at: new Tile(2380, 9619, 0),
@@ -66,20 +71,20 @@ export const TO_RAILINGS: readonly Crossing[] = [
     }
 ];
 
-// Why: the engine re-decides every tick and recognises "the same step" only by what it calls itself, so a step whose name covers six crossings is one step retried forever — the attempt counter never resets, no progress is visible, and the watchdog parks a leg that was advancing. Each crossing names itself, so crossing one resets the count for crossing two.
-// Why: the client's own flood, because `decide` is synchronous. Out of the loaded scene it reads unreachable, which is indistinguishable from "not crossed yet" — so the outstanding crossing is the first whose landing cannot be reached AND whose stand can. That is the one the character is standing in position for.
-export function outstandingCrossing(): Crossing | null {
+// Why: the engine re-decides every tick and recognises "the same step" only by what it calls itself, so a step whose name covers six crossings is one step retried forever, the attempt counter never resets, no progress is visible, and the watchdog parks a leg that was advancing. Each crossing names itself, so crossing one resets the count for crossing two.
+// Why: the client's own flood, because `decide` is synchronous. Out of the loaded scene it reads unreachable, which is indistinguishable from "not crossed yet", so the outstanding crossing is the first whose landing cannot be reached AND whose stand can. That is the one the character is standing in position for.
+export function outstandingCrossing(chain: readonly Crossing[] = TO_RAILINGS): Crossing | null {
     const flood = { adjacentOk: false, maxSteps: 2_000 } as const;
-    return TO_RAILINGS.find(step =>
+    return chain.find(step =>
         !Reachability.canReach(step.lands, flood) && Reachability.canReach(step.stand, flood)) ?? null;
 }
 
-/** Take one crossing and no more — the one the character is in position for. */
-export async function takeNextCrossing(log: (m: string) => void): Promise<boolean> {
-    const step = outstandingCrossing();
+/** Take one crossing and no more, the one the character is in position for. */
+export async function takeNextCrossing(log: (m: string) => void, chain: readonly Crossing[] = TO_RAILINGS): Promise<boolean> {
+    const step = outstandingCrossing(chain);
     if (step === null) {
         const me = Game.tile();
-        log(`pass: (${me?.x},${me?.z}) is in position for no crossing of the run to the loose railings`);
+        log(`pass: (${me?.x},${me?.z}) is in position for no crossing of the run`);
         return false;
     }
     return take(step, log);
@@ -87,7 +92,7 @@ export async function takeNextCrossing(log: (m: string) => void): Promise<boolea
 
 /** How long a crossing gets to land once its script has spoken. */
 const CROSS_MS = 12_000;
-/** What a silent op gets — three ticks covers a teleport end to end. */
+/** What a silent op gets, three ticks covers a teleport end to end. */
 const QUIET_MS = 1_800;
 
 async function canWalkTo(to: Tile): Promise<boolean> {
@@ -113,7 +118,7 @@ async function take(step: Crossing, log: (m: string) => void): Promise<boolean> 
         return false;
     }
     const mark = GameMessages.mark();
-    // Why: `[oplocu,upass_mud]` carries no op the client can send — the crossing is a spade used on it.
+    // Why: `[oplocu,upass_mud]` carries no op the client can send. The crossing is a spade used on it.
     const sent = step.item === undefined
         ? await loc.interact(step.op)
         : await (Inventory.items().find(inv => inv.id === step.item!.id)?.useOn(loc) ?? false);
@@ -141,10 +146,10 @@ async function take(step: Crossing, log: (m: string) => void): Promise<boolean> 
 
 /**
  * Walk the cage corridor down to the loose railings, one named crossing at a time.
- * Why: a step whose landing the character can already walk to has happened, so the run resumes from wherever it is rather than tracking an index — the six crossings are one-way and in one order.
+ * Why: a step whose landing the character can already walk to has happened, so the run resumes from wherever it is rather than tracking an index, the six crossings are one-way and in one order.
  */
 export async function reachLooseRailings(log: (m: string) => void): Promise<boolean> {
-    // Why: a run that does not apply from here says so once. The outstanding step is the first whose landing cannot be walked to, and if its stand cannot be walked to either then the character is off the chain entirely — from the unicorn area, past its far end. Walking at it anyway is seventy-three rounds of `could not stand`, twenty-eight minutes, and no way for the caller to learn anything.
+    // Why: a run that does not apply from here says so once. The outstanding step is the first whose landing cannot be walked to, and if its stand cannot be walked to either then the character is off the chain entirely, from the unicorn area, past its far end. Walking at it anyway is seventy-three rounds of `could not stand`, twenty-eight minutes, and no way for the caller to learn anything.
     const outstanding: Crossing[] = [];
     for (const step of TO_RAILINGS) {
         if (!(await canWalkTo(step.lands))) {

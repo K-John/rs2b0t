@@ -1,12 +1,12 @@
-/** Live DartFletcher throughput test: --base http://localhost:19080 --minutes 3.
+/** Live DartFletcher throughput test: --base http://localhost:8888 --minutes 3.
  *  Reports wall-clock XP/hr and a tick-normalized 600ms-world projection that survives a changed dev tick speed. */
 
-//   bun e2e/dartfletcher-test.ts --base http://localhost:19080 --minutes 3
+//   bun e2e/dartfletcher-test.ts --base http://localhost:8888 --minutes 3
 import type { Page } from 'playwright-core';
 import { fail, launchBrowser, parseArgs } from './lib/harness.js';
 import { cheatQuiet, mainlandAccount, startScript } from './tutorial/harness.js';
 
-const { base, minutes } = parseArgs(process.argv.slice(2), { base: 'http://localhost:19080', minutes: 3 });
+const { base, minutes } = parseArgs(process.argv.slice(2), { base: 'http://localhost:8888', minutes: 3 });
 const USER = process.env.USER_NAME || `df${Date.now().toString(36).slice(-7)}`;
 const SUPPLY = Math.max(100_000, Math.ceil(minutes * 10_000));
 const EXPECTED_XP_PER_DART = 18.8;

@@ -171,7 +171,7 @@ interface Pos {
 
 // Why: `opheld1,bloated_toad` refuses outside this box with "This is too far away for Rantz to shoot the chompy bird."
 
-/** The clearing the quest will accept bait in — `inzone(0_41_46_7_18, 0_41_46_15_27)`. */
+/** The clearing the quest will accept bait in, `inzone(0_41_46_7_18, 0_41_46_15_27)`. */
 export function inBaitZone(t: Pos | null | undefined): boolean {
     return !!t && t.level === 0 && t.x >= 2631 && t.x <= 2639 && t.z >= 2962 && t.z <= 2971;
 }

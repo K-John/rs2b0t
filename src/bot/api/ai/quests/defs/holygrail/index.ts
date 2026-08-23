@@ -1,5 +1,5 @@
 import { QUESTS } from '../../data/quests.js';
-import { QuestFood } from '../../food.js';
+import { FOOD_FLOAT, QuestFood } from '../../food.js';
 import { gpShort } from '../../engine/provisioning.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { ARMOUR_KEEP, armourWanted } from './armour.js';
@@ -69,7 +69,7 @@ function entranaSpillover(snap: QuestSnapshot, food: string | null): string[] {
     return [...snap.inv.keys()].filter(name => !keep.includes(name));
 }
 
-// Why: the gear comes off before the deposit, not after — stripping second puts it straight back in the pack and buys a second bank trip.
+// Why: the gear comes off before the deposit, not after, stripping second puts it straight back in the pack and buys a second bank trip.
 function entranaLeg(snap: QuestSnapshot, food: string | null): QuestStep {
     if (snap.worn.size > 0) {
         return custom('remove weapons and armour for Entrana', unequipAll);
@@ -114,7 +114,7 @@ function napkinStep(snap: QuestSnapshot): QuestStep | null {
     return { kind: 'talk', stop: GALAHAD };
 }
 
-// Why: the whistles are the way in and the way home, and the door only drops them for a character carrying the napkin — so every leg that needs one has to check the cloth first.
+// Why: the whistles are the way in and the way home, and the door only drops them for a character carrying the napkin, so every leg that needs one has to check the cloth first.
 // Why: Galahad replaces a lost napkin at stages 4 and 7 alone, so past that a missing one is a park with a reason rather than a walk to Seers'.
 
 /** Withdraw the napkin if needed, then fetch whistles; null once `want` are in the pack. */
@@ -154,7 +154,7 @@ function crossingLeg(snap: QuestSnapshot): QuestStep {
     if (arm) {
         return arm;
     }
-    // Why: two — one is spent giving Sir Percival his ride home, and the other is the only way out of the realm.
+    // Why: two. One is spent giving Sir Percival his ride home, and the other is the only way out of the realm.
     return whistleStep(snap, 2) ?? custom("blow the whistle at Karamja's six heads", whistleIn);
 }
 
@@ -221,9 +221,9 @@ export function decide(snap: QuestSnapshot, food: string | null = selectedFood()
 
 export const holygrail: QuestModule = {
     record: QUESTS.find(r => r.id === 'grail')!,
-    // Why: the quest crosses Camelot, Entrana, Seers', Draynor, Karamja and the Goblin Village — no one bank is near enough to pin.
+    // Why: the quest crosses Camelot, Entrana, Seers', Draynor, Karamja and the Goblin Village, no one bank is near enough to pin.
     bank: 'nearest',
-    food: 12,
+    food: FOOD_FLOAT,
     grind: ['Black Knight Titan'],
     tools: [
         ITEM.EXCALIBUR.toLowerCase(),

@@ -329,7 +329,7 @@ async function caseOracleExit(page: Page): Promise<{ ok: boolean; detail: string
     const finalTile = await page.evaluate(() => (globalThis as never as Abi).__rs2b0t.reader.worldTile());
     logs.push(...(final?.logs ?? []));
     logs.push(`finalTile=${JSON.stringify(finalTile)}`);
-    // Product fix is oracleChest() auto-leave after loot — door open west is the core interaction.
+    // Product fix is oracleChest() auto-leave after loot, door open west is the core interaction.
     // Accept PASS if we end west of door (x < 3051) on same plane.
     const west = finalTile !== null && finalTile.level === 0 && finalTile.z >= 9800 && finalTile.x < 3051;
     return {

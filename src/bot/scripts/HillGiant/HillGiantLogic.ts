@@ -7,7 +7,7 @@ import { shouldEatToUseFood } from '../../api/combat/food.js';
 export const BIG_BONES = 'Big bones';
 export const LIMPWURT = 'Limpwurt root';
 export const BRASS_KEY = 'Brass key';
-// Why: dungeon tile of the Edgeville-dungeon Brass key spawn — used to fetch the hut shortcut key.
+// Why: dungeon tile of the Edgeville-dungeon Brass key spawn, used to fetch the hut shortcut key.
 export const KEY_SPAWN = new Tile(3131, 9862, 0);
 
 // Why: several bots on one world otherwise pile onto the same corner and starve each other of spawns, so a trip picks one at random.
@@ -54,7 +54,7 @@ interface BankDecision {
 
 // Why: hitting the loot target ends the trip.
 // Why: a full pack with no food left to free a slot ends it too.
-// Why: out of food with HP in the smart-eat band — a full heal would fit, or the safety floor — ends it, since fighting on with an empty pack is how the bot dies.
+// Why: out of food with HP in the smart-eat band, where a full heal would fit, or below the safety floor, ends it, since fighting on with an empty pack is how the bot dies.
 // Why: lobster (12) at 40/53 HP with 0 food banks, because 40+12 is still under max and a full heal fits.
 
 /** Whether the trip should leave for the bank. */
@@ -65,7 +65,7 @@ export function shouldBank(d: BankDecision): boolean {
     if (d.freeSlots === 0 && d.foodInPack === 0) {
         return true;
     }
-    // Out of food and we would eat if we had any — go restock before death.
+    // Out of food and we would eat if we had any, go restock before death.
     if (d.foodInPack === 0) {
         return shouldEatToUseFood({
             hp: d.hp,
@@ -85,7 +85,7 @@ export function shouldEatForSpace(freeSlots: number, foodInPack: number): boolea
     return freeSlots === 0 && foodInPack > 0;
 }
 
-/** Big bones are either buried for prayer xp or banked — never both. */
+/** Big bones are either buried for prayer xp or banked, never both. */
 export function bonesAction(buryBones: boolean): 'bury' | 'bank' {
     return buryBones ? 'bury' : 'bank';
 }

@@ -3,7 +3,7 @@ import { CANT_REACH, GameMessages, WRONG_SIDE } from '../../../../chatbox/gameMe
 /** What an obstacle's script said it did. */
 export type Verdict = 'refused' | 'failed' | 'crossing';
 
-// Why: every obstacle in the pass announces its outcome in the chatbox in the same tick the op resolves, and the step was waiting on a tile instead — so a refusal cost the full crossing timeout, then the settle, then the reachability poll, for an answer it had already been given. Twelve of those in a row is a leg. The op's own words are the fastest honest oracle there is.
+// Why: every obstacle in the pass announces its outcome in the chatbox in the same tick the op resolves, and the step was waiting on a tile instead, so a refusal cost the full crossing timeout, then the settle, then the reachability poll, for an answer it had already been given. Twelve of those in a row is a leg. The op's own words are the fastest honest oracle there is.
 
 /** The op will not work from here, however many times it is sent. */
 const REFUSED: readonly RegExp[] = [
@@ -16,7 +16,7 @@ const REFUSED: readonly RegExp[] = [
     /need a thieving level/i
 ];
 
-/** The roll failed and the character is where they were — another try is worth sending. */
+/** The roll failed and the character is where they were, another try is worth sending. */
 const FAILED: readonly RegExp[] = [
     /but you slip back down/i,
     /you fail to pick the lock/i,
@@ -27,7 +27,7 @@ const FAILED: readonly RegExp[] = [
     /and fail, activating the trap/i
 ];
 
-/** The script is carrying the character across — this is the one outcome worth waiting out. */
+/** The script is carrying the character across. This is the one outcome worth waiting out. */
 const CROSSING: readonly RegExp[] = [
     /and step down the other side/i,
     /you manage to pick the lock/i,
@@ -48,7 +48,7 @@ const CLASSES: readonly (readonly [Verdict, readonly RegExp[]])[] = [
 
 /**
  * What the obstacle said since `mark`, or null while it has said nothing.
- * Why: the LAST verdict, not the first. One attempt loop keeps one mark across four rolls, so a seam that slipped and then landed has both a failure and a crossing in the ring — and the one that describes where the character is now is the one at the end.
+ * Why: the LAST verdict, not the first. One attempt loop keeps one mark across four rolls, so a seam that slipped and then landed has both a failure and a crossing in the ring, and the one that describes where the character is now is the one at the end.
  */
 export function verdictSince(mark: number): Verdict | null {
     const said = GameMessages.since(mark);

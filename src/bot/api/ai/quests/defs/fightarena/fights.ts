@@ -38,7 +38,7 @@ export function fightWon(swings: number, missingTicks: number): boolean {
     return swings > 0 && missingTicks >= MISSING_TO_WIN;
 }
 
-// Why: a caged beast is in the scene and offers Attack, so presence proves nothing — the server drops every op against it and the swing counter climbs to the guard while hitpoints never move.
+// Why: a caged beast is in the scene and offers Attack, so presence proves nothing. The server drops every op against it and the swing counter climbs to the guard while hitpoints never move.
 
 /** Swings taken with no combat before the target counts as unreachable. */
 export const ENGAGE_PROOF = 12;
@@ -64,7 +64,7 @@ function target(npcId: number): Npc | null {
         .nearest();
 }
 
-// Why: the win opens the dialogue that releases the next beast — the scorpion's summons Bouncer, and Bouncer's frees the Servils and moves the stage.
+// Why: the win opens the dialogue that releases the next beast, the scorpion's summons Bouncer, and Bouncer's frees the Servils and moves the stage.
 // Why: leaving it undrained loses the release and parks the quest one step later.
 
 /** Drain whatever the win opened, without answering an option. */

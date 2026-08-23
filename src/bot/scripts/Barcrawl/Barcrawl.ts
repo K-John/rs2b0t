@@ -10,7 +10,7 @@ import { BARCRAWL_CARD, BARCRAWL_GP, BARS, COINS } from '../../api/ai/quests/bar
 import { ensureBarcrawl, readCard } from '../../api/ai/quests/barcrawl/RunBarcrawl.js';
 import { Modals } from '../../api/ui/widgets/Modals.js';
 
-// Why: the tour is a miniquest of its own — it opens the Barbarian Outpost gate and gates Barbarian Training.
+// Why: the tour is a miniquest of its own. It opens the Barbarian Outpost gate and gates Barbarian Training.
 // Why: it is runnable on its own as well as from Horror from the Deep, which calls the same driver in {@link ../quests/barcrawl/RunBarcrawl.js}.
 
 /** Alfred Grimhand's Barcrawl, standalone. */

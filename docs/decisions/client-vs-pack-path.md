@@ -24,7 +24,7 @@ for gameclick movement.
 ## Limits of the dual paint
 
 1. The client trail is the current walk-click only, not the remaining pack path.
-2. Scene expand also feeds corridor snap, not paint alone — keep it off unless debugging.
+2. Scene expand also feeds corridor snap, not paint alone, keep it off unless debugging.
 3. Off-scene, multi-level and transport pack segments still use Chebyshev.
 4. `tryMove` records at most the scene-local path (104×104).
 

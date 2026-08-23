@@ -54,7 +54,7 @@ function vyvinTile(): WorldTile | null {
     return Npcs.query().name('Sir Vyvin').nearest()?.tile() ?? null;
 }
 
-// Why: the engine dedupes identical sub-log lines within a step, so a fixed message would hide every repeat — hence the varying text.
+// Why: the engine dedupes identical sub-log lines within a step, so a fixed message would hide every repeat, hence the varying text.
 // Why: a silent cupboard stuck at 2271 is what an illegal approach looks like, and this line is how that gets diagnosed.
 
 /** The refusal line for one search pass. */

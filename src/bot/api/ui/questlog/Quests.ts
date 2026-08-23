@@ -2,7 +2,7 @@ import { actions, reader } from '../../../adapter/ClientAdapter.js';
 import { Execution } from '../../execution/Execution.js';
 
 /**
- * Coarse quest-list colour only — not mid-stage.
+ * Coarse quest-list colour only, not mid-stage.
  * `unknown` means the tab is not loaded yet; it is not `notStarted`.
  * @see docs/reference/quest-engine.md#quest-state
  */
@@ -27,7 +27,7 @@ export const Quests = {
     },
     /**
      * Coarse status from the quest-list name colour (red / yellow / green).
-     * Yellow is any in-progress state — not a stage index.
+     * Yellow is any in-progress state, not a stage index.
      */
     status(name: string): QuestStatus {
         const hit = reader.questStatuses().find(q => q.name.toLowerCase() === name.toLowerCase());
@@ -54,7 +54,7 @@ export const Quests = {
         }, 5000);
         return opened ? reader.mainModalTexts() : [];
     },
-    /** Total quest points — transmitted varp `qp` (index 101). */
+    /** Total quest points, transmitted varp `qp` (index 101). */
     points(): number {
         return reader.varp(101);
     }

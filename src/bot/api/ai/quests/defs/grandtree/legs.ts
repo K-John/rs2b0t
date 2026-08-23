@@ -35,7 +35,7 @@ function here(): Tile | null {
     return t ? new Tile(t.x, t.z, t.level) : null;
 }
 
-// Why: several legs are one scripted chain that closes the dialogue, walks the player, teleports it and only then speaks again — `driveDialog` gives up in the 1.5s gaps, so the goal is what ends these, not the conversation.
+// Why: several legs are one scripted chain that closes the dialogue, walks the player, teleports it and only then speaks again, `driveDialog` gives up in the 1.5s gaps, so the goal is what ends these, not the conversation.
 
 /** Talk, then keep answering whatever the chain raises until `expect` lands. */
 async function talkUntil(stop: NpcStop, expect: () => boolean, log: Log, ms = TALK_MS): Promise<boolean> {
@@ -58,7 +58,7 @@ function locAt(id: number, tile: Tile, within = 4): Loc | null {
         .nearest();
 }
 
-// Why: the King walks the player to his trapdoor, drops it into the foundations and climbs it back out, all inside one `opnpc` — so the bark sample landing is the only honest end of the talk.
+// Why: the King walks the player to his trapdoor, drops it into the foundations and climbs it back out, all inside one `opnpc`, so the bark sample landing is the only honest end of the talk.
 // Why: a chain interrupted underground is resumable, because the second King spawn down there answers `not_started` with the same offer.
 
 /** Start the quest and come away with the bark sample and the translation book. */
@@ -67,10 +67,10 @@ export async function startQuest(log: Log): Promise<boolean> {
     return talkUntil(stop, () => heldId(GT_OBJ.BARK) > 0, log);
 }
 
-// Why: Glough calls the guards, marches the player to a ladder, jails it at the top of the tree, and the King then walks over and lets it out — one chain, ending with the player teleported one tile east of the cell.
+// Why: Glough calls the guards, marches the player to a ladder, jails it at the top of the tree, and the King then walks over and lets it out, one chain, ending with the player teleported one tile east of the cell.
 // Why: an interrupted run resumes from inside the cell, where Charlie's own `apnpc1` runs the same chain from the middle.
 
-// Why: the goal state — standing one tile east of the cell — is also where a chain that broke after the teleport leaves the player, so this leg never short-circuits on it.
+// Why: the goal state, standing one tile east of the cell, is also where a chain that broke after the teleport leaves the player, so this leg never short-circuits on it.
 // Why: a stage-70 pass that starts there walks back to Glough instead, who jails the player again and runs the chain again from the top.
 
 /** Confront Glough with his journal and come out of the cage he answers with. */
@@ -125,7 +125,7 @@ export async function searchCupboard(log: Log): Promise<boolean> {
 }
 
 // Why: the foreman closes the dialogue, walks the player thirty-five tiles across the yard and teleports it into his office before he asks the first question, so the generic talk step abandons him mid-walk and the next pass drags the player back out to his spawn.
-// Why: once the chain has moved him, `[opnpc1,grandtree_foreman]` sees him inside the office zone and skips straight to the interrogation — so a Foreman already in the scene is talked to where he stands.
+// Why: once the chain has moved him, `[opnpc1,grandtree_foreman]` sees him inside the office zone and skips straight to the interrogation, so a Foreman already in the scene is talked to where he stands.
 
 /** Answer the foreman's three questions about Glough and take the lumber order. */
 export async function foremanOrder(log: Log): Promise<boolean> {
@@ -152,14 +152,14 @@ export async function flyToKaramja(log: Log): Promise<boolean> {
     return talkUntil(PILOT, landed, log, 60_000);
 }
 
-// Why: at stage 90 the gate guards turn the player away, and Femi's food cart is the only way back inside — she charges only the 1000gp branch, which the pay option answers.
+// Why: at stage 90 the gate guards turn the player away, and Femi's food cart is the only way back inside, she charges only the 1000gp branch, which the pay option answers.
 
 /** Ride Femi's cart back into the stronghold. */
 export async function femiCart(log: Log): Promise<boolean> {
     if (inStronghold(here())) {
         return true;
     }
-    // Why: this leg starts in the Karamja jungle and ends outside the gnome gate — six hundred tiles, a log balance and a ship, which is more than `gotoNpc`'s two 45s passes.
+    // Why: this leg starts in the Karamja jungle and ends outside the gnome gate, six hundred tiles, a log balance and a ship, which is more than `gotoNpc`'s two 45s passes.
     if (!(await Traversal.walkResilient(GT_TILE.femi, { radius: 3, attempts: 6, timeoutMs: 300_000, log }))) {
         return false;
     }
@@ -252,7 +252,7 @@ export async function climbToPillars(log: Log): Promise<boolean> {
     return true;
 }
 
-// Why: the pillar floor is a seven-tile pocket whose only ways off are the tree back down and the trapdoor, and neither is a baked edge — so a bank step decided up here has no route and spends its budget down to nothing proving it.
+// Why: the pillar floor is a seven-tile pocket whose only ways off are the tree back down and the trapdoor, and neither is a baked edge, so a bank step decided up here has no route and spends its budget down to nothing proving it.
 
 /** Climb out of Glough's tree, back to the ground the bank is on. */
 export async function descendGloughTree(log: Log): Promise<boolean> {
@@ -304,7 +304,7 @@ export function resetRootCursor(): void {
     rootCursor = 0;
 }
 
-// Why: fourteen of the fifteen roots answer "You search the root but don't find anything", which is a search that worked — reporting it as a failed step would spend the sweep printing failures at the operator.
+// Why: fourteen of the fifteen roots answer "You search the root but don't find anything", which is a search that worked, reporting it as a failed step would spend the sweep printing failures at the operator.
 
 /** Search one root for the Daconia rock. */
 export async function searchNextRoot(log: Log): Promise<boolean> {

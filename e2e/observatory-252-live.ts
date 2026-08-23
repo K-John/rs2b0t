@@ -1,6 +1,6 @@
 /** Live Observatory Quest harness (#252): --stage N --until N --minutes N --tick ms --stocked, base :8890.
  *  Why: members-only, so the :8888 sim refuses every glass and seaweed gate; `--stage` relogs, since update_questlist only recolours the journal entry at login.
- *  Why: stats are 70 across the board rather than max — the only fight is the level-42 goblin guard on the keep gate — and the bank holds coins and food alone, so the planks, the ore, the seaweed, the sand and the mould are all sourced in the world. */
+ *  Why: stats are 70 across the board rather than max, the only fight is the level-42 goblin guard on the keep gate, and the bank holds coins and food alone, so the planks, the ore, the seaweed, the sand and the mould are all sourced in the world. */
 
 //   HEADED=1 bun e2e/observatory-252-live.ts --stage 0 --until 7 --minutes 120 --tick 200
 //   HEADED=1 bun e2e/observatory-252-live.ts --stage 0 --until 2 --minutes 45 --tick 200
@@ -76,13 +76,13 @@ function fail(msg: string): never {
 const QUEST = 'Observatory Quest';
 const ARDOUGNE_BANK = { x: 2655, z: 3283, level: 0 };
 
-/** Coins and food only by default — every other item has a source in the world, and banking one hides whether the bot can find it. */
+/** Coins and food only by default, every other item has a source in the world, and banking one hides whether the bot can find it. */
 function bankSeed(): BankSeedItem[] {
     const seed: BankSeedItem[] = [
         { debugName: 'coins', displayName: 'Coins', qty: 2_000_000 },
         { debugName: args.food.toLowerCase().replace(/ /g, '_'), displayName: args.food, qty: 40 }
     ];
-    // Why: planks, a bronze bar and molten glass are ordinary bank clutter on an established account — the common case a from-scratch run never exercises.
+    // Why: planks, a bronze bar and molten glass are ordinary bank clutter on an established account, the common case a from-scratch run never exercises.
     if (args.stocked) {
         seed.push(
             { debugName: 'woodplank', displayName: 'Plank', qty: 3 },
@@ -223,7 +223,7 @@ try {
         }
         if (last.logs.length > 0) { lastLogTime = Math.max(lastLogTime, ...last.logs.map(l => l.time)); }
 
-        // Why: a full run waits for the list to go green rather than the varp — the recolour and the QP award land a tick behind %itgronigen.
+        // Why: a full run waits for the list to go green rather than the varp, the recolour and the QP award land a tick behind %itgronigen.
         const done = args.until >= 7 ? last.status === 'complete' : stage >= args.until;
         if (done) {
             console.log(`PASS (itgronigen=${stage}, journal=${last.status}, QP=${last.qp}, ${Math.round(t / 60)}min)`);

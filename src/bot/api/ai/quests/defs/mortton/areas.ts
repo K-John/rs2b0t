@@ -194,7 +194,7 @@ interface Pos {
     level: number;
 }
 
-/** The Mort'ton map square — everything this quest does happens inside it. */
+/** The Mort'ton map square, everything this quest does happens inside it. */
 export function inMortton(t: Pos | null | undefined): boolean {
     return !!t && t.level === 0 && t.x >= 3456 && t.x <= 3519 && t.z >= 3264 && t.z <= 3327;
 }

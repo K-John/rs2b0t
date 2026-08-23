@@ -22,7 +22,7 @@ function allBurnt(): Set<string> {
     return new Set(SHEEP.map(n => `burnt-${n}`));
 }
 
-// Why: the journal renders one line per sheep, and the three it can render name herded, killed and incinerated — which is every state the module has to tell apart.
+// Why: the journal renders one line per sheep, and the three it can render name herded, killed and incinerated, which is every state the module has to tell apart.
 // Why: the "killed" line ends on a colour tag before "bones", so no needle may span it.
 function sheepFlags(text: string, n: SheepIndex): string[] {
     const ord = ORDINAL[n];

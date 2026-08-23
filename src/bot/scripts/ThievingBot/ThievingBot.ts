@@ -25,6 +25,7 @@ import { chooseTarget } from '../../api/thieving/targets.js';
 import {
     STUN_COMBAT_TICKS,
     autoFoodBanking,
+    canStealNow,
     closeBankAndConfirmCount,
     countFood,
     foodMatches,
@@ -43,6 +44,7 @@ export const SETTINGS: SettingsSchema = {
     banking: { type: 'string', default: 'None', options: THIEVER_BANKING_OPTIONS, label: 'Food banking', help: 'Auto = bank non-food items, withdraw food, and return to the starting spot' },
     foodWithdraw: { type: 'number', default: 22, min: 1, max: 27, label: 'Food to carry', showIf: { key: 'banking', anyOf: ['Auto'] } },
     bankAtFood: { type: 'number', default: 0, min: 0, max: 26, label: 'Bank at food remaining', showIf: { key: 'banking', anyOf: ['Auto'] } },
+    suicide: { type: 'boolean', default: false, label: 'Suicide thieving', help: 'keep pickpocketing when out of food instead of waiting to regen' },
     dropMatch: { type: 'string', default: '', label: 'Drop when full (name contains)', help: 'drop these when the pack fills; blank = just idle when full (coins stack, so rarely fills)' },
     loot: { type: 'string', default: 'coins', label: 'Pick up from ground (name contains)', help: 'grab matching ground drops within the leash, e.g. coins; comma-separate for several; blank = pick up nothing' },
     obstacle: { type: 'string', default: 'door, gate', label: 'Openable obstacles (name contains)', help: 'when a target or the anchor is walled off, open the nearest of these that still has an Open action; comma-separate' },
@@ -67,6 +69,7 @@ export default class ThievingBot extends TaskBot {
     private autoBank = false;
     private foodWithdraw = 22;
     private bankAtFood = 0;
+    private suicide = false;
     private dropMatch = '';
     private loot: string[] = ['coins'];
     private obstacle: string[] = ['door', 'gate'];
@@ -91,6 +94,7 @@ export default class ThievingBot extends TaskBot {
         this.autoBank = autoFoodBanking(this.settings.str('banking', 'None'));
         this.foodWithdraw = this.settings.num('foodWithdraw', 22);
         this.bankAtFood = Math.min(this.settings.num('bankAtFood', 0), this.foodWithdraw - 1);
+        this.suicide = this.settings.bool('suicide', false);
         this.dropMatch = this.settings.str('dropMatch', '').toLowerCase();
         this.loot = splitKeywords(this.settings.str('loot', 'coins'));
         this.obstacle = splitKeywords(this.settings.str('obstacle', 'door, gate'));
@@ -105,7 +109,9 @@ export default class ThievingBot extends TaskBot {
             ScriptRunner.stop('Auto food banking needs a non-blank food setting');
             return;
         }
-        this.log(`thieving '${this.target}' (${this.action}) within ${this.leash} of ${this.anchor}${this.food ? `, smart-eat *${this.food}*` : ''}, banking ${this.autoBank ? `at ${this.bankAtFood} food (target ${this.foodWithdraw})` : 'off'}`);
+        this.log(
+            `thieving '${this.target}' (${this.action}) within ${this.leash} of ${this.anchor}${this.food ? `, smart-eat *${this.food}*` : ''}, banking ${this.autoBank ? `at ${this.bankAtFood} food (target ${this.foodWithdraw})` : 'off'}${this.suicide ? ', suicide on' : ''}`
+        );
 
         this.on('chat.message', e => {
             if (/been stunned|fail to pick/i.test(e.text)) {
@@ -210,7 +216,7 @@ export default class ThievingBot extends TaskBot {
         return this.bankAtFood;
     }
     canSteal(): boolean {
-        return this.foodCount() > 0 || Skills.effective('hitpoints') > MIN_EAT_HP;
+        return canStealNow(this.foodCount(), Skills.effective('hitpoints'), MIN_EAT_HP, this.suicide);
     }
     stunned(): boolean {
         return Game.tick() <= this.stunnedUntilTick;
@@ -248,7 +254,7 @@ class EatFood implements Task {
         return Inventory.items().find(i => this.bot.isFood(i.name)) ?? null;
     }
     validate(): boolean {
-        // Higher priority than Steal — eats during stun when movement is locked.
+        // Higher priority than Steal, eats during stun when movement is locked.
         return this.bot.needEat() && this.food() !== null;
     }
     async execute(): Promise<void> {
@@ -381,7 +387,7 @@ class Loot implements Task {
         if (want.length === 0) {
             return null;
         }
-        // Adjacent only — walking the leash for coins wrecks pickpocket XP/hr.
+        // Adjacent only, walking the leash for coins wrecks pickpocket XP/hr.
         return GroundItems.query()
             .where(g => {
                 const n = g.name?.toLowerCase();
@@ -433,7 +439,7 @@ class Steal implements Task {
     }
 
     validate(): boolean {
-        // Own the stun wait so Loot cannot walk us off a guard — but yield when
+        // Own the stun wait so Loot cannot walk us off a guard, but yield when
         // HP is low so EatFood can use the locked ticks.
         if (this.bot.stunned() && this.bot.needEat()) {
             return false;

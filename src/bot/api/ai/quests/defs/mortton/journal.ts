@@ -22,7 +22,7 @@ function normalize(lines: readonly string[] | string): string {
         .toLowerCase();
 }
 
-// Why: mortton_journal.rs2 appends, so every earlier stage's prose is still on the page — newest marker first, or an early line answers for a late stage.
+// Why: mortton_journal.rs2 appends, so every earlier stage's prose is still on the page, newest marker first, or an early line answers for a late stage.
 const MARKERS: readonly [string, number][] = [
     ['quest complete!', SM_STAGE.COMPLETE],
     ['the shades spirit was released', SM_STAGE.LIT_PYRE],

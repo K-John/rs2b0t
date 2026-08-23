@@ -125,7 +125,7 @@ describe("Eadgar's Ruse decide — guards", () => {
     });
 
     // Why: Troll Stronghold finishes on Godric alone, and the Cave Entrance then drops the character
-    // into an empty room — so the cell is opened before any leg that needs Eadgar.
+    // into an empty room, so the cell is opened before any leg that needs Eadgar.
     test('an unfreed Mad Eadgar is freed before anything else', () => {
         const step = decide(ready({ stage: EADGAR_STAGE.NEEDS_PARROT, flags: [] }));
         expect(customName(step)).toBe('free Mad Eadgar from the troll prison');
@@ -137,7 +137,7 @@ describe("Eadgar's Ruse decide — loadout", () => {
         expect(decide(snap({ bankKnown: false })).kind).toBe('scanBank');
     });
 
-    // Why: `nearest` ranks banks by straight line, and the cave sits at z ≈ 10 000 where every surface bank is six thousand tiles away — one run banked at Edgeville and walked to the Tree Gnome Stronghold through the wilderness.
+    // Why: `nearest` ranks banks by straight line, and the cave sits at z ≈ 10 000 where every surface bank is six thousand tiles away. One run banked at Edgeville and walked to the Tree Gnome Stronghold through the wilderness.
     test('pins Falador West from above the stile and stays on nearest below it', () => {
         const bankOf = (tile: WorldTile): string => {
             const step = decide(snap({ bankKnown: false, tile }));
@@ -210,7 +210,7 @@ describe("Eadgar's Ruse decide — the quest legs", () => {
     });
 
     // Why: the axe is sold one ladder above the fruit and the vodka, and the parrot leg ends four
-    // hundred tiles away in Ardougne — so the axe is bought first, on the trip that is happening anyway.
+    // hundred tiles away in Ardougne, so the axe is bought first, on the trip that is happening anyway.
     test('stage 30 buys the axe, then the fruit, then the liquor, then catches the parrot', () => {
         const empty = decide(ready({ stage: EADGAR_STAGE.NEEDS_PARROT, tile: ARDOUGNE }));
         expect(empty.kind === 'buy' && empty.item).toBe(ER_ITEM.AXE.name);

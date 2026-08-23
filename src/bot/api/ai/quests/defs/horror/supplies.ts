@@ -5,12 +5,13 @@ import { Equipment } from '../../../../equipment/Equipment.js';
 import { Inventory } from '../../../../inventory/Inventory.js';
 import { Skills } from '../../../../skills/Skills.js';
 import { Locs } from '../../../../locs/Locs.js';
-import { QuestFood } from '../../food.js';
+import { FOOD_FLOAT, QuestFood } from '../../food.js';
 import { QuestLoadout } from '../../gear.js';
 import { weaponOf } from '../../../../loadout/loadoutPlan.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { useOnLoc } from '../../exec/prompts.js';
 import { smithNails } from '../dragonslayer/supplies.js';
+import { PICKAXES, bankedPickaxe, liveBestWeapon } from '../../weapons.js';
 import {
     ARCHERY_SHOP, GENERAL_SHOP, HD_ID, HD_ITEM, HD_LOC, HD_TILE, RUNE_SHOP, SWORD_SHOP
 } from './areas.js';
@@ -21,20 +22,20 @@ const COIN_LOW = 2_000;
 /** Comfortably over any single purchase here, comfortably under the float. */
 const SHOP_GP = 1_500;
 
-// Why: the dungeon load is fifteen slots before a single fish — coins, hammer, pickaxe, key, tinderbox, dagger, arrows, six rune stacks, tar and glass.
+// Why: the dungeon load is fifteen slots before a single fish, coins, hammer, pickaxe, key, tinderbox, dagger, arrows, six rune stacks, tar and glass.
 // Why: the quest ends by pushing a casket into the pack, so the last slot is not ours to fill.
 // Why: ten sharks is still two hundred hitpoints, and the winning fight spent none of them.
-const FOOD_TARGET = 10;
+const FOOD_TARGET = FOOD_FLOAT;
 const FOOD_LOW = 4;
 /** What the errand legs carry: enough to survive a long walk, not a fight. */
 const TRAVEL_FOOD = 4;
 
 export const PLANKS_NEEDED = 2;
-/** Four steel nails per plank — quest_horror.rs2 checks each half separately. */
+/** Four steel nails per plank, quest_horror.rs2 checks each half separately. */
 export const NAILS_NEEDED = 8;
 
 // Why: this is about sixty blasts' worth, three times what the fight takes, plus the one of each element the strange wall swallows.
-// Why: asking for more is not free — a purchase larger than Aubury's stock is filled a rune at a time as he restocks, and the bot stands at the counter for it.
+// Why: asking for more is not free, a purchase larger than Aubury's stock is filled a rune at a time as he restocks, and the bot stands at the counter for it.
 // Why: the air stack carries a second job when nav teleports are on, as every standard hop spends three and Camelot spends five over about thirty hops, so the headroom keeps routing out of the fight's supply.
 const RUNES: readonly { id: number; name: string; qty: number }[] = [
     { id: HD_ID.AIR_RUNE, name: HD_ITEM.AIR_RUNE, qty: 350 },
@@ -102,8 +103,8 @@ export interface FoodWant {
     low: number;
 }
 
-// Why: nothing before the lighthouse is a fight, and the nails leg is the tightest the pack ever gets — four iron and eight coal is twelve slots on top of the coins, hammer and pickaxe.
-// Why: a full fifteen sharks leaves ten free and `smithNails` stops dead on "pack is full — no room for Coal", with nothing it is allowed to bank to make room.
+// Why: nothing before the lighthouse is a fight, and the nails leg is the tightest the pack ever gets, four iron and eight coal is twelve slots on top of the coins, hammer and pickaxe.
+// Why: a full fifteen sharks leaves ten free and `smithNails` stops dead on "pack is full, no room for Coal", with nothing it is allowed to bank to make room.
 
 /** How much food this stage wants, or null. */
 export function foodWant(snap: QuestSnapshot, stage: number): FoodWant | null {
@@ -156,20 +157,36 @@ export function planks(snap: QuestSnapshot): QuestStep {
 // Why: nothing in the game sells nails or the steel bars they come from, so they are mined, smelted and hammered.
 // Why: that is the same chain Dragon Slayer's ship repair uses, reused rather than re-derived.
 
-/** Source the eight steel nails. */
+/** Source the eight steel nails: the bank's nails, then its steel, then the ore chain. */
 export function nails(snap: QuestSnapshot): QuestStep {
     const held = heldId(snap, HD_ID.NAILS);
     const need = NAILS_NEEDED - held;
     if (need <= 0) {
         return { kind: 'wait', reason: 'nails already held' };
     }
-    return fromBank(snap, HD_ID.NAILS, HD_ITEM.NAILS, need)
-        ?? { kind: 'custom', name: `smith ${need} nails`, run: log => smithNails(need, log) };
+    const fromNails = fromBank(snap, HD_ID.NAILS, HD_ITEM.NAILS, need);
+    if (fromNails) {
+        return fromNails;
+    }
+    // Why: `smithNails` reads steel in the pack alone, so banked bars were mined past, two to a bar, and hammering them skips the whole ore chain.
+    const bars = Math.ceil(need / 2);
+    if (heldId(snap, HD_ID.STEEL_BAR) < bars) {
+        const fromSteel = fromBank(snap, HD_ID.STEEL_BAR, 'Steel bar', bars - heldId(snap, HD_ID.STEEL_BAR));
+        if (fromSteel) {
+            return fromSteel;
+        }
+        // Why: mining is what is left, and it wants the best pickaxe the account owns rather than the bronze one the spawn walk settles for.
+        const pick = bankedPickaxe(snap.bankIds, snap.attack ?? 0);
+        if (pick && !PICKAXES.some(p => heldId(snap, p.id) > 0 || (snap.wornIds?.has(p.id) ?? false))) {
+            return withdraw([{ name: pick.name, qty: 1, id: pick.id }]);
+        }
+    }
+    return { kind: 'custom', name: `smith ${need} nails`, run: log => smithNails(need, log) };
 }
 
 // Why: both the Range and the Furnace carry `forceapproach=east`, which names the only side that works and rotates with the placement.
 // Why: the Yanille range sits at angle 0 so east is east, and the Ardougne furnace at angle 2 so its "east" is west in world space.
-// Why: standing anywhere else has the use-on silently dropped — no refusal, no message, a loc that never answers.
+// Why: standing anywhere else has the use-on silently dropped, no refusal, no message, a loc that never answers.
 // Why: a radius-2 walk is a coin flip between the legal side and a wedge, so this lands on the tile and nowhere else.
 
 /** Use a held item on a loc from an exact tile. */
@@ -208,7 +225,7 @@ const cookSeaweed = (log: (m: string) => void): Promise<boolean> => useOnLocFrom
     log
 );
 
-/** `[oplocu,_sand_pit]` — the pit carries no ops of its own, and no forced side. */
+/** `[oplocu,_sand_pit]`. The pit carries no ops of its own, and no forced side. */
 const fillSand = (log: (m: string) => void): Promise<boolean> => useOnLoc(
     HD_ID.BUCKET,
     { name: HD_LOC.SAND_PIT, near: HD_TILE.SAND_PIT },
@@ -269,13 +286,13 @@ function swampTar(snap: QuestSnapshot): QuestStep {
         ?? { kind: 'grabGround', item: HD_ITEM.SWAMP_TAR, anchor: HD_TILE.SWAMP_TAR, waitIfMissing: true };
 }
 
-// Why: this is split out of {@link dungeonKit} because with nav teleports on it is worth a Varrock counter before the barcrawl rather than after — the tour is a ten-bar lap of the map and a hop is only planned when the live pack can pay for it.
+// Why: this is split out of {@link dungeonKit} because with nav teleports on it is worth a Varrock counter before the barcrawl rather than after. The tour is a ten-bar lap of the map and a hop is only planned when the live pack can pay for it.
 // Why: same shop, same quantities, earlier.
 // Why: law belongs here and not in {@link kit}, which runs on every decide tick.
-// Why: `smithNails` banks the pack to make room for ore and law is not on its keep-list, so a per-tick law top-up and the nails leg deposit each other's work forever — `smith 8 nails` → `withdraw Law rune×60` → `smith 8 nails`, parked at the Varrock booth until the engine gives up.
+// Why: `smithNails` banks the pack to make room for ore and law is not on its keep-list, so a per-tick law top-up and the nails leg deposit each other's work forever, `smith 8 nails` → `withdraw Law rune×60` → `smith 8 nails`, parked at the Varrock booth until the engine gives up.
 // Why: drawing it here means it is drawn once, after the last leg that empties the pack.
 
-/** The rune kit — law from the bank, the elements from Aubury. */
+/** The rune kit, law from the bank, the elements from Aubury. */
 export function runeKit(snap: QuestSnapshot, teleports = Traversal.teleportsEnabled()): QuestStep | null {
     if (teleports && heldId(snap, HD_ID.LAW_RUNE) < LAW_LOW) {
         // Why: an unread bank is no evidence of an empty one, as `bankIds` is blank until a booth has been opened.
@@ -338,21 +355,23 @@ export function dungeonKit(snap: QuestSnapshot, needLight: boolean): QuestStep |
 }
 
 // Why: nothing in the game sells a rune scimitar, as Zeke's Superior Scimitars stops at mithril, so this is whatever the player put in their loadout's weapon slot.
-// Why: absent, unwieldable or blank, the fights fall back to magic only, which still wins — the melee form is prayed through instead of killed.
+// Why: absent, unwieldable or blank, the fights fall back to magic only, which still wins, the melee form is prayed through instead of killed.
 let meleeGaveUp = false;
 
-const FALLBACK_WEAPON = 'Rune scimitar';
 
-/** Attempts before the weapon is written off — an unwieldable one never lands. */
+
+/** Attempts before the weapon is written off, an unwieldable one never lands. */
 const WIELD_TRIES = 3;
 let wieldTries = 0;
 
 export function meleeWeaponName(): string | null {
-    const name = weaponOf(QuestLoadout.current, FALLBACK_WEAPON)?.trim();
+    // Why: no shop sells a rune scimitar, so naming one as the fallback asked for something the
+    // account may never own, the tier its Attack level reaches and it already carries is the answer.
+    const name = (weaponOf(QuestLoadout.current) ?? liveBestWeapon()?.name)?.trim();
     return name && name.length > 0 ? name : null;
 }
 
-/** True once the weapon is on — the only state the fight loops care about. */
+/** True once the weapon is on, the only state the fight loops care about. */
 export function meleeReady(): boolean {
     const name = meleeWeaponName();
     return name !== null && Equipment.contains(name);
@@ -372,7 +391,7 @@ async function wieldMelee(name: string, log: (m: string) => void): Promise<boole
     if (++wieldTries >= WIELD_TRIES) {
         meleeGaveUp = true;
         log(`could not wield the ${name} after ${WIELD_TRIES} tries `
-            + `(attack ${Skills.level('attack')}) — falling back to the magic-only fight`);
+            + `(attack ${Skills.level('attack')}), falling back to the magic-only fight`);
     }
     return false;
 }
@@ -401,8 +420,8 @@ function meleeWeapon(snap: QuestSnapshot): QuestStep | null {
 }
 
 // Why: these are skills the server does not gate but the quest cannot be done without.
-// Why: `smithing` is the nails (2 to a steel bar at 34), `crafting` is the glass, and `magic` is the mother fight — four elemental spells with the tier chosen from this level.
-// Why: `prayer` 43 covers both protections — melee for the junior, which is a plain melee npc, and missiles for the mother, which forces her off the ranged attack that hits for twenty-four.
+// Why: `smithing` is the nails (2 to a steel bar at 34), `crafting` is the glass, and `magic` is the mother fight, four elemental spells with the tier chosen from this level.
+// Why: `prayer` 43 covers both protections, melee for the junior, which is a plain melee npc, and missiles for the mother, which forces her off the ranged attack that hits for twenty-four.
 const HD_PROVEN_SKILLS = { smithing: 34, crafting: 1, magic: 59, prayer: 43 } as const;
 
 /** Below this the mother's forms cannot be answered at all. */

@@ -65,7 +65,7 @@ function foodHeld(snap: QuestSnapshot): number {
 
 // Loadout
 
-/** Refusals are silent — `equip` returns false — so a re-picked item burns the run. */
+/** Refusals are silent, `equip` returns false, so a re-picked item burns the run. */
 const unwearable = new Set<string>();
 
 const TIERS = ['rune', 'adamant', 'mithril', 'black', 'steel', 'iron', 'bronze'] as const;
@@ -149,7 +149,7 @@ function scanBank(): QuestStep {
 }
 
 /**
- * The kit in one step — a step per piece pays a task hand-off each, and
+ * The kit in one step, a step per piece pays a task hand-off each, and
  * `equip` already waits for the item to land. Refusals are shed, not retried.
  */
 export function wearAll(names: readonly string[]): QuestStep {
@@ -220,7 +220,7 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
 
     // One visit: Tenzing is forty tiles west and the bank is east.
     const fromBank: { name: string; qty: number }[] = [];
-    // One purchase — a standing float would mean a bank trip for 12gp of change.
+    // One purchase, a standing float would mean a bank trip for 12gp of change.
     const needsBootMoney = !bootsReady && banked(snap, ITEM.CLIMBING_BOOTS) === 0;
     if (needsBootMoney && heldCount(snap, ITEM.COINS) < COIN_FLOAT && banked(snap, ITEM.COINS) > 0) {
         fromBank.push({
@@ -243,7 +243,7 @@ export function prepare(snap: QuestSnapshot, zone: TrollZone = 'mainland'): Ques
             missing.push(name);
         }
     }
-    // Optional — the quest is winnable on food alone.
+    // Optional. The quest is winnable on food alone.
     let wantPotions = PRAYER_POTION_TARGET - potionsHeld(snap);
     for (const name of PRAYER_POTIONS) {
         if (wantPotions <= 0) {
@@ -313,13 +313,13 @@ async function walkTo(tile: Tile, radius: number, log: (m: string) => void): Pro
     return Traversal.walkResilient(tile, { ...WALK, radius, log });
 }
 
-/** Mountain side of the troll pass — where the thrower gauntlet begins. */
+/** Mountain side of the troll pass, where the thrower gauntlet begins. */
 const CAVE_MOUTH = new Tile(2908, 3654, 0);
 /** troll_thrower attackrange is 8; arm a little before they can start. */
 const THROWER_RANGE = 11;
 
 // Why: five thrower trolls stand between the cave exit and the stronghold door and open on sight at eight tiles, and nothing in a walk fights back, so the crossing is pure damage that Protect from Missiles refuses outright.
-// Why: the prayer drains per tick rather than per tile — held from Falador it emptied the bar before the level-113 general was in sight and killed the run.
+// Why: the prayer drains per tick rather than per tile, held from Falador it emptied the bar before the level-113 general was in sight and killed the run.
 // Why: the crossing is therefore its own leg, with the prayer following the throwers rather than the map: up while one is in range, down the moment the last is behind us, which on this route is a good forty tiles before the door.
 
 /** Walk to the stronghold under a threat-tracking protection prayer. */
@@ -355,7 +355,7 @@ async function buyBoots(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => Inventory.count(ITEM.CLIMBING_BOOTS) > before, 8000);
 }
 
-// Why: Dad does not die — below twenty hitpoints `defeat_dad` fires, setting the quest stage, healing him back to full and offering a forfeit dialogue.
+// Why: Dad does not die, below twenty hitpoints `defeat_dad` fires, setting the quest stage, healing him back to full and offering a forfeit dialogue.
 // Why: draining that dialogue is the win condition, and leaving it up loses the fight won.
 
 /** Fight Dad to his forfeit and drain the dialogue. */
@@ -390,7 +390,7 @@ async function fightDad(log: (m: string) => void): Promise<boolean> {
                 return true;
             },
             // He forfeits rather than dies, but the death path also sets the
-            // stage — treat a Dad who has vanished after we engaged as a win.
+            // stage, treat a Dad who has vanished after we engaged as a win.
             won: () => forfeited || (seen && attackable('Dad', 24) === null && !Game.inCombat()),
             onDialogue: () => {
                 forfeited = true;
@@ -520,7 +520,7 @@ export async function unlockCell(key: string, door: Tile, stand: Tile, log: (m: 
 const GODRIC_DOOR = new Tile(2832, 10078, 0);
 const EADGAR_DOOR = new Tile(2832, 10082, 0);
 
-// Why: freeing Godric is what advances the stage, and once it does `decide()` walks out to Dunstan, so anything optional has to happen before it — hence Eadgar first.
+// Why: freeing Godric is what advances the stage, and once it does `decide()` walks out to Dunstan, so anything optional has to happen before it, hence Eadgar first.
 // Why: Eadgar is optional for this quest and required for Eadgar's Ruse, which is worth one pickpocket while standing here.
 
 /** Free both prisoners, Eadgar before Godric. */
@@ -582,7 +582,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             : custom('kill a Troll General for the Prison key', huntGeneral);
     }
     if (stage === TROLL_STAGE.ENTERED_PRISON) {
-        // A resume can land here from anywhere — a death sends the character to
+        // A resume can land here from anywhere, a death sends the character to
         // Lumbridge, and the prison is unreachable without the boots on.
         const prep = prepare(snap, zone);
         if (prep) {
@@ -620,6 +620,7 @@ function warnTrollStrongholdReadiness(): string | null {
 
 export const trollstronghold: QuestModule = {
     record: QUESTS.find(r => r.id === 'troll')!,
+    pray: { protect: 'melee', potions: 2 },
     bank: FALADOR_WEST_BANK,
     grind: ['Dad', 'Troll General', 'Twig', 'Berry'],
     tools: [

@@ -64,7 +64,7 @@ function main(): void {
             // Elvarg's lair, locked until the ship has sailed, and Crandor's secret
             // door, which only opens from the island side.
             'elvarg_gate_right', 'elvarg_gate_left', 'dragonsecretdoor',
-            // Family Crest's perfect-gold mine — each answers "This door is locked" unless its own combination of the three levers is set.
+            // Family Crest's perfect-gold mine. Each answers "This door is locked" unless its own combination of the three levers is set.
             // Why: the combination that opens one shuts another, so the quest drives the chain itself (defs/familycrest/mine.ts).
             'famcrest_doorh2', 'famcrest_doorh2i2', 'famcrest_doorg2h1',
             'famcrest_doori2h1', 'famcrest_doorh2g1',
@@ -72,23 +72,31 @@ function main(): void {
             // Why: baked as edges the pathfinder routes into a cell it cannot leave, or walks a bot mid-errand into a boss fight.
             'arena_prisondoor', 'arena_jeremydoor', 'fightarena_door1',
             // Clock Tower's rat-cage gate: jail_doors.rs2 answers "This door doesn't seem to open from here..." to anyone outside it, and ctlevera is the way in.
-            // Why: its only map placement is the cage at 2595,9657 — Fight Arena's copies are loc_add, which no map derivation sees.
+            // Why: its only map placement is the cage at 2595,9657, Fight Arena's copies are loc_add, which no map derivation sees.
             'ctratgatea',
             // West Ardougne's plague house: loc_2534 answers "This door is locked." to everyone, and loc_2535 opens only for a warrant holder with a mourner in earshot, mid-conversation.
             // Why: baked as edges the pathfinder alternates between the two and crosses neither.
             'loc_2534', 'loc_2535',
-            // Why: the mourner headquarters' two doors are locked until the stew is poisoned and then open only to a worn doctor's gown behind an "In you go doc." the walker cannot answer, and baked as edges the route to the cauldron runs through the building — which is the one thing the stage needing the cauldron cannot do. The fence at 2541,3331 is the way in.
+            // Why: the mourner headquarters' two doors are locked until the stew is poisoned and then open only to a worn doctor's gown behind an "In you go doc." the walker cannot answer, and baked as edges the route to the cauldron runs through the building, which is the one thing the stage needing the cauldron cannot do. The fence at 2541,3331 is the way in.
             'mournerstewdoor',
-            // Shield of Arrav's three hideout doors. Why: the weapon store answers Open with "The door is securely locked" and yields only to an oplocu with the key, while the other two refuse until you have joined and then p_teleport you through — none is an edge the walker can step.
+            // Shield of Arrav's three hideout doors. Why: the weapon store answers Open with "The door is securely locked" and yields only to an oplocu with the key, while the other two refuse until you have joined and then p_teleport you through, none is an edge the walker can step.
             'phoenixdoor', 'phoenixdoor2', 'blackarmdoor',
-            // Khazard stronghold's front door. Why: quest_tree.rs2 opens it only for a player already north of it, so the pathfinder routed every trip to the chest through a door that answers "The door seems to be locked from the inside." — the crumbled wall is the way in, driven by defs/treegnome.
+            // The Legends Quest trials. Why: the outer gate answers Open with "You push on the doors, they're really shut" and yields only to a Search with a lockpick, and the inner one raises a brute-strength prompt and a roll that a walker cannot answer. Baked as edges the pathfinder routes into both and the walker loops a tile short.
+            'lglockpickgatebottoml', 'lglockpickgatebottomr', 'lgstrengthtrialgatel', 'lgstrengthtrialgater',
+            // Khazard stronghold's front door. Why: quest_tree.rs2 opens it only for a player already north of it, so the pathfinder routed every trip to the chest through a door that answers "The door seems to be locked from the inside.", the crumbled wall is the way in, driven by defs/treegnome.
             'khazard_stronghold_door',
             // Peer the Seer's puzzle house. door1 opens only to a solved combination lock and an empty pack; door2 answers "This door is locked tightly shut." and yields to an oplocu with the key from inside.
             // Why: baked as edges the pathfinder routes a bot into a sealed pocket it then cannot leave, which is where a Fremennik Trials run wedged.
             'viking_seers_door1', 'viking_seers_door2',
-            // Why: the longhall's backstage door stays in — the bouncer refuses only the inward crossing, and the stage behind it is a dead end nothing routes through, so removing it would seal the bard in after his performance.
+            // Why: the longhall's backstage door stays in. The bouncer refuses only the inward crossing, and the stage behind it is a dead end nothing routes through, so removing it would seal the bard in after his performance.
             // Rellekka's north fence: "Only Fremenniks may pass this gate." until the trials are over.
-            'viking_fencegate_l', 'viking_fencegate_r'
+            'viking_fencegate_l', 'viking_fencegate_r',
+            // Hero's Quest's five Brimhaven doors. Why: each refuses until its own stage and gang, and
+            // `~open_and_close_door` teleports rather than opens, defs/heroquest/doors.ts owns them.
+            'grubordoor', 'garvdoor', 'herokitchendoor', 'pete_sidedoor', 'pete_treasuredoor',
+            // Taverley's two key doors. Why: jail_doors.rs2 yields only to an oplocu with the jail key
+            // or the dusty key, so defs/heroquest/eel.ts owns both crossings.
+            'dungeonjail', 'deepdungeondoor'
         ]);
         const label = `${type.name ?? ''} ${type.debugname ?? ''}`.toLowerCase();
         if (label.includes('locked') || (type.debugname ?? '').startsWith('macro_') || SCRIPT_REFUSED.has(type.debugname ?? '')) {
@@ -104,7 +112,7 @@ function main(): void {
         // Why: baked both ways the pathfinder treats the mansion as a shortcut and the walker loops on "This door is securely locked"; the outward half is curated in travelCatalog.ts.
         '2635,3321,0',
         // Gu'Tanoth's east gate: the ogre guard demands a bar of gold and teleports you down the hill otherwise, and nothing in the game needs that crossing.
-        // Why: its north-west twin is left in — that guard refuses only until the relic is shown, after which the gate behaves as an ordinary door and everything west of it depends on the edge.
+        // Why: its north-west twin is left in, that guard refuses only until the relic is shown, after which the gate behaves as an ordinary door and everything west of it depends on the edge.
         '2549,3028,0', '2550,3028,0'
     ]);
     // Why: gates.rs2 hits loc_add(type=-1) for this Duel Arena outer leaf and leaves Gate#3198 closed, so navigation has to detour through its paired Gate#3197 one tile north.

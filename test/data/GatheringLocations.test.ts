@@ -74,7 +74,7 @@ describe('resolveGatheringLocation', () => {
     });
 
     test('Auto freeform when outside every preset chunk', () => {
-        // Between Near (48,50) and Far (50,51) — different square.
+        // Between Near (48,50) and Far (50,51), different square.
         expect(resolveGatheringLocation('Auto', new Tile(3150, 3250, 0), TABLE)).toBeNull();
         // Lumbridge-ish far from both.
         expect(resolveGatheringLocation('Auto', new Tile(3222, 3218, 0), TABLE)).toBeNull();

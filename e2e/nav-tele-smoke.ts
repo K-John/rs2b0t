@@ -1,5 +1,5 @@
 /** Live smoke: nav spell teleport in the path graph. Lumbridge → Varrock with useTeleportCatalog + runes, expecting the hop log "casting Varrock teleport" and arrival near Varrock square.
- *  Operator tooling, not a CI gate — deploy the bot client into whatever engine you run first. BASE, BUDGET_S. Shared harness: e2e/lib/navLiveHarness.ts */
+ *  Operator tooling, not a CI gate, deploy the bot client into whatever engine you run first. BASE, BUDGET_S. Shared harness: e2e/lib/navLiveHarness.ts */
 
 // then: HEADED=1 bun e2e/nav-tele-smoke.ts
 import type { Page } from 'playwright-core';
@@ -71,7 +71,7 @@ try {
         };
         await route.continue({ headers });
     });
-    // Prefer Playwright default (1280×720) — see HARNESS_VIEWPORT in e2e/lib/harness.ts
+    // Prefer Playwright default (1280×720), see HARNESS_VIEWPORT in e2e/lib/harness.ts
     page = await context.newPage();
     page.on('console', msg => {
         const t = msg.type();

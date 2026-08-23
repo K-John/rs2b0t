@@ -1,4 +1,4 @@
-# rs2b0t — a scriptable bot client for 2004scape / Lost City servers
+# rs2b0t, a scriptable bot client for 2004scape / Lost City servers
 
 rs2b0t is a TypeScript botting client for 2004-era RuneScape private servers. It renders
 the game client in the browser and drives it through a typed scripting API. Bots
@@ -17,7 +17,7 @@ the screen, so a bot's packets match a human click byte for byte.
 | Manual | [docs/README.md](docs/README.md) |
 | License | [MIT](LICENSE) |
 
-Log in with an rs2b2t account, pick a script, run. Keep the tab visible — a backgrounded
+Log in with an rs2b2t account, pick a script, run. Keep the tab visible, a backgrounded
 tab is throttled by the browser, which starves every bot in it.
 
 ## What it does
@@ -39,7 +39,7 @@ tab is throttled by the browser, which starves every bot in it.
 | If you want to | Read |
 |---|---|
 | Write a bot | [Scripting API](docs/API.md), then [`docs/script-template/`](docs/script-template/) |
-| See what already exists | [Bundled scripts](docs/SCRIPTS.md) — 52 bots, generated from the registry |
+| See what already exists | [Bundled scripts](docs/SCRIPTS.md), 52 bots, generated from the registry |
 | Run it locally | [Running locally](docs/RUNNING.md) |
 | Change the client itself | [Architecture](docs/ARCHITECTURE.md), then [Testing](docs/TESTING.md) |
 | Maintain the deployment | [Dev and deploy](docs/DEV.md) |

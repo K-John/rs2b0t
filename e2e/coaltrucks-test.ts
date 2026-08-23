@@ -8,12 +8,12 @@
 import { fail, launchBrowser } from './lib/harness.js';
 import { cheatQuiet, getServerVar, mainlandAccount, relog, startScript } from './tutorial/harness.js';
 
-// ::tele takes level,squareX,squareZ,localX,localZ — i.e. x>>6, x&63.
+// ::tele takes level,squareX,squareZ,localX,localZ, i.e. x>>6, x&63.
 const TELE = {
-    mine: '0,40,54,22,25', // 2582,3481 — the rocks
-    mineTruck: '0,40,54,15,30', // 2575,3486 — the mine-side truck stand
-    seersTruck: '0,42,54,7,47', // 2695,3503 — the Seers-side truck stand
-    logWest: '0,40,54,38,21' // 2598,3477 — west of the log balance
+    mine: '0,40,54,22,25', // 2582,3481, the rocks
+    mineTruck: '0,40,54,15,30', // 2575,3486, the mine-side truck stand
+    seersTruck: '0,42,54,7,47', // 2695,3503, the Seers-side truck stand
+    logWest: '0,40,54,38,21' // 2598,3477, west of the log balance
 };
 
 const PHASES = ['cross', 'fill', 'partial', 'run', 'drain', 'nopick', 'full'] as const;
@@ -38,7 +38,7 @@ if (!PHASES.includes(phase)) {
 interface Snapshot {
     pos: { x: number; z: number; level: number } | null;
     coal: number;
-    /** Anything held that is neither coal nor a pickaxe — random-event junk must not pile up. */
+    /** Anything held that is neither coal nor a pickaxe, random-event junk must not pile up. */
     junk: string[];
     /** Count, not a flag: a kept spare is the leak the keep-list must not have. */
     picks: number;
@@ -87,7 +87,7 @@ try {
     }
     if (phase === 'partial') {
         // 110 + a 27-coal pack overshoots 120, so the truck takes 10 and answers
-        // "some" — the one deposit branch the other legs never reach.
+        // "some", the one deposit branch the other legs never reach.
         if (!(await cheatQuiet(page, 'setvar coal_truck 110'))) {
             fail('could not seed the truck');
         }
@@ -99,7 +99,7 @@ try {
             fail('could not seed a pickaxe');
         }
     }
-    // Why: junk stands in for random-event leavings — neither is coal, neither is bankable by the truck, and a spare bronze pickaxe checks the keep-list is the pickaxe in use.
+    // Why: junk stands in for random-event leavings, neither is coal, neither is bankable by the truck, and a spare bronze pickaxe checks the keep-list is the pickaxe in use.
     if (phase === 'drain' || phase === 'full') {
         console.log('seeding junk (coins, bones, a spare pickaxe) to prove the deposit is bank-all-except, not an allow-list');
         for (const junk of ['give coins 500', 'give bones 3', 'give bronze_pickaxe']) {
@@ -159,7 +159,7 @@ try {
     let sawNoPickaxe = false;
     const deposits: string[] = [];
     // A completed cycle ends back at the mine, so the final position is no evidence
-    // Seers was ever reached — track it across the run.
+    // Seers was ever reached, track it across the run.
     let reachedSeers = false;
     // Capping the truck should not end the fill phase: the bot tops the pack up first,
     // so mining xp must still move between the capping deposit and the crossing.
@@ -233,7 +233,7 @@ try {
     }
 
     // Junk-seeded legs: banking must be bank-all-except-the-pickaxe. Anything the deposit
-    // misses squats a coal slot on every future load — a silent leak, not a failure.
+    // misses squats a coal slot on every future load, a silent leak, not a failure.
     if (phase === 'drain' || phase === 'full') {
         if (last.junk.length > 0) {
             fail(`junk still held after banking: ${last.junk.join(', ')} — the deposit is allow-listing, not bank-all-except`);
@@ -279,7 +279,7 @@ try {
             fail('a partial accept means the truck hit 120 — the bot should have run to Seers');
         }
         // The partial leg leaves the pack short (110 + 27 caps at 120, keeping 17), so the
-        // bot must mine the difference before leaving — the haul costs the same either way.
+        // bot must mine the difference before leaving. The haul costs the same either way.
         if (xpAtCap === null || xpAtCross === null) {
             fail(`never saw both the cap and the crossing (cap=${xpAtCap}, cross=${xpAtCross})`);
         }
@@ -320,7 +320,7 @@ try {
         }
         console.log(`PASS: no pickaxe — walked to the bank and stopped honestly at ${fmt(last.pos)}`);
     } else {
-        // Why: "it gained xp" would pass a run that mined forever, so require the loop — cap the truck, run to Seers, drain it.
+        // Why: "it gained xp" would pass a run that mined forever, so require the loop, cap the truck, run to Seers, drain it.
         if (gained <= 0) {
             fail('no mining xp gained over the full run');
         }

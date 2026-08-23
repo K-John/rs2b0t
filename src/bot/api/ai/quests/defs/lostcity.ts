@@ -15,7 +15,7 @@ import { Traversal } from '../../../walking/Traversal.js';
 import { QUESTS } from '../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../engine/types.js';
 import { talkThrough, type NpcStop } from '../exec/primitives.js';
-import { QuestFood } from '../food.js';
+import { FOOD_FLOAT, QuestFood } from '../food.js';
 
 export const LOST_CITY_STAGE = {
     NOT_STARTED: 0,
@@ -63,7 +63,7 @@ async function readLostCityStage(): Promise<number | undefined> {
 const KNIFE = 'Knife';
 const BRANCH = 'Dramen branch';
 const STAFF = 'Dramen staff';
-export const LOST_CITY_FOOD_TARGET = 20;
+export const LOST_CITY_FOOD_TARGET = FOOD_FLOAT;
 export const LOST_CITY_STAFF_TARGET = 5;
 const AXES = ['Rune axe', 'Adamant axe', 'Mithril axe', 'Black axe', 'Steel axe', 'Iron axe', 'Bronze axe'];
 const DUNGEON_AXES = ['Iron axe', 'Bronze axe'];
@@ -256,7 +256,7 @@ function sourceCombatFood(snap: QuestSnapshot): QuestStep | null {
 }
 
 /**
- * Top up toward `target` HP fraction before a fight. Keep this well below 1.0 —
+ * Top up toward `target` HP fraction before a fight. Keep this well below 1.0,
  * the old 0.9 target burned food for tiny heal scraps (#393).
  */
 async function restoreWithSelectedFood(target: number): Promise<void> {
@@ -292,7 +292,7 @@ async function waitOutCombat(timeoutMs: number, opts?: { protectMelee?: boolean 
     }
     const deadline = performance.now() + timeoutMs;
     while (Game.inCombat() && performance.now() < deadline) {
-        // Sustain respects AIO eatBelowHp (Lost City policy is 50% — not 90%).
+        // Sustain respects AIO eatBelowHp (Lost City policy is 50%, not 90%).
         await Sustain.run();
         if (opts?.protectMelee) {
             await sipPrayerIfNeeded();
@@ -454,7 +454,7 @@ async function defeatTreeSpirit(log: (m: string) => void): Promise<boolean> {
     if (!(await Execution.delayUntil(() => Game.inCombat() || !spirit!.valid(), 5000))) {
         return false;
     }
-    // Melee crush spirit — Protect from Melee + optional prayer pots when prayer ≥ 43.
+    // Melee crush spirit, Protect from Melee + optional prayer pots when prayer ≥ 43.
     await waitOutCombat(180_000, { protectMelee: true });
     // The next journal read verifies that this player, rather than another attacker, got credit.
     return true;

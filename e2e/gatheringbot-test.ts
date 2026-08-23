@@ -1,5 +1,5 @@
 /** Live verification for GatheringBot (Miner / Fisher / Woodcutter): scenario ids as argv, BASE / HEADED / SLOWMO / BUDGET_S from the environment.
- *  Why: inventory seeds go through the engine cheat `give` and bank seeds through `givebank`; acquire scenarios purge bank tools first so a leftover withdrawal cannot false-PASS, and the bot client is redeployed by hand — tools/deploy-local.sh from this tree is not for live e2e. */
+ *  Why: inventory seeds go through the engine cheat `give` and bank seeds through `givebank`; acquire scenarios purge bank tools first so a leftover withdrawal cannot false-PASS, and the bot client is redeployed by hand, tools/deploy-local.sh from this tree is not for live e2e. */
 
 // Usage:
 //   bun e2e/gatheringbot-test.ts
@@ -227,7 +227,7 @@ async function setSettings(page: Page, script: string, map: Record<string, strin
 }
 
 /** Seed held items via the engine cheat `give` (ClientCheatHandler).
- *  Why: Local Server engines carry no `~item`/`~bankitem`, and `~item` no-ops silently while `~clearinv` still works — which reads as an endless inventory wipe. */
+ *  Why: Local Server engines carry no `~item`/`~bankitem`, and `~item` no-ops silently while `~clearinv` still works, which reads as an endless inventory wipe. */
 async function seedItem(page: Page, debugName: string, displayName: string, qty = 1): Promise<void> {
     const cmd = `give ${debugName} ${qty}`;
     for (let i = 0; i < 8; i++) {
@@ -257,7 +257,7 @@ async function skillLevel(page: Page, skill: string): Promise<number> {
     return page.evaluate(s => (globalThis as never as Abi).__rs2b0t.Skills.level(s), skill);
 }
 
-/** Advance only when below target — never re-flood skills already granted. */
+/** Advance only when below target, never re-flood skills already granted. */
 async function advanceStat(page: Page, skill: string, level: number): Promise<boolean> {
     if (level <= 1) {
         return false;
@@ -372,7 +372,7 @@ async function maxAccountAndClearDialogs(page: Page): Promise<void> {
     }
     // Ensure the skills this suite cares about are 99 even if maxme was partial.
     await grantStats(page, BASE_STATS);
-    // Level-ups keep arriving for a few seconds after the last advance — keep
+    // Level-ups keep arriving for a few seconds after the last advance, keep
     // clicking until the chat stays quiet, then one more pass for stragglers.
     await clearChatDialogs(page, 'level-up dialog(s)');
     await page.waitForTimeout(1500);
@@ -425,7 +425,7 @@ async function unequipAllWorn(page: Page): Promise<number> {
                 const res = g.__gbProbe!;
                 try {
                     let n = 0;
-                    // Re-read each pass — slots shift as items leave.
+                    // Re-read each pass, slots shift as items leave.
                     for (let guard = 0; guard < 12; guard++) {
                         const names = abi.Equipment.items()
                             .map(i => i.name)
@@ -484,7 +484,7 @@ async function unequipAllWorn(page: Page): Promise<number> {
 async function clearInv(page: Page): Promise<void> {
     await unequipAllWorn(page);
 
-    // debugproc clearinv — works on inv without p_finduid; still wait a tick.
+    // debugproc clearinv, works on inv without p_finduid; still wait a tick.
     const sent = await cheatQuiet(page, '~clearinv');
     if (!sent) {
         throw new Error('~clearinv not sent (not ingame?)');
@@ -515,7 +515,7 @@ async function clearInv(page: Page): Promise<void> {
 async function teleArrive(page: Page, spot: Tile, maxDist = 18): Promise<boolean> {
     const cmd = teleCheat(spot);
     for (let attempt = 0; attempt < 4; attempt++) {
-        // tutorial/harness cheatQuiet ignores a 3rd arg — fixed ~700ms settle per send.
+        // tutorial/harness cheatQuiet ignores a 3rd arg, fixed ~700ms settle per send.
         await cheatQuiet(page, cmd);
         for (let poll = 0; poll < 12; poll++) {
             const t = await page.evaluate(() => (globalThis as never as Abi).__rs2b0t.reader.worldTile());
@@ -678,7 +678,7 @@ async function purgeBankTools(
                             res.done = true;
                             return 5000;
                         }
-                        // Empty bank is fine — loaded() is false when the bank holds nothing; still try a beat.
+                        // Empty bank is fine, loaded() is false when the bank holds nothing; still try a beat.
                         await abi.Execution.delayTicks(1);
 
                         let withdrew = 0;
@@ -696,7 +696,7 @@ async function purgeBankTools(
                             );
                             withdrew++;
                             if (abi.Inventory.free() <= 0) {
-                                // Pack full — caller will clearinv and reopen if needed.
+                                // Pack full, caller will clearinv and reopen if needed.
                                 break;
                             }
                         }
@@ -732,7 +732,7 @@ async function purgeBankTools(
     await stopScript(page);
 
     if (!result.ok) {
-        // Soft: empty bank / booth lag — clear inv anyway and continue.
+        // Soft: empty bank / booth lag, clear inv anyway and continue.
         console.log(`  purge ${label}: bank open soft-fail (${result.reason}) — continuing`);
     } else if (result.withdrew > 0) {
         console.log(`  purge ${label}: withdrew ${result.withdrew} bank stack(s) matching ${match}`);
@@ -745,7 +745,7 @@ async function purgeBankTools(
     // Second pass if pack filled mid-withdraw (probe left matching stacks).
     if (result.ok && result.withdrew > 0) {
         // Re-check bank under another short script if we hit pack-full mid-loop.
-        // Heuristic: if we withdrew a lot, there may still be stacks — one more pass is cheap.
+        // Heuristic: if we withdrew a lot, there may still be stacks, one more pass is cheap.
         if (result.withdrew >= 8) {
             await purgeBankTools(page, bankStand, match, `${label}-pass2`, pass + 1);
         }
@@ -811,7 +811,7 @@ async function depositHeldToBank(
                         }
                         await abi.Execution.delayTicks(1);
 
-                        // Deposit only the seeded materials — leave coins/junk alone.
+                        // Deposit only the seeded materials, leave coins/junk alone.
                         await abi.Bank.depositAllMatching(name => keep.has((name ?? '').toLowerCase()));
                         await abi.Execution.delayUntil(() => abi.Bank.loaded() || !abi.Bank.isOpen(), 3000);
                         await abi.Execution.delayTicks(1);
@@ -881,7 +881,7 @@ type Scenario = {
     /** Group tags for CLI filters: mining, fishing, wc, acquire, endgame, path, all */
     tags: string[];
     script: 'Miner' | 'Fisher' | 'Woodcutter';
-    /** Teleport start — usually offset from the camp so pathing is exercised. */
+    /** Teleport start, usually offset from the camp so pathing is exercised. */
     start: Tile;
     /** Named camp anchor (for path-distance checks). */
     camp?: Tile;
@@ -892,7 +892,7 @@ type Scenario = {
     seed?: { debug: string; name: string; qty?: number }[];
     /**
      * Direct bank seed via engine `givebank` ({@link seedItemsToBank}).
-     * Prefer this over give→deposit — bulk unstackables fill the pack and stall.
+     * Prefer this over give→deposit, bulk unstackables fill the pack and stall.
      */
     bankSeed?: { items: BankSeedItem[]; stand: Tile };
     /** Skill levels to advance before start. End-game uses ~90 for success rolls. */
@@ -924,7 +924,7 @@ type Scenario = {
         sawNearBank: boolean;
         /**
          * After bankedHint+sawNearBank, player entered the soft camp disk
-         * (post-bank home walk — #154 Catherby bank sits inside leash).
+         * (post-bank home walk, #154 Catherby bank sits inside leash).
          */
         returnedToCampAfterBank: boolean;
         /** Closest camp distance observed after the bank trip signals fired. */
@@ -936,7 +936,7 @@ type Scenario = {
          */
         maxDistToCamp: number;
         minDistToBank: number;
-        /** Current distance to bank (not the run minimum — purge often visits bank first). */
+        /** Current distance to bank (not the run minimum, purge often visits bank first). */
         distToBank: number;
         startDistToCamp: number;
     }) => 'pass' | 'wait' | 'fail';
@@ -959,7 +959,7 @@ const SPOT = {
     swVarrockMine: { x: 3181, z: 3371, level: 0 },
     seVarrockMine: { x: 3285, z: 3366, level: 0 },
     /**
-     * SE Varrock iron rocks (~3285–3288, 3368–3370) — tight 4-rock cluster.
+     * SE Varrock iron rocks (~3285–3288, 3368–3370), tight 4-rock cluster.
      * Used as camp for local-prefer thrash checks (stay on the iron pad).
      */
     seVarrockIron: { x: 3286, z: 3369, level: 0 },
@@ -979,7 +979,7 @@ const SPOT = {
     lavaRunite: { x: 3058, z: 3884, level: 0 },
     /** Fishing Guild dock walkway. */
     fishingGuild: { x: 2604, z: 3420, level: 0 },
-    /** Ardougne West / north bank — path start for guild sharks. */
+    /** Ardougne West / north bank, path start for guild sharks. */
     ardougneWestBank: { x: 2616, z: 3332, level: 0 },
     /** Near Bob (Lumbridge axes). */
     bob: { x: 3231, z: 3203, level: 0 },
@@ -996,26 +996,26 @@ const SPOT = {
     barbVillageFish: { x: 3104, z: 3430, level: 0 },
     /** Barbarian Village tin/coal rocks (catalog seed; bank Edgeville). */
     barbVillageMine: { x: 3084, z: 3417, level: 0 },
-    /** Rimmington mine seed (Doric cluster; bank Falador East — long soft-home leg). */
+    /** Rimmington mine seed (Doric cluster; bank Falador East, long soft-home leg). */
     rimmingtonMine: { x: 2978, z: 3247, level: 0 },
     /** Seers normal trees south of bank. */
     seersTrees: { x: 2724, z: 3474, level: 0 },
     seersBank: { x: 2725, z: 3491, level: 0 },
     /**
      * Seers fly fishing shore stand (catalog camp). Collision: exitMask≠0.
-     * Do not offset W/N into the river — e.g. (2712,3535) is unpathable.
+     * Do not offset W/N into the river, e.g. (2712,3535) is unpathable.
      */
     seersFly: { x: 2716, z: 3532, level: 0 },
     /** Sinclair range stand for Seers fly cook loops. */
     seersFlyRange: { x: 2732, z: 3581, level: 0 },
-    /** Willows NW of Crafting Guild — Auto freeform WC (outside every WC camp chunk). */
+    /** Willows NW of Crafting Guild, Auto freeform WC (outside every WC camp chunk). */
     // Was 2910,3328 (~25N of the stand); willows sit closer to the guild wall.
     willowsNwCg: { x: 2910, z: 3303, level: 0 },
     /** Wilderness Skeleton Mine (coal) known-camp seed. */
     skelMine: { x: 3018, z: 3590, level: 0 },
     /** Clear west-side stand beside the Edgeville Dungeon mixed-rock field. */
     edgevilleDungeonMine: { x: 3132, z: 9874, level: 0 },
-    /** Ardougne river fly fishing — Auto freeform fish. */
+    /** Ardougne river fly fishing, Auto freeform fish. */
     ardyRiverFly: { x: 2566, z: 3374, level: 0 }
 } as const;
 
@@ -1037,7 +1037,7 @@ const SCENARIOS: Scenario[] = [
         // SW Varrock mine banks at Varrock West.
         bank: SPOT.varrockWestBank,
         settings: {
-            // SW Varrock seed has tin in leash — not copper (and Miner default is Iron).
+            // SW Varrock seed has tin in leash, not copper (and Miner default is Iron).
             rocks: 'Tin',
             location: 'Southwest Varrock Mine',
             toolAcquire: 'Off',
@@ -1103,7 +1103,7 @@ const SCENARIOS: Scenario[] = [
         settings: {
             rocks: 'Tin',
             // location None = power-mine: drop ore when full (no bank loop).
-            // Leash is from the live start tile (not camp) — product floors to 40.
+            // Leash is from the live start tile (not camp), product floors to 40.
             location: 'None',
             toolAcquire: 'Off',
             forgetfulBank: false,
@@ -1164,7 +1164,7 @@ const SCENARIOS: Scenario[] = [
             if (xpGain > 0 && (iron >= 2 || productPeak >= 2) && stayedLocal) {
                 return 'pass';
             }
-            // Gathered but wandered — fail early so thrash does not wait the budget.
+            // Gathered but wandered, fail early so thrash does not wait the budget.
             if (xpGain > 0 && maxDistToCamp > 18 && elapsedMs >= 20_000) {
                 return 'fail';
             }
@@ -1179,7 +1179,7 @@ const SCENARIOS: Scenario[] = [
         id: 'mine-iron-dwarven-north',
         tags: ['mining', 'mine', 'iron', 'local', 'dwarven'],
         script: 'Miner',
-        // Northern iron wing — not the southern cluster (~50 tiles S of this pin).
+        // Northern iron wing, not the southern cluster (~50 tiles S of this pin).
         start: offsetTile(SPOT.dwarvenIronNorth, -2, 1),
         camp: SPOT.dwarvenIronNorth,
         settings: {
@@ -1199,7 +1199,7 @@ const SCENARIOS: Scenario[] = [
             }
             const xpGain = cur.xp.mining - start.xp.mining;
             const iron = invMatch(cur, /^iron ore$/i);
-            // Southern wing is ~cheb 50 from this camp — thrash trips exceed ~22.
+            // Southern wing is ~cheb 50 from this camp, thrash trips exceed ~22.
             const stayedNorth = maxDistToCamp <= 16;
             if (xpGain > 0 && (iron >= 2 || productPeak >= 2) && stayedNorth) {
                 return 'pass';
@@ -1222,7 +1222,7 @@ const SCENARIOS: Scenario[] = [
         script: 'Miner',
         start: offsetTile(SPOT.seVarrockIron, -2, -1),
         camp: SPOT.seVarrockIron,
-        bank: { x: 3253, z: 3420, level: 0 }, // Varrock East — must NOT visit for handoff
+        bank: { x: 3253, z: 3420, level: 0 }, // Varrock East, must NOT visit for handoff
         settings: {
             rocks: 'Iron',
             location: 'Southeast Varrock Mine',
@@ -1250,7 +1250,7 @@ const SCENARIOS: Scenario[] = [
             if (logHas(cur, /bank:\s*deposited/i) && elapsedMs >= 12_000) {
                 return 'fail';
             }
-            // Use current bank distance — minDistToBank is poisoned by start-purge bank trips.
+            // Use current bank distance, minDistToBank is poisoned by start-purge bank trips.
             if (muleOn && nearMeet && stillHolding && distToBank > 12 && elapsedMs >= 8_000) {
                 return 'pass';
             }
@@ -1504,7 +1504,7 @@ const SCENARIOS: Scenario[] = [
             if (logHas(cur, /bank:\s*deposited/i) && elapsedMs >= 12_000) {
                 return 'fail';
             }
-            // Current bank dist — Draynor start-purge visits the booth and poisons minDistToBank.
+            // Current bank dist. Draynor start-purge visits the booth and poisons minDistToBank.
             if (muleOn && nearMeet && stillHolding && distToBank > 8 && elapsedMs >= 8_000) {
                 return 'pass';
             }
@@ -1518,7 +1518,7 @@ const SCENARIOS: Scenario[] = [
     },
     {
         // Cook then bank: seed cooked so one catch fills the pack with 1 raw + 26 cooked → cook the raw → bank the cooked pile at Catherby.
-        // Why: #154 — the bot must also leave the bank toward the pier after depositing; Catherby bank is ~36 from the spot, inside the 64 leash, so deposit-only false-PASSed.
+        // Why: #154. The bot must also leave the bank toward the pier after depositing; Catherby bank is ~36 from the spot, inside the 64 leash, so deposit-only false-PASSed.
         id: 'fish-cook-bank',
         tags: ['fishing', 'fish', 'cook', 'bank', 'early'],
         script: 'Fisher',
@@ -1533,7 +1533,7 @@ const SCENARIOS: Scenario[] = [
             burntPolicy: 'Drop',
             toolAcquire: 'Off',
             forgetfulBank: false,
-            // Keep seeded cooked pack — purge would force a full re-fish before cook.
+            // Keep seeded cooked pack, purge would force a full re-fish before cook.
             purgePackOnStart: false,
             leashRadius: 18
         },
@@ -1593,7 +1593,7 @@ const SCENARIOS: Scenario[] = [
             `homeAfterBank=${returnedToCampAfterBank} distCampAfterBank=${minDistToCampAfterBank}`
     },
     /** Barbarian Village cook surface (outdoor Fire from CookingRanges): cook-then-bank without Catherby.
-     *  Starts nearly full of cooked with one free slot — fish the last raw, cook on the Fire, bank at Edgeville. */
+     *  Starts nearly full of cooked with one free slot, fish the last raw, cook on the Fire, bank at Edgeville. */
     {
         id: 'fish-cook-barb',
         tags: ['fishing', 'fish', 'cook', 'bank', 'camp', 'early'],
@@ -1645,7 +1645,7 @@ const SCENARIOS: Scenario[] = [
     },
     /**
      * Seers fly + catalog Range (Sinclair) cook-then-bank. Start on the pathable
-     * camp stand (2716,3532) — offset into the river used to soft-lock the harness.
+     * camp stand (2716,3532), offset into the river used to soft-lock the harness.
      */
     {
         id: 'fish-cook-seers',
@@ -1770,7 +1770,7 @@ const SCENARIOS: Scenario[] = [
             forgetfulBank: false,
             leashRadius: 18
         },
-        // Direct bank seed — do not give→deposit 973 (pack thrash / noted preflight).
+        // Direct bank seed, do not give→deposit 973 (pack thrash / noted preflight).
         bankSeed: {
             stand: SPOT.catherbyBank,
             items: [{ debugName: 'raw_lobster', displayName: 'Raw lobster', qty: 973 }]
@@ -2041,7 +2041,7 @@ const SCENARIOS: Scenario[] = [
             leashRadius: 18
         },
         seed: [{ debug: 'harpoon', name: 'Harpoon', qty: 1 }],
-        // Fishing 99 from BASE_STATS covers sharks — no mid-suite raise.
+        // Fishing 99 from BASE_STATS covers sharks, no mid-suite raise.
         scene: 'bank',
         budgetMs: 210_000,
         check: ({ start, cur, sawProduct, minDistToCamp, startDistToCamp, elapsedMs }) => {
@@ -2059,7 +2059,7 @@ const SCENARIOS: Scenario[] = [
             if (xpGain > 0 && nearGuild) {
                 return 'pass';
             }
-            // Approached guild docks and stayed — pathing proved even if shark roll is cold.
+            // Approached guild docks and stayed, pathing proved even if shark roll is cold.
             if (pathed && nearGuild && elapsedMs >= 90_000) {
                 return 'pass';
             }
@@ -2256,7 +2256,7 @@ const SCENARIOS: Scenario[] = [
         id: 'buy-net',
         tags: ['acquire', 'buy', 'fishing', 'tools'],
         script: 'Fisher',
-        // Missing net → Draynor bank then Gerrant (or Harry if closer — Gerrant for Draynor).
+        // Missing net → Draynor bank then Gerrant (or Harry if closer, Gerrant for Draynor).
         start: SPOT.draynorBank,
         camp: SPOT.gerrant,
         settings: {
@@ -2293,7 +2293,7 @@ const SCENARIOS: Scenario[] = [
         id: 'restock-fly-barb',
         tags: ['acquire', 'buy', 'fishing', 'bait', 'restock', 'tools'],
         script: 'Fisher',
-        // Gerrant banks at Draynor — start and purge there so the multi-buy fund trip is immediate.
+        // Gerrant banks at Draynor, start and purge there so the multi-buy fund trip is immediate.
         // Missing fly rod + feathers → one Draynor bank open → Gerrant multi-buy (rod + feathers, same shop visit) → barb river.
         start: SPOT.draynorBank,
         camp: SPOT.barbVillageFish,
@@ -2348,7 +2348,7 @@ const SCENARIOS: Scenario[] = [
         id: 'auto-freeform-wc-willows-cg',
         tags: ['freeform', 'auto', 'woodcutting', 'wc', 'early'],
         script: 'Woodcutter',
-        // Willows NW of Crafting Guild — not same chunk as any WOODCUTTING_LOCATIONS spot.
+        // Willows NW of Crafting Guild, not same chunk as any WOODCUTTING_LOCATIONS spot.
         start: SPOT.willowsNwCg,
         camp: SPOT.willowsNwCg,
         settings: {
@@ -2457,7 +2457,7 @@ const SCENARIOS: Scenario[] = [
         id: 'auto-freeform-fish-ardy-river',
         tags: ['freeform', 'auto', 'fishing', 'fish'],
         script: 'Fisher',
-        // Ardougne river fly spots — outside every FISHING_LOCATIONS chunk.
+        // Ardougne river fly spots, outside every FISHING_LOCATIONS chunk.
         start: SPOT.ardyRiverFly,
         camp: SPOT.ardyRiverFly,
         settings: {
@@ -2585,7 +2585,7 @@ try {
     console.log(`${stamp()} base stats → 99 (maxme + clear dialogs)`);
     await maxAccountAndClearDialogs(page);
 
-    // Registry sanity — scripts must be present in the deployed client.
+    // Registry sanity, scripts must be present in the deployed client.
     const names = await page.evaluate(() => {
         const r = (globalThis as never as Abi).rs2b0t.registry;
         return ['Miner', 'Fisher', 'Woodcutter'].map(n => `${n}=${r.get(n) ? 'ok' : 'MISSING'}`);
@@ -2702,7 +2702,7 @@ try {
                     throw new Error('precondition: no coins after seed');
                 }
                 if (sc.id === 'smith-rune-axe') {
-                    // Mats live in bank only — pack empty so restock must withdraw.
+                    // Mats live in bank only, pack empty so restock must withdraw.
                     if (invCount(pre, 'Runite bar') > 0 || invCount(pre, 'Hammer') > 0) {
                         throw new Error(
                             'precondition: hammer/bar still in pack after bankSeed ' +
@@ -2866,7 +2866,7 @@ try {
                 prevProduct = product;
 
                 // After deposit at bank, require a live walk back toward camp resources.
-                // Do not use overall minDistToCamp — start tile is already near camp.
+                // Do not use overall minDistToCamp, start tile is already near camp.
                 if (bankedHint && sawNearBank && cur.tile && sc.camp) {
                     const dCamp = chebyshev(cur.tile, sc.camp);
                     if (dCamp < minDistToCampAfterBank) {

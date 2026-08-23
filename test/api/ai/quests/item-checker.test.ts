@@ -47,3 +47,32 @@ test('name match is case-insensitive', () => {
     const r = rec([{ name: 'Iron bar', qty: 1, kind: 'mustHave' }]);
     expect(checkItems(r, snap([['iron bar', 3]]))[0].ok).toBe(true);
 });
+
+// Why: the engine reads the bank only after a quest starts, so blocking on an unread one stopped the
+// queue before it ever opened a booth, Watch Tower reported four missing items it had two of each.
+
+test('an unread bank does not block a mustHave item', () => {
+    const r = rec([{ name: 'Gold bar', qty: 1, kind: 'mustHave' }]);
+    const res = checkItems(r, { counts: new Map(), bankKnown: false });
+    expect(res[0].ok).toBe(true);
+    expect(res[0].present).toBe(0);
+});
+
+test('a read bank that really lacks the item still blocks', () => {
+    const r = rec([{ name: 'Gold bar', qty: 1, kind: 'mustHave' }]);
+    expect(checkItems(r, { counts: new Map(), bankKnown: true })[0].ok).toBe(false);
+});
+
+test('a read bank holding the item is ok', () => {
+    const r = rec([{ name: 'Gold bar', qty: 1, kind: 'mustHave' }]);
+    expect(checkItems(r, { counts: new Map([['gold bar', 2]]), bankKnown: true })[0].ok).toBe(true);
+});
+
+test('acquirable items are unaffected by whether the bank has been read', () => {
+    const r = rec([{ name: 'Clay', qty: 6, kind: 'acquirable' }]);
+    for (const bankKnown of [true, false]) {
+        const res = checkItems(r, { counts: new Map(), bankKnown });
+        expect(res[0].ok).toBe(true);
+        expect(res[0].willGather).toBe(true);
+    }
+});

@@ -158,7 +158,7 @@ export default class NatureCrafter extends TaskBot {
 
     cfg(): RuneType { return this.conf; }
     // the client is never told whether an obj is tradeable or bankable (ObjType has no such
-    // field — it is server-side only), so the only way to know is to try and watch it refuse
+    // field. It is server-side only), so the only way to know is to try and watch it refuse
     setStatus(s: string): void { this.status = s; }
     countCraft(n: number): void { this.crafted += n; }
     countTrade(essence: number): void { this.trades++; this.received += essence; }
@@ -203,7 +203,7 @@ class HandleOpenTrade implements Task {
             return;
         }
 
-        // Header can lag several ticks after the modal opens — do not treat blank as stranger.
+        // Header can lag several ticks after the modal opens, do not treat blank as stranger.
         const who = Trade.partner();
         if (who === null) {
             this.partnerWait++;
@@ -337,7 +337,7 @@ class BankEverything implements Task {
 class AcceptRunner implements Task {
     constructor(private bot: NatureCrafter) {}
     validate(): boolean {
-        // no rune-count guard — task order lets the bank trip preempt when its timer is due
+        // no rune-count guard, task order lets the bank trip preempt when its timer is due
         return !inTemple() && essCount() === 0 && !Trade.active() && this.bot.nearestRunner() !== null;
     }
     async execute(): Promise<void> {
@@ -393,7 +393,7 @@ async function openUnnoteShop(name: string): Promise<boolean> {
     if (Shop.isOpen()) {
         return true;
     }
-    // the scene reads empty for a tick or two after the ladder trip — blank isn't absent
+    // the scene reads empty for a tick or two after the ladder trip, blank isn't absent
     await Execution.delayUntil(() => Npcs.query().name(name).nearest() !== null, 5000);
     const npc = Npcs.query().name(name).nearest();
     if (!npc) {
@@ -411,7 +411,7 @@ async function openUnnoteShop(name: string): Promise<boolean> {
     return Shop.isOpen();
 }
 
-// owns the loop while a trade modal is open — never moves (movement/combat closes it)
+// owns the loop while a trade modal is open, never moves (movement/combat closes it)
 class DriveTrade implements Task {
     private pending = 0;
     private beforeUnnoted = 0;
@@ -423,7 +423,7 @@ class DriveTrade implements Task {
                 const held = unnotedEssence();
                 const n = offerCount(held);
                 if (n <= 0) {
-                    // nothing to give — but the master may be handing random-event litter back
+                    // nothing to give, but the master may be handing random-event litter back
                     if (Trade.theirOffer().length > 0) {
                         this.bot.setStatus('taking items back from the master');
                         await Trade.accept();
@@ -552,7 +552,7 @@ class UnNoteEssence implements Task {
         }
         this.bot.setStatus('topping up unnoted essence at the store');
         await this.bot.walkTo(store.tile, 3);
-        // one trip per arrival — a retried store visit must not climb all over again
+        // one trip per arrival, a retried store visit must not climb all over again
         if (Date.now() - this.lastShakeAt > SHAKE_COOLDOWN_MS) {
             await shakeAggroOnLadder(this.bot);
             this.lastShakeAt = Date.now();
@@ -602,7 +602,7 @@ class BankRestock implements Task {
         }
 
         await Bank.setNoteMode(false);
-        // random events hand out items that eat the slots essence needs — dump anything unrelated
+        // random events hand out items that eat the slots essence needs, dump anything unrelated
         const keep = cfg.unnote ? [ESSENCE, COINS] : [ESSENCE];
         const before = Inventory.used();
         await Bank.depositAllMatching(depositAllExcept(keep), m => this.bot.log(`  ${m}`));

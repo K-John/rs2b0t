@@ -10,7 +10,7 @@ const doorEdges = doors as { x: number; z: number; level: number; locId: number 
 const byLoc = (locId: number): TransportEdgeData[] => edges.filter(edge => edge.locId === locId && !edge.disabledReason);
 const tile = (point: { x: number; z: number; level: number }): string => `${point.x},${point.z},${point.level}`;
 
-// Why: the storeroom half of the stronghold's bottom floor hangs off one staircase, and the stair deriver only understands `case <coord> : p_telejump(...)`, not the `switch_int(loc_angle)` the troll stairs are written with — so both directions are curated by hand.
+// Why: the storeroom half of the stronghold's bottom floor hangs off one staircase, and the stair deriver only understands `case <coord> : p_telejump(...)`, not the `switch_int(loc_angle)` the troll stairs are written with, so both directions are curated by hand.
 describe('troll storeroom staircase', () => {
     test('descends from the kitchen floor into the crate maze and climbs back', () => {
         const down = byLoc(3789).find(edge => tile(edge.from) === '2852,10060,1');
@@ -46,7 +46,7 @@ describe("Mad Eadgar's cave", () => {
     });
 
     // Why: the entrance drops an account that never opened Eadgar's cell onto level 0 of the same
-    // mapsquare, which is empty — so the edge is gated on the quest that opens it.
+    // mapsquare, which is empty, so the edge is gated on the quest that opens it.
     test('the entrance is gated on Troll Stronghold', () => {
         expect(byLoc(3759)[0]!.requires?.quests).toEqual([{ quest: 'Troll Stronghold', minStatus: 'complete' }]);
     });

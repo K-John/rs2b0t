@@ -36,6 +36,7 @@ import { countMatching, matchesAny, shouldBank, shouldEat, shouldPanic } from '.
 import {
     autoBankEnabled,
     BANKING_OPTIONS,
+    shouldBankAfterMinutes,
     BURIAL_BONE_NAME,
     CUSTOM_COORDINATES,
     DEFAULT_CUSTOM_SPOT,
@@ -94,6 +95,16 @@ export const SETTINGS: SettingsSchema = {
     solveClues: { type: 'boolean', default: true, label: 'Solve clue drops', group: 'Clues' },
     banking: { type: 'string', default: 'Auto', options: BANKING_OPTIONS, label: 'Banking', help: 'Auto = bank loot at the nearest bank and return; None = no loot-only bank trips' },
     bankAtLootSlots: { type: 'number', default: 12, min: 1, max: 27, label: 'Bank at loot slots', showIf: { key: 'banking', anyOf: ['Auto'] } },
+    bankEveryMinutes: {
+        type: 'number',
+        default: 0,
+        min: 0,
+        max: 120,
+        label: 'Bank every N minutes',
+        help: '0 = never. Same idea as CowKiller: walk loot to the bank after this many minutes so a death does not wipe a long session.',
+        showIf: { key: 'banking', anyOf: ['Auto'] },
+        group: 'Banking & loot'
+    },
     bankCommonJunk: { type: 'boolean', default: true, label: 'Bank common junk too' }
 };
 
@@ -107,6 +118,7 @@ let LOOT = DEFAULT_LOOT;
 let BURY_BONES = false;
 let SOLVE_CLUES = true;
 let BANK_AT = 12;
+let BANK_EVERY_MINUTES = 0;
 let AUTO_BANK = true;
 let BANK_COMMON = true;
 let STYLE: 'melee' | 'mage' | 'range' = 'melee';
@@ -190,6 +202,7 @@ export default class AutoFighter extends TaskBot {
     private supplyEmpty = false;
     private status = 'starting';
     private startedAt = Date.now();
+    private lastBankAt = Date.now();
     private xpAtStart = 0;
     died = false;
 
@@ -207,6 +220,7 @@ export default class AutoFighter extends TaskBot {
         BURY_BONES = this.settings.bool('buryBones', false);
         SOLVE_CLUES = this.settings.bool('solveClues', true);
         BANK_AT = this.settings.num('bankAtLootSlots', 12);
+        BANK_EVERY_MINUTES = this.settings.num('bankEveryMinutes', 0);
         AUTO_BANK = autoBankEnabled(this.settings.str('banking', 'Auto'));
         BANK_COMMON = this.settings.bool('bankCommonJunk', true);
         // Why: pre-#195 saves stored attack/strength/controlled/defence in combatStyle.
@@ -221,7 +235,7 @@ export default class AutoFighter extends TaskBot {
             SettingsStore.save('AutoFighter', 'meleeStyle', split.legacyMigrated);
             this.log(`migrated legacy combatStyle='${rawCombatStyle.trim()}' → meleeStyle='${split.legacyMigrated}'`);
         } else if (tryParseCombatStyle(rawCombatStyle) !== null) {
-            // storage still has a training-style value but meleeStyle already set — rewrite combatStyle only
+            // storage still has a training-style value but meleeStyle already set, rewrite combatStyle only
             SettingsStore.save('AutoFighter', 'combatStyle', 'melee');
         }
         SPELL = this.settings.str('spell', 'Fire Strike');
@@ -260,8 +274,9 @@ export default class AutoFighter extends TaskBot {
         });
 
         this.startedAt = Date.now();
+        this.lastBankAt = this.startedAt;
         this.xpAtStart = COMBAT_SKILLS.reduce((n, sk) => n + Skills.xp(sk), 0);
-        this.log(`AutoFighter starting — '${TARGET}' at ${spotMode} ${ANCHOR} r${LEASH}, style ${STYLE}${STYLE === 'mage' ? ` (${SPELL}, ${RUNES_WITHDRAW} casts)` : STYLE === 'range' ? ` (${RANGE_MODE === 0 ? 'accurate' : RANGE_MODE === 1 ? 'rapid' : 'longrange'}, ${AMMO}x${AMMO_WITHDRAW})` : ` (${MELEE_STYLE})`}, banking ${AUTO_BANK ? 'auto' : 'none'}, food '${FOOD}'x${FOOD_WITHDRAW}, loot [${LOOT.join(', ')}]${BURY_BONES ? `, burying ${BURIAL_BONE_NAME}` : ''}`);
+        this.log(`AutoFighter starting — '${TARGET}' at ${spotMode} ${ANCHOR} r${LEASH}, style ${STYLE}${STYLE === 'mage' ? ` (${SPELL}, ${RUNES_WITHDRAW} casts)` : STYLE === 'range' ? ` (${RANGE_MODE === 0 ? 'accurate' : RANGE_MODE === 1 ? 'rapid' : 'longrange'}, ${AMMO}x${AMMO_WITHDRAW})` : ` (${MELEE_STYLE})`}, banking ${AUTO_BANK ? 'auto' : 'none'}${BANK_EVERY_MINUTES > 0 ? ` every ${BANK_EVERY_MINUTES}m` : ''}, food '${FOOD}'x${FOOD_WITHDRAW}, loot [${LOOT.join(', ')}]${BURY_BONES ? `, burying ${BURIAL_BONE_NAME}` : ''}`);
 
         this.on('chat.message', e => {
             if (/oh dear.*you are dead/i.test(e.text)) {
@@ -331,7 +346,16 @@ export default class AutoFighter extends TaskBot {
     countLoot(): void { this.looted++; }
     countBurial(): void { this.buried++; }
     countEat(): void { this.eats++; }
-    countTrip(): void { this.trips++; }
+    countTrip(): void {
+        this.trips++;
+        this.lastBankAt = Date.now();
+    }
+    minutesSinceBank(): number {
+        return (Date.now() - this.lastBankAt) / 60_000;
+    }
+    dueForTimedBank(): boolean {
+        return shouldBankAfterMinutes(AUTO_BANK, BANK_EVERY_MINUTES, this.minutesSinceBank(), lootCount());
+    }
     noteSupplyEmpty(v: boolean): void { this.supplyEmpty = v; }
     supplyKnownEmpty(): boolean { return this.supplyEmpty; }
 }
@@ -503,6 +527,7 @@ class BankRun implements Task {
             this.bot.noteSupplyEmpty(false);
         }
         return this.bot.bankAfterSolve || (AUTO_BANK && shouldBank(lootSlots(), BANK_AT, Inventory.isFull()))
+            || this.bot.dueForTimedBank()
             || (foodCount() === 0 && FOOD_WITHDRAW > 0 && !this.bot.bankFoodEmpty)
             || (STYLE !== 'melee' && needStyleSupplies() && !this.bot.supplyKnownEmpty());
     }
@@ -516,11 +541,13 @@ class BankRun implements Task {
         const reason = this.bot.bankAfterSolve ? 'clue solved'
             : (AUTO_BANK && shouldBank(lootSlots(), BANK_AT, Inventory.isFull()))
                 ? `loot ${lootSlots()}/${BANK_AT} slots or inventory full`
-                : (foodCount() === 0 && FOOD_WITHDRAW > 0 && !this.bot.bankFoodEmpty)
-                    ? 'out of food'
-                    : STYLE !== 'melee' && needStyleSupplies()
-                        ? `supplies below threshold (${supplyMetric()} < ${restockThreshold()})`
-                        : 'unknown';
+                : this.bot.dueForTimedBank()
+                    ? `time ${this.bot.minutesSinceBank().toFixed(1)}m/${BANK_EVERY_MINUTES}m with loot`
+                    : (foodCount() === 0 && FOOD_WITHDRAW > 0 && !this.bot.bankFoodEmpty)
+                        ? 'out of food'
+                        : STYLE !== 'melee' && needStyleSupplies()
+                            ? `supplies below threshold (${supplyMetric()} < ${restockThreshold()})`
+                            : 'unknown';
         this.bot.log(`BankRun triggered: ${reason}`);
         this.bot.setStatus(this.bot.bankAfterSolve ? 'clue done — banking the loot' : 'banking');
         this.bot.log(`banking at the ${bank.name} bank (${bank.tile})`);
@@ -626,7 +653,7 @@ class SetAttackStyle implements Task {
     }
     validate(): boolean {
         // Why: com_mode is not persisted, so it is re-asserted whenever it disagrees.
-        // Why: style clicks are legal mid-fight, so this does not gate on !inCombat — continuous combat starves an out-of-combat-only assert after DCs or failed first clicks.
+        // Why: style clicks are legal mid-fight, so this does not gate on !inCombat, continuous combat starves an out-of-combat-only assert after DCs or failed first clicks.
         return STYLE !== 'mage' && !this.selected() && Date.now() >= this.retryAt;
     }
     async execute(): Promise<void> {

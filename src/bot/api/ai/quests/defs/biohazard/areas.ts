@@ -71,7 +71,7 @@ export const BIO_TILE = {
     ELENA: new Tile(2592, 3336, 0),
     JERICO: new Tile(2612, 3324, 0),
     // Why: `forceapproach=east` rotates with the placement's angle of 1, so the only side the
-    // cupboard may be used from is its south face — the east tile is the cupboard's own second half.
+    // cupboard may be used from is its south face, the east tile is the cupboard's own second half.
     JERICO_CUPBOARD: new Tile(2611, 3325, 0),
     PIGEON_SPAWN: new Tile(2618, 3324, 0),
     // Why: the tower's east wall is x 2563, and this stand is also inside the pigeon-release box.
@@ -97,7 +97,7 @@ export const BIO_TILE = {
     CHANCY: new Tile(2935, 3219, 0),
     THESSALIA: new Tile(3204, 3417, 0),
     // Why: the gate's two leaves are walls on the west edges of 3264,3405 and 3264,3406, and the
-    // route from Varrock crosses the northern one — these are the tiles either side of it.
+    // route from Varrock crosses the northern one, these are the tiles either side of it.
     GATE_OUTSIDE: new Tile(3263, 3406, 0),
     GATE_INSIDE: new Tile(3265, 3406, 0),
     DANCING_DONKEY: new Tile(3270, 3390, 0),
@@ -109,13 +109,13 @@ export const BIO_TILE = {
 } as const;
 
 // Why: `opheld1,pigeons` only releases them inside this box, and the journal gives no
-// second chance — outside it the cage says the pigeons do not want to leave.
+// second chance, outside it the cage says the pigeons do not want to leave.
 export const PIGEON_ZONE = { x0: 2559, x1: 2565, z0: 3299, z1: 3307 } as const;
 
 export type BioArea = 'mainland' | 'west' | 'hq' | 'hqUpstairs' | 'castleUpstairs' | 'sewer' | 'unknown';
 
 // Why: `mournerstewdoor` is SCRIPT_REFUSED, so the headquarters building and its first floor are a
-// sealed pocket the navigator has no route into — every branch has to know which side of it we are on.
+// sealed pocket the navigator has no route into, every branch has to know which side of it we are on.
 export function bioArea(tile: QuestSnapshot['tile']): BioArea {
     if (!tile) {
         return 'unknown';
@@ -139,7 +139,7 @@ export function bioArea(tile: QuestSnapshot['tile']): BioArea {
     return level === 0 ? 'mainland' : 'unknown';
 }
 
-// Why: the Varrock east gate searches in both directions between given_distillator and found_secret, so the vials may only ever be carried inside this quarter — which is also the only place they are needed, as Guidor and the inn are both in it.
+// Why: the Varrock east gate searches in both directions between given_distillator and found_secret, so the vials may only ever be carried inside this quarter, which is also the only place they are needed, as Guidor and the inn are both in it.
 export function inGuidorQuarter(tile: QuestSnapshot['tile']): boolean {
     if (!tile || tile.level !== 0) {
         return false;

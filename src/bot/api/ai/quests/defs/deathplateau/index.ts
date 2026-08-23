@@ -8,20 +8,16 @@ import { Inventory } from '../../../../inventory/Inventory.js';
 import { GroundItems } from '../../../../grounditems/GroundItems.js';
 import { Locs } from '../../../../locs/Locs.js';
 import { Npcs } from '../../../../npcs/Npcs.js';
-import { Traversal } from '../../../../walking/Traversal.js';
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestProgress, QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { hasFlag } from '../../engine/types.js';
-import { driveDialog, openDialogue, talkThrough, type NpcStop } from '../../exec/primitives.js';
+import { driveDialog, openDialogue } from '../../exec/primitives.js';
 import { settleScene } from '../../exec/prompts.js';
 import {
     ALL_BALL_IDS,
     ALE_PRICE,
     BALL_PICKUP,
     COIN_FLOAT,
-    DEATH_DICE_CONTINUE_COM,
-    DEATH_DICE_MAIN,
-    DEATH_DICE_ROLL_COM,
     DEATH_ITEM,
     DENULTH_FINISH,
     DENULTH_START,
@@ -29,7 +25,7 @@ import {
     EOHRIC_GUARD,
     EOHRIC_HAROLD_REFUSED,
     FALADOR_WEST_BANK,
-    GAMBLE_BET,
+    GAMBLE_STAKE_FLOAT,
     HAROLD_DUTY,
     PEDESTALS,
     SABA_PATH,
@@ -38,6 +34,13 @@ import {
     TILE,
     TOSTIG_SHOP
 } from './areas.js';
+import {
+    gambleWithHarold,
+    giveAleToHarold,
+    reclaimIouFromHarold,
+    talkInHaroldRoom
+} from './harold.js';
+import { talkAt, walkTo } from './nav.js';
 import { Modals } from '../../../../ui/widgets/Modals.js';
 import {
     DP_FLAG,
@@ -60,6 +63,7 @@ export {
     PEDESTALS,
     TILE
 } from './areas.js';
+export { closeDiceIfOpen, insideHaroldRoom } from './harold.js';
 
 // ─── snapshot helpers ────────────────────────────────────────────────────────
 
@@ -220,150 +224,6 @@ function normalizePack(snap: QuestSnapshot): QuestStep | null {
 
 // ─── custom runners ──────────────────────────────────────────────────────────
 
-// Why: Burthorpe floor plan — Eohric is castle L1 via "Stairs" at about (2897,3566), Harold is Toad & Chicken L1 via "Staircase" at about (2914,3539), and Tostig, Denulth and Dunstan are on the ground.
-// Why: castle L1 and inn L1 are unconnected, so any L1-to-L1 hop between them has to Climb-down, walk the ground, then Climb-up the other building.
-// Why: walkResilient can plan that multi-hop only while the stair loc names match the scene.
-
-/** Inn is south of z≈3552; castle courtyard/stairs are north. */
-function inInnBand(tile: { z: number }): boolean {
-    return tile.z < 3552;
-}
-
-function stairsBottomFor(dest: { z: number }): Tile {
-    return inInnBand(dest) ? TILE.INN_STAIRS_BOTTOM : TILE.CASTLE_STAIRS_BOTTOM;
-}
-
-function stairsTopFor(dest: { z: number }): Tile {
-    return inInnBand(dest) ? TILE.INN_STAIRS_TOP : TILE.CASTLE_STAIRS_TOP;
-}
-
-async function climbOneFlight(
-    op: 'Climb-up' | 'Climb-down',
-    stand: Tile,
-    targetLevel: number,
-    log: (m: string) => void
-): Promise<boolean> {
-    const here = Game.tile();
-    if (!here) {
-        return false;
-    }
-    if (here.level === targetLevel) {
-        return true;
-    }
-    // Approach stand on the current level.
-    if (stand.distanceTo(here) > 2 || here.level !== stand.level) {
-        const approach = new Tile(stand.x, stand.z, here.level);
-        if (!(await Traversal.walkResilient(approach, { radius: 2, attempts: 3, timeoutMs: 90_000, log }))) {
-            log(`could not approach stairs stand (${stand.x},${stand.z},L${here.level})`);
-        }
-    }
-    // Castle = "Stairs"; inn = "Staircase". Never grab wall Ladders.
-    const stair = Locs.query().name('Stairs', 'Staircase').action(op).within(8).nearest()
-        ?? Locs.query()
-            .action(op)
-            .where(l => /^stairs?$/i.test(l.name ?? ''))
-            .within(8)
-            .nearest();
-    if (!stair) {
-        log(`no Stairs/Staircase to ${op} near (${Game.tile()?.x},${Game.tile()?.z},L${Game.tile()?.level})`);
-        return false;
-    }
-    log(`${op} ${stair.name ?? 'stairs'} at ${stair.tile()}`);
-    if (!(await stair.interact(op))) {
-        return false;
-    }
-    return Execution.delayUntil(() => {
-        const t = Game.tile();
-        return t !== null && t.level === targetLevel;
-    }, 8000);
-}
-
-/** Drop to ground in the building we currently occupy. */
-async function descendToGround(log: (m: string) => void): Promise<boolean> {
-    for (let attempt = 0; attempt < 3; attempt++) {
-        const here = Game.tile();
-        if (!here || here.level === 0) {
-            return true;
-        }
-        const stand = stairsTopFor(here);
-        if (await climbOneFlight('Climb-down', stand, 0, log)) {
-            return true;
-        }
-    }
-    return (Game.tile()?.level ?? -1) === 0;
-}
-
-/** Climb from ground into the building that contains `dest` (level ≥ 1). */
-async function ascendToDestFloor(dest: Tile, log: (m: string) => void): Promise<boolean> {
-    const here = Game.tile();
-    if (!here) {
-        return false;
-    }
-    if (here.level === dest.level) {
-        return true;
-    }
-    if (here.level > 0) {
-        // Wrong building upstairs — go down first.
-        if (!(await descendToGround(log))) {
-            return false;
-        }
-    }
-    const bottom = stairsBottomFor(dest);
-    if (!(await Traversal.walkResilient(bottom, { radius: 2, attempts: 3, timeoutMs: 120_000, log }))) {
-        log(`could not reach stairs bottom (${bottom.x},${bottom.z})`);
-        return false;
-    }
-    return climbOneFlight('Climb-up', bottom, dest.level, log);
-}
-
-async function walkTo(dest: Tile, radius: number, log: (m: string) => void): Promise<boolean> {
-    const here0 = Game.tile();
-    if (here0 && here0.level === dest.level && dest.distanceTo(here0) <= radius) {
-        return true;
-    }
-
-    // Elevated long hops or castle L1 ↔ inn L1: force ground transfer.
-    const here1 = Game.tile();
-    if (here1 && here1.level > 0) {
-        const crossBuildings = dest.level > 0 && inInnBand(here1) !== inInnBand(dest);
-        const longOrGround = dest.level === 0 || dest.distanceTo(here1) > 10 || crossBuildings;
-        if (longOrGround && !(await descendToGround(log))) {
-            return false;
-        }
-    }
-
-    // Need upper floor of dest building.
-    const here2 = Game.tile();
-    if (here2 && dest.level > 0 && here2.level !== dest.level) {
-        if (!(await ascendToDestFloor(dest, log))) {
-            return false;
-        }
-    }
-
-    const now = Game.tile();
-    if (now && now.level === dest.level && dest.distanceTo(now) <= radius) {
-        return true;
-    }
-    // Same-level finish (or walkResilient multi-hop if still elevated).
-    return Traversal.walkResilient(dest, { radius, attempts: 4, timeoutMs: 180_000, log });
-}
-
-async function talkAt(stop: NpcStop, log: (m: string) => void): Promise<boolean> {
-    if (!(await walkTo(stop.anchor, 2, log))) {
-        return false;
-    }
-    const here = Game.tile();
-    if (here && here.level !== stop.anchor.level) {
-        if (!(await ascendToDestFloor(stop.anchor, log))) {
-            return false;
-        }
-        if (!(await walkTo(stop.anchor, 2, log))) {
-            return false;
-        }
-    }
-    return talkThrough(stop.npc, stop.prefer, log);
-}
-
 async function leaveSabaCave(log: (m: string) => void): Promise<boolean> {
     if (!inSabaCave(Game.tile())) {
         return true;
@@ -404,116 +264,6 @@ async function enterSabaCave(log: (m: string) => void): Promise<boolean> {
     return Execution.delayUntil(() => inSabaCave(Game.tile()), 8000);
 }
 
-/**
- * Inside Harold's bedroom (south of the door at z=3543). Harold is visible
- * through the wall from the hallway — never treat mere NPC visibility as entry.
- */
-function insideHaroldRoom(tile: { x: number; z: number; level: number } | null | undefined): boolean {
-    return tile !== null
-        && tile !== undefined
-        && tile.level === 1
-        && tile.z <= 3542
-        && tile.x >= 2902
-        && tile.x <= 2910;
-}
-
-/** Drain knock mesbox / "Come in!" / multi-page chat until quiet. */
-async function drainChat(log: (m: string) => void, maxSteps = 24): Promise<void> {
-    for (let i = 0; i < maxSteps; i++) {
-        if (ChatDialog.canContinue()) {
-            await ChatDialog.continue();
-            await Execution.delayTicks(1);
-            continue;
-        }
-        if (ChatDialog.isOpen()) {
-            if (ChatDialog.options().length > 0) {
-                await driveDialog([], log);
-            } else if (ChatDialog.canContinue()) {
-                await ChatDialog.continue();
-            }
-            await Execution.delayTicks(1);
-            continue;
-        }
-        if (!(await Execution.delayUntil(
-            () => ChatDialog.isOpen() || ChatDialog.canContinue(),
-            600
-        ))) {
-            return;
-        }
-    }
-}
-
-// Why: `death_harold_door` runs entering as mesbox "You knock on the door.", then Harold's "Come in!", then the door opens; leaving is a free open.
-// Why: the step has to stand outside and drive the knock dialogue.
-// Why: Harold being in Locs/Npcs query range is not arrival, as he is visible through the door.
-
-/** Enter Harold's bedroom. */
-async function openHaroldDoor(log: (m: string) => void): Promise<boolean> {
-    if (insideHaroldRoom(Game.tile())) {
-        return true;
-    }
-
-    // Hallway outside (reachable). Never path to Harold's tile first.
-    if (!(await walkTo(TILE.HAROLD_DOOR, 2, log))) {
-        const t = Game.tile();
-        if (!t || Tile.from(t).distanceTo(TILE.HAROLD_DOOR_LOC) > 4) {
-            return false;
-        }
-    }
-
-    // Finish dialogue if a prior Open already started the knock chain.
-    await drainChat(log);
-    if (insideHaroldRoom(Game.tile())) {
-        return true;
-    }
-
-    for (let attempt = 0; attempt < 4; attempt++) {
-        if (insideHaroldRoom(Game.tile())) {
-            return true;
-        }
-
-        const door = Locs.query()
-            .name('Door')
-            .action('Open')
-            .where(l => l.tile().distanceTo(TILE.HAROLD_DOOR_LOC) <= 2)
-            .within(10)
-            .nearest();
-
-        if (!door) {
-            // Already open (Close leaf) — step south into the room.
-            log('Harold door open/missing — stepping into the room');
-            await Traversal.walkResilient(TILE.HAROLD, { radius: 2, attempts: 2, timeoutMs: 30_000, log });
-            await drainChat(log);
-            if (insideHaroldRoom(Game.tile())) {
-                return true;
-            }
-            continue;
-        }
-
-        log(`knocking on Harold's door at ${door.tile()} (attempt ${attempt + 1})`);
-        if (!(await door.interact('Open'))) {
-            await Execution.delayTicks(1);
-            continue;
-        }
-        // mesbox "You knock…" then chatnpc "Come in!" then server opens the door.
-        await drainChat(log);
-        await Execution.delayTicks(2);
-
-        // After "Come in!" the door opens — walk into the bedroom.
-        if (!insideHaroldRoom(Game.tile())) {
-            await Traversal.walkResilient(TILE.HAROLD, { radius: 2, attempts: 3, timeoutMs: 45_000, log });
-            await drainChat(log);
-        }
-        if (insideHaroldRoom(Game.tile())) {
-            log('entered Harold\'s room');
-            return true;
-        }
-    }
-
-    log(`still outside Harold's room at ${Game.tile()}`);
-    return insideHaroldRoom(Game.tile());
-}
-
 async function openTenzingDoor(log: (m: string) => void): Promise<boolean> {
     if (Npcs.query().name('Tenzing').within(6).nearest()) {
         return true;
@@ -549,302 +299,6 @@ async function openTenzingBackDoor(log: (m: string) => void): Promise<boolean> {
     }
     await Execution.delayTicks(2);
     return true;
-}
-
-async function giveAleToHarold(log: (m: string) => void): Promise<boolean> {
-    if (liveId(DEATH_ITEM.ASGARNIAN_ALE.id) <= 0) {
-        log('no Asgarnian ale to give Harold');
-        return false;
-    }
-    if (!(await openHaroldDoor(log))) {
-        return false;
-    }
-    if (!(await walkTo(TILE.HAROLD, 2, log))) {
-        return false;
-    }
-    // Talk "Can I buy you a drink?" consumes the ale when held.
-    if (!(await openDialogue('Harold', log))) {
-        // Fallback: use ale on him.
-        const ale = Inventory.items().find(i => i.id === DEATH_ITEM.ASGARNIAN_ALE.id);
-        const harold = Npcs.query().name('Harold').within(6).nearest();
-        if (!ale || !harold || !(await ale.useOn(harold))) {
-            return false;
-        }
-        await Execution.delayTicks(4);
-        if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
-            await driveDialog(['Would you like to gamble?'], log);
-        }
-        return liveId(DEATH_ITEM.ASGARNIAN_ALE.id) === 0;
-    }
-    return driveDialog(['Can I buy you a drink?', 'Would you like to gamble?'], log);
-}
-
-// Why: Harold starts with 100gp, and a 100gp win bankrupts him and grants the IOU.
-// Why: losses need more rounds, so the caller keeps calling until the IOU or the combination lands.
-
-/** One full dice round: pick gamble, enter bet, wait for Harold's roll, roll, settle. */
-async function gambleHaroldRound(log: (m: string) => void): Promise<boolean> {
-    if (!(await openDialogue('Harold', log))) {
-        return false;
-    }
-
-    // Drive chat to the amount dialog (p_countdialog after "Would you like to gamble?").
-    for (let i = 0; i < 40; i++) {
-        if (reader.countDialogOpen() || reader.modals().main === DEATH_DICE_MAIN) {
-            break;
-        }
-        if (ChatDialog.canContinue()) {
-            await ChatDialog.continue();
-            await Execution.delayTicks(1);
-            continue;
-        }
-        const opts = ChatDialog.options();
-        if (opts.length > 0) {
-            const gamble = opts.find(o => /gamble/i.test(o));
-            if (!gamble) {
-                // Avoid "buy a drink" / combo chatter mid-gamble loop.
-                const other = opts.find(o => !/drink|combination/i.test(o)) ?? opts[opts.length - 1];
-                await ChatDialog.chooseOption(other);
-            } else {
-                await ChatDialog.chooseOption(gamble);
-            }
-            await Execution.delayTicks(2);
-            continue;
-        }
-        // Never re-open talk while a count dialog might be about to appear.
-        await Execution.delayTicks(1);
-    }
-
-    if (reader.modals().main !== DEATH_DICE_MAIN) {
-        // Why: the bet amount arrives as p_countdialog after "How much do you want to offer?".
-        // Why: chat keeps draining alongside it, as pages close briefly between lines and the count dialog can flash open for only a tick at 2x speed.
-        let betSent = false;
-        const betDeadline = performance.now() + 12_000;
-        while (performance.now() < betDeadline && reader.modals().main !== DEATH_DICE_MAIN) {
-            if (reader.countDialogOpen()) {
-                if (!actions.answerCountDialog(GAMBLE_BET)) {
-                    log('Harold gamble: failed to enter bet');
-                    return false;
-                }
-                betSent = true;
-                log(`Harold gamble: bet ${GAMBLE_BET}`);
-                await Execution.delayUntil(() => !reader.countDialogOpen(), 3000);
-                continue;
-            }
-            if (ChatDialog.canContinue()) {
-                await ChatDialog.continue();
-                await Execution.delayTicks(1);
-                continue;
-            }
-            if (ChatDialog.isOpen() && ChatDialog.options().length > 0) {
-                const gamble = ChatDialog.options().find(o => /gamble/i.test(o));
-                if (gamble) {
-                    await ChatDialog.chooseOption(gamble);
-                    await Execution.delayTicks(2);
-                    continue;
-                }
-            }
-            await Execution.delayTicks(1);
-        }
-
-        // After bet: "OK I'll roll first!" then stake warning, THEN if_openmain(death_dice).
-        // Do not abort when chat is briefly closed between those pages.
-        const diceDeadline = performance.now() + 15_000;
-        while (performance.now() < diceDeadline && reader.modals().main !== DEATH_DICE_MAIN) {
-            if (reader.countDialogOpen() && !betSent) {
-                if (actions.answerCountDialog(GAMBLE_BET)) {
-                    betSent = true;
-                    log(`Harold gamble: bet ${GAMBLE_BET} (late)`);
-                }
-                await Execution.delayUntil(() => !reader.countDialogOpen(), 3000);
-                continue;
-            }
-            if (ChatDialog.canContinue()) {
-                await ChatDialog.continue();
-                await Execution.delayTicks(1);
-                continue;
-            }
-            await Execution.delayTicks(1);
-        }
-
-        if (reader.modals().main !== DEATH_DICE_MAIN) {
-            log(`Harold gamble: dice never opened (main=${reader.modals().main} betSent=${betSent})`);
-            return false;
-        }
-    }
-
-    log('Harold gamble: dice open — waiting for player roll button');
-    // Harold rolls first (~6t), then death_dice:com_28 ("Roll Dice!") unhides.
-    let rolled = false;
-    for (let t = 0; t < 30 && !rolled; t++) {
-        await Execution.delayTicks(1);
-        if (reader.modals().main !== DEATH_DICE_MAIN) {
-            log('Harold gamble: dice closed before roll');
-            return false;
-        }
-        const texts = reader.mainModalTexts().join(' ').toLowerCase();
-        // Button is hidden until "Your roll..." — only then IF_BUTTON is live.
-        if (texts.includes('your roll') || t >= 8) {
-            rolled = actions.ifButton(DEATH_DICE_ROLL_COM);
-        }
-    }
-    if (!rolled) {
-        log('Harold gamble: could not click Roll Dice!');
-        return false;
-    }
-    log('Harold gamble: rolled — waiting for Continue…');
-
-    // After roll: win/lose text, then com_30 "Continue..." (buttontype=pause → RESUME_PAUSEBUTTON).
-    let paused = false;
-    for (let i = 0; i < 40 && !paused; i++) {
-        await Execution.delayTicks(1);
-        if (liveId(DEATH_ITEM.IOU.id) > 0 || liveId(DEATH_ITEM.COMBINATION.id) > 0) {
-            break;
-        }
-        if (reader.modals().main !== DEATH_DICE_MAIN) {
-            // Dice already closed — fall through to objbox/chat drain.
-            break;
-        }
-        const texts = reader.mainModalTexts().join(' ').toLowerCase();
-        if (texts.includes('win') || texts.includes('lose') || texts.includes('continue') || i >= 6) {
-            paused = actions.menuAction(MiniMenuAction.PAUSE_BUTTON, 0, 0, DEATH_DICE_CONTINUE_COM);
-            if (!paused) {
-                // Fallback: IF_BUTTON on the same com (some clients treat it as OK).
-                paused = actions.ifButton(DEATH_DICE_CONTINUE_COM);
-            }
-        }
-    }
-
-    // Objbox ("winnings" / IOU) + any chat after if_close.
-    for (let i = 0; i < 40; i++) {
-        if (liveId(DEATH_ITEM.IOU.id) > 0 || liveId(DEATH_ITEM.COMBINATION.id) > 0) {
-            break;
-        }
-        if (ChatDialog.canContinue()) {
-            await ChatDialog.continue();
-            await Execution.delayTicks(1);
-            continue;
-        }
-        if (ChatDialog.isOpen() && ChatDialog.options().length > 0) {
-            await driveDialog([], log);
-            continue;
-        }
-        if (reader.modals().main !== -1 && reader.modals().main !== DEATH_DICE_MAIN) {
-            // Generic objbox — pause/continue or close.
-            const cont = reader.mainModalButtonNearText('Click here to continue');
-            if (cont > 0) {
-                if (!actions.menuAction(MiniMenuAction.PAUSE_BUTTON, 0, 0, cont)) {
-                    actions.ifButton(cont);
-                }
-            } else {
-                actions.closeModal();
-            }
-            await Execution.delayTicks(2);
-            continue;
-        }
-        if (reader.modals().main === -1 && !ChatDialog.isOpen()) {
-            break;
-        }
-        await Execution.delayTicks(1);
-    }
-
-    if (ChatDialog.isOpen() || ChatDialog.canContinue()) {
-        await driveDialog([], log);
-    }
-    return true;
-}
-
-async function gambleHarold(log: (m: string) => void): Promise<boolean> {
-    if (liveId(DEATH_ITEM.IOU.id) > 0 || liveId(DEATH_ITEM.COMBINATION.id) > 0) {
-        return true;
-    }
-    if (Inventory.count('Coins') < GAMBLE_BET) {
-        log(`need ${GAMBLE_BET} coins to gamble with Harold`);
-        return false;
-    }
-    if (!(await openHaroldDoor(log))) {
-        return false;
-    }
-    if (!(await walkTo(TILE.HAROLD, 2, log))) {
-        return false;
-    }
-
-    // Harold starts at 100gp; bet 101 so the first win triggers lostall → IOU.
-    // Losses inflate his purse — keep rolling (up to 40) until the IOU drops.
-    for (let round = 0; round < 40; round++) {
-        if (liveId(DEATH_ITEM.IOU.id) > 0 || liveId(DEATH_ITEM.COMBINATION.id) > 0) {
-            break;
-        }
-        if (Inventory.count('Coins') < GAMBLE_BET) {
-            log(`out of coins mid-gamble (round ${round + 1})`);
-            return false;
-        }
-        log(`Harold gamble round ${round + 1} (bet ${GAMBLE_BET})`);
-        if (!(await gambleHaroldRound(log))) {
-            // Soft fail this tick — outer decide will re-enter if still GIVEN_ALE.
-            if (liveId(DEATH_ITEM.IOU.id) > 0 || liveId(DEATH_ITEM.COMBINATION.id) > 0) {
-                break;
-            }
-            return false;
-        }
-        await Execution.delayTicks(2);
-    }
-
-    log(`Harold gamble done — iou=${liveId(DEATH_ITEM.IOU.id)} coins=${Inventory.count('Coins')}`);
-    return liveId(DEATH_ITEM.IOU.id) > 0 || liveId(DEATH_ITEM.COMBINATION.id) > 0;
-}
-
-/**
- * Content auto-runs harold_reclaim_iou when equiproom ≥ given_iou and neither
- * IOU nor combination is held — talk and drain.
- */
-async function reclaimIouFromHarold(log: (m: string) => void): Promise<boolean> {
-    if (liveId(DEATH_ITEM.IOU.id) > 0 || liveId(DEATH_ITEM.COMBINATION.id) > 0) {
-        return true;
-    }
-    if (!(await openHaroldDoor(log))) {
-        return false;
-    }
-    if (!(await walkTo(TILE.HAROLD, 2, log))) {
-        return false;
-    }
-    if (!(await openDialogue('Harold', log))) {
-        return false;
-    }
-    // Reclaim injects before the multi-menu; drain chat + objbox.
-    for (let i = 0; i < 30; i++) {
-        if (liveId(DEATH_ITEM.IOU.id) > 0 || liveId(DEATH_ITEM.COMBINATION.id) > 0) {
-            break;
-        }
-        if (ChatDialog.canContinue()) {
-            await ChatDialog.continue();
-            await Execution.delayTicks(1);
-            continue;
-        }
-        if (ChatDialog.isOpen() && ChatDialog.options().length > 0) {
-            // No need to pick options — reclaim already fired; close out.
-            await driveDialog([], log);
-            continue;
-        }
-        if (reader.modals().main !== -1) {
-            const cont = reader.mainModalButtonNearText('Click here to continue');
-            if (cont > 0) {
-                if (!actions.menuAction(MiniMenuAction.PAUSE_BUTTON, 0, 0, cont)) {
-                    actions.ifButton(cont);
-                }
-            } else {
-                actions.closeModal();
-            }
-            await Execution.delayTicks(2);
-            continue;
-        }
-        if (!ChatDialog.isOpen()) {
-            break;
-        }
-        await Execution.delayTicks(1);
-    }
-    log(`reclaim IOU done — iou=${liveId(DEATH_ITEM.IOU.id)} combo=${liveId(DEATH_ITEM.COMBINATION.id)}`);
-    return liveId(DEATH_ITEM.IOU.id) > 0 || liveId(DEATH_ITEM.COMBINATION.id) > 0;
 }
 
 async function readIou(log: (m: string) => void): Promise<boolean> {
@@ -892,7 +346,7 @@ async function readIou(log: (m: string) => void): Promise<boolean> {
         }
         await Execution.delayTicks(1);
     }
-    log(`read IOU done — combo=${liveId(DEATH_ITEM.COMBINATION.id)}`);
+    log(`read IOU done, combo=${liveId(DEATH_ITEM.COMBINATION.id)}`);
     return liveId(DEATH_ITEM.COMBINATION.id) > 0;
 }
 
@@ -995,7 +449,7 @@ async function solveStoneMechanism(log: (m: string) => void): Promise<boolean> {
             return false;
         }
         await settleScene();
-        // Exact loc_coord match — content drops the ball on the mechanism tile.
+        // Exact loc_coord match, content drops the ball on the mechanism tile.
         // nearest() within 1 was hitting the wrong pedestal (six mechanisms in a 2×3 grid).
         const mech = Locs.query()
             .name('Stone Mechanism')
@@ -1015,7 +469,7 @@ async function solveStoneMechanism(log: (m: string) => void): Promise<boolean> {
             return false;
         }
         if (!(await Execution.delayUntil(() => ballOnTile(ped.at, ped.ballId), 8000))) {
-            // Content drops at loc_coord — accept any ball of this id within 1 of ped.
+            // Content drops at loc_coord, accept any ball of this id within 1 of ped.
             const ok = GroundItems.query()
                 .where(item => item.id === ped.ballId && item.tile().distanceTo(ped.at) <= 1)
                 .within(8)
@@ -1028,7 +482,7 @@ async function solveStoneMechanism(log: (m: string) => void): Promise<boolean> {
     }
 
     if (allPedestalsCorrect()) {
-        log('stone mechanism complete — door should unlock');
+        log('stone mechanism complete, door should unlock');
         await Execution.delayTicks(2);
         return true;
     }
@@ -1037,8 +491,8 @@ async function solveStoneMechanism(log: (m: string) => void): Promise<boolean> {
 
 async function scoutSecretPath(log: (m: string) => void): Promise<boolean> {
     if (!(await openTenzingBackDoor(log))) {
-        // Still try the walk — path may already be open.
-        log('tenzing back door open failed — walking scout path anyway');
+        // Still try the walk, path may already be open.
+        log('tenzing back door open failed, walking scout path anyway');
     }
     if (!(await walkTo(TILE.SCOUT, 3, log))) {
         return false;
@@ -1102,7 +556,7 @@ async function takeEntranceCertFromGround(log: (m: string) => void): Promise<boo
         return true;
     }
     if (Inventory.isFull()) {
-        log('pack full — cannot take entrance certificate from the ground');
+        log('pack full, cannot take entrance certificate from the ground');
         return false;
     }
     const drop = GroundItems.query()
@@ -1155,7 +609,7 @@ async function getEntranceCertFromDenulth(log: (m: string) => void): Promise<boo
             log
         )) {
             if (liveId(DEATH_ITEM.ENTRANCE_CERT.id) > 0) {
-                log(`entrance cert — held=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)}`);
+                log(`entrance cert, held=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)}`);
                 return true;
             }
             // Server dumped it underfoot despite free-slot check (race / inv_add).
@@ -1164,7 +618,7 @@ async function getEntranceCertFromDenulth(log: (m: string) => void): Promise<boo
             }
         }
     }
-    log(`entrance cert — held=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)}`);
+    log(`entrance cert, held=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)}`);
     if (liveId(DEATH_ITEM.ENTRANCE_CERT.id) > 0) {
         return true;
     }
@@ -1188,7 +642,7 @@ async function giveCertToDunstan(log: (m: string) => void): Promise<boolean> {
         () => liveId(DEATH_ITEM.ENTRANCE_CERT.id) < before || liveId(DEATH_ITEM.SPIKED_BOOTS.id) > 0,
         log
     );
-    log(`gave cert — cert=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)} spiked=${liveId(DEATH_ITEM.SPIKED_BOOTS.id)}`);
+    log(`gave cert, cert=${liveId(DEATH_ITEM.ENTRANCE_CERT.id)} spiked=${liveId(DEATH_ITEM.SPIKED_BOOTS.id)}`);
     return liveId(DEATH_ITEM.ENTRANCE_CERT.id) < before || liveId(DEATH_ITEM.SPIKED_BOOTS.id) > 0;
 }
 
@@ -1229,16 +683,8 @@ export function decide(snap: QuestSnapshot): QuestStep {
         }
         // Need map + combination in pack for the hand-in bits.
         if (heldId(snap, DEATH_ITEM.COMBINATION.id) === 0) {
-            // Already unlocked without the paper — Denulth still asks for it; reclaim from Harold.
-            return custom('reclaim combination from Harold', async log => {
-                if (!(await openHaroldDoor(log))) return false;
-                return talkAt({
-                    npc: 'Harold',
-                    anchor: TILE.HAROLD,
-                    leash: 5,
-                    prefer: []
-                }, log);
-            });
+            // Already unlocked without the paper, Denulth still asks for it; reclaim from Harold.
+            return custom('reclaim combination from Harold', reclaimIouFromHarold);
         }
         if (heldId(snap, DEATH_ITEM.SECRET_MAP.id) === 0) {
             return custom('reclaim secret way map from Tenzing', async log => {
@@ -1260,10 +706,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return custom('ask Eohric about the night guard', log => talkAt(EOHRIC_GUARD, log));
         }
         if (stage === DP_STAGE.SPOKEN_EOHRIC) {
-            return custom("confront Harold about last night's duty", async log => {
-                if (!(await openHaroldDoor(log))) return false;
-                return talkAt(HAROLD_DUTY, log);
-            });
+            return custom("confront Harold about last night's duty", log => talkInHaroldRoom(HAROLD_DUTY, log));
         }
         if (stage === DP_STAGE.SPOKEN_HAROLD) {
             return custom('tell Eohric that Harold will not talk', log => talkAt(EOHRIC_HAROLD_REFUSED, log));
@@ -1283,8 +726,8 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return custom('buy Harold an Asgarnian ale', giveAleToHarold);
         }
         if (stage === DP_STAGE.GIVEN_ALE) {
-            return sourceCoins(snap, GAMBLE_BET)
-                ?? custom('gamble with Harold until the IOU', gambleHarold);
+            return sourceCoins(snap, GAMBLE_STAKE_FLOAT)
+                ?? custom('gamble with Harold until the IOU', gambleWithHarold);
         }
         if (stage === DP_STAGE.GIVEN_IOU) {
             if (heldId(snap, DEATH_ITEM.IOU.id) === 0 && heldId(snap, DEATH_ITEM.COMBINATION.id) === 0) {
@@ -1316,7 +759,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             });
         }
         if (!map.tenzing) {
-            // Tenzing hands climbing boots — need 1 free slot or they hit the floor.
+            // Tenzing hands climbing boots, need 1 free slot or they hit the floor.
             return makeSpace(snap, 1)
                 ?? custom('ask Tenzing for the secret way', async log => {
                     if (inSabaCave(Game.tile()) && !(await leaveSabaCave(log))) return false;
@@ -1331,7 +774,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             });
         }
         if (!map.entrancecert || (map.entrancecert && heldId(snap, DEATH_ITEM.ENTRANCE_CERT.id) === 0 && !map.given_cert)) {
-            // Denulth grants the certificate via inv_add — full pack drops it.
+            // Denulth grants the certificate via inv_add, full pack drops it.
             return makeSpace(snap, 1)
                 ?? custom("get Dunstan's son signed up with Denulth (certificate)", getEntranceCertFromDenulth);
         }
@@ -1366,7 +809,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             });
         }
         if (!map.got_map) {
-            // Supplies flag without map — talk again for the map hand-over.
+            // Supplies flag without map, talk again for the map hand-over.
             if (heldId(snap, DEATH_ITEM.SECRET_MAP.id) === 0) {
                 return custom('get the secret way map from Tenzing', async log => {
                     if (!(await openTenzingDoor(log))) return false;

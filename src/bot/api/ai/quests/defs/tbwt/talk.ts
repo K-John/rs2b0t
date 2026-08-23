@@ -54,7 +54,7 @@ export async function driveFully(prefer: readonly string[], log: Log, quietTicks
 }
 
 // Why: every one of these NPCs wanders five tiles, and the first Talk-to after an eleven-click walk
-// lands on a tile they have already left — a settle and a second try cost less than another step.
+// lands on a tile they have already left, a settle and a second try cost less than another step.
 
 /** Walk to the NPC, open the dialogue, and drive it to the end. */
 export async function talkFully(

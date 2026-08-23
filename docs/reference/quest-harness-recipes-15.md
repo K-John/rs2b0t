@@ -4,7 +4,7 @@
 
 Per-quest seed and stage commands, with what each recipe has proven.
 
-## The Dig Site — stage-scoped harness
+## The Dig Site, stage-scoped harness
 
 [`e2e/digsite-251-live.ts`](../../e2e/digsite-251-live.ts) takes `--stage N` (`%itexamlevel`,
 0 to 8) and clears `%itexam_errands` and `%itexam_bits` with it, then relogs. The three
@@ -23,7 +23,7 @@ HEADED=1 bun e2e/digsite-251-live.ts --stage 6 --until 9 --minutes 60 --tick 150
 
 Stats are 70 rather than max: nothing in this quest fights, and the hard floors are
 Agility 10 for the shaft, Herblore 10 for the compound and Thieving 25 for the workmen's
-pockets. The bank holds coins and food alone — the trowel, the specimen jar, the brush,
+pockets. The bank holds coins and food alone, the trowel, the specimen jar, the brush,
 the ropes, the panning tray, the opal, the charcoal and every chemical are sourced in the
 world, and seeding one would hide whether the bot can find it.
 
@@ -37,19 +37,23 @@ world, and seeding one would hide whether the bot can find it.
 | `--stage 0 --until 9` | Start to finish | **PASS** (22min, QP 0→2) |
 
 `--stage` clears the errand and bit varps, so a jumped stage starts each exam's revision
-and both winch ropes from nothing — a mid-quest recipe re-buys the guide's tea.
+and both winch ropes from nothing, a mid-quest recipe re-buys the guide's tea.
 
 ## See also
 
-- [Quest harness recipes (Big)](quest-harness-recipes-17.md)
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)
-- [Quest harness recipes (E)](quest-harness-recipes-4.md)
-- [Quest harness recipes (F)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Big)](quest-harness-recipes-17.md)
+- [Quest harness recipes (Ea)](quest-harness-recipes-22.md)
+- [Quest harness recipes (El–Er)](quest-harness-recipes-4.md)
+- [Quest harness recipes (Fam–Figh)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Fis)](quest-harness-recipes-21.md)
 - [Quest harness recipes (Fre)](quest-harness-recipes-18.md)
 - [Quest harness recipes (G)](quest-harness-recipes-11.md)
 - [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
 - [Quest harness recipes (I–L)](quest-harness-recipes-3.md)
+- [Quest harness recipes (Leg)](quest-harness-recipes-20.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)
 - [Quest harness recipes (N–O)](quest-harness-recipes-14.md)
 - [Quest harness recipes (P–R)](quest-harness-recipes-5.md)

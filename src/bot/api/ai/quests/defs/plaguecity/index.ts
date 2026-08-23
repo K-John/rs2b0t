@@ -98,7 +98,7 @@ function inWest(snap: QuestSnapshot, area: PlagueArea, step: QuestStep): QuestSt
 }
 
 // Why: the four buckets are gathered before the fountain, so the leg is one fill trip and one
-// pour trip — filling whatever is in the pack sends the bot back for the next three pours.
+// pour trip, filling whatever is in the pack sends the bot back for the next three pours.
 function waterLeg(snap: QuestSnapshot, area: PlagueArea): QuestStep {
     const empty = held(snap, PC_ITEM.BUCKET);
     const water = held(snap, PC_ITEM.BUCKET_WATER);

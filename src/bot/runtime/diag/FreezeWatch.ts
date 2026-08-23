@@ -1,5 +1,5 @@
 // docs/decisions/multibox-telemetry-honesty.md
-// Why: a main-thread heartbeat cannot measure the freeze it is stuck inside — it is not running during the stall it wants to time.
+// Why: a main-thread heartbeat cannot measure the freeze it is stuck inside. It is not running during the stall it wants to time.
 // Why: the wall already owns a worker-backed clock (WorkerClock) whose worker keeps its own time while the main thread is wedged, so the timer fires on schedule and the resolve waits for the main thread.
 // Why: the overshoot past the requested delay is the starvation, measured from outside the main thread with no new worker.
 

@@ -3,7 +3,7 @@
 # Diagnose a slow wall
 
 Resource telemetry answers how loaded the wall is right now. Diagnostics answers "this
-was fine an hour ago and a right-click now takes two seconds — what changed?", which
+was fine an hour ago and a right-click now takes two seconds, what changed?", which
 needs retained history.
 
 ## Read the retained series
@@ -29,7 +29,7 @@ The retained series stops at the bot. To go further:
 
 Two fixes came out of that:
 
-- `RandomEventGuardian` cost 1.5ms/frame — its tick guard was stamped only after a
+- `RandomEventGuardian` cost 1.5ms/frame, its tick guard was stamped only after a
   successful detect, so in the steady state it never armed and a full scene scan ran
   every frame.
 - Two `Miner` predicates cost ~3.5ms per evaluation, 93% of all condition time. The cost

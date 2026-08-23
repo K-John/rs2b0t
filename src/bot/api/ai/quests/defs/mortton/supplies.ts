@@ -10,7 +10,7 @@ import { SM_ID, SM_LOC, SM_LOC_ID, SM_NAME, SM_STAGE, SM_TILE, VARROCK_GENERAL }
 
 export const COIN_TARGET = 30_000;
 export const COIN_LOW = 5_000;
-// Why: six is what the temple loadout can spare — the shopping trip fills fifteen slots and Morytania has no bank to trim against.
+// Why: six is what the temple loadout can spare, the shopping trip fills fifteen slots and Morytania has no bank to trim against.
 export const FOOD_TARGET = 6;
 // Why: the only bank inside Morytania is Canifis, two hundred tiles north of the temple, so a restock only happens when the last piece of food has gone.
 export const FOOD_LOW = 1;
@@ -30,7 +30,7 @@ export const SM_TOOLS: readonly string[] = [
 export const heldId = (snap: QuestSnapshot, id: number): number => snap.invIds?.get(id) ?? 0;
 export const bankedId = (snap: QuestSnapshot, id: number): number => snap.bankIds?.get(id) ?? 0;
 
-/** Serum 207 by dose count, highest first — `next_obj_stage` walks a vial down this list. */
+/** Serum 207 by dose count, highest first, `next_obj_stage` walks a vial down this list. */
 export const SERUM_BY_DOSE: readonly (readonly [number, number])[] = [
     [SM_ID.SERUM4, 4],
     [SM_ID.SERUM3, 3],
@@ -95,7 +95,7 @@ export function dosesNeeded(stage: number): number {
     return doses;
 }
 
-// Why: a half-brewed vial is not a vial — counting it as one stops the chain on the unfinished potion and leaves the last conversation unpayable.
+// Why: a half-brewed vial is not a vial, counting it as one stops the chain on the unfinished potion and leaves the last conversation unpayable.
 
 /** Serums still to brew for the rest of the quest, at three doses a vial. */
 export function serumsShort(snap: QuestSnapshot, stage: number): number {

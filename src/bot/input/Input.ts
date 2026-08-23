@@ -62,6 +62,10 @@ export const Input = {
         return actions.menuAction(MiniMenuAction.TGT_BUTTON, 0, 0, spellComId) && actions.menuAction(MiniMenuAction.TGT_NPC, index, 0, 0);
     },
 
+    castOnLoc(spellComId: number, lx: number, lz: number, typecode: number): boolean {
+        return actions.menuAction(MiniMenuAction.TGT_BUTTON, 0, 0, spellComId) && actions.menuAction(MiniMenuAction.TGT_LOC, typecode, lx, lz);
+    },
+
     walk(lx: number, lz: number): boolean {
         return actions.walkTo(lx, lz);
     },

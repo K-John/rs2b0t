@@ -1,5 +1,5 @@
 /** Start a one-shot walkResilient probe and wait until it finishes or the player is already within chebyshev radius of dest.
- *  Why: polling `runner.state === 'idle'` alone hangs when walkResilient sits on the target forever because isArrived fails (walkable dest, canReach false, dist>0) — common for digs and blocked tiles. */
+ *  Why: polling `runner.state === 'idle'` alone hangs when walkResilient sits on the target forever because isArrived fails (walkable dest, canReach false, dist>0), common for digs and blocked tiles. */
 import type { Page } from 'playwright-core';
 
 export type LiveTile = { x: number; z: number; level: number };
@@ -58,7 +58,7 @@ export async function runLiveWalkProof(
         pollMs?: number;
     }
 ): Promise<LiveWalkResult> {
-    // Align with navLiveHarness pacing — sub-second fleet polls are unnecessary.
+    // Align with navLiveHarness pacing, sub-second fleet polls are unnecessary.
     const pollMs = opts.pollMs ?? 1000;
     const attempts = opts.attempts ?? 8;
 

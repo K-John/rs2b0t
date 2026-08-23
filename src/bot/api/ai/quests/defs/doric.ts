@@ -391,7 +391,7 @@ function hasDepositableItem(snap: QuestSnapshot): boolean {
 function makeSpace(snap: QuestSnapshot, needed: number, bank: Tile): QuestStep | null {
     if (snap.freeSlots === undefined || snap.freeSlots >= needed) return null;
     if (hasDepositableItem(snap)) return preserveQuestItems(bank);
-    // Why: a restored account can have all 28 slots occupied by exact Doric items — surplus ore, redundant picks, or an unusable high-tier pick — so keeping every quantity would park forever.
+    // Why: a restored account can have all 28 slots occupied by exact Doric items such as surplus ore, redundant picks or an unusable high-tier pick, so keeping every quantity would park forever.
     // Why: the exact set is banked too, and the next authoritative bank snapshot withdraws only the material deficits and one best usable pickaxe.
     return {
         kind: 'deposit',

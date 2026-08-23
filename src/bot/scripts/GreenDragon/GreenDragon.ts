@@ -105,7 +105,7 @@ let PANIC_HP = 0.3;
 let RUNES_WITHDRAW = 150;
 let FOOD_WITHDRAW = 20;
 let LOOT_SET = new Set<string>();
-/** DROP_DB names it plainly 'Dragonhide' — the headline drop for the rate line. */
+/** DROP_DB names it plainly 'Dragonhide'. The headline drop for the rate line. */
 const HIDE_NAME = 'Dragonhide';
 let BANK_COMMON = true;
 let TELE_ESCAPE = false;
@@ -115,7 +115,7 @@ let FOOD_RESERVE = 4;
 let BURY_BONES = false;
 let SOLVE_CLUES = true;
 let VERBOSE = false;
-/** Everything worn when the script started — kept at the bank and put back on. */
+/** Everything worn when the script started, kept at the bank and put back on. */
 let TRACKED_GEAR: string[] = [];
 
 function wieldedNames(): string[] {
@@ -163,7 +163,7 @@ function underAttack(): boolean {
     return underPlayerAttack(Game.tile()?.z ?? null, Game.attackedByPlayer());
 }
 
-/** No retaliate, no signal — the bot would never notice a PKer. */
+/** No retaliate, no signal. The bot would never notice a PKer. */
 async function assertAutoRetaliate(bot: GreenDragon): Promise<void> {
     for (let attempt = 0; attempt < 3; attempt++) {
         if (Game.autoRetaliateOn()) {
@@ -212,7 +212,7 @@ function foreignKit(): string[] {
         .map(i => i.name ?? '?');
 }
 
-/** Out of the consumables the grind runs on — only the bank fixes this. */
+/** Out of the consumables the grind runs on, only the bank fixes this. */
 function needsResupply(bot: GreenDragon): boolean {
     return (!hasFood() && !bot.bankKnownEmpty()) || (needStyleSupplies() && !bot.supplyKnownEmpty());
 }
@@ -507,14 +507,14 @@ async function bankRoutine(bot: GreenDragon): Promise<void> {
 
 /**
  * Heal up before walking back. Returning to the dragons on the hp that forced
- * the trip forces another one — or a death on the way in.
+ * the trip forces another one, or a death on the way in.
  */
 async function eatToFull(bot: GreenDragon): Promise<boolean> {
     if (hpFrac() >= 1 || !hasFood()) {
         return false;
     }
     // The open bank swaps the backpack for its deposit view, whose ops are
-    // Deposit-* — there is no Eat to click until the modal is shut.
+    // Deposit-*. There is no Eat to click until the modal is shut.
     if (Bank.isOpen()) {
         await Bank.close().catch(() => undefined);
         await Execution.delayUntil(() => !Bank.isOpen(), 3000);
@@ -522,7 +522,7 @@ async function eatToFull(bot: GreenDragon): Promise<boolean> {
     bot.setStatus('eating back to full before returning');
     bot.log(`healing up before the walk back (${Math.round(hpFrac() * 100)}% hp, ${foodCount()} ${FOOD_NAME})`);
     let ate = false;
-    // Eating has a cooldown, so a single failed bite is normal — only give up
+    // Eating has a cooldown, so a single failed bite is normal, only give up
     // after several in a row, or the heal stops one lobster in.
     let misses = 0;
     for (let guard = 0; guard < 40 && hpFrac() < 1 && foodCount() > 0 && misses < 3; guard++) {
@@ -727,7 +727,7 @@ class Fight implements Task {
             if (EventSignal.pending() || this.bot.died || ChatDialog.canContinue() || underAttack()) {
                 return;
             }
-            // Hand back to the loop so BankRun can restock — this inner cycle
+            // Hand back to the loop so BankRun can restock, this inner cycle
             // owns the bot for up to two minutes, long enough to die foodless.
             if (needsResupply(this.bot)) {
                 this.bot.vlog('out of supplies mid-fight — yielding to the bank run');
@@ -747,7 +747,7 @@ class Fight implements Task {
                 this.targetIdx = null;
             }
             if (findLoot() !== null) {
-                // Inline, not a sibling task — a 600ms task hop per item loses drops.
+                // Inline, not a sibling task, a 600ms task hop per item loses drops.
                 if (Inventory.isFull() && (await freeSlotForLoot(this.bot))) {
                     continue;
                 }
@@ -765,7 +765,7 @@ class Fight implements Task {
             }
             if (Game.inCombat()) {
                 // Why: burying costs a tick like eating, so spend it in the swing cooldown rather than on the swing.
-                // Why: inline, not a sibling task — a sibling only runs when Fight yields, which spaces burials out.
+                // Why: inline, not a sibling task. A sibling only runs when Fight yields, which spaces burials out.
                 if (BURY_BONES && (await buryOneInFight(BONE_NAME))) {
                     this.bot.countBurial();
                     this.bot.vlog(`buried ${BONE_NAME} (${this.bot.burials()} total)`);
@@ -910,7 +910,7 @@ export default class GreenDragon extends TaskBot {
             this.log(msg);
         }
     }
-    /** Verbose, but only when the message changes — hot loops repeat. */
+    /** Verbose, but only when the message changes, hot loops repeat. */
     vlogChange(key: string, msg: string): void {
         if (this.lastVlog.get(key) === msg) {
             return;

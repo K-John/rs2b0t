@@ -1,7 +1,7 @@
 /** Live Big Chompy Bird Hunting harness (#235): --stage N --until N --stats N --minutes N --tick ms --teleports.
- *  Why: members-only, so base :8890 — the :8888 sim has no `node` block and every members gate refuses.
+ *  Why: members-only, so base :8890, the :8888 sim has no `node` block and every members gate refuses.
  *  Why: `--stage` relogs, since update_questlist only recolours the journal entry at login.
- *  Why: a stage-0 run banks coins, food and a melee kit alone — the axe, the feathers, the knife, the chisel, the bellows,
+ *  Why: a stage-0 run banks coins, food and a melee kit alone, the axe, the feathers, the knife, the chisel, the bellows,
  *  the arrows, the bait and all six seasonings have sources in the world, and banking one hides whether the bot finds it.
  *  Why: a mid-quest start also banks a knife and a chisel, because Bugs only sells the pair while the quest sits at stage 5. */
 

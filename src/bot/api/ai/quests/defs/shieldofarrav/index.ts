@@ -43,11 +43,11 @@ export function decide(snap: QuestSnapshot): QuestStep {
     }
 
     const mine = gang();
-    // Why: `ownsInventory` skips the engine's provisioning, so nothing else ever opens a booth — and a certificate or a traded store key sitting in the bank stays invisible until one read happens.
+    // Why: `ownsInventory` skips the engine's provisioning, so nothing else ever opens a booth, and a certificate or a traded store key sitting in the bank stays invisible until one read happens.
     if (!snap.bankKnown) {
         return { kind: 'scanBank' };
     }
-    // Why: minting outranks every trade — a bot holding both halves must never hand one back.
+    // Why: minting outranks every trade, a bot holding both halves must never hand one back.
     const curator = curatorStep(snap, mine);
     if (curator) {
         return curator;
@@ -75,6 +75,13 @@ export function decide(snap: QuestSnapshot): QuestStep {
         return certs;
     }
 
+    // Why: one half in the pack and no way to a second is the dead end `warnReadiness` names, and only a `wait` parks it. A `custom` step that fails forever parks nothing.
+    if (ArravConfig.partner.trim().length === 0
+        && certsHeld(snap) + certsBanked(snap) === 0
+        && heldId(snap, ownHalf(mine)) > 0) {
+        return { kind: 'wait', reason: 'own half held, no partner and no banked certificate: the other gang\'s half is out of reach alone' };
+    }
+
     return mine === 'phoenix' ? phoenixStep(snap) : blackarmStep(snap);
 }
 
@@ -90,7 +97,7 @@ export const shieldofarrav: QuestModule = {
     // Literals, not QuestFood.name: this object is built at import, when the setting still holds its default.
     sustain: { foods: ['Lobster', 'Swordfish', 'Tuna'], eatBelowHp: 0.5 },
     readProgress: readShieldOfArravProgress,
-    // Why: the quest is not finishable alone — the crossbows sit behind a door only Straven's key opens, and joining Phoenix makes Katrine refuse you.
+    // Why: the quest is not finishable alone. The crossbows sit behind a door only Straven's key opens, and joining Phoenix makes Katrine refuse you.
     warnReadiness: () =>
         ArravConfig.partner.trim().length > 0
             ? null

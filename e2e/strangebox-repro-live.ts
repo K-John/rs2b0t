@@ -1,4 +1,4 @@
-// Live repro — Strange box ("Mysterious box") random event: [base].
+// Live repro, Strange box ("Mysterious box") random event: [base].
 // Seeds a macro_cube and watches the always-on guardian try to solve it.
 
 //   bun e2e/strangebox-repro-live.ts [http://localhost:8888]

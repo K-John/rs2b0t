@@ -72,7 +72,7 @@ if (typeof document !== 'undefined' && document.getElementById('canvas')) {
 
     WelcomeDismisser.enable();
 
-    // Always solve randoms when the scene is live — not only while a script loops.
+    // Always solve randoms when the scene is live, not only while a script loops.
     if (params.get('randomevents') !== '0') {
         RandomEventGuardian.enable();
     }

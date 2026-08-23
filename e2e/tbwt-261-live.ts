@@ -1,6 +1,6 @@
 /** Live Tai Bwo Wannai Trio harness (#261): --stage N --lubufu N --tiadeche N --tinsay N --tamayu N --flags N --at x,z,level --skills N --until N --minutes N --tick ms, base :8890.
  *  Why: members-only, so the :8888 sim refuses every gate; `--stage` and the four brother varps are set together and followed by a relog, since update_questlist only recolours the journal at login.
- *  Why: the bank holds coins, food, the ranged kit and the four items no Karamjan shop stocks — the knife, pestle and tinderbox stay out, because buying those at Jiminua's is part of what the run proves. */
+ *  Why: the bank holds coins, food, the ranged kit and the four items no Karamjan shop stocks, the knife, pestle and tinderbox stay out, because buying those at Jiminua's is part of what the run proves. */
 
 //   HEADED=1 bun e2e/tbwt-261-live.ts --stage 0 --minutes 180 --tick 300
 //   HEADED=1 bun e2e/tbwt-261-live.ts --stage 3 --until 4 --minutes 45           # the Lubufu bait leg
@@ -114,7 +114,7 @@ function fail(msg: string): never {
 const QUEST = 'Tai Bwo Wannai Trio';
 const ARDOUGNE_WEST_BANK: Tile = { x: 2616, z: 3332, level: 0 };
 const TAI_BWO_WANNAI: Tile = { x: 2780, z: 3087, level: 0 };
-/** quest.constant `^junglepotion_complete` — the one prerequisite. */
+/** quest.constant `^junglepotion_complete`, the one prerequisite. */
 const JUNGLE_POTION_COMPLETE = 12;
 /** `^tbwt_complete`, the value the quest ends on. */
 const TBWT_COMPLETE = 6;
@@ -289,12 +289,12 @@ try {
     console.log(`varps → ${varps.map(([n, v]) => `${n}=${v}`).join(' ')}`);
 
     // Why: both Brimhaven ferries charge 30gp, so a leg seeded onto Karamja with an empty
-    // purse has no route to the bank at all — an account that got there would have coin.
+    // purse has no route to the bank at all, an account that got there would have coin.
     if (args.stage > 0) {
         await cheatQuiet(page, 'give coins 1000');
         console.log('packed 1000 coins (mid-quest start, the ferry charges both ways)');
     }
-    // Why: only for iterating on one leg — the end-to-end run has to source all of this itself.
+    // Why: only for iterating on one leg, the end-to-end run has to source all of this itself.
     if (args.packed) {
         for (const cmd of PACK_SEED) {
             await cheatQuiet(page, cmd);

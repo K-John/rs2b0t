@@ -1,5 +1,5 @@
 /** GreenDragon PK-threat behaviour, two accounts: a bystander idling 3 tiles away must not scatter the bot, and the same account attacking must produce `escaping (under attack)`.
- *  Why: phase 2 runs at empty low wilderness — the zone is single-way, so while any npc is on the bot the engine refuses the PvP attack outright ("Someone else is already fighting your opponent."). */
+ *  Why: phase 2 runs at empty low wilderness. The zone is single-way, so while any npc is on the bot the engine refuses the PvP attack outright ("Someone else is already fighting your opponent."). */
 
 //   HEADED=1 bun e2e/greendragon-pk-flee-test.ts
 import type { Page } from 'playwright-core';
@@ -236,7 +236,7 @@ try {
     while (Date.now() < deadline && !fled) {
         const at = await tile(foe);
         if (!at || at.z <= 3520) {
-            // Died and respawned in Lumbridge — heal and put it back, or the rest
+            // Died and respawned in Lumbridge, heal and put it back, or the rest
             // of the loop sends attacks that can never land.
             await cheatQuiet(foe, 'setstat hitpoints 99', 1000);
             await cheatQuiet(foe, teleCmd(LOW_WILDY), 3000);

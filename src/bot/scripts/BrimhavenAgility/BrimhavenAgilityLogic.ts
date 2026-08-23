@@ -52,7 +52,7 @@ export const PILLARS: ReadonlyArray<{ x: number; z: number }> = [
     { x: 2772, z: 9590 },
     { x: 2783, z: 9590 },
     { x: 2794, z: 9590 },
-    { x: 2805, z: 9590 } // 24 — ladder landing (no dispenser)
+    { x: 2805, z: 9590 } // 24, ladder landing (no dispenser)
 ];
 
 /** Server ticket enum is 0–23 only. */
@@ -232,7 +232,7 @@ export const ARENA_EDGES: readonly ArenaEdge[] = [
     { a: 22, b: 23, kind: 'handholds', minLevel: 20, mode: 'interact', locName: 'Hand holds', op: 'Climb-across' },
     // SE ladder landing → ticket grid (rope-swing south onto platform 19).
     { a: 24, b: 19, kind: 'swing', minLevel: 1, mode: 'interact', locName: 'Rope swing', op: 'Swing-on' },
-    // Fallback if the swing is awkward — planks west onto platform 23 (broken tiles possible).
+    // Fallback if the swing is awkward, planks west onto platform 23 (broken tiles possible).
     { a: 24, b: 23, kind: 'plank', minLevel: 1, mode: 'interact', locName: 'Plank', op: 'Walk-on' }
 ];
 
@@ -298,12 +298,10 @@ export function coinsToWithdraw(alreadyPaid: boolean, coinsInPack: number): numb
 
 export const STEAL_THIEVING_MIN = 20;
 export const GUARD_THIEVING_MIN = 40;
-/** Cakes to steal when the selected food is gone — enough to eat through a guard restock. */
-export const CAKE_STEAL_FILL = 12;
 /** Minimum cakes to keep before pickpocketing guards. */
 export const CAKE_GUARD_BUFFER = 4;
 
-export function shouldBank(tickets: number, foodCount: number, bankAtTickets: number, stealRestock = false): boolean {
+export function shouldBank(tickets: number, foodCount: number, bankAtTickets: number, stealRestock: boolean): boolean {
     if (tickets >= bankAtTickets) {
         return true;
     }
@@ -313,20 +311,34 @@ export function shouldBank(tickets: number, foodCount: number, bankAtTickets: nu
     return foodCount <= 0;
 }
 
-/** Steal cakes when the pack has no selected food and no stall food, or when a guard restock needs a HP buffer. */
+/** Slots the stall fill must leave empty so a new coin stack and the first ticket can land. */
+export function stealReserveSlots(coins: number, tickets: number): number {
+    return (coins <= 0 ? 1 : 0) + (tickets <= 0 ? 1 : 0);
+}
+
+/** Steal while the pack has room. Cake/bread/slice counts do not matter. They are unstackable mixed stall loot. */
 export function needsCakeSteal(
     selectedFood: number,
     cakes: number,
     stealRestock: boolean,
-    needCoins: boolean
+    needCoins: boolean,
+    freeSlots: number
 ): boolean {
     if (!stealRestock) {
         return false;
     }
-    if (selectedFood <= 0 && cakes <= 0) {
+    if (freeSlots <= 0) {
+        return false;
+    }
+    if (selectedFood <= 0) {
         return true;
     }
     return needCoins && cakes < CAKE_GUARD_BUFFER;
+}
+
+/** Leave the arena only when steal restock has nothing left to eat, or coins for the next trip are gone. */
+export function shouldLeaveForSteal(stealRestock: boolean, inArena: boolean, edible: number, needCoins: boolean): boolean {
+    return stealRestock && inArena && (edible <= 0 || needCoins);
 }
 
 /** Inventory fields used to distinguish a live stack gain from a removal. */
@@ -412,7 +424,7 @@ export function onArenaPlatform(level: number): boolean {
     return level >= 3;
 }
 
-// Why: a failed obstacle drops the player to plane 0 under the same (x,z) — user report 2802,9590,0.
+// Why: a failed obstacle drops the player to plane 0 under the same (x,z), user report 2802,9590,0.
 // Why: pillars still snap by x/z but edge locs exist only on plane 3, so the caller climbs the rope before pathing.
 
 /** True when the player is under the arena rather than on its platforms. */
@@ -449,7 +461,7 @@ export function obstacleOutcome(
 }
 
 /**
- * Safe to start the next hop. Only the pit blocks — residual landing anims are
+ * Safe to start the next hop. Only the pit blocks, residual landing anims are
  * clickable, and re-click loops handle ignored packets.
  */
 export function canStartObstacle(_animating: boolean, inPit: boolean): boolean {
@@ -499,11 +511,11 @@ export function usableEdges(agility: number): ArenaEdge[] {
     return ARENA_EDGES.filter(e => agility >= e.minLevel);
 }
 
-// Why: timed blades knock you back on a 7-tick cycle — walking them is a stall, not a hop.
+// Why: timed blades knock you back on a 7-tick cycle, walking them is a stall, not a hop.
 // Why: a random ticket-grid plank is `plank_broke1` and dumps you in the pit with no agility roll.
 // Why: below 20 the plank is the only 5↔6 link; at 20+ spikes/handholds replace it.
 // Why: the SE landing still needs 24↔23 when the rope swing is awkward.
-// Why: dart fails drain current agility (`stat_drain`) and 100% fail below 40 — using them as a cheap hop is a doom loop.
+// Why: dart fails drain current agility (`stat_drain`) and 100% fail below 40, using them as a cheap hop is a doom loop.
 function pathingEdges(agility: number): ArenaEdge[] {
     return usableEdges(agility).filter(e => {
         if (e.a === 24 || e.b === 24) {
@@ -648,7 +660,7 @@ export function ticketsInWindow(minutes: number, firstUnpaid = true, misses = 0)
     return Math.max(0, cycles - (firstUnpaid ? 1 : 0) - misses);
 }
 
-/** Centre plus the two spike islands — standing here keeps the next random pillar to a short chase. */
+/** Centre plus the two spike islands, standing here keeps the next random pillar to a short chase. */
 export function onTicketHub(platform: number): boolean {
     return platform === CENTRE_PLATFORM || platform === 13 || platform === 14;
 }

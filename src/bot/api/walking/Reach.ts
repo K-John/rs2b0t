@@ -19,12 +19,16 @@ interface ReachLocOpts {
     op: string;
     near: WorldTile;
     within?: number;
-    // Why: display names collide — four ordinary crates answer "Search" within six tiles of Wydin's grocery crate, and the nearest is rarely the one the quest means.
+    // Why: display names collide, four ordinary crates answer "Search" within six tiles of Wydin's grocery crate, and the nearest is rarely the one the quest means.
 
     /** Exact loc id, when the display name is shared with something else in range. */
     id?: number;
     expect: () => boolean;
     expectMs?: number;
+    // Why: only "I can't reach that!" is watched by default, so every other refusal is invisible to `expect` and the op is re-sent to the cap, each send waiting out `expectMs` in full.
+
+    /** Game-message pattern the loc's script answers with when the op cannot work yet. */
+    refused?: RegExp;
     log?: (m: string) => void;
 }
 
@@ -129,11 +133,12 @@ async function reachThroughDoors(
     what: string,
     log: (m: string) => void,
     retryAfterTimeout = true,
-    probeUnreachable = false
+    probeUnreachable = false,
+    refused?: RegExp
 ): Promise<ReachStatus> {
     for (let i = 0; i < REACH_DOOR_ATTEMPTS; i++) {
         // Why: the server only says "I can't reach that!" once its own path search dead-ends, which a target that keeps moving can postpone forever.
-        // Why: for those, probing the scene is cheap — a wrong probe falls through to the click below and costs nothing.
+        // Why: for those, probing the scene is cheap, a wrong probe falls through to the click below and costs nothing.
         if (probeUnreachable && !expect()) {
             const blocked = targetTile();
             const here = reader.worldTile();
@@ -146,8 +151,17 @@ async function reachThroughDoors(
         const mark = GameMessages.mark();
         const dispatched = await attempt();
         if (dispatched) {
-            await Execution.delayUntil(() => expect() || GameMessages.sawSince(mark, CANT_REACH), expectMs);
+            await Execution.delayUntil(
+                () => expect() || GameMessages.sawSince(mark, CANT_REACH)
+                    || (refused !== undefined && GameMessages.sawSince(mark, refused)),
+                expectMs
+            );
             if (expect()) { return 'done'; }
+            // Why: the script has answered, and the answer was no, re-sending the identical click cannot change a gate it is keyed on, so the caller decides rather than the cap.
+            if (refused !== undefined && GameMessages.sawSince(mark, refused)) {
+                log(`reach: '${what}' refused the op — not retrying`);
+                return 'retry';
+            }
             if (GameMessages.sawSince(mark, CANT_REACH)) {
                 const toward = targetTile();
                 if (!toward || !(await openBlockingDoor(toward, log))) {
@@ -217,7 +231,10 @@ export const Reach = {
             opts.expectMs ?? 12_000,
             () => find()?.tile() ?? null,
             opts.name,
-            log
+            log,
+            true,
+            false,
+            opts.refused
         );
     },
 

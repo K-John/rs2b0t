@@ -1,6 +1,7 @@
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { Skills } from '../../../../skills/Skills.js';
 import { EW_ITEM, PICKAXES, SEERS_BANK, type EwItem } from './areas.js';
+import { MELEE_WEAPONS, bestBanked, bestHeld, packWeapon, wieldedWeapon } from '../../weapons.js';
 
 export const COAL_NEED = 4;
 const THREAD_NEED = 1;
@@ -9,7 +10,7 @@ export const FOOD_WITHDRAW = 8;
 
 /**
  * Official quest skill gates (journal / wiki).
- * Combat is **not** a server gate — the workshop has aggressive elementals.
+ * Combat is **not** a server gate. The workshop has aggressive elementals.
  */
 export const EW_OFFICIAL_SKILLS = {
     mining: 20,
@@ -18,7 +19,7 @@ export const EW_OFFICIAL_SKILLS = {
 } as const;
 
 // Why: this is the lowest non-required combat profile that has completed a full headed harness, on a realistic bank seed at the official skill minimums.
-// Why: headed runs so far — max combat with an inventory seed PASS (mid-quest loop); Att/Str 40, Def 25, HP 40 on a bank seed FAIL (Water elemental death); Att/Str 50, Def 40, HP 50 on a bank seed PASS (about 270s, 2026-08-01).
+// Why: headed runs so far, max combat with an inventory seed PASS (mid-quest loop); Att/Str 40, Def 25, HP 40 on a bank seed FAIL (Water elemental death); Att/Str 50, Def 40, HP 50 on a bank seed PASS (about 270s, 2026-08-01).
 // Why: the polish goal is to push this down and branch tactics by power level, so update it when a headed run changes the floor.
 export const EW_PROVEN_COMBAT_FLOOR = {
     attack: 50,
@@ -27,7 +28,7 @@ export const EW_PROVEN_COMBAT_FLOOR = {
     hitpoints: 50
 } as const;
 
-/** Profiles known to fail a full clear (do not treat as “close enough”). */
+/** Profiles known to fail a full clear (do not treat as "close enough"). */
 export const EW_FAILED_COMBAT = {
     attack: 40,
     strength: 40,
@@ -47,12 +48,12 @@ export const EW_PROBE_COMBAT = {
 
 /** @deprecated Prefer EW_PROVEN_COMBAT_FLOOR. */
 export const EW_TESTED_COMBAT = EW_PROVEN_COMBAT_FLOOR;
-/** @deprecated Prefer EW_PROVEN_COMBAT_FLOOR for “safe”; EW_PROBE_COMBAT for search. */
+/** @deprecated Prefer EW_PROVEN_COMBAT_FLOOR for "safe"; EW_PROBE_COMBAT for search. */
 export const EW_RECOMMENDED_COMBAT = EW_PROVEN_COMBAT_FLOOR;
 
 /**
  * One-shot advisory when the account is below any proven combat floor (or only
- * max is proven). Soft — does not block the queue. See docs/QUESTS.md polish goal.
+ * max is proven). Soft, does not block the queue. See docs/QUESTS.md polish goal.
  */
 export function warnElementalWorkshopReadiness(): string | null {
     const have = {
@@ -108,14 +109,7 @@ export function warnElementalWorkshopReadiness(): string | null {
 }
 
 /** Melee weapons usable for the Earth elemental (and for slashing the book). */
-export const WEAPONS: readonly EwItem[] = [
-    { id: 1333, name: 'Rune scimitar' },
-    { id: 1331, name: 'Adamant scimitar' },
-    { id: 1329, name: 'Mithril scimitar' },
-    { id: 1325, name: 'Steel scimitar' },
-    { id: 1323, name: 'Iron scimitar' },
-    { id: 1321, name: 'Bronze scimitar' }
-];
+
 
 export function held(snap: QuestSnapshot, id: number): number {
     return snap.invIds?.get(id) ?? 0;
@@ -147,7 +141,7 @@ function isSlashName(name: string): boolean {
         || n.includes('battleaxe');
 }
 
-/** Melee weapons for the Earth elemental — knife is not enough (ensureMeleeWeapon ignores it). */
+/** Melee weapons for the Earth elemental, knife is not enough (ensureMeleeWeapon ignores it). */
 function isCombatWeaponName(name: string): boolean {
     const n = name.toLowerCase();
     return n.includes('scimitar')
@@ -160,14 +154,14 @@ function isCombatWeaponName(name: string): boolean {
 }
 
 // Why: the book spine accepts a knife or any slash weapon, as the server checks slashattack_anim.
-// Why: this is inventory-only, since `useOn` needs a pack item — worn blades have to be removed first (see slashBookForKey) or a knife is withdrawn.
+// Why: this is inventory-only, since `useOn` needs a pack item, worn blades have to be removed first (see slashBookForKey) or a knife is withdrawn.
 
 /** True when the pack holds something that can slash the book open. */
 export function hasHeldSlashTool(snap: QuestSnapshot): boolean {
     if (held(snap, EW_ITEM.KNIFE.id) > 0) {
         return true;
     }
-    if (WEAPONS.some(w => held(snap, w.id) > 0)) {
+    if (packWeapon(snap) !== null) {
         return true;
     }
     for (const name of snap.inv.keys()) {
@@ -179,14 +173,14 @@ export function hasHeldSlashTool(snap: QuestSnapshot): boolean {
 }
 
 /**
- * Pack or worn slash tool. Used for “do we own something that can cut the book”
- * after unequip — not as a gate that skips bank withdraw while still worn-only.
+ * Pack or worn slash tool. Used for "do we own something that can cut the book"
+ * after unequip, not as a gate that skips bank withdraw while still worn-only.
  */
 export function hasSlashTool(snap: QuestSnapshot): boolean {
     if (hasHeldSlashTool(snap)) {
         return true;
     }
-    if (WEAPONS.some(w => snap.wornIds?.has(w.id) ?? false)) {
+    if (wieldedWeapon(snap) !== null) {
         return true;
     }
     for (const name of snap.worn) {
@@ -198,7 +192,7 @@ export function hasSlashTool(snap: QuestSnapshot): boolean {
 }
 
 export function hasWeapon(snap: QuestSnapshot): boolean {
-    if (WEAPONS.some(w => held(snap, w.id) > 0 || (snap.wornIds?.has(w.id) ?? false))) {
+    if (bestHeld(snap) !== null) {
         return true;
     }
     return [...snap.inv.keys(), ...snap.worn].some(isCombatWeaponName);
@@ -213,7 +207,7 @@ export function bestBankPickaxe(snap: QuestSnapshot): EwItem | null {
 }
 
 export function bestBankWeapon(snap: QuestSnapshot): EwItem | null {
-    return WEAPONS.find(w => banked(snap, w.id) > 0) ?? null;
+    return bestBanked(snap);
 }
 
 export function scanBank(): QuestStep {
@@ -244,8 +238,7 @@ function keepNamesForEntry(): string[] {
         'coal', 'bronze pickaxe', 'iron pickaxe', 'steel pickaxe', 'mithril pickaxe',
         'adamant pickaxe', 'rune pickaxe', 'elemental ore', 'elemental metal', 'elemental shield',
         'a stone bowl', 'coins', 'lobster', 'swordfish', 'salmon', 'trout',
-        'rune scimitar', 'adamant scimitar', 'mithril scimitar', 'steel scimitar',
-        'iron scimitar', 'bronze scimitar'
+        ...MELEE_WEAPONS.map(w => w.name.toLowerCase())
     ];
 }
 
@@ -394,7 +387,7 @@ export function surfaceLoadout(snap: QuestSnapshot, needBellowsFix: boolean, nee
     }
     if (!hasHeldSlashTool(snap) && !hasSlashTool(snap)
         && banked(snap, EW_ITEM.KNIFE.id) === 0 && !bestBankWeapon(snap)) {
-        // Ground knife spawn is the last resort in sourceKnife — not a wait.
+        // Ground knife spawn is the last resort in sourceKnife, not a wait.
         return null;
     }
 
@@ -418,7 +411,7 @@ function workshopKeepIds(snap: QuestSnapshot): number[] {
         EW_ITEM.HAMMER.id,
         EW_ITEM.COINS.id,
         ...PICKAXES.map(p => p.id),
-        ...WEAPONS.map(w => w.id)
+        ...MELEE_WEAPONS.map(w => w.id)
     ];
     void snap;
     return ids;

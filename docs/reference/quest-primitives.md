@@ -14,7 +14,7 @@ that quest steps are built from:
 | `talkOp(actions)` / `pickPreferred(options, prefer)` | choosing an op or an option |
 | `isUnderground(t)` / `needsHop(here, anchor)` | whether a level change is required |
 
-[`exec/prompts.ts`](../../src/bot/api/ai/quests/exec/prompts.ts) covers the other half — the
+[`exec/prompts.ts`](../../src/bot/api/ai/quests/exec/prompts.ts) covers the other half, the
 world, rather than a conversation:
 
 | Primitive | What it handles |
@@ -24,7 +24,7 @@ world, rather than a conversation:
 | `driveChoice(prefer, log)` | `driveDialog` that abandons rather than guessing |
 | `locNear(name, op, within)` / `heldId(id)` / `settleScene()` | the small repeated lookups |
 
-`driveChoice` exists because loc prompts routinely put the refusal first — the
+`driveChoice` exists because loc prompts routinely put the refusal first, the
 gallows offers *"I don't think so, it might animate and attack me!"* as option one.
 Falling through to an unmatched option is worse than stopping.
 
@@ -40,7 +40,7 @@ const COOK: NpcStop = {
 };
 ```
 
-Server-driven dialogue chains must be *driven to completion* — stopping at the first
+Server-driven dialogue chains must be *driven to completion*, stopping at the first
 continue leaves the conversation half-finished and the quest un-advanced.
 
 `gotoNpc` is leash-limited by design. For an NPC that patrols, that is the wrong
@@ -52,6 +52,29 @@ Opening the dialogue itself goes through [`Reach`](../reference/nav-walker.md#th
 NPC who has wandered behind a shut door is reached rather than abandoned. Being inside
 the leash does not mean being reachable: Fred the Farmer paces into his bedroom, the
 one interior door re-shuts, and every talk from the anchor is silently dropped.
+
+## Driving an interface a quest opens
+
+A quest that opens its own panel reads it through
+[`reader.modalButtons(root)`](../../src/bot/adapter/ClientAdapter.ts), which reports every
+button under a modal root with its caption, the word its menu offers, and whether a layer
+above it is hiding it. `if_sethide` is how a script arms a button, so `hidden === false` is
+the only honest answer to "will this press be seen". Two things go wrong otherwise, both
+without a message:
+
+- The engine drops an `if_button` on a component that carries no `buttontype`, and drops
+  one that arrives while the script is still inside a `p_delay`.
+- The client sends RESUME_PAUSEBUTTON once per interface open and refuses every later press,
+  so a `buttontype=pause` button pressed early is the only press that round had.
+
+Death Plateau's dice panel hit both. It pressed Continue on the first tick after rolling,
+because *"Continue..."* is a static caption the panel carries from the moment it opens, and
+every round then ended by force-closing the modal.
+
+The root id in `pack/interface.pack` is the server's own and is what arrives in
+`reader.modals().main`, but a root's children are not numbered from `root + 1` and counting
+entries in the `.if` file gives the wrong number. Find a child by what it says and how it
+answers, never by an id counted off the pack.
 
 ## See also
 

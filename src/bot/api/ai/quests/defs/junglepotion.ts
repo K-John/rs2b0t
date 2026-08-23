@@ -19,7 +19,7 @@ const ARDOUGNE_BANK = new Tile(2616, 3332, 0);
 /** Trufitus wants each herb picked fresh and cleaned, so both ids matter. */
 interface JungleHerb {
     key: string;
-    /** Display name after Identify — what Trufitus accepts. */
+    /** Display name after Identify, what Trufitus accepts. */
     name: string;
     id: number;
     /** Every unid renders as "Unidentified herb", so pick these out by id. */
@@ -271,7 +271,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
     if (snap.journal === 'unknown') {
         return { kind: 'wait', reason: 'quest journal not loaded' };
     }
-    // Why: a carried unid outranks the journal, as it exists only because it was picked — the state the journal cannot render.
+    // Why: a carried unid outranks the journal, as it exists only because it was picked, the state the journal cannot render.
     // Why: at `found_snake_weed` holding the unid the journal writes no line at all, and every other `found_` stage writes the previous stage's "go and pick it" line.
     const carried = JUNGLE_HERBS.find(h => (snap.invIds?.get(h.unidId) ?? 0) > 0);
     if (carried) {
@@ -294,7 +294,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
         return { kind: 'wait', reason: `Jungle Potion stage ${stage} is not implemented` };
     }
     // Picking is what advances `get_` to `found_`, and only `found_` accepts a
-    // hand-in — so a clean herb carried into a `get_` stage still has to be re-picked.
+    // hand-in, so a clean herb carried into a `get_` stage still has to be re-picked.
     const held = snap.invIds?.get(herb.id) ?? 0;
     if (stage % 2 === 1 || held === 0) {
         return { kind: 'custom', name: `pick ${herb.name}`, run: pickHerb(herb) };

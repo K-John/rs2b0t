@@ -70,6 +70,9 @@ export interface NpcStop {
     leash: number;
     prefer: string[];
     approach?: Tile[];
+    // Why: a scene that walks an npc somewhere and animates it goes quiet for longer than a page turn, and the default tolerance ends the drive mid-scene.
+    /** How long a lull may last before the conversation counts as over. */
+    gapMs?: number;
 }
 
 async function hopLadder(hop: LadderHop, log: (m: string) => void): Promise<boolean> {
@@ -179,13 +182,16 @@ export async function gotoNpc(stop: NpcStop, hops: LadderHop[], log: (m: string)
     return npcNear();
 }
 
-export async function driveDialog(prefer: string[], log: (m: string) => void): Promise<boolean> {
+/** A page turn's worth of quiet; a scene that walks an npc about wants its stop to name more. */
+const DIALOG_GAP_MS = 1500;
+
+export async function driveDialog(prefer: string[], log: (m: string) => void, gapMs = DIALOG_GAP_MS): Promise<boolean> {
     for (let i = 0; i < 120; i++) {
         if (EventSignal.pending()) {
             return false;
         }
         if (!ChatDialog.isOpen() && !ChatDialog.canContinue()) {
-            if (!(await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue(), 1500))) {
+            if (!(await Execution.delayUntil(() => ChatDialog.isOpen() || ChatDialog.canContinue(), gapMs))) {
                 break;
             }
         }
@@ -239,14 +245,14 @@ export async function openDialogue(npcName: string, log: (m: string) => void): P
     return true;
 }
 
-export async function talkThrough(npcName: string, prefer: string[], log: (m: string) => void): Promise<boolean> {
+export async function talkThrough(npcName: string, prefer: string[], log: (m: string) => void, gapMs?: number): Promise<boolean> {
     if (!(await openDialogue(npcName, log))) {
         return false;
     }
-    return driveDialog(prefer, log);
+    return driveDialog(prefer, log, gapMs);
 }
 
-// Why: guessing is harmful wherever the unmatched option bites — several ogres offer "I have come to kill you" as the alternative.
+// Why: guessing is harmful wherever the unmatched option bites, several ogres offer "I have come to kill you" as the alternative.
 
 /**
  * Like `talkThrough`, but abandons the dialogue instead of guessing when no preferred option matches.

@@ -27,7 +27,7 @@ function loadFinder(): PathFinder {
 const finder = HAS_COLLISION_PACK ? loadFinder() : (null as unknown as PathFinder);
 
 const ARDOUGNE_BANK: NavPoint = { x: 2655, z: 3286, level: 0 };
-/** trail_clue_medium_anagram009 — Donovan the Family Handyman, upstairs. */
+/** trail_clue_medium_anagram009, Donovan the Family Handyman, upstairs. */
 const DONOVAN_CLUE = 2855;
 
 // Why: the ground floor's 22-tile north strip is walkable and reads as unsealed, so an approach anchored there is unreachable from the rest of the floor.

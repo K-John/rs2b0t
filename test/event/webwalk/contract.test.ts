@@ -239,7 +239,7 @@ describe('nav v2 teleport catalog (Server scan)', () => {
         const glory = JEWELLERY_TELEPORTS.filter(t => t.teleportId.startsWith('glory_'));
         expect(glory).toHaveLength(4);
         expect(inventoryNameMatchesJewellery('Amulet of glory(2)', glory[0]!)).toBe(true);
-        // uncharged "Amulet of glory" has no '(' — inventory matcher requires charged form
+        // uncharged "Amulet of glory" has no '(', inventory matcher requires charged form
         expect(inventoryNameMatchesJewellery('Amulet of glory', glory[0]!)).toBe(false);
     });
 

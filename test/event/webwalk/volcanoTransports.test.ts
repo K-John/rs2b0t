@@ -40,7 +40,7 @@ describe('Karamja volcano transports', () => {
     });
 
     test('the volcano is the only ungated way in — the wall is Dragon Slayer both ways', () => {
-        // Why: the wall refuses anyone who has not opened it from the Crandor side, so an ungated edge — or one gated on a single direction — routes a bot into a dungeon it cannot leave.
+        // Why: the wall refuses anyone who has not opened it from the Crandor side, so an ungated edge, or one gated on a single direction, routes a bot into a dungeon it cannot leave.
         const wall = edges.filter(e => e.from.z === 9599 || e.to.z === 9599);
         expect(wall.length).toBeGreaterThan(0);
         for (const e of wall) {

@@ -116,7 +116,7 @@ export async function enterFissure(log: (m: string) => void): Promise<boolean> {
 }
 
 /**
- * Getting to the south room from the surface is two crossings, not one — a death or
+ * Getting to the south room from the surface is two crossings, not one, a death or
  * a restart puts us back on Karamja and every harvest step has to climb in again.
  */
 async function inSouthRoom(log: (m: string) => void): Promise<boolean> {
@@ -273,7 +273,7 @@ export async function buryZadimus(log: (m: string) => void): Promise<boolean> {
     if (!(await corpse.interact('Bury'))) {
         return false;
     }
-    // Dig, apparition, speech, shard, closing box — a chain with gaps in it, so the
+    // Dig, apparition, speech, shard, closing box, a chain with gaps in it, so the
     // shard rather than a closed dialogue is what ends the step.
     return driveUntil(() => heldId(SV_ITEM.BONE_SHARD.id) > 0, [], log, 60_000);
 }

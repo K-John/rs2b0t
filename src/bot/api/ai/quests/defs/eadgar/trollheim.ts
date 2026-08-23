@@ -13,7 +13,7 @@ import { ER_ITEM, ER_LOC, ER_NPC, ER_TILE, THISTLE_SPOTS, banked, held } from '.
 import { markEadgarFreed } from './journal.js';
 import { AEMAD, scanBank, sourceLogs, sourcePestle, sourceTinderbox, withdraw } from './supplies.js';
 
-/** `fire` from the firemaking script — Eadgar's cooking pot also displays as "Fire". */
+/** `fire` from the firemaking script, Eadgar's cooking pot also displays as "Fire". */
 const FIRE_LOC = 2732;
 const VIAL_PRICE = 10;
 /** Middle of the five thistle hops; all of them are inside one loaded scene from here. */
@@ -56,7 +56,7 @@ async function mixIds(fromId: number, ontoId: number, productId: number, log: (m
 }
 
 // Why: every unfinished potion shares the display name "Unfinished potion", so this chain is
-// addressed by object id — a name-keyed withdraw pulls whichever unf the bank happened to sort first.
+// addressed by object id, a name-keyed withdraw pulls whichever unf the bank happened to sort first.
 
 /** A ranarr potion (unf): banked, or mixed from a banked ranarr weed and a vial. */
 function sourceRanarrVial(snap: QuestSnapshot): QuestStep | null {
@@ -115,7 +115,7 @@ async function pickThistle(log: (m: string) => void): Promise<boolean> {
     return false;
 }
 
-// Why: the thistle dries on any `cooking_fire`, and the mountain has none — so the quest brings a
+// Why: the thistle dries on any `cooking_fire`, and the mountain has none, so the quest brings a
 // spare log and a tinderbox and lights one where it stands.
 
 /** Dry a picked thistle over a fire, lighting one first when there is none. */

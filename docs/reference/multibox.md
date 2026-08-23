@@ -19,7 +19,7 @@ Each slot is an iframe running the ordinary single-instance `bot.html`, unmodifi
 | `SlotStatus.player` | The logged-in character once known; a bot is added empty, so the tile has no name before that |
 | Keyboard | Up/Down selects a neighbour, Shift+Up/Down moves the selected bot |
 | Green dot | Logged in **and** script running; every other state is gray |
-| Reordering | Preserves the client in each slot — rebuilding the iframe would drop the session |
+| Reordering | Preserves the client in each slot, rebuilding the iframe would drop the session |
 
 ## Tabs
 
@@ -29,7 +29,7 @@ on a chip files that bot there.
 
 | Fact | Detail |
 |---|---|
-| Hidden tiles | Keep their iframe, session and slot position — reparenting an iframe reloads its client |
+| Hidden tiles | Keep their iframe, session and slot position, reparenting an iframe reloads its client |
 | Background tab | Bots run at render mode `hidden`, gating the same draw call the renderer switch does |
 | Renderer switch | The user's own setting, never touched; a bot already off stays off |
 | Focus memory | Per tab, per session; not vaulted |
@@ -39,8 +39,8 @@ on a chip files that bot there.
 ## Profiles and the vault
 
 `ProfileVault` encrypts profiles at rest in `localStorage` with AES-GCM under a
-PBKDF2-derived key (SHA-256, 310 000 iterations, per-vault salt and IV), using WebCrypto
-— no dependency.
+PBKDF2-derived key (SHA-256, 310 000 iterations, per-vault salt and IV), using WebCrypto,
+no dependency.
 
 `VaultStatus` is `'empty' | 'locked' | 'plaintext-legacy' | 'unlocked'`.
 `plaintext-legacy` is the migration state from an older build that stored profiles
@@ -48,7 +48,7 @@ unencrypted under a different key; it is detected rather than silently discarded
 
 `ProfileChooser` is the load-or-create screen and `VaultPrompt` the unlock prompt. Both
 are DOM view modules named explicitly in the [DOM fence](import-fences.md).
-Settings exports the unlocked vault as plaintext JSON and replaces it on import.
+Settings exports the unlocked vault plus each account's box storage (selected script, script parameters, Global settings) as plaintext JSON, and replaces both on import.
 
 ## Login coordination
 
@@ -78,7 +78,7 @@ A denied but due request keeps its FIFO place across polls, giving the canvas a 
 
 cgroup counters cover every browser thread and process and stay valid as content
 processes come and go. HTTP assets, headers and transport overhead are not counted. The
-card updates once per second by changing its own text — it never reloads or reparents an
+card updates once per second by changing its own text, it never reloads or reparents an
 iframe.
 
 Bot count and traffic are measured in-browser and work on any wall.

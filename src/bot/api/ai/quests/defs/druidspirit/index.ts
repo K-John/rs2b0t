@@ -1,9 +1,9 @@
 import { QUESTS } from '../../data/quests.js';
 import type { QuestModule, QuestSnapshot, QuestStep } from '../../engine/types.js';
-import { DREZEL, inGrotto, NS_HOPS, NS_ID, NS_STAGE } from './areas.js';
+import { BLOOM_MAX_COST, DREZEL, inGrotto, NS_HOPS, NS_ID, NS_STAGE } from './areas.js';
 import { askToHelp, bloomWithScroll, feedStones, journalLeg, mirrorLeg, solvePuzzle, talkFilliman } from './camp.js';
 import { bloomWithSickle, fillPouch, killGhast } from './ghasts.js';
-import { blessSickle, enterGrotto, exitAfterQuest, leaveGrotto, talkInGrotto } from './grotto.js';
+import { blessSickle, enterGrotto, exitAfterQuest, leaveGrotto, rechargePrayer, talkInGrotto } from './grotto.js';
 import { NS_FLAG, readDruidProgress } from './journal.js';
 import { amulet, heldId, NS_TOOLS, sickleStep } from './supplies.js';
 
@@ -45,7 +45,7 @@ function ritual(snap: QuestSnapshot): QuestStep {
     return custom('solve the ritual', solvePuzzle);
 }
 
-/** Bloom, fill, hunt — the loop the last four stages share. */
+/** Bloom, fill, hunt, the loop the last four stages share. */
 function ghastLoop(snap: QuestSnapshot): QuestStep {
     if (heldId(snap, NS_ID.SICKLE_BLESSED) === 0) {
         return heldId(snap, NS_ID.SICKLE) > 0
@@ -57,6 +57,10 @@ function ghastLoop(snap: QuestSnapshot): QuestStep {
     }
     if (harvestHeld(snap) >= 3) {
         return custom('fill the druid pouch', fillPouch);
+    }
+    // Why: only the bloom costs prayer, a pouch fill and a ghast kill are free, so the altar trip is taken here and nowhere else.
+    if ((snap.prayer ?? BLOOM_MAX_COST) < BLOOM_MAX_COST) {
+        return custom('recharge at the altar of nature', rechargePrayer);
     }
     return custom('harvest natures bounty', bloomWithSickle);
 }
@@ -94,7 +98,7 @@ export function decide(snap: QuestSnapshot): QuestStep {
             return outside(snap, custom('offer to help', askToHelp));
         case NS_STAGE.RECEIVED_SPELL:
             return outside(snap, { kind: 'talk', stop: DREZEL });
-        // Why: a held fungus is unambiguous evidence the pick landed, and the journal read trails it by a tick — branching on the page alone sent the bot back to Filliman for a scroll it no longer needed.
+        // Why: a held fungus is unambiguous evidence the pick landed, and the journal read trails it by a tick, branching on the page alone sent the bot back to Filliman for a scroll it no longer needed.
         case NS_STAGE.BLESSED:
         case NS_STAGE.CASTED_SPELL:
         case NS_STAGE.PICKED_FUNGI:

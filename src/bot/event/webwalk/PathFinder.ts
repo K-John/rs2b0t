@@ -19,7 +19,7 @@ import { essenceReturnIdFromStateIndex, essenceReturnStateIndex } from './essenc
 import { DEFAULT_EDGE_COST, edgeCostForKind, teleportEdgeCost } from './geometry/edgeCosts.js';
 
 // Why: the A* search key is tileId * 16 + essenceReturnIdx (0..15).
-// Why: `idx << 30` must not be used — JS bitwise ops are 32-bit, so idx≥4 wraps to 0 and wipes path-state (the brimstail/cromperty wormhole regression).
+// Why: `idx << 30` must not be used, JS bitwise ops are 32-bit, so idx≥4 wraps to 0 and wipes path-state (the brimstail/cromperty wormhole regression).
 // Why: return idx 0 means unknown, where exit edges fail open; 1..n is a known session return.
 const TILE_KEY_MASK = 0x3fffffff;
 const ESSENCE_STATE_SLOTS = 16;
@@ -78,7 +78,7 @@ export type PathOutcome =
 interface FindPathCallOptions {
     avoidDoors?: Set<string>;
     maxExpansions?: number;
-    /** Serialized world snapshot — worker-safe. */
+    /** Serialized world snapshot, worker-safe. */
     state?: WorldStateData;
     policy?: PathPolicy;
     /**
@@ -86,7 +86,7 @@ interface FindPathCallOptions {
      * Default false when policy.useTeleports is false; else true if policy set with useTeleports!==false.
      */
     useTeleportCatalog?: boolean;
-    // Why: the start tile may sit inside one — the bot can path out of a zone, never into one.
+    // Why: the start tile may sit inside one. The bot can path out of a zone, never into one.
     // Why: known ids must be resolved via `resolveDangerZones` before calling (idea @lolwut).
 
     /** Tiles inside these rects are never expanded into, by walk step or transport landing. */
@@ -119,7 +119,7 @@ export interface TransportEdgeData {
     options?: string[];
     /** Keep a known-invalid derived row documented without making it routable. */
     disabledReason?: string;
-    // Why: set for transports whose destination is not a static function of the loc placement (RNG, session varps, multi-exit without one plan-time dest) — scripts own those hops and nav plans around them.
+    // Why: set for transports whose destination is not a static function of the loc placement (RNG, session varps, multi-exit without one plan-time dest), scripts own those hops and nav plans around them.
     // Why: separate from `disabledReason`, which keeps broken or invalid derived rows for audit.
 
     /** When true, the edge never enters the path graph. */
@@ -152,7 +152,7 @@ export type NavResponse =
 
 const DOOR_COST = DEFAULT_EDGE_COST.door;
 // Why: long-range edges force Dijkstra (h = 0), so this first-try budget scales with total path cost rather than distance, and the time-based edge costs raised those costs by 10–25 %.
-// Why: at 500 000 the longest clue routes out of Edgeville sat at 96–99 % of budget and Varrock → deep Wilderness needed 502 246, so ordinary destinations failed first-try and survived only on `walkResilient`'s bigger-budget retry — one wasted ladder pass each time.
+// Why: at 500 000 the longest clue routes out of Edgeville sat at 96–99 % of budget and Varrock → deep Wilderness needed 502 246, so ordinary destinations failed first-try and survived only on `walkResilient`'s bigger-budget retry, one wasted ladder pass each time.
 // Why: matched to that retry budget; unreachable destinations empty the open set long before this and return in well under a second.
 const MAX_EXPANSIONS = 1_200_000;
 
@@ -379,7 +379,7 @@ export class PathFinder {
         const activated = activateTransportRows([...transports, ...stairs]);
         for (const edge of activated) {
             // disabledReason: permanently invalid or still state-deferred after activate.
-            // blacklist: intentionally excluded — destination not statically modelable (#388).
+            // blacklist: intentionally excluded, destination not statically modelable (#388).
             if (edge.disabledReason || edge.blacklist === true) {
                 continue;
             }
@@ -403,7 +403,7 @@ export class PathFinder {
                 openLocId: edge.openLocId,
                 kind: edge.kind,
                 toLevel: edge.to.level !== edge.from.level ? edge.to.level : undefined,
-                // Portals / dungeon / agility shortcuts land on a fixed tile —
+                // Portals / dungeon / agility shortcuts land on a fixed tile,
                 // executor waits on toTile (balancing ledge, log balance, …).
                 toTile:
                     edge.kind === 'dungeon' ||
@@ -613,7 +613,7 @@ export class PathFinder {
                 if (!teleportAllowedByPolicy(edgeProbe, policy, routeSpan).ok) {
                     continue;
                 }
-                // Why: origin gates (wildy thresholds) are evaluated at the path start tile — preferring live `state.wildernessLevel` would poison bank→dest plans that reuse a deep-wildy snapshot while `from` is a bank stand (#339).
+                // Why: origin gates (wildy thresholds) are evaluated at the path start tile, preferring live `state.wildernessLevel` would poison bank→dest plans that reuse a deep-wildy snapshot while `from` is a bank stand (#339).
                 const wildy = wildernessLevelAt(from);
                 if (!teleportAllowedFromOrigin(dest, from, wildy).ok) {
                     continue;
@@ -696,10 +696,12 @@ export class PathFinder {
         if (!hasOtherGates(other)) {
             return true;
         }
+        // Why: offline planners, the clue audit, the route corpora, `route-probe`, carry no WorldState and
+        // would lose every gated transport, so this stays open and `Navigator` supplies the live state instead.
         if (!baseState) {
             return true; // fail open without WorldState (pre-v2 pack parity)
         }
-        // Snapshot may still list a stale essenceExitReturn — use path return for honesty.
+        // Snapshot may still list a stale essenceExitReturn, use path return for honesty.
         const stateForMeets: WorldState =
             pathReturn !== undefined ? { ...baseState, essenceExitReturn: pathReturn } : baseState;
         return meetsRequires(other, stateForMeets).ok;
@@ -811,7 +813,7 @@ export class PathFinder {
                 extras.push(...ctx.teleFromStart);
             }
             // Why: a staircase with two ground-floor stand tiles is baked as one edge per combination, so up-then-straight-back-down composes into a same-level teleport across whatever wall separates them.
-            // Why: the server lands you on one tile only, so the walker climbs down on the wrong side and bounces — hence refusing a stair hop that returns to the level it came from without moving on the landing.
+            // Why: the server lands you on one tile only, so the walker climbs down on the wrong side and bounces, hence refusing a stair hop that returns to the level it came from without moving on the landing.
             // Why: a multi-storey climb keeps going the same way and is unaffected.
             const arrivedBy = viaEdge.get(current);
             const cameFromLevel = arrivedBy?.kind === 'stair'

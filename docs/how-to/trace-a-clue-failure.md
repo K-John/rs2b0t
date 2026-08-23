@@ -8,8 +8,8 @@
 
 ```
 [rs2b0t] clue solve failed {"clueId":2713,"name":"easy map001","reason":"no Spade held",
-  "lines":[{"m":"acquiring a spade — walking to (2574,3331)"},
-           {"m":"no spade at (2574,3331) — trying the next spawn"}, …]}
+  "lines":[{"m":"acquiring a spade, walking to (2574,3331)"},
+           {"m":"no spade at (2574,3331), trying the next spawn"}, …]}
 ```
 
 The trace persists under `TRACE_STORAGE_KEY`, so it survives the bot that produced it.
@@ -17,7 +17,7 @@ The trace persists under `TRACE_STORAGE_KEY`, so it survives the bot that produc
 ## Audit the database
 
 `tools/clues/` holds a static auditor that checks every clue is reachable and
-well-formed — coordinates on walkable ground, named objects present, NPCs that exist. A
+well-formed, coordinates on walkable ground, named objects present, NPCs that exist. A
 test gates it, so a content change that orphans a clue fails in CI rather than at the
 dig site.
 

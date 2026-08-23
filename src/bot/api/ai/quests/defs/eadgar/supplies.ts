@@ -8,7 +8,7 @@ import { Npcs } from '../../../../npcs/Npcs.js';
 import { Traversal } from '../../../../walking/Traversal.js';
 import type { QuestSnapshot, QuestStep } from '../../engine/types.js';
 import { talkChoosingBy } from '../../exec/primitives.js';
-import { QuestFood } from '../../food.js';
+import { FOOD_FLOAT, QuestFood } from '../../food.js';
 import { COMBAT_FOODS, TENZING_BOOTS, TENZING_DONE_RULES } from '../trollstronghold/areas.js';
 import { plannedGear, wearAll } from '../trollstronghold/index.js';
 import {
@@ -28,13 +28,13 @@ import {
 export const BOOT_COST = 12;
 /** Covers every purchase this quest makes several times over. */
 export const COIN_FLOAT = 1000;
-// Why: the float is drawn once and spent down — topping it back up after every 5gp price walks the
+// Why: the float is drawn once and spent down, topping it back up after every 5gp price walks the
 // character to a bank between the pineapple, the vodka and the knife.
 
 /** Below this the purse is refilled to {@link COIN_FLOAT}. */
 export const COIN_FLOOR = 200;
-export const FOOD_TARGET = 10;
-// Why: the scarecrow is sixteen slots of grain and chicken, so the float shrinks to make room — but only while that load is still being gathered.
+export const FOOD_TARGET = FOOD_FLOAT;
+// Why: the scarecrow is sixteen slots of grain and chicken, so the float shrinks to make room, but only while that load is still being gathered.
 // Why: holding it down across stages 60 and 70 sent the character up the thrower gauntlet on four lobsters and it died three times.
 
 /** Food carried while the scarecrow load is still being gathered. */
@@ -52,7 +52,7 @@ const PRICE = {
     VIAL: 10
 } as const;
 
-// Why: nobody in this game is called 'Shop keeper' — Shop.open matches the display name of the
+// Why: nobody in this game is called 'Shop keeper', Shop.open matches the display name of the
 // NPC that owns the stock.
 export const HECKEL = { npc: 'Heckel Funch', anchor: ER_TILE.HECKEL };
 export const GULLUCK = { npc: 'Gulluck', anchor: ER_TILE.GULLUCK };
@@ -109,7 +109,7 @@ export const sourcePestle = (snap: QuestSnapshot): QuestStep | null =>
     source(snap, ER_ITEM.PESTLE, 1, JATIX, PRICE.PESTLE);
 
 // Why: the tinderbox is only ever wanted on the mountain, and Burthorpe Supplies is the counter
-// the route already passes — Aemad's is four hundred tiles the wrong way.
+// the route already passes, Aemad's is four hundred tiles the wrong way.
 export const sourceTinderbox = (snap: QuestSnapshot): QuestStep | null =>
     source(snap, ER_ITEM.TINDERBOX, 1, WISTAN, PRICE.TINDERBOX);
 
@@ -171,7 +171,7 @@ async function buyBoots(log: (m: string) => void): Promise<boolean> {
 }
 
 // Why: this runs on every decide() tick while the character is still off the mountain, so each
-// branch has to be idempotent — a step that does not change the snapshot spins here forever.
+// branch has to be idempotent, a step that does not change the snapshot spins here forever.
 
 /** The loadout in one pure pass; null once the pack is ready to travel. */
 export function prepare(snap: QuestSnapshot, zone: EadgarZone, foodWant = FOOD_TARGET): QuestStep | null {
@@ -235,7 +235,7 @@ export function prepare(snap: QuestSnapshot, zone: EadgarZone, foodWant = FOOD_T
     }
     if (!bootsReady) {
         if (held(snap, ER_ITEM.COINS) < BOOT_COST) {
-            return { kind: 'wait', reason: `need ${BOOT_COST} gp for Climbing boots — the bank has none` };
+            return { kind: 'wait', reason: `need ${BOOT_COST} gp for Climbing boots, the bank has none` };
         }
         return { kind: 'custom', name: 'buy Climbing boots from Tenzing (12gp)', run: buyBoots };
     }
@@ -259,8 +259,8 @@ async function takeGround(name: string, log: (m: string) => void): Promise<boole
     return (await drop.interact('Take')) && Execution.delayUntil(() => Inventory.contains(name), 8000);
 }
 
-// Why: logs are wanted twice — with the chickens and the grain in Ardougne, and again beside the
-// Falador bank for the drying fire — and one anchor makes the other trip five hundred tiles longer.
+// Why: logs are wanted twice, with the chickens and the grain in Ardougne, and again beside the
+// Falador bank for the drying fire, and one anchor makes the other trip five hundred tiles longer.
 function nearestTrees(): Tile {
     const here = Game.tile();
     if (!here) {
@@ -298,7 +298,7 @@ async function chopLogs(qty: number, log: (m: string) => void): Promise<boolean>
     return false;
 }
 
-// Why: a chicken is a level-1 drop, not a fight — arming a protection prayer for one burns a bar
+// Why: a chicken is a level-1 drop, not a fight, arming a protection prayer for one burns a bar
 // the stronghold walk still needs, so this is a plain attack-and-loot loop.
 
 /** Kill chickens at the Ardougne farm until the pack holds `qty` raw chicken. */

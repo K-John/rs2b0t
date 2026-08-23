@@ -47,7 +47,7 @@ try {
     if (users[0] === users[1]) fail(`accounts collided: ${users.join(', ')}`);
     console.log(`PASS: two distinct accounts ingame (${users.join(', ')})`);
 
-    // offsetParent, not .hidden — an author display rule can beat the UA's
+    // offsetParent, not .hidden, an author display rule can beat the UA's
     // [hidden]{display:none}, leaving a "hidden" row plainly on screen
     const card = await page.evaluate(() => ({
         cpuHidden: (document.getElementById('mbx-resource-cpu-row') as HTMLElement).offsetParent === null,

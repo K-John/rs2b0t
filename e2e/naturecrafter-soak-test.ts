@@ -148,7 +148,7 @@ try {
     const xp0 = (await sample(pageM)).rcXp;
     const startedAt = Date.now();
     const deadline = startedAt + budgetMin * 60_000;
-    // a delivery is a runner's essence dropping to zero — no log parsing, no rolling-buffer misses
+    // a delivery is a runner's essence dropping to zero, no log parsing, no rolling-buffer misses
     const deliveries = new Array(NUM_RUNNERS).fill(0);
     const prevEss = new Array(NUM_RUNNERS).fill(0);
     const stoppedRunners = new Map<number, string>();

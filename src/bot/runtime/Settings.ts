@@ -390,7 +390,7 @@ export const MAP_PICKER_SETTINGS: SettingsSchema = {
         showIf: { key: 'showBasemap', anyOf: ['false'] },
         help: '0.05–1 in steps of 0.05 (default 0.85). Only when basemap is off.'
     },
-    // Pre-baked per-type Key overlays (deploy gen:basemap) — free toggles, no MapView.
+    // Pre-baked per-type Key overlays (deploy gen:basemap), free toggles, no MapView.
     keyIconTypes: {
         type: 'string[]',
         default: [],
@@ -432,7 +432,7 @@ export const MAP_PICKER_SETTINGS: SettingsSchema = {
         showIf: { key: 'showBasemap', anyOf: ['true'] },
         help: 'Green free-to-play tint (pre-baked). Free — no rebuild.'
     },
-    // Live Rebuild is rare — deploy already bakes terrain + Key/labels/multi/free.
+    // Live Rebuild is rare, deploy already bakes terrain + Key/labels/multi/free.
     bakeLabels: {
         type: 'boolean',
         default: false,
@@ -502,7 +502,7 @@ export const MAP_PICKER_SETTINGS: SettingsSchema = {
 };
 
 /**
- * Player-defined loadouts. Storage only — the Loadout panel owns editing, so
+ * Player-defined loadouts. Storage only, the Loadout panel owns editing, so
  * this never appears in a settings modal.
  */
 export const LOADOUT_SETTINGS_NS = 'Loadouts';

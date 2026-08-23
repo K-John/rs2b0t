@@ -2,7 +2,7 @@
 
 # Quest harness recipes (I–L)
 
-## Imp Catcher — stage-scoped harness
+## Imp Catcher, stage-scoped harness
 
 [`e2e/imp-catcher-230-live.ts`](../../e2e/imp-catcher-230-live.ts) drives the
 quest from a clean account, or one leg of it. `--stage N` sets `%imp` and relogs;
@@ -29,7 +29,7 @@ Measured at the default `--tick 300`:
 | `--stage 1 --beads 3 --start ardougne` | 14 min | 65 | 6.4 |
 | `--stage 0 --beads 0` | 15 min | 70 | 6.2 |
 
-Both runs took no parks, and both drew a long tail on the 5/128 roll — 65 kills
+Both runs took no parks, and both drew a long tail on the 5/128 roll, 65 kills
 against a mean of 26 for one bead, 70 against 53 for four. The end-to-end run
 made one `withdraw Coins×200`, killed imps from all nine spawns, and visited the
 Wizards' Tower once.
@@ -51,7 +51,7 @@ Six facts govern this harness:
 - **The floor at z 3180 keeps the next cluster out.** Nine more imps sit south
   at z 3116–3134, close enough to pull the bot 70 tiles off this strip.
 - **The hand-in is 625 of walking away, across two ship fares.** The bot farms
-  before it ever speaks to Mizgog — the imp drop table is unconditional — so the
+  before it ever speaks to Mizgog. The imp drop table is unconditional, so the
   tower is one trip rather than one out and one back.
 - **The engine restores its coin float on every provisioning tick.** Paying a
   30-coin fare made it walk the bot back for the 30 coins it had spent, and
@@ -72,12 +72,16 @@ free-to-play wherever it is farmed.
 - [Quest harness recipes (A–D)](quest-harness-recipes.md)
 - [Quest harness recipes (Big)](quest-harness-recipes-17.md)
 - [Quest harness recipes (Dig)](quest-harness-recipes-15.md)
-- [Quest harness recipes (E)](quest-harness-recipes-4.md)
-- [Quest harness recipes (F)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Ea)](quest-harness-recipes-22.md)
+- [Quest harness recipes (El–Er)](quest-harness-recipes-4.md)
+- [Quest harness recipes (Fam–Figh)](quest-harness-recipes-2.md)
+- [Quest harness recipes (Fis)](quest-harness-recipes-21.md)
 - [Quest harness recipes (Fre)](quest-harness-recipes-18.md)
 - [Quest harness recipes (G)](quest-harness-recipes-11.md)
 - [Quest harness recipes (Haz–Hol)](quest-harness-recipes-8.md)
+- [Quest harness recipes (Her)](quest-harness-recipes-19.md)
 - [Quest harness recipes (Hor)](quest-harness-recipes-10.md)
+- [Quest harness recipes (Leg)](quest-harness-recipes-20.md)
 - [Quest harness recipes (M)](quest-harness-recipes-6.md)
 - [Quest harness recipes (N–O)](quest-harness-recipes-14.md)
 - [Quest harness recipes (P–R)](quest-harness-recipes-5.md)

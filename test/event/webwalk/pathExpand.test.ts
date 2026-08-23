@@ -47,7 +47,7 @@ describe('expandChebyshevSegment', () => {
     });
 
     test('uneven diagonal uses max(dx,dz) steps (historical pack paint quirk)', () => {
-        // sign(dx)*step overshoots when |dx|!=|dz| — documents why scene BFS is better.
+        // sign(dx)*step overshoots when |dx|!=|dz|, documents why scene BFS is better.
         const s = expandChebyshevSegment({ x: 10, z: 10, level: 0 }, { x: 12, z: 13, level: 0 });
         expect(s).toEqual([
             { x: 11, z: 11, level: 0 },
@@ -77,7 +77,7 @@ describe('localBfsPath', () => {
         expect(path).not.toBeNull();
         expect(path![0]).toEqual({ lx: 3, lz: 1 });
         expect(path![path!.length - 1]).toEqual({ lx: 3, lz: 4 });
-        // Never steps onto blocked wall tiles from south into z=2 x=2..4 —
+        // Never steps onto blocked wall tiles from south into z=2 x=2..4,
         // path length > 4 (direct would be 4 tiles if open)
         expect(path!.length).toBeGreaterThan(4);
         // Detour uses x≠3 at some point

@@ -99,7 +99,7 @@ export function gatherTinderbox(snap: QuestSnapshot): QuestStep | null {
 
 // Why: no shop within two kingdoms of Rellekka carries a raw shark with stock, and Fishing 76 is well past what the quest asks for.
 
-/** Bank first, then Rufus in Canifis — the only restocking raw shark in the game. */
+/** Bank first, then Rufus in Canifis, the only restocking raw shark in the game. */
 export function gatherShark(snap: QuestSnapshot): QuestStep | null {
     if (heldId(snap, FT_ID.RAW_SHARK) > 0) {
         return null;
@@ -108,7 +108,7 @@ export function gatherShark(snap: QuestSnapshot): QuestStep | null {
         ?? { kind: 'buy', item: 'Raw shark', qty: 1, shop: { npc: 'Rufus', anchor: FT_TILE.RUFUS }, estGp: 4000 };
 }
 
-// Why: the bank is a fifty-second walk from Rellekka, and the quest spends coin in five places — a lump costs one trip where exact change costs five.
+// Why: the bank is a fifty-second walk from Rellekka, and the quest spends coin in five places. A lump costs one trip where exact change costs five.
 const COIN_LUMP = 20_000;
 
 export function gatherCoins(snap: QuestSnapshot, need: number): QuestStep | null {
