@@ -202,7 +202,7 @@ export default class TickCooker extends LoopingBot {
     }
 
     // ------------------------------------------------------------------------
-    // 2. Walking To Range (with 1-Tick Door Bypass for Catherby)
+    // 2. Walking To Range (with Fluid On-Approach Door Bypass for Catherby)
     // ------------------------------------------------------------------------
     private async handleWalkingToRange(here: WorldTile): Promise<void> {
         if (this.spot.isCatherbyDoor) {
@@ -239,32 +239,27 @@ export default class TickCooker extends LoopingBot {
             return;
         }
 
-        // Outside building: Walk to outside door tile (2816, 3438)
+        // Outside building: Check door state as soon as we are within 3 tiles
         const distToDoorStand = Math.max(Math.abs(here.x - 2816), Math.abs(here.z - 3438));
-        if (distToDoorStand > 1) {
-            await Traversal.walkResilient(new Tile(2816, 3438, 0), { radius: 0, timeoutMs: 30_000 });
-            return;
-        }
-
-        // At or adjacent to (2816, 3438): Check door state
         const door = this.findCatherbyDoor();
-        if (door) {
+
+        if (door && distToDoorStand <= 3) {
             const hasOpen = door.actions().some(a => /open/i.test(a));
             if (hasOpen) {
-                // Door is closed: Send Open action on this tick, then yield
-                this.log('Opening Catherby range door...');
+                // Door is closed: Interact Open immediately on approach!
+                this.log('Opening Catherby range door on approach...');
                 await door.interact('Open');
                 return;
             } else {
-                // Door is open: Send Walk action on this tick
+                // Door is already open: Walk straight through to range!
                 this.log('Door is open, walking straight into range...');
                 await Traversal.walkTo(new Tile(2817, 3443, 0), { radius: 1 });
                 return;
             }
         }
 
-        // If door loc not found, attempt walk inside
-        await Traversal.walkTo(new Tile(2817, 3443, 0), { radius: 1 });
+        // Further away: Walk towards outside door tile (2816, 3438)
+        await Traversal.walkTo(new Tile(2816, 3438, 0), { radius: 0 });
     }
 
     // ------------------------------------------------------------------------
@@ -327,7 +322,7 @@ export default class TickCooker extends LoopingBot {
     }
 
     // ------------------------------------------------------------------------
-    // 4. Walking To Bank (with 1-Tick Door Bypass for Catherby)
+    // 4. Walking To Bank (with Fluid On-Approach Door Bypass for Catherby)
     // ------------------------------------------------------------------------
     private async handleWalkingToBank(here: WorldTile): Promise<void> {
         if (this.spot.isCatherbyDoor) {
@@ -353,30 +348,24 @@ export default class TickCooker extends LoopingBot {
         const isInside = here.x >= 2815 && here.x <= 2818 && here.z >= 3439 && here.z <= 3444;
 
         if (isInside) {
-            // Walk to inside door stand tile (2816, 3439)
             const distToInsideDoor = Math.max(Math.abs(here.x - 2816), Math.abs(here.z - 3439));
-            if (distToInsideDoor > 1) {
-                await Traversal.walkTo(new Tile(2816, 3439, 0), { radius: 0 });
-                return;
-            }
-
-            // At or adjacent to (2816, 3439): Check door
             const door = this.findCatherbyDoor();
-            if (door) {
+
+            if (door && distToInsideDoor <= 3) {
                 const hasOpen = door.actions().some(a => /open/i.test(a));
                 if (hasOpen) {
-                    this.log('Opening Catherby door to exit...');
+                    this.log('Opening Catherby door to exit on approach...');
                     await door.interact('Open');
                     return;
                 } else {
-                    this.log('Door is open, stepping outside toward bank...');
+                    this.log('Door is open, stepping straight outside toward bank...');
                     await Traversal.walkTo(this.spot.bankTile, { radius: 2 });
                     return;
                 }
-            } else {
-                await Traversal.walkTo(this.spot.bankTile, { radius: 2 });
-                return;
             }
+
+            await Traversal.walkTo(new Tile(2816, 3439, 0), { radius: 0 });
+            return;
         }
 
         // Outside building: Walk to Catherby bank booth
@@ -390,7 +379,7 @@ export default class TickCooker extends LoopingBot {
             return;
         }
 
-        await Traversal.walkResilient(this.spot.bankTile, { radius: 2, timeoutMs: 30_000 });
+        await Traversal.walkTo(this.spot.bankTile, { radius: 2 });
     }
 
     // ------------------------------------------------------------------------
