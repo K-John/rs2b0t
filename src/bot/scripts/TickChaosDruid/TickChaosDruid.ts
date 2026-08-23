@@ -312,13 +312,13 @@ export default class TickChaosDruid extends LoopingBot {
         const hpPercent = Skills.hpFraction() * 100;
 
         // Trip End Conditions:
-        // a) Inventory full of loot and no food left to consume for room
+        // a) Inventory full (cannot pick up any more loot)
         // b) Food depleted and HP reaching panic threshold
-        const isPackFull = Inventory.isFull() && currentFood === 0;
+        const isPackFull = Inventory.isFull();
         const isPanic = currentFood === 0 && hpPercent <= this.panicHpPercent;
 
         if (isPackFull || isPanic) {
-            this.log(`Trip finished (${isPackFull ? 'Pack full of loot' : 'Food depleted, low HP'}). Heading to bank.`);
+            this.log(`Trip finished (${isPackFull ? 'Inventory full' : 'Food depleted, low HP'}). Heading to bank.`);
             this.state = BotState.TRAVELLING_TO_BANK;
             return;
         }
