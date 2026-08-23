@@ -49,6 +49,7 @@ import Firemaker, { FIREMAKER_SETTINGS } from './Firemaker/Firemaker.js';
 import TickFiremaker, { TICK_FIREMAKER_SETTINGS } from './TickFiremaker/TickFiremaker.js';
 import Superheater, { SUPERHEATER_SETTINGS } from './Superheater/Superheater.js';
 import TickChaosDruid, { CHAOS_DRUID_SETTINGS } from './TickChaosDruid/TickChaosDruid.js';
+import TickCooker, { TICK_COOKER_SETTINGS } from './TickCooker/TickCooker.js';
 import SmithingBot, { SETTINGS as SMITHING_SETTINGS } from './SmithingBot/SmithingBot.js';
 import BankFletcher, { SETTINGS as BANKFLETCHER_SETTINGS } from './BankFletcher/BankFletcher.js';
 import DartFletcher, { DART_FLETCHER_SETTINGS } from './DartFletcher/DartFletcher.js';
@@ -715,6 +716,15 @@ ScriptRegistry.register({
     tags: ['combat', 'druids', 'herbs', 'money', 'banking', 'tick-perfect', 'fast'],
     settingsSchema: CHAOS_DRUID_SETTINGS,
     create: () => new TickChaosDruid()
+});
+
+ScriptRegistry.register({
+    name: 'TickCooker',
+    description: 'Tick-perfect high-speed cooking trainer — manual 1-tick use-chaining, anti-troll 1-tick Catherby door bypass, and fast banking',
+    category: 'Cooking',
+    tags: ['cooking', 'catherby', 'food', 'banking', 'tick-perfect', 'fast'],
+    settingsSchema: TICK_COOKER_SETTINGS,
+    create: () => new TickCooker()
 });
 
 ScriptRegistry.register({
