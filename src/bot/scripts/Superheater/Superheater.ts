@@ -163,6 +163,7 @@ export default class Superheater extends LoopingBot {
     private state: BotState = BotState.BANKING;
     private lastCastTick = 0;
     private natureQty = 0;
+    private emptyBankRetries = 0;
 
     private barsMade = 0;
     private trips = 0;
@@ -174,6 +175,7 @@ export default class Superheater extends LoopingBot {
         const barName = this.settings.str('barType', 'Steel');
         this.recipe = RECIPES[barName] ?? RECIPES.Steel!;
         this.natureQty = this.settings.num('natureQty', 0);
+        this.emptyBankRetries = 0;
 
         const magicLevel = Skills.level('magic');
         if (magicLevel < 43) {
@@ -280,6 +282,11 @@ export default class Superheater extends LoopingBot {
             }
         }
 
+        // Ensure bank item array is populated
+        if (!Bank.loaded() || !Bank.snapshotReady()) {
+            await Execution.delayUntilTicks(() => Bank.loaded() && Bank.snapshotReady(), 3);
+        }
+
         // Deposit everything except runes and staves
         const keepList = this.getKeepList();
         await Bank.depositAllMatching(depositAllExcept(keepList));
@@ -303,15 +310,35 @@ export default class Superheater extends LoopingBot {
 
         const { primary: pCount, secondary: sCount } = calculateWithdrawCounts(this.recipe, freeSlots);
 
-        // Verify bank stock
+        // Verify bank stock with snapshot tolerance & retries
         if (pCount > 0 && Bank.count(this.recipe.primaryOre) < pCount) {
-            ScriptRunner.stop(`Out of ${this.recipe.primaryOre} in bank!`);
-            return;
+            await Execution.delayUntilTicks(() => Bank.count(this.recipe.primaryOre) >= pCount, 3);
+            if (Bank.count(this.recipe.primaryOre) < pCount) {
+                if (this.emptyBankRetries < 3) {
+                    this.emptyBankRetries++;
+                    this.log(`Bank primary ore scan read low — retrying scan (attempt ${this.emptyBankRetries}/3)...`);
+                    await Execution.delayTicks(2);
+                    return;
+                }
+                ScriptRunner.stop(`Out of ${this.recipe.primaryOre} in bank!`);
+                return;
+            }
         }
         if (sCount > 0 && this.recipe.secondaryOre && Bank.count(this.recipe.secondaryOre) < sCount) {
-            ScriptRunner.stop(`Out of ${this.recipe.secondaryOre} in bank!`);
-            return;
+            await Execution.delayUntilTicks(() => Bank.count(this.recipe.secondaryOre!) >= sCount, 3);
+            if (Bank.count(this.recipe.secondaryOre) < sCount) {
+                if (this.emptyBankRetries < 3) {
+                    this.emptyBankRetries++;
+                    this.log(`Bank secondary ore scan read low — retrying scan (attempt ${this.emptyBankRetries}/3)...`);
+                    await Execution.delayTicks(2);
+                    return;
+                }
+                ScriptRunner.stop(`Out of ${this.recipe.secondaryOre} in bank!`);
+                return;
+            }
         }
+
+        this.emptyBankRetries = 0;
 
         // Withdraw Secondary ore first (e.g. Coal), then Primary ore
         if (sCount > 0 && this.recipe.secondaryOre) {
@@ -358,6 +385,11 @@ export default class Superheater extends LoopingBot {
         const availableInBank = Math.max(0, banked - 1);
 
         if (held + banked === 0) {
+            if (this.emptyBankRetries < 3) {
+                this.emptyBankRetries++;
+                await Execution.delayTicks(2);
+                return;
+            }
             ScriptRunner.stop('No Nature runes in bank or inventory!');
             return;
         }
@@ -366,7 +398,13 @@ export default class Superheater extends LoopingBot {
             // Mode 0: Withdraw all available Nature runes (leaving 1 in bank)
             if (availableInBank > 0) {
                 await Bank.withdrawX('Nature rune', availableInBank);
+                await Execution.delayUntilTicks(() => Inventory.count('Nature rune') > held, 3);
             } else if (held < neededForTrip) {
+                if (this.emptyBankRetries < 3) {
+                    this.emptyBankRetries++;
+                    await Execution.delayTicks(2);
+                    return;
+                }
                 ScriptRunner.stop('Insufficient Nature runes in bank (leaving 1 placeholder in bank).');
             }
         } else {
@@ -376,7 +414,13 @@ export default class Superheater extends LoopingBot {
                 const withdrawCount = Math.min(shortfall, availableInBank);
                 if (withdrawCount > 0) {
                     await Bank.withdrawX('Nature rune', withdrawCount);
+                    await Execution.delayUntilTicks(() => Inventory.count('Nature rune') > held, 3);
                 } else if (held < neededForTrip) {
+                    if (this.emptyBankRetries < 3) {
+                        this.emptyBankRetries++;
+                        await Execution.delayTicks(2);
+                        return;
+                    }
                     ScriptRunner.stop(`Cannot restock Nature runes: only ${banked} in bank (leaving 1 placeholder).`);
                 }
             }
@@ -424,7 +468,13 @@ export default class Superheater extends LoopingBot {
 
         if (availableFire > 0) {
             await Bank.withdrawX('Fire rune', availableFire);
+            await Execution.delayUntilTicks(() => Inventory.count('Fire rune') > heldFire, 3);
         } else if (heldFire < fireNeeded) {
+            if (this.emptyBankRetries < 3) {
+                this.emptyBankRetries++;
+                await Execution.delayTicks(2);
+                return;
+            }
             ScriptRunner.stop('No Fire staff and insufficient Fire runes (leaving 1 placeholder in bank).');
         }
     }
@@ -441,7 +491,7 @@ export default class Superheater extends LoopingBot {
     }
 
     private async openBankFast(): Promise<boolean> {
-        if (Bank.isOpen()) {
+        if (Bank.isOpen() && Bank.loaded()) {
             return true;
         }
 
@@ -459,7 +509,7 @@ export default class Superheater extends LoopingBot {
         const op = booth.actions().find(a => /use-quickly|^bank/i.test(a)) ?? booth.actions()[0] ?? 'Bank';
         await booth.interact(op);
         
-        const opened = await Execution.delayUntilTicks(() => Bank.isOpen() || ChatDialog.canContinue(), 2);
+        const opened = await Execution.delayUntilTicks(() => Bank.isOpen() || ChatDialog.canContinue(), 3);
         if (opened) {
             if (ChatDialog.canContinue()) {
                 await ChatDialog.continue();

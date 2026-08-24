@@ -1,5 +1,5 @@
 import { LoopingBot, type LoopCadence } from '../../api/bot/Bot.js';
-import { reader, type WorldTile } from '../../adapter/ClientAdapter.js';
+import { reader, actions, type WorldTile } from '../../adapter/ClientAdapter.js';
 import { Game } from '../../api/game/Game.js';
 import { Bank, withdrawOp } from '../../api/bank/Bank.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
@@ -104,8 +104,9 @@ export default class TickCooker extends LoopingBot {
     private trips = 0;
 
     private lastCookXp = 0;
-    private lastRawCount = 0;
-    private lastActionTick = 0;
+    private lastBurntInPack = 0;
+    private lastCookTick = 0;
+    private emptyBankRetries = 0;
     private startCookXp = 0;
     private startedAt = Date.now();
 
@@ -117,6 +118,8 @@ export default class TickCooker extends LoopingBot {
 
         this.startCookXp = Skills.xp('cooking');
         this.lastCookXp = this.startCookXp;
+        this.lastBurntInPack = this.countBurntInPack();
+        this.emptyBankRetries = 0;
         this.startedAt = Date.now();
 
         this.log(`TickCooker started at ${this.spot.name}. Target Food: ${this.configuredFood}`);
@@ -165,6 +168,11 @@ export default class TickCooker extends LoopingBot {
             if (!opened) return;
         }
 
+        // Ensure bank item array is populated
+        if (!Bank.loaded() || !Bank.snapshotReady()) {
+            await Execution.delayUntilTicks(() => Bank.loaded() && Bank.snapshotReady(), 3);
+        }
+
         // Deposit all non-raw items (cooked food, burnt food, caskets, etc.)
         const hasFinishedItems = Inventory.items().some(i => i.name && !i.name.toLowerCase().startsWith('raw '));
         if (hasFinishedItems) {
@@ -174,7 +182,11 @@ export default class TickCooker extends LoopingBot {
         // Resolve raw food to withdraw
         let targetRaw = this.activeRawName;
         if (!targetRaw || this.configuredFood === 'Auto-detect') {
-            const rawInBank = Bank.items().find(i => i.name && i.name.toLowerCase().startsWith('raw '));
+            const rawInBank = Bank.items().find(i => {
+                if (!i.name) return false;
+                const n = i.name.toLowerCase();
+                return n.startsWith('raw ') || n === 'bread dough';
+            });
             if (rawInBank && rawInBank.name) {
                 targetRaw = rawInBank.name;
                 this.activeRawName = targetRaw;
@@ -183,26 +195,52 @@ export default class TickCooker extends LoopingBot {
 
         const rawInPack = this.countRawInPack();
         if (rawInPack === 0) {
+            // If target raw food count reads 0, wait up to 3 ticks in case bank snapshot is refreshing
             if (!targetRaw || Bank.count(targetRaw) === 0) {
+                await Execution.delayUntilTicks(() => {
+                    if (targetRaw && Bank.count(targetRaw) > 0) return true;
+                    return Bank.items().some(i => i.name && (i.name.toLowerCase().startsWith('raw ') || i.name.toLowerCase() === 'bread dough'));
+                }, 3);
+
+                if (!targetRaw || this.configuredFood === 'Auto-detect') {
+                    const rawInBank = Bank.items().find(i => i.name && (i.name.toLowerCase().startsWith('raw ') || i.name.toLowerCase() === 'bread dough'));
+                    if (rawInBank && rawInBank.name) {
+                        targetRaw = rawInBank.name;
+                        this.activeRawName = targetRaw;
+                    }
+                }
+            }
+
+            // Retry guard before stopping permanently
+            if (!targetRaw || Bank.count(targetRaw) === 0) {
+                if (this.emptyBankRetries < 3) {
+                    this.emptyBankRetries++;
+                    this.log(`Bank raw food scan read 0 — retrying (attempt ${this.emptyBankRetries}/3)...`);
+                    await Execution.delayTicks(2);
+                    return;
+                }
                 ScriptRunner.stop(`No raw food found in bank to cook!`);
                 return;
             }
 
+            this.emptyBankRetries = 0;
             const item = Bank.items().find(i => i.name && i.name.toLowerCase() === targetRaw!.toLowerCase());
             const allOp = item ? withdrawOp(item.ops, 'all') ?? 'Withdraw-All' : 'Withdraw-All';
             await Bank.withdraw(targetRaw, allOp);
+            await Execution.delayUntilTicks(() => this.countRawInPack() > 0, 3);
         }
 
         await Bank.close();
 
         this.trips++;
-        this.lastRawCount = this.countRawInPack();
+        this.lastBurntInPack = 0;
+        this.lastCookTick = 0;
         this.lastCookXp = Skills.xp('cooking');
         this.state = BotState.WALKING_TO_RANGE;
     }
 
     // ------------------------------------------------------------------------
-    // 2. Walking To Range (with Fluid On-Approach Door Bypass for Catherby)
+    // 2. Walking To Range (with Anti-Troll Door Threshold Direct Step)
     // ------------------------------------------------------------------------
     private async handleWalkingToRange(here: WorldTile): Promise<void> {
         if (this.spot.isCatherbyDoor) {
@@ -239,31 +277,37 @@ export default class TickCooker extends LoopingBot {
             return;
         }
 
-        // Outside building: Check door state as soon as we are within 3 tiles
+        // Outside building: Walk towards outside door tile (2816, 3438)
         const distToDoorStand = Math.max(Math.abs(here.x - 2816), Math.abs(here.z - 3438));
-        const door = this.findCatherbyDoor();
+        if (distToDoorStand > 1) {
+            await Traversal.walkTo(new Tile(2816, 3438, 0), { radius: 0 });
+            return;
+        }
 
-        if (door && distToDoorStand <= 3) {
+        // At outside door tile (2816, 3438):
+        const door = this.findCatherbyDoor();
+        if (door) {
             const hasOpen = door.actions().some(a => /open/i.test(a));
             if (hasOpen) {
-                // Door is closed: Interact Open immediately on approach!
-                this.log('Opening Catherby range door on approach...');
+                this.log('Door is closed, interacting Open...');
                 await door.interact('Open');
-                return;
-            } else {
-                // Door is already open: Walk straight through to range!
-                this.log('Door is open, walking straight into range...');
-                await Traversal.walkTo(new Tile(2817, 3443, 0), { radius: 1 });
-                return;
+                await Execution.delayTicks(1);
             }
         }
 
-        // Further away: Walk towards outside door tile (2816, 3438)
-        await Traversal.walkTo(new Tile(2816, 3438, 0), { radius: 0 });
+        // Send 1 direct local step through doorway to (2816, 3439)
+        this.log('Stepping through doorway into (2816, 3439)...');
+        this.directStep(2816, 3439);
+
+        // Wait up to 2 ticks to confirm transition inside (z >= 3439)
+        await Execution.delayUntilTicks(() => {
+            const t = Game.tile();
+            return t !== null && t.z >= 3439;
+        }, 2);
     }
 
     // ------------------------------------------------------------------------
-    // 3. Cooking (Tick-Perfect Execution)
+    // 3. Cooking (Tick-Perfect Execution with 2-Tick Cadence Gate)
     // ------------------------------------------------------------------------
     private async handleCooking(currentTick: number, here: WorldTile): Promise<void> {
         const rawCount = this.countRawInPack();
@@ -274,16 +318,48 @@ export default class TickCooker extends LoopingBot {
             return;
         }
 
-        // Authoritative XP and inventory deltas
+        // 1. Authoritative Cooked Count from XP delta
         const currentXp = Skills.xp('cooking');
         if (currentXp > this.lastCookXp) {
             this.cookedCount++;
             this.lastCookXp = currentXp;
-        } else if (rawCount < this.lastRawCount) {
-            // Raw count went down without XP increase = Burnt fish
-            this.burntCount += (this.lastRawCount - rawCount);
+            this.lastCookTick = 0; // Finished!
         }
-        this.lastRawCount = rawCount;
+
+        // 2. Authoritative Burnt Count from actual 'Burnt' items appearing in backpack
+        const burntInPack = this.countBurntInPack();
+        if (burntInPack > this.lastBurntInPack) {
+            this.burntCount += (burntInPack - this.lastBurntInPack);
+            this.lastBurntInPack = burntInPack;
+            this.lastCookTick = 0; // Finished!
+        }
+
+        // 3. Cadence Gate: Cooking takes 2 ticks per fish in RS2
+        // Never spam useOn while in active cooking delay
+        if (this.lastCookTick > 0 && currentTick - this.lastCookTick < 2) {
+            return;
+        }
+
+        // 0. Location Recovery Guard:
+        // If outside the building in Catherby or far from range (e.g. after random event/teleport),
+        // revert to WALKING_TO_RANGE so door bypass and pathfinding handle re-entry properly.
+        if (this.spot.isCatherbyDoor) {
+            const isInside = here.x >= 2815 && here.x <= 2818 && here.z >= 3439 && here.z <= 3444;
+            if (!isInside) {
+                this.log('Detected outside cooking building — transitioning to Walking to Range to re-enter...');
+                this.state = BotState.WALKING_TO_RANGE;
+                return;
+            }
+        } else {
+            const distToRange = Math.max(
+                Math.abs(here.x - this.spot.rangeTile.x),
+                Math.abs(here.z - this.spot.rangeTile.z)
+            );
+            if (distToRange > 3) {
+                this.state = BotState.WALKING_TO_RANGE;
+                return;
+            }
+        }
 
         // Ensure we are standing near the cooking range
         const distToRange = Math.max(
@@ -316,13 +392,13 @@ export default class TickCooker extends LoopingBot {
             return;
         }
 
-        // 1-Tick Manual Use Chaining: Dispatch raw item onto range
+        // Dispatch raw item on range every 2 ticks
         await rawItem.useOn(range);
-        this.lastActionTick = currentTick;
+        this.lastCookTick = currentTick;
     }
 
     // ------------------------------------------------------------------------
-    // 4. Walking To Bank (with Fluid On-Approach Door Bypass for Catherby)
+    // 4. Walking To Bank (with Anti-Troll Door Threshold Direct Step)
     // ------------------------------------------------------------------------
     private async handleWalkingToBank(here: WorldTile): Promise<void> {
         if (this.spot.isCatherbyDoor) {
@@ -349,22 +425,31 @@ export default class TickCooker extends LoopingBot {
 
         if (isInside) {
             const distToInsideDoor = Math.max(Math.abs(here.x - 2816), Math.abs(here.z - 3439));
-            const door = this.findCatherbyDoor();
+            if (distToInsideDoor > 1) {
+                await Traversal.walkTo(new Tile(2816, 3439, 0), { radius: 0 });
+                return;
+            }
 
-            if (door && distToInsideDoor <= 3) {
+            // At inside door tile (2816, 3439):
+            const door = this.findCatherbyDoor();
+            if (door) {
                 const hasOpen = door.actions().some(a => /open/i.test(a));
                 if (hasOpen) {
-                    this.log('Opening Catherby door to exit on approach...');
+                    this.log('Opening Catherby door to exit...');
                     await door.interact('Open');
-                    return;
-                } else {
-                    this.log('Door is open, stepping straight outside toward bank...');
-                    await Traversal.walkTo(this.spot.bankTile, { radius: 2 });
-                    return;
+                    await Execution.delayTicks(1);
                 }
             }
 
-            await Traversal.walkTo(new Tile(2816, 3439, 0), { radius: 0 });
+            // Send 1 direct local step through doorway to (2816, 3438)
+            this.log('Stepping outside through doorway to (2816, 3438)...');
+            this.directStep(2816, 3438);
+
+            // Wait up to 2 ticks to confirm transition outside (z <= 3438)
+            await Execution.delayUntilTicks(() => {
+                const t = Game.tile();
+                return t !== null && t.z <= 3438;
+            }, 2);
             return;
         }
 
@@ -385,6 +470,12 @@ export default class TickCooker extends LoopingBot {
     // ------------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------------
+    private directStep(worldX: number, worldZ: number): boolean {
+        const loc = reader.toLocal(worldX, worldZ);
+        if (!loc) return false;
+        return actions.walkTo(loc.lx, loc.lz);
+    }
+
     private findCatherbyDoor(): Loc | null {
         return Locs.query()
             .where(l => {
@@ -401,8 +492,12 @@ export default class TickCooker extends LoopingBot {
         return Inventory.items().filter(i => i.name && i.name.toLowerCase().startsWith('raw ')).length;
     }
 
+    private countBurntInPack(): number {
+        return Inventory.items().filter(i => i.name && i.name.toLowerCase().includes('burnt')).length;
+    }
+
     private async openBankFast(): Promise<boolean> {
-        if (Bank.isOpen()) return true;
+        if (Bank.isOpen() && Bank.loaded()) return true;
 
         const booth = Locs.query().name('Bank booth').where(l => l.actions().length > 0).nearest();
         if (!booth) return Bank.openNearest('Bank booth', 'Use-quickly');
@@ -420,7 +515,10 @@ export default class TickCooker extends LoopingBot {
                 await ChatDialog.continue();
                 await Execution.delayUntilTicks(() => Bank.isOpen(), 3);
             }
-            return Bank.isOpen();
+            if (Bank.isOpen()) {
+                await Execution.delayUntilTicks(() => Bank.loaded() && Bank.snapshotReady(), 3);
+                return true;
+            }
         }
 
         return Bank.openNearest('Bank booth', 'Use-quickly');

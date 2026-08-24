@@ -75,18 +75,19 @@ describe('isHostileEventNpc', () => {
         ...over
     });
 
-    test('adjacent hostile is always an event', () => {
-        expect(isHostileEventNpc(riverTroll({ distance: 1 }), 3, false)).toBe(true);
+    test('adjacent hostile with no target is an event', () => {
+        expect(isHostileEventNpc(riverTroll({ distance: 1, faceEntity: -1 }), 3, false)).toBe(true);
     });
 
-    test('hostile id within engage range is an event even with no combat/face flags (#422 Swarm)', () => {
-        // Soft flags lag for 0-damage Swarm; antimacro ids only exist for the victim.
-        expect(isHostileEventNpc(riverTroll({ distance: 5, faceEntity: -1, inCombat: false }), 3, false)).toBe(true);
-        expect(isHostileEventNpc(riverTroll({ id: 411, distance: 4, faceEntity: -1 }), 3, false)).toBe(true);
+    test('hostile targeting another player is NEVER an event (#swarm fix)', () => {
+        // When an event mob targets player 5 (32768 + 5) but we are player 3, ignore it!
+        expect(isHostileEventNpc(riverTroll({ distance: 1, faceEntity: 32768 + 5 }), 3, false)).toBe(false);
+        expect(isHostileEventNpc(riverTroll({ id: 411, distance: 3, faceEntity: 32768 + 8 }), 3, false)).toBe(false);
     });
 
-    test('hostile already in combat within engage range is an event', () => {
-        expect(isHostileEventNpc(riverTroll({ distance: 6, inCombat: true }), 3, false)).toBe(true);
+    test('hostile targeting us is always an event', () => {
+        expect(isHostileEventNpc(riverTroll({ distance: 5, faceEntity: 32768 + 3 }), 3, false)).toBe(true);
+        expect(isHostileEventNpc(riverTroll({ id: 411, distance: 4, faceEntity: 32768 + 3 }), 3, false)).toBe(true);
     });
 
     test('hostile far away is ignored until it closes', () => {

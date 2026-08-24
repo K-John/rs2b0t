@@ -59,8 +59,8 @@ export function isHostileEventNpc(
         distance: number;
         faceEntity: number;
     },
-    _selfSlot: number,
-    _playerInCombat: boolean
+    selfSlot: number,
+    playerInCombat: boolean
 ): boolean {
     if (!HOSTILE_EVENT_NPC_IDS.has(npc.id)) {
         return false;
@@ -68,9 +68,30 @@ export function isHostileEventNpc(
     if (npc.distance > HOSTILE_ENGAGE_DISTANCE) {
         return false;
     }
-    // Why: these antimacro ids only exist as your own random event. They are not world mobs you walk past.
-    // Why: soft flags (combatCycle / faceEntity) often lag or never set for 0-damage Swarm (#422), which left walks repathing until timeout while Supervisor never intercepted, so presence within engage range is enough.
-    return true;
+
+    // 1. Authoritative check: When an event NPC targets a player, faceEntity is 32768 + targetSlot.
+    if (npc.faceEntity >= 32768) {
+        const targetSlot = npc.faceEntity - 32768;
+        // If targeting another player, it is NOT our event -> DO NOT evade!
+        if (targetSlot !== selfSlot) {
+            return false;
+        }
+        // It is targeting US -> Evade!
+        return true;
+    }
+
+    // 2. If faceEntity is not set to a player (e.g. initial spawn frame before pathing):
+    // If our player is in combat and the hostile NPC is adjacent/near, it's hitting us.
+    if (playerInCombat && npc.distance <= 2) {
+        return true;
+    }
+
+    // If it has no target and we are not in combat, only treat as our newly spawned event if very close
+    if (npc.distance <= 2 && npc.faceEntity === -1 && !npc.inCombat) {
+        return true;
+    }
+
+    return false;
 }
 
 export class GearLossTracker {
@@ -256,25 +277,29 @@ class RandomEventsImpl {
             return null;
         }
 
-        for (const npc of npcs) {
-            const name = npc.name?.toLowerCase();
-            if (!name) {
-                continue;
-            }
-            if (DIALOG_EVENT_NPCS.includes(name) && npc.distance <= 6) {
-                return { kind: 'dialog', name };
-            }
-            if (PICK_EVENT_NPCS.includes(name) && npc.distance <= 8) {
-                return { kind: 'pick', name };
-            }
-        }
-
         const selfSlot = reader.selfSlot();
         let playerInCombat = false;
         try {
             playerInCombat = Game.inCombat();
         } catch {
             playerInCombat = false;
+        }
+
+        for (const npc of npcs) {
+            const name = npc.name?.toLowerCase();
+            if (!name) {
+                continue;
+            }
+            if (DIALOG_EVENT_NPCS.includes(name) && npc.distance <= 6) {
+                // Ignore random events following other players
+                if (npc.faceEntity >= 32768 && npc.faceEntity - 32768 !== selfSlot) {
+                    continue;
+                }
+                return { kind: 'dialog', name };
+            }
+            if (PICK_EVENT_NPCS.includes(name) && npc.distance <= 8) {
+                return { kind: 'pick', name };
+            }
         }
         for (const npc of npcs) {
             if (isHostileEventNpc(npc, selfSlot, playerInCombat)) {
@@ -511,14 +536,23 @@ class RandomEventsImpl {
 
     private async handleEvade(name: string, log: (msg: string) => void): Promise<boolean> {
         const me = Game.tile();
+        const selfSlot = reader.selfSlot();
+        let playerInCombat = false;
+        try {
+            playerInCombat = Game.inCombat();
+        } catch {
+            playerInCombat = false;
+        }
+
         const threat = Npcs.query()
             .where(n => (n.name?.toLowerCase() ?? '') === name)
+            .where(n => isHostileEventNpc(n.snap, selfSlot, playerInCombat))
             .nearest();
         if (!me || !threat) {
             return false;
         }
 
-        log(`random event: ${name} attacking — evading (it despawns once we're away)`);
+        log(`random event: ${name} attacking us — evading (it despawns once we're away)`);
         const flee = fleeCandidates(me, threat.tile(), 12).find(t => Reachability.canReach(t, { maxSteps: 1500 }));
         if (!flee) {
             log('random event: nowhere reachable to evade to — waiting in place');
@@ -527,7 +561,9 @@ class RandomEventsImpl {
         }
 
         await Traversal.walkTo(flee, { radius: 2, timeoutMs: 20_000, log });
-        const gone = await Execution.delayUntil(() => !reader.npcs().some(n => (n.name?.toLowerCase() ?? '') === name), 45_000);
+        const gone = await Execution.delayUntil(() => {
+            return !reader.npcs().some(n => isHostileEventNpc(n, selfSlot, Game.inCombat()));
+        }, 45_000);
         log(gone ? `random event: ${name} despawned` : `random event: ${name} still around after evade`);
 
         await Traversal.walkTo(me, { radius: 3, timeoutMs: 20_000, log });
