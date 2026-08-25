@@ -51,7 +51,31 @@ const ANVIL = 'Anvil';
 const OPENABLE_OBSTACLES = ['door', 'gate'];
 const BAR_OPTIONS = ['Bronze', 'Iron', 'Steel', 'Mithril', 'Adamant', 'Rune'];
 
-const PRODUCT_OPTIONS = ['Dagger', 'Sword', 'Scimitar', 'Longsword', '2h sword', 'Axe', 'Mace', 'Warhammer', 'Battleaxe', 'Chainbody', 'Platelegs', 'Plateskirt', 'Platebody', 'Med helm', 'Full helm', 'Sq shield', 'Kiteshield', 'Nails', 'Dart tip', 'Arrowtips', 'Knife', 'Wire', 'Claws'];
+const PRODUCT_OPTIONS = [
+    'Dagger',
+    'Sword',
+    'Scimitar',
+    'Longsword',
+    '2h sword',
+    'Axe',
+    'Mace',
+    'Warhammer',
+    'Battleaxe',
+    'Chainbody',
+    'Platelegs',
+    'Plateskirt',
+    'Platebody',
+    'Med helm',
+    'Full helm',
+    'Sq shield',
+    'Kiteshield',
+    'Nails',
+    'Dart tip',
+    'Arrowtips',
+    'Knife',
+    'Wire',
+    'Claws'
+];
 
 export const SETTINGS: SettingsSchema = {
     location: {
@@ -177,6 +201,12 @@ export default class SmithingBot extends TaskBot {
             .first();
     }
 
+    isDoorClosed(): boolean {
+        const door = this.findDoor();
+        if (!door) return false;
+        return door.actions().some(a => /open/i.test(a));
+    }
+
     async openBankFast(): Promise<boolean> {
         if (Bank.isOpen() && Bank.loaded()) {
             return true;
@@ -272,6 +302,16 @@ class BankTrip implements Task {
 
         // 1. Anti-Troll Door Handling (e.g. Varrock West)
         if (loc?.hasDoor && loc.doorInside && loc.doorOutside && this.bot.isInsideRoom(here)) {
+            const isClosed = this.bot.isDoorClosed();
+
+            // If the door is ALREADY open: Walk straight to the bank without stopping!
+            if (!isClosed) {
+                this.bot.log('Door is open, walking straight out toward bank...');
+                await Traversal.walkTo(this.bot.bankTile(), { radius: 1 });
+                return;
+            }
+
+            // Door is closed: Approach door stand tile
             const distToDoor = Math.max(Math.abs(here.x - loc.doorInside.x), Math.abs(here.z - loc.doorInside.z));
             if (distToDoor > 1) {
                 await Traversal.walkTo(loc.doorInside, { radius: 0 });
@@ -280,13 +320,10 @@ class BankTrip implements Task {
 
             // At inside door tile: Check door state
             const door = this.bot.findDoor();
-            if (door) {
-                const hasOpen = door.actions().some(a => /open/i.test(a));
-                if (hasOpen) {
-                    this.bot.log('Opening door to exit...');
-                    await door.interact('Open');
-                    await Execution.delayTicks(1);
-                }
+            if (door && door.actions().some(a => /open/i.test(a))) {
+                this.bot.log('Opening door to exit...');
+                await door.interact('Open');
+                await Execution.delayTicks(1);
             }
 
             // Direct local step through doorway to outside
@@ -383,6 +420,16 @@ class Smith implements Task {
 
         // 1. Anti-Troll Door Handling (e.g. Varrock West)
         if (loc?.hasDoor && loc.doorInside && loc.doorOutside && !this.bot.isInsideRoom(here)) {
+            const isClosed = this.bot.isDoorClosed();
+
+            // If the door is ALREADY open: Walk straight into the anvil room without stopping!
+            if (!isClosed) {
+                this.bot.log('Door is open, walking straight into anvil room...');
+                await Traversal.walkTo(this.bot.anvilTile(), { radius: 1 });
+                return;
+            }
+
+            // Door is closed: Approach door stand tile
             const distToDoor = Math.max(Math.abs(here.x - loc.doorOutside.x), Math.abs(here.z - loc.doorOutside.z));
             if (distToDoor > 1) {
                 this.bot.setStatus('walking to anvil door');
@@ -392,13 +439,10 @@ class Smith implements Task {
 
             // At outside door tile: Check door state
             const door = this.bot.findDoor();
-            if (door) {
-                const hasOpen = door.actions().some(a => /open/i.test(a));
-                if (hasOpen) {
-                    this.bot.log('Opening door to enter anvil room...');
-                    await door.interact('Open');
-                    await Execution.delayTicks(1);
-                }
+            if (door && door.actions().some(a => /open/i.test(a))) {
+                this.bot.log('Opening door to enter anvil room...');
+                await door.interact('Open');
+                await Execution.delayTicks(1);
             }
 
             // Direct local step through doorway into room

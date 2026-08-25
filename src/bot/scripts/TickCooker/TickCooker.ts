@@ -277,7 +277,14 @@ export default class TickCooker extends LoopingBot {
             return;
         }
 
-        // Outside building: Walk towards outside door tile (2816, 3438)
+        // If door is ALREADY open: Walk straight into range room without stopping!
+        if (!this.isCatherbyDoorClosed()) {
+            this.log('Door is open, walking straight into range...');
+            await Traversal.walkTo(new Tile(2817, 3443, 0), { radius: 1 });
+            return;
+        }
+
+        // Door is closed: Walk towards outside door tile (2816, 3438)
         const distToDoorStand = Math.max(Math.abs(here.x - 2816), Math.abs(here.z - 3438));
         if (distToDoorStand > 1) {
             await Traversal.walkTo(new Tile(2816, 3438, 0), { radius: 0 });
@@ -286,13 +293,10 @@ export default class TickCooker extends LoopingBot {
 
         // At outside door tile (2816, 3438):
         const door = this.findCatherbyDoor();
-        if (door) {
-            const hasOpen = door.actions().some(a => /open/i.test(a));
-            if (hasOpen) {
-                this.log('Door is closed, interacting Open...');
-                await door.interact('Open');
-                await Execution.delayTicks(1);
-            }
+        if (door && door.actions().some(a => /open/i.test(a))) {
+            this.log('Door is closed, interacting Open...');
+            await door.interact('Open');
+            await Execution.delayTicks(1);
         }
 
         // Send 1 direct local step through doorway to (2816, 3439)
@@ -424,6 +428,13 @@ export default class TickCooker extends LoopingBot {
         const isInside = here.x >= 2815 && here.x <= 2818 && here.z >= 3439 && here.z <= 3444;
 
         if (isInside) {
+            // If door is ALREADY open: Walk straight to bank without stopping!
+            if (!this.isCatherbyDoorClosed()) {
+                this.log('Door is open, stepping straight outside toward bank...');
+                await Traversal.walkTo(this.spot.bankTile, { radius: 2 });
+                return;
+            }
+
             const distToInsideDoor = Math.max(Math.abs(here.x - 2816), Math.abs(here.z - 3439));
             if (distToInsideDoor > 1) {
                 await Traversal.walkTo(new Tile(2816, 3439, 0), { radius: 0 });
@@ -432,13 +443,10 @@ export default class TickCooker extends LoopingBot {
 
             // At inside door tile (2816, 3439):
             const door = this.findCatherbyDoor();
-            if (door) {
-                const hasOpen = door.actions().some(a => /open/i.test(a));
-                if (hasOpen) {
-                    this.log('Opening Catherby door to exit...');
-                    await door.interact('Open');
-                    await Execution.delayTicks(1);
-                }
+            if (door && door.actions().some(a => /open/i.test(a))) {
+                this.log('Opening Catherby door to exit...');
+                await door.interact('Open');
+                await Execution.delayTicks(1);
             }
 
             // Send 1 direct local step through doorway to (2816, 3438)
@@ -486,6 +494,12 @@ export default class TickCooker extends LoopingBot {
                 return Math.abs(t.x - 2816) <= 1 && (t.z === 3438 || t.z === 3439);
             })
             .first();
+    }
+
+    private isCatherbyDoorClosed(): boolean {
+        const door = this.findCatherbyDoor();
+        if (!door) return false;
+        return door.actions().some(a => /open/i.test(a));
     }
 
     private countRawInPack(): number {

@@ -48,6 +48,7 @@ import LeatherCrafter, { CRAFTER_SETTINGS } from './LeatherCrafter/LeatherCrafte
 import Firemaker, { FIREMAKER_SETTINGS } from './Firemaker/Firemaker.js';
 import TickFiremaker, { TICK_FIREMAKER_SETTINGS } from './TickFiremaker/TickFiremaker.js';
 import Superheater, { SUPERHEATER_SETTINGS } from './Superheater/Superheater.js';
+import HighAlcher, { HIGH_ALCHER_SETTINGS } from './HighAlcher/HighAlcher.js';
 import TickChaosDruid, { CHAOS_DRUID_SETTINGS } from './TickChaosDruid/TickChaosDruid.js';
 import TickCooker, { TICK_COOKER_SETTINGS } from './TickCooker/TickCooker.js';
 import SmithingBot, { SETTINGS as SMITHING_SETTINGS } from './SmithingBot/SmithingBot.js';
@@ -707,6 +708,15 @@ ScriptRegistry.register({
     tags: ['magic', 'smithing', 'superheat', 'banking', 'tick-perfect', 'fast'],
     settingsSchema: SUPERHEATER_SETTINGS,
     create: () => new Superheater()
+});
+
+ScriptRegistry.register({
+    name: 'HighAlcher',
+    description: 'Tick-perfect 5-tick High Level Alchemy bot — multi-item progression, chunked withdrawals, unstrung bow protection, and fast banking',
+    category: 'Magic',
+    tags: ['magic', 'alchemy', 'high-alch', 'money', 'banking', 'tick-perfect', 'fast'],
+    settingsSchema: HIGH_ALCHER_SETTINGS,
+    create: () => new HighAlcher()
 });
 
 ScriptRegistry.register({
