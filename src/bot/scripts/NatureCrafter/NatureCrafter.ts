@@ -36,6 +36,7 @@ const CLIMB_UP = 'Climb-up';
 const CLIMB_DOWN = 'Climb-down';
 const AGGRO_SHAKE_TICKS = 5; // ~3s upstairs, long enough for the spiders to drop us
 const SHAKE_COOLDOWN_MS = 60_000;
+const TRADE_CONFIRM_TIMEOUT_MS = 4000;
 
 export const SETTINGS: SettingsSchema = {
     rune: { type: 'string', default: DEFAULT_RUNE, options: RUNE_OPTIONS, label: 'Rune', help: 'which rune the pair crafts. Nature = Ardougne bank + ship + Jiminua un-noting; Air = Falador East bank, straight there and back' },
@@ -63,6 +64,15 @@ function unnotedEssence(): number {
     return Inventory.items().filter(i => i.id === ESSENCE_ID).reduce((s, i) => s + i.count, 0);
 }
 
+// The offer and confirmation interfaces have a dead tick between them where Trade.active() is
+// false. Keep ownership of the task across that gap so walking/banking cannot cancel the trade.
+async function acceptOfferAndAwaitConfirmation(): Promise<boolean> {
+    if (!(await Trade.accept())) {
+        return false;
+    }
+    return Execution.delayUntil(() => Trade.onConfirmScreen(), TRADE_CONFIRM_TIMEOUT_MS);
+}
+
 export default class NatureCrafter extends TaskBot {
     override loopDelay = 600;
 
@@ -80,6 +90,8 @@ export default class NatureCrafter extends TaskBot {
     private status = 'starting';
     private startedAt = Date.now();
     private xpAtStart = 0;
+    private storeWaypointPassed = false;
+    private returnWaypointPending = false;
 
     override async onStart(): Promise<void> {
         await Execution.delayUntil(() => Game.ingame() && Game.tile() !== null, 0);
@@ -182,6 +194,32 @@ export default class NatureCrafter extends TaskBot {
         }
         await Traversal.walkResilient(dest, { radius, attempts: 6, timeoutMs: 240_000, log: m => this.log(`  ${m}`) });
     }
+
+    async routeSafelyToStore(): Promise<boolean> {
+        const store = this.conf.unnote;
+        if (!store || this.storeWaypointPassed) return true;
+        this.setStatus('taking the safe route to the store');
+        await this.walkTo(store.safeWaypoint, 2);
+        const here = Game.tile();
+        this.storeWaypointPassed = here !== null && store.safeWaypoint.distanceTo(here) <= 2;
+        return this.storeWaypointPassed;
+    }
+
+    markStoreVisitComplete(): void {
+        this.storeWaypointPassed = false;
+        this.returnWaypointPending = true;
+    }
+
+    async routeSafelyToAltar(): Promise<boolean> {
+        const store = this.conf.unnote;
+        if (!store || !this.returnWaypointPending) return true;
+        this.setStatus('taking the safe route back to the altar');
+        await this.walkTo(store.safeWaypoint, 2);
+        const here = Game.tile();
+        if (!here || store.safeWaypoint.distanceTo(here) > 2) return false;
+        this.returnWaypointPending = false;
+        return true;
+    }
 }
 
 // master: the talisman, the runes it crafts and the essence it works on are the only things it
@@ -245,7 +283,7 @@ class HandleOpenTrade implements Task {
             return;
         }
         this.bot.setStatus(`accepting ${theirEssence} essence from ${who}`);
-        await Trade.accept();
+        await acceptOfferAndAwaitConfirmation();
     }
 }
 
@@ -426,7 +464,7 @@ class DriveTrade implements Task {
                     // nothing to give, but the master may be handing random-event litter back
                     if (Trade.theirOffer().length > 0) {
                         this.bot.setStatus('taking items back from the master');
-                        await Trade.accept();
+                        await acceptOfferAndAwaitConfirmation();
                     } else {
                         await Execution.delayTicks(1);
                     }
@@ -444,7 +482,7 @@ class DriveTrade implements Task {
                 }
             } else {
                 this.bot.setStatus('accepting the offer');
-                await Trade.accept();
+                await acceptOfferAndAwaitConfirmation();
             }
             return;
         }
@@ -523,6 +561,7 @@ class DeliverEssence implements Task {
     async execute(): Promise<void> {
         const masterName = this.bot.partnerNames()[0];
         this.bot.setStatus(`walking to ${masterName}`);
+        if (!(await this.bot.routeSafelyToAltar())) return;
         await this.bot.walkTo(this.bot.cfg().ruins, 2);
         const master = Players.query().name(...this.bot.partnerNames()).nearest();
         if (!master) {
@@ -551,6 +590,7 @@ class UnNoteEssence implements Task {
             return;
         }
         this.bot.setStatus('topping up unnoted essence at the store');
+        if (!(await this.bot.routeSafelyToStore())) return;
         await this.bot.walkTo(store.tile, 3);
         // one trip per arrival, a retried store visit must not climb all over again
         if (Date.now() - this.lastShakeAt > SHAKE_COOLDOWN_MS) {
@@ -581,6 +621,7 @@ class UnNoteEssence implements Task {
             }
         }
         await Shop.close();
+        this.bot.markStoreVisitComplete();
         this.bot.log(`store visit done: ${unnotedEssence()} unnoted held (noted left: ${notedEssence()})`);
     }
 }

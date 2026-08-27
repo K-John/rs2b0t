@@ -52,6 +52,7 @@ describe('RUNES (one row per rune the pair can run)', () => {
         expect([nature.ruins.x, nature.ruins.z]).toEqual([2865, 3022]);
         expect([nature.runnerBank.x, nature.runnerBank.z]).toEqual([2655, 3283]);
         expect(nature.unnote?.npc).toBe('Jiminua');
+        expect([nature.unnote?.safeWaypoint.x, nature.unnote?.safeWaypoint.z]).toEqual([2766, 3083]);
     });
 
     test('air is the short route: Falador East bank, no un-noting leg', () => {

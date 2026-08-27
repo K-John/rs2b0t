@@ -19,7 +19,7 @@ export interface RuneType {
     masterBank: Tile;
     // set when the bank is too far to carry unnoted: the runner banks a NOTE and un-notes here.
     // null = short bank<->altar hop, so it carries unnoted essence (no store, no fares, no ship)
-    unnote: { npc: string; tile: Tile } | null;
+    unnote: { npc: string; tile: Tile; safeWaypoint: Tile } | null;
 }
 
 export const RUNES: Record<string, RuneType> = {
@@ -28,7 +28,11 @@ export const RUNES: Record<string, RuneType> = {
         ruins: new Tile(2865, 3022, 0),
         runnerBank: new Tile(2655, 3283, 0), // Ardougne East, by Captain Barnaby's pier
         masterBank: new Tile(2852, 2954, 0), // Shilo Village (needs the Shilo Village quest)
-        unnote: { npc: 'Jiminua', tile: new Tile(2767, 3122, 0) } // Jiminua's Jungle Store, Karamja
+        unnote: {
+            npc: 'Jiminua',
+            tile: new Tile(2767, 3122, 0),
+            safeWaypoint: new Tile(2766, 3083, 0)
+        } // avoids the aggressive spiders on both store legs
     },
     'Air runes': {
         talisman: 'Air talisman', rune: 'Air rune', level: 1,
