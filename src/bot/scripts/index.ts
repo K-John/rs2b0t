@@ -62,6 +62,7 @@ import EssMiner, { SETTINGS as ESSMINER_SETTINGS } from './EssMiner/EssMiner.js'
 import CoalTrucks from './CoalTrucks/CoalTrucks.js';
 import RuneCrafter, { SETTINGS as RUNECRAFTER_SETTINGS } from './RuneCrafter/RuneCrafter.js';
 import NatureCrafter, { SETTINGS as NATURECRAFTER_SETTINGS } from './NatureCrafter/NatureCrafter.js';
+import MuleTrader, { MULE_TRADER_SETTINGS } from './MuleTrader/MuleTrader.js';
 import MuleCrafter, { SETTINGS as MULECRAFTER_SETTINGS } from './MuleCrafter/MuleCrafter.js';
 import RoguesPurse from './RoguesPurse/RoguesPurse.js';
 import HerbloreSecondaries, { HERBLORE_SECONDARIES_SETTINGS } from './HerbloreSecondaries/HerbloreSecondaries.js';
@@ -708,6 +709,15 @@ ScriptRegistry.register({
     tags: ['magic', 'smithing', 'superheat', 'banking', 'tick-perfect', 'fast'],
     settingsSchema: SUPERHEATER_SETTINGS,
     create: () => new Superheater()
+});
+
+ScriptRegistry.register({
+    name: 'MuleTrader',
+    description: 'Tick-driven multi-account bundle trader — distribute or receive exact item quantities once per configured partner',
+    category: 'Utility',
+    tags: ['trade', 'mule', 'multi-account', 'tick-perfect'],
+    settingsSchema: MULE_TRADER_SETTINGS,
+    create: () => new MuleTrader()
 });
 
 ScriptRegistry.register({
