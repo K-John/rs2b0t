@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { isShopRun, vialsToBuy } from '#/bot/scripts/VialFiller/VialFillerLogic.js';
+import { isShopRun, needsUnscheduledRestock, vialsToBuy } from '#/bot/scripts/VialFiller/VialFillerLogic.js';
 import { BANK_STANDS, VIAL_FILLER_SETTINGS } from '#/bot/scripts/VialFiller/VialFiller.js';
 
 describe('VialFiller restock cadence', () => {
@@ -26,6 +26,21 @@ describe('VialFiller restock cadence', () => {
     test('a zero or negative cadence never divides by zero into every-trip shopping', () => {
         expect(isShopRun(4, true, 0)).toBe(false);
         expect(isShopRun(4, true, -1)).toBe(false);
+    });
+});
+
+describe('VialFiller unscheduled restock', () => {
+    test('an empty bank forces a restock trip, including before the first scheduled run', () => {
+        expect(needsUnscheduledRestock(0, true)).toBe(true);
+    });
+
+    test('a bank with vials to withdraw never needs an unscheduled trip', () => {
+        expect(needsUnscheduledRestock(1, true)).toBe(false);
+        expect(needsUnscheduledRestock(27, true)).toBe(false);
+    });
+
+    test('stays off when the shopping option is disabled, even with an empty bank', () => {
+        expect(needsUnscheduledRestock(0, false)).toBe(false);
     });
 });
 

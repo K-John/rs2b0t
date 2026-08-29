@@ -17,3 +17,13 @@ export function isShopRun(runs: number, buyVials: boolean, everyN: number): bool
     }
     return runs % everyN === 0;
 }
+
+// Why: with an empty bank there is nothing to withdraw and nothing to fill, so
+// waiting for the scheduled cadence (which may be many trips away, or land on
+// a run that already happened) just stalls the script forever — including on
+// the very first trip, before any bank stock has been used up.
+
+/** An empty bank forces an unscheduled restock trip instead of waiting for the cadence. */
+export function needsUnscheduledRestock(bankVialCount: number, buyVials: boolean): boolean {
+    return buyVials && bankVialCount === 0;
+}

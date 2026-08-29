@@ -12,7 +12,7 @@ import { Locs } from '../../api/locs/Locs.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import type { SettingsSchema } from '../../runtime/Settings.js';
 import { fmtDuration } from '../../paint/paintLogic.js';
-import { isShopRun, vialsToBuy } from './VialFillerLogic.js';
+import { isShopRun, needsUnscheduledRestock, vialsToBuy } from './VialFillerLogic.js';
 
 const EMPTY_VIAL = 'Vial';
 const WATER_VIAL = 'Vial of water';
@@ -37,7 +37,12 @@ export const VIAL_FILLER_SETTINGS: SettingsSchema = {
         label: 'Which Falador bank',
         help: 'the fountain is 12 tiles from the west bank and 64 from the east one'
     },
-    buyVials: { type: 'boolean', default: false, label: 'Buy vials at Jatix?', help: "every Nth trip, restock empty vials from Jatix's herblore shop in Taverley (members area)" },
+    buyVials: {
+        type: 'boolean',
+        default: false,
+        label: 'Buy vials at Jatix?',
+        help: "every Nth trip, restock empty vials from Jatix's herblore shop in Taverley (members area); also runs immediately, off-schedule, whenever the bank has none to withdraw"
+    },
     buyEveryRuns: { type: 'number', default: 5, min: 1, max: 50, label: 'Shop run every N trips' },
     buyQty: { type: 'number', default: 27, min: 1, max: 28, label: 'Empty vials to buy', help: 'vials do not stack, so a restock is capped by free pack space' },
     coinsPerTrip: { type: 'number', default: 1000, min: 1, max: 100000, label: 'Coins to top up to', help: 'only withdrawn on a shop run' }
@@ -76,11 +81,14 @@ export default class VialFiller extends LoopingBot {
     // Why: vials do not stack and have nowhere to go once the pack is full of water vials.
     // Why: the restock buys what the fill leg is about to fill, so it runs while the pack is still empty.
     async loop(): Promise<void> {
-        const shopRun = isShopRun(this.runs, this.buyVials, this.buyEvery);
+        const scheduledShopRun = isShopRun(this.runs, this.buyVials, this.buyEvery);
 
-        if (!(await this.bankLeg(shopRun))) {
+        const bankResult = await this.bankLeg(scheduledShopRun);
+        if (bankResult === 'fail') {
             return;
         }
+        const shopRun = bankResult === 'shop';
+
         if (shopRun && !(await this.shopLeg())) {
             return;
         }
@@ -103,39 +111,48 @@ export default class VialFiller extends LoopingBot {
         return Traversal.walkResilient(dest, { radius: 3, attempts: 2, timeoutMs: 60_000, log: m => this.log(`  ${m}`) });
     }
 
-    private async bankLeg(shopRun: boolean): Promise<boolean> {
+    // Returns 'shop' when this trip needs a Jatix run — either the scheduled cadence hit,
+    // or the bank turned out to have no vials to withdraw (including on the very first trip).
+    private async bankLeg(scheduledShopRun: boolean): Promise<'ok' | 'shop' | 'fail'> {
         if (!(await this.walkTo(this.bankStand, `the ${this.bankLabel} bank`))) {
-            return false;
+            return 'fail';
         }
         this.setStatus('banking');
         if (!(await Bank.openNearest('Bank booth', 'Use-quickly', m => this.log(`  ${m}`)))) {
             this.log('could not open the bank — retrying');
-            return false;
+            return 'fail';
         }
 
         await Bank.depositAllMatching(name => name.toLowerCase() !== COINS.toLowerCase());
 
+        const bankVialCount = Bank.count(EMPTY_VIAL);
+        const bankEmpty = bankVialCount === 0;
+        const unscheduledRestock = needsUnscheduledRestock(bankVialCount, this.buyVials);
+        const shopRun = scheduledShopRun || unscheduledRestock;
+
         if (shopRun) {
+            if (unscheduledRestock && !scheduledShopRun) {
+                this.log(`no ${EMPTY_VIAL}s in the bank — running an unscheduled ${JATIX} restock`);
+            }
             if (Inventory.count(COINS) < this.coinFloat / 2 && Bank.count(COINS) > 0) {
                 await Bank.withdrawX(COINS, this.coinFloat);
             }
             if (Inventory.count(COINS) === 0) {
                 ScriptRunner.stop('no coins to restock vials with');
-                return false;
+                return 'fail';
             }
-        } else if (Bank.count(EMPTY_VIAL) === 0) {
-            if (this.buyVials) {
-                this.log(`no ${EMPTY_VIAL}s in the bank — the Jatix restock will refill on trip ${this.buyEvery}, or bank some vials.`);
-            } else {
-                ScriptRunner.stop(`no ${EMPTY_VIAL}s left in the bank`);
-            }
-            return false;
+        } else if (bankEmpty) {
+            ScriptRunner.stop(`no ${EMPTY_VIAL}s left in the bank`);
+            return 'fail';
         } else {
             await Bank.withdrawX(EMPTY_VIAL, this.freeSlots());
         }
 
         await Bank.close();
-        return shopRun || Inventory.count(EMPTY_VIAL) > 0;
+        if (shopRun) {
+            return 'shop';
+        }
+        return Inventory.count(EMPTY_VIAL) > 0 ? 'ok' : 'fail';
     }
 
     private async shopLeg(): Promise<boolean> {
