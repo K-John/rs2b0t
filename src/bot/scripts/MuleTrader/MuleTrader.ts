@@ -1,5 +1,6 @@
 import { LoopingBot, type LoopCadence } from '../../api/bot/Bot.js';
 import { Bank } from '../../api/bank/Bank.js';
+import { Execution } from '../../api/execution/Execution.js';
 import { Game } from '../../api/game/Game.js';
 import { Inventory } from '../../api/inventory/Inventory.js';
 import { Players } from '../../api/players/Players.js';
@@ -14,6 +15,8 @@ import { offerCount, offerMatchesExactly, parseTradeSpecs, type TradeSpec } from
 const TRADE_RANGE = 2;
 const REQUEST_RETRY_TICKS = 5;
 const HEADER_WAIT_TICKS = 8;
+const TRADE_CONFIRM_TIMEOUT_MS = 4000;
+const TRANSFER_VERIFY_TICKS = 6;
 
 export const MULE_TRADER_SETTINGS: SettingsSchema = {
     role: {
@@ -65,7 +68,7 @@ export default class MuleTrader extends LoopingBot {
             return;
         }
 
-        if (this.pendingPartner !== null) this.verifyClosedTrade();
+        if (this.pendingPartner !== null) await this.verifyClosedTrade();
         if (this.completed.size === this.partners.length) {
             ScriptRunner.stop(`MuleTrader complete: traded all ${this.completed.size} account(s)`);
             return;
@@ -101,7 +104,7 @@ export default class MuleTrader extends LoopingBot {
     }
 
     private async findAndRequestPartner(): Promise<void> {
-        const remaining = this.partners.filter(name => !this.completed.has(name.toLowerCase()));
+        const remaining = this.partners.filter(name => !this.completed.has(this.partnerKey(name)));
         const player = Players.query().name(...remaining).within(TRADE_RANGE).nearest();
         if (!player?.name) {
             this.status = `waiting nearby (${remaining.length} remaining)`;
@@ -124,7 +127,16 @@ export default class MuleTrader extends LoopingBot {
             if (this.snapshot.size === 0) this.captureSnapshot();
             this.pendingPartner = who;
             this.status = `confirming with ${who}`;
-            await Trade.accept();
+            if (!(await Trade.accept())) return;
+            const transferred = await Execution.delayUntilTicks(
+                () => !Trade.active() && this.transferDetected(),
+                TRANSFER_VERIFY_TICKS
+            );
+            if (transferred) {
+                this.completePendingTrade();
+            } else if (!Trade.active()) {
+                this.failPendingTrade();
+            }
             return;
         }
         if (!Trade.onOfferScreen()) return;
@@ -168,7 +180,7 @@ export default class MuleTrader extends LoopingBot {
         this.captureSnapshot();
         this.pendingPartner = who;
         this.status = `accepting offer with ${who}`;
-        await Trade.accept();
+        await this.acceptOfferAndAwaitConfirmation();
     }
 
     private async driveReceiver(who: string): Promise<void> {
@@ -184,22 +196,49 @@ export default class MuleTrader extends LoopingBot {
         this.captureSnapshot();
         this.pendingPartner = who;
         this.status = `accepting bundle from ${who}`;
-        await Trade.accept();
+        await this.acceptOfferAndAwaitConfirmation();
     }
 
-    private verifyClosedTrade(): void {
-        const who = this.pendingPartner;
-        if (!who) return;
+    // There is a dead tick between the offer and confirmation interfaces where Trade.active()
+    // is false. Holding this loop invocation until confirmation appears prevents that gap from
+    // being mistaken for a canceled or completed trade.
+    private async acceptOfferAndAwaitConfirmation(): Promise<boolean> {
+        if (!(await Trade.accept())) return false;
+        return Execution.delayUntil(() => Trade.onConfirmScreen(), TRADE_CONFIRM_TIMEOUT_MS);
+    }
+
+    // Covers cancellation and packet-order edge cases outside the normal final-confirm path.
+    // Do not request another trade until inventory has had several server ticks to settle.
+    private async verifyClosedTrade(): Promise<void> {
+        if (Trade.active() || this.pendingPartner === null) return;
+        if (this.transferDetected() || await Execution.delayUntilTicks(() => this.transferDetected(), TRANSFER_VERIFY_TICKS)) {
+            this.completePendingTrade();
+            return;
+        }
+        this.failPendingTrade();
+    }
+
+    private transferDetected(): boolean {
+        if (this.pendingPartner === null || this.snapshot.size === 0) return false;
         const direction = this.role === 'Distributor' ? -1 : 1;
-        const transferred = this.specs.every(spec =>
+        return this.specs.every(spec =>
             Inventory.count(spec.name) - (this.snapshot.get(spec.name.toLowerCase()) ?? 0) === direction * spec.quantity
         );
-        if (transferred) {
-            this.completed.add(who.toLowerCase());
-            this.log(`Completed ${this.role.toLowerCase()} trade with ${who} (${this.completed.size}/${this.partners.length})`);
-        } else {
-            this.log(`Trade with ${who} closed without the configured inventory delta; it remains pending`);
-        }
+    }
+
+    private completePendingTrade(): void {
+        const who = this.pendingPartner;
+        if (!who) return;
+        this.completed.add(this.partnerKey(who));
+        this.log(`Completed ${this.role.toLowerCase()} trade with ${who} (${this.completed.size}/${this.partners.length})`);
+        this.pendingPartner = null;
+        this.snapshot.clear();
+    }
+
+    private failPendingTrade(): void {
+        const who = this.pendingPartner;
+        if (!who) return;
+        this.log(`Trade with ${who} closed without the configured inventory delta; it will be retried`);
         this.pendingPartner = null;
         this.snapshot.clear();
     }
@@ -214,7 +253,11 @@ export default class MuleTrader extends LoopingBot {
     }
 
     private isRemainingPartner(name: string): boolean {
-        return isConfiguredPartner(name, this.partners) && !this.completed.has(name.toLowerCase());
+        return isConfiguredPartner(name, this.partners) && !this.completed.has(this.partnerKey(name));
+    }
+
+    private partnerKey(name: string): string {
+        return name.trim().toLowerCase();
     }
 
     private bundleLabel(): string {
