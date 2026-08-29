@@ -134,6 +134,7 @@ export default class NatureCrafter extends TaskBot {
         this.add(
             new ContinueDialog(),
             new HandleOpenTrade(this),
+            new DropMasterJunk(this),
             new CraftNatures(this),
             new ExitTemple(this),
             new EnterAltar(this),
@@ -222,8 +223,45 @@ export default class NatureCrafter extends TaskBot {
     }
 }
 
-// master: the talisman, the runes it crafts and the essence it works on are the only things it
-// should ever hold. Anything else is random-event litter (banked on the timer trip).
+// Random events can put unrelated items into either side's pack and runners may pass those
+// through with an essence delivery. Keep the master's working supplies and discard the rest.
+class DropMasterJunk implements Task {
+    constructor(private bot: NatureCrafter) {}
+
+    private junk() {
+        const keep = new Set([
+            COINS.toLowerCase(),
+            ESSENCE.toLowerCase(),
+            this.bot.cfg().talisman.toLowerCase(),
+            this.bot.cfg().rune.toLowerCase()
+        ]);
+        return Inventory.items().find(item =>
+            item.name !== null
+            && !keep.has(item.name.toLowerCase())
+            && item.actions().some(action => action.toLowerCase() === 'drop')
+        ) ?? null;
+    }
+
+    validate(): boolean {
+        return !Trade.active() && !Bank.isOpen() && this.junk() !== null;
+    }
+
+    async execute(): Promise<void> {
+        const item = this.junk();
+        if (!item) return;
+        const name = item.name ?? `item ${item.id}`;
+        const before = Inventory.countById(item.id);
+        this.bot.setStatus(`dropping random-event item: ${name}`);
+        this.bot.log(`dropping unwanted master item: ${name} x${item.count}`);
+        if (!(await item.interact('Drop'))) {
+            await Execution.delayTicks(1);
+            return;
+        }
+        await Execution.delayUntilTicks(() => Inventory.countById(item.id) < before, 2);
+    }
+}
+
+// The open-trade handler protects the master's working supplies while receiving deliveries.
 class HandleOpenTrade implements Task {
     private partnerWait = 0;
     constructor(private bot: NatureCrafter) {}
