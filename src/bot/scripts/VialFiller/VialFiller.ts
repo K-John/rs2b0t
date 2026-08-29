@@ -24,6 +24,11 @@ const FOUNTAIN = new Tile(2949, 3381, 0);
 const JATIX_STAND = new Tile(2899, 3427, 0);
 const JATIX = 'Jatix';
 
+// Jatix's empty vials restock at 1 per 100 ticks (~60s) toward a baseline of 800 (shopdb.ts),
+// so a scheduled restock can find the shelf near-empty and only trickle in a couple at a time.
+// Polling this often catches each new unit without hammering the shop interface.
+const RESTOCK_POLL_MS = 10_000;
+
 export const BANK_STANDS: Record<string, WorldTile> = {
     'Falador West': new Tile(2946, 3369, 0),
     'Falador East': new Tile(3013, 3355, 0)
@@ -45,7 +50,15 @@ export const VIAL_FILLER_SETTINGS: SettingsSchema = {
     },
     buyEveryRuns: { type: 'number', default: 5, min: 1, max: 50, label: 'Shop run every N trips' },
     buyQty: { type: 'number', default: 27, min: 1, max: 28, label: 'Empty vials to buy', help: 'vials do not stack, so a restock is capped by free pack space' },
-    coinsPerTrip: { type: 'number', default: 1000, min: 1, max: 100000, label: 'Coins to top up to', help: 'only withdrawn on a shop run' }
+    coinsPerTrip: { type: 'number', default: 1000, min: 1, max: 100000, label: 'Coins to top up to', help: 'only withdrawn on a shop run' },
+    maxShopWaitMinutes: {
+        type: 'number',
+        default: 30,
+        min: 1,
+        max: 120,
+        label: 'Max wait at Jatix (minutes)',
+        help: 'stays at the shop, buying as stock trickles back in, until the pack is full or this long has passed'
+    }
 };
 
 export default class VialFiller extends LoopingBot {
@@ -57,6 +70,7 @@ export default class VialFiller extends LoopingBot {
     private buyEvery = 5;
     private buyQty = 27;
     private coinFloat = 1000;
+    private maxShopWaitMs = 30 * 60_000;
 
     private runs = 0;
     private filled = 0;
@@ -73,6 +87,7 @@ export default class VialFiller extends LoopingBot {
         this.buyEvery = this.settings.num('buyEveryRuns', 5);
         this.buyQty = this.settings.num('buyQty', 27);
         this.coinFloat = this.settings.num('coinsPerTrip', 1000);
+        this.maxShopWaitMs = this.settings.num('maxShopWaitMinutes', 30) * 60_000;
         this.startedAt = Date.now();
 
         this.log(`VialFiller — ${this.bankLabel} bank -> Falador fountain${this.buyVials ? `, Jatix restock every ${this.buyEvery} trips` : ''}`);
@@ -155,6 +170,9 @@ export default class VialFiller extends LoopingBot {
         return Inventory.count(EMPTY_VIAL) > 0 ? 'ok' : 'fail';
     }
 
+    // Why: Jatix's shelf is usually near-empty by the time a scheduled restock arrives (see
+    // RESTOCK_POLL_MS above), so buying once and leaving nets only a couple of vials. Staying
+    // and re-buying as stock trickles back in fills the pack in one trip instead of many.
     private async shopLeg(): Promise<boolean> {
         if (!(await this.walkTo(JATIX_STAND, JATIX))) {
             return false;
@@ -164,11 +182,33 @@ export default class VialFiller extends LoopingBot {
             this.log(`could not open ${JATIX}'s shop — retrying`);
             return false;
         }
-        const want = vialsToBuy(this.freeSlots(), this.buyQty);
-        const bought = await Shop.buy(EMPTY_VIAL, want);
+
+        const target = vialsToBuy(this.freeSlots(), this.buyQty);
+        const deadline = Date.now() + this.maxShopWaitMs;
+        let bought = 0;
+        let waited = false;
+
+        while (bought < target && Shop.isOpen()) {
+            bought += await Shop.buy(EMPTY_VIAL, target - bought);
+            if (bought >= target) {
+                break;
+            }
+            if (Inventory.count(COINS) === 0) {
+                this.log('ran out of coins mid-restock');
+                break;
+            }
+            if (Date.now() >= deadline) {
+                this.log(`gave up waiting on ${JATIX} to restock after ${Math.round(this.maxShopWaitMs / 60_000)} min`);
+                break;
+            }
+            waited = true;
+            this.setStatus(`waiting for ${JATIX} to restock (${bought}/${target})`);
+            await Execution.delay(RESTOCK_POLL_MS);
+        }
+
         this.bought += bought;
         await Shop.close();
-        this.log(`bought ${bought} ${EMPTY_VIAL}s`);
+        this.log(`bought ${bought} ${EMPTY_VIAL}s${waited ? ` (waited for ${JATIX} to restock)` : ''}`);
         if (bought === 0) {
             this.log(`${JATIX} had no ${EMPTY_VIAL}s in stock — waiting for a restock`);
             return false;
