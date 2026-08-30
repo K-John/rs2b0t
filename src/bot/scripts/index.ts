@@ -50,6 +50,7 @@ import TickFiremaker, { TICK_FIREMAKER_SETTINGS } from './TickFiremaker/TickFire
 import Superheater, { SUPERHEATER_SETTINGS } from './Superheater/Superheater.js';
 import HighAlcher, { HIGH_ALCHER_SETTINGS } from './HighAlcher/HighAlcher.js';
 import TickChaosDruid, { CHAOS_DRUID_SETTINGS } from './TickChaosDruid/TickChaosDruid.js';
+import TickHobgoblin, { HOBGOBLIN_SETTINGS } from './TickHobgoblin/TickHobgoblin.js';
 import TickCooker, { TICK_COOKER_SETTINGS } from './TickCooker/TickCooker.js';
 import SmithingBot, { SETTINGS as SMITHING_SETTINGS } from './SmithingBot/SmithingBot.js';
 import BankFletcher, { SETTINGS as BANKFLETCHER_SETTINGS } from './BankFletcher/BankFletcher.js';
@@ -736,6 +737,15 @@ ScriptRegistry.register({
     tags: ['combat', 'druids', 'herbs', 'money', 'banking', 'tick-perfect', 'fast'],
     settingsSchema: CHAOS_DRUID_SETTINGS,
     create: () => new TickChaosDruid()
+});
+
+ScriptRegistry.register({
+    name: 'TickHobgoblin',
+    description: 'Tick-perfect Hobgoblin fighter — 0-tick kill detection, instant targeting, runs/root looting, and automated banking',
+    category: 'Combat',
+    tags: ['combat', 'hobgoblin', 'runes', 'money', 'banking', 'tick-perfect', 'fast'],
+    settingsSchema: HOBGOBLIN_SETTINGS,
+    create: () => new TickHobgoblin()
 });
 
 ScriptRegistry.register({
