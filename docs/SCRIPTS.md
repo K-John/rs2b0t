@@ -514,14 +514,14 @@ Fishes a chosen method at the spot that offers it; banks the catch, optionally c
 
 ### BankFletcher
 
-Bank-standing fletcher — withdraw logs, knife-fletch the chosen product (arrow shafts / unstrung bow), deposit, repeat
+Bank-standing fletcher — withdraw logs, knife-fletch the chosen product (arrow shafts / unstrung bow) or string bows with Bow string, deposit, repeat
 
 - Tags: `fletching`, `banking`, `afk`
 
 | Setting | Type | Default | Notes |
 |---|---|---|---|
-| `material` | string | `"Logs"` | Log type — one of: Logs, Oak logs, Willow logs, Maple logs, Yew logs, Magic logs |
-| `product` | string | `"Arrow shafts"` | Fletch product — one of: Arrow shafts, Short bow, Long bow, Headless arrows, Bronze arrows, Iron arrows, Steel arrows, Mithril arrows, Adamant arrows, Rune arrows |
+| `material` | string | `"Logs"` | Log type — one of: Logs, Oak logs, Willow logs, Maple logs, Yew logs, Magic logs, Bow string |
+| `product` | string | `"Arrow shafts"` | Fletch product — one of: Arrow shafts, Short bow, Long bow, Headless arrows, Bronze arrows, Iron arrows, Steel arrows, Mithril arrows, Adamant arrows, Rune arrows, Shortbow, Longbow, Oak shortbow, Oak longbow, Willow longbow, Willow shortbow, Maple longbow, Maple shortbow, Yew longbow, Yew shortbow, Magic longbow, Magic shortbow |
 | `bankStand` | tile | `{"x":3185,"z":3440,"level":0}` | Bank stand tile (x,z) |
 | `bankBooth` | string | `"Bank booth"` | Bank booth loc name |
 | `leashRadius` | number (2–20) | `6` | Booth search radius (tiles) |

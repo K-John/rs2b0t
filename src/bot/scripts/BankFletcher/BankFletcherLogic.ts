@@ -65,3 +65,43 @@ const ATTACH_PRODUCTS: Record<string, AttachPlan> = {
 export function attachPlanFor(product: string): AttachPlan | null {
     return ATTACH_PRODUCTS[product.trim().toLowerCase()] ?? null;
 }
+
+/** Material option that switches the script into bow-stringing mode. */
+export const BOW_STRING = 'Bow string';
+
+export function isBowStringMaterial(material: string): boolean {
+    return material.trim().toLowerCase() === BOW_STRING.toLowerCase();
+}
+
+/**
+ * Strung and unstrung bows share a display name in this revision (e.g. both read
+ * "Magic longbow"), so the id is the only thing that tells a finished bow from
+ * a stringing blank — see docs' HighAlcher UNSTRUNG_BOW_IDS/STRUNG_BOW_IDS note.
+ */
+export interface BowIds {
+    name: string;
+    unstrungId: number;
+    strungId: number;
+}
+
+const BOW_TYPES: readonly BowIds[] = [
+    { name: 'Shortbow', unstrungId: 50, strungId: 841 },
+    { name: 'Longbow', unstrungId: 48, strungId: 839 },
+    { name: 'Oak shortbow', unstrungId: 54, strungId: 843 },
+    { name: 'Oak longbow', unstrungId: 56, strungId: 845 },
+    { name: 'Willow longbow', unstrungId: 58, strungId: 847 },
+    { name: 'Willow shortbow', unstrungId: 60, strungId: 849 },
+    { name: 'Maple longbow', unstrungId: 62, strungId: 851 },
+    { name: 'Maple shortbow', unstrungId: 64, strungId: 853 },
+    { name: 'Yew longbow', unstrungId: 66, strungId: 855 },
+    { name: 'Yew shortbow', unstrungId: 68, strungId: 857 },
+    { name: 'Magic longbow', unstrungId: 70, strungId: 859 },
+    { name: 'Magic shortbow', unstrungId: 72, strungId: 861 }
+];
+
+export const BOW_OPTIONS = BOW_TYPES.map(b => b.name);
+
+export function bowIdsFor(product: string): BowIds | null {
+    const wanted = product.trim().toLowerCase();
+    return BOW_TYPES.find(b => b.name.toLowerCase() === wanted) ?? null;
+}

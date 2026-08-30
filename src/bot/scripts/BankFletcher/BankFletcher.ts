@@ -10,7 +10,19 @@ import { Skills } from '../../api/skills/Skills.js';
 import { ContinueDialog } from '../../api/tasks/ContinueDialog.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
 import { SettingsStore, type SettingsSchema } from '../../runtime/Settings.js';
-import { attachPlanFor, exactName, LOG_OPTIONS, logNameMatches, matchProduct, productNeedsDifferentLog } from './BankFletcherLogic.js';
+import {
+    attachPlanFor,
+    BOW_OPTIONS,
+    BOW_STRING,
+    bowIdsFor,
+    exactName,
+    isBowStringMaterial,
+    LOG_OPTIONS,
+    logNameMatches,
+    matchProduct,
+    productNeedsDifferentLog,
+    type BowIds
+} from './BankFletcherLogic.js';
 import { fmtDuration } from '../../paint/paintLogic.js';
 
 const DEFAULT_BANK_STAND = new Tile(3185, 3440, 0);
@@ -18,12 +30,14 @@ const FLETCHING_KNIFE = 'Knife';
 const BOOTH = { op: 'Use-quickly' };
 const PRODUCT_OPTIONS = [
     'Arrow shafts', 'Short bow', 'Long bow',
-    'Headless arrows', 'Bronze arrows', 'Iron arrows', 'Steel arrows', 'Mithril arrows', 'Adamant arrows', 'Rune arrows'
+    'Headless arrows', 'Bronze arrows', 'Iron arrows', 'Steel arrows', 'Mithril arrows', 'Adamant arrows', 'Rune arrows',
+    ...BOW_OPTIONS
 ];
+const MATERIAL_OPTIONS = [...LOG_OPTIONS, BOW_STRING];
 
 export const SETTINGS: SettingsSchema = {
-    material: { type: 'string', default: 'Logs', options: LOG_OPTIONS, label: 'Log type', help: 'the exact log to withdraw and fletch — only regular Logs make Arrow shafts; every log makes a bow. Ignored for the arrow attach products' },
-    product: { type: 'string', default: 'Arrow shafts', options: PRODUCT_OPTIONS, label: 'Fletch product', help: 'which product to make — knife products open the make-menu; arrow products attach item-on-item (material/knife ignored)' },
+    material: { type: 'string', default: 'Logs', options: MATERIAL_OPTIONS, label: 'Log type', help: 'the exact log to withdraw and fletch — only regular Logs make Arrow shafts; every log makes a bow. Pick Bow string to string the bow chosen in Fletch product instead (withdraws 14 Bow string + 14 of that unstrung bow and strings them, no knife/logs involved). Ignored for the arrow attach products' },
+    product: { type: 'string', default: 'Arrow shafts', options: PRODUCT_OPTIONS, label: 'Fletch product', help: 'which product to make — knife products open the make-menu; arrow products attach item-on-item (material/knife ignored); a bow name strings that bow when Log type is Bow string' },
     bankStand: { type: 'tile', default: DEFAULT_BANK_STAND, label: 'Bank stand tile (x,z)', help: 'stand adjacent to a bank booth — start the bot here' },
     bankBooth: { type: 'string', default: 'Bank booth', label: 'Bank booth loc name' },
     leashRadius: { type: 'number', default: 6, min: 2, max: 20, label: 'Booth search radius (tiles)' }
@@ -62,16 +76,22 @@ export default class BankFletcher extends TaskBot {
             this.log(`BankFletcher: Arrow shafts fletch only from regular Logs, not '${this.material}' — pick Logs or a bow product. Stopping.`);
             throw new Error('BankFletcher: arrow shafts require regular Logs');
         }
+        if (!plan && this.isStringingBows() && !this.bowPlan()) {
+            this.log(`BankFletcher: '${this.product}' isn't a recognized bow to string — pick a bow from Fletch product. Stopping.`);
+            throw new Error('BankFletcher: no matching bow for the Bow string material');
+        }
 
         this.startedAt = Date.now();
         this.xpAtStart = Skills.xp('fletching');
 
         if (plan) {
             this.log(`BankFletcher attaching '${plan.inputs[0]}' onto '${plan.inputs[1]}' → ${plan.product} at ${this.bankStand} (booth '${this.boothName}', r${this.leash})`);
+        } else if (this.isStringingBows()) {
+            this.log(`BankFletcher stringing '${this.product}' with ${BOW_STRING} at ${this.bankStand} (booth '${this.boothName}', r${this.leash})`);
         } else {
             this.log(`BankFletcher fletching '${this.material}' → ${this.product} at ${this.bankStand} (booth '${this.boothName}', r${this.leash})`);
         }
-        this.add(new ContinueDialog(), new FletchDialog(this), new Attach(this), new BankTrip(this), new Fletch(this));
+        this.add(new ContinueDialog(), new FletchDialog(this), new Attach(this), new StringBows(this), new BankTrip(this), new Fletch(this));
     }
 
     override onPaint(ctx: CanvasRenderingContext2D): void {
@@ -85,6 +105,9 @@ export default class BankFletcher extends TaskBot {
         const paintPlan = this.attachPlan();
         if (paintPlan) {
             p.row(`${paintPlan.inputs[0]}: ${this.packCount(paintPlan.inputs[0])}`, `${paintPlan.inputs[1]}: ${this.packCount(paintPlan.inputs[1])}`);
+        } else if (this.isStringingBows()) {
+            const bow = this.bowPlan();
+            p.row(`${BOW_STRING}: ${this.bowStringCount()}`, `${bow?.name ?? this.product} (u): ${this.unstrungBowCount()}`);
         } else {
             p.row(`Logs left: ${this.logCount()}`);
         }
@@ -118,6 +141,33 @@ export default class BankFletcher extends TaskBot {
         return attachPlanFor(this.product);
     }
 
+    isStringingBows(): boolean {
+        return isBowStringMaterial(this.material);
+    }
+
+    /** The chosen bow's unstrung/strung ids, or null outside Bow string mode / for an unrecognized product. */
+    bowPlan(): BowIds | null {
+        return this.isStringingBows() ? bowIdsFor(this.product) : null;
+    }
+
+    bowStringCount(): number {
+        return Inventory.count(BOW_STRING);
+    }
+
+    /** Why: strung and unstrung share a display name, so this counts by id, not name. */
+    unstrungBowCount(): number {
+        const bow = this.bowPlan();
+        return bow ? Inventory.countById(bow.unstrungId) : 0;
+    }
+
+    unstrungBowItem(): InvItem | null {
+        const bow = this.bowPlan();
+        if (!bow) {
+            return null;
+        }
+        return Inventory.items().find(i => i.id === bow.unstrungId) ?? null;
+    }
+
     packCount(name: string): number {
         const pat = name.toLowerCase();
         return Inventory.items().filter(i => i.name?.toLowerCase().includes(pat)).reduce((n, i) => n + Math.max(1, i.count), 0);
@@ -149,7 +199,7 @@ export default class BankFletcher extends TaskBot {
 
 class FletchDialog implements Task {
     constructor(private bot: BankFletcher) {}
-    validate(): boolean { return this.bot.attachPlan() === null && ChatDialog.isMakeMenu(); }
+    validate(): boolean { return !this.bot.isStringingBows() && this.bot.attachPlan() === null && ChatDialog.isMakeMenu(); }
     async execute(): Promise<void> {
         this.bot.setStatus('choosing product');
         const products = ChatDialog.makeProducts();
@@ -223,6 +273,9 @@ class BankTrip implements Task {
         if (plan) {
             return this.bot.packCount(plan.inputs[0]) === 0 || this.bot.packCount(plan.inputs[1]) === 0;
         }
+        if (this.bot.isStringingBows()) {
+            return this.bot.bowStringCount() === 0 || this.bot.unstrungBowCount() === 0;
+        }
         return this.bot.logCount() === 0;
     }
     async execute(): Promise<void> {
@@ -234,11 +287,16 @@ class BankTrip implements Task {
             return;
         }
         try {
-            await Bank.depositInventory();
+            const plan = this.bot.attachPlan();
+            // Why: knife products (#484 fletch mode) always need the knife back out right
+            // after — keep it in the pack instead of depositing it just to re-withdraw it.
+            // Bow stringing needs no knife either, so it deposits everything like attach mode.
+            const keepKnife = plan === null && !this.bot.isStringingBows();
+            const knife = this.bot.knifeName().toLowerCase();
+            await Bank.depositAllMatching(name => !keepKnife || name.toLowerCase() !== knife);
             await Execution.delayTicks(1);
             this.bot.countTrip();
 
-            const plan = this.bot.attachPlan();
             if (plan) {
                 for (const input of plan.inputs) {
                     const pat = input.toLowerCase();
@@ -257,6 +315,29 @@ class BankTrip implements Task {
                 return;
             }
 
+            if (this.bot.isStringingBows()) {
+                const bow = this.bot.bowPlan();
+                if (!bow) {
+                    ScriptRunner.stop(`BankFletcher: '${this.bot.productName()}' is not a recognized bow — stopping`);
+                    return;
+                }
+                const bankStrings = Bank.count(BOW_STRING);
+                const bankBows = Bank.countById(bow.unstrungId);
+                if (bankStrings === 0 || bankBows === 0) {
+                    ScriptRunner.stop(
+                        `BankFletcher: bank is out of ${bankStrings === 0 ? BOW_STRING : `unstrung ${bow.name}`} — stringing complete`
+                    );
+                    return;
+                }
+                // Why: withdraw matched pairs (never more than either reserve holds) so the
+                // pack doesn't carry surplus of one side that just gets redeposited next trip.
+                const take = Math.min(14, bankStrings, bankBows);
+                this.bot.log(`withdrawing ${take} ${BOW_STRING} + ${take} unstrung ${bow.name}`);
+                await Bank.withdrawX(BOW_STRING, take);
+                await Bank.withdrawXById(bow.unstrungId, take);
+                return;
+            }
+
             const logItem = Bank.items().find(i => logNameMatches(i.name, this.bot.materialName()));
             if (!logItem || logItem.name === null) {
                 ScriptRunner.stop(`BankFletcher: bank is out of '${this.bot.materialName()}' — fletching complete`);
@@ -264,15 +345,17 @@ class BankTrip implements Task {
             }
             const logName = logItem.name;
 
-            const knifeBank = exactName(Bank.items(), this.bot.knifeName());
-            if (!knifeBank || knifeBank.name === null) {
-                this.bot.setStatus('error: no Knife');
-                this.bot.log('No Knife in bank or inventory.');
-                ScriptRunner.stop('BankFletcher: no Knife in bank or inventory');
-                return;
-            }
-            const knifeName = knifeBank.name;
-            if (Inventory.count(knifeName) === 0) {
+            // Why: the knife now rides in the pack across trips (never deposited), so a
+            // held knife is never in Bank.items() — check the pack before the bank.
+            if (!this.bot.knifeItem()) {
+                const knifeBank = exactName(Bank.items(), this.bot.knifeName());
+                if (!knifeBank || knifeBank.name === null) {
+                    this.bot.setStatus('error: no Knife');
+                    this.bot.log('No Knife in bank or inventory.');
+                    ScriptRunner.stop('BankFletcher: no Knife in bank or inventory');
+                    return;
+                }
+                const knifeName = knifeBank.name;
                 const knifeOps = knifeBank.ops.filter((o): o is string => o !== null);
                 const oneOp = withdrawOp(knifeOps, '1') ?? withdrawOp(knifeOps, 'any') ?? 'Withdraw-1';
                 await Bank.withdraw(knifeName, oneOp);
@@ -308,7 +391,8 @@ class BankTrip implements Task {
 class Fletch implements Task {
     constructor(private bot: BankFletcher) {}
     validate(): boolean {
-        return this.bot.attachPlan() === null
+        return !this.bot.isStringingBows()
+            && this.bot.attachPlan() === null
             && this.bot.logCount() > 0
             && !ChatDialog.isOpen()
             && !Bank.isOpen();
@@ -324,6 +408,40 @@ class Fletch implements Task {
             if (!(await knife.useOn(log))) { await Execution.delayTicks(2); continue; }
             await Execution.delayUntil(() => ChatDialog.isMakeMenu() || this.bot.logCount() < before || ChatDialog.canContinue(), 8000);
             if (ChatDialog.isMakeMenu()) { return; }
+        }
+    }
+}
+
+class StringBows implements Task {
+    constructor(private bot: BankFletcher) {}
+    validate(): boolean {
+        return this.bot.isStringingBows()
+            && this.bot.bowPlan() !== null
+            && this.bot.bowStringCount() > 0
+            && this.bot.unstrungBowCount() > 0
+            && !ChatDialog.isOpen()
+            && !Bank.isOpen();
+    }
+    async execute(): Promise<void> {
+        const bow = this.bot.bowPlan();
+        if (!bow) { return; }
+        this.bot.setStatus(`stringing ${bow.name}`);
+        // Why: stringing has no swing/animation lock in this revision, one click resolves
+        // within a tick or two, so this polls the tick boundary and re-clicks immediately
+        // instead of waiting out an animation that never happens (as fast as the server allows).
+        for (let n = 0; n < 20 && this.bot.unstrungBowCount() > 0 && this.bot.bowStringCount() > 0; n++) {
+            if (ChatDialog.isOpen()) { return; }
+            const string = this.bot.packItem(BOW_STRING);
+            const unstrung = this.bot.unstrungBowItem();
+            if (!string || !unstrung) { return; }
+            const before = this.bot.unstrungBowCount();
+            if (!(await string.useOn(unstrung))) { await Execution.delayTicks(1); continue; }
+            const progressed = await Execution.delayUntilTicks(() => this.bot.unstrungBowCount() < before, 2);
+            if (progressed) {
+                this.bot.recordMade(before - this.bot.unstrungBowCount());
+            } else {
+                return;
+            }
         }
     }
 }
