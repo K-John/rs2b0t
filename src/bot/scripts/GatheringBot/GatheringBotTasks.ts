@@ -35,7 +35,8 @@ import {
     isConfiguredPartner
 } from '../../api/trade/PartnerTrade.js';
 import { driveActivePartnerTrade } from '../../api/trade/drivePartnerTrade.js';
-import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS } from '../../data/miningRocks.js';
+import { BROKEN_PICKAXE, GAS_ROCK_IDS, GAS_ROCK_TICKS, isRockContested } from '../../data/miningRocks.js';
+import { Players } from '../../api/players/Players.js';
 import { bestPickaxe } from '../../api/acquisition/Tools.js';
 import { WHIRLPOOL_IDS, fishingRestockPlan } from '../../data/fishingMethods.js';
 import {
@@ -2251,18 +2252,34 @@ export class Gather implements Task {
     private findRock() {
         // Why: the camp membership fence (anchor leash) and the ore or tree type filters come first.
         // Why: rocks near the player are preferred, so the bot does not path across Dwarven tunnels or SE Varrock while a matching ore is underfoot.
-        return Locs.query()
-            .name(this.bot.targetName())
-            .action(this.bot.actionName())
-            .where(
-                l =>
-                    // Allow distance 0 (standing on multi-tile tree/rock footprint).
-                    tileWithinLeash(this.bot, l.tile()) &&
-                    this.bot.matchesRock(l.id) &&
-                    !GAS_ROCK_IDS.has(l.id) &&
-                    this.bot.usable(keyOf(l.tile()))
-            )
-            .nearestPreferLocal(LOCAL_MINE_PREFER_RADIUS);
+        const candidates = () =>
+            Locs.query()
+                .name(this.bot.targetName())
+                .action(this.bot.actionName())
+                .where(
+                    l =>
+                        // Allow distance 0 (standing on multi-tile tree/rock footprint).
+                        tileWithinLeash(this.bot, l.tile()) &&
+                        this.bot.matchesRock(l.id) &&
+                        !GAS_ROCK_IDS.has(l.id) &&
+                        this.bot.usable(keyOf(l.tile()))
+                );
+
+        // Why: a rock another player is already standing next to (or swinging at) is a
+        // wasted click, so a Miner routes around them onto a free rock when one is in
+        // range. Trees are not filtered this way, sharing a tree costs nothing.
+        if (!this.bot.woodcutting()) {
+            const occupied = Players.query().results().map(p => p.tile());
+            if (occupied.length > 0) {
+                const free = candidates()
+                    .where(l => !isRockContested(l.tile(), occupied))
+                    .nearestPreferLocal(LOCAL_MINE_PREFER_RADIUS);
+                if (free) {
+                    return free;
+                }
+            }
+        }
+        return candidates().nearestPreferLocal(LOCAL_MINE_PREFER_RADIUS);
     }
 
     validate(): boolean {

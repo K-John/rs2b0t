@@ -58,3 +58,19 @@ export function resolveRockIds(names: string[]): Set<number> {
     }
     return ids;
 }
+
+/** Chebyshev radius counting a player as already working a rock — adjacent (incl. diagonal) or standing on it. */
+export const ROCK_CONTESTED_RADIUS = 1;
+
+/**
+ * Whether another player is close enough to a rock that it is already being mined, or is about to be.
+ * Why: a rock someone is standing next to is a wasted click, no yield and no gain, so a miner should route
+ * around them onto a free rock rather than contest the tile.
+ */
+export function isRockContested(
+    rockTile: { x: number; z: number },
+    playerTiles: readonly { x: number; z: number }[],
+    radius = ROCK_CONTESTED_RADIUS
+): boolean {
+    return playerTiles.some(t => Math.max(Math.abs(t.x - rockTile.x), Math.abs(t.z - rockTile.z)) <= radius);
+}

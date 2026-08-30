@@ -15,8 +15,9 @@ import { fmtDuration } from '../../paint/paintLogic.js';
 import { Locs, type Loc } from '../../api/locs/Locs.js';
 import { GameMessages } from '../../api/chatbox/gameMessages.js';
 import { ScriptRunner } from '../../runtime/ScriptRunner.js';
-import { GAS_ROCK_IDS } from '../../data/miningRocks.js';
+import { GAS_ROCK_IDS, isRockContested } from '../../data/miningRocks.js';
 import { bestPickaxe } from '../../api/acquisition/Tools.js';
+import { Players } from '../../api/players/Players.js';
 import {
     COAL,
     COAL_MINING_LEVEL,
@@ -175,12 +176,23 @@ export default class CoalTrucks extends LoopingBot {
     }
 
     private findRock(): Loc | null {
-        return Locs.query()
-            .name(ROCK_LOC)
-            .action(MINE_OP)
-            .where(loc => COAL_ROCK_IDS.includes(loc.id) && !GAS_ROCK_IDS.has(loc.id))
-            .where(loc => loc.tile().distanceTo(MINE_ANCHOR) <= ROCK_LEASH)
-            .nearest();
+        const candidates = () =>
+            Locs.query()
+                .name(ROCK_LOC)
+                .action(MINE_OP)
+                .where(loc => COAL_ROCK_IDS.includes(loc.id) && !GAS_ROCK_IDS.has(loc.id))
+                .where(loc => loc.tile().distanceTo(MINE_ANCHOR) <= ROCK_LEASH);
+
+        // Why: a rock another player is already standing next to is a wasted click, so
+        // route around them onto a free rock when one exists within the leash.
+        const occupied = Players.query().results().map(p => p.tile());
+        if (occupied.length > 0) {
+            const free = candidates().where(loc => !isRockContested(loc.tile(), occupied)).nearest();
+            if (free) {
+                return free;
+            }
+        }
+        return candidates().nearest();
     }
 
     private truckAt(expected: Tile): Loc | null {
